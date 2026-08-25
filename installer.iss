@@ -7,7 +7,7 @@
 ; ============================================
 
 #define MyAppName      "Zenith Launcher"
-#define MyAppVersion   "1.0.0"
+#define MyAppVersion   "1.0.1"
 #define MyAppPublisher "Zenith Launcher Team"
 #define MyAppURL       "https://github.com/MrGiperTroll/Zenith-Launcher"
 #define MyAppExeName   "Zenith Launcher.exe"

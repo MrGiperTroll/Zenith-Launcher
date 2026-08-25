@@ -41,8 +41,8 @@
 
 ```bash
 # Clone the repository
-git clone https://github.com/ZenithLauncherTeam/ZenithLauncher.git
-cd ZenithLauncher
+git clone https://github.com/MrGiperTroll/Zenith-Launcher.git
+cd Zenith-Launcher
 
 # Build in Release mode
 dotnet build -c Release

@@ -24,7 +24,6 @@ public partial class UpdateNotificationViewModel : ObservableObject
 
     [ObservableProperty] private string _titleText = "";
     [ObservableProperty] private string _statusText = "";
-    [ObservableProperty] private string _releaseNotes = "";
     [ObservableProperty] private string _updateButtonText = "";
     [ObservableProperty] private string _dismissText = "";
     [ObservableProperty] private bool _isDownloading;
@@ -34,9 +33,6 @@ public partial class UpdateNotificationViewModel : ObservableObject
         _update = update;
         _closeWindow = closeWindow;
         TitleText = $"{L10n.T("update_title")} {update.Version}";
-        ReleaseNotes = string.IsNullOrWhiteSpace(update.ReleaseNotes)
-            ? ""
-            : update.ReleaseNotes;
         UpdateButtonText = L10n.T("update_download");
         DismissText = L10n.T("update_later");
     }

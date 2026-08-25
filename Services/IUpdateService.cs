@@ -119,7 +119,7 @@ public sealed class GitHubUpdateService : IUpdateService
             var psi = new System.Diagnostics.ProcessStartInfo
             {
                 FileName = tempPath,
-                Arguments = "/SILENT /CLOSEAPPLICATIONS /RESTARTAPPLICATIONS",
+                Arguments = "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP- /CLOSEAPPLICATIONS /RESTARTAPPLICATIONS",
                 UseShellExecute = true
             };
             System.Diagnostics.Process.Start(psi);

@@ -4,8 +4,8 @@
         x:DataType="vms:UpdateNotificationViewModel"
         xmlns:vms="clr-namespace:CustomMcLauncher.Views"
         Title="Zenith Launcher"
-        Width="380" Height="200"
-        MinWidth="340" MinHeight="180"
+        Width="360" Height="150"
+        MinWidth="320" MinHeight="140"
         WindowStartupLocation="CenterOwner"
         Background="{StaticResource BgBrush}"
         CanResize="False"
@@ -44,20 +44,13 @@
                        FontSize="16" FontWeight="SemiBold"
                        Foreground="{StaticResource TextPrimaryBrush}"/>
 
-            <!-- Status / release notes -->
+            <!-- Status -->
             <TextBlock Grid.Row="1"
                        Text="{Binding StatusText}"
                        FontSize="12.5"
                        TextWrapping="Wrap"
                        Foreground="{StaticResource TextSecondaryBrush}"
                        IsVisible="{Binding StatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
-            <TextBlock Grid.Row="1"
-                       Text="{Binding ReleaseNotes}"
-                       FontSize="12"
-                       TextWrapping="Wrap"
-                       MaxLines="3"
-                       Foreground="{StaticResource TextSecondaryBrush}"
-                       IsVisible="{Binding !IsDownloading}"/>
 
             <!-- Buttons -->
             <StackPanel Grid.Row="2"

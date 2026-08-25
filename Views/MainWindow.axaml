@@ -7,7 +7,7 @@
         xmlns:l10n="using:CustomMcLauncher.Extensions"
         x:Class="CustomMcLauncher.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Title="Zenith Launcher"
+        Title="{Binding WindowTitle}"
         Width="1280" Height="780"
         MinWidth="1080" MinHeight="680"
         WindowStartupLocation="CenterScreen"

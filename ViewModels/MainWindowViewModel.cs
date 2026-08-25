@@ -70,6 +70,9 @@ public partial class MainWindowViewModel : ViewModelBase
     public string VersionLabel { get; } =
         System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.0.0";
 
+    public string WindowTitle { get; } =
+        $"Zenith Launcher v{System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.0.0"}";
+
     [ObservableProperty]
     private string _jvmArgs = "-XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC";
 

@@ -494,6 +494,12 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
         ["java_display_system_path"] = "(system PATH)",
         ["java_display_notset"] = "(not set)",
         ["java_display_notfound"] = "(not found)",
+        ["update_title"] = "New update available:",
+        ["update_download"] = "Update now",
+        ["update_later"] = "I'll do this later",
+        ["update_downloading"] = "Downloading update...",
+        ["update_installing"] = "Installing update...",
+        ["update_failed"] = "Download failed. Try again or download from GitHub.",
     };
 
     // ------------------------------------------------------------------ RU
@@ -856,6 +862,12 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
         ["java_display_system_path"] = "(системная PATH)",
         ["java_display_notset"] = "(не задана)",
         ["java_display_notfound"] = "(не найдена)",
+        ["update_title"] = "Доступно обновление:",
+        ["update_download"] = "Обновить сейчас",
+        ["update_later"] = "Позже",
+        ["update_downloading"] = "Загрузка обновления...",
+        ["update_installing"] = "Установка обновления...",
+        ["update_failed"] = "Ошибка загрузки. Попробуйте снова или скачайте с GitHub.",
     };
 
     // ------------------------------------------------------------------ UK
@@ -1218,6 +1230,12 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
         ["java_display_system_path"] = "(системна PATH)",
         ["java_display_notset"] = "(не задано)",
         ["java_display_notfound"] = "(не знайдено)",
+        ["update_title"] = "Доступне оновлення:",
+        ["update_download"] = "Оновити зараз",
+        ["update_later"] = "Пізніше",
+        ["update_downloading"] = "Завантаження оновлення...",
+        ["update_installing"] = "Встановлення оновлення...",
+        ["update_failed"] = "Помилка завантаження. Спробуйте ще або завантажте з GitHub.",
     };
 
     // ------------------------------------------------------------------ TR
@@ -1580,6 +1598,12 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
         ["java_display_system_path"] = "(sistem PATH)",
         ["java_display_notset"] = "(ayarlanmadı)",
         ["java_display_notfound"] = "(bulunamadı)",
+        ["update_title"] = "Yeni güncelleme mevcut:",
+        ["update_download"] = "Şimdi güncelle",
+        ["update_later"] = "Sonra",
+        ["update_downloading"] = "Güncelleme indiriliyor...",
+        ["update_installing"] = "Güncelleme kuruluyor...",
+        ["update_failed"] = "İndirme başarısız. Tekrar deneyin veya GitHub'dan indirin.",
     };
 
     // ------------------------------------------------------------------ DE
@@ -1942,6 +1966,12 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
         ["java_display_system_path"] = "(System-PATH)",
         ["java_display_notset"] = "(nicht festgelegt)",
         ["java_display_notfound"] = "(nicht gefunden)",
+        ["update_title"] = "Neues Update verfügbar:",
+        ["update_download"] = "Jetzt aktualisieren",
+        ["update_later"] = "Später",
+        ["update_downloading"] = "Update wird heruntergeladen...",
+        ["update_installing"] = "Update wird installiert...",
+        ["update_failed"] = "Download fehlgeschlagen. Erneut versuchen oder von GitHub herunterladen.",
     };
 
     // ------------------------------------------------------------------ FR
@@ -2304,5 +2334,11 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
         ["java_display_system_path"] = "(PATH système)",
         ["java_display_notset"] = "(non défini)",
         ["java_display_notfound"] = "(introuvable)",
+        ["update_title"] = "Nouvelle mise à jour disponible :",
+        ["update_download"] = "Mettre à jour",
+        ["update_later"] = "Plus tard",
+        ["update_downloading"] = "Téléchargement de la mise à jour...",
+        ["update_installing"] = "Installation de la mise à jour...",
+        ["update_failed"] = "Échec du téléchargement. Réessayez ou téléchargez depuis GitHub.",
     };
 }

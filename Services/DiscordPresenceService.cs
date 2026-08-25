@@ -51,7 +51,7 @@ public static class DiscordPresenceService
     public const string LargeImageKey = "logo";
 
     /// <summary>Target of the "Download Launcher" presence button.</summary>
-    public const string DownloadUrl = "https://github.com/ZenithLauncherTeam/ZenithLauncher/releases/latest";
+    public const string DownloadUrl = "https://github.com/MrGiperTroll/Zenith-Launcher/releases/latest";
 
     private const string AppName = "Zenith Launcher";
     private const string LargeImageText = "Zenith Launcher";

@@ -114,11 +114,12 @@ public sealed class GitHubUpdateService : IUpdateService
                 await response.Content.CopyToAsync(fs, ct).ConfigureAwait(false);
             }
 
-            LauncherLog.Info($"Update downloaded to {tempPath}. Launching installer...");
+            LauncherLog.Info($"Update downloaded to {tempPath}. Starting silent install...");
 
             var psi = new System.Diagnostics.ProcessStartInfo
             {
                 FileName = tempPath,
+                Arguments = "/SILENT /CLOSEAPPLICATIONS /RESTARTAPPLICATIONS",
                 UseShellExecute = true
             };
             System.Diagnostics.Process.Start(psi);

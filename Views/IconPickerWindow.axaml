@@ -1,0 +1,90 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:CustomMcLauncher.ViewModels"
+        xmlns:l10n="using:CustomMcLauncher.Extensions"
+        x:Class="CustomMcLauncher.Views.IconPickerWindow"
+        x:DataType="vm:IconPickerViewModel"
+        Title="{l10n:Tr Key=icon_title}"
+        Width="520" Height="480"
+        MinWidth="480" MinHeight="400"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource BgBrush}">
+
+    <Window.Styles>
+        <Style Selector="Button.iconBtn">
+            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderEditorBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Width" Value="64"/>
+            <Setter Property="Height" Value="64"/>
+        </Style>
+        <Style Selector="Button.iconBtn:pointerover">
+            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+        </Style>
+        <Style Selector="Button.iconBtn:selected">
+            <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+        </Style>
+        <Style Selector="TextBox.darkInput">
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="10,8"/>
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto,*,Auto" Margin="16">
+        <StackPanel Grid.Row="0" Spacing="8" Margin="0,0,0,12">
+            <TextBlock Text="{l10n:Tr Key=icon_title}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+            <TextBlock Text="{l10n:Tr Key=icon_subtitle}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+            <TextBox Classes="darkInput" Text="{Binding SearchQuery}" PlaceholderText="{l10n:Tr Key=icon_search}" FontSize="11"/>
+        </StackPanel>
+
+        <Border Grid.Row="1" Background="{StaticResource SurfaceBrush}" CornerRadius="10" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" Padding="8">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Spacing="12">
+                    <ItemsControl ItemsSource="{Binding FilteredIcons}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Classes="iconBtn" Margin="4" Command="{Binding $parent[Window].((vm:IconPickerViewModel)DataContext).SelectIconCommand}" CommandParameter="{Binding}" ToolTip.Tip="{Binding Name}">
+                                    <Panel>
+                                        <Image Source="{Binding FilePath, Converter={x:Static vm:IconPathToBitmapConverter.Instance}}" Stretch="UniformToFill" Width="64" Height="64" IsVisible="{Binding FilePath, Converter={x:Static vm:IsNotNullConverter.Instance}}"/>
+                                        <Border Background="{Binding Color, Converter={x:Static vm:StringToBrushConverter.Instance}}" CornerRadius="8" IsVisible="{Binding FilePath, Converter={x:Static vm:IsNullConverter.Instance}}">
+                                            <Path Data="{Binding GeometryData}" Fill="White" Stretch="Uniform" Width="28" Height="28" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding GeometryData, Converter={x:Static vm:IsNotNullConverter.Instance}}"/>
+                                        </Border>
+                                        <Border Background="#80000000" CornerRadius="8" IsVisible="{Binding IsCustom}" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Height="14">
+                                            <TextBlock Text="{Binding Name}" FontSize="7" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                        </Border>
+                                    </Panel>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <Button Content="{l10n:Tr Key=icon_custom_add}" Command="{Binding PickCustomIconCommand}" Classes="iconBtn" Width="140" Height="36" HorizontalAlignment="Left" Margin="4,8,0,0" Background="{StaticResource FieldBrush}" Foreground="{StaticResource TextSecondaryBrush}" BorderBrush="{StaticResource BorderEditorBrush}" CornerRadius="8" FontSize="11" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <PathIcon Data="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z" Width="12" Height="12"/>
+                            <TextBlock Text="{l10n:Tr Key=icon_custom_label}" FontSize="11"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,12,0,0">
+            <TextBlock Text="{Binding SelectedIcon.Name, FallbackValue=''}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            <Button Content="{l10n:Tr Key=cancel}" Classes="subBtn" Width="90" HorizontalContentAlignment="Center" Command="{Binding $parent[Window].Close}"/>
+            <Button Content="{l10n:Tr Key=btn_select}" Classes="primaryBtn" Width="90" HorizontalContentAlignment="Center" IsEnabled="{Binding SelectedIcon, Converter={x:Static ObjectConverters.IsNotNull}}" Command="{Binding $parent[Window].Close}"/>
+        </StackPanel>
+    </Grid>
+</Window>

@@ -1,0 +1,109 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:CustomMcLauncher.ViewModels"
+        xmlns:l10n="using:CustomMcLauncher.Extensions"
+        x:Class="CustomMcLauncher.Views.CloneProfileWindow"
+        x:DataType="vm:CloneProfileViewModel"
+        Title="{l10n:Tr Key=clone_title}"
+        Width="500" Height="600"
+        MinWidth="460" MinHeight="540"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource BgBrush}"
+        CanResize="False">
+
+    <Window.Styles>
+        <Style Selector="TextBox.darkInput">
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+        <Style Selector="Button.primaryBtn">
+            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="18,9"/>
+        </Style>
+        <Style Selector="Button.primaryBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource AccentBrushHover}"/>
+            <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
+        </Style>
+        <Style Selector="Button.primaryBtn:disabled">
+            <Setter Property="Background" Value="{StaticResource PanelBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextDisabledBrush}"/>
+        </Style>
+        <Style Selector="Button.subBtn">
+            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderEditorBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="18,9"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.subBtn:pointerover">
+            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        </Style>
+        <Style Selector="CheckBox">
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="MinHeight" Value="30"/>
+        </Style>
+    </Window.Styles>
+
+    <Border Background="{StaticResource CardAltBrush}" CornerRadius="16" Margin="12" BoxShadow="0 16 40 0 #80000000">
+        <Grid RowDefinitions="Auto,*,Auto" Margin="22,20,22,16">
+            <!-- Header -->
+            <StackPanel Grid.Row="0" Spacing="2" Margin="0,0,0,14">
+                <TextBlock Text="{l10n:Tr Key=clone_title}" FontSize="17" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                <TextBlock Text="{Binding SourceTitle}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" TextTrimming="CharacterEllipsis"/>
+            </StackPanel>
+
+            <!-- Body -->
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel Spacing="14">
+                    <!-- New name -->
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{l10n:Tr Key=clone_new_name}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" LetterSpacing="0.5"/>
+                        <Border BorderThickness="1" CornerRadius="10" Background="Transparent"
+                                BorderBrush="{Binding IsNameDuplicate, Converter={x:Static vm:BoolToErrorBrushConverter.Instance}}">
+                            <TextBox Classes="darkInput" Text="{Binding ProfileName}" PlaceholderText="{l10n:Tr Key=clone_ph}" BorderThickness="0"/>
+                        </Border>
+                        <Border Height="15" Margin="0,2,0,0">
+                            <TextBlock Text="{l10n:Tr Key=cp_duplicate}" FontSize="11" Foreground="{StaticResource DangerBrush}" IsVisible="{Binding IsNameDuplicate}"/>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Components -->
+                    <Border Background="{StaticResource SurfaceBrush}" CornerRadius="12" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" Padding="14,10">
+                        <StackPanel Spacing="2">
+                            <CheckBox Content="{l10n:Tr Key=clone_select_all}" IsChecked="{Binding SelectAll}" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <Separator Background="{StaticResource BorderCardSoftBrush}" Margin="0,4,0,6"/>
+                            <CheckBox Content="{l10n:Tr Key=tab_mods}" IsChecked="{Binding CopyMods}"/>
+                            <CheckBox Content="{l10n:Tr Key=tab_resourcepacks}" IsChecked="{Binding CopyResourcePacks}"/>
+                            <CheckBox Content="{l10n:Tr Key=tab_shaders}" IsChecked="{Binding CopyShaderPacks}"/>
+                            <CheckBox Content="{l10n:Tr Key=clone_configs}" IsChecked="{Binding CopyConfigs}"/>
+                            <CheckBox Content="{l10n:Tr Key=clone_worlds}" IsChecked="{Binding CopyWorlds}"/>
+                            <CheckBox Content="{l10n:Tr Key=tab_datapacks}" IsChecked="{Binding CopyDataPacks}"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Footer -->
+            <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,14,0,0">
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Content="{l10n:Tr Key=cancel}" Classes="subBtn" Command="{Binding CancelCommand}" Padding="18,9"/>
+                    <Button Content="{l10n:Tr Key=clone_confirm}" Classes="primaryBtn" Command="{Binding CloneCommand}" IsEnabled="{Binding CanClone}" Margin="8,0,0,0" Padding="20,9"/>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

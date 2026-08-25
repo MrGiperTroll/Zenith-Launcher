@@ -1,0 +1,109 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="CustomMcLauncher.Views.CrashReportWindow"
+        xmlns:self="using:CustomMcLauncher.Views"
+        x:DataType="self:CrashReportWindowVm"
+        xmlns:vm="using:CustomMcLauncher.ViewModels"
+        Title="{l10n:Tr crash_window_title}"
+        xmlns:l10n="using:CustomMcLauncher.Extensions"
+        Width="620" Height="480"
+        MinWidth="520" MinHeight="380"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource BgBrush}"
+        CanResize="True">
+
+    <Window.Styles>
+        <Style Selector="Button.subBtn">
+            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderEditorBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+        <Style Selector="Button.subBtn:pointerover">
+            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        </Style>
+        <Style Selector="ListBox.crashList">
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto,*,Auto" Margin="18,16">
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12" Margin="2,0,0,14">
+            <Border Width="42" Height="42" CornerRadius="11" Background="{StaticResource DangerBgDeepBrush}"
+                    BorderBrush="{StaticResource DangerBorderBrush}" BorderThickness="1">
+                <TextBlock Text="!" FontSize="22" FontWeight="Bold" Foreground="{StaticResource DangerLightBrush}"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <StackPanel VerticalAlignment="Center" Spacing="2">
+                <TextBlock Text="{Binding Title}" FontSize="17" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                <TextBlock Text="{Binding ExitCodeLine}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+            </StackPanel>
+        </StackPanel>
+
+        <!-- Body -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="12">
+                <Border Background="{StaticResource CardBrush}" CornerRadius="10" Padding="14,12"
+                        BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{Binding LikelyCauseLabel}" FontSize="10" FontWeight="Bold"
+                                   Foreground="{StaticResource WarningBrush}" Margin="0,0,0,2"/>
+                        <TextBlock Text="{Binding HumanSummary}" FontSize="13" TextWrapping="Wrap"
+                                   Foreground="{StaticResource TextSecondaryBrush}" LineHeight="19"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Broken mod requirements (Fabric dependency tree) -->
+                <StackPanel Spacing="5"
+                            IsVisible="{Binding Requirements.Count, Converter={x:Static vm:EditInstanceWindowConverters.IsNonZero}}">
+                    <TextBlock Text="{l10n:Tr crash_req_header}" FontSize="11" FontWeight="SemiBold"
+                               Foreground="{StaticResource WarningBrush}"/>
+                    <Border Background="{StaticResource SurfaceBrush}" CornerRadius="8" Padding="12,10"
+                            BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1">
+                        <ItemsControl ItemsSource="{Binding Requirements}" FontSize="11.5">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,2"
+                                               Foreground="{StaticResource TextSoftBrush}"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Border>
+                </StackPanel>
+
+                <StackPanel Spacing="5">
+                    <TextBlock Text="{l10n:Tr crash_evidence_header}" FontSize="11" FontWeight="SemiBold"
+                               Foreground="{StaticResource TextMutedBrush}"/>
+                    <ListBox Classes="crashList" ItemsSource="{Binding Evidence}" MaxHeight="190"
+                             SelectionMode="Single" FontSize="11"
+                             ScrollViewer.HorizontalScrollBarVisibility="Auto">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" TextWrapping="NoWrap"
+                                           FontFamily="Consolas, Courier New, monospace"
+                                           Foreground="{StaticResource TextSoftBrush}"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Footer -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,14,0,0">
+            <Button Classes="subBtn" Content="{l10n:Tr copy}" Click="OnCopyClick"/>
+            <Button Classes="subBtn" Content="{l10n:Tr crash_openlog}" Click="OnOpenLogClick"/>
+            <Button Classes="subBtn" Content="{l10n:Tr close}" Click="OnCloseClick"/>
+        </StackPanel>
+    </Grid>
+</Window>

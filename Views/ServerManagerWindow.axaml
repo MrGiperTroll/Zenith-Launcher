@@ -1,0 +1,85 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="CustomMcLauncher.Views.ServerManagerWindow"
+        xmlns:vm="using:CustomMcLauncher.ViewModels"
+        xmlns:services="using:CustomMcLauncher.Services"
+        xmlns:l10n="using:CustomMcLauncher.Extensions"
+        x:DataType="vm:ServerManagerViewModel"
+        Title="{l10n:Tr Key=sm_title}"
+        Width="520" Height="520"
+        MinWidth="420" MinHeight="420"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource BgBrush}">
+
+    <Window.Styles>
+        <Style Selector="TextBox">
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="10,8"/>
+        </Style>
+        <Style Selector="CheckBox">
+            <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto,*,Auto" Margin="18">
+        <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,10">
+            <StackPanel Spacing="2">
+                <TextBlock Text="{l10n:Tr Key=sm_title}" FontSize="17" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                <TextBlock Text="{Binding StatusText}" FontSize="11" Foreground="{DynamicResource AccentBrush}"/>
+            </StackPanel>
+            <Button Grid.Column="1" Classes="primaryBtn" Content="{l10n:Tr Key=sm_add}" Command="{Binding AddServerCommand}" VerticalAlignment="Center" Padding="14,7"/>
+        </Grid>
+
+        <Border Grid.Row="1" Background="{StaticResource ContentSurfaceBrush}" BorderBrush="{StaticResource PanelBrush}" BorderThickness="1" CornerRadius="10" Padding="6">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <ItemsControl ItemsSource="{Binding Servers}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="services:ServerEntry">
+                            <Grid ColumnDefinitions="*,Auto,Auto" Margin="4,4,4,4">
+                                <StackPanel Spacing="2" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="{Binding Ip}" FontSize="11" Foreground="{StaticResource TextLabelBrush}"/>
+                                </StackPanel>
+                                <Button Grid.Column="1" Command="{Binding $parent[Window].((vm:ServerManagerViewModel)DataContext).EditServerCommand}" CommandParameter="{Binding}"
+                                        Background="Transparent" Foreground="{StaticResource TextLabelBrush}" Padding="6,4" Cursor="Hand" Margin="4,0">
+                                    <PathIcon Data="M3 17.25V21H6.75L17.81 9.94L14.06 6.19L3 17.25ZM20.71 7.04C21.1 6.65 21.1 6.02 20.71 5.63L18.37 3.29C17.98 2.9 17.35 2.9 16.96 3.29L15.13 5.12L18.88 8.87L20.71 7.04Z" Width="12" Height="12"/>
+                                </Button>
+                                <Button Grid.Column="2" Command="{Binding $parent[Window].((vm:ServerManagerViewModel)DataContext).DeleteServerCommand}" CommandParameter="{Binding}"
+                                        Background="Transparent" Foreground="{StaticResource DangerBrush}" Padding="6,4" Cursor="Hand" Margin="4,0">
+                                    <PathIcon Data="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" Width="12" Height="12"/>
+                                </Button>
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <TextBlock Text="{l10n:Tr Key=sm_empty}" Foreground="{StaticResource TextPlaceholderBrush}" FontSize="12" HorizontalAlignment="Center" Padding="0,16"
+                           IsVisible="{Binding Servers.Count, Converter={x:Static vm:EditInstanceWindowConverters.IsZero}}"/>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+
+        <Border Grid.Row="2" IsVisible="{Binding IsEditorOpen}" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderInputBrush}" BorderThickness="1" CornerRadius="10" Padding="14" Margin="0,10,0,0">
+            <StackPanel Spacing="8">
+<TextBlock Text="{l10n:Tr Key=sm_name}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                        <TextBox Text="{Binding EditorName}" PlaceholderText="{l10n:Tr Key=sm_server_ph}"/>
+                        <TextBlock Text="{l10n:Tr Key=sm_ip}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                <TextBox Text="{Binding EditorIp}" PlaceholderText="play.example.com:25565"/>
+                <StackPanel Orientation="Horizontal" Spacing="16">
+<CheckBox Content="{l10n:Tr Key=sm_accept_packs}" IsChecked="{Binding EditorAcceptTextures}"/>
+                        <CheckBox Content="{l10n:Tr Key=sm_hide_address}" IsChecked="{Binding EditorHideAddress}"/>
+                </StackPanel>
+                <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
+                    <Button Grid.Column="1" Classes="subBtn" Content="{l10n:Tr Key=sm_icon}" Command="{Binding PickIconCommand}" Padding="14,7"/>
+                    <Button Grid.Column="2" Classes="subBtn" Content="{l10n:Tr Key=cancel}" Command="{Binding CancelEditCommand}" Padding="14,7"/>
+                    <Button Grid.Column="3" Classes="primaryBtn" Content="{l10n:Tr Key=btn_save}" Command="{Binding SaveEditorCommand}" Padding="18,7"/>
+                </Grid>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

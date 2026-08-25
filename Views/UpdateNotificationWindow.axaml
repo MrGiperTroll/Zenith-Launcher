@@ -1,0 +1,96 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="CustomMcLauncher.Views.UpdateNotificationWindow"
+        x:DataType="vms:UpdateNotificationViewModel"
+        xmlns:vms="clr-namespace:CustomMcLauncher.Views"
+        Title="Zenith Launcher Update"
+        Width="480" Height="420"
+        MinWidth="420" MinHeight="360"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource BgBrush}"
+        CanResize="True"
+        ShowInTaskbar="False">
+
+    <Window.Styles>
+        <Style Selector="Button.primaryBtn">
+            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="20,10"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Button.secondaryBtn">
+            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderEditorBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="20,10"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        </Style>
+    </Window.Styles>
+
+    <Border Padding="28,24" Background="{StaticResource BgBrush}">
+    <Grid RowDefinitions="Auto,*,Auto" RowSpacing="16">
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Spacing="8">
+            <TextBlock Text="{Binding TitleText}"
+                       FontSize="20" FontWeight="Bold"
+                       Foreground="{StaticResource TextPrimaryBrush}"/>
+            <TextBlock Text="{Binding SubtitleText}"
+                       FontSize="13"
+                       Foreground="{StaticResource TextSecondaryBrush}"/>
+        </StackPanel>
+
+        <!-- Release notes -->
+        <Border Grid.Row="1"
+                Background="{StaticResource SurfaceBrush}"
+                BorderBrush="{StaticResource BorderStrongBrush}"
+                BorderThickness="1" CornerRadius="10"
+                Padding="14,10">
+            <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                          VerticalScrollBarVisibility="Auto">
+                <TextBlock Text="{Binding ReleaseNotes}"
+                           TextWrapping="Wrap"
+                           FontSize="12.5"
+                           LineHeight="20"
+                           Foreground="{StaticResource TextPrimaryBrush}"/>
+            </ScrollViewer>
+        </Border>
+
+        <!-- Progress -->
+        <StackPanel Grid.Row="2" Spacing="10">
+            <ProgressBar Value="{Binding DownloadProgress}"
+                         Minimum="0" Maximum="100"
+                         Height="6" CornerRadius="3"
+                         Foreground="{StaticResource AccentBrush}"
+                         Background="{StaticResource FieldBrush}"
+                         IsVisible="{Binding IsDownloading}"/>
+            <TextBlock Text="{Binding StatusText}"
+                       FontSize="12"
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       HorizontalAlignment="Center"
+                       IsVisible="{Binding StatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+            <!-- Buttons -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
+                <Button Classes="secondaryBtn"
+                        Content="{Binding DismissText}"
+                        Command="{Binding DismissCommand}"
+                        IsEnabled="{Binding !IsDownloading}"/>
+                <Button Classes="primaryBtn"
+                        Content="{Binding UpdateButtonText}"
+                        Command="{Binding UpdateCommand}"
+                        IsEnabled="{Binding !IsDownloading}"/>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+    </Border>
+</Window>

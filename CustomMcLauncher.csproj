@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+<PropertyGroup>
+    <AssemblyName>Zenith Launcher</AssemblyName>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+    <AssemblyTitle>Zenith Launcher</AssemblyTitle>
+    <Product>Zenith Launcher</Product>
+    <ProductName>Zenith Launcher</ProductName>
+    <Title>Zenith Launcher</Title>
+    <PackageId>ZenithLauncher</PackageId>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Version>1.0.0</Version>
+    <Nullable>enable</Nullable>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <NoWarn>AVLN3001</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.1.1" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.1" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.1" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.1" />
+    <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3">
+      <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
+      <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="CmlLib.Core" Version="4.0.6" />
+    <PackageReference Include="CmlLib.Core.Installer.Forge" Version="1.1.1" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="DiscordRichPresence" Version="1.6.1.70" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.11" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="Assets\app.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <Content Include="Assets\Loaders\*.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+</Project>
+
+
+

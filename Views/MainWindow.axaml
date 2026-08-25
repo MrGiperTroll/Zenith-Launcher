@@ -1,0 +1,731 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:CustomMcLauncher.ViewModels"
+        xmlns:models="using:CustomMcLauncher.Models"
+        xmlns:conv="using:Avalonia.Data.Converters"
+        xmlns:views="using:CustomMcLauncher.Views"
+        xmlns:l10n="using:CustomMcLauncher.Extensions"
+        x:Class="CustomMcLauncher.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="Zenith Launcher"
+        Width="1280" Height="780"
+        MinWidth="1080" MinHeight="680"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource BgBrush}">
+
+<Window.Resources>
+        <Geometry x:Key="ZenithLogoGeometry">M558.344 400.366C571.623 396.064 583.658 391.147 596.643 386.115L637.625 370.625C666.622 359.837 696.309 350.113 724.897 338.366C711.898 350.999 699.747 364.104 687.038 376.719L556.158 505.636C528.781 532.184 499.524 557.819 471.784 584.055L472.073 585.667C476.856 583.156 484.671 580.042 489.84 577.808L518.249 565.513C554.358 550.211 585.042 537.696 622.348 525.143C627.132 534.236 632.665 542.719 638.059 551.443C646.7 565.735 655.599 579.868 664.753 593.837C684.178 624.592 703.87 655.179 723.825 685.593C671.712 673.401 619.504 661.62 567.205 650.251C523.932 640.119 480.502 630.67 436.931 621.909L303.856 685C318.881 668.775 337.163 651.35 352.875 635.346C390.704 596.217 429.114 557.655 468.092 519.67L513.838 474.463C528.25 459.985 544.85 442.908 560.302 429.712C517.215 444.062 474.236 458.735 431.37 473.73C410.21 481.268 388.993 488.646 367.72 495.861C348.57 502.154 326.751 508.351 307.223 514.086C305.97 514.433 305.093 514.578 303.819 514.805L303.707 514.31L306.212 512.571L391.909 457.609C402.704 450.675 415.614 441.623 426.327 435.161C417.499 427.886 408.138 420.933 399.024 413.993C375.58 396.139 352.079 378.374 328.775 360.334C319.433 353.102 309.717 346.407 300.549 338.932C348.224 351.261 396.066 362.933 444.063 373.946L526.132 392.828C536.8 395.328 547.762 397.627 558.344 400.366Z</Geometry>
+
+        <LinearGradientBrush x:Key="SubtleEmeraldBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+            <GradientStop Color="{StaticResource AccentGradientStart}" Offset="0.0"/>
+            <GradientStop Color="{StaticResource AccentGradientMid}" Offset="0.45"/>
+            <GradientStop Color="{StaticResource AccentGradientEnd}" Offset="1.0"/>
+        </LinearGradientBrush>
+        <views:BoolToBorderBrushConverter x:Key="BoolToBorderBrushConverter"/>
+    </Window.Resources>
+
+    <Window.Styles>
+        <!-- Тонкий скроллбар -->
+        <Style Selector="ScrollBar">
+            <Setter Property="AllowAutoHide" Value="False"/>
+        </Style>
+        <Style Selector="ScrollBar:vertical">
+            <Setter Property="Width" Value="5"/>
+            <Setter Property="MinWidth" Value="5"/>
+        </Style>
+        <Style Selector="ScrollBar:vertical /template/ Thumb">
+            <Setter Property="Background" Value="{StaticResource BorderStrongBrush}"/>
+            <Setter Property="CornerRadius" Value="3"/>
+            <Setter Property="Width" Value="5"/>
+            <Setter Property="MinWidth" Value="5"/>
+        </Style>
+        <Style Selector="ScrollBar:vertical:pointerover /template/ Thumb">
+            <Setter Property="Background" Value="{StaticResource BorderHoverBrush}"/>
+            <Setter Property="Width" Value="5"/>
+            <Setter Property="MinWidth" Value="5"/>
+        </Style>
+        <Style Selector="ScrollBar /template/ RepeatButton">
+            <Setter Property="IsVisible" Value="False"/>
+        </Style>
+
+        <!-- Поле заголовка без синих рамок и фона при фокусе -->
+        <Style Selector="TextBox.titleInput">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="FocusAdorner" Value="{x:Null}"/>
+        </Style>
+        <Style Selector="TextBox.titleInput:focus /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style Selector="TextBox.titleInput:pointerover /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+
+        <!-- Rail Buttons -->
+        <Style Selector="Button.railBtn">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource TextDisabledBrush}"/>
+            <Setter Property="Width" Value="44"/>
+            <Setter Property="Height" Value="44"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.15"/>
+                    <BrushTransition Property="Foreground" Duration="0:0:0.15"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.railBtn:pointerover">
+            <Setter Property="Background" Value="{StaticResource TabActiveBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+        </Style>
+
+        <!-- Cards -->
+<Style Selector="Button.cardBtn">
+            <Setter Property="Background" Value="{StaticResource InputFocusBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderInputBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="14"/>
+            <Setter Property="Padding" Value="14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.15"/>
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.15"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.cardBtn:pointerover">
+            <Setter Property="Background" Value="{StaticResource PanelBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+        </Style>
+
+        <!-- Primary Buttons -->
+        <Style Selector="Button.primaryBtn">
+            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="16,9"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.15"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.primaryBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource AccentBrushHover}"/>
+            <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
+        </Style>
+
+        <!-- Secondary Buttons -->
+        <Style Selector="Button.subBtn">
+            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderEditorBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="12,9"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.15"/>
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.15"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.subBtn:pointerover">
+            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+        </Style>
+
+        <!-- Danger Buttons -->
+        <Style Selector="Button.dangerBtn">
+            <Setter Property="Background" Value="{StaticResource DangerBgBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource DangerBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="12,9"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        </Style>
+<Style Selector="Button.dangerBtn:pointerover">
+            <Setter Property="Background" Value="{StaticResource DangerBgDeepBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource DangerLightBrush}"/>
+        </Style>
+
+        <!-- Sidebar Tabs -->
+        <Style Selector="Button.sideTab">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="12,9"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.15"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.sideTab:pointerover">
+            <Setter Property="Background" Value="{StaticResource PanelBrush}"/>
+        </Style>
+
+        <!-- Inputs & Pickers -->
+        <Style Selector="TextBox.darkInput">
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="10,8"/>
+        </Style>
+<Style Selector="ComboBox">
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="10,6"/>
+        </Style>
+        <!-- Soften checkbox and radio button borders -->
+        <Style Selector="CheckBox">
+            <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="CheckBox:checked">
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="RadioButton">
+            <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="RadioButton:checked">
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+        </Style>
+    </Window.Styles>
+
+    <Grid>
+        <Grid ColumnDefinitions="64,*">
+            <!-- Left Rail -->
+            <Border Grid.Column="0" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,1,0" Padding="0,16">
+                <Grid RowDefinitions="Auto,Auto,*,Auto">
+                    <Button Grid.Row="0" Command="{Binding RefreshState}" Background="Transparent" Padding="0" BorderThickness="0" Cursor="Hand" ToolTip.Tip="{l10n:Tr Key=mw_profiles_title}" HorizontalAlignment="Center">
+                        <Border Width="42" Height="42" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderInputBrush}" BorderThickness="1" CornerRadius="10" HorizontalAlignment="Center">
+                            <Path Data="{StaticResource ZenithLogoGeometry}" Fill="{StaticResource SubtleEmeraldBrush}" Stretch="Uniform" Width="26" Height="26" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </Button>
+
+                    <StackPanel Grid.Row="1" Spacing="6" HorizontalAlignment="Center" Margin="0,24,0,0">
+                        <Button Classes="railBtn" Command="{Binding ShowProfilesCommand}" ToolTip.Tip="{l10n:Tr Key=nav_profiles}">
+                            <PathIcon Data="M3 3H10V10H3V3M14 3H21V10H14V3M3 14H10V21H3V14M14 14H21V21H14V14Z" Width="17" Height="17"/>
+                        </Button>
+                        <Button Classes="railBtn" Command="{Binding ShowModpacksCommand}" ToolTip.Tip="{l10n:Tr Key=nav_modpacks}">
+                            <PathIcon Data="M20.5 11H19V7C19 5.9 18.1 5 17 5H13V3.5C13 2.12 11.88 1 10.5 1S8 2.12 8 3.5V5H4C2.9 5 2 5.9 2 7V10.8H3.5C4.99 10.8 6.2 12.01 6.2 13.5S4.99 16.2 3.5 16.2H2V20C2 21.1 2.9 22 4 22H7.8V20.5C7.8 19.01 9.01 17.8 10.5 17.8S13.2 19.01 13.2 20.5V22H17C18.1 22 19 21.1 19 20V16H20.5C21.88 16 23 14.88 23 13.5S21.88 11 20.5 11Z" Width="17" Height="17"/>
+                        </Button>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="3" Spacing="8" HorizontalAlignment="Center">
+                        <Button Classes="railBtn" Command="{Binding OpenRootDirectoryCommand}" ToolTip.Tip="{l10n:Tr Key=nav_dir}">
+                            <PathIcon Data="M10 4H4C2.89 4 2 4.89 2 6V18A2 2 0 0 0 4 20H20A2 2 0 0 0 22 18V8C22 6.89 21.1 6 20 6H12L10 4Z" Width="17" Height="17"/>
+                        </Button>
+                        <Button Classes="railBtn" Command="{Binding OpenSettingsDialogCommand}" ToolTip.Tip="{l10n:Tr Key=nav_settings}">
+                            <PathIcon Data="M12 15.5A3.5 3.5 0 0 1 8.5 12A3.5 3.5 0 0 1 12 8.5A3.5 3.5 0 0 1 15.5 12A3.5 3.5 0 0 1 12 15.5M19.43 12.97C19.47 12.65 19.5 12.33 19.5 12C19.5 11.67 19.47 11.34 19.43 11L21.54 9.37C21.73 9.22 21.78 8.95 21.66 8.73L19.66 5.27C19.54 5.05 19.27 4.96 19.05 5.05L16.56 6.05C16.04 5.66 15.5 5.32 14.87 5.07L14.5 2.42C14.46 2.18 14.25 2 14 2H10C9.75 2 9.54 2.18 9.5 2.42L9.13 5.07C8.5 5.32 7.96 5.66 7.44 6.05L4.95 5.05C4.73 4.96 4.34 5.05 4.34 5.27L2.34 8.73C2.21 8.95 2.27 9.22 2.46 9.37L4.57 11C4.53 11.34 4.5 11.67 4.5 12C4.5 12.33 4.53 12.65 4.57 12.97L2.46 14.63C2.27 14.78 2.21 15.05 2.34 15.27L4.34 18.73C4.46 18.95 4.73 19.03 4.95 18.95L7.44 17.94C7.96 18.34 8.5 18.68 9.13 18.93L9.5 21.58C9.54 21.82 9.75 22 10 22H14C14.25 22 14.46 21.82 14.5 21.58L14.87 18.93C15.5 18.67 16.04 18.34 16.56 17.94L19.05 18.95C19.27 19.03 19.54 18.95 19.66 18.73L21.66 15.27C21.78 15.05 21.73 14.78 21.54 14.63L19.43 12.97Z" Width="17" Height="17"/>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Main Workspace -->
+            <Grid Grid.Column="1" RowDefinitions="52,*,76">
+                <!-- Top Header -->
+                <Grid Grid.Row="0" Margin="24,0,24,0" VerticalAlignment="Center" ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <Button Command="{Binding OpenAboutCommand}" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderSoftBrush}" BorderThickness="1" CornerRadius="16" Width="32" Height="32" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" ToolTip.Tip="{l10n:Tr Key=nav_about}" Cursor="Hand">
+                            <PathIcon Data="M11 9H13V7H11M12 20C7.59 20 4 16.41 4 12S7.59 4 12 4 20 7.59 20 12 16.41 20 12 20M12 2C6.48 2 2 6.48 2 12S6.48 22 12 22 22 17.52 22 12 17.52 2 12 2M11 17H13V11H11V17Z" Width="14" Height="14" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        </Button>
+                        <Button Command="{Binding OpenAccountsDialogCommand}" Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderSoftBrush}" BorderThickness="1" CornerRadius="18" Padding="10,4" Cursor="Hand">
+                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <Border Width="18" Height="18" Background="{StaticResource IconChipBrush}" CornerRadius="9" ClipToBounds="True">
+                                    <Panel>
+                                        <Image Source="{Binding ActiveAccountRow.HeadImage}" Stretch="UniformToFill" IsVisible="{Binding ActiveAccountRow.HasHead}"/>
+                                        <PathIcon Data="M12 4A4 4 0 0 1 16 8A4 4 0 0 1 12 12A4 4 0 0 1 8 8A4 4 0 0 1 12 4ZM4 20C4 16.69 7.58 14 12 14C16.42 14 20 16.69 20 20V21H4V20Z"
+                                                  Width="12" Height="12" Foreground="{StaticResource TextSecondaryBrush}"
+                                                  HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                  IsVisible="{Binding !ActiveAccountRow.HasHead}"/>
+                                    </Panel>
+                                </Border>
+                                <TextBlock Text="{Binding ActiveAccountName}" FontWeight="Bold" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                <Border Background="{StaticResource AccentSoftBrush}" CornerRadius="4" Padding="5,1" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding ActiveAccountType}" FontSize="10" Foreground="{StaticResource AccentBrush}" FontWeight="Bold" VerticalAlignment="Center"/>
+                                </Border>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Center Workspace -->
+                <Grid Grid.Row="1" Margin="24,0,0,0">
+                    <!-- Profiles View -->
+                    <Grid IsVisible="{Binding IsProfilesView}" ColumnDefinitions="*,Auto" x:Name="ProfilesPane">
+                        <ScrollViewer Grid.Column="0" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Padding="0,0,16,16">
+                            <StackPanel Spacing="14">
+                                <Grid ColumnDefinitions="*,Auto" Margin="0,2,0,2">
+                                    <TextBlock Text="{l10n:Tr Key=mw_profiles_title}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                    <Button Grid.Column="1" Classes="primaryBtn" Command="{Binding OpenNewInstanceDialogCommand}" Padding="14,7">
+                                        <TextBlock Text="{l10n:Tr Key=mw_create_btn}" FontSize="12" FontWeight="Bold"/>
+                                    </Button>
+                                </Grid>
+
+                            <Border IsVisible="{Binding !HasInstances}" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="36" Margin="0,10,0,0">
+                                <StackPanel HorizontalAlignment="Center" Spacing="6">
+<TextBlock Text="{l10n:Tr Key=mw_no_profiles}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{l10n:Tr Key=mw_no_profiles_hint}" Foreground="{StaticResource TextPlaceholderBrush}" FontSize="12" HorizontalAlignment="Center" TextWrapping="Wrap" MaxWidth="320" TextAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+
+                            <ItemsControl ItemsSource="{Binding Instances}" Margin="0,4,0,0">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel Orientation="Horizontal"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+<DataTemplate x:DataType="models:InstanceModel">
+                                        <Border Width="178" Height="178" Margin="2,2,14,14" CornerRadius="14"
+                                                BorderBrush="{Binding IsSelected, Converter={StaticResource BoolToBorderBrushConverter}}"
+                                                BorderThickness="1.5">
+                                            <Button Classes="cardBtn" Width="175" Height="175" BorderThickness="0" Padding="13"
+                                                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                    Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).SelectInstanceCommand}"
+                                                    CommandParameter="{Binding}">
+                                                <Button.ContextMenu>
+                                                    <ContextMenu Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderStrongBrush}">
+                                                        <MenuItem Header="{l10n:Tr Key=mi_launch}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).LaunchSpecificInstanceCommand}" CommandParameter="{Binding}" FontWeight="Bold"/>
+                                                        <MenuItem Header="{l10n:Tr Key=btn_edit_instance}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).EditInstanceCommand}" CommandParameter="{Binding}"/>
+                                                        <MenuItem Header="{l10n:Tr Key=mi_change_icon}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ChangeInstanceIconCommand}" CommandParameter="{Binding}"/>
+                                                        <MenuItem Header="{l10n:Tr Key=btn_open_folder}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenProfileFolderCommand}" CommandParameter="{Binding}"/>
+                                                        <MenuItem Header="{l10n:Tr Key=btn_clone_profile}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenCopyDialogCommand}" CommandParameter="{Binding}"/>
+                                                        <MenuItem Header="{l10n:Tr Key=btn_shortcut}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).CreateDesktopShortcutCommand}" CommandParameter="{Binding}"/>
+                                                        <Separator Background="{StaticResource BorderStrongBrush}"/>
+                                                        <MenuItem Header="{l10n:Tr Key=mi_export}">
+                                                            <MenuItem Header="{l10n:Tr Key=exp_curseforge}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ExportCurseForgeCommand}" CommandParameter="{Binding}"/>
+                                                            <MenuItem Header="Modrinth (.mrpack)" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ExportModrinthCommand}" CommandParameter="{Binding}"/>
+                                                            <MenuItem Header="{l10n:Tr Key=exp_prism}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ExportPrismCommand}" CommandParameter="{Binding}"/>
+                                                        </MenuItem>
+                                                        <Separator Background="{StaticResource BorderStrongBrush}"/>
+                                                        <MenuItem Header="{l10n:Tr Key=btn_kill}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).KillInstanceCommand}" CommandParameter="{Binding}" IsEnabled="{Binding IsRunning}"/>
+                                                        <MenuItem Header="{l10n:Tr Key=btn_delete_profile}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).RequestDeleteProfileCommand}" CommandParameter="{Binding}" Foreground="{StaticResource DangerBrush}"/>
+                                                    </ContextMenu>
+                                                </Button.ContextMenu>
+                                                <StackPanel Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <Border Width="68" Height="68" Background="{StaticResource ChipBrush}" CornerRadius="12" HorizontalAlignment="Center" ClipToBounds="True">
+                                                        <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                            <Path IsVisible="{Binding IconBitmap, Converter={x:Static conv:ObjectConverters.IsNull}}" Data="{StaticResource ZenithLogoGeometry}" Fill="{StaticResource SubtleEmeraldBrush}" Stretch="Uniform" Width="40" Height="40" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                            <Image IsVisible="{Binding IconBitmap, Converter={x:Static conv:ObjectConverters.IsNotNull}}" Source="{Binding IconBitmap}" Stretch="UniformToFill" Width="68" Height="68" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Panel>
+                                                    </Border>
+                                                    <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center" TextAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="150"/>
+                                                    <TextBlock Text="{Binding DisplayVersion}" FontSize="11" Foreground="{StaticResource TextFaintBrush}" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Button>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- Right Sidebar: Instance Details -->
+                    <Border Grid.Column="1" IsVisible="{Binding IsRightSidebarOpen}" Width="280" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1,0,0,0" Padding="16,8,16,16">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <StackPanel Spacing="12">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Text="{l10n:Tr Key=mw_instance_details}" FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                    <Button Grid.Column="1" Content="✕" Command="{Binding CloseRightSidebarCommand}" Background="Transparent" Foreground="{StaticResource TextPlaceholderBrush}" Padding="6,2" Cursor="Hand"/>
+                                </Grid>
+
+                                <!-- Profile Preview Box (Без обводки фокуса, имя опущено ближе к версии) -->
+                                <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="16,14">
+                                    <StackPanel HorizontalAlignment="Center" Spacing="0">
+                                        <!-- Иконка профиля -->
+                                        <Button Command="{Binding ChangeInstanceIconCommand}" CommandParameter="{Binding SelectedInstance}"
+                                                Background="Transparent" BorderThickness="0" Padding="0" Margin="0,0,0,16" Cursor="Hand"
+                                                ToolTip.Tip="{l10n:Tr Key=icon_change_tip}"
+                                                HorizontalAlignment="Center">
+                                            <Border Width="72" Height="72" Background="{StaticResource ChipBrush}" BorderBrush="{StaticResource BorderIconBrush}" BorderThickness="1" CornerRadius="16" ClipToBounds="True" HorizontalAlignment="Center">
+                                                <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <Path IsVisible="{Binding SelectedInstance.IconBitmap, Converter={x:Static conv:ObjectConverters.IsNull}}" 
+                                                          Data="{StaticResource ZenithLogoGeometry}" 
+                                                          Fill="{StaticResource SubtleEmeraldBrush}" 
+                                                          Stretch="Uniform" 
+                                                          Width="42" Height="42" 
+                                                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    <Image IsVisible="{Binding SelectedInstance.IconBitmap, Converter={x:Static conv:ObjectConverters.IsNotNull}}" 
+                                                           Source="{Binding SelectedInstance.IconBitmap}" 
+                                                           Stretch="UniformToFill" 
+                                                           Width="72" Height="72" 
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Panel>
+                                            </Border>
+                                        </Button>
+
+<!-- Имя профиля: компактный однострочный бейдж -->
+                                        <Border Background="{StaticResource ChipBrush}" CornerRadius="4" Padding="8,0" Margin="0,4,0,4" HorizontalAlignment="Center" Height="22">
+                                            <TextBox Classes="titleInput" Text="{Binding SelectedInstance.Name, Mode=TwoWay}"
+                                                     FontWeight="Bold" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}"
+                                                     VerticalAlignment="Center" VerticalContentAlignment="Center"
+                                                     HorizontalAlignment="Center" TextAlignment="Center" MinWidth="24" MaxWidth="180"
+                                                     LostFocus="OnInstanceNameLostFocus"/>
+                                        </Border>
+
+                                        <!-- Версия профиля -->
+                                        <Border Background="{StaticResource ChipBrush}" CornerRadius="4" Padding="6,2" HorizontalAlignment="Center">
+                                            <TextBlock Text="{Binding SelectedInstanceDetails}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                        </Border>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Кнопки действий -->
+                                <StackPanel Spacing="8">
+                                    <Button Classes="primaryBtn" Command="{Binding LaunchOrCancelCommand}" IsEnabled="{Binding CanLaunch}"
+                                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Height="42">
+                                        <TextBlock Text="{Binding LaunchButtonText}" FontSize="14" FontWeight="Bold"/>
+                                    </Button>
+
+                                    <Button Classes="dangerBtn" Command="{Binding KillInstanceCommand}" CommandParameter="{Binding SelectedInstance}"
+                                            IsEnabled="{Binding SelectedInstance.IsRunning}" Height="38"
+                                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                                        <TextBlock Text="{l10n:Tr Key=btn_kill}" FontSize="12" FontWeight="Bold"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Button>
+
+                                    <Button Classes="subBtn" Command="{Binding EditInstanceCommand}" CommandParameter="{Binding SelectedInstance}" Height="38">
+                                        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                                            <PathIcon Data="M3 17.25V21H6.75L17.81 9.94L14.06 6.19L3 17.25ZM20.71 7.04C21.1 6.65 21.1 6.02 20.71 5.63L18.37 3.29C17.98 2.9 17.35 2.9 16.96 3.29L15.13 5.12L18.88 8.87L20.71 7.04Z" Width="12" Height="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{l10n:Tr Key=btn_edit_instance}" FontSize="12" FontWeight="SemiBold"/>
+                                        </StackPanel>
+                                    </Button>
+
+                                    <Button Classes="subBtn" Command="{Binding OpenProfileFolderCommand}" CommandParameter="{Binding SelectedInstance}" Height="38">
+                                        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                                            <PathIcon Data="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="13" Height="13" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{l10n:Tr Key=btn_open_folder}" FontSize="12" FontWeight="SemiBold"/>
+                                        </StackPanel>
+                                    </Button>
+
+                                    <Button Classes="subBtn" Command="{Binding OpenCopyDialogCommand}" CommandParameter="{Binding SelectedInstance}" Height="38">
+                                        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                                            <PathIcon Data="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" Width="12" Height="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{l10n:Tr Key=btn_clone_profile}" FontSize="12" FontWeight="SemiBold"/>
+                                        </StackPanel>
+                                    </Button>
+
+<Button Classes="subBtn" Command="{Binding CreateDesktopShortcutCommand}" CommandParameter="{Binding SelectedInstance}" Height="38">
+                                        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                                            <PathIcon Data="M3 4H15V6H5V18H17V11H19V19C19 19.55 18.55 20 18 20H4C3.45 20 3 19.55 3 19V5C3 4.45 3.45 4 3 4ZM14 6V4H21V11H19V7.41L10.17 16.24L8.76 14.83L17.59 6H14Z" Width="13" Height="13" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,-1,0,0"/>
+                                            <TextBlock Text="{l10n:Tr Key=btn_shortcut}" FontSize="12" FontWeight="SemiBold"/>
+                                        </StackPanel>
+                                    </Button>
+
+                                    <Button Classes="dangerBtn" Command="{Binding RequestDeleteProfileCommand}" CommandParameter="{Binding SelectedInstance}"
+                                            Background="{StaticResource DangerDimBrush}" BorderBrush="{StaticResource DangerBorderBrush}" BorderThickness="1" HorizontalContentAlignment="Center" Margin="0,2,0,0">
+                                        <TextBlock Text="{l10n:Tr Key=btn_delete_profile}" FontSize="12" FontWeight="Bold"/>
+                                    </Button>
+                                </StackPanel>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Border>
+                    </Grid>
+                    <!-- Modpacks View -->
+                    <Grid IsVisible="{Binding IsModpacksView}" RowDefinitions="Auto,*" Margin="0,0,16,0" x:Name="ModpacksPane">
+                        <Border Grid.Row="0" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="14" Margin="0,0,0,12">
+                            <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="8" VerticalAlignment="Center">
+                                <TextBox Classes="darkInput" Text="{Binding ModpacksBrowser.SearchQuery}" PlaceholderText="{l10n:Tr Key=mp_search_hint}" FontSize="12" VerticalAlignment="Center">
+                                    <TextBox.KeyBindings>
+                                        <KeyBinding Gesture="Enter" Command="{Binding ModpacksBrowser.SearchCommand}"/>
+                                    </TextBox.KeyBindings>
+                                </TextBox>
+                                <ComboBox Grid.Column="1" MinWidth="112" ItemsSource="{Binding ModpacksBrowser.AvailableVersions}" SelectedItem="{Binding ModpacksBrowser.SelectedVersion}" FontSize="11" VerticalAlignment="Center">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Converter={x:Static vm:BlankTextConverter.Instance}, ConverterParameter=mp_all_versions}" FontSize="11"/>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <ComboBox Grid.Column="2" MinWidth="118" ItemsSource="{Binding ModpacksBrowser.AvailableCategories}" SelectedItem="{Binding ModpacksBrowser.SelectedCategory}" FontSize="11" VerticalAlignment="Center">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Converter={x:Static vm:CategoryDisplayConverter.Instance}}" FontSize="11"/>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <ComboBox Grid.Column="3" MinWidth="108" ItemsSource="{Binding ModpacksBrowser.AvailableLoaders}" SelectedItem="{Binding ModpacksBrowser.SelectedLoader}" FontSize="11" VerticalAlignment="Center">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Converter={x:Static vm:LoaderDisplayConverter.Instance}}" FontSize="11"/>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <ComboBox Grid.Column="4" MinWidth="132" ItemsSource="{Binding ModpacksBrowser.AvailableSortOptions}" SelectedItem="{Binding ModpacksBrowser.SelectedSort}" FontSize="11" VerticalAlignment="Center">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Converter={x:Static vm:SortDisplayConverter.Instance}}" FontSize="11"/>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <Button Grid.Column="5" Classes="primaryBtn" Content="{l10n:Tr Key=btn_search}" Command="{Binding ModpacksBrowser.SearchCommand}" Padding="14,7" FontSize="12" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                        <Border Grid.Row="1" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="8">
+                            <Grid RowDefinitions="*,Auto">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                    <StackPanel Spacing="8" Margin="4,4,18,4">
+                                        <ItemsControl ItemsSource="{Binding ModpacksBrowser.Results}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate x:DataType="models:ModrinthProject">
+                                                    <Border Margin="4" CornerRadius="10" Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" Padding="10">
+                                                        <Grid ColumnDefinitions="48,*,120">
+                                                            <Border Width="48" Height="48" Background="{StaticResource ChipBrush}" CornerRadius="8" ClipToBounds="True">
+                                                                <Panel>
+                                                                    <Image Source="{Binding Icon}" Stretch="UniformToFill" Width="48" Height="48" IsVisible="{Binding HasIcon}"/>
+                                                                    <Path Data="M20 3H4C2.89 3 2 3.89 2 5V15C2 16.11 2.89 17 4 17H8V21L12 18H20C21.11 18 22 17.11 22 16V5C22 3.89 21.11 3 20 3M20 14H12L8 18V14H4V5H20V14Z" Fill="{StaticResource TextPlaceholderBrush}" Stretch="Uniform" Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding !HasIcon}"/>
+                                                                </Panel>
+                                                            </Border>
+                                                            <StackPanel Grid.Column="1" Margin="12,0,8,0" VerticalAlignment="Center" Spacing="2">
+                                                                <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                                                <TextBlock Text="{Binding Author}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                                                                <TextBlock Text="{Binding Description}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" MaxLines="2" TextWrapping="Wrap"/>
+                                                                <TextBlock Text="{Binding DownloadsLabel}" FontSize="10" Foreground="{StaticResource TextCaptionBrush}"/>
+                                                            </StackPanel>
+                                                            <Button Grid.Column="2" Classes="primaryBtn" Content="{Binding InstallButtonText}" IsEnabled="{Binding !IsInstalling}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ModpacksBrowser.InstallCommand}" CommandParameter="{Binding}" VerticalAlignment="Center" HorizontalAlignment="Right" Padding="14,7" FontSize="11"/>
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+<TextBlock Text="{l10n:Tr Key=mp_loading}" IsVisible="{Binding ModpacksBrowser.IsBusy}" HorizontalAlignment="Center" Margin="0,12" Foreground="{StaticResource TextMutedBrush}"/>
+                    <TextBlock Text="{l10n:Tr Key=mp_empty}" IsVisible="{Binding ModpacksBrowser.IsEmpty}" HorizontalAlignment="Center" Margin="0,12" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                    <Button Content="{l10n:Tr Key=btn_load_more}" Command="{Binding ModpacksBrowser.LoadMoreCommand}" IsVisible="{Binding ModpacksBrowser.HasMore}" HorizontalAlignment="Center" Margin="0,8" Classes="subBtn"/>
+                                    </StackPanel>
+                                </ScrollViewer>
+                                <TextBlock Grid.Row="1" Text="{Binding ModpacksBrowser.StatusText}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="4,8,0,0" TextWrapping="Wrap" IsVisible="{Binding ModpacksBrowser.StatusText, Converter={x:Static conv:ObjectConverters.IsNotNull}}"/>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </Grid>
+
+                <!-- Full-Width Bottom Launch Bar -->
+                <Border Grid.Row="2" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,1,0,0">
+                    <Grid ColumnDefinitions="*,280" VerticalAlignment="Center">
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="24,0,16,0">
+                            <TextBlock Text="{Binding SelectedInstanceName}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <TextBlock Text="{Binding SelectedInstanceDetails}" FontSize="12" Foreground="{StaticResource TextSubtleBrush}" Margin="0,2,0,0"/>
+                            <ProgressBar IsVisible="{Binding IsLaunching}" Value="{Binding LaunchProgress}" Height="4" Foreground="{StaticResource AccentBrush}" Margin="0,6,24,0"/>
+                            <TextBlock Text="{Binding StatusText}" FontSize="11" Foreground="{StaticResource TextSubtleBrush}" Margin="0,4,24,0" TextTrimming="CharacterEllipsis"/>
+                        </StackPanel>
+
+<Border Grid.Column="1" Padding="16,0,16,0" VerticalAlignment="Center">
+                            <Button Classes="primaryBtn" Command="{Binding LaunchOrCancelCommand}" IsEnabled="{Binding CanLaunch}" Height="42" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding LaunchButtonText}" FontSize="14" FontWeight="Bold"/>
+                            </Button>
+                        </Border>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!-- MODAL: Create Profile -->
+        <Border IsVisible="{Binding IsCreateDialogOpen}" Background="{StaticResource OverlayBrush}">
+            <Border Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="440" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="{l10n:Tr Key=cp_title}" FontSize="17" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+
+<StackPanel Spacing="4">
+                        <TextBlock Text="{l10n:Tr Key=cp_name_label}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                        <TextBox Classes="darkInput" Text="{Binding NewInstanceName}" PlaceholderText="{l10n:Tr Key=ph_profile_name}">
+                            <TextBox.Styles>
+                                <Style Selector="TextBox.darkInput" x:DataType="vm:MainWindowViewModel">
+                                    <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
+                                </Style>
+                            </TextBox.Styles>
+                        </TextBox>
+                    </StackPanel>
+
+<StackPanel Spacing="4">
+                        <TextBlock Text="{l10n:Tr Key=cp_step_version}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                        <Grid ColumnDefinitions="*,Auto">
+                            <ComboBox ItemsSource="{Binding AvailableVersions}" SelectedItem="{Binding SelectedVersion}" HorizontalAlignment="Stretch"
+                                      PlaceholderText="{l10n:Tr Key=none_select_version}"/>
+                            <Button Grid.Column="1" Content="✕" Command="{Binding ClearVersionCommand}" Background="Transparent" Foreground="{StaticResource TextPlaceholderBrush}" Padding="6,0" Cursor="Hand" FontSize="12" Margin="4,0,0,0"/>
+                        </Grid>
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{l10n:Tr Key=set_loader}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                        <Grid ColumnDefinitions="*,Auto">
+                            <ComboBox Grid.Column="0" ItemsSource="{Binding AvailableLoaders}" SelectedItem="{Binding SelectedLoader}"
+                                      HorizontalAlignment="Stretch" IsVisible="{Binding IsLoaderTypesVisible}"/>
+                            <ComboBox Grid.Column="0" ItemsSource="{Binding AvailableLoaderBuilds}" SelectedItem="{Binding SelectedLoaderBuild}"
+                                      HorizontalAlignment="Stretch" IsVisible="{Binding IsLoaderBuildsVisible}"/>
+                            <Button Grid.Column="1" Content="⇄" Command="{Binding ToggleLoaderBuildsCommand}"
+                                    Width="32" Height="32" Padding="0" Margin="6,0,0,0"
+                                    Background="{StaticResource FieldBrush}" Foreground="{StaticResource TextMutedBrush}"
+                                    BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"
+                                    CornerRadius="8" Cursor="Hand" FontSize="14"
+                                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                    IsEnabled="{Binding CanSwapLoader}"
+                                    ToolTip.Tip="{l10n:Tr Key=tip_switch_loader}">
+                                <Button.Styles>
+                                    <Style Selector="Button:pointerover">
+                                        <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+                                        <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
+                                        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+                                    </Style>
+                                    <Style Selector="Button:pressed">
+                                        <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+                                        <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                                        <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
+                                    </Style>
+                                </Button.Styles>
+                            </Button>
+                        </Grid>
+                        <TextBlock Text="{Binding LoaderError}" FontSize="11" Foreground="{StaticResource DangerStrongBrush}" TextWrapping="Wrap"
+                                   IsVisible="{Binding LoaderErrorVisible}" Margin="0,2,0,0"/>
+                    </StackPanel>
+
+                    <Grid ColumnDefinitions="*,*" Margin="0,8,0,0">
+                        <Button Grid.Column="0" Content="{l10n:Tr Key=cancel}" Command="{Binding CloseDialogsCommand}" Classes="subBtn" HorizontalContentAlignment="Center" Margin="0,0,6,0"/>
+                        <Button Grid.Column="1" Classes="primaryBtn" Content="{l10n:Tr Key=create}" Command="{Binding ConfirmCreateInstanceCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="6,0,0,0"
+                                IsEnabled="{Binding CanCreateInstance}"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Border>
+
+        <!-- MODAL: Console & Logs -->
+        <Border IsVisible="{Binding IsConsoleDialogOpen}" Background="{StaticResource OverlayBrush}">
+            <Border Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="700" Height="480" Padding="18" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Grid RowDefinitions="Auto,*,Auto">
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,10">
+                        <TextBlock Text="{l10n:Tr Key=mw_console_title}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        <Button Grid.Column="1" Classes="primaryBtn" Content="{l10n:Tr Key=btn_copy_logs}" Command="{Binding CopyConsoleLogsCommand}" Margin="0,0,8,0" Padding="12,5" FontSize="11"/>
+                        <Button Grid.Column="2" Content="✕" Command="{Binding CloseConsoleDialogCommand}" Background="Transparent" Foreground="{StaticResource TextPlaceholderBrush}" Padding="4" Cursor="Hand"/>
+                    </Grid>
+
+                    <Border Grid.Row="1" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource PanelBrush}" BorderThickness="1" CornerRadius="6" Padding="10">
+                        <TextBox Text="{Binding ConsoleLogs}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" Background="Transparent" Foreground="{StaticResource TextSoftBrush}" FontFamily="Consolas, Cascadia Code, Courier New" FontSize="11" BorderThickness="0"/>
+                    </Border>
+
+                    <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,10,0,0">
+                        <ProgressBar Value="{Binding LaunchProgress}" Height="4" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                        <TextBlock Grid.Column="1" Text="{Binding LaunchProgress, StringFormat='{}{0}%'}" Foreground="{StaticResource AccentBrush}" FontWeight="Bold" FontSize="11" VerticalAlignment="Center"/>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Border>
+
+<!-- MODAL: Delete Confirmation -->
+        <Border IsVisible="{Binding IsDeleteConfirmOpen}" Background="{StaticResource OverlayBrush}">
+            <Border Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="380" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel Spacing="14">
+                    <TextBlock Text="{l10n:Tr Key=dialog_delete_title}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource DangerBrush}"/>
+                    <TextBlock Text="{Binding PendingDeleteInstance.Name, Converter={x:Static vm:L10nFormatConverter.Instance}, ConverterParameter=dialog_delete_confirm}" TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" LineHeight="17"/>
+                    <Grid ColumnDefinitions="*,*" Margin="0,4,0,0">
+                        <Button Grid.Column="0" Content="{l10n:Tr Key=cancel}" Command="{Binding CancelDeleteProfileCommand}" Classes="subBtn" HorizontalContentAlignment="Center" Margin="0,0,6,0"/>
+                        <Button Grid.Column="1" Classes="dangerBtn" Content="{l10n:Tr Key=delete}" Command="{Binding ConfirmDeleteProfileCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="6,0,0,0" Background="{StaticResource DangerBorderBrush}"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Border>
+
+        <!-- MODAL: Ely.by Error -->
+        <Border IsVisible="{Binding IsElyByErrorOpen}" Background="{StaticResource OverlayBrush}">
+            <Border Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="420" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel Spacing="14">
+                    <TextBlock Text="{l10n:Tr Key=dialog_connection}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource DangerBrush}"/>
+                    <TextBlock Text="{Binding ElyByErrorMessage}" TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" LineHeight="17"/>
+                    <Grid ColumnDefinitions="*,*">
+                        <Button Grid.Column="0" Content="{l10n:Tr Key=close}" Command="{Binding CloseDialogsCommand}" Classes="subBtn" HorizontalContentAlignment="Center" Margin="0,0,6,0"/>
+                        <Button Grid.Column="1" Classes="primaryBtn" Content="{l10n:Tr Key=btn_switch_offline}" Command="{Binding SwitchToOfflineAccountCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="6,0,0,0"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Border>
+    <!-- About modal -->
+        <Border Background="{StaticResource OverlayBrush}" IsVisible="{Binding IsAboutOpen}" ZIndex="1000"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.RowSpan="3" Grid.ColumnSpan="3">
+            <Border Background="{StaticResource SurfaceBrush}" CornerRadius="18" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                    Width="460" HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 18 46 0 #55000000">
+                <StackPanel Margin="36,38,36,30">
+                    <StackPanel Spacing="0" HorizontalAlignment="Center">
+                        <Border Width="88" Height="88" CornerRadius="22" Background="{StaticResource CardBrush}"
+                                BorderBrush="{StaticResource BorderInputBrush}" BorderThickness="1"
+                                HorizontalAlignment="Center" ClipToBounds="True">
+                            <Path Data="{StaticResource ZenithLogoGeometry}" Fill="{StaticResource SubtleEmeraldBrush}"
+                                  Stretch="Uniform" Width="50" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="Zenith Launcher" FontSize="22" FontWeight="Bold" HorizontalAlignment="Center"
+                                   Foreground="{StaticResource TextPrimaryBrush}" Margin="0,12,0,0"/>
+                        <TextBlock Text="{Binding VersionLabel, Converter={x:Static vm:L10nFormatConverter.Instance}, ConverterParameter=about_version}" FontSize="12" HorizontalAlignment="Center"
+                                   Foreground="{StaticResource TextMutedBrush}"/>
+                    </StackPanel>
+
+                    <TextBlock Text="{l10n:Tr Key=app_tagline}"
+                               FontSize="12.5" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="19"
+                               TextAlignment="Center" Margin="0,18,0,0"/>
+
+                    <Border Height="1" Background="{StaticResource BorderBrush}" Margin="0,20,0,18"/>
+
+                    <TextBlock Text="{l10n:Tr Key=useful_links}" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource TextCaptionBrush}"
+                               Margin="0,0,0,9"/>
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Border Tag="https://fabricmc.net" Tapped="OnLinkTapped" Background="{StaticResource FieldBrush}" CornerRadius="8"
+                                Padding="14,9" Cursor="Hand">
+                            <StackPanel Orientation="Horizontal" Spacing="7">
+                                <PathIcon Data="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7zM19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7z" Width="13" Height="13" Foreground="{StaticResource AccentBrush}"/>
+                                <TextBlock Text="Fabric" FontSize="12" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Tag="https://modrinth.com" Tapped="OnLinkTapped" Background="{StaticResource FieldBrush}" CornerRadius="8"
+                                Padding="14,9" Cursor="Hand">
+                            <StackPanel Orientation="Horizontal" Spacing="7">
+                                <PathIcon Data="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7zM19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7z" Width="13" Height="13" Foreground="{StaticResource AccentBrush}"/>
+                                <TextBlock Text="Modrinth" FontSize="12" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Tag="https://www.minecraft.net" Tapped="OnLinkTapped" Background="{StaticResource FieldBrush}" CornerRadius="8"
+                                Padding="14,9" Cursor="Hand">
+                            <StackPanel Orientation="Horizontal" Spacing="7">
+                                <PathIcon Data="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7zM19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7z" Width="13" Height="13" Foreground="{StaticResource AccentBrush}"/>
+                                <TextBlock Text="Minecraft" FontSize="12" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <TextBlock Text="{l10n:Tr Key=built_with}"
+                               FontSize="10.5" Foreground="{StaticResource TextCaptionBrush}" TextAlignment="Center" Margin="0,18,0,20"/>
+                    <Button Classes="primaryBtn" Content="{l10n:Tr Key=close}" Command="{Binding CloseDialogsCommand}"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Height="38"/>
+                </StackPanel>
+            </Border>
+        </Border>
+    </Grid>
+</Window>

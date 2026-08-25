@@ -1,0 +1,127 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="CustomMcLauncher.Views.JavaInstallerWindow"
+        xmlns:l10n="using:CustomMcLauncher.Extensions"
+        xmlns:vm="using:CustomMcLauncher.ViewModels"
+        x:DataType="vm:MainWindowViewModel"
+        Title="{l10n:Tr Key=java_installer_title}"
+        Width="400" Height="296"
+        MinWidth="400" MinHeight="296" MaxWidth="400" MaxHeight="296"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource BgBrush}"
+        CanResize="False">
+    <Window.Styles>
+        <Style Selector="Button.subBtn">
+            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderEditorBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.subBtn:pointerover">
+            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        </Style>
+        <Style Selector="Button.verBtn">
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="8,5"/>
+            <Setter Property="MinHeight" Value="34"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.verBtn:pointerover">
+            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        </Style>
+        <Style Selector="Button.verBtn:pressed">
+            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+        </Style>
+        <Style Selector="Button.verBtn:disabled">
+            <Setter Property="Opacity" Value="0.45"/>
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" Margin="12,10,12,8">
+        <!-- Header: title + subtitle only -->
+        <StackPanel Grid.Row="0" Spacing="2" Margin="2,0,2,10">
+            <TextBlock Text="{l10n:Tr Key=java_installer_title}" FontSize="14" FontWeight="Bold"
+                       Foreground="{StaticResource TextPrimaryBrush}"/>
+            <TextBlock Text="{l10n:Tr Key=java_installer_hint}" FontSize="10"
+                       Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"/>
+        </StackPanel>
+
+        <!-- Version tiles -->
+        <UniformGrid Grid.Row="1" Columns="2" Rows="3" Margin="0,0,0,8">
+            <Button Classes="verBtn" Margin="0,0,2,4"
+                    Command="{Binding DownloadJavaCommand}" CommandParameter="8"
+                    IsEnabled="{Binding CanDownloadJava}">
+                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                    <TextBlock Text="Java 8" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    <TextBlock Text="{l10n:Tr Key=java_tag_old}" FontSize="9" Foreground="{StaticResource WarningBrush}" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+            <Button Classes="verBtn" Margin="2,0,0,4"
+                    Command="{Binding DownloadJavaCommand}" CommandParameter="11"
+                    IsEnabled="{Binding CanDownloadJava}">
+                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                    <TextBlock Text="Java 11" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    <TextBlock Text="LTS" FontSize="9" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+            <Button Classes="verBtn" Margin="0,0,2,4"
+                    Command="{Binding DownloadJavaCommand}" CommandParameter="16"
+                    IsEnabled="{Binding CanDownloadJava}">
+                <TextBlock Text="Java 16" FontSize="12" FontWeight="SemiBold"/>
+            </Button>
+            <Button Classes="verBtn" Margin="2,0,0,4"
+                    Command="{Binding DownloadJavaCommand}" CommandParameter="17"
+                    IsEnabled="{Binding CanDownloadJava}">
+                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                    <TextBlock Text="Java 17" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    <TextBlock Text="LTS" FontSize="9" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+            <Button Classes="verBtn" Margin="0,0,2,0"
+                    Command="{Binding DownloadJavaCommand}" CommandParameter="21"
+                    IsEnabled="{Binding CanDownloadJava}">
+                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                    <TextBlock Text="Java 21" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    <TextBlock Text="LTS" FontSize="9" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+            <Button Classes="verBtn" Margin="2,0,0,0"
+                    Command="{Binding DownloadJavaCommand}" CommandParameter="25"
+                    IsEnabled="{Binding CanDownloadJava}">
+                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                    <TextBlock Text="Java 25" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    <TextBlock Text="{l10n:Tr Key=java_tag_new}" FontSize="9" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+        </UniformGrid>
+
+        <!-- Status -->
+        <TextBlock Grid.Row="3" Text="{Binding JavaDownloadStatus}" FontSize="11"
+                   Foreground="{StaticResource WarningBrush}" TextWrapping="Wrap"
+                   VerticalAlignment="Bottom" Margin="2,6,2,6" MinHeight="20"
+                   IsVisible="{Binding JavaDownloadStatus, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}"/>
+
+        <!-- Footer -->
+        <Grid Grid.Row="4" ColumnDefinitions="*,96" Margin="0,6,0,0">
+            <Button Grid.Column="0" Classes="subBtn" Content="{l10n:Tr Key=java_pick_manual}"
+                    Command="{Binding PickCustomJavaCommand}" HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center"/>
+            <Button Grid.Column="1" Classes="subBtn" Content="{l10n:Tr Key=close}"
+                    Click="OnCloseClick" Margin="6,0,0,0"/>
+        </Grid>
+    </Grid>
+</Window>

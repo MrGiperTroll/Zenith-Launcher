@@ -1,0 +1,215 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:CustomMcLauncher.ViewModels"
+             xmlns:models="using:CustomMcLauncher.Models"
+        xmlns:l10n="using:CustomMcLauncher.Extensions"
+             x:Class="CustomMcLauncher.Views.FileListView"
+             x:DataType="vm:FileListViewModel"
+             DragDrop.AllowDrop="True">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+        <Border Grid.Row="0" Padding="0,0,0,8">
+            <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="6">
+                <StackPanel Spacing="2" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Title, Converter={x:Static vm:FileListTitleConverter.Instance}}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                    <TextBlock Text="{Binding CountLabel}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                </StackPanel>
+                <TextBox Grid.Column="1" x:Name="SearchBox" Classes="darkInput" Text="{Binding SearchQuery}"
+                         PlaceholderText="{l10n:Tr Key=ph_search}" Width="160" FontSize="11" Padding="8,5"
+                         VerticalAlignment="Center"/>
+                <ComboBox Grid.Column="2" ItemsSource="{Binding SortOptions}" SelectedItem="{Binding SelectedSortOption}"
+                          FontSize="11" Padding="8,4" Width="118" VerticalAlignment="Center">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Converter={x:Static vm:FileSortDisplayConverter.Instance}}"/>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+                <Button Grid.Column="3" Classes="subBtn" Command="{Binding EnableAllCommand}"
+                        Content="{l10n:Tr Key=fl_enable_all}" FontSize="11" Padding="10,5" VerticalAlignment="Center"
+                        IsVisible="{Binding SupportsDisable}"/>
+                <Button Grid.Column="4" Classes="subBtn" Command="{Binding DisableAllCommand}"
+                        Content="{l10n:Tr Key=fl_disable_all}" FontSize="11" Padding="10,5" VerticalAlignment="Center"
+                        IsVisible="{Binding SupportsDisable}"/>
+                <Button Grid.Column="5" Classes="subBtn" Command="{Binding RefreshListCommand}"
+                        Content="{l10n:Tr Key=fl_refresh}" FontSize="11" Padding="10,5" VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="1" BorderBrush="{StaticResource PanelBrush}" BorderThickness="1" CornerRadius="8" Background="{StaticResource ContentSurfaceBrush}">
+            <Grid>
+                <!-- Standard card list (mods / packs / worlds / generic) -->
+                <ListBox ItemsSource="{Binding Entries}" Background="Transparent" BorderThickness="0" Padding="6"
+                         IsVisible="{Binding !IsGalleryMode}" x:Name="EntryList" DragDrop.AllowDrop="True">
+                    <ListBox.Styles>
+                        <Style Selector="ListBoxItem">
+                            <Setter Property="Padding" Value="0"/>
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                            <Setter Property="CornerRadius" Value="8"/>
+                        </Style>
+                        <Style Selector="ListBoxItem:pointerover">
+                            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+                        </Style>
+                        <Style Selector="ListBoxItem:selected">
+                            <Setter Property="Background" Value="{StaticResource PanelBrush}"/>
+                        </Style>
+                    </ListBox.Styles>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="models:InstanceFileEntry">
+                            <Grid ColumnDefinitions="56,*,Auto,Auto" MinHeight="58" Margin="2,4,2,4">
+                                <Border Width="48" Height="48" Background="{StaticResource IconChipBrush}" CornerRadius="8"
+                                        ClipToBounds="True" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                    <Panel>
+                                        <Image Source="{Binding PreviewImage}" Stretch="UniformToFill" Width="48" Height="48"
+                                               IsVisible="{Binding HasPreview}"/>
+                                        <Path Data="M14 2H6A2 2 0 0 0 4 4V20A2 2 0 0 0 6 22H18A2 2 0 0 0 20 20V6L14 2Z"
+                                              Width="20" Height="20" Stretch="Uniform" Fill="{StaticResource TextPlaceholderBrush}"
+                                              HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding !HasPreview}"/>
+                                    </Panel>
+                                </Border>
+
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1" Margin="0,0,8,0">
+                                    <TextBlock Text="{Binding Title}" FontSize="12" FontWeight="SemiBold"
+                                               Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <TextBlock Text="{Binding Subtitle}" FontSize="10" Foreground="{StaticResource AccentBrush}"
+                                                   IsVisible="{Binding Subtitle, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}"/>
+                                        <TextBlock Text="{Binding Meta}" FontSize="10" Foreground="{StaticResource TextCaptionBrush}"
+                                                   IsVisible="{Binding Meta, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}"/>
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding Description}" FontSize="10" Foreground="{StaticResource TextMutedBrush}"
+                                               TextTrimming="CharacterEllipsis" MaxLines="2" TextWrapping="Wrap"
+                                               IsVisible="{Binding Description, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}"/>
+                                    <TextBlock Text="{Binding ModifiedAt, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}" FontSize="10"
+                                               Foreground="{StaticResource TextCaptionBrush}" Margin="0,2,0,0"/>
+                                </StackPanel>
+
+                                <CheckBox Grid.Column="2" IsChecked="{Binding IsEnabled}"
+                                          Command="{Binding $parent[UserControl].DataContext.ToggleFileCommand}"
+                                          CommandParameter="{Binding}" Margin="4,0,4,0" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+
+                                <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Spacing="2">
+                                    <Button Classes="subBtn" Content="{l10n:Tr Key=fl_backup}" FontSize="11" Padding="12,4" ToolTip.Tip="{l10n:Tr Key=fl_backup_tip}"
+                                            IsVisible="{Binding $parent[UserControl].DataContext.SupportsBackup}"
+                                            Command="{Binding $parent[UserControl].DataContext.BackupFileCommand}" CommandParameter="{Binding}"/>
+                                    <Button Command="{Binding $parent[UserControl].DataContext.OpenFileCommand}" CommandParameter="{Binding}"
+                                            Background="Transparent" Foreground="{StaticResource TextPlaceholderBrush}" Padding="4,1" Cursor="Hand"
+                                            ToolTip.Tip="{l10n:Tr Key=fl_reveal_tip}" VerticalAlignment="Center">
+                                        <PathIcon Data="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
+                                                  Width="14" Height="14" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                                        <Button.Styles>
+                                            <Style Selector="Button:pointerover PathIcon">
+                                                <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+                                            </Style>
+                                        </Button.Styles>
+                                    </Button>
+                                    <Button Command="{Binding $parent[UserControl].DataContext.DeleteFileCommand}" CommandParameter="{Binding}"
+                                            Background="Transparent" Foreground="{StaticResource TextPlaceholderBrush}" Padding="4,1" Cursor="Hand"
+                                            ToolTip.Tip="{l10n:Tr Key=fl_delete}" VerticalAlignment="Center">
+                                        <PathIcon Data="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                                                  Width="13" Height="13" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                                        <Button.Styles>
+                                            <Style Selector="Button:pointerover PathIcon">
+                                                <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
+                                            </Style>
+                                        </Button.Styles>
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <!-- Screenshot gallery (grid of preview tiles) -->
+                <ListBox ItemsSource="{Binding Entries}" Background="Transparent" BorderThickness="0" Padding="8"
+                         IsVisible="{Binding IsGalleryMode}" x:Name="GalleryList" DragDrop.AllowDrop="True">
+                    <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
+                    <ListBox.Styles>
+                        <Style Selector="ListBoxItem">
+                            <Setter Property="Padding" Value="0"/>
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="CornerRadius" Value="10"/>
+                            <Setter Property="Margin" Value="4"/>
+                        </Style>
+                        <Style Selector="ListBoxItem:pointerover">
+                            <Setter Property="Opacity" Value="0.92"/>
+                        </Style>
+                        <Style Selector="ListBoxItem:selected">
+                            <Setter Property="Background" Value="Transparent"/>
+                        </Style>
+                    </ListBox.Styles>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="models:InstanceFileEntry">
+<Border Width="190" CornerRadius="10" Background="{StaticResource CardBrush}"
+                                        BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" ClipToBounds="True">
+                                <StackPanel>
+                                    <Border Height="112" Background="{StaticResource CardAltBrush}" ClipToBounds="True">
+                                        <Panel>
+                                            <Image Source="{Binding PreviewImage}" Stretch="Uniform" Width="188" Height="112"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding HasPreview}"/>
+                                            <Path Data="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01 3.5-4.51 4.5 6H5l3.5-4.5z"
+                                                  Width="42" Height="42" Stretch="Uniform" Fill="{StaticResource TextPlaceholderBrush}"
+                                                  HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding !HasPreview}"/>
+                                        </Panel>
+                                    </Border>
+                                    <StackPanel Spacing="2" Margin="10,8,10,10">
+                                        <TextBlock Text="{Binding Title}" FontSize="12" FontWeight="SemiBold"
+                                                   Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding ModifiedAt, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}" FontSize="10"
+                                                   Foreground="{StaticResource TextCaptionBrush}"/>
+                                        <TextBlock Text="{Binding Meta}" FontSize="10" Foreground="{StaticResource TextPlaceholderBrush}"
+                                                   IsVisible="{Binding Meta, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}"/>
+                                        <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,6,0,0">
+                                            <Button Classes="subBtn" Content="{l10n:Tr Key=fl_open}" Padding="12,4" FontSize="11"
+                                                    Command="{Binding $parent[UserControl].DataContext.OpenFileCommand}" CommandParameter="{Binding}"/>
+                                            <Button Classes="subBtn" Content="{l10n:Tr Key=fl_locate}" Padding="12,4" FontSize="11" ToolTip.Tip="{l10n:Tr Key=fl_explorer_tip}"
+                                                    Command="{Binding $parent[UserControl].DataContext.LocateFileCommand}" CommandParameter="{Binding}"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <!-- Full-list drop highlight (covers the file field, not the header) -->
+                <Border IsVisible="{Binding IsDragOver}" IsHitTestVisible="False" Background="{StaticResource AccentTranslucentBrush}" BorderBrush="{DynamicResource AccentBrush}"
+                        BorderThickness="2" CornerRadius="6" Margin="6" ZIndex="50"
+                        HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                    <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock Text="⬇" FontSize="22" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                        <TextBlock Text="{l10n:Tr Key=fl_drop}" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Invalid-format drop warning -->
+                <Border IsVisible="{Binding IsDragInvalid}" IsHitTestVisible="False" Background="{StaticResource DangerTranslucentBrush}" BorderBrush="{StaticResource DangerBrush}"
+                        BorderThickness="2" CornerRadius="6" Margin="6" ZIndex="51"
+                        HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                    <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock Text="✕" FontSize="22" FontWeight="Bold" Foreground="{StaticResource DangerBrush}" VerticalAlignment="Center"/>
+                        <TextBlock Text="{l10n:Tr Key=fl_invalid}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource DangerBrush}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <TextBlock Text="{Binding EmptyHint}" TextWrapping="Wrap" Foreground="{StaticResource TextPlaceholderBrush}" FontSize="12"
+                           Margin="12,14" HorizontalAlignment="Center" VerticalAlignment="Center"
+                           IsVisible="{Binding Entries.Count, Converter={x:Static vm:EditInstanceWindowConverters.IsZero}}"/>
+            </Grid>
+        </Border>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,8,0,0">
+            <Button Classes="subBtn" Command="{Binding OpenFolderCommand}" FontSize="12" Padding="14,7">
+                <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
+                    <PathIcon Data="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="14" Height="14"/>
+                    <TextBlock Text="{l10n:Tr Key=btn_open_folder}" FontSize="12"/>
+                </StackPanel>
+            </Button>
+        </StackPanel>
+    </Grid>
+</UserControl>

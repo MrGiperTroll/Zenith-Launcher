@@ -1,13 +1,18 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.Presenters;
+using Avalonia.Controls.Primitives;
 using Avalonia.Data.Converters;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Styling;
+using Avalonia.VisualTree;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using CustomMcLauncher.Services;
 using CustomMcLauncher.ViewModels;
 
@@ -23,6 +28,17 @@ public partial class MainWindow : Window
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
         DataContextChanged += OnDataContextChanged;
         UiFx.FadeIn(this, 200);
+
+        var ic = this.FindControl<ItemsControl>("InstancesItemsControl");
+        if (ic != null)
+        {
+            DragDrop.SetAllowDrop(ic, true);
+            ic.AddHandler(DragDrop.DragEnterEvent, OnInstancesDragEnter);
+            ic.AddHandler(DragDrop.DragLeaveEvent, OnInstancesDragLeave);
+            ic.AddHandler(DragDrop.DragOverEvent, OnInstancesDragOver);
+            ic.AddHandler(DragDrop.DropEvent, OnInstancesDrop);
+            ic.ContainerPrepared += OnInstanceContainerPrepared;
+        }
     }
 
     private void OnDataContextChanged(object? sender, EventArgs e)
@@ -95,6 +111,88 @@ public partial class MainWindow : Window
     private void OnModpackButtonTapped(object? sender, TappedEventArgs e)
     {
         e.Handled = true;
+    }
+
+    // --- Drag-and-Drop for instance reordering ---
+
+    private void OnInstanceContainerPrepared(object? sender, ContainerPreparedEventArgs e)
+    {
+        if (e.Container is ContentPresenter { Child: Border border })
+        {
+            border.PointerPressed += OnInstancePointerPressed;
+        }
+    }
+
+    private Border? FindInstanceBorderAtPoint(ItemsControl ic, Point position)
+    {
+        var hit = ic.GetVisualAt(position);
+        while (hit != null && hit != ic)
+        {
+            if (hit is Border border && border.Tag is Models.InstanceModel)
+                return border;
+            hit = hit.GetVisualParent();
+        }
+        return null;
+    }
+
+    private async void OnInstancePointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (sender is Border border && border.Tag is Models.InstanceModel instance
+            && e.GetCurrentPoint(border).Properties.IsLeftButtonPressed)
+        {
+            var dragData = new DataTransfer();
+            dragData.Add(DataTransferItem.CreateText(instance.Id));
+            await DragDrop.DoDragDropAsync(e, dragData, DragDropEffects.Move);
+            e.Handled = true;
+        }
+    }
+
+    private void OnInstancesDragEnter(object? sender, DragEventArgs e)
+    {
+        if (sender is ItemsControl ic)
+        {
+            var border = FindInstanceBorderAtPoint(ic, e.GetPosition(ic));
+            if (border != null) border.Opacity = 0.6;
+        }
+        e.DragEffects = DragDropEffects.Move;
+    }
+
+    private void OnInstancesDragLeave(object? sender, DragEventArgs e)
+    {
+        if (sender is ItemsControl ic)
+        {
+            var border = FindInstanceBorderAtPoint(ic, e.GetPosition(ic));
+            if (border != null) border.Opacity = 1.0;
+        }
+    }
+
+    private void OnInstancesDragOver(object? sender, DragEventArgs e)
+    {
+        e.DragEffects = DragDropEffects.Move;
+    }
+
+    private void OnInstancesDrop(object? sender, DragEventArgs e)
+    {
+        if (sender is ItemsControl ic && DataContext is MainWindowViewModel vm)
+        {
+            var pos = e.GetPosition(ic);
+            var targetBorder = FindInstanceBorderAtPoint(ic, pos);
+            if (targetBorder?.Tag is Models.InstanceModel targetInstance)
+            {
+                targetBorder.Opacity = 1.0;
+
+                var draggedId = e.DataTransfer.TryGetText();
+                if (!string.IsNullOrEmpty(draggedId) && draggedId != targetInstance.Id)
+                {
+                    var dropAfter = pos.X > targetBorder.Bounds.Left + targetBorder.Bounds.Width / 2
+                                 || pos.Y > targetBorder.Bounds.Top + targetBorder.Bounds.Height / 2;
+                    vm.ReorderInstance(draggedId, targetInstance.Id, dropAfter);
+                    e.DragEffects = DragDropEffects.Move;
+                    return;
+                }
+            }
+            e.DragEffects = DragDropEffects.None;
+        }
     }
 }
 

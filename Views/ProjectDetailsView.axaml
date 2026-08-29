@@ -40,7 +40,7 @@
         <!-- Clickable version chip: Background/Text set via MultiBinding converters -->
     </UserControl.Styles>
 
-    <Grid RowDefinitions="Auto,Auto,Auto,*">
+    <Grid RowDefinitions="Auto,Auto,*">
 
         <!-- ========== HEADER (compact) ========== -->
         <Border Grid.Row="0" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}"

@@ -1119,6 +1119,17 @@ public partial class MainWindowViewModel : ViewModelBase
             }
     }
 
+    public void ReorderInstance(string movedId, string targetId, bool dropAfter)
+    {
+        _instanceService.ReorderInstances(movedId, targetId, dropAfter);
+        Instances.Clear();
+        foreach (var inst in _instanceService.GetInstances())
+        {
+            inst.IsSelected = inst.Id == SelectedInstanceId;
+            Instances.Add(inst);
+        }
+    }
+
     [RelayCommand]
     private void SelectInstance(InstanceModel instance)
     {

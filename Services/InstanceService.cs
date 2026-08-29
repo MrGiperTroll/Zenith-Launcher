@@ -264,6 +264,24 @@ public class InstanceService : IInstanceService
         return (true, null);
     }
 
+    public void ReorderInstances(string movedId, string targetId, bool dropAfter)
+    {
+        lock (_lock)
+        {
+            var moved = _instances.FirstOrDefault(i => i.Id == movedId);
+            var target = _instances.FirstOrDefault(i => i.Id == targetId);
+            if (moved == null || target == null || moved == target) return;
+
+            _instances.Remove(moved);
+            var idx = _instances.IndexOf(target);
+            if (dropAfter) idx++;
+            if (idx < 0) idx = 0;
+            if (idx > _instances.Count) idx = _instances.Count;
+            _instances.Insert(idx, moved);
+            SaveInstances();
+        }
+    }
+
     private class LocalStore
     {
         public List<InstanceModel> Instances { get; set; } = new();

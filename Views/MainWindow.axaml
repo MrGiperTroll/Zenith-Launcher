@@ -349,7 +349,7 @@
                                 </StackPanel>
                             </Border>
 
-                            <ItemsControl ItemsSource="{Binding Instances}" Margin="0,4,0,0">
+                            <ItemsControl x:Name="InstancesItemsControl" ItemsSource="{Binding Instances}" Margin="0,4,0,0">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
                                         <WrapPanel Orientation="Horizontal"/>
@@ -359,8 +359,10 @@
 <DataTemplate x:DataType="models:InstanceModel">
                                         <Border Width="178" Height="178" Margin="2,2,14,14" CornerRadius="14"
                                                 BorderBrush="{Binding IsSelected, Converter={StaticResource BoolToBorderBrushConverter}}"
-                                                BorderThickness="1.5">
+                                                BorderThickness="1.5"
+                                                Tag="{Binding}">
                                             <Button Classes="cardBtn" Width="175" Height="175" BorderThickness="0" Padding="13"
+                                                    IsHitTestVisible="False"
                                                     HorizontalAlignment="Center" VerticalAlignment="Center"
                                                     Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).SelectInstanceCommand}"
                                                     CommandParameter="{Binding}">

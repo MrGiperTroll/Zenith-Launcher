@@ -27,6 +27,7 @@ public partial class ContentBrowserViewModel : ObservableObject
     private readonly Func<bool> _hasModsSupport;
     private int _offset;
     private int _totalHits;
+    private bool _showInstallFeedback;
 
     public ObservableCollection<ModrinthProject> Results { get; } = new();
     public ObservableCollection<BrowserTag> AvailableTags { get; } = new();
@@ -235,9 +236,11 @@ public partial class ContentBrowserViewModel : ObservableObject
     public Models.ModrinthFullProject? VersionSelectorProject => FullProject;
 
     /// <summary>Button text: "Install" for new content, "Reinstall" for already-installed.</summary>
-    public string ReinstallText => SelectedProject is { IsInstalled: true }
-        ? L10n.T("mi_reinstall")
-        : L10n.T("mi_install");
+    public string ReinstallText => _showInstallFeedback
+        ? "\u2713 Installed"
+        : SelectedProject is { IsInstalled: true }
+            ? L10n.T("mi_reinstall")
+            : L10n.T("mi_install");
 
     partial void OnSelectedProjectChanged(ModrinthProject? value)
     {
@@ -256,6 +259,20 @@ public partial class ContentBrowserViewModel : ObservableObject
     {
         IsVersionSelectorOpen = false;
         SelectedVersionToInstall = null;
+    }
+
+    private void FlashInstalledFeedback()
+    {
+        _showInstallFeedback = true;
+        OnPropertyChanged(nameof(ReinstallText));
+        _ = Task.Delay(2000).ContinueWith(_ =>
+        {
+            Dispatcher.UIThread.Post(() =>
+            {
+                _showInstallFeedback = false;
+                OnPropertyChanged(nameof(ReinstallText));
+            });
+        });
     }
 
     public bool IsDeleteConfirmOpen => PendingDelete != null;
@@ -626,6 +643,7 @@ public partial class ContentBrowserViewModel : ObservableObject
             UpdateInstalledFlags();
             _refreshAll?.Invoke();
             _reportStatus?.Invoke(StatusText);
+            FlashInstalledFeedback();
         }
         catch (Exception ex)
         {
@@ -728,6 +746,7 @@ public partial class ContentBrowserViewModel : ObservableObject
 
             _refreshAll?.Invoke();
             _reportStatus?.Invoke(StatusText);
+            FlashInstalledFeedback();
         }
         catch (Exception ex)
         {

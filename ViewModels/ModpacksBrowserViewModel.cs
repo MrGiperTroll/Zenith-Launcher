@@ -5,6 +5,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
+using Avalonia.Threading;
 using CmlLib.Core;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -21,6 +22,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     private readonly Action? _onInstalled;
     private int _offset;
     private int _totalHits;
+    private bool _showInstallFeedback;
 
     public ObservableCollection<ModrinthProject> Results { get; } = new();
     public ObservableCollection<string> AvailableVersions { get; } = new();
@@ -192,9 +194,11 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     public Models.ModrinthFullProject? VersionSelectorProject => FullProject;
 
     /// <summary>Button text: "Install" for new content, "Reinstall" for already-installed.</summary>
-    public string ReinstallText => SelectedProject is { IsInstalled: true }
-        ? L10n.T("mi_reinstall")
-        : L10n.T("mi_install");
+    public string ReinstallText => _showInstallFeedback
+        ? "\u2713 Installed"
+        : SelectedProject is { IsInstalled: true }
+            ? L10n.T("mi_reinstall")
+            : L10n.T("mi_install");
 
     partial void OnSelectedProjectChanged(ModrinthProject? value)
     {
@@ -213,6 +217,20 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     {
         IsVersionSelectorOpen = false;
         SelectedVersionToInstall = null;
+    }
+
+    private void FlashInstalledFeedback()
+    {
+        _showInstallFeedback = true;
+        OnPropertyChanged(nameof(ReinstallText));
+        _ = Task.Delay(2000).ContinueWith(_ =>
+        {
+            Dispatcher.UIThread.Post(() =>
+            {
+                _showInstallFeedback = false;
+                OnPropertyChanged(nameof(ReinstallText));
+            });
+        });
     }
 
     public bool IsDeleteConfirmOpen => PendingDelete != null;
@@ -958,6 +976,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
             StatusText = string.Format(L10n.T("mp_installed_as"), project.Title, finalName);
             _onInstalled?.Invoke();
             UpdateInstalledFlags();
+            FlashInstalledFeedback();
         }
         catch (Exception ex)
         {

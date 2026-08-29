@@ -260,6 +260,7 @@ public partial class EditInstanceViewModel : ViewModelBase
                 InstanceFileKind.Mod => ContentType.Mod,
                 InstanceFileKind.ResourcePack => ContentType.ResourcePack,
                 InstanceFileKind.ShaderPack => ContentType.Shader,
+                InstanceFileKind.DataPack => ContentType.DataPack,
                 _ => ContentType.Mod
             };
             if (type == ContentType.Mod && !HasModsSupport)
@@ -646,6 +647,17 @@ public partial class EditInstanceViewModel : ViewModelBase
         {
             ReportError($"Failed to open {entry.Name}: {ex.Message}");
         }
+    }
+
+    public void ShowDataPackDetails(InstanceFileEntry entry)
+    {
+        if (entry == null) return;
+        if (!string.IsNullOrEmpty(entry.ModrinthProjectId))
+        {
+            OnOpenProjectDetails(entry.ModrinthProjectId, InstanceFileKind.DataPack);
+            return;
+        }
+        OpenDataPack(entry);
     }
 
     // ----- Settings -----

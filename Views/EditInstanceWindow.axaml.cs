@@ -81,4 +81,10 @@ public partial class EditInstanceWindow : Window
             }
         }
     }
+
+    private void OnDataPackDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        if (sender is Control { DataContext: Models.InstanceFileEntry entry } && DataContext is EditInstanceViewModel vm)
+            vm.ShowDataPackDetails(entry);
+    }
 }

@@ -138,13 +138,13 @@
                                             <Border.Background>
                                                 <MultiBinding Converter="{x:Static vm:ContentBrowserConverters.VersionHighlightBg}">
                                                     <Binding Path="Id"/>
-                                                    <Binding Path="SelectedVersionId" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+                                                    <Binding Path="DataContext.SelectedVersionId" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
                                                 </MultiBinding>
                                             </Border.Background>
                                             <Border.BorderBrush>
                                                 <MultiBinding Converter="{x:Static vm:ContentBrowserConverters.VersionHighlightBorder}">
                                                     <Binding Path="Id"/>
-                                                    <Binding Path="SelectedVersionId" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+                                                    <Binding Path="DataContext.SelectedVersionId" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
                                                 </MultiBinding>
                                             </Border.BorderBrush>
                                             <Border.BorderThickness>1</Border.BorderThickness>
@@ -203,14 +203,14 @@
                                                 <Border.Background>
                                                     <MultiBinding Converter="{x:Static vm:ContentBrowserConverters.VersionChipHighlight}">
                                                         <Binding/>
-                                                        <Binding Path="SelectedCompatibilityVersion" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+                                                        <Binding Path="DataContext.SelectedCompatibilityVersion" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
                                                     </MultiBinding>
                                                 </Border.Background>
                                                 <TextBlock Text="{Binding}" FontSize="11" FontWeight="SemiBold">
                                                     <TextBlock.Foreground>
                                                         <MultiBinding Converter="{x:Static vm:ContentBrowserConverters.VersionChipFg}">
                                                             <Binding/>
-                                                            <Binding Path="SelectedCompatibilityVersion" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+                                                            <Binding Path="DataContext.SelectedCompatibilityVersion" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
                                                         </MultiBinding>
                                                     </TextBlock.Foreground>
                                                 </TextBlock>
@@ -221,19 +221,20 @@
                             </StackPanel>
                         </ScrollViewer>
                         <TextBlock Text="{l10n:Tr Key=cb_platforms}" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource TextCaptionBrush}" Margin="0,4,0,0"/>
-                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-                            <StackPanel Orientation="Horizontal" Spacing="4">
-                                <ItemsControl ItemsSource="{Binding DetailsProject.Loaders}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border Background="{StaticResource AccentSoftBrush}" CornerRadius="10" Padding="8,3">
-                                                <TextBlock Text="{Binding}" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}"/>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </StackPanel>
-                        </ScrollViewer>
+                        <ItemsControl ItemsSource="{Binding DetailsProject.Loaders}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{StaticResource AccentSoftBrush}" CornerRadius="10" Padding="8,3" Margin="0,0,4,4">
+                                        <TextBlock Text="{Binding}" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}"/>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </StackPanel>
                 </Border>
 

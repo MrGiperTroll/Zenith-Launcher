@@ -803,7 +803,8 @@ public partial class ContentBrowserViewModel : ObservableObject
                 Loaders = full.Loaders,
                 Categories = full.Categories,
                 ProjectType = full.ProjectType,
-                Updated = full.DateModified
+                Updated = full.DateModified,
+                IsInstalled = true
             };
             // Cache icon
             if (!string.IsNullOrWhiteSpace(full.IconUrl))

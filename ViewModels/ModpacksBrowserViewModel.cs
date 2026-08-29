@@ -574,6 +574,9 @@ public partial class ModpacksBrowserViewModel : ObservableObject
                 OnPropertyChanged(nameof(VersionList));
                 OnPropertyChanged(nameof(VersionSelectorProject));
                 OnPropertyChanged(nameof(CompatibilityVersions));
+
+                if (SelectedVersionForDetails == null && VersionList.Count > 0)
+                    SelectedVersionForDetails = VersionList[0];
             }
         }
         catch (Exception ex)

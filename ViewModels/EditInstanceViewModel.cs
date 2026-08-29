@@ -320,22 +320,18 @@ public partial class EditInstanceViewModel : ViewModelBase
     {
         try
         {
-                    var searchResult = await Services.ModrinthApiService.SearchAsync(query, Instance.Version, Array.Empty<string>(), 0, 1);
+            var searchResult = await Services.ModrinthApiService.SearchAsync(query, Instance.Version, Array.Empty<string>(), 0, 1);
             if (searchResult?.Hits.Count > 0)
             {
                 var hit = searchResult.Hits[0];
                 await vm.OpenProjectByIdAsync(hit.ProjectId);
             }
-            else
-            {
-                win.Show(owner);
-            }
         }
         catch (Exception ex)
         {
             ReportError($"Failed to search for project: {ex.Message}");
-            win.Show(owner);
         }
+        win.Show(owner);
     }
 
     // ----- Logs -----

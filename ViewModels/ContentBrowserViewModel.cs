@@ -242,6 +242,8 @@ public partial class ContentBrowserViewModel : ObservableObject
             ? L10n.T("mi_reinstall")
             : L10n.T("mi_install");
 
+    private bool _isLoadingByProjectId;
+
     partial void OnSelectedProjectChanged(ModrinthProject? value)
     {
         OnPropertyChanged(nameof(IsDetailsOpen));
@@ -250,8 +252,8 @@ public partial class ContentBrowserViewModel : ObservableObject
         OnPropertyChanged(nameof(ReinstallText));
         SelectedVersionForDetails = null;
         SelectedCompatibilityVersion = _gameVersion;
-        if (value != null) _ = LoadFullProjectAsync(value);
-        else FullProject = null;
+        if (value != null && !_isLoadingByProjectId) _ = LoadFullProjectAsync(value);
+        else if (value == null) FullProject = null;
     }
 
     [RelayCommand]
@@ -830,13 +832,18 @@ public partial class ContentBrowserViewModel : ObservableObject
             if (!string.IsNullOrWhiteSpace(full.IconUrl))
                 _ = LoadIconAsync(project);
 
+            _isLoadingByProjectId = true;
             SelectedProject = project;
+            _isLoadingByProjectId = false;
             FullProject = full;
             OnPropertyChanged(nameof(CleanBody));
             _allVersions = await ModrinthApiService.GetProjectVersionsAsync(projectId);
             SelectedCompatibilityVersion = _gameVersion;
             OnPropertyChanged(nameof(VersionList));
             OnPropertyChanged(nameof(CompatibilityVersions));
+
+            if (SelectedVersionForDetails == null && VersionList.Count > 0)
+                SelectedVersionForDetails = VersionList[0];
         }
         catch (Exception ex)
         {
@@ -948,6 +955,9 @@ public partial class ContentBrowserViewModel : ObservableObject
                 OnPropertyChanged(nameof(VersionList));
                 OnPropertyChanged(nameof(VersionSelectorProject));
                 OnPropertyChanged(nameof(CompatibilityVersions));
+
+                if (SelectedVersionForDetails == null && VersionList.Count > 0)
+                    SelectedVersionForDetails = VersionList[0];
             }
         }
         catch (Exception ex)

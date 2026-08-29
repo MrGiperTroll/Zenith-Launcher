@@ -215,59 +215,6 @@
                 <TextBlock Text="{Binding EmptyHint}" TextWrapping="Wrap" Foreground="{StaticResource TextPlaceholderBrush}" FontSize="12"
                            Margin="12,14" HorizontalAlignment="Center" VerticalAlignment="Center"
                            IsVisible="{Binding Entries.Count, Converter={x:Static vm:EditInstanceWindowConverters.IsZero}}"/>
-
-                <!-- In-app details overlay for the selected installed item -->
-                <Border IsVisible="{Binding IsDetailsOpen}" Background="{StaticResource BgBrush}" ZIndex="100"
-                        HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                    <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1"
-                            CornerRadius="14" Padding="24" MaxWidth="480" MinWidth="320"
-                            HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <StackPanel Spacing="16">
-                            <!-- Header: icon + title -->
-                            <Grid ColumnDefinitions="64,*" ColumnSpacing="14">
-                                <Border Grid.Column="0" Width="64" Height="64" Background="{StaticResource IconChipBrush}" CornerRadius="12"
-                                        ClipToBounds="True">
-                                    <Panel>
-                                        <Image Source="{Binding SelectedEntry.PreviewImage}" Stretch="UniformToFill" Width="64" Height="64"
-                                               IsVisible="{Binding SelectedEntry.HasPreview}"/>
-                                        <Path Data="M14 2H6A2 2 0 0 0 4 4V20A2 2 0 0 0 6 22H18A2 2 0 0 0 20 20V6L14 2Z"
-                                              Width="28" Height="28" Stretch="Uniform" Fill="{StaticResource TextPlaceholderBrush}"
-                                              HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding !SelectedEntry.HasPreview}"/>
-                                    </Panel>
-                                </Border>
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3">
-                                    <TextBlock Text="{Binding SelectedEntry.Title}" FontSize="16" FontWeight="Bold"
-                                               Foreground="{StaticResource TextPrimaryBrush}" TextWrapping="Wrap"/>
-                                    <TextBlock Text="{Binding SelectedEntry.Subtitle}" FontSize="12" Foreground="{StaticResource AccentBrush}"
-                                               IsVisible="{Binding SelectedEntry.Subtitle, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}"/>
-                                </StackPanel>
-                            </Grid>
-
-                            <!-- About -->
-                            <StackPanel Spacing="4">
-                                <TextBlock Text="{l10n:Tr Key=cb_about}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextCaptionBrush}" LetterSpacing="1"/>
-                                <TextBlock Text="{Binding SelectedEntry.Description}" FontSize="12.5" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="19"/>
-                            </StackPanel>
-
-                            <!-- File path -->
-                            <StackPanel Spacing="4">
-                                <TextBlock Text="{l10n:Tr Key=cb_project_name}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextCaptionBrush}" LetterSpacing="1"/>
-                                <TextBlock Text="{Binding SelectedEntry.FullPath}" FontSize="10.5" Foreground="{StaticResource TextPlaceholderBrush}" TextWrapping="Wrap" FontFamily="Consolas, Cascadia Code, Courier New"/>
-                                <TextBlock Text="{Binding SelectedEntry.ModifiedAt, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}" FontSize="11" Foreground="{StaticResource TextCaptionBrush}"/>
-                            </StackPanel>
-
-                            <!-- Buttons -->
-                            <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" Margin="0,4,0,0">
-                                <Button Classes="subBtn" Content="{l10n:Tr Key=fl_locate}" Command="{Binding LocateFileCommand}"
-                                        CommandParameter="{Binding SelectedEntry}" FontSize="11" Padding="12,6"/>
-                                <Button Classes="subBtn" Content="{l10n:Tr Key=fl_open}" Command="{Binding OpenFileCommand}"
-                                        CommandParameter="{Binding SelectedEntry}" FontSize="11" Padding="14,6"/>
-                                <Button Content="{l10n:Tr Key=btn_back}" Command="{Binding BackFromDetailsCommand}"
-                                        Classes="dialogBtn" Width="96" Height="34"/>
-                            </StackPanel>
-                        </StackPanel>
-                    </Border>
-                </Border>
             </Grid>
         </Border>
 

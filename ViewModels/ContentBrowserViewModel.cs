@@ -237,7 +237,7 @@ public partial class ContentBrowserViewModel : ObservableObject
 
     /// <summary>Button text: "Install" for new content, "Reinstall" for already-installed.</summary>
     public string ReinstallText => _showInstallFeedback
-        ? "\u2713 Installed"
+        ? "Installed"
         : SelectedProject is { IsInstalled: true }
             ? L10n.T("mi_reinstall")
             : L10n.T("mi_install");
@@ -803,6 +803,7 @@ public partial class ContentBrowserViewModel : ObservableObject
     /// <summary>Opens the full project details page by Modrinth project ID (used by installed-content double-click).</summary>
     public async Task OpenProjectByIdAsync(string projectId)
     {
+        if (string.IsNullOrWhiteSpace(projectId)) return;
         try
         {
             FullProjectBusy = true;

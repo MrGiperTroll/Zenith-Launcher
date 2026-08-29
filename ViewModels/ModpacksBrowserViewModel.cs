@@ -195,7 +195,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
 
     /// <summary>Button text: "Install" for new content, "Reinstall" for already-installed.</summary>
     public string ReinstallText => _showInstallFeedback
-        ? "\u2713 Installed"
+        ? "Installed"
         : SelectedProject is { IsInstalled: true }
             ? L10n.T("mi_reinstall")
             : L10n.T("mi_install");

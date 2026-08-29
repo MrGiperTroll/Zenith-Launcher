@@ -284,7 +284,8 @@ public partial class EditInstanceViewModel : ViewModelBase
                     Services.DiscordPresenceService.SetEditingInstance(Instance.Name);
                 };
                 win.Show(desktop.MainWindow);
-                _ = vm.OpenProjectByIdAsync(projectId);
+                if (!string.IsNullOrWhiteSpace(projectId))
+                    _ = vm.OpenProjectByIdAsync(projectId);
             }
         }
         catch (Exception ex)
@@ -652,12 +653,7 @@ public partial class EditInstanceViewModel : ViewModelBase
     public void ShowDataPackDetails(InstanceFileEntry entry)
     {
         if (entry == null) return;
-        if (!string.IsNullOrEmpty(entry.ModrinthProjectId))
-        {
-            OnOpenProjectDetails(entry.ModrinthProjectId, InstanceFileKind.DataPack);
-            return;
-        }
-        OpenDataPack(entry);
+        OnOpenProjectDetails(entry.ModrinthProjectId ?? "", InstanceFileKind.DataPack);
     }
 
     // ----- Settings -----

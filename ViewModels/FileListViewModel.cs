@@ -374,10 +374,9 @@ public partial class FileListViewModel : ObservableObject
     {
         if (entry == null) return;
 
-        // If this entry has a known Modrinth project ID, open the full details page
-        if (!string.IsNullOrEmpty(entry.ModrinthProjectId) && OpenProjectDetails != null)
+        if (OpenProjectDetails != null)
         {
-            OpenProjectDetails(entry.ModrinthProjectId, _kind);
+            OpenProjectDetails(entry.ModrinthProjectId ?? "", _kind);
             return;
         }
 

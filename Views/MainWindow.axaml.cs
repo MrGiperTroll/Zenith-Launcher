@@ -12,7 +12,6 @@ using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
-using System.Linq;
 using CustomMcLauncher.Services;
 using CustomMcLauncher.ViewModels;
 
@@ -37,7 +36,6 @@ public partial class MainWindow : Window
             ic.AddHandler(DragDrop.DragLeaveEvent, OnInstancesDragLeave);
             ic.AddHandler(DragDrop.DragOverEvent, OnInstancesDragOver);
             ic.AddHandler(DragDrop.DropEvent, OnInstancesDrop);
-            ic.ContainerPrepared += OnInstanceContainerPrepared;
         }
     }
 
@@ -113,56 +111,59 @@ public partial class MainWindow : Window
         e.Handled = true;
     }
 
-    private void OnInstanceTapped(object? sender, TappedEventArgs e)
-    {
-        if (sender is Border { Tag: Models.InstanceModel instance } && DataContext is MainWindowViewModel vm)
-            vm.SelectInstanceCommand.Execute(instance);
-    }
-
     // --- Drag-and-Drop for instance reordering ---
 
     private const double DragThreshold = 7.0;
-    private bool _isDragging;
     private bool _dragPending;
+    private bool _dragStarted;
     private Point _dragStartPoint;
     private Border? _dragSourceBorder;
     private PointerPressedEventArgs? _dragPressedArgs;
 
-    private void OnInstanceContainerPrepared(object? sender, ContainerPreparedEventArgs e)
+    private Border? FindInstanceBorder(Visual hit)
     {
-        if (e.Container is ContentPresenter { Child: Border border })
-            border.PointerPressed += OnInstancePointerPressed;
-    }
-
-    private Border? FindInstanceBorderAtPoint(ItemsControl ic, Point position)
-    {
-        var hit = ic.GetVisualAt(position);
-        while (hit != null && hit != ic)
+        var current = hit as Visual;
+        while (current != null)
         {
-            if (hit is Border border && border.Tag is Models.InstanceModel)
+            if (current is Border border && border.Tag is Models.InstanceModel)
                 return border;
-            hit = hit.GetVisualParent();
+            current = current.GetVisualParent();
         }
         return null;
     }
 
-    private void OnInstancePointerPressed(object? sender, PointerPressedEventArgs e)
+    protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
-        if (sender is Border border && e.GetCurrentPoint(border).Properties.IsLeftButtonPressed)
+        base.OnPointerPressed(e);
+
+        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
         {
-            _isDragging = false;
-            _dragPending = true;
-            _dragStartPoint = e.GetPosition(border);
-            _dragSourceBorder = border;
-            _dragPressedArgs = e;
+            var source = e.Source as Visual;
+            if (source != null)
+            {
+                var border = FindInstanceBorder(source);
+                if (border != null)
+                {
+                    _dragPending = true;
+                    _dragStarted = false;
+                    _dragStartPoint = e.GetPosition(border);
+                    _dragSourceBorder = border;
+                    _dragPressedArgs = e;
+                    return;
+                }
+            }
         }
+
+        _dragPending = false;
+        _dragSourceBorder = null;
+        _dragPressedArgs = null;
     }
 
     protected override void OnPointerMoved(PointerEventArgs e)
     {
         base.OnPointerMoved(e);
 
-        if (!_dragPending || _dragSourceBorder == null || _isDragging) return;
+        if (!_dragPending || _dragSourceBorder == null || _dragStarted) return;
 
         var pos = e.GetPosition(_dragSourceBorder);
         var dx = pos.X - _dragStartPoint.X;
@@ -171,7 +172,7 @@ public partial class MainWindow : Window
 
         if (_dragSourceBorder.Tag is Models.InstanceModel instance && _dragPressedArgs != null)
         {
-            _isDragging = true;
+            _dragStarted = true;
             _dragPending = false;
             var pressed = _dragPressedArgs;
             _dragSourceBorder = null;
@@ -187,7 +188,7 @@ public partial class MainWindow : Window
     {
         base.OnPointerReleased(e);
         _dragPending = false;
-        _isDragging = false;
+        _dragStarted = false;
         _dragSourceBorder = null;
         _dragPressedArgs = null;
     }
@@ -214,6 +215,13 @@ public partial class MainWindow : Window
     private void OnInstancesDragOver(object? sender, DragEventArgs e)
     {
         e.DragEffects = DragDropEffects.Move;
+    }
+
+    private Border? FindInstanceBorderAtPoint(ItemsControl ic, Point position)
+    {
+        var hit = ic.GetVisualAt(position);
+        if (hit != null) return FindInstanceBorder(hit);
+        return null;
     }
 
     private void OnInstancesDrop(object? sender, DragEventArgs e)

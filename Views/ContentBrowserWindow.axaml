@@ -297,7 +297,7 @@
     <!-- Full-page project details (replaces catalog when open) -->
     <Border IsVisible="{Binding IsDetailsOpen}" Background="{StaticResource BgBrush}" Margin="14" CornerRadius="10"
             BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1">
-        <views:ProjectDetailsView DataContext="{Binding DetailsProject}"/>
+        <views:ProjectDetailsView DataContext="{Binding}"/>
     </Border>
     </Panel>
 </Window>

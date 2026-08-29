@@ -24,7 +24,6 @@
             <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
         </Style>
-        <!-- Green action button: brighten on hover, NOT gray -->
         <Style Selector="Button.actionBtn">
             <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
@@ -36,8 +35,6 @@
             <Setter Property="Background" Value="{StaticResource AccentBrushHover}"/>
             <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
         </Style>
-        <!-- Selectable version row: Background/Border set via MultiBinding converters -->
-        <!-- Clickable version chip: Background/Text set via MultiBinding converters -->
     </UserControl.Styles>
 
     <Grid RowDefinitions="Auto,Auto,*">
@@ -49,38 +46,37 @@
                 <Border Grid.Column="0" Width="56" Height="56" CornerRadius="12"
                         Background="{StaticResource IconChipBrush}" ClipToBounds="True" VerticalAlignment="Center">
                     <Panel>
-                        <Image Source="{Binding Icon}" Stretch="Uniform" Width="52" Height="52"
-                               HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding HasIcon}"/>
-                        <Path Data="M20.5 11H19V7C19 5.9 18.1 5 17 5H13V3.5C13 2.12 11.88 1 10.5 1S8 2.12 8 3.5V5H4C2.9 5 2 5.9 2 7V10.8H3.5C4.99 10.8 6.2 12.01 6.2 13.5S4.99 16.2 3.5 16.2H2V20C2 21.1 2.9 22 4 22H7.8V20.5C7.8 19.01 9.01 17.8 10.5 17.8S13.2 19.01 13.2 20.5V22H17C18.1 22 19 21.1 19 20V16H20.5C21.88 16 23 14.88 23 13.5S21.88 11 20.5 11Z" Width="26" Height="26" Stretch="Uniform" Fill="{StaticResource TextPlaceholderBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding !HasIcon}"/>
+                        <Image Source="{Binding DetailsProject.Icon}" Stretch="Uniform" Width="52" Height="52"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding DetailsProject.HasIcon}"/>
+                        <Path Data="M20.5 11H19V7C19 5.9 18.1 5 17 5H13V3.5C13 2.12 11.88 1 10.5 1S8 2.12 8 3.5V5H4C2.9 5 2 5.9 2 7V10.8H3.5C4.99 10.8 6.2 12.01 6.2 13.5S4.99 16.2 3.5 16.2H2V20C2 21.1 2.9 22 4 22H7.8V20.5C7.8 19.01 9.01 17.8 10.5 17.8S13.2 19.01 13.2 20.5V22H17C18.1 22 19 21.1 19 20V16H20.5C21.88 16 23 14.88 23 13.5S21.88 11 20.5 11Z" Width="26" Height="26" Stretch="Uniform" Fill="{StaticResource TextPlaceholderBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding !DetailsProject.HasIcon}"/>
                     </Panel>
                 </Border>
                 <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding Title}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" TextWrapping="Wrap"/>
-                    <TextBlock Text="{Binding Description}" FontSize="11.5" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" MaxLines="2"/>
+                    <TextBlock Text="{Binding DetailsProject.Title}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding DetailsProject.Description}" FontSize="11.5" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" MaxLines="2"/>
                     <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,3,0,0">
                         <StackPanel Orientation="Horizontal" Spacing="4">
-                            <TextBlock Text="↓" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
-                            <TextBlock Text="{Binding DownloadsLabel}" FontSize="11" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Text="&#x2193;" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding DetailsProject.DownloadsLabel}" FontSize="11" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="4"
-                                    IsVisible="{Binding $parent[Window].DataContext.FullProject.Follows, Converter={x:Static vm:EditInstanceWindowConverters.IsNotZero}}">
-                            <TextBlock Text="♡" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
-                            <TextBlock Text="{Binding $parent[Window].DataContext.FullProject.Follows}" FontSize="11" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                    IsVisible="{Binding FullProject.Follows, Converter={x:Static vm:EditInstanceWindowConverters.IsNotZero}}">
+                            <TextBlock Text="&#x2661;" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding FullProject.Follows}" FontSize="11" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                         </StackPanel>
                         <Border Background="{StaticResource AccentSoftBrush}" CornerRadius="10" Padding="8,3">
-                            <TextBlock Text="{Binding ProjectTypeDisplay}" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}"/>
+                            <TextBlock Text="{Binding DetailsProject.ProjectTypeDisplay}" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}"/>
                         </Border>
                     </StackPanel>
                 </StackPanel>
-                <!-- Back + Install/Reinstall buttons side by side -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                     <Button Content="{l10n:Tr Key=btn_back}" CornerRadius="8" Padding="14,8"
                             Background="{StaticResource FieldBrush}" Foreground="{StaticResource TextPrimaryBrush}"
                             BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" FontWeight="SemiBold" Cursor="Hand"
-                            Command="{Binding $parent[Window].DataContext.CloseDetailsCommand}"/>
+                            Command="{Binding CloseDetailsCommand}"/>
                     <Button Classes="actionBtn" Padding="18,8"
-                            Content="{Binding $parent[Window].DataContext.ReinstallText}"
-                            Command="{Binding $parent[Window].DataContext.MainActionCommand}"/>
+                            Content="{Binding ReinstallText}"
+                            Command="{Binding MainActionCommand}"/>
                 </StackPanel>
             </Grid>
         </Border>
@@ -89,15 +85,15 @@
         <Border Grid.Row="1" Background="{StaticResource BgBrush}" BorderBrush="{StaticResource BorderStrongBrush}"
                 BorderThickness="0,0,0,1" Padding="24,0">
             <StackPanel Orientation="Horizontal" Spacing="4">
-                <ToggleButton Classes="tabBtn" IsChecked="{Binding $parent[Window].DataContext.IsDescriptionTab}"
+                <ToggleButton Classes="tabBtn" IsChecked="{Binding IsDescriptionTab}"
                               Content="{l10n:Tr Key=cb_description}"
-                              Command="{Binding $parent[Window].DataContext.SelectTabCommand}" CommandParameter="description"/>
-                <ToggleButton Classes="tabBtn" IsChecked="{Binding $parent[Window].DataContext.IsChangelogTab}"
+                              Command="{Binding SelectTabCommand}" CommandParameter="description"/>
+                <ToggleButton Classes="tabBtn" IsChecked="{Binding IsChangelogTab}"
                               Content="{l10n:Tr Key=cb_changelog}"
-                              Command="{Binding $parent[Window].DataContext.SelectTabCommand}" CommandParameter="changelog"/>
-                <ToggleButton Classes="tabBtn" IsChecked="{Binding $parent[Window].DataContext.IsVersionsTab}"
+                              Command="{Binding SelectTabCommand}" CommandParameter="changelog"/>
+                <ToggleButton Classes="tabBtn" IsChecked="{Binding IsVersionsTab}"
                               Content="{l10n:Tr Key=cb_versions}"
-                              Command="{Binding $parent[Window].DataContext.SelectTabCommand}" CommandParameter="versions"/>
+                              Command="{Binding SelectTabCommand}" CommandParameter="versions"/>
             </StackPanel>
         </Border>
 
@@ -110,32 +106,30 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel>
                         <!-- Description tab -->
-                        <StackPanel IsVisible="{Binding $parent[Window].DataContext.IsDescriptionTab}" Spacing="10">
-                            <TextBlock Text="{Binding Title}" FontSize="17" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                            <TextBlock Text="{Binding Description}" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="20"/>
-                            <TextBlock Text="{Binding $parent[Window].DataContext.CleanBody}" FontSize="12.5" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="20"
-                                       IsVisible="{Binding $parent[Window].DataContext.CleanBody, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}"/>
+                        <StackPanel IsVisible="{Binding IsDescriptionTab}" Spacing="10">
+                            <TextBlock Text="{Binding DetailsProject.Title}" FontSize="17" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <TextBlock Text="{Binding DetailsProject.Description}" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="20"/>
+                            <TextBlock Text="{Binding CleanBody}" FontSize="12.5" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="20"
+                                       IsVisible="{Binding CleanBody, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}"/>
                         </StackPanel>
 
                         <!-- Changelog tab -->
-                        <StackPanel IsVisible="{Binding $parent[Window].DataContext.IsChangelogTab}" Spacing="10">
+                        <StackPanel IsVisible="{Binding IsChangelogTab}" Spacing="10">
                             <TextBlock Text="{l10n:Tr Key=cb_changelog}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                            <TextBlock Text="{Binding $parent[Window].DataContext.CleanBody}" FontSize="12.5" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="20"
-                                       IsVisible="{Binding $parent[Window].DataContext.CleanBody, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}"/>
+                            <TextBlock Text="{Binding CleanBody}" FontSize="12.5" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="20"
+                                       IsVisible="{Binding CleanBody, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}"/>
                             <TextBlock Text="{l10n:Tr Key=cb_no_changelog}" FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}"
-                                       IsVisible="{Binding $parent[Window].DataContext.CleanBody, Converter={x:Static vm:EditInstanceWindowConverters.IsEmpty}}"/>
+                                       IsVisible="{Binding CleanBody, Converter={x:Static vm:EditInstanceWindowConverters.IsEmpty}}"/>
                         </StackPanel>
 
                         <!-- Versions tab -->
-                        <StackPanel IsVisible="{Binding $parent[Window].DataContext.IsVersionsTab}" Spacing="6">
-                            <!-- Top row: title + show all toggle -->
+                        <StackPanel IsVisible="{Binding IsVersionsTab}" Spacing="6">
                             <Grid ColumnDefinitions="*,Auto">
                                 <TextBlock Text="{l10n:Tr Key=cb_versions}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                                <CheckBox Grid.Column="1" Content="{l10n:Tr Key=cb_show_all_versions}" IsChecked="{Binding $parent[Window].DataContext.ShowAllVersions}"
+                                <CheckBox Grid.Column="1" Content="{l10n:Tr Key=cb_show_all_versions}" IsChecked="{Binding ShowAllVersions}"
                                           Foreground="{StaticResource TextSecondaryBrush}" FontSize="11"/>
                             </Grid>
-                            <!-- Version list: selectable rows, no per-row Install button -->
-                            <ItemsControl ItemsSource="{Binding $parent[Window].DataContext.VersionList}">
+                            <ItemsControl ItemsSource="{Binding VersionList}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate x:DataType="models:ModrinthProjectVersion">
                                         <Border Margin="0,0,0,4"
@@ -144,13 +138,13 @@
                                             <Border.Background>
                                                 <MultiBinding Converter="{x:Static vm:ContentBrowserConverters.VersionHighlightBg}">
                                                     <Binding Path="Id"/>
-                                                    <Binding Path="$parent[Window].((vm:ContentBrowserViewModel)DataContext).SelectedVersionId"/>
+                                                    <Binding Path="SelectedVersionId" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
                                                 </MultiBinding>
                                             </Border.Background>
                                             <Border.BorderBrush>
                                                 <MultiBinding Converter="{x:Static vm:ContentBrowserConverters.VersionHighlightBorder}">
                                                     <Binding Path="Id"/>
-                                                    <Binding Path="$parent[Window].((vm:ContentBrowserViewModel)DataContext).SelectedVersionId"/>
+                                                    <Binding Path="SelectedVersionId" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
                                                 </MultiBinding>
                                             </Border.BorderBrush>
                                             <Border.BorderThickness>1</Border.BorderThickness>
@@ -178,7 +172,7 @@
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
                             <TextBlock Text="{l10n:Tr Key=cb_no_versions}" FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}" Margin="0,4"
-                                       IsVisible="{Binding $parent[Window].DataContext.VersionList, Converter={x:Static vm:EditInstanceWindowConverters.IsCollectionEmpty}}"/>
+                                       IsVisible="{Binding VersionList, Converter={x:Static vm:EditInstanceWindowConverters.IsCollectionEmpty}}"/>
                         </StackPanel>
                     </StackPanel>
                 </ScrollViewer>
@@ -190,19 +184,18 @@
                 <!-- Compatibility (clickable versions + max height + scroll) -->
                 <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="12">
                     <StackPanel Spacing="6">
-                        <!-- Header row: title + clear filter button -->
                         <Grid ColumnDefinitions="*,Auto">
                             <TextBlock Text="{l10n:Tr Key=cb_compatibility}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                            <Button Grid.Column="1" Content="✕" FontSize="10" Padding="6,2" CornerRadius="6"
+                            <Button Grid.Column="1" Content="&#x2715;" FontSize="10" Padding="6,2" CornerRadius="6"
                                     Background="{StaticResource FieldBrush}" Foreground="{StaticResource TextMutedBrush}"
                                     BorderThickness="0" Cursor="Hand" VerticalAlignment="Center"
-                                    IsVisible="{Binding $parent[Window].DataContext.IsCompatibilityFilterActive}"
-                                    Command="{Binding $parent[Window].DataContext.ClearCompatibilityFilterCommand}"/>
+                                    IsVisible="{Binding IsCompatibilityFilterActive}"
+                                    Command="{Binding ClearCompatibilityFilterCommand}"/>
                         </Grid>
                         <TextBlock Text="Minecraft: Java Edition" FontSize="10.5" Foreground="{StaticResource TextMutedBrush}"/>
                         <ScrollViewer MaxHeight="160" VerticalScrollBarVisibility="Auto">
                             <StackPanel>
-                                <ItemsControl ItemsSource="{Binding $parent[Window].DataContext.CompatibilityVersions}">
+                                <ItemsControl ItemsSource="{Binding CompatibilityVersions}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
                                             <Border CornerRadius="8" Padding="8,5" Margin="0,0,0,4" Cursor="Hand"
@@ -210,14 +203,14 @@
                                                 <Border.Background>
                                                     <MultiBinding Converter="{x:Static vm:ContentBrowserConverters.VersionChipHighlight}">
                                                         <Binding/>
-                                                        <Binding Path="$parent[Window].((vm:ContentBrowserViewModel)DataContext).SelectedCompatibilityVersion"/>
+                                                        <Binding Path="SelectedCompatibilityVersion" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
                                                     </MultiBinding>
                                                 </Border.Background>
                                                 <TextBlock Text="{Binding}" FontSize="11" FontWeight="SemiBold">
                                                     <TextBlock.Foreground>
                                                         <MultiBinding Converter="{x:Static vm:ContentBrowserConverters.VersionChipFg}">
                                                             <Binding/>
-                                                            <Binding Path="$parent[Window].((vm:ContentBrowserViewModel)DataContext).SelectedCompatibilityVersion"/>
+                                                            <Binding Path="SelectedCompatibilityVersion" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
                                                         </MultiBinding>
                                                     </TextBlock.Foreground>
                                                 </TextBlock>
@@ -230,7 +223,7 @@
                         <TextBlock Text="{l10n:Tr Key=cb_platforms}" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource TextCaptionBrush}" Margin="0,4,0,0"/>
                         <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
                             <StackPanel Orientation="Horizontal" Spacing="4">
-                                <ItemsControl ItemsSource="{Binding Loaders}">
+                                <ItemsControl ItemsSource="{Binding DetailsProject.Loaders}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
                                             <Border Background="{StaticResource AccentSoftBrush}" CornerRadius="10" Padding="8,3">
@@ -246,34 +239,34 @@
 
                 <!-- Links -->
                 <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="12"
-                        IsVisible="{Binding $parent[Window].DataContext.FullProject, Converter={x:Static vm:EditInstanceWindowConverters.IsNotNull}}">
+                        IsVisible="{Binding FullProject, Converter={x:Static vm:EditInstanceWindowConverters.IsNotNull}}">
                     <StackPanel Spacing="5">
                         <TextBlock Text="{l10n:Tr Key=cb_links}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,2"/>
-                        <Button Classes="sourceBtn" IsVisible="{Binding $parent[Window].DataContext.FullProject.SourceUrl, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}"
-                                Command="{Binding $parent[Window].DataContext.OpenLinkCommand}" CommandParameter="source" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+                        <Button Classes="sourceBtn" IsVisible="{Binding FullProject.SourceUrl, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}"
+                                Command="{Binding OpenLinkCommand}" CommandParameter="source" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <TextBlock Text="&lt;&gt;" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
                                 <TextBlock Text="{l10n:Tr Key=cb_source}" FontSize="11"/>
                             </StackPanel>
                         </Button>
-                        <Button Classes="sourceBtn" IsVisible="{Binding $parent[Window].DataContext.FullProject.IssuesUrl, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}"
-                                Command="{Binding $parent[Window].DataContext.OpenLinkCommand}" CommandParameter="issues" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+                        <Button Classes="sourceBtn" IsVisible="{Binding FullProject.IssuesUrl, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}"
+                                Command="{Binding OpenLinkCommand}" CommandParameter="issues" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
                             <StackPanel Orientation="Horizontal" Spacing="6">
-                                <TextBlock Text="△" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                                <TextBlock Text="&#x25B3;" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
                                 <TextBlock Text="{l10n:Tr Key=cb_issues}" FontSize="11"/>
                             </StackPanel>
                         </Button>
-                        <Button Classes="sourceBtn" IsVisible="{Binding $parent[Window].DataContext.FullProject.WikiUrl, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}"
-                                Command="{Binding $parent[Window].DataContext.OpenLinkCommand}" CommandParameter="wiki" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+                        <Button Classes="sourceBtn" IsVisible="{Binding FullProject.WikiUrl, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}"
+                                Command="{Binding OpenLinkCommand}" CommandParameter="wiki" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
                             <StackPanel Orientation="Horizontal" Spacing="6">
-                                <TextBlock Text="◈" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                                <TextBlock Text="&#x25C8;" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
                                 <TextBlock Text="{l10n:Tr Key=cb_wiki}" FontSize="11"/>
                             </StackPanel>
                         </Button>
-                        <Button Classes="sourceBtn" IsVisible="{Binding $parent[Window].DataContext.FullProject.DiscordUrl, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}"
-                                Command="{Binding $parent[Window].DataContext.OpenLinkCommand}" CommandParameter="discord" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+                        <Button Classes="sourceBtn" IsVisible="{Binding FullProject.DiscordUrl, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}"
+                                Command="{Binding OpenLinkCommand}" CommandParameter="discord" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
                             <StackPanel Orientation="Horizontal" Spacing="6">
-                                <TextBlock Text="💬" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                                <TextBlock Text="&#x1F4AC;" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
                                 <TextBlock Text="{l10n:Tr Key=cb_discord}" FontSize="11"/>
                             </StackPanel>
                         </Button>
@@ -282,10 +275,10 @@
 
                 <!-- Creators -->
                 <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="12"
-                        IsVisible="{Binding $parent[Window].DataContext.FullProject.TeamMembers.Count, Converter={x:Static vm:EditInstanceWindowConverters.IsNotZero}}">
+                        IsVisible="{Binding FullProject.TeamMembers.Count, Converter={x:Static vm:EditInstanceWindowConverters.IsNotZero}}">
                     <StackPanel Spacing="6">
                         <TextBlock Text="{l10n:Tr Key=cb_creators}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                        <ItemsControl ItemsSource="{Binding $parent[Window].DataContext.FullProject.TeamMembers}">
+                        <ItemsControl ItemsSource="{Binding FullProject.TeamMembers}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="models:ModrinthTeamMember">
                                     <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,2">
@@ -308,34 +301,34 @@
 
                 <!-- Details -->
                 <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="12"
-                        IsVisible="{Binding $parent[Window].DataContext.FullProject, Converter={x:Static vm:EditInstanceWindowConverters.IsNotNull}}">
+                        IsVisible="{Binding FullProject, Converter={x:Static vm:EditInstanceWindowConverters.IsNotNull}}">
                     <StackPanel Spacing="5">
                         <TextBlock Text="{l10n:Tr Key=cb_details}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,2"/>
-                        <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding $parent[Window].DataContext.FullProject.LicenseName, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}">
-                            <TextBlock Text="☰" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                        <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding FullProject.LicenseName, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}">
+                            <TextBlock Text="&#x2630;" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
                             <TextBlock Text="{l10n:Tr Key=cb_licensed}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
-                            <TextBlock Text="{Binding $parent[Window].DataContext.FullProject.LicenseName}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}"/>
+                            <TextBlock Text="{Binding FullProject.LicenseName}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}"/>
                         </StackPanel>
-                        <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding $parent[Window].DataContext.FullProject.DateCreated, Converter={x:Static vm:EditInstanceWindowConverters.IsNotDefault}}">
-                            <TextBlock Text="📅" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                        <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding FullProject.DateCreated, Converter={x:Static vm:EditInstanceWindowConverters.IsNotDefault}}">
+                            <TextBlock Text="&#x1F4C5;" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
                             <TextBlock Text="{l10n:Tr Key=cb_published}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
-                            <TextBlock Text="{Binding $parent[Window].DataContext.FullProject.DateCreated, StringFormat='{}{0:dd.MM.yyyy}'}" FontSize="11" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <TextBlock Text="{Binding FullProject.DateCreated, StringFormat='{}{0:dd.MM.yyyy}'}" FontSize="11" Foreground="{StaticResource TextPrimaryBrush}"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="6">
-                            <TextBlock Text="⟳" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                            <TextBlock Text="&#x27F3;" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
                             <TextBlock Text="{l10n:Tr Key=cb_updated}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
-                            <TextBlock Text="{Binding FormattedDate}" FontSize="11" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <TextBlock Text="{Binding DetailsProject.FormattedDate}" FontSize="11" Foreground="{StaticResource TextPrimaryBrush}"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>
 
                 <!-- Tags -->
                 <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="12"
-                        IsVisible="{Binding TagsLabel, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}">
+                        IsVisible="{Binding DetailsProject.TagsLabel, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}">
                     <StackPanel Spacing="6">
                         <TextBlock Text="{l10n:Tr Key=cb_tags}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
                         <WrapPanel>
-                            <ItemsControl ItemsSource="{Binding Categories}">
+                            <ItemsControl ItemsSource="{Binding DetailsProject.Categories}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <Border Background="{StaticResource FieldBrush}" CornerRadius="10" Padding="8,3" Margin="0,0,4,4">

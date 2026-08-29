@@ -15,23 +15,13 @@ public partial class ProjectDetailsView : UserControl
     {
         if (sender is Border border && border.Tag is ModrinthProjectVersion version)
         {
-            var parent = this.Parent;
-            while (parent != null)
+            if (DataContext is ViewModels.ContentBrowserViewModel cbVm)
             {
-                if (parent is Window window)
-                {
-                    var dc = window.DataContext;
-                    if (dc is ViewModels.ContentBrowserViewModel cbVm)
-                    {
-                        cbVm.SelectedVersionForDetails = version;
-                    }
-                    else if (dc is ViewModels.MainWindowViewModel mwVm && mwVm.ModpacksBrowser != null)
-                    {
-                        mwVm.ModpacksBrowser.SelectedVersionForDetails = version;
-                    }
-                    break;
-                }
-                parent = (parent as Control)?.Parent;
+                cbVm.SelectedVersionForDetails = version;
+            }
+            else if (DataContext is ViewModels.ModpacksBrowserViewModel mpVm)
+            {
+                mpVm.SelectedVersionForDetails = version;
             }
         }
     }
@@ -40,23 +30,13 @@ public partial class ProjectDetailsView : UserControl
     {
         if (sender is Border border && border.Tag is string version)
         {
-            var parent = this.Parent;
-            while (parent != null)
+            if (DataContext is ViewModels.ContentBrowserViewModel cbVm)
             {
-                if (parent is Window window)
-                {
-                    var dc = window.DataContext;
-                    if (dc is ViewModels.ContentBrowserViewModel cbVm)
-                    {
-                        cbVm.SelectCompatibilityVersionCommand.Execute(version);
-                    }
-                    else if (dc is ViewModels.MainWindowViewModel mwVm && mwVm.ModpacksBrowser != null)
-                    {
-                        mwVm.ModpacksBrowser.SelectCompatibilityVersionCommand.Execute(version);
-                    }
-                    break;
-                }
-                parent = (parent as Control)?.Parent;
+                cbVm.SelectCompatibilityVersionCommand.Execute(version);
+            }
+            else if (DataContext is ViewModels.ModpacksBrowserViewModel mpVm)
+            {
+                mpVm.SelectCompatibilityVersionCommand.Execute(version);
             }
         }
     }

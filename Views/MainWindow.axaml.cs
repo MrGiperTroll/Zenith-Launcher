@@ -111,6 +111,12 @@ public partial class MainWindow : Window
         e.Handled = true;
     }
 
+    private void OnInstanceCardTapped(object? sender, TappedEventArgs e)
+    {
+        if (sender is Control { DataContext: Models.InstanceModel instance } && DataContext is MainWindowViewModel vm)
+            vm.SelectInstanceCommand.Execute(instance);
+    }
+
     // --- Drag-and-Drop for instance reordering ---
 
     private const double DragThreshold = 7.0;

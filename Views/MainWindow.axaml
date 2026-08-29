@@ -110,6 +110,19 @@
             <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
         </Style>
 
+        <!-- Instance card border (no Button wrapper — Border handles click + drag) -->
+        <Style Selector="Border.instanceCard">
+            <Setter Property="Background" Value="{StaticResource InputFocusBrush}"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.15"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Border.instanceCard:pointerover">
+            <Setter Property="Background" Value="{StaticResource PanelBrush}"/>
+        </Style>
+
         <!-- Primary Buttons -->
         <Style Selector="Button.primaryBtn">
             <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
@@ -358,43 +371,40 @@
                                 <ItemsControl.ItemTemplate>
 <DataTemplate x:DataType="models:InstanceModel">
                                         <Border Width="178" Height="178" Margin="2,2,14,14" CornerRadius="14"
+                                                Classes="instanceCard"
                                                 BorderBrush="{Binding IsSelected, Converter={StaticResource BoolToBorderBrushConverter}}"
                                                 BorderThickness="1.5"
-                                                Tag="{Binding}">
-                                            <Button Classes="cardBtn" Width="175" Height="175" BorderThickness="0" Padding="13"
-                                                    HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                    Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).SelectInstanceCommand}"
-                                                    CommandParameter="{Binding}">
-                                                <Button.ContextMenu>
-                                                    <ContextMenu Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderStrongBrush}">
-                                                        <MenuItem Header="{l10n:Tr Key=mi_launch}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).LaunchSpecificInstanceCommand}" CommandParameter="{Binding}" FontWeight="Bold"/>
-                                                        <MenuItem Header="{l10n:Tr Key=btn_edit_instance}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).EditInstanceCommand}" CommandParameter="{Binding}"/>
-                                                        <MenuItem Header="{l10n:Tr Key=mi_change_icon}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ChangeInstanceIconCommand}" CommandParameter="{Binding}"/>
-                                                        <MenuItem Header="{l10n:Tr Key=btn_open_folder}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenProfileFolderCommand}" CommandParameter="{Binding}"/>
-                                                        <MenuItem Header="{l10n:Tr Key=btn_clone_profile}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenCopyDialogCommand}" CommandParameter="{Binding}"/>
-                                                        <MenuItem Header="{l10n:Tr Key=btn_shortcut}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).CreateDesktopShortcutCommand}" CommandParameter="{Binding}"/>
-                                                        <Separator Background="{StaticResource BorderStrongBrush}"/>
-                                                        <MenuItem Header="{l10n:Tr Key=mi_export}">
-                                                            <MenuItem Header="{l10n:Tr Key=exp_curseforge}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ExportCurseForgeCommand}" CommandParameter="{Binding}"/>
-                                                            <MenuItem Header="Modrinth (.mrpack)" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ExportModrinthCommand}" CommandParameter="{Binding}"/>
-                                                            <MenuItem Header="{l10n:Tr Key=exp_prism}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ExportPrismCommand}" CommandParameter="{Binding}"/>
-                                                        </MenuItem>
-                                                        <Separator Background="{StaticResource BorderStrongBrush}"/>
-                                                        <MenuItem Header="{l10n:Tr Key=btn_kill}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).KillInstanceCommand}" CommandParameter="{Binding}" IsEnabled="{Binding IsRunning}"/>
-                                                        <MenuItem Header="{l10n:Tr Key=btn_delete_profile}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).RequestDeleteProfileCommand}" CommandParameter="{Binding}" Foreground="{StaticResource DangerBrush}"/>
-                                                    </ContextMenu>
-                                                </Button.ContextMenu>
-                                                <StackPanel Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                    <Border Width="68" Height="68" Background="{StaticResource ChipBrush}" CornerRadius="12" HorizontalAlignment="Center" ClipToBounds="True">
-                                                        <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                            <Path IsVisible="{Binding IconBitmap, Converter={x:Static conv:ObjectConverters.IsNull}}" Data="{StaticResource ZenithLogoGeometry}" Fill="{StaticResource SubtleEmeraldBrush}" Stretch="Uniform" Width="40" Height="40" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                            <Image IsVisible="{Binding IconBitmap, Converter={x:Static conv:ObjectConverters.IsNotNull}}" Source="{Binding IconBitmap}" Stretch="UniformToFill" Width="68" Height="68" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                        </Panel>
-                                                    </Border>
-                                                    <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center" TextAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="150"/>
-                                                    <TextBlock Text="{Binding DisplayVersion}" FontSize="11" Foreground="{StaticResource TextFaintBrush}" FontWeight="SemiBold" HorizontalAlignment="Center"/>
-                                                </StackPanel>
-                                            </Button>
+                                                Tag="{Binding}" Cursor="Hand"
+                                                Tapped="OnInstanceCardTapped">
+                                            <Border.ContextMenu>
+                                                <ContextMenu Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderStrongBrush}">
+                                                    <MenuItem Header="{l10n:Tr Key=mi_launch}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).LaunchSpecificInstanceCommand}" CommandParameter="{Binding}" FontWeight="Bold"/>
+                                                    <MenuItem Header="{l10n:Tr Key=btn_edit_instance}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).EditInstanceCommand}" CommandParameter="{Binding}"/>
+                                                    <MenuItem Header="{l10n:Tr Key=mi_change_icon}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ChangeInstanceIconCommand}" CommandParameter="{Binding}"/>
+                                                    <MenuItem Header="{l10n:Tr Key=btn_open_folder}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenProfileFolderCommand}" CommandParameter="{Binding}"/>
+                                                    <MenuItem Header="{l10n:Tr Key=btn_clone_profile}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenCopyDialogCommand}" CommandParameter="{Binding}"/>
+                                                    <MenuItem Header="{l10n:Tr Key=btn_shortcut}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).CreateDesktopShortcutCommand}" CommandParameter="{Binding}"/>
+                                                    <Separator Background="{StaticResource BorderStrongBrush}"/>
+                                                    <MenuItem Header="{l10n:Tr Key=mi_export}">
+                                                        <MenuItem Header="{l10n:Tr Key=exp_curseforge}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ExportCurseForgeCommand}" CommandParameter="{Binding}"/>
+                                                        <MenuItem Header="Modrinth (.mrpack)" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ExportModrinthCommand}" CommandParameter="{Binding}"/>
+                                                        <MenuItem Header="{l10n:Tr Key=exp_prism}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ExportPrismCommand}" CommandParameter="{Binding}"/>
+                                                    </MenuItem>
+                                                    <Separator Background="{StaticResource BorderStrongBrush}"/>
+                                                    <MenuItem Header="{l10n:Tr Key=btn_kill}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).KillInstanceCommand}" CommandParameter="{Binding}" IsEnabled="{Binding IsRunning}"/>
+                                                    <MenuItem Header="{l10n:Tr Key=btn_delete_profile}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).RequestDeleteProfileCommand}" CommandParameter="{Binding}" Foreground="{StaticResource DangerBrush}"/>
+                                                </ContextMenu>
+                                            </Border.ContextMenu>
+                                            <StackPanel Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <Border Width="68" Height="68" Background="{StaticResource ChipBrush}" CornerRadius="12" HorizontalAlignment="Center" ClipToBounds="True">
+                                                    <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                        <Path IsVisible="{Binding IconBitmap, Converter={x:Static conv:ObjectConverters.IsNull}}" Data="{StaticResource ZenithLogoGeometry}" Fill="{StaticResource SubtleEmeraldBrush}" Stretch="Uniform" Width="40" Height="40" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <Image IsVisible="{Binding IconBitmap, Converter={x:Static conv:ObjectConverters.IsNotNull}}" Source="{Binding IconBitmap}" Stretch="UniformToFill" Width="68" Height="68" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Panel>
+                                                </Border>
+                                                <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center" TextAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="150"/>
+                                                <TextBlock Text="{Binding DisplayVersion}" FontSize="11" Foreground="{StaticResource TextFaintBrush}" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                            </StackPanel>
                                         </Border>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
@@ -726,7 +736,7 @@
         <!-- Full-page modpack details (replaces modpacks list when open) -->
         <Border IsVisible="{Binding ModpacksBrowser.IsDetailsOpen}" Background="{StaticResource BgBrush}" Margin="14" CornerRadius="10"
                 BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" Grid.Row="0" Grid.RowSpan="3" Grid.ColumnSpan="3" ZIndex="1100">
-            <views:ProjectDetailsView DataContext="{Binding ModpacksBrowser.DetailsProject}"/>
+            <views:ProjectDetailsView DataContext="{Binding ModpacksBrowser}"/>
         </Border>
 
         <!-- MODAL: Ely.by Error -->

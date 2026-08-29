@@ -28,7 +28,11 @@ public partial class FileListViewModel : ObservableObject
     private readonly string[] _allowedExtensions;
     private readonly Action<string> _reportError;
     private readonly InstanceFileKind _kind;
+    private readonly string _instancePath;
     private List<InstanceFileEntry> _all = new();
+
+    /// <summary>Called when a double-clicked entry has a known Modrinth project ID. Opens the full project details page.</summary>
+    public Action<string, InstanceFileKind>? OpenProjectDetails { get; set; }
 
     public string Title { get; }
     public string EmptyHint { get; }
@@ -78,7 +82,7 @@ public partial class FileListViewModel : ObservableObject
 
     public FileListViewModel(string title, string folder, bool supportsDisable, string emptyHint,
         Action<string> reportError, string[]? allowedExtensions = null, bool worldTarget = false,
-        InstanceFileKind kind = InstanceFileKind.Generic)
+        InstanceFileKind kind = InstanceFileKind.Generic, string instancePath = "")
     {
         Title = title;
         _folder = folder;
@@ -87,6 +91,7 @@ public partial class FileListViewModel : ObservableObject
         EmptyHint = emptyHint;
         _reportError = reportError;
         _kind = kind;
+        _instancePath = instancePath;
         _allowedExtensions = allowedExtensions ?? new[] { ".jar", ".zip", ".rar", ".7z" };
     }
 
@@ -176,6 +181,38 @@ public partial class FileListViewModel : ObservableObject
         {
             LauncherLog.Error($"Failed to read metadata for '{entry.FullPath}'", ex);
         }
+
+        // Look up Modrinth project ID from the installed registry
+        if (!entry.IsDirectory && !string.IsNullOrEmpty(_instancePath))
+        {
+            var projectId = FindProjectIdByFileName(entry.Name);
+            if (!string.IsNullOrEmpty(projectId))
+                entry.ModrinthProjectId = projectId;
+        }
+    }
+
+    private Dictionary<string, string> LoadInstalledMap()
+    {
+        if (string.IsNullOrEmpty(_instancePath)) return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(_instancePath)))[..12];
+        var path = Path.Combine(ZenithPaths.AppDataDir, "cache", "installed", $"{hash}.json");
+        if (!File.Exists(path)) return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        try { return System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(path)) ?? new(StringComparer.OrdinalIgnoreCase); } catch { return new(StringComparer.OrdinalIgnoreCase); }
+    }
+
+    private string FindProjectIdByFileName(string fileName)
+    {
+        var map = LoadInstalledMap();
+        foreach (var kvp in map)
+        {
+            if (string.Equals(kvp.Value, fileName, StringComparison.OrdinalIgnoreCase))
+                return kvp.Key;
+            // Also check without .disabled extension
+            if (fileName.EndsWith(".disabled", StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(kvp.Value, fileName[..^9], StringComparison.OrdinalIgnoreCase))
+                return kvp.Key;
+        }
+        return "";
     }
 
     private static DateTime SafeModified(string path)
@@ -336,6 +373,14 @@ public partial class FileListViewModel : ObservableObject
     private void ShowDetails(InstanceFileEntry entry)
     {
         if (entry == null) return;
+
+        // If this entry has a known Modrinth project ID, open the full details page
+        if (!string.IsNullOrEmpty(entry.ModrinthProjectId) && OpenProjectDetails != null)
+        {
+            OpenProjectDetails(entry.ModrinthProjectId, _kind);
+            return;
+        }
+
         SelectedEntry = entry;
     }
 

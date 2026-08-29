@@ -42,6 +42,9 @@ public partial class InstanceFileEntry : ObservableObject
     [ObservableProperty]
     private string _description = "";
 
+    [ObservableProperty]
+    private string _modrinthProjectId = "";
+
     [JsonIgnore]
     private Bitmap? _previewImage;
 

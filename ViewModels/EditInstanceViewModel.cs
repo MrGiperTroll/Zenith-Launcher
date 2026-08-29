@@ -59,15 +59,19 @@ public partial class EditInstanceViewModel : ViewModelBase
         _windowDirty = instance.GameWidth.HasValue || instance.GameHeight.HasValue || instance.IsFullscreen.HasValue;
 
         ModList = new FileListViewModel("Mods", Path.Combine(instance.Path, "mods"), true,
-            L10n.T("fl_empty_mods"), ReportError, new[] { ".jar" }, kind: InstanceFileKind.Mod);
+            L10n.T("fl_empty_mods"), ReportError, new[] { ".jar" }, kind: InstanceFileKind.Mod, instancePath: instance.Path);
         ResourcePackList = new FileListViewModel("Resource Packs", Path.Combine(instance.Path, "resourcepacks"), true,
-            L10n.T("fl_empty_resourcepacks"), ReportError, new[] { ".zip", ".rar", ".7z" }, kind: InstanceFileKind.ResourcePack);
+            L10n.T("fl_empty_resourcepacks"), ReportError, new[] { ".zip", ".rar", ".7z" }, kind: InstanceFileKind.ResourcePack, instancePath: instance.Path);
         ShaderList = new FileListViewModel("Shader Packs", Path.Combine(instance.Path, "shaderpacks"), true,
-            L10n.T("fl_empty_shaders"), ReportError, new[] { ".zip", ".rar", ".7z" }, kind: InstanceFileKind.ShaderPack);
+            L10n.T("fl_empty_shaders"), ReportError, new[] { ".zip", ".rar", ".7z" }, kind: InstanceFileKind.ShaderPack, instancePath: instance.Path);
         WorldList = new FileListViewModel("Worlds", Path.Combine(instance.Path, "saves"), false,
-            L10n.T("fl_empty_worlds"), ReportError, new[] { ".zip" }, worldTarget: true, kind: InstanceFileKind.World);
+            L10n.T("fl_empty_worlds"), ReportError, new[] { ".zip" }, worldTarget: true, kind: InstanceFileKind.World, instancePath: instance.Path);
         ScreenshotList = new FileListViewModel("Screenshots", Path.Combine(instance.Path, "screenshots"), false,
-            L10n.T("fl_empty_screenshots"), ReportError, new[] { ".png", ".jpg", ".jpeg" }, kind: InstanceFileKind.Screenshot);
+            L10n.T("fl_empty_screenshots"), ReportError, new[] { ".png", ".jpg", ".jpeg" }, kind: InstanceFileKind.Screenshot, instancePath: instance.Path);
+
+        ModList.OpenProjectDetails = OnOpenProjectDetails;
+        ResourcePackList.OpenProjectDetails = OnOpenProjectDetails;
+        ShaderList.OpenProjectDetails = OnOpenProjectDetails;
 
         HasModsSupport = IsLoaderWithModsSupport(instance.LoaderType);
         HasShaderSupport = HasShaderSupportFor(instance.LoaderType);
@@ -244,6 +248,47 @@ public partial class EditInstanceViewModel : ViewModelBase
         catch (Exception ex)
         {
             ReportError($"Failed to open browser: {ex.Message}");
+        }
+    }
+
+    private void OnOpenProjectDetails(string projectId, InstanceFileKind kind)
+    {
+        try
+        {
+            var type = kind switch
+            {
+                InstanceFileKind.Mod => ContentType.Mod,
+                InstanceFileKind.ResourcePack => ContentType.ResourcePack,
+                InstanceFileKind.ShaderPack => ContentType.Shader,
+                _ => ContentType.Mod
+            };
+            if (type == ContentType.Mod && !HasModsSupport)
+                type = ContentType.ResourcePack;
+
+            var vm = new ContentBrowserViewModel(
+                Instance.Version,
+                Instance.LoaderType,
+                Instance.Path,
+                msg => ReportError(msg),
+                () => RefreshFileLists(),
+                () => HasModsSupport,
+                type);
+
+            if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow != null)
+            {
+                var win = new Views.ContentBrowserWindow { DataContext = vm };
+                win.Closed += (_, _) =>
+                {
+                    RefreshFileLists();
+                    Services.DiscordPresenceService.SetEditingInstance(Instance.Name);
+                };
+                win.Show(desktop.MainWindow);
+                _ = vm.OpenProjectByIdAsync(projectId);
+            }
+        }
+        catch (Exception ex)
+        {
+            ReportError($"Failed to open project details: {ex.Message}");
         }
     }
 

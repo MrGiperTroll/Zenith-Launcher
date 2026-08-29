@@ -134,7 +134,7 @@
                                     <DataTemplate x:DataType="models:ModrinthProjectVersion">
                                         <Border Margin="0,0,0,4"
                                                 CornerRadius="10" Padding="14,12" Cursor="Hand"
-                                                Tapped="OnVersionRowTapped" Tag="{Binding}">
+                                                Tapped="OnVersionRowTapped">
                                             <Border.Background>
                                                 <MultiBinding Converter="{x:Static vm:ContentBrowserConverters.VersionHighlightBg}">
                                                     <Binding Path="Id"/>
@@ -199,7 +199,7 @@
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
                                             <Border CornerRadius="8" Padding="8,5" Margin="0,0,0,4" Cursor="Hand"
-                                                    Tapped="OnCompatibilityVersionTapped" Tag="{Binding}">
+                                                    Tapped="OnCompatibilityVersionTapped">
                                                 <Border.Background>
                                                     <MultiBinding Converter="{x:Static vm:ContentBrowserConverters.VersionChipHighlight}">
                                                         <Binding/>

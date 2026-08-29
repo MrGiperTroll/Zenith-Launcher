@@ -13,7 +13,7 @@ public partial class ProjectDetailsView : UserControl
 
     private void OnVersionRowTapped(object? sender, RoutedEventArgs e)
     {
-        if (sender is Border border && border.Tag is ModrinthProjectVersion version)
+        if (sender is Border { DataContext: Models.ModrinthProjectVersion version })
         {
             if (DataContext is ViewModels.ContentBrowserViewModel cbVm)
             {
@@ -28,7 +28,7 @@ public partial class ProjectDetailsView : UserControl
 
     private void OnCompatibilityVersionTapped(object? sender, RoutedEventArgs e)
     {
-        if (sender is Border border && border.Tag is string version)
+        if (sender is Border { DataContext: string version })
         {
             if (DataContext is ViewModels.ContentBrowserViewModel cbVm)
             {

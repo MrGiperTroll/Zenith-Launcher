@@ -132,7 +132,18 @@ public partial class ContentBrowserViewModel : ObservableObject
             var list = versions.ToList();
             if (!string.IsNullOrWhiteSpace(_gameVersion) && !list.Contains(_gameVersion, StringComparer.OrdinalIgnoreCase))
                 list.Add(_gameVersion);
-            return list.OrderByDescending(v => ParseVersionString(v)).ToList();
+            var sorted = list.OrderByDescending(v => ParseVersionString(v)).ToList();
+            if (!string.IsNullOrWhiteSpace(_gameVersion))
+            {
+                var idx = sorted.FindIndex(v => string.Equals(v, _gameVersion, StringComparison.OrdinalIgnoreCase));
+                if (idx > 0)
+                {
+                    var item = sorted[idx];
+                    sorted.RemoveAt(idx);
+                    sorted.Insert(0, item);
+                }
+            }
+            return sorted;
         }
     }
 
@@ -235,7 +246,7 @@ public partial class ContentBrowserViewModel : ObservableObject
         OnPropertyChanged(nameof(InstallButtonVisible));
         OnPropertyChanged(nameof(ReinstallText));
         SelectedVersionForDetails = null;
-        SelectedCompatibilityVersion = "";
+        SelectedCompatibilityVersion = _gameVersion;
         if (value != null) _ = LoadFullProjectAsync(value);
         else FullProject = null;
     }
@@ -768,6 +779,59 @@ public partial class ContentBrowserViewModel : ObservableObject
     private void OpenProjectPage(ModrinthProject project)
     {
         SelectedProject = project;
+    }
+
+    /// <summary>Opens the full project details page by Modrinth project ID (used by installed-content double-click).</summary>
+    public async Task OpenProjectByIdAsync(string projectId)
+    {
+        try
+        {
+            FullProjectBusy = true;
+            var full = await ModrinthApiService.GetFullProjectAsync(projectId);
+            if (full == null) return;
+
+            var project = new ModrinthProject
+            {
+                ProjectId = full.Id,
+                Title = full.Title,
+                Description = full.Description,
+                Slug = full.Slug,
+                Author = full.Author,
+                Downloads = full.Downloads,
+                IconUrl = full.IconUrl,
+                GameVersions = full.GameVersions,
+                Loaders = full.Loaders,
+                Categories = full.Categories,
+                ProjectType = full.ProjectType,
+                Updated = full.DateModified
+            };
+            // Cache icon
+            if (!string.IsNullOrWhiteSpace(full.IconUrl))
+                _ = LoadIconAsync(project);
+
+            SelectedProject = project;
+            FullProject = full;
+            OnPropertyChanged(nameof(CleanBody));
+            _allVersions = await ModrinthApiService.GetProjectVersionsAsync(projectId);
+            SelectedCompatibilityVersion = _gameVersion;
+            OnPropertyChanged(nameof(VersionList));
+            OnPropertyChanged(nameof(CompatibilityVersions));
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Error($"Failed to open project by ID {projectId}", ex);
+        }
+        finally
+        {
+            FullProjectBusy = false;
+        }
+    }
+
+    private async Task LoadIconAsync(ModrinthProject project)
+    {
+        if (string.IsNullOrWhiteSpace(project.IconUrl) || project.HasIcon) return;
+        var bytes = await ModrinthApiService.GetIconAsync(project.IconUrl);
+        project.SetIcon(bytes);
     }
 
     [RelayCommand]

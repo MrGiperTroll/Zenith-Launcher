@@ -431,6 +431,13 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private string _consoleLogs = string.Empty;
 
+    /// <summary>Background queue of console lines waiting to be flushed to the UI in batches.</summary>
+    private readonly System.Collections.Concurrent.ConcurrentQueue<string> _consolePending = new();
+
+    /// <summary>Flushes pending console lines to the UI on a tick, instead of posting every single
+    /// game log line directly to the UI thread (which floods/saturates it for chatty versions).</summary>
+    private readonly DispatcherTimer _consoleFlushTimer;
+
     [ObservableProperty]
     private string _currentDownloadFile = string.Empty;
 
@@ -530,13 +537,20 @@ public partial class MainWindowViewModel : ViewModelBase
 
         _launchService.ProgressChanged += p => Dispatcher.UIThread.Post(() => LaunchProgress = p);
         _launchService.CurrentFileChanged += f => Dispatcher.UIThread.Post(() => CurrentDownloadFile = f);
+
+        // Console log lines are enqueued cheaply from any (reader) thread and flushed
+        // to the UI in batches every 250 ms. Posting every single line to the UI thread
+        // freezes the launcher for chatty modern versions (huge log floods) and lets the
+        // game's stdout/stderr pipe buffer fill up. Batching keeps both the UI responsive
+        // and the pipe drained so the game never blocks waiting on the launcher.
         _launchService.LogReceived += log =>
         {
-            Dispatcher.UIThread.Post(() =>
-            {
-                ConsoleLogs += log + Environment.NewLine;
-            });
+            _consolePending.Enqueue(log);
         };
+
+        _consoleFlushTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
+        _consoleFlushTimer.Tick += (_, _) => FlushConsolePending();
+        _consoleFlushTimer.Start();
 
         ModLoaderService.Diagnostic += msg =>
         {
@@ -1258,6 +1272,21 @@ public partial class MainWindowViewModel : ViewModelBase
             LauncherLog.Error("Failed to open Clone Profile window", ex);
         }
         StatusText = L10n.T("mw_status_clone_open_failed");
+    }
+
+    private void FlushConsolePending()
+    {
+        if (_consolePending.IsEmpty) return;
+        var sb = new System.Text.StringBuilder();
+        while (_consolePending.TryDequeue(out var line))
+            sb.Append(line).Append(Environment.NewLine);
+        if (sb.Length > 0)
+        {
+            var newText = ConsoleLogs + sb;
+            if (newText.Length > 800_000)
+                newText = newText.Substring(newText.Length - 800_000);
+            ConsoleLogs = newText;
+        }
     }
 
     [RelayCommand]

@@ -65,4 +65,11 @@ public partial class FileListView : UserControl
             vm.ImportPaths(paths);
         e.Handled = true;
     }
+
+    private void OnEntryDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        if (sender is Control { DataContext: Models.InstanceFileEntry entry } && DataContext is FileListViewModel vm)
+            vm.ShowDetailsCommand.Execute(entry);
+        e.Handled = true;
+    }
 }

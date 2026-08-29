@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
@@ -168,6 +169,52 @@ public static class ContentBrowserConverters
         public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
     }
 
+    private sealed class VersionTypeBgConverter : IValueConverter
+    {
+        public static readonly IValueConverter Instance = new VersionTypeBgConverter();
+        public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        {
+            if (value is string s)
+            {
+                var key = s.ToLowerInvariant() switch
+                {
+                    "release" => "AccentSoftBrush",
+                    "beta" => "WarningSoftBrush",
+                    "alpha" => "DangerSoftBrush",
+                    _ => "FieldBrush"
+                };
+                if (Avalonia.Application.Current?.Resources.TryGetResource(key, Avalonia.Styling.ThemeVariant.Default, out var res) == true && res is ISolidColorBrush b)
+                    return b;
+                return new SolidColorBrush(Color.Parse("#2A2E3A"));
+            }
+            return new SolidColorBrush(Color.Parse("#2A2E3A"));
+        }
+        public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
+    }
+
+    private sealed class VersionTypeFgConverter : IValueConverter
+    {
+        public static readonly IValueConverter Instance = new VersionTypeFgConverter();
+        public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        {
+            if (value is string s)
+            {
+                var key = s.ToLowerInvariant() switch
+                {
+                    "release" => "AccentBrush",
+                    "beta" => "WarningBrush",
+                    "alpha" => "DangerBrush",
+                    _ => "TextSecondaryBrush"
+                };
+                if (Avalonia.Application.Current?.Resources.TryGetResource(key, Avalonia.Styling.ThemeVariant.Default, out var res) == true && res is ISolidColorBrush b)
+                    return b;
+                return new SolidColorBrush(Color.Parse("#9CA3AF"));
+            }
+            return new SolidColorBrush(Color.Parse("#9CA3AF"));
+        }
+        public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
+    }
+
     public static IValueConverter ContentTypeDisplay => ContentTypeDisplayConverter.Instance;
     public static IValueConverter TagDisplay => TagDisplayConverter.Instance;
     public static IValueConverter SourceToBrush => SourceToBrushConverter.Instance;
@@ -175,4 +222,99 @@ public static class ContentBrowserConverters
     public static IValueConverter TagBackground => BoolToTagBackgroundConverter.Instance;
     public static IValueConverter TagForeground => BoolToTagForegroundConverter.Instance;
     public static IValueConverter TagBorder => BoolToTagBorderConverter.Instance;
+    public static IValueConverter VersionTypeBg => VersionTypeBgConverter.Instance;
+    public static IValueConverter VersionTypeFg => VersionTypeFgConverter.Instance;
+
+    /// <summary>
+    /// MultiValue converter: returns true when two string values are equal.
+    /// Used for green highlight: compares version row Id with SelectedVersionId.
+    /// </summary>
+    private sealed class VersionEqualsConverter : IMultiValueConverter
+    {
+        public static readonly IMultiValueConverter Instance = new VersionEqualsConverter();
+        public object Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
+        {
+            if (values.Count == 2 && values[0] != null && values[1] != null)
+                return string.Equals(values[0]?.ToString(), values[1]?.ToString(), StringComparison.Ordinal);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// MultiValue converter: returns AccentSoftBrush when two strings match, otherwise SurfaceBrush.
+    /// Used for version row highlight.
+    /// </summary>
+    private sealed class VersionHighlightBgConverter : IMultiValueConverter
+    {
+        public static readonly IMultiValueConverter Instance = new VersionHighlightBgConverter();
+        public object Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
+        {
+            var isSelected = values.Count == 2 && values[0] != null && values[1] != null
+                && string.Equals(values[0]?.ToString(), values[1]?.ToString(), StringComparison.Ordinal);
+            var key = isSelected ? "AccentSoftBrush" : "SurfaceBrush";
+            if (Avalonia.Application.Current?.Resources.TryGetResource(key, Avalonia.Styling.ThemeVariant.Default, out var res) == true && res is ISolidColorBrush b)
+                return b;
+            return new SolidColorBrush(isSelected ? Color.Parse("#0D2B1E") : Color.Parse("#0A0D15"));
+        }
+    }
+
+    /// <summary>
+    /// MultiValue converter: returns AccentBrush when two strings match, otherwise BorderCardSoftBrush.
+    /// Used for version row border highlight.
+    /// </summary>
+    private sealed class VersionHighlightBorderConverter : IMultiValueConverter
+    {
+        public static readonly IMultiValueConverter Instance = new VersionHighlightBorderConverter();
+        public object Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
+        {
+            var isSelected = values.Count == 2 && values[0] != null && values[1] != null
+                && string.Equals(values[0]?.ToString(), values[1]?.ToString(), StringComparison.Ordinal);
+            var key = isSelected ? "AccentBrush" : "BorderCardSoftBrush";
+            if (Avalonia.Application.Current?.Resources.TryGetResource(key, Avalonia.Styling.ThemeVariant.Default, out var res) == true && res is ISolidColorBrush b)
+                return b;
+            return new SolidColorBrush(isSelected ? Color.Parse("#10B981") : Color.Parse("#1E2530"));
+        }
+    }
+
+    /// <summary>
+    /// MultiValue converter: returns AccentBrush when two strings match, otherwise FieldBrush.
+    /// Used for version chip highlight.
+    /// </summary>
+    private sealed class VersionChipHighlightConverter : IMultiValueConverter
+    {
+        public static readonly IMultiValueConverter Instance = new VersionChipHighlightConverter();
+        public object Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
+        {
+            var isSelected = values.Count == 2 && values[0] != null && values[1] != null
+                && string.Equals(values[0]?.ToString(), values[1]?.ToString(), StringComparison.Ordinal);
+            var key = isSelected ? "AccentBrush" : "FieldBrush";
+            if (Avalonia.Application.Current?.Resources.TryGetResource(key, Avalonia.Styling.ThemeVariant.Default, out var res) == true && res is ISolidColorBrush b)
+                return b;
+            return new SolidColorBrush(isSelected ? Color.Parse("#10B981") : Color.Parse("#1A1D28"));
+        }
+    }
+
+    /// <summary>
+    /// MultiValue converter: returns OnAccentBrush when two strings match, otherwise TextSecondaryBrush.
+    /// Used for version chip text color.
+    /// </summary>
+    private sealed class VersionChipFgConverter : IMultiValueConverter
+    {
+        public static readonly IMultiValueConverter Instance = new VersionChipFgConverter();
+        public object Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
+        {
+            var isSelected = values.Count == 2 && values[0] != null && values[1] != null
+                && string.Equals(values[0]?.ToString(), values[1]?.ToString(), StringComparison.Ordinal);
+            var key = isSelected ? "OnAccentBrush" : "TextSecondaryBrush";
+            if (Avalonia.Application.Current?.Resources.TryGetResource(key, Avalonia.Styling.ThemeVariant.Default, out var res) == true && res is ISolidColorBrush b)
+                return b;
+            return new SolidColorBrush(isSelected ? Color.Parse("#FFFFFF") : Color.Parse("#C5CBD6"));
+        }
+    }
+
+    public static IMultiValueConverter VersionHighlightBg => VersionHighlightBgConverter.Instance;
+    public static IMultiValueConverter VersionHighlightBorder => VersionHighlightBorderConverter.Instance;
+    public static IMultiValueConverter VersionChipHighlight => VersionChipHighlightConverter.Instance;
+    public static IMultiValueConverter VersionChipFg => VersionChipFgConverter.Instance;
+    public static IMultiValueConverter VersionEquals => VersionEqualsConverter.Instance;
 }

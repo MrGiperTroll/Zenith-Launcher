@@ -64,6 +64,16 @@ public partial class FileListViewModel : ObservableObject
     public ObservableCollection<InstanceFileEntry> Entries { get; } = new();
 
     [ObservableProperty]
+    private InstanceFileEntry? _selectedEntry;
+
+    public bool IsDetailsOpen => SelectedEntry != null;
+
+    partial void OnSelectedEntryChanged(InstanceFileEntry? value)
+    {
+        OnPropertyChanged(nameof(IsDetailsOpen));
+    }
+
+    [ObservableProperty]
     private string _countLabel = "0 items";
 
     public FileListViewModel(string title, string folder, bool supportsDisable, string emptyHint,
@@ -321,6 +331,16 @@ public partial class FileListViewModel : ObservableObject
             _reportError($"Failed to locate {entry.Title}: {ex.Message}");
         }
     }
+
+    [RelayCommand]
+    private void ShowDetails(InstanceFileEntry entry)
+    {
+        if (entry == null) return;
+        SelectedEntry = entry;
+    }
+
+    [RelayCommand]
+    private void BackFromDetails() => SelectedEntry = null;
 
     public bool IsValidImportPath(string path)
     {

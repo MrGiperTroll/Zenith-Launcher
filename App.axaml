@@ -55,10 +55,12 @@
         <SolidColorBrush x:Key="DangerBgDeepBrush" Color="#35161B"/>
         <SolidColorBrush x:Key="DangerDimBrush" Color="#1A0F12"/>
         <SolidColorBrush x:Key="DangerBorderBrush" Color="#3B191D"/>
+        <SolidColorBrush x:Key="DangerSoftBrush" Color="#2D1215"/>
         <SolidColorBrush x:Key="DangerTranslucentBrush" Color="#22E5484D"/>
         <SolidColorBrush x:Key="WarningBrush" Color="#FBBF24"/>
         <SolidColorBrush x:Key="WarningBrightBrush" Color="#FCD34D"/>
         <SolidColorBrush x:Key="WarningBorderBrush" Color="#3A3320"/>
+        <SolidColorBrush x:Key="WarningSoftBrush" Color="#2D2612"/>
 
         <!-- Text -->
         <SolidColorBrush x:Key="TextPrimaryBrush" Color="#FFFFFF"/>

@@ -73,6 +73,29 @@ public partial class MainWindow : Window
             catch { }
         }
     }
+
+    private void OnModpackButtonHover(object? sender, PointerEventArgs e)
+    {
+        if (sender is Button { DataContext: Models.ModrinthProject p })
+            p.IsHovered = true;
+    }
+
+    private void OnModpackButtonHoverOut(object? sender, PointerEventArgs e)
+    {
+        if (sender is Button { DataContext: Models.ModrinthProject p })
+            p.IsHovered = false;
+    }
+
+    private void OnModpackCardTapped(object? sender, TappedEventArgs e)
+    {
+        if (sender is Control { DataContext: Models.ModrinthProject p } && DataContext is MainWindowViewModel vm)
+            vm.ModpacksBrowser.OpenProjectPageCommand.Execute(p);
+    }
+
+    private void OnModpackButtonTapped(object? sender, TappedEventArgs e)
+    {
+        e.Handled = true;
+    }
 }
 
 public class BoolToBorderBrushConverter : IValueConverter

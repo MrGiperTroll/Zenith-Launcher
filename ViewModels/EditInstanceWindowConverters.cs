@@ -75,10 +75,49 @@ public static class EditInstanceWindowConverters
             => throw new NotImplementedException();
     }
 
+    private sealed class LongIsNotZeroConverter : IValueConverter
+    {
+        public static readonly IValueConverter Instance = new LongIsNotZeroConverter();
+        public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+            => value is long l && l != 0;
+        public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
+    }
+
+    private sealed class DateTimeIsNotDefaultConverter : IValueConverter
+    {
+        public static readonly IValueConverter Instance = new DateTimeIsNotDefaultConverter();
+        public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+            => value is DateTime dt && dt != default && dt > DateTime.MinValue;
+        public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
+    }
+
+    private sealed class CollectionIsEmptyConverter : IValueConverter
+    {
+        public static readonly IValueConverter Instance = new CollectionIsEmptyConverter();
+        public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        {
+            if (value is System.Collections.IEnumerable enumerable)
+                return !enumerable.GetEnumerator().MoveNext();
+            return true;
+        }
+        public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
+    }
+
+    private sealed class IsNotNullConverter : IValueConverter
+    {
+        public static readonly IValueConverter Instance = new IsNotNullConverter();
+        public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) => value != null;
+        public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
+    }
+
     public static IValueConverter ActiveIcon { get; } = new BoolToBrushConverter("#5A667E");
     public static IValueConverter ActiveText { get; } = new BoolToBrushConverter("#78859E");
     public static IValueConverter IsZero { get; } = BoolToZeroConverter.Instance;
     public static IValueConverter IsNonZero { get; } = BoolToNonZeroConverter.Instance;
     public static IValueConverter IsNotEmpty { get; } = StringNotEmptyConverter.Instance;
     public static IValueConverter IsEmpty { get; } = StringEmptyConverter.Instance;
+    public static IValueConverter IsNotZero { get; } = LongIsNotZeroConverter.Instance;
+    public static IValueConverter IsNotDefault { get; } = DateTimeIsNotDefaultConverter.Instance;
+    public static IValueConverter IsCollectionEmpty { get; } = CollectionIsEmptyConverter.Instance;
+    public static IValueConverter IsNotNull { get; } = IsNotNullConverter.Instance;
 }

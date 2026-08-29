@@ -3,6 +3,7 @@
         xmlns:vm="using:CustomMcLauncher.ViewModels"
         xmlns:models="using:CustomMcLauncher.Models"
         xmlns:l10n="using:CustomMcLauncher.Extensions"
+        xmlns:views="using:CustomMcLauncher.Views"
         x:Class="CustomMcLauncher.Views.ContentBrowserWindow"
         x:DataType="vm:ContentBrowserViewModel"
         Title="{l10n:Tr Key=cb_title}"
@@ -54,6 +55,39 @@
             <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
         </Style>
+        <Style Selector="Button.installedBtn.installed">
+            <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource AccentBrushHover}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBorderBrush}"/>
+        </Style>
+        <Style Selector="Button.installedBtn.installed:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource DangerTranslucentBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
+        </Style>
+        <Style Selector="Button.installedBtn.installed:pointerover">
+            <Setter Property="BorderBrush" Value="{StaticResource DangerBrush}"/>
+        </Style>
+        <Style Selector="Button.dialogBtn">
+            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderEditorBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.dialogBtn:pointerover">
+            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+        </Style>
+        <Style Selector="Button.dialogDanger">
+            <Setter Property="Background" Value="{StaticResource DangerBorderBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource DangerLightBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource DangerBorderBrush}"/>
+        </Style>
+        <Style Selector="Button.dialogDanger:pointerover">
+            <Setter Property="Background" Value="{StaticResource DangerBgDeepBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
+        </Style>
         <Style Selector="Button.sourceBtn">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
@@ -101,9 +135,11 @@
         </Style>
     </Window.Styles>
 
+    <Panel>
     <Grid RowDefinitions="Auto,*" Margin="14">
         <!-- Header -->
-        <Border Grid.Row="0" Background="{StaticResource SurfaceBrush}" CornerRadius="10" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" Padding="10" Margin="0,0,0,10">
+        <Border Grid.Row="0" Background="{StaticResource SurfaceBrush}" CornerRadius="10" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" Padding="10" Margin="0,0,0,10"
+                IsVisible="{Binding !IsDetailsOpen}">
             <Grid ColumnDefinitions="180,*,150" ColumnSpacing="10" VerticalAlignment="Center">
                 <ComboBox Grid.Column="0" ItemsSource="{Binding AvailableContentTypes}" SelectedItem="{Binding SelectedContentType}" VerticalAlignment="Center">
                     <ComboBox.ItemTemplate>
@@ -127,8 +163,8 @@
             </Grid>
         </Border>
 
-        <!-- Main -->
-        <Grid Grid.Row="1" ColumnDefinitions="*,300" ColumnSpacing="12">
+        <!-- Main catalog (hidden when details page is open) -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,300" ColumnSpacing="12" IsVisible="{Binding !IsDetailsOpen}">
             <!-- Left: results -->
             <Border Background="{StaticResource ContentSurfaceBrush}" BorderBrush="{StaticResource PanelBrush}" BorderThickness="1" CornerRadius="10" Padding="0">
                 <Grid RowDefinitions="*,Auto">
@@ -137,7 +173,7 @@
                             <ItemsControl ItemsSource="{Binding Results}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate x:DataType="models:ModrinthProject">
-                                        <Border Margin="4" CornerRadius="10" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" Padding="0" ClipToBounds="True">
+                                        <Border Margin="4" CornerRadius="10" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" Padding="0" ClipToBounds="True" Tapped="OnCardTapped" Cursor="Hand">
                                             <Grid ColumnDefinitions="64,*,140" Height="88">
                                                 <!-- Icon -->
                                                 <Border Width="56" Height="56" CornerRadius="10" Background="{StaticResource IconChipBrush}" ClipToBounds="True" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="8,0,0,0">
@@ -159,9 +195,11 @@
                                                         <TextBlock Text="{Binding DownloadsLabel}" FontSize="10" Foreground="{StaticResource TextCaptionBrush}" HorizontalAlignment="Right"/>
                                                         <TextBlock Text="{Binding FormattedDate}" FontSize="10" Foreground="{StaticResource TextPlaceholderBrush}" HorizontalAlignment="Right"/>
                                                     </StackPanel>
-                                                    <Button Grid.Row="1" Classes="subBtn" Width="110" HorizontalAlignment="Right" VerticalAlignment="Bottom" HorizontalContentAlignment="Center"
+                                                    <Button Grid.Row="1" Classes="subBtn installedBtn" Classes.installed="{Binding IsInstalled}" Width="110" HorizontalAlignment="Right" VerticalAlignment="Bottom" HorizontalContentAlignment="Center"
                                                             Content="{Binding InstallButtonText}" IsEnabled="{Binding !IsInstalling}"
-                                                            Command="{Binding $parent[Window].((vm:ContentBrowserViewModel)DataContext).InstallCommand}" CommandParameter="{Binding}"/>
+                                                            PointerEntered="OnInstalledButtonHover" PointerExited="OnInstalledButtonHoverOut"
+                                                            Tapped="OnInstallButtonTapped"
+                                                            Command="{Binding $parent[Window].((vm:ContentBrowserViewModel)DataContext).DeleteOrInstallCommand}" CommandParameter="{Binding}"/>
                                                 </Grid>
                                             </Grid>
                                         </Border>
@@ -237,4 +275,29 @@
             </StackPanel>
         </Grid>
     </Grid>
+
+    <!-- MODAL: Delete Confirmation -->
+    <Border IsVisible="{Binding IsDeleteConfirmOpen}" Background="{StaticResource OverlayBrush}" ZIndex="1000" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1"
+                CornerRadius="12" MaxWidth="360" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <StackPanel Spacing="12">
+                <TextBlock Text="{l10n:Tr Key=cb_delete_title}" FontSize="17" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                <TextBlock Text="{Binding DeleteItemName}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextLabelBrush}" TextWrapping="Wrap" TextTrimming="CharacterEllipsis"/>
+                <TextBlock Text="{l10n:Tr Key=cb_delete_question}" FontSize="12.5" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="18"/>
+                <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" Margin="0,8,0,0">
+                    <Button Content="{l10n:Tr Key=no}" Command="{Binding CancelDeleteCommand}" Classes="dialogBtn"
+                            Width="90" Height="34" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                    <Button Content="{l10n:Tr Key=yes}" Command="{Binding ConfirmDeleteCommand}" Classes="dialogBtn dialogDanger"
+                            Width="90" Height="34" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </Border>
+
+    <!-- Full-page project details (replaces catalog when open) -->
+    <Border IsVisible="{Binding IsDetailsOpen}" Background="{StaticResource BgBrush}" Margin="14" CornerRadius="10"
+            BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1">
+        <views:ProjectDetailsView DataContext="{Binding DetailsProject}"/>
+    </Border>
+    </Panel>
 </Window>

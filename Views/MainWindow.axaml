@@ -168,6 +168,54 @@
             <Setter Property="Foreground" Value="{StaticResource DangerLightBrush}"/>
         </Style>
 
+        <Style Selector="Button.modpackInstalledBtn.installed">
+            <Setter Property="Background" Value="{StaticResource AccentDimBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource AccentBrushHover}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBorderBrush}"/>
+        </Style>
+        <Style Selector="Button.modpackInstalledBtn.installed:pointerover">
+            <Setter Property="Background" Value="{StaticResource DangerBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource DangerBrush}"/>
+        </Style>
+        <Style Selector="Button.dialogBtn">
+            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderEditorBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.dialogBtn:pointerover">
+            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+        </Style>
+        <Style Selector="Button.dialogDanger">
+            <Setter Property="Background" Value="{StaticResource DangerBorderBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource DangerLightBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource DangerBorderBrush}"/>
+        </Style>
+        <Style Selector="Button.dialogDanger:pointerover">
+            <Setter Property="Background" Value="{StaticResource DangerBgDeepBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
+        </Style>
+        <Style Selector="Button.sourceBtn">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderEditorBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="14,6"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="Button.sourceBtn:pointerover">
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
+        </Style>
+
+
         <!-- Sidebar Tabs -->
         <Style Selector="Button.sideTab">
             <Setter Property="Background" Value="Transparent"/>
@@ -501,7 +549,7 @@
                                         <ItemsControl ItemsSource="{Binding ModpacksBrowser.Results}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate x:DataType="models:ModrinthProject">
-                                                    <Border Margin="4" CornerRadius="10" Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" Padding="10">
+                                                    <Border Margin="4" CornerRadius="10" Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" Padding="10" Tapped="OnModpackCardTapped" Cursor="Hand">
                                                         <Grid ColumnDefinitions="48,*,120">
                                                             <Border Width="48" Height="48" Background="{StaticResource ChipBrush}" CornerRadius="8" ClipToBounds="True">
                                                                 <Panel>
@@ -515,7 +563,7 @@
                                                                 <TextBlock Text="{Binding Description}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" MaxLines="2" TextWrapping="Wrap"/>
                                                                 <TextBlock Text="{Binding DownloadsLabel}" FontSize="10" Foreground="{StaticResource TextCaptionBrush}"/>
                                                             </StackPanel>
-                                                            <Button Grid.Column="2" Classes="primaryBtn" Content="{Binding InstallButtonText}" IsEnabled="{Binding !IsInstalling}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ModpacksBrowser.InstallCommand}" CommandParameter="{Binding}" VerticalAlignment="Center" HorizontalAlignment="Right" Padding="14,7" FontSize="11"/>
+                                                            <Button Grid.Column="2" Classes="primaryBtn modpackInstalledBtn" Classes.installed="{Binding IsInstalled}" Content="{Binding InstallButtonText}" IsEnabled="{Binding !IsInstalling}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ModpacksBrowser.DeleteOrInstallCommand}" CommandParameter="{Binding}" PointerEntered="OnModpackButtonHover" PointerExited="OnModpackButtonHoverOut" Tapped="OnModpackButtonTapped" VerticalAlignment="Center" HorizontalAlignment="Right" Padding="14,7" FontSize="11"/>
                                                         </Grid>
                                                     </Border>
                                                 </DataTemplate>
@@ -654,6 +702,30 @@
                     </Grid>
                 </StackPanel>
             </Border>
+        </Border>
+
+        <!-- MODAL: Modpack Delete Confirmation -->
+        <Border IsVisible="{Binding ModpacksBrowser.IsDeleteConfirmOpen}" Background="{StaticResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1"
+                    CornerRadius="12" MaxWidth="360" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="{l10n:Tr Key=cb_delete_title}" FontSize="17" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                    <TextBlock Text="{Binding ModpacksBrowser.DeleteItemName}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextLabelBrush}" TextWrapping="Wrap" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Text="{l10n:Tr Key=cb_delete_question}" FontSize="12.5" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="18"/>
+                    <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" Margin="0,8,0,0">
+                        <Button Content="{l10n:Tr Key=no}" Command="{Binding ModpacksBrowser.CancelDeleteCommand}" Classes="dialogBtn"
+                                Width="90" Height="34" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                        <Button Content="{l10n:Tr Key=yes}" Command="{Binding ModpacksBrowser.ConfirmDeleteCommand}" Classes="dialogBtn dialogDanger"
+                                Width="90" Height="34" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Border>
+
+        <!-- Full-page modpack details (replaces modpacks list when open) -->
+        <Border IsVisible="{Binding ModpacksBrowser.IsDetailsOpen}" Background="{StaticResource BgBrush}" Margin="14" CornerRadius="10"
+                BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" Grid.Row="0" Grid.RowSpan="3" Grid.ColumnSpan="3" ZIndex="1100">
+            <views:ProjectDetailsView DataContext="{Binding ModpacksBrowser.DetailsProject}"/>
         </Border>
 
         <!-- MODAL: Ely.by Error -->

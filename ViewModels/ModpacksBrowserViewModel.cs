@@ -37,6 +37,197 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     [ObservableProperty] private bool _isBusy;
     [ObservableProperty] private bool _isLoadingMore;
 
+    [ObservableProperty] private ModrinthProject? _pendingDelete;
+
+    [ObservableProperty] private ModrinthProject? _selectedProject;
+
+    public bool IsDetailsOpen => SelectedProject != null;
+
+    public ModrinthProject? DetailsProject => SelectedProject;
+
+    public bool InstallButtonVisible => SelectedProject != null;
+
+    // --- Full project data for details page ---
+
+    [ObservableProperty]
+    private Models.ModrinthFullProject? _fullProject;
+
+    [ObservableProperty]
+    private bool _fullProjectBusy;
+
+    /// <summary>Body text with raw HTML tags stripped for display.</summary>
+    public string CleanBody => FullProject == null ? "" : MarkdownSanitizer.Clean(FullProject.Body);
+
+    [ObservableProperty]
+    private string _selectedDetailTab = "description";
+
+    [ObservableProperty]
+    private bool _showAllVersions;
+
+    [ObservableProperty]
+    private string _versionFilter = "";
+
+    /// <summary>MC version selected in the Compatibility sidebar. Empty = use instance version.</summary>
+    [ObservableProperty]
+    private string _selectedCompatibilityVersion = "";
+
+    /// <summary>String Id of the currently selected version row (for green highlight binding).</summary>
+    [ObservableProperty]
+    private string _selectedVersionId = "";
+
+    partial void OnSelectedCompatibilityVersionChanged(string value)
+    {
+        OnPropertyChanged(nameof(VersionList));
+        OnPropertyChanged(nameof(IsCompatibilityFilterActive));
+        OnPropertyChanged(nameof(CompatibilityVersions));
+    }
+
+    partial void OnSelectedVersionForDetailsChanged(Models.ModrinthProjectVersion? value)
+    {
+        SelectedVersionId = value?.Id ?? "";
+        OnPropertyChanged(nameof(ReinstallText));
+    }
+
+    public bool IsCompatibilityFilterActive => !string.IsNullOrWhiteSpace(SelectedCompatibilityVersion);
+
+    /// <summary>
+    /// GameVersions from the project + the instance version (if not already present),
+    /// sorted newest→oldest. Used by the Compatibility sidebar.
+    /// </summary>
+    public IReadOnlyList<string> CompatibilityVersions
+    {
+        get
+        {
+            var versions = FullProject?.GameVersions ?? SelectedProject?.GameVersions ?? Array.Empty<string>();
+            var list = versions.ToList();
+            if (!string.IsNullOrWhiteSpace(SelectedVersion) && !list.Contains(SelectedVersion, StringComparer.OrdinalIgnoreCase))
+                list.Add(SelectedVersion);
+            return list.OrderByDescending(v => ParseVersionString(v)).ToList();
+        }
+    }
+
+    private static double ParseVersionString(string v)
+    {
+        var digits = new string(v.Where(c => char.IsDigit(c) || c == '.').ToArray());
+        var parts = digits.Split('.', StringSplitOptions.RemoveEmptyEntries);
+        double result = 0;
+        foreach (var p in parts)
+            if (int.TryParse(p, out var n)) result = result * 1000 + n;
+        return result;
+    }
+
+    [RelayCommand]
+    private void SelectCompatibilityVersion(string version)
+    {
+        SelectedCompatibilityVersion = version;
+    }
+
+    [RelayCommand]
+    private void ClearCompatibilityFilter()
+    {
+        SelectedCompatibilityVersion = "";
+    }
+
+    partial void OnSelectedDetailTabChanged(string value)
+    {
+        OnPropertyChanged(nameof(IsDescriptionTab));
+        OnPropertyChanged(nameof(IsChangelogTab));
+        OnPropertyChanged(nameof(IsVersionsTab));
+        OnPropertyChanged(nameof(VersionList));
+    }
+
+    public bool IsDescriptionTab => SelectedDetailTab.Equals("description", StringComparison.OrdinalIgnoreCase);
+    public bool IsChangelogTab => SelectedDetailTab.Equals("changelog", StringComparison.OrdinalIgnoreCase);
+    public bool IsVersionsTab => SelectedDetailTab.Equals("versions", StringComparison.OrdinalIgnoreCase);
+
+    [RelayCommand]
+    private void SelectTab(string tab)
+    {
+        SelectedDetailTab = tab;
+    }
+
+    private List<Models.ModrinthProjectVersion> _allVersions = new();
+
+    public List<Models.ModrinthProjectVersion> VersionList
+    {
+        get
+        {
+            if (_allVersions.Count == 0) return _allVersions;
+            var filtered = _allVersions;
+            // Filter by selected compatibility version (from sidebar), or instance version
+            var targetVersion = !string.IsNullOrWhiteSpace(SelectedCompatibilityVersion)
+                ? SelectedCompatibilityVersion
+                : SelectedVersion;
+            if (!ShowAllVersions && !string.IsNullOrWhiteSpace(targetVersion))
+            {
+                filtered = filtered.Where(v =>
+                    v.GameVersions.Any(gv => gv.Contains(targetVersion))).ToList();
+            }
+            if (!string.IsNullOrWhiteSpace(VersionFilter))
+            {
+                var q = VersionFilter.ToLowerInvariant();
+                filtered = filtered.Where(v =>
+                    v.Name.ToLowerInvariant().Contains(q) ||
+                    v.VersionNumber.ToLowerInvariant().Contains(q)).ToList();
+            }
+            return filtered;
+        }
+    }
+
+    partial void OnVersionFilterChanged(string value) => OnPropertyChanged(nameof(VersionList));
+    partial void OnShowAllVersionsChanged(bool value) => OnPropertyChanged(nameof(VersionList));
+
+    // --- Version selector modal ---
+
+    [ObservableProperty]
+    private bool _isVersionSelectorOpen;
+
+    [ObservableProperty]
+    private Models.ModrinthProjectVersion? _selectedVersionToInstall;
+
+    /// <summary>Version row currently selected in the Versions tab.</summary>
+    [ObservableProperty]
+    private Models.ModrinthProjectVersion? _selectedVersionForDetails;
+
+    public Models.ModrinthFullProject? VersionSelectorProject => FullProject;
+
+    /// <summary>Button text: "Install" for new content, "Reinstall" for already-installed.</summary>
+    public string ReinstallText => SelectedProject is { IsInstalled: true }
+        ? L10n.T("mi_reinstall")
+        : L10n.T("mi_install");
+
+    partial void OnSelectedProjectChanged(ModrinthProject? value)
+    {
+        OnPropertyChanged(nameof(IsDetailsOpen));
+        OnPropertyChanged(nameof(DetailsProject));
+        OnPropertyChanged(nameof(InstallButtonVisible));
+        OnPropertyChanged(nameof(ReinstallText));
+        SelectedVersionForDetails = null;
+        SelectedCompatibilityVersion = "";
+        if (value != null) _ = LoadFullProjectAsync(value);
+        else FullProject = null;
+    }
+
+    [RelayCommand]
+    private void CloseVersionSelector()
+    {
+        IsVersionSelectorOpen = false;
+        SelectedVersionToInstall = null;
+    }
+
+    public bool IsDeleteConfirmOpen => PendingDelete != null;
+
+    public string DeleteItemName => PendingDelete?.Title ?? "";
+
+    public string DeleteConfirmText =>
+        PendingDelete == null ? "" : string.Format(L10n.T("cb_delete_confirm"), PendingDelete.Title);
+
+    partial void OnPendingDeleteChanged(ModrinthProject? value)
+    {
+        OnPropertyChanged(nameof(IsDeleteConfirmOpen));
+        OnPropertyChanged(nameof(DeleteItemName));
+    }
+
     public bool IsEmpty => Results.Count == 0 && !IsBusy && !IsLoadingMore;
     public bool HasMore => _offset < _totalHits;
 
@@ -311,10 +502,331 @@ public partial class ModpacksBrowserViewModel : ObservableObject
         }
     }
 
+    [RelayCommand]
+    private void DeleteOrInstall(ModrinthProject project)
+    {
+        if (project == null || project.IsInstalling) return;
+        if (project.IsInstalled)
+        {
+            PendingDelete = project;
+            return;
+        }
+        OpenVersionSelector(project);
+    }
+
+    [RelayCommand]
+    private void CancelDelete() => PendingDelete = null;
+
+    [RelayCommand]
+    private void OpenProjectPage(ModrinthProject project)
+    {
+        SelectedProject = project;
+    }
+
+    [RelayCommand]
+    private void CloseDetails()
+    {
+        SelectedProject = null;
+        PendingDelete = null;
+    }
+
+    [RelayCommand]
+    private void OpenVersionSelector(ModrinthProject? project)
+    {
+        if (project == null) return;
+        SelectedProject = project;
+        if (FullProject == null || FullProject.Id != project.ProjectId)
+            _ = LoadFullProjectAsync(project);
+        IsVersionSelectorOpen = true;
+    }
+
+    private async Task LoadFullProjectAsync(ModrinthProject project)
+    {
+        FullProjectBusy = true;
+        try
+        {
+            var full = await ModrinthApiService.GetFullProjectAsync(project.ProjectId);
+            FullProject = full;
+            OnPropertyChanged(nameof(CleanBody));
+            if (full != null)
+            {
+                _allVersions = await ModrinthApiService.GetProjectVersionsAsync(project.ProjectId);
+                // Default: select the instance MC version in Compatibility sidebar
+                SelectedCompatibilityVersion = SelectedVersion;
+                OnPropertyChanged(nameof(VersionList));
+                OnPropertyChanged(nameof(VersionSelectorProject));
+                OnPropertyChanged(nameof(CompatibilityVersions));
+            }
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Error($"Failed to load full project for {project.Title}", ex);
+        }
+        finally
+        {
+            FullProjectBusy = false;
+        }
+    }
+
+    [RelayCommand]
+    private void InstallSelectedVersion(Models.ModrinthProjectVersion? version)
+    {
+        if (version == null || SelectedProject == null) return;
+        IsVersionSelectorOpen = false;
+        _ = InstallSpecificVersionAsync(SelectedProject, version);
+    }
+
+    private async Task InstallSpecificVersionAsync(ModrinthProject project, Models.ModrinthProjectVersion version)
+    {
+        if (project == null || project.IsInstalling) return;
+        var file = version.Files.FirstOrDefault(f => f.IsPrimary) ?? version.Files.FirstOrDefault();
+        if (file == null || string.IsNullOrWhiteSpace(file.Url)) return;
+        try
+        {
+            project.IsInstalling = true;
+            StatusText = "Installing...";
+            var tempDir = Path.Combine(Path.GetTempPath(), $"zenith_modpack_{Guid.NewGuid():N}");
+            Directory.CreateDirectory(tempDir);
+            var zipPath = Path.Combine(tempDir, file.Filename);
+            var data = await ModrinthApiService.DownloadAsync(file.Url);
+            if (data is not { Length: > 0 })
+            {
+                StatusText = "Download failed.";
+                return;
+            }
+            await File.WriteAllBytesAsync(zipPath, data);
+            var instance = await InstallModpackFromZipAsync(project, zipPath, tempDir);
+            if (instance != null)
+            {
+                project.IsInstalled = true;
+                StatusText = $"Installed {project.Title}";
+                UpdateInstalledFlags();
+                _onInstalled?.Invoke();
+            }
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Error($"Failed to install modpack {project.Title}", ex);
+            StatusText = $"Failed to install: {ex.Message}";
+        }
+        finally
+        {
+            project.IsInstalling = false;
+        }
+    }
+
+    private async Task<Models.InstanceModel?> InstallModpackFromZipAsync(ModrinthProject project, string zipPath, string tempDir)
+    {
+        try
+        {
+            var extractDir = Path.Combine(tempDir, "extracted");
+            System.IO.Compression.ZipFile.ExtractToDirectory(zipPath, extractDir);
+
+            // Find manifest.json for curseforge/modrinth modpacks
+            var manifestPath = Path.Combine(extractDir, "manifest.json");
+            if (!File.Exists(manifestPath))
+            {
+                // Try finding it in subdirectories
+                var manifestFiles = Directory.GetFiles(extractDir, "manifest.json", SearchOption.AllDirectories);
+                if (manifestFiles.Length > 0) manifestPath = manifestFiles[0];
+            }
+
+            if (!File.Exists(manifestPath))
+            {
+                StatusText = "Invalid modpack: manifest.json not found.";
+                return null;
+            }
+
+            var manifestJson = await File.ReadAllTextAsync(manifestPath);
+            using var manifestDoc = System.Text.Json.JsonDocument.Parse(manifestJson);
+            var manifest = manifestDoc.RootElement;
+
+            // Get game version
+            var mcVersion = "";
+            if (manifest.TryGetProperty("minecraft", out var mc) && mc.TryGetProperty("version", out var mv))
+                mcVersion = mv.GetString() ?? "";
+
+            if (string.IsNullOrWhiteSpace(mcVersion))
+            {
+                StatusText = "Invalid modpack: no Minecraft version found.";
+                return null;
+            }
+
+            // Create instance
+            var instanceName = string.IsNullOrWhiteSpace(project.Title) ? project.Slug : project.Title;
+            var instService = new InstanceService();
+            var inst = new Models.InstanceModel
+            {
+                Id = Guid.NewGuid().ToString("N")[..12],
+                Name = instanceName,
+                Version = mcVersion,
+                LoaderType = "Fabric",
+                LoaderVersion = "",
+                Path = Path.Combine(ZenithPaths.AppDataDir, "instances", instanceName),
+            };
+            await _instanceService.SaveInstanceAsync(inst);
+
+            // Copy modpack contents into instance
+            var instancePath = inst.Path;
+            Directory.CreateDirectory(instancePath);
+
+            // Copy overrides if present
+            var overridesDir = Path.Combine(extractDir, "overrides");
+            if (Directory.Exists(overridesDir))
+            {
+                CopyDirectoryRecursive(overridesDir, instancePath);
+            }
+
+            // Install mods from manifest
+            if (manifest.TryGetProperty("modLoader", out var modLoader))
+            {
+                var loaderName = modLoader.TryGetProperty("primaryModLoader", out var pn) ? pn.GetString() ?? "" : "";
+                if (loaderName.Contains("forge", StringComparison.OrdinalIgnoreCase))
+                    inst.LoaderType = "Forge";
+                else if (loaderName.Contains("fabric", StringComparison.OrdinalIgnoreCase))
+                    inst.LoaderType = "Fabric";
+                else if (loaderName.Contains("quilt", StringComparison.OrdinalIgnoreCase))
+                    inst.LoaderType = "Quilt";
+                else if (loaderName.Contains("neoforge", StringComparison.OrdinalIgnoreCase))
+                    inst.LoaderType = "NeoForge";
+            }
+
+            if (manifest.TryGetProperty("modLoader", out var ml2) && ml2.TryGetProperty("version", out var mlv))
+                inst.LoaderVersion = mlv.GetString() ?? "";
+
+            await _instanceService.SaveInstanceAsync(inst);
+            return inst;
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Error("Failed to install modpack from zip", ex);
+            return null;
+        }
+        finally
+        {
+            try { Directory.Delete(tempDir, true); } catch { }
+        }
+    }
+
+    private static void CopyDirectoryRecursive(string sourceDir, string destDir)
+    {
+        Directory.CreateDirectory(destDir);
+        foreach (var file in Directory.GetFiles(sourceDir))
+            File.Copy(file, Path.Combine(destDir, Path.GetFileName(file)), true);
+        foreach (var dir in Directory.GetDirectories(sourceDir))
+            CopyDirectoryRecursive(dir, Path.Combine(destDir, Path.GetFileName(dir)));
+    }
+
+    [RelayCommand]
+    private void OpenExternal(ModrinthProject? project)
+    {
+        if (string.IsNullOrWhiteSpace(project?.ProjectUrl)) return;
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = project!.ProjectUrl,
+                UseShellExecute = true
+            });
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Error($"Failed to open project page for {project.Title}", ex);
+        }
+    }
+
+    [RelayCommand]
+    private void OpenLink(string? linkType)
+    {
+        if (FullProject == null) return;
+        var url = linkType?.ToLowerInvariant() switch
+        {
+            "source" => FullProject.SourceUrl,
+            "issues" => FullProject.IssuesUrl,
+            "wiki" => FullProject.WikiUrl,
+            "discord" => FullProject.DiscordUrl,
+            _ => ""
+        };
+        if (string.IsNullOrWhiteSpace(url)) return;
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = url,
+                UseShellExecute = true
+            });
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Error($"Failed to open link: {url}", ex);
+        }
+    }
+
+    /// <summary>Main action button: install new or reinstall selected/current version.</summary>
+    [RelayCommand]
+    private void MainAction()
+    {
+        if (SelectedProject == null) return;
+        if (SelectedVersionForDetails != null)
+        {
+            InstallSelectedVersion(SelectedVersionForDetails);
+            return;
+        }
+        OpenVersionSelector(SelectedProject);
+    }
+
+    [RelayCommand]
+    private void ConfirmDelete()
+    {
+        var project = PendingDelete;
+        if (project == null) return;
+        PendingDelete = null;
+        DeleteModpack(project);
+    }
+
+    private void DeleteModpack(ModrinthProject project)
+    {
+        if (project == null) return;
+        try
+        {
+            var slug = project.Slug?.ToLowerInvariant() ?? "";
+            var title = project.Title.ToLowerInvariant();
+            var instances = _instanceService.GetInstances();
+            var matches = instances
+                .Where(i =>
+                {
+                    var name = i.Name.ToLowerInvariant();
+                    var nameSlug = name.Replace(" ", "-");
+                    if (name == title || nameSlug == slug || name == slug) return true;
+                    return name.Contains(slug) && slug.Length > 3;
+                })
+                .ToList();
+
+            if (matches.Count == 0)
+            {
+                StatusText = string.Format(L10n.T("cb_delete_not_found"), project.Title);
+                return;
+            }
+
+            foreach (var inst in matches)
+                _instanceService.DeleteInstance(inst.Id);
+
+            project.IsInstalled = false;
+            StatusText = string.Format(L10n.T("cb_deleted"), project.Title);
+            UpdateInstalledFlags();
+            _onInstalled?.Invoke();
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Error($"Modpack delete failed for {project.Title}", ex);
+            StatusText = string.Format(L10n.T("mp_install_failed"), ex.Message);
+        }
+    }
+
     [RelayCommand(AllowConcurrentExecutions = true)]
     private async Task InstallAsync(ModrinthProject project)
     {
-        if (project == null || project.IsInstalling || project.IsInstalled) return;
+        if (project == null || project.IsInstalling) return;
         project.IsInstalling = true;
         Services.DiscordPresenceService.SetInstallingContent(project.Title);
         StatusText = string.Format(L10n.T("mp_resolving"), project.Title);

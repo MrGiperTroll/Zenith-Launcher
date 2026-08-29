@@ -214,6 +214,124 @@ public static class ModrinthApiService
         catch { return null; }
     }
 
+    public static async Task<ModrinthFullProject?> GetFullProjectAsync(string projectId)
+    {
+        try
+        {
+            var json = await Http.GetStringAsync($"{ApiBase}/project/{Uri.EscapeDataString(projectId)}");
+            using var doc = JsonDocument.Parse(json);
+            var r = doc.RootElement;
+
+            // Get team members for creators section
+            var team = new List<ModrinthTeamMember>();
+            try
+            {
+                var teamJson = await Http.GetStringAsync($"{ApiBase}/project/{Uri.EscapeDataString(projectId)}/members");
+                using var teamDoc = JsonDocument.Parse(teamJson);
+                foreach (var m in teamDoc.RootElement.EnumerateArray())
+                {
+                    var username = GetString(m, "username") ?? "";
+                    var role = GetString(m, "role") ?? "";
+                    // Get avatar from user object if available
+                    var avatar = "";
+                    if (m.TryGetProperty("avatar_url", out var av)) avatar = av.GetString() ?? "";
+                    if (!string.IsNullOrWhiteSpace(username))
+                        team.Add(new ModrinthTeamMember { Username = username, Role = role, AvatarUrl = avatar });
+                }
+            }
+            catch { }
+
+            // License
+            var licenseId = "";
+            var licenseName = "";
+            if (r.TryGetProperty("license", out var lic) && lic.ValueKind == JsonValueKind.Object)
+            {
+                licenseId = GetString(lic, "id") ?? "";
+                licenseName = GetString(lic, "name") ?? "";
+            }
+
+            return new ModrinthFullProject
+            {
+                Id = GetString(r, "id") ?? "",
+                Slug = GetString(r, "slug") ?? "",
+                Title = GetString(r, "title") ?? "",
+                Description = GetString(r, "description") ?? "",
+                Body = GetString(r, "body") ?? "",
+                ProjectType = GetString(r, "project_type") ?? "",
+                Downloads = GetLong(r, "downloads"),
+                Follows = GetLong(r, "follows"),
+                IconUrl = GetString(r, "icon_url") ?? "",
+                SourceUrl = GetString(r, "source_url") ?? "",
+                IssuesUrl = GetString(r, "issues_url") ?? "",
+                WikiUrl = GetString(r, "wiki_url") ?? "",
+                DiscordUrl = GetString(r, "discord_url") ?? "",
+                LicenseId = licenseId,
+                LicenseName = licenseName,
+                GameVersions = GetStringArray(r, "game_versions"),
+                Loaders = GetStringArray(r, "loaders"),
+                Categories = GetStringArray(r, "categories"),
+                ClientSide = GetString(r, "client_side") ?? "",
+                ServerSide = GetString(r, "server_side") ?? "",
+                DateModified = DateTime.TryParse(GetString(r, "date_modified"), out var dm) ? dm : default,
+                DateCreated = DateTime.TryParse(GetString(r, "date_created"), out var dc) ? dc : default,
+                TeamMembers = team,
+            };
+        }
+        catch { return null; }
+    }
+
+    public static async Task<List<ModrinthProjectVersion>> GetProjectVersionsAsync(
+        string projectId, string[]? gameVersions = null, string[]? loaders = null)
+    {
+        try
+        {
+            var url = $"{ApiBase}/project/{Uri.EscapeDataString(projectId)}/version";
+            var parts = new List<string>();
+            if (gameVersions is { Length: > 0 })
+                parts.Add($"game_versions={Uri.EscapeDataString(JsonSerializer.Serialize(gameVersions))}");
+            if (loaders is { Length: > 0 })
+                parts.Add($"loaders={Uri.EscapeDataString(JsonSerializer.Serialize(loaders))}");
+            if (parts.Count > 0) url += "?" + string.Join("&", parts);
+
+            var json = await Http.GetStringAsync(url);
+            using var doc = JsonDocument.Parse(json);
+            var versions = new List<ModrinthProjectVersion>();
+
+            foreach (var v in doc.RootElement.EnumerateArray())
+            {
+                var files = new List<ModrinthVersionFile>();
+                if (v.TryGetProperty("files", out var filesArr))
+                {
+                    foreach (var f in filesArr.EnumerateArray())
+                    {
+                        files.Add(new ModrinthVersionFile
+                        {
+                            Url = GetString(f, "url") ?? "",
+                            Filename = GetString(f, "filename") ?? "",
+                            FileSize = GetLong(f, "size"),
+                            IsPrimary = f.TryGetProperty("primary", out var pr) && pr.ValueKind == JsonValueKind.True,
+                        });
+                    }
+                }
+
+                versions.Add(new ModrinthProjectVersion
+                {
+                    Id = GetString(v, "id") ?? "",
+                    Name = GetString(v, "name") ?? "",
+                    VersionNumber = GetString(v, "version_number") ?? "",
+                    Changelog = GetString(v, "changelog") ?? "",
+                    VersionType = GetString(v, "version_type") ?? "release",
+                    DatePublished = DateTime.TryParse(GetString(v, "date_published"), out var dp) ? dp : default,
+                    GameVersions = GetStringArray(v, "game_versions"),
+                    Loaders = GetStringArray(v, "loaders"),
+                    Files = files,
+                });
+            }
+            return versions;
+        }
+        catch { return new List<ModrinthProjectVersion>(); }
+    }
+
     private static string? GetString(JsonElement e, string name)
         => e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString() : null;
 

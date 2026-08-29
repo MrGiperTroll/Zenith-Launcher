@@ -283,15 +283,33 @@ public partial class EditInstanceViewModel : ViewModelBase
                     RefreshFileLists();
                     Services.DiscordPresenceService.SetEditingInstance(Instance.Name);
                 };
-                win.Show(desktop.MainWindow);
                 if (!string.IsNullOrWhiteSpace(projectId))
-                    _ = vm.OpenProjectByIdAsync(projectId);
+                {
+                    _ = LoadAndShowDetailsAsync(vm, win, desktop.MainWindow, projectId);
+                }
+                else
+                {
+                    win.Show(desktop.MainWindow);
+                }
             }
         }
         catch (Exception ex)
         {
             ReportError($"Failed to open project details: {ex.Message}");
         }
+    }
+
+    private async Task LoadAndShowDetailsAsync(ContentBrowserViewModel vm, Views.ContentBrowserWindow win, Avalonia.Controls.Window owner, string projectId)
+    {
+        try
+        {
+            await vm.OpenProjectByIdAsync(projectId);
+        }
+        catch (Exception ex)
+        {
+            ReportError($"Failed to load project: {ex.Message}");
+        }
+        win.Show(owner);
     }
 
     // ----- Logs -----

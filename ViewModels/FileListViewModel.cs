@@ -31,8 +31,8 @@ public partial class FileListViewModel : ObservableObject
     private readonly string _instancePath;
     private List<InstanceFileEntry> _all = new();
 
-    /// <summary>Called when a double-clicked entry has a known Modrinth project ID. Opens the full project details page.</summary>
-    public Action<string, InstanceFileKind>? OpenProjectDetails { get; set; }
+    /// <summary>Called when a double-clicked entry should open the full project details page.</summary>
+    public Action<InstanceFileEntry, InstanceFileKind>? OpenProjectDetails { get; set; }
 
     public string Title { get; }
     public string EmptyHint { get; }
@@ -376,7 +376,7 @@ public partial class FileListViewModel : ObservableObject
 
         if (OpenProjectDetails != null)
         {
-            OpenProjectDetails(entry.ModrinthProjectId ?? "", _kind);
+            OpenProjectDetails(entry, _kind);
             return;
         }
 

@@ -251,7 +251,7 @@ public partial class EditInstanceViewModel : ViewModelBase
         }
     }
 
-    private void OnOpenProjectDetails(string projectId, InstanceFileKind kind)
+    private void OnOpenProjectDetails(InstanceFileEntry entry, InstanceFileKind kind)
     {
         try
         {
@@ -283,9 +283,13 @@ public partial class EditInstanceViewModel : ViewModelBase
                     RefreshFileLists();
                     Services.DiscordPresenceService.SetEditingInstance(Instance.Name);
                 };
-                if (!string.IsNullOrWhiteSpace(projectId))
+                if (!string.IsNullOrWhiteSpace(entry.ModrinthProjectId))
                 {
-                    _ = LoadAndShowDetailsAsync(vm, win, desktop.MainWindow, projectId);
+                    _ = LoadAndShowDetailsAsync(vm, win, desktop.MainWindow, entry.ModrinthProjectId);
+                }
+                else if (!string.IsNullOrWhiteSpace(entry.Title))
+                {
+                    _ = SearchAndShowDetailsAsync(vm, win, desktop.MainWindow, entry.Title);
                 }
                 else
                 {
@@ -310,6 +314,28 @@ public partial class EditInstanceViewModel : ViewModelBase
             ReportError($"Failed to load project: {ex.Message}");
         }
         win.Show(owner);
+    }
+
+    private async Task SearchAndShowDetailsAsync(ContentBrowserViewModel vm, Views.ContentBrowserWindow win, Avalonia.Controls.Window owner, string query)
+    {
+        try
+        {
+                    var searchResult = await Services.ModrinthApiService.SearchAsync(query, Instance.Version, Array.Empty<string>(), 0, 1);
+            if (searchResult?.Hits.Count > 0)
+            {
+                var hit = searchResult.Hits[0];
+                await vm.OpenProjectByIdAsync(hit.ProjectId);
+            }
+            else
+            {
+                win.Show(owner);
+            }
+        }
+        catch (Exception ex)
+        {
+            ReportError($"Failed to search for project: {ex.Message}");
+            win.Show(owner);
+        }
     }
 
     // ----- Logs -----
@@ -671,7 +697,7 @@ public partial class EditInstanceViewModel : ViewModelBase
     public void ShowDataPackDetails(InstanceFileEntry entry)
     {
         if (entry == null) return;
-        OnOpenProjectDetails(entry.ModrinthProjectId ?? "", InstanceFileKind.DataPack);
+        OnOpenProjectDetails(entry, InstanceFileKind.DataPack);
     }
 
     // ----- Settings -----

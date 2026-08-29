@@ -115,11 +115,20 @@ public partial class MainWindow : Window
 
     // --- Drag-and-Drop for instance reordering ---
 
+    private const double DragThreshold = 7.0;
+    private bool _isDragging;
+    private bool _dragPending;
+    private Point _dragStartPoint;
+    private Border? _dragSourceBorder;
+    private PointerPressedEventArgs? _dragPressedArgs;
+
     private void OnInstanceContainerPrepared(object? sender, ContainerPreparedEventArgs e)
     {
         if (e.Container is ContentPresenter { Child: Border border })
         {
             border.PointerPressed += OnInstancePointerPressed;
+            border.PointerMoved += OnInstancePointerMoved;
+            border.PointerReleased += OnInstancePointerReleased;
         }
     }
 
@@ -135,16 +144,50 @@ public partial class MainWindow : Window
         return null;
     }
 
-    private async void OnInstancePointerPressed(object? sender, PointerPressedEventArgs e)
+    private void OnInstancePointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (sender is Border border && border.Tag is Models.InstanceModel instance
-            && e.GetCurrentPoint(border).Properties.IsLeftButtonPressed)
+        if (sender is Border border && e.GetCurrentPoint(border).Properties.IsLeftButtonPressed)
         {
+            _isDragging = false;
+            _dragPending = true;
+            _dragStartPoint = e.GetPosition(border);
+            _dragSourceBorder = border;
+            _dragPressedArgs = e;
+            e.Pointer.Capture(border);
+        }
+    }
+
+    private async void OnInstancePointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (!_dragPending || _dragSourceBorder == null || _isDragging) return;
+
+        var pos = e.GetPosition(_dragSourceBorder);
+        var dx = pos.X - _dragStartPoint.X;
+        var dy = pos.Y - _dragStartPoint.Y;
+        if (dx * dx + dy * dy < DragThreshold * DragThreshold) return;
+
+        if (_dragSourceBorder.Tag is Models.InstanceModel instance && _dragPressedArgs != null)
+        {
+            _isDragging = true;
+            _dragPending = false;
+            e.Pointer.Capture(null);
+            _dragSourceBorder = null;
+
             var dragData = new DataTransfer();
             dragData.Add(DataTransferItem.CreateText(instance.Id));
-            await DragDrop.DoDragDropAsync(e, dragData, DragDropEffects.Move);
-            e.Handled = true;
+            await DragDrop.DoDragDropAsync(_dragPressedArgs, dragData, DragDropEffects.Move);
+            _dragPressedArgs = null;
         }
+    }
+
+    private void OnInstancePointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        if (_dragSourceBorder != null)
+            e.Pointer.Capture(null);
+        _dragPending = false;
+        _isDragging = false;
+        _dragSourceBorder = null;
+        _dragPressedArgs = null;
     }
 
     private void OnInstancesDragEnter(object? sender, DragEventArgs e)

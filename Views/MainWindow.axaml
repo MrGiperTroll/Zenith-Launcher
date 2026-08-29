@@ -360,7 +360,8 @@
                                         <Border Width="178" Height="178" Margin="2,2,14,14" CornerRadius="14"
                                                 BorderBrush="{Binding IsSelected, Converter={StaticResource BoolToBorderBrushConverter}}"
                                                 BorderThickness="1.5"
-                                                Tag="{Binding}">
+                                                Tag="{Binding}"
+                                                Tapped="OnInstanceTapped">
                                             <Button Classes="cardBtn" Width="175" Height="175" BorderThickness="0" Padding="13"
                                                     IsHitTestVisible="False"
                                                     HorizontalAlignment="Center" VerticalAlignment="Center"

@@ -113,6 +113,12 @@ public partial class MainWindow : Window
         e.Handled = true;
     }
 
+    private void OnInstanceTapped(object? sender, TappedEventArgs e)
+    {
+        if (sender is Border { Tag: Models.InstanceModel instance } && DataContext is MainWindowViewModel vm)
+            vm.SelectInstanceCommand.Execute(instance);
+    }
+
     // --- Drag-and-Drop for instance reordering ---
 
     private const double DragThreshold = 7.0;
@@ -125,11 +131,7 @@ public partial class MainWindow : Window
     private void OnInstanceContainerPrepared(object? sender, ContainerPreparedEventArgs e)
     {
         if (e.Container is ContentPresenter { Child: Border border })
-        {
             border.PointerPressed += OnInstancePointerPressed;
-            border.PointerMoved += OnInstancePointerMoved;
-            border.PointerReleased += OnInstancePointerReleased;
-        }
     }
 
     private Border? FindInstanceBorderAtPoint(ItemsControl ic, Point position)
@@ -153,12 +155,13 @@ public partial class MainWindow : Window
             _dragStartPoint = e.GetPosition(border);
             _dragSourceBorder = border;
             _dragPressedArgs = e;
-            e.Pointer.Capture(border);
         }
     }
 
-    private async void OnInstancePointerMoved(object? sender, PointerEventArgs e)
+    protected override void OnPointerMoved(PointerEventArgs e)
     {
+        base.OnPointerMoved(e);
+
         if (!_dragPending || _dragSourceBorder == null || _isDragging) return;
 
         var pos = e.GetPosition(_dragSourceBorder);
@@ -170,20 +173,19 @@ public partial class MainWindow : Window
         {
             _isDragging = true;
             _dragPending = false;
-            e.Pointer.Capture(null);
+            var pressed = _dragPressedArgs;
             _dragSourceBorder = null;
+            _dragPressedArgs = null;
 
             var dragData = new DataTransfer();
             dragData.Add(DataTransferItem.CreateText(instance.Id));
-            await DragDrop.DoDragDropAsync(_dragPressedArgs, dragData, DragDropEffects.Move);
-            _dragPressedArgs = null;
+            _ = DragDrop.DoDragDropAsync(pressed, dragData, DragDropEffects.Move);
         }
     }
 
-    private void OnInstancePointerReleased(object? sender, PointerReleasedEventArgs e)
+    protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
-        if (_dragSourceBorder != null)
-            e.Pointer.Capture(null);
+        base.OnPointerReleased(e);
         _dragPending = false;
         _isDragging = false;
         _dragSourceBorder = null;

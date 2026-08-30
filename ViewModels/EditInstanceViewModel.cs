@@ -69,9 +69,9 @@ public partial class EditInstanceViewModel : ViewModelBase
         ScreenshotList = new FileListViewModel("Screenshots", Path.Combine(instance.Path, "screenshots"), false,
             L10n.T("fl_empty_screenshots"), ReportError, new[] { ".png", ".jpg", ".jpeg" }, kind: InstanceFileKind.Screenshot, instancePath: instance.Path);
 
-        ModList.OpenProjectDetails = OnOpenProjectDetails;
-        ResourcePackList.OpenProjectDetails = OnOpenProjectDetails;
-        ShaderList.OpenProjectDetails = OnOpenProjectDetails;
+        ModList.OpenProjectDetails = null;
+        ResourcePackList.OpenProjectDetails = null;
+        ShaderList.OpenProjectDetails = null;
 
         HasModsSupport = IsLoaderWithModsSupport(instance.LoaderType);
         HasShaderSupport = HasShaderSupportFor(instance.LoaderType);

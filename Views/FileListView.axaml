@@ -72,7 +72,7 @@
                     </ListBox.Styles>
                     <ListBox.ItemTemplate>
                         <DataTemplate x:DataType="models:InstanceFileEntry">
-                            <Grid ColumnDefinitions="56,*,Auto,Auto" MinHeight="58" Margin="2,4,2,4" DoubleTapped="OnEntryDoubleTapped" Cursor="Hand">
+                            <Grid ColumnDefinitions="56,*,Auto,Auto" MinHeight="58" Margin="2,4,2,4" Cursor="Hand">
                                 <Border Width="48" Height="48" Background="{StaticResource IconChipBrush}" CornerRadius="8"
                                         ClipToBounds="True" HorizontalAlignment="Left" VerticalAlignment="Center">
                                     <Panel>

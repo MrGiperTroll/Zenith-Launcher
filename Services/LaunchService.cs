@@ -108,18 +108,41 @@ public class LaunchService : ILaunchService
     public event Action<InstanceModel, int, CrashAnalysis>? CrashDetected;
 
     // Writes to the per-instance log file can be triggered from several background
-    // threads at once (stdout reader, stderr reader, Exited handler). File.AppendAllText
-    // from two threads opens the file concurrently → IOException crashes the launcher
-    // when the exception surfaces on an AsyncStreamReader worker thread.
+    // threads at once (stdout reader, stderr reader, Exited handler). Synchronous
+    // File.AppendAllText blocks the AsyncStreamReader worker thread, and under heavy
+    // log output the OS pipe buffer (≈4 KB) fills up, deadlocking the child process.
+    // Use a concurrent queue flushed by a timer to keep reader threads unblocked.
     private static readonly object LogWriteGate = new();
+    private static readonly ConcurrentDictionary<string, ConcurrentQueue<string>> _logQueues = new();
+    private static readonly System.Timers.Timer _logFlushTimer = InitLogFlushTimer();
+
+    private static System.Timers.Timer InitLogFlushTimer()
+    {
+        var timer = new System.Timers.Timer(200) { AutoReset = true, Enabled = true };
+        timer.Elapsed += (_, _) => FlushAllLogQueues();
+        return timer;
+    }
+
+    private static void FlushAllLogQueues()
+    {
+        foreach (var kvp in _logQueues)
+        {
+            if (kvp.Value.IsEmpty) continue;
+            var lines = new List<string>();
+            while (kvp.Value.TryDequeue(out var line)) lines.Add(line);
+            if (lines.Count == 0) continue;
+            lock (LogWriteGate)
+            {
+                try { File.AppendAllText(kvp.Key, string.Concat(lines)); }
+                catch { /* transient file lock is non-fatal */ }
+            }
+        }
+    }
 
     private static void SafeAppendLog(string path, string text)
     {
-        lock (LogWriteGate)
-        {
-            try { File.AppendAllText(path, text); }
-            catch { /* transient lock contention is non-fatal */ }
-        }
+        var queue = _logQueues.GetOrAdd(path, _ => new ConcurrentQueue<string>());
+        queue.Enqueue(text);
     }
 
     private static void SafeWriteLog(string path, string text)
@@ -1410,26 +1433,11 @@ public class LaunchService : ILaunchService
 
     private static async Task DownloadAuthlibInjectorAsync(string destPath)
     {
-        // Source 1 - DIRECT GitHub release assets (exact files, verified live:
-        // v1.2.5 asset = 200 OK, ~342 KB).
-        var directUrls = new[]
-        {
-            "https://github.com/yushijinhun/authlib-injector/releases/download/v1.2.5/authlib-injector-1.2.5.jar",
-            "https://github.com/yawk/authlib-injector/releases/download/v1.2.5/authlib-injector-1.2.5.jar"
-        };
-
-        foreach (var url in directUrls)
-        {
-            if (await TryDownloadAuthlibJarAsync(url, destPath).ConfigureAwait(false))
-                return;
-        }
-
-        // Source 2 - metadata mirrors. They do NOT serve latest.jar; they publish
-        // latest.json with a "download_url" field pointing at the real artifact.
+        // Try metadata mirrors first — they always point to the latest release.
         var metaUrls = new[]
         {
-            "https://bmclapi2.bangbang93.com/mirrors/authlib-injector/artifact/latest.json",
-            "https://authlib-injector.yushi.moe/artifact/latest.json"
+            "https://authlib-injector.yushi.moe/artifact/latest.json",
+            "https://bmclapi2.bangbang93.com/mirrors/authlib-injector/artifact/latest.json"
         };
 
         foreach (var metaUrl in metaUrls)
@@ -1476,8 +1484,21 @@ public class LaunchService : ILaunchService
             }
         }
 
+        // Fallback — direct GitHub release asset for the latest known version.
+        var directUrls = new[]
+        {
+            "https://github.com/yushijinhun/authlib-injector/releases/download/v1.2.8/authlib-injector-1.2.8.jar",
+            "https://github.com/yawk/authlib-injector/releases/download/v1.2.8/authlib-injector-1.2.8.jar"
+        };
+
+        foreach (var url in directUrls)
+        {
+            if (await TryDownloadAuthlibJarAsync(url, destPath).ConfigureAwait(false))
+                return;
+        }
+
         throw new InvalidOperationException(
-            "All authlib-injector download sources failed (GitHub v1.2.5, BMCLAPI, yushi.moe).");
+            "All authlib-injector download sources failed (metadata mirrors, GitHub v1.2.8).");
     }
 
     private static async Task<bool> TryDownloadAuthlibJarAsync(string url, string destPath)

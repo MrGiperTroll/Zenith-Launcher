@@ -14,6 +14,8 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using CustomMcLauncher.Models;
 using CustomMcLauncher.Services;
 using CustomMcLauncher.ViewModels;
@@ -59,56 +61,59 @@ public partial class MainWindow : Window
         }
     }
 
-    private void AnimateSidebar(bool open)
+    private async void AnimateSidebar(bool open)
     {
         var sidebar = this.FindControl<Border>("InstanceDetailsSidebar");
         if (sidebar == null) return;
 
+        // Cancel any in-flight animation
+        if (_sidebarAnim != null)
+        {
+            _sidebarAnimCts?.Cancel();
+            _sidebarAnimCts?.Dispose();
+        }
+        _sidebarAnimCts = new CancellationTokenSource();
+        _sidebarAnim = _sidebarAnimCts;
+
         sidebar.IsVisible = true;
         sidebar.IsHitTestVisible = open;
 
-        var startOpacity = open ? 0.0 : 1.0;
-        var endOpacity = open ? 1.0 : 0.0;
-        var startX = open ? 280.0 : 0.0;
-        var endX = open ? 0.0 : 280.0;
+        const double width = 340;
+        const int ms = 220;
+        var translate = new TranslateTransform { X = open ? width : 0 };
+        sidebar.RenderTransform = translate;
+        sidebar.Opacity = open ? 0 : 1;
 
-        var transform = new TranslateTransform(startX, 0);
-        sidebar.RenderTransform = transform;
-        sidebar.Opacity = startOpacity;
-
-        var sw = new Stopwatch();
-        var duration = TimeSpan.FromMilliseconds(200);
-
-        var timer = new System.Timers.Timer(16); // ~60fps
-        timer.Elapsed += (_, _) =>
+        var sw = Stopwatch.StartNew();
+        try
         {
-            var t = Math.Min(sw.Elapsed.TotalMilliseconds / duration.TotalMilliseconds, 1.0);
-            // Ease out cubic
-            var ease = 1.0 - Math.Pow(1.0 - t, 3);
-
-            var newOpacity = startOpacity + (endOpacity - startOpacity) * ease;
-            var newX = startX + (endX - startX) * ease;
-
-            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            while (sw.ElapsedMilliseconds < ms)
             {
-                sidebar.Opacity = newOpacity;
-                sidebar.RenderTransform = new TranslateTransform(newX, 0);
-            });
+                _sidebarAnimCts.Token.ThrowIfCancellationRequested();
+                await Task.Delay(16, _sidebarAnimCts.Token);
+                var t = Math.Min(1.0, sw.ElapsedMilliseconds / (double)ms);
+                var eased = 1 - Math.Pow(1 - t, 3); // easeOutCubic
 
-            if (t >= 1.0)
-            {
-                timer.Stop();
-                timer.Dispose();
-                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-                {
-                    if (!open) sidebar.IsVisible = false;
-                });
+                var opacity = open ? eased : 1 - eased;
+                var x = open ? width * (1 - eased) : width * eased;
+
+                sidebar.Opacity = opacity;
+                translate.X = x;
             }
-        };
-        timer.AutoReset = false;
-        sw.Start();
-        timer.Start();
+        }
+        catch (OperationCanceledException)
+        {
+            return; // superseded by a newer animation
+        }
+        finally
+        {
+            sidebar.Opacity = open ? 1 : 0;
+            translate.X = open ? 0 : width;
+            if (!open) sidebar.IsVisible = false;
+        }
     }
+    private CancellationTokenSource? _sidebarAnimCts;
+    private CancellationTokenSource? _sidebarAnim;
 
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
@@ -167,16 +172,16 @@ public partial class MainWindow : Window
     }
 
     // --- Drag-and-Drop for instance reordering ---
-    // Visual DnD: dragged card follows the cursor as a semi-transparent
-    // ghost overlay. Other cards shift in real-time via collection reorder.
+    // Simple, reliable reorder: the dragged card stays in the collection and
+    // the item is moved via Move(oldIndex, newIndex) as the cursor crosses other
+    // cards. The model object is never recreated, so icons/names/paths persist.
 
     private const double DragThreshold = 7.0;
     private bool _dragPending;
     private bool _dragActive;
     private Point _dragStartPoint;
-    private Point _dragOffsetInCard;
     private Models.InstanceModel? _draggedInstance;
-    private Border? _dragGhost;
+    private Border? _dragSourceBorder;
 
     private Border? FindInstanceBorder(Visual hit)
     {
@@ -205,8 +210,8 @@ public partial class MainWindow : Window
                     _dragPending = true;
                     _dragActive = false;
                     _dragStartPoint = e.GetPosition(this);
-                    _dragOffsetInCard = e.GetPosition(border);
                     _draggedInstance = instance;
+                    _dragSourceBorder = border;
                     e.Handled = true;
                     return;
                 }
@@ -215,13 +220,14 @@ public partial class MainWindow : Window
 
         _dragPending = false;
         _draggedInstance = null;
+        _dragSourceBorder = null;
     }
 
     protected override void OnPointerMoved(PointerEventArgs e)
     {
         base.OnPointerMoved(e);
 
-        if (_draggedInstance == null) return;
+        if (_draggedInstance == null || DataContext is not MainWindowViewModel vm) return;
 
         if (_dragPending && !_dragActive)
         {
@@ -230,35 +236,29 @@ public partial class MainWindow : Window
             var dy = pos.Y - _dragStartPoint.Y;
             if (dx * dx + dy * dy < DragThreshold * DragThreshold) return;
 
-            // Start drag — hide original card, create ghost
+            // Start the drag
             _dragPending = false;
             _dragActive = true;
-            _draggedInstance.IsDragging = true;
-            CreateDragGhost(e);
+            if (_dragSourceBorder != null)
+                _dragSourceBorder.BorderBrush = new SolidColorBrush(Color.Parse("#10B981"));
             return;
         }
 
-        if (!_dragActive || _dragGhost == null) return;
+        if (!_dragActive) return;
 
-        // Move ghost to follow cursor
-        var cursorPos = e.GetPosition(this);
-        Canvas.SetLeft(_dragGhost, cursorPos.X - _dragOffsetInCard.X);
-        Canvas.SetTop(_dragGhost, cursorPos.Y - _dragOffsetInCard.Y);
-
-        // Calculate target position in the collection
+        // Compute the target index from the cursor position over the items control
         var ic = this.FindControl<ItemsControl>("InstancesItemsControl");
-        if (ic == null || DataContext is not MainWindowViewModel vm) return;
+        if (ic == null) return;
 
         var cursorInIc = e.GetPosition(ic);
         var targetIndex = GetDropIndex(ic, cursorInIc, vm.Instances);
 
-        // Reorder collection to show real-time shifting
         var currentIndex = vm.Instances.IndexOf(_draggedInstance);
-        if (targetIndex != currentIndex && targetIndex >= 0)
-        {
-            vm.Instances.RemoveAt(currentIndex);
-            vm.Instances.Insert(targetIndex, _draggedInstance);
-        }
+        if (currentIndex < 0) return;
+
+        // Move the item cleanly (preserves the model reference → icons intact)
+        if (targetIndex >= 0 && targetIndex < vm.Instances.Count && targetIndex != currentIndex)
+            vm.Instances.Move(currentIndex, targetIndex);
     }
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
@@ -267,149 +267,59 @@ public partial class MainWindow : Window
 
         if (_dragActive && _draggedInstance != null && DataContext is MainWindowViewModel vm)
         {
-            _draggedInstance.IsDragging = false;
             vm.PersistInstanceOrder();
-            RemoveDragGhost();
+            ClearDragHighlight();
         }
 
         _dragPending = false;
         _dragActive = false;
         _draggedInstance = null;
+        _dragSourceBorder = null;
     }
 
-    private void CreateDragGhost(PointerEventArgs e)
+    private void ClearDragHighlight()
     {
-        if (_draggedInstance == null) return;
-
-        var overlay = this.FindControl<Panel>("DragGhostOverlay");
-        if (overlay == null) return;
-
-        // Build a visual clone of the card
-        var ghost = new Border
+        if (_dragSourceBorder == null) return;
+        if (_dragSourceBorder.Tag is InstanceModel inst)
         {
-            Width = 178,
-            Height = 178,
-            CornerRadius = new CornerRadius(14),
-            Background = new SolidColorBrush(Color.Parse("#0D111A")),
-            BorderBrush = new SolidColorBrush(Color.Parse("#10B981")),
-            BorderThickness = new Thickness(2),
-            Opacity = 0.85,
-            IsHitTestVisible = false,
-            BoxShadow = new BoxShadows(BoxShadow.Parse("0 8 24 0 #40000000")),
-            RenderTransform = new ScaleTransform(1.05, 1.05)
-        };
-
-        var stack = new StackPanel { Spacing = 8, HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center };
-
-        // Icon
-        var iconBorder = new Border
-        {
-            Width = 68, Height = 68,
-            Background = new SolidColorBrush(Color.Parse("#1C2438")),
-            CornerRadius = new CornerRadius(12),
-            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
-            ClipToBounds = true
-        };
-
-        if (_draggedInstance.IconBitmap != null)
-        {
-            var img = new Image
-            {
-                Source = _draggedInstance.IconBitmap,
-                Stretch = Avalonia.Media.Stretch.UniformToFill,
-                Width = 68, Height = 68
-            };
-            iconBorder.Child = img;
+            var brush = inst.IsSelected
+                ? (Color.TryParse("#10B981", out var sel) ? new SolidColorBrush(sel)
+                    : new SolidColorBrush(Color.Parse("#10B981")))
+                : new SolidColorBrush(Color.Parse("#1C2438"));
+            _dragSourceBorder.BorderBrush = brush;
         }
         else
-        {
-            var iconText = new TextBlock
-            {
-                Text = _draggedInstance.Name.Length > 0 ? _draggedInstance.Name[..1].ToUpper() : "?",
-                FontWeight = Avalonia.Media.FontWeight.Bold,
-                FontSize = 24,
-                Foreground = new SolidColorBrush(Color.Parse("#10B981")),
-                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
-                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
-            };
-            iconBorder.Child = iconText;
-        }
-        stack.Children.Add(iconBorder);
-
-        // Name
-        var nameBlock = new TextBlock
-        {
-            Text = _draggedInstance.Name,
-            FontWeight = Avalonia.Media.FontWeight.Bold,
-            FontSize = 13,
-            Foreground = new SolidColorBrush(Colors.White),
-            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
-            TextAlignment = Avalonia.Media.TextAlignment.Center,
-            MaxWidth = 150
-        };
-        stack.Children.Add(nameBlock);
-
-        // Version
-        var verBlock = new TextBlock
-        {
-            Text = _draggedInstance.DisplayVersion,
-            FontSize = 11,
-            Foreground = new SolidColorBrush(Color.Parse("#8892A8")),
-            FontWeight = Avalonia.Media.FontWeight.SemiBold,
-            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center
-        };
-        stack.Children.Add(verBlock);
-
-        ghost.Child = stack;
-
-        // Position at cursor
-        var cursorPos = e.GetPosition(this);
-        Canvas.SetLeft(ghost, cursorPos.X - _dragOffsetInCard.X);
-        Canvas.SetTop(ghost, cursorPos.Y - _dragOffsetInCard.Y);
-
-        overlay.Children.Add(ghost);
-        _dragGhost = ghost;
-    }
-
-    private void RemoveDragGhost()
-    {
-        if (_dragGhost != null)
-        {
-            var overlay = this.FindControl<Panel>("DragGhostOverlay");
-            overlay?.Children.Remove(_dragGhost);
-            _dragGhost = null;
-        }
+            _dragSourceBorder.BorderBrush = new SolidColorBrush(Color.Parse("#1C2438"));
     }
 
     private int GetDropIndex(ItemsControl ic, Point position, ObservableCollection<InstanceModel> instances)
     {
+        // Determine which card the cursor is over and whether to insert before
+        // or after it based on the cursor's position within that card.
         var hit = ic.GetVisualAt(position);
-        if (hit == null) return instances.Count - 1;
-
-        var border = FindInstanceBorder(hit);
-        if (border?.Tag is InstanceModel target)
+        if (hit != null)
         {
-            var targetIndex = instances.IndexOf(target);
-            if (targetIndex < 0) return instances.Count - 1;
+            var border = FindInstanceBorder(hit);
+            if (border?.Tag is InstanceModel target)
+            {
+                var targetIndex = instances.IndexOf(target);
+                if (targetIndex < 0) return instances.Count - 1;
 
-            var bounds = border.Bounds;
-            var centerX = bounds.X + bounds.Width / 2;
-            var centerY = bounds.Y + bounds.Height / 2;
+                var bounds = border.Bounds;
+                var centerX = bounds.X + bounds.Width / 2;
+                var centerY = bounds.Y + bounds.Height / 2;
 
-            if (position.X > centerX || position.Y > centerY)
-                return targetIndex;
-            else
-                return targetIndex;
+                // Cards flow left-to-right into rows. Insert before the target
+                // when the cursor is in the card's upper-left half, otherwise after.
+                var towardTop = position.Y < centerY;
+                var sameHalfX = Math.Abs(position.X - centerX) <= bounds.Width / 2;
+                bool before = sameHalfX && position.X < centerX ? position.Y < centerY : towardTop;
+
+                return before ? targetIndex : targetIndex + 1;
+            }
         }
 
         return instances.Count - 1;
-    }
-
-    private Border? FindInstanceBorderAtPoint(ItemsControl ic, Point position)
-    {
-        var hit = ic.GetVisualAt(position);
-        if (hit != null) return FindInstanceBorder(hit);
-        return null;
     }
 }
 

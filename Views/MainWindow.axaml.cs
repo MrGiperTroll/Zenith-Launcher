@@ -11,7 +11,6 @@ using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
-using System.Threading;
 using System.Threading.Tasks;
 using CustomMcLauncher.Models;
 using CustomMcLauncher.Services;
@@ -66,13 +65,6 @@ public partial class MainWindow : Window
         const double width = 300;
         const int ms = 180;
 
-        // Reset any stale in-flight close task
-        if (_closeDelayToken != null)
-        {
-            _closeDelayToken.Cancel();
-            _closeDelayToken.Dispose();
-        }
-
         // TranslateTransform (with its own X transition) drives the slide.
         var translate = sidebar.RenderTransform as TranslateTransform;
         if (translate == null)
@@ -83,6 +75,8 @@ public partial class MainWindow : Window
 
         if (open)
         {
+            // Panel is reopening - clear any pending close so a stale delay can't hide it.
+            _sidebarClosePending = false;
             sidebar.IsVisible = true;
             sidebar.IsHitTestVisible = true;
 
@@ -98,23 +92,28 @@ public partial class MainWindow : Window
         {
             sidebar.IsHitTestVisible = false;
 
-            // Slide out to the right and fade, then hide once the transition ends.
+            // Slide out to the right and fade.
             translate.X = width;
             sidebar.Opacity = 0;
 
-            _closeDelayToken = new CancellationTokenSource();
-            try
+            // Track this close request. If it is superseded by a newer close or a
+            // reopen while we wait, the panel must not be hidden afterwards.
+            _sidebarClosePending = true;
+            _sidebarCloseGeneration++;
+            var thisClose = _sidebarCloseGeneration;
+
+            await Task.Delay(ms);
+
+            // Only hide if this is still the latest close AND the panel wasn't reopened.
+            if (_sidebarClosePending && _sidebarCloseGeneration == thisClose)
             {
-                await Task.Delay(ms, _closeDelayToken.Token);
+                sidebar.IsVisible = false;
+                _sidebarClosePending = false;
             }
-            catch (OperationCanceledException)
-            {
-                return;
-            }
-            sidebar.IsVisible = false;
         }
     }
-    private CancellationTokenSource? _closeDelayToken;
+    private bool _sidebarClosePending;
+    private int _sidebarCloseGeneration;
 
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {

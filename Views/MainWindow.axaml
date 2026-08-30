@@ -413,8 +413,22 @@
                     </ScrollViewer>
 
                     <!-- Right Sidebar: Instance Details -->
-                    <Border Grid.Column="1" IsVisible="{Binding IsRightSidebarOpen}" Width="340" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1,0,0,0" Padding="16,8,16,16"
+                    <Border Grid.Column="1" IsVisible="False" Width="300" Opacity="0" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1,0,0,0" Padding="16,8,16,16"
                             x:Name="InstanceDetailsSidebar">
+                        <Border.RenderTransform>
+                            <TranslateTransform X="300">
+                                <TranslateTransform.Transitions>
+                                    <Transitions>
+                                        <DoubleTransition Property="X" Easing="CubicEaseOut" Duration="0:0:0.18"/>
+                                    </Transitions>
+                                </TranslateTransform.Transitions>
+                            </TranslateTransform>
+                        </Border.RenderTransform>
+                        <Border.Transitions>
+                            <Transitions>
+                                <DoubleTransition Property="Opacity" Easing="CubicEaseOut" Duration="0:0:0.18"/>
+                            </Transitions>
+                        </Border.Transitions>
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                             <StackPanel Spacing="12">
                                 <Grid ColumnDefinitions="*,Auto">

@@ -282,6 +282,21 @@ public class InstanceService : IInstanceService
         }
     }
 
+    public void SetInstanceOrder(IReadOnlyList<string> orderedIds)
+    {
+        lock (_lock)
+        {
+            var byId = _instances.ToDictionary(i => i.Id);
+            _instances.Clear();
+            foreach (var id in orderedIds)
+            {
+                if (byId.TryGetValue(id, out var inst))
+                    _instances.Add(inst);
+            }
+            SaveInstances();
+        }
+    }
+
     private class LocalStore
     {
         public List<InstanceModel> Instances { get; set; } = new();

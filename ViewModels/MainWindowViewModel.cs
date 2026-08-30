@@ -1134,6 +1134,12 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
+    public void PersistInstanceOrder()
+    {
+        var ids = Instances.Select(i => i.Id).ToList();
+        _instanceService.SetInstanceOrder(ids);
+    }
+
     [RelayCommand]
     private void SelectInstance(InstanceModel instance)
     {

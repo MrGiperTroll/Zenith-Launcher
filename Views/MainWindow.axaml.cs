@@ -9,9 +9,12 @@ using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.VisualTree;
 using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
+using CustomMcLauncher.Models;
 using CustomMcLauncher.Services;
 using CustomMcLauncher.ViewModels;
 
@@ -27,16 +30,6 @@ public partial class MainWindow : Window
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
         DataContextChanged += OnDataContextChanged;
         UiFx.FadeIn(this, 200);
-
-        var ic = this.FindControl<ItemsControl>("InstancesItemsControl");
-        if (ic != null)
-        {
-            DragDrop.SetAllowDrop(ic, true);
-            ic.AddHandler(DragDrop.DragEnterEvent, OnInstancesDragEnter);
-            ic.AddHandler(DragDrop.DragLeaveEvent, OnInstancesDragLeave);
-            ic.AddHandler(DragDrop.DragOverEvent, OnInstancesDragOver);
-            ic.AddHandler(DragDrop.DropEvent, OnInstancesDrop);
-        }
     }
 
     private void OnDataContextChanged(object? sender, EventArgs e)
@@ -118,13 +111,17 @@ public partial class MainWindow : Window
     }
 
     // --- Drag-and-Drop for instance reordering ---
+    // Custom pointer-based DnD with real-time visual reordering.
+    // Instead of system DnD (which shows a file-drag cursor), we track
+    // pointer movement, temporarily reorder the Instances collection
+    // so the WrapPanel reflows in real-time, and highlight the drop target.
 
     private const double DragThreshold = 7.0;
     private bool _dragPending;
-    private bool _dragStarted;
+    private bool _dragActive;
     private Point _dragStartPoint;
-    private Border? _dragSourceBorder;
-    private PointerPressedEventArgs? _dragPressedArgs;
+    private Models.InstanceModel? _draggedInstance;
+    private Border? _dragHoverBorder;
 
     private Border? FindInstanceBorder(Visual hit)
     {
@@ -148,79 +145,132 @@ public partial class MainWindow : Window
             if (source != null)
             {
                 var border = FindInstanceBorder(source);
-                if (border != null)
+                if (border?.Tag is Models.InstanceModel instance)
                 {
                     _dragPending = true;
-                    _dragStarted = false;
+                    _dragActive = false;
                     _dragStartPoint = e.GetPosition(border);
-                    _dragSourceBorder = border;
-                    _dragPressedArgs = e;
+                    _draggedInstance = instance;
+                    e.Handled = true;
                     return;
                 }
             }
         }
 
         _dragPending = false;
-        _dragSourceBorder = null;
-        _dragPressedArgs = null;
+        _draggedInstance = null;
     }
 
     protected override void OnPointerMoved(PointerEventArgs e)
     {
         base.OnPointerMoved(e);
 
-        if (!_dragPending || _dragSourceBorder == null || _dragStarted) return;
+        if (_draggedInstance == null) return;
 
-        var pos = e.GetPosition(_dragSourceBorder);
-        var dx = pos.X - _dragStartPoint.X;
-        var dy = pos.Y - _dragStartPoint.Y;
-        if (dx * dx + dy * dy < DragThreshold * DragThreshold) return;
-
-        if (_dragSourceBorder.Tag is Models.InstanceModel instance && _dragPressedArgs != null)
+        if (_dragPending && !_dragActive)
         {
-            _dragStarted = true;
-            _dragPending = false;
-            var pressed = _dragPressedArgs;
-            _dragSourceBorder = null;
-            _dragPressedArgs = null;
+            var pos = e.GetPosition(this);
+            var dx = pos.X - _dragStartPoint.X;
+            var dy = pos.Y - _dragStartPoint.Y;
+            if (dx * dx + dy * dy < DragThreshold * DragThreshold) return;
 
-            var dragData = new DataTransfer();
-            dragData.Add(DataTransferItem.CreateText(instance.Id));
-            _ = DragDrop.DoDragDropAsync(pressed, dragData, DragDropEffects.Move);
+            // Start drag
+            _dragPending = false;
+            _dragActive = true;
+            return;
+        }
+
+        if (!_dragActive) return;
+
+        // Calculate which position the cursor is over in the Instances collection
+        var ic = this.FindControl<ItemsControl>("InstancesItemsControl");
+        if (ic == null || DataContext is not MainWindowViewModel vm) return;
+
+        var cursorInIc = e.GetPosition(ic);
+        var targetIndex = GetDropIndex(ic, cursorInIc, vm.Instances);
+
+        // If hovering over a different card, highlight it
+        var hoverBorder = FindInstanceBorderAtPoint(ic, cursorInIc);
+        if (hoverBorder != _dragHoverBorder)
+        {
+            ClearDropHighlight();
+            _dragHoverBorder = hoverBorder;
+            if (hoverBorder != null)
+                hoverBorder.BorderBrush = new SolidColorBrush(Color.Parse("#10B981"));
+        }
+
+        // Temporarily reorder Instances to show real-time WrapPanel reflow
+        var currentIndex = vm.Instances.IndexOf(_draggedInstance);
+        if (targetIndex != currentIndex && targetIndex >= 0)
+        {
+            vm.Instances.RemoveAt(currentIndex);
+            vm.Instances.Insert(targetIndex, _draggedInstance);
         }
     }
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
         base.OnPointerReleased(e);
+
+        if (_dragActive && _draggedInstance != null && DataContext is MainWindowViewModel vm)
+        {
+            // Persist the final order
+            vm.PersistInstanceOrder();
+
+            ClearDropHighlight();
+        }
+
         _dragPending = false;
-        _dragStarted = false;
-        _dragSourceBorder = null;
-        _dragPressedArgs = null;
+        _dragActive = false;
+        _draggedInstance = null;
+        _dragHoverBorder = null;
     }
 
-    private void OnInstancesDragEnter(object? sender, DragEventArgs e)
+    private void ClearDropHighlight()
     {
-        if (sender is ItemsControl ic)
+        if (_dragHoverBorder != null)
         {
-            var border = FindInstanceBorderAtPoint(ic, e.GetPosition(ic));
-            if (border != null) border.Opacity = 0.6;
+            // Restore the original BorderBrush from the selection converter
+            if (_dragHoverBorder.Tag is InstanceModel inst)
+            {
+                if (inst.IsSelected)
+                {
+                    if (Avalonia.Application.Current?.Resources.TryGetResource("AccentBrush", ThemeVariant.Default, out var res) == true && res is ISolidColorBrush brush)
+                        _dragHoverBorder.BorderBrush = new SolidColorBrush(brush.Color);
+                    else
+                        _dragHoverBorder.BorderBrush = new SolidColorBrush(Color.Parse("#10B981"));
+                }
+                else
+                    _dragHoverBorder.BorderBrush = new SolidColorBrush(Color.Parse("#1C2438"));
+            }
+            else
+                _dragHoverBorder.BorderBrush = new SolidColorBrush(Color.Parse("#1C2438"));
         }
-        e.DragEffects = DragDropEffects.Move;
     }
 
-    private void OnInstancesDragLeave(object? sender, DragEventArgs e)
+    private int GetDropIndex(ItemsControl ic, Point position, ObservableCollection<InstanceModel> instances)
     {
-        if (sender is ItemsControl ic)
+        var hit = ic.GetVisualAt(position);
+        if (hit == null) return instances.Count - 1;
+
+        var border = FindInstanceBorder(hit);
+        if (border?.Tag is InstanceModel target)
         {
-            var border = FindInstanceBorderAtPoint(ic, e.GetPosition(ic));
-            if (border != null) border.Opacity = 1.0;
-        }
-    }
+            var targetIndex = instances.IndexOf(target);
+            if (targetIndex < 0) return instances.Count - 1;
 
-    private void OnInstancesDragOver(object? sender, DragEventArgs e)
-    {
-        e.DragEffects = DragDropEffects.Move;
+            // Determine if dropping before or after based on cursor position
+            var bounds = border.Bounds;
+            var centerX = bounds.X + bounds.Width / 2;
+            var centerY = bounds.Y + bounds.Height / 2;
+
+            if (position.X > centerX || position.Y > centerY)
+                return targetIndex; // drop after (at this position)
+            else
+                return targetIndex; // drop before this position
+        }
+
+        return instances.Count - 1;
     }
 
     private Border? FindInstanceBorderAtPoint(ItemsControl ic, Point position)
@@ -228,30 +278,6 @@ public partial class MainWindow : Window
         var hit = ic.GetVisualAt(position);
         if (hit != null) return FindInstanceBorder(hit);
         return null;
-    }
-
-    private void OnInstancesDrop(object? sender, DragEventArgs e)
-    {
-        if (sender is ItemsControl ic && DataContext is MainWindowViewModel vm)
-        {
-            var pos = e.GetPosition(ic);
-            var targetBorder = FindInstanceBorderAtPoint(ic, pos);
-            if (targetBorder?.Tag is Models.InstanceModel targetInstance)
-            {
-                targetBorder.Opacity = 1.0;
-
-                var draggedId = e.DataTransfer.TryGetText();
-                if (!string.IsNullOrEmpty(draggedId) && draggedId != targetInstance.Id)
-                {
-                    var dropAfter = pos.X > targetBorder.Bounds.Left + targetBorder.Bounds.Width / 2
-                                 || pos.Y > targetBorder.Bounds.Top + targetBorder.Bounds.Height / 2;
-                    vm.ReorderInstance(draggedId, targetInstance.Id, dropAfter);
-                    e.DragEffects = DragDropEffects.Move;
-                    return;
-                }
-            }
-            e.DragEffects = DragDropEffects.None;
-        }
     }
 }
 

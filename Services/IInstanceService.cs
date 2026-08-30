@@ -15,5 +15,6 @@ public interface IInstanceService
     void DeleteInstance(string instanceId);
     Task<(bool ok, string? error)> RenameInstanceAsync(InstanceModel instance, string newName);
     void ReorderInstances(string movedId, string targetId, bool dropAfter);
+    void SetInstanceOrder(IReadOnlyList<string> orderedIds);
 }
 

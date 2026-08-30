@@ -414,10 +414,8 @@
                     </ScrollViewer>
 
                     <!-- Right Sidebar: Instance Details -->
-                    <Border Grid.Column="1" IsVisible="{Binding IsRightSidebarOpen}" Width="280" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1,0,0,0" Padding="16,8,16,16"
-                            RenderTransform="TranslateTransform(280, 0)"
-                            x:Name="InstanceDetailsSidebar"
-                            Opacity="0">
+                    <Border Grid.Column="1" IsVisible="False" Width="280" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1,0,0,0" Padding="16,8,16,16"
+                            x:Name="InstanceDetailsSidebar">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                             <StackPanel Spacing="12">
                                 <Grid ColumnDefinitions="*,Auto">

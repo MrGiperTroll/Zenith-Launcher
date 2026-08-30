@@ -43,6 +43,8 @@ Publish/
 publish/
 *.publishprofile
 net10.0/
+# Installer build output (generated setup .exe)
+dist/
 
 # ===== Aider / AI tooling =====
 .aider*

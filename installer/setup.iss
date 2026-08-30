@@ -9,7 +9,7 @@
 ; =============================================================================
 
 #define MyAppName "Zenith Launcher"
-#define MyAppVersion "1.0.3"
+#define MyAppVersion "1.0.4"
 #define MyAppPublisher "Zenith"
 #define MyAppExeName "Zenith Launcher.exe"
 ; Fixed installer GUID (do not change once published, used for clean removal)
@@ -28,8 +28,8 @@ DefaultDirName={localappdata}\Programs\ZenithLauncher
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
-OutputDir=..\dist
-OutputBaseFilename=ZenithLauncher-Setup
+OutputDir=..\Output
+OutputBaseFilename=ZenithLauncher_Setup_v{#MyAppVersion}
 SetupIconFile=..\Assets\app.ico
 UninstallDisplayIcon={app}\{#MyAppExeName}
 UninstallDisplayName={#MyAppName}

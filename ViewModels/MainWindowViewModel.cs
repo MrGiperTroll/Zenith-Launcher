@@ -1096,6 +1096,8 @@ public partial class MainWindowViewModel : ViewModelBase
         foreach (var inst in _instanceService.GetInstances())
         {
             inst.IsSelected = (inst.Id == SelectedInstanceId);
+            inst.IsRunning = false;
+            inst.IsLaunching = false;
             Instances.Add(inst);
         }
 
@@ -1126,6 +1128,8 @@ public partial class MainWindowViewModel : ViewModelBase
         foreach (var inst in _instanceService.GetInstances())
         {
             inst.IsSelected = inst.Id == SelectedInstanceId;
+            inst.IsRunning = false;
+            inst.IsLaunching = false;
             Instances.Add(inst);
         }
     }

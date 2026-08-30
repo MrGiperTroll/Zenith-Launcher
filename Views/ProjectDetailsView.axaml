@@ -39,7 +39,6 @@
             <Setter Property="Transitions">
                 <Transitions>
                     <BrushTransition Property="Background" Duration="0:0:0.25" Easing="CubicEaseOut"/>
-                    <DoubleTransition Property="Opacity" Duration="0:0:0.2" Easing="CubicEaseOut"/>
                 </Transitions>
             </Setter>
         </Style>
@@ -91,7 +90,7 @@
                             Background="{StaticResource FieldBrush}" Foreground="{StaticResource TextPrimaryBrush}"
                             BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" FontWeight="SemiBold" Cursor="Hand"
                             Command="{Binding CloseDetailsCommand}"/>
-                    <Button Classes="actionBtn" Padding="18,8" Opacity="{Binding ActionBtnOpacity}"
+                    <Button Classes="actionBtn" Padding="18,8"
                             Content="{Binding ReinstallText}"
                             Command="{Binding MainActionCommand}"/>
                 </StackPanel>

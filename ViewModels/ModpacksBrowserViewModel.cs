@@ -200,9 +200,6 @@ public partial class ModpacksBrowserViewModel : ObservableObject
             ? L10n.T("mi_reinstall")
             : L10n.T("mi_install");
 
-    /// <summary>Opacity of the action button (0.6 during "Installed" feedback, 1.0 normally).</summary>
-    public double ActionBtnOpacity => _showInstallFeedback ? 0.6 : 1.0;
-
     partial void OnSelectedProjectChanged(ModrinthProject? value)
     {
         OnPropertyChanged(nameof(IsDetailsOpen));
@@ -226,14 +223,12 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     {
         _showInstallFeedback = true;
         OnPropertyChanged(nameof(ReinstallText));
-        OnPropertyChanged(nameof(ActionBtnOpacity));
         _ = Task.Delay(2000).ContinueWith(_ =>
         {
             Dispatcher.UIThread.Post(() =>
             {
                 _showInstallFeedback = false;
                 OnPropertyChanged(nameof(ReinstallText));
-                OnPropertyChanged(nameof(ActionBtnOpacity));
             });
         });
     }

@@ -102,6 +102,16 @@ public partial class EditInstanceViewModel : ViewModelBase
             }
         };
 
+        // Notify IsRunning / CanLaunch when the underlying Instance model changes.
+        instance.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(InstanceModel.IsRunning) || e.PropertyName == nameof(InstanceModel.IsLaunching))
+            {
+                OnPropertyChanged(nameof(IsRunning));
+                OnPropertyChanged(nameof(CanLaunch));
+            }
+        };
+
         RefreshFileLists();
         RefreshLogs();
     }

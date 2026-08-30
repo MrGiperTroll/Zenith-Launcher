@@ -43,13 +43,13 @@ $g.DrawString('LAUNCHER', $subFont, $accentBrush, (New-Object System.Drawing.Rec
 
 $left.Save((Join-Path $outDir 'wizard-left.bmp'), [System.Drawing.Imaging.ImageFormat]::Bmp)
 
-# ---- Small top-right 55x55 (modern wizard small image / license area) ----
-$small = New-Object System.Drawing.Bitmap 55, 55
+# ---- Small top-right 55x58 (Inno Setup requires exactly 55x58) ----
+$small = New-Object System.Drawing.Bitmap 55, 58
 $g2 = [System.Drawing.Graphics]::FromImage($small)
 $g2.Clear($bg)
 $g2.TextRenderingHint = [System.Drawing.Text.TextRenderingHint]::AntiAliasGridFit
 $zFont = New-Object System.Drawing.Font('Segoe UI', 20, [System.Drawing.FontStyle]::Bold)
-$g2.DrawString('Z', $zFont, $accentBrush, (New-Object System.Drawing.RectangleF 0, 6, 55, 42), $sf)
+$g2.DrawString('Z', $zFont, $accentBrush, (New-Object System.Drawing.RectangleF 0, 6, 55, 46), $sf)
 $small.Save((Join-Path $outDir 'wizard-small.bmp'), [System.Drawing.Imaging.ImageFormat]::Bmp)
 
 # ---- Top banner 386x58 (used as WizardImageFile "top" banner if desired) ----

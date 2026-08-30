@@ -75,62 +75,62 @@ Name: "{app}"; Type: dirifempty
 [Code]
 // ============================================================================
 //  Dark Theme for the Inno Setup wizard.
-//  Implemented with pure Inno color theming (no undocumented DLL imports,
-//  no fragile pointer casts) so it can never crash the installer.
-//  The wizard body + text are dark with green accents, matching the launcher.
-//  (The OS caption bar follows the active Windows theme, as is standard.)
+//  Sets WizardForm.Color directly (not through recursive TForm check, since
+//  WizardForm is TWizardForm which does not match "is TForm" in Inno Pascal).
+//  Then recursively applies light text to all child labels/controls.
 // ============================================================================
 const
-  // Launcher palette (BGR)
   cBg     = $1A110D;   // RGB(13,17,26)   CardBrush
   cText   = $FFFFFF;   // white
-  cAccent = $81B910;   // RGB(16,185,129) AccentBrush
 
 var
   DarkApplied: Boolean;
 
-// Recursively apply dark colors to the wizard control tree
-procedure ApplyDark(Control: TObject);
+procedure ApplyDarkControls(Parent: TObject);
 var
   i: Integer;
+  Ctrl: TObject;
 begin
-  if Control is TForm then
-    TForm(Control).Color := cBg;
+  if not (Parent is TWinControl) then Exit;
 
-  if Control is TLabel then
-    TLabel(Control).Font.Color := cText
-  else if Control is TNewStaticText then
-    TNewStaticText(Control).Font.Color := cText
-  else if Control is TNewCheckBox then
-    TNewCheckBox(Control).Font.Color := cText
-  else if Control is TNewRadioButton then
-    TNewRadioButton(Control).Font.Color := cText
-  else if Control is TNewEdit then begin
-    TNewEdit(Control).Color := cBg;
-    TNewEdit(Control).Font.Color := cText;
-  end;
+  for i := 0 to TWinControl(Parent).ControlCount - 1 do begin
+    Ctrl := TWinControl(Parent).Controls[i];
 
-  // Walk children of any TWinControl / container
-  if Control is TWinControl then begin
-    for i := 0 to TWinControl(Control).ControlCount - 1 do
-      ApplyDark(TWinControl(Control).Controls[i]);
+    if Ctrl is TLabel then
+      TLabel(Ctrl).Font.Color := cText
+    else if Ctrl is TNewStaticText then
+      TNewStaticText(Ctrl).Font.Color := cText
+    else if Ctrl is TNewCheckBox then
+      TNewCheckBox(Ctrl).Font.Color := cText
+    else if Ctrl is TNewRadioButton then
+      TNewRadioButton(Ctrl).Font.Color := cText
+    else if Ctrl is TNewEdit then begin
+      TNewEdit(Ctrl).Color := cBg;
+      TNewEdit(Ctrl).Font.Color := cText;
+    end;
+
+    ApplyDarkControls(Ctrl);
   end;
 end;
 
 procedure InitializeWizard();
 begin
   DarkApplied := True;
-  ApplyDark(WizardForm);
+  // Set dark background directly — this is the key line that was missing
+  WizardForm.Color := cBg;
+  ApplyDarkControls(WizardForm);
 end;
 
 procedure CurPageChanged(CurPageID: Integer);
 begin
-  // Re-apply on every page switch so newly-created controls stay themed
-  if DarkApplied then
-    ApplyDark(WizardForm);
+  if DarkApplied then begin
+    WizardForm.Color := cBg;
+    ApplyDarkControls(WizardForm);
+  end;
 end;
 
 procedure InitializeUninstallProgressForm();
 begin
-  ApplyDark(UninstallProgressForm);
+  UninstallProgressForm.Color := cBg;
+  ApplyDarkControls(UninstallProgressForm);
 end;

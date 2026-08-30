@@ -97,6 +97,10 @@ public partial class InstanceModel : ObservableObject
     [ObservableProperty]
     private bool _isSelected;
 
+    [JsonIgnore]
+    [ObservableProperty]
+    private bool _isDragging;
+
     partial void OnIconPathChanged(string? value)
     {
         _cachedIcon?.Dispose();

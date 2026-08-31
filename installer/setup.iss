@@ -1,5 +1,5 @@
 ; =============================================================================
-;  Zenith Launcher - Installer (VCL Styles Dark Theme)
+;  Zenith Launcher - Installer (Standard Modern, Light)
 ;  Inno Setup 6 script. Build:
 ;      powershell -ExecutionPolicy Bypass -File installer\Build-Installer.ps1
 ; -----------------------------------------------------------------------------
@@ -36,8 +36,6 @@ UninstallDisplayName={#MyAppName}
 Compression=lzma2/max
 SolidCompression=yes
 WizardStyle=modern
-WizardImageFile=assets\wizard-left.bmp
-WizardSmallImageFile=assets\logo-small.bmp
 MinVersion=10.0.17763
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
@@ -54,10 +52,6 @@ Name: "desktopicon"; Description: "Create a &desktop shortcut"; Flags: unchecked
 Name: "startmenu";  Description: "Create a &Start Menu shortcut"
 
 [Files]
-; VCL Styles plugin — must be listed FIRST for solid compression
-Source: "VclStylesInno.dll"; DestDir: "{tmp}"; Flags: dontcopy
-Source: "CharcoalDarkSlate.vsf"; DestDir: "{tmp}"; Flags: dontcopy
-; Application files
 Source: "..\publish\win-x64-singlefile\Zenith Launcher.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\publish\win-x64-singlefile\Assets\*"; DestDir: "{app}\Assets"; Flags: ignoreversion recursesubdirs createallsubdirs
 
@@ -70,24 +64,3 @@ Filename: "{app}\{#MyAppExeName}"; Description: "Launch {#MyAppName}"; Flags: no
 
 [UninstallDelete]
 Name: "{app}"; Type: dirifempty
-
-[Code]
-// VCL Styles for Inno Setup — dark theme via CharcoalDarkSlate.vsf
-// https://github.com/RRUZ/vcl-styles-plugins
-
-procedure LoadVCLStyle(VClStyleFile: String);
-  external 'LoadVCLStyleW@files:VclStylesInno.dll stdcall';
-procedure UnLoadVCLStyles;
-  external 'UnLoadVCLStyles@files:VclStylesInno.dll stdcall';
-
-function InitializeSetup(): Boolean;
-begin
-  ExtractTemporaryFile('CharcoalDarkSlate.vsf');
-  LoadVCLStyle(ExpandConstant('{tmp}\CharcoalDarkSlate.vsf'));
-  Result := True;
-end;
-
-procedure DeinitializeSetup();
-begin
-  UnLoadVCLStyles;
-end;

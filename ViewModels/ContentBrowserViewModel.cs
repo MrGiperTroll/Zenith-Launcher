@@ -583,8 +583,77 @@ public partial class ContentBrowserViewModel : ObservableObject
             PendingDelete = project;
             return;
         }
-        // Open version selector instead of installing directly
-        OpenVersionSelector(project);
+        // Install directly with the latest compatible version (no page navigation)
+        _ = InstallLatestAsync(project);
+    }
+
+    private async Task InstallLatestAsync(ModrinthProject project)
+    {
+        if (project == null || project.IsInstalling) return;
+        try
+        {
+            var loaders = SelectedContentType == ContentType.Mod ? MapLoaders(_loaderType) : Array.Empty<string>();
+            var version = await ModrinthApiService.GetLatestVersionAsync(project.ProjectId, _gameVersion, loaders);
+            if (version == null)
+            {
+                StatusText = string.Format(L10n.T("cb_download_failed"), project.Title);
+                return;
+            }
+
+            var targetFolder = SelectedContentType.InstallFolder(_instancePath, SelectedWorld);
+            if (string.IsNullOrWhiteSpace(version.FileUrl)) return;
+
+            project.IsInstalling = true;
+            StatusText = string.Format(L10n.T("mi_installing"));
+
+            var data = await ModrinthApiService.DownloadAsync(version.FileUrl);
+            if (data is not { Length: > 0 })
+            {
+                StatusText = string.Format(L10n.T("cb_download_failed"), version.FileName);
+                return;
+            }
+
+            var dest = Path.Combine(targetFolder, SanitizeFileName(version.FileName));
+            Directory.CreateDirectory(targetFolder);
+            await File.WriteAllBytesAsync(dest, data);
+
+            if ((SelectedContentType == ContentType.Shader || SelectedContentType == ContentType.DataPack) && !string.IsNullOrWhiteSpace(project.IconUrl))
+            {
+                try
+                {
+                    var iconBytes = await ModrinthApiService.GetIconAsync(project.IconUrl);
+                    if (iconBytes != null)
+                    {
+                        var cacheDir = Path.Combine(ZenithPaths.AppDataDir, "cache", "icons");
+                        Directory.CreateDirectory(cacheDir);
+                        var cacheFile = Path.Combine(cacheDir, Path.GetFileNameWithoutExtension(dest) + ".png");
+                        await File.WriteAllBytesAsync(cacheFile, iconBytes);
+                        var cacheById = Path.Combine(cacheDir, $"{project.ProjectId}.png");
+                        await File.WriteAllBytesAsync(cacheById, iconBytes);
+                    }
+                }
+                catch { }
+            }
+
+            try { MarkInstalled(project.ProjectId, Path.GetFileName(dest)); } catch { }
+
+            StatusText = string.Format(L10n.T("cb_installed_file"), project.Title, version.FileName);
+            project.IsInstalled = true;
+            project.InstalledVersion = version.VersionNumber;
+            UpdateInstalledFlags();
+            _refreshAll?.Invoke();
+            _reportStatus?.Invoke(StatusText);
+            FlashInstalledFeedback();
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Error($"Content quick-install failed for {project.Title}", ex);
+            StatusText = string.Format(L10n.T("mp_install_failed"), ex.Message);
+        }
+        finally
+        {
+            project.IsInstalling = false;
+        }
     }
 
     [RelayCommand]

@@ -107,10 +107,15 @@ public sealed class GitHubUpdateService : IUpdateService
         try
         {
             var tempPath = Path.Combine(Path.GetTempPath(), $"ZenithLauncher_Setup_{update.Version}.exe");
-            using (var response = await SharedHttp.GetAsync(update.DownloadUrl, ct).ConfigureAwait(false))
+
+            // Use a dedicated HttpClient with no timeout for large downloads
+            using var dlHttp = new HttpClient();
+            dlHttp.DefaultRequestHeaders.UserAgent.ParseAdd("ZenithLauncher");
+
+            using (var response = await dlHttp.GetAsync(update.DownloadUrl, HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false))
             {
                 response.EnsureSuccessStatusCode();
-                using var fs = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None);
+                await using var fs = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None);
                 await response.Content.CopyToAsync(fs, ct).ConfigureAwait(false);
             }
 

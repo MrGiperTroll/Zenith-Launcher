@@ -1,15 +1,36 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.VisualTree;
 using CustomMcLauncher.ViewModels;
 
 namespace CustomMcLauncher.Views;
 
 public partial class ContentBrowserWindow : Window
 {
+    private ScrollViewer? _listScroll;
+    private bool _scrollAttached;
+
     public ContentBrowserWindow()
     {
         InitializeComponent();
+        ResultsList.AttachedToVisualTree += OnResultsListAttached;
+    }
+
+    private void OnResultsListAttached(object? sender, VisualTreeAttachmentEventArgs e)
+    {
+        if (_scrollAttached) return;
+        foreach (var v in ResultsList.GetVisualDescendants())
+        {
+            if (v is ScrollViewer sv)
+            {
+                _listScroll = sv;
+                sv.ScrollChanged += OnResultsScrollChanged;
+                _scrollAttached = true;
+                break;
+            }
+        }
     }
 
     private void OnResultsScrollChanged(object? sender, ScrollChangedEventArgs e)

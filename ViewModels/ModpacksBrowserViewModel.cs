@@ -529,7 +529,56 @@ public partial class ModpacksBrowserViewModel : ObservableObject
             PendingDelete = project;
             return;
         }
-        OpenVersionSelector(project);
+        // Install directly with the latest version (no page navigation)
+        _ = InstallLatestAsync(project);
+    }
+
+    private async Task InstallLatestAsync(ModrinthProject project)
+    {
+        if (project == null || project.IsInstalling) return;
+        try
+        {
+            var version = await ModrinthApiService.GetLatestVersionAsync(project.ProjectId, SelectedVersion, Array.Empty<string>());
+            if (version == null)
+            {
+                StatusText = $"No compatible version found for {project.Title}";
+                return;
+            }
+
+            var file = version.FileUrl;
+            if (string.IsNullOrWhiteSpace(file)) return;
+
+            project.IsInstalling = true;
+            StatusText = "Installing...";
+
+            var tempDir = Path.Combine(Path.GetTempPath(), $"zenith_modpack_{Guid.NewGuid():N}");
+            Directory.CreateDirectory(tempDir);
+            var zipPath = Path.Combine(tempDir, version.FileName);
+            var data = await ModrinthApiService.DownloadAsync(file);
+            if (data is not { Length: > 0 })
+            {
+                StatusText = "Download failed.";
+                return;
+            }
+            await File.WriteAllBytesAsync(zipPath, data);
+            var instance = await InstallModpackFromZipAsync(project, zipPath, tempDir);
+            if (instance != null)
+            {
+                project.IsInstalled = true;
+                StatusText = $"Installed {project.Title}";
+                UpdateInstalledFlags();
+                _onInstalled?.Invoke();
+            }
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Error($"Failed to quick-install modpack {project.Title}", ex);
+            StatusText = $"Failed to install: {ex.Message}";
+        }
+        finally
+        {
+            project.IsInstalling = false;
+        }
     }
 
     [RelayCommand]

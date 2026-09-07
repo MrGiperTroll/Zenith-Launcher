@@ -44,19 +44,34 @@ public partial class UpdateNotificationViewModel : ObservableObject
         StatusText = L10n.T("update_downloading");
         UpdateButtonText = "...";
 
-        var service = new GitHubUpdateService();
-        var success = await service.DownloadAndApplyAsync(_update, _cts.Token);
-
-        if (success)
+        try
         {
-            StatusText = L10n.T("update_installing");
+            var service = new GitHubUpdateService();
+            var success = await service.DownloadAndApplyAsync(_update, _cts.Token);
 
-            await Task.Delay(800);
-            if (App.Current?.ApplicationLifetime
-                is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime life)
-                life.Shutdown();
+            if (success)
+            {
+                StatusText = L10n.T("update_installing");
+
+                await Task.Delay(800);
+                if (App.Current?.ApplicationLifetime
+                    is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime life)
+                    life.Shutdown();
+            }
+            else
+            {
+                IsDownloading = false;
+                StatusText = L10n.T("update_failed");
+                UpdateButtonText = L10n.T("update_download");
+            }
         }
-        else
+        catch (OperationCanceledException)
+        {
+            IsDownloading = false;
+            StatusText = L10n.T("update_failed");
+            UpdateButtonText = L10n.T("update_download");
+        }
+        catch (Exception)
         {
             IsDownloading = false;
             StatusText = L10n.T("update_failed");

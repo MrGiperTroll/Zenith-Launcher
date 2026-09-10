@@ -199,11 +199,12 @@ public partial class EditInstanceViewModel : ViewModelBase
     public bool IsSettingsTab => SelectedTab == "Settings";
 
     [RelayCommand]
-    private void SelectTab(string tab)
+    public void SelectTab(string tab)
     {
         if (tab == "Mods" && !HasModsSupport) return;
         if (tab == "Shader Packs" && !HasShaderSupport) return;
         SelectedTab = tab;
+        _host.UpdateActiveInstanceTab(Instance.Name, tab);
     }
 
     [RelayCommand]
@@ -235,25 +236,7 @@ public partial class EditInstanceViewModel : ViewModelBase
             if (!string.IsNullOrWhiteSpace(SelectedWorld))
                 vm.SelectedWorld = SelectedWorld;
 
-            if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow != null)
-            {
-                var win = new Views.ContentBrowserWindow { DataContext = vm };
-                win.Closed += (_, _) =>
-                {
-                    RefreshFileLists();
-                    Services.DiscordPresenceService.SetEditingInstance(Instance.Name);
-                };
-                switch (type)
-                {
-                    case ContentType.Mod:
-                        Services.DiscordPresenceService.SetBrowsingMods();
-                        break;
-                    case ContentType.Shader:
-                        Services.DiscordPresenceService.SetBrowsingShaders();
-                        break;
-                }
-                win.ShowDialog(desktop.MainWindow);
-            }
+            _host.NavigateToContentBrowser(vm, Instance, Instance.Name, contentType ?? "Mods", this);
         }
         catch (Exception ex)
         {
@@ -285,27 +268,16 @@ public partial class EditInstanceViewModel : ViewModelBase
                 () => HasModsSupport,
                 type);
 
-            if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow != null)
+            if (!string.IsNullOrWhiteSpace(entry.ModrinthProjectId))
             {
-                var win = new Views.ContentBrowserWindow { DataContext = vm };
-                win.Closed += (_, _) =>
-                {
-                    RefreshFileLists();
-                    Services.DiscordPresenceService.SetEditingInstance(Instance.Name);
-                };
-                if (!string.IsNullOrWhiteSpace(entry.ModrinthProjectId))
-                {
-                    _ = LoadAndShowDetailsAsync(vm, win, desktop.MainWindow, entry.ModrinthProjectId);
-                }
-                else if (!string.IsNullOrWhiteSpace(entry.Title))
-                {
-                    _ = SearchAndShowDetailsAsync(vm, win, desktop.MainWindow, entry.Title);
-                }
-                else
-                {
-                    win.Show(desktop.MainWindow);
-                }
+                _ = vm.OpenProjectByIdAsync(entry.ModrinthProjectId);
             }
+            else if (!string.IsNullOrWhiteSpace(entry.Title))
+            {
+                _ = SearchProjectAndOpenAsync(vm, entry.Title);
+            }
+
+            _host.NavigateToContentBrowser(vm, Instance, Instance.Name, entry.Title, this);
         }
         catch (Exception ex)
         {
@@ -313,20 +285,7 @@ public partial class EditInstanceViewModel : ViewModelBase
         }
     }
 
-    private async Task LoadAndShowDetailsAsync(ContentBrowserViewModel vm, Views.ContentBrowserWindow win, Avalonia.Controls.Window owner, string projectId)
-    {
-        try
-        {
-            await vm.OpenProjectByIdAsync(projectId);
-        }
-        catch (Exception ex)
-        {
-            ReportError($"Failed to load project: {ex.Message}");
-        }
-        win.Show(owner);
-    }
-
-    private async Task SearchAndShowDetailsAsync(ContentBrowserViewModel vm, Views.ContentBrowserWindow win, Avalonia.Controls.Window owner, string query)
+    private async Task SearchProjectAndOpenAsync(ContentBrowserViewModel vm, string query)
     {
         try
         {
@@ -339,9 +298,8 @@ public partial class EditInstanceViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            ReportError($"Failed to search for project: {ex.Message}");
+            LauncherLog.Error($"Failed to search for project: {ex.Message}", ex);
         }
-        win.Show(owner);
     }
 
     // ----- Logs -----

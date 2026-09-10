@@ -76,6 +76,13 @@
 
         <!-- Overlays -->
         <SolidColorBrush x:Key="OverlayBrush" Color="#C8000000"/>
+
+        <!-- Override Fluent list selection highlights to completely eliminate system blue/cyan -->
+        <SolidColorBrush x:Key="SystemControlHighlightListAccentLowBrush" Color="Transparent"/>
+        <SolidColorBrush x:Key="SystemControlHighlightListAccentMediumBrush" Color="Transparent"/>
+        <SolidColorBrush x:Key="SystemControlHighlightListAccentHighBrush" Color="Transparent"/>
+        <SolidColorBrush x:Key="SystemControlHighlightListLowBrush" Color="Transparent"/>
+        <SolidColorBrush x:Key="SystemControlHighlightListMediumBrush" Color="Transparent"/>
     </Application.Resources>
 
     <Application.Styles>
@@ -148,6 +155,50 @@
             <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
         </Style>
         <Style Selector="ComboBoxItem:selected:pointerover">
+            <Setter Property="Background" Value="{StaticResource AccentDimBrush}"/>
+        </Style>
+
+        <!-- ListBoxItem: ban system blue/cyan selection highlights, preserve dark theme palette -->
+        <Style Selector="ListBoxItem">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style Selector="ListBoxItem /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="ListBoxItem:selected:focus /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="ListBoxItem:focus /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="ListBoxItem:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+
+        <!-- Selectable ListBox rows (for file/table lists that specifically opt into row highlighting) -->
+        <Style Selector="ListBox.selectable ListBoxItem /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="CornerRadius" Value="7"/>
+        </Style>
+        <Style Selector="ListBox.selectable ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+        </Style>
+        <Style Selector="ListBox.selectable ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
+        </Style>
+        <Style Selector="ListBox.selectable ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource AccentDimBrush}"/>
         </Style>
         <!-- MenuFlyout and context menus -->

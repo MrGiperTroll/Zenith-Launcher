@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -20,6 +20,33 @@ using CustomMcLauncher.Services;
 using CustomMcLauncher.Views;
 
 namespace CustomMcLauncher.ViewModels;
+
+public enum LauncherNavPage
+{
+    Profiles,
+    Modpacks,
+    EditInstance,
+    ContentBrowser
+}
+
+public class BreadcrumbItem : ObservableObject
+{
+    public string Title { get; set; } = string.Empty;
+    public bool IsLast { get; set; }
+    public bool ShowSeparator { get; set; }
+    public bool IsActive => IsLast;
+    public Action? OnClick { get; set; }
+}
+
+public class HistoryEntry
+{
+    public LauncherNavPage Page { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string? SubTitle { get; set; }
+    public InstanceModel? Instance { get; set; }
+    public EditInstanceViewModel? EditInstanceVm { get; set; }
+    public ContentBrowserViewModel? ContentBrowserVm { get; set; }
+}
 
 public partial class MainWindowViewModel : ViewModelBase
 {
@@ -460,24 +487,292 @@ public partial class MainWindowViewModel : ViewModelBase
     private bool _isAboutOpen;
 
     [ObservableProperty]
-    private bool _isModpacksView;
+    private LauncherNavPage _currentPage = LauncherNavPage.Profiles;
 
-    public bool IsProfilesView => !IsModpacksView;
+    [ObservableProperty]
+    private EditInstanceViewModel? _currentEditInstanceVm;
 
-    partial void OnIsModpacksViewChanged(bool value) => OnPropertyChanged(nameof(IsProfilesView));
+    [ObservableProperty]
+    private ContentBrowserViewModel? _currentContentBrowserVm;
+
+    public bool IsProfilesView => CurrentPage == LauncherNavPage.Profiles;
+    public bool IsModpacksView => CurrentPage == LauncherNavPage.Modpacks;
+    public bool IsEditInstanceView => CurrentPage == LauncherNavPage.EditInstance;
+    public bool IsContentBrowserView => CurrentPage == LauncherNavPage.ContentBrowser;
+
+    public bool IsLaunchBarVisible => IsProfilesView || IsModpacksView;
+
+    public ObservableCollection<BreadcrumbItem> Breadcrumbs { get; } = new();
+
+    private readonly List<HistoryEntry> _navHistory = new();
+    private int _historyIndex = -1;
+
+    [ObservableProperty]
+    private bool _canGoBack;
+
+    [ObservableProperty]
+    private bool _canGoForward;
+
+    [RelayCommand]
+    public void GoBack()
+    {
+        if (_historyIndex > 0)
+        {
+            _historyIndex--;
+            ApplyHistoryEntry(_navHistory[_historyIndex]);
+            UpdateHistoryButtons();
+        }
+    }
+
+    [RelayCommand]
+    public void GoForward()
+    {
+        if (_historyIndex >= 0 && _historyIndex < _navHistory.Count - 1)
+        {
+            _historyIndex++;
+            ApplyHistoryEntry(_navHistory[_historyIndex]);
+            UpdateHistoryButtons();
+        }
+    }
+
+    private void UpdateHistoryButtons()
+    {
+        CanGoBack = _historyIndex > 0;
+        CanGoForward = _historyIndex >= 0 && _historyIndex < _navHistory.Count - 1;
+    }
+
+    public void NavigateToProfiles()
+    {
+        PushHistory(new HistoryEntry
+        {
+            Page = LauncherNavPage.Profiles,
+            Title = L10n.T("nav_home")
+        });
+    }
+
+    public void NavigateToModpacks()
+    {
+        PushHistory(new HistoryEntry
+        {
+            Page = LauncherNavPage.Modpacks,
+            Title = L10n.T("nav_modpacks")
+        });
+    }
+
+    public void NavigateToEditInstance(InstanceModel instance, string? tab = "Mods")
+    {
+        var vm = new EditInstanceViewModel(instance, this, _instanceService);
+        if (!string.IsNullOrEmpty(tab))
+            vm.SelectTab(tab);
+
+        PushHistory(new HistoryEntry
+        {
+            Page = LauncherNavPage.EditInstance,
+            Title = instance.Name,
+            SubTitle = vm.SelectedTab,
+            Instance = instance,
+            EditInstanceVm = vm
+        });
+    }
+
+    public void NavigateToContentBrowser(ContentBrowserViewModel vm, InstanceModel? instance, string parentTitle, string sectionTitle, EditInstanceViewModel? editVm)
+    {
+        PushHistory(new HistoryEntry
+        {
+            Page = LauncherNavPage.ContentBrowser,
+            Title = parentTitle,
+            SubTitle = sectionTitle,
+            Instance = instance,
+            EditInstanceVm = editVm,
+            ContentBrowserVm = vm
+        });
+    }
+
+    public void UpdateActiveInstanceTab(string instanceName, string tab)
+    {
+        if (_historyIndex >= 0 && _historyIndex < _navHistory.Count)
+        {
+            var cur = _navHistory[_historyIndex];
+            if (cur.Page == LauncherNavPage.EditInstance)
+            {
+                cur.SubTitle = tab;
+                RebuildBreadcrumbs(cur);
+            }
+        }
+    }
+
+    private void PushHistory(HistoryEntry entry)
+    {
+        if (_historyIndex >= 0 && _historyIndex < _navHistory.Count - 1)
+        {
+            _navHistory.RemoveRange(_historyIndex + 1, _navHistory.Count - (_historyIndex + 1));
+        }
+
+        _navHistory.Add(entry);
+        _historyIndex = _navHistory.Count - 1;
+        ApplyHistoryEntry(entry);
+        UpdateHistoryButtons();
+    }
+
+    private void ApplyHistoryEntry(HistoryEntry entry)
+    {
+        CurrentPage = entry.Page;
+        CurrentEditInstanceVm = entry.EditInstanceVm;
+        CurrentContentBrowserVm = entry.ContentBrowserVm;
+
+        OnPropertyChanged(nameof(IsProfilesView));
+        OnPropertyChanged(nameof(IsModpacksView));
+        OnPropertyChanged(nameof(IsEditInstanceView));
+        OnPropertyChanged(nameof(IsContentBrowserView));
+        OnPropertyChanged(nameof(IsLaunchBarVisible));
+
+        RebuildBreadcrumbs(entry);
+
+        switch (entry.Page)
+        {
+            case LauncherNavPage.Profiles:
+                Services.DiscordPresenceService.SetBrowsingProfiles();
+                break;
+            case LauncherNavPage.Modpacks:
+                Services.DiscordPresenceService.SetBrowsingModpacks();
+                break;
+            case LauncherNavPage.EditInstance:
+                if (entry.EditInstanceVm != null)
+                    Services.DiscordPresenceService.SetEditingInstance(entry.EditInstanceVm.Instance.Name);
+                break;
+            case LauncherNavPage.ContentBrowser:
+                Services.DiscordPresenceService.SetBrowsingMods();
+                break;
+        }
+    }
+
+    private void RebuildBreadcrumbs(HistoryEntry entry)
+    {
+        Breadcrumbs.Clear();
+        var homeItem = new BreadcrumbItem
+        {
+            Title = L10n.T("nav_home"),
+            IsLast = entry.Page == LauncherNavPage.Profiles,
+            OnClick = () => NavigateToProfiles()
+        };
+        Breadcrumbs.Add(homeItem);
+
+        switch (entry.Page)
+        {
+            case LauncherNavPage.Modpacks:
+                Breadcrumbs.Add(new BreadcrumbItem
+                {
+                    Title = L10n.T("nav_modpacks"),
+                    IsLast = true,
+                    OnClick = () => NavigateToModpacks()
+                });
+                break;
+
+            case LauncherNavPage.EditInstance:
+                var instName = entry.Instance?.Name ?? entry.Title;
+                var hasTab = !string.IsNullOrWhiteSpace(entry.SubTitle);
+                Breadcrumbs.Add(new BreadcrumbItem
+                {
+                    Title = instName,
+                    IsLast = !hasTab,
+                    OnClick = () =>
+                    {
+                        if (entry.EditInstanceVm != null)
+                            entry.EditInstanceVm.SelectTab("Mods");
+                    }
+                });
+                if (hasTab)
+                {
+                    Breadcrumbs.Add(new BreadcrumbItem
+                    {
+                        Title = GetLocalizedTabTitle(entry.SubTitle!),
+                        IsLast = true,
+                        OnClick = () => entry.EditInstanceVm?.SelectTab(entry.SubTitle!)
+                    });
+                }
+                break;
+
+            case LauncherNavPage.ContentBrowser:
+                var parentName = entry.Title;
+                Breadcrumbs.Add(new BreadcrumbItem
+                {
+                    Title = parentName,
+                    IsLast = false,
+                    OnClick = () =>
+                    {
+                        if (entry.EditInstanceVm != null)
+                        {
+                            ApplyHistoryEntry(new HistoryEntry
+                            {
+                                Page = LauncherNavPage.EditInstance,
+                                Title = parentName,
+                                SubTitle = entry.SubTitle,
+                                Instance = entry.Instance,
+                                EditInstanceVm = entry.EditInstanceVm
+                            });
+                        }
+                        else
+                        {
+                            GoBack();
+                        }
+                    }
+                });
+
+                if (!string.IsNullOrWhiteSpace(entry.SubTitle))
+                {
+                    Breadcrumbs.Add(new BreadcrumbItem
+                    {
+                        Title = GetLocalizedTabTitle(entry.SubTitle),
+                        IsLast = false,
+                        OnClick = () => GoBack()
+                    });
+                }
+
+                Breadcrumbs.Add(new BreadcrumbItem
+                {
+                    Title = L10n.T("cb_title"),
+                    IsLast = true
+                });
+                break;
+        }
+
+        for (int i = 0; i < Breadcrumbs.Count; i++)
+        {
+            Breadcrumbs[i].ShowSeparator = (i > 0);
+        }
+    }
+
+    private static string GetLocalizedTabTitle(string tab) => tab switch
+    {
+        "Logs" => L10n.T("tab_logs"),
+        "Mods" => L10n.T("tab_mods"),
+        "Resource Packs" => L10n.T("tab_resourcepacks"),
+        "Shader Packs" => L10n.T("tab_shaders"),
+        "Data Packs" => L10n.T("tab_datapacks"),
+        "Worlds" => L10n.T("tab_worlds"),
+        "Servers" => L10n.T("tab_servers"),
+        "Screenshots" => L10n.T("tab_screenshots"),
+        "Settings" or "General" => L10n.T("set_general"),
+        _ => tab
+    };
+
+    [RelayCommand]
+    private void NavigateToBreadcrumb(BreadcrumbItem? item)
+    {
+        if (item == null || item.IsLast) return;
+        item.OnClick?.Invoke();
+    }
 
     [RelayCommand]
     private void ShowProfiles()
     {
-        IsModpacksView = false;
-        Services.DiscordPresenceService.SetBrowsingProfiles();
+        NavigateToProfiles();
     }
 
     [RelayCommand]
     private void ShowModpacks()
     {
-        IsModpacksView = true;
-        Services.DiscordPresenceService.SetBrowsingModpacks();
+        NavigateToModpacks();
     }
 
     public ModpacksBrowserViewModel ModpacksBrowser { get; private set; } = null!;
@@ -601,11 +896,12 @@ public partial class MainWindowViewModel : ViewModelBase
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
                 RefreshState();
-                IsModpacksView = false;
+                NavigateToProfiles();
                 ModpacksBrowser.UpdateInstalledFlags();
             });
         });
 
+        NavigateToProfiles();
         _ = CheckForUpdatesBackgroundAsync();
     }
 
@@ -1241,26 +1537,12 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void OpenEditInstanceWindow(InstanceModel instance)
     {
-        if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow != null)
-        {
-            var viewModel = new EditInstanceViewModel(instance, this, _instanceService);
-            var window = new Views.EditInstanceWindow { DataContext = viewModel };
-            _editInstanceWindows.Add(window);
-            window.Closed += (_, _) =>
-            {
-                _editInstanceWindows.Remove(window);
-                Services.DiscordPresenceService.SetBrowsingProfiles();
-            };
-            Services.DiscordPresenceService.SetEditingInstance(instance.Name);
-            window.ShowDialog(desktop.MainWindow);
-        }
+        NavigateToEditInstance(instance);
     }
 
     public void CloseEditInstanceWindow(EditInstanceViewModel viewModel)
     {
-        var window = _editInstanceWindows.FirstOrDefault(w => ReferenceEquals(w.DataContext, viewModel));
-        if (window != null)
-            window.Close();
+        GoBack();
     }
 
     [RelayCommand]

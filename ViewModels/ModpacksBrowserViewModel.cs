@@ -692,90 +692,297 @@ public partial class ModpacksBrowserViewModel : ObservableObject
             var extractDir = Path.Combine(tempDir, "extracted");
             System.IO.Compression.ZipFile.ExtractToDirectory(zipPath, extractDir);
 
-            // Find manifest.json for curseforge/modrinth modpacks
-            var manifestPath = Path.Combine(extractDir, "manifest.json");
-            if (!File.Exists(manifestPath))
+            // 1. Check for Modrinth index (modrinth.index.json)
+            var modrinthIndexPath = Path.Combine(extractDir, "modrinth.index.json");
+            if (!File.Exists(modrinthIndexPath))
             {
-                // Try finding it in subdirectories
+                var indexFiles = Directory.GetFiles(extractDir, "modrinth.index.json", SearchOption.AllDirectories);
+                if (indexFiles.Length > 0) modrinthIndexPath = indexFiles[0];
+            }
+
+            // 2. Check for CurseForge manifest (manifest.json)
+            var curseforgeManifestPath = Path.Combine(extractDir, "manifest.json");
+            if (!File.Exists(curseforgeManifestPath))
+            {
                 var manifestFiles = Directory.GetFiles(extractDir, "manifest.json", SearchOption.AllDirectories);
-                if (manifestFiles.Length > 0) manifestPath = manifestFiles[0];
+                if (manifestFiles.Length > 0) curseforgeManifestPath = manifestFiles[0];
             }
 
-            if (!File.Exists(manifestPath))
+            if (File.Exists(modrinthIndexPath))
             {
-                StatusText = "Invalid modpack: manifest.json not found.";
+                return await InstallModrinthMrpackAsync(project, modrinthIndexPath, extractDir);
+            }
+            else if (File.Exists(curseforgeManifestPath))
+            {
+                return await InstallCurseforgePackAsync(project, curseforgeManifestPath, extractDir);
+            }
+            else
+            {
+                StatusText = "Invalid modpack: neither modrinth.index.json nor manifest.json found.";
                 return null;
             }
-
-            var manifestJson = await File.ReadAllTextAsync(manifestPath);
-            using var manifestDoc = System.Text.Json.JsonDocument.Parse(manifestJson);
-            var manifest = manifestDoc.RootElement;
-
-            // Get game version
-            var mcVersion = "";
-            if (manifest.TryGetProperty("minecraft", out var mc) && mc.TryGetProperty("version", out var mv))
-                mcVersion = mv.GetString() ?? "";
-
-            if (string.IsNullOrWhiteSpace(mcVersion))
-            {
-                StatusText = "Invalid modpack: no Minecraft version found.";
-                return null;
-            }
-
-            // Create instance
-            var instanceName = string.IsNullOrWhiteSpace(project.Title) ? project.Slug : project.Title;
-            var instService = new InstanceService();
-            var inst = new Models.InstanceModel
-            {
-                Id = Guid.NewGuid().ToString("N")[..12],
-                Name = instanceName,
-                Version = mcVersion,
-                LoaderType = "Fabric",
-                LoaderVersion = "",
-                Path = Path.Combine(ZenithPaths.AppDataDir, "instances", instanceName),
-            };
-            await _instanceService.SaveInstanceAsync(inst);
-
-            // Copy modpack contents into instance
-            var instancePath = inst.Path;
-            Directory.CreateDirectory(instancePath);
-
-            // Copy overrides if present
-            var overridesDir = Path.Combine(extractDir, "overrides");
-            if (Directory.Exists(overridesDir))
-            {
-                CopyDirectoryRecursive(overridesDir, instancePath);
-            }
-
-            // Install mods from manifest
-            if (manifest.TryGetProperty("modLoader", out var modLoader))
-            {
-                var loaderName = modLoader.TryGetProperty("primaryModLoader", out var pn) ? pn.GetString() ?? "" : "";
-                if (loaderName.Contains("forge", StringComparison.OrdinalIgnoreCase))
-                    inst.LoaderType = "Forge";
-                else if (loaderName.Contains("fabric", StringComparison.OrdinalIgnoreCase))
-                    inst.LoaderType = "Fabric";
-                else if (loaderName.Contains("quilt", StringComparison.OrdinalIgnoreCase))
-                    inst.LoaderType = "Quilt";
-                else if (loaderName.Contains("neoforge", StringComparison.OrdinalIgnoreCase))
-                    inst.LoaderType = "NeoForge";
-            }
-
-            if (manifest.TryGetProperty("modLoader", out var ml2) && ml2.TryGetProperty("version", out var mlv))
-                inst.LoaderVersion = mlv.GetString() ?? "";
-
-            await _instanceService.SaveInstanceAsync(inst);
-            return inst;
         }
         catch (Exception ex)
         {
             LauncherLog.Error("Failed to install modpack from zip", ex);
+            StatusText = $"Failed to install: {ex.Message}";
             return null;
         }
         finally
         {
             try { Directory.Delete(tempDir, true); } catch { }
         }
+    }
+
+    private async Task<Models.InstanceModel?> InstallModrinthMrpackAsync(ModrinthProject project, string indexPath, string extractDir)
+    {
+        var jsonText = await File.ReadAllTextAsync(indexPath);
+        using var doc = System.Text.Json.JsonDocument.Parse(jsonText);
+        var root = doc.RootElement;
+
+        // Name
+        var packName = project.Title;
+        if (root.TryGetProperty("name", out var nameProp) && !string.IsNullOrWhiteSpace(nameProp.GetString()))
+            packName = nameProp.GetString()!;
+        if (string.IsNullOrWhiteSpace(packName))
+            packName = project.Slug ?? "Modpack";
+
+        // Dependencies: minecraft, loaders
+        string mcVersion = "";
+        string loaderType = "Fabric";
+        string loaderVersion = "";
+
+        if (root.TryGetProperty("dependencies", out var deps))
+        {
+            if (deps.TryGetProperty("minecraft", out var mv))
+                mcVersion = mv.GetString() ?? "";
+
+            if (deps.TryGetProperty("fabric-loader", out var fl))
+            {
+                loaderType = "Fabric";
+                loaderVersion = fl.GetString() ?? "";
+            }
+            else if (deps.TryGetProperty("quilt-loader", out var ql))
+            {
+                loaderType = "Quilt";
+                loaderVersion = ql.GetString() ?? "";
+            }
+            else if (deps.TryGetProperty("forge", out var fg))
+            {
+                loaderType = "Forge";
+                loaderVersion = fg.GetString() ?? "";
+            }
+            else if (deps.TryGetProperty("neoforge", out var nf))
+            {
+                loaderType = "NeoForge";
+                loaderVersion = nf.GetString() ?? "";
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(mcVersion))
+            mcVersion = !string.IsNullOrWhiteSpace(SelectedVersion) ? SelectedVersion : "1.20.1";
+
+        // Unique instance name
+        var safeName = string.Join("_", packName.Split(Path.GetInvalidFileNameChars(), StringSplitOptions.RemoveEmptyEntries)).Trim();
+        if (string.IsNullOrWhiteSpace(safeName)) safeName = "Modpack";
+        var allNames = _instanceService.GetInstances().Select(i => i.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var finalName = safeName;
+        int num = 1;
+        while (allNames.Contains(finalName))
+        {
+            finalName = $"{safeName} ({num++})";
+        }
+
+        StatusText = $"Creating instance {finalName}...";
+        var inst = await _instanceService.CreateInstanceAsync(finalName, mcVersion, loaderType, loaderVersion);
+        if (inst == null)
+        {
+            StatusText = $"Failed to create instance for {packName}";
+            return null;
+        }
+
+        // Copy icon
+        if (!string.IsNullOrWhiteSpace(project.IconUrl))
+        {
+            try
+            {
+                var iconBytes = await ModrinthApiService.GetIconAsync(project.IconUrl);
+                if (iconBytes is { Length: > 0 })
+                {
+                    var iconPath = Path.Combine(inst.Path, "icon.png");
+                    await File.WriteAllBytesAsync(iconPath, iconBytes);
+                    inst.IconPath = iconPath;
+                    await _instanceService.SaveInstanceAsync(inst);
+                }
+            }
+            catch { }
+        }
+
+        // Copy overrides
+        var baseDir = Path.GetDirectoryName(indexPath) ?? extractDir;
+        var overridesDir = Path.Combine(baseDir, "overrides");
+        if (Directory.Exists(overridesDir))
+            CopyDirectoryRecursive(overridesDir, inst.Path);
+
+        var clientOverridesDir = Path.Combine(baseDir, "client-overrides");
+        if (Directory.Exists(clientOverridesDir))
+            CopyDirectoryRecursive(clientOverridesDir, inst.Path);
+
+        // Download files
+        if (root.TryGetProperty("files", out var filesProp) && filesProp.ValueKind == System.Text.Json.JsonValueKind.Array)
+        {
+            var files = filesProp.EnumerateArray().ToList();
+            int total = files.Count;
+            int done = 0;
+            StatusText = $"Installing files (0/{total})...";
+
+            using var sem = new System.Threading.SemaphoreSlim(6);
+            using var http = new System.Net.Http.HttpClient();
+            http.DefaultRequestHeaders.UserAgent.ParseAdd("ZenithLauncher/1.0");
+
+            var tasks = files.Select(async file =>
+            {
+                await sem.WaitAsync();
+                try
+                {
+                    // Check env client
+                    if (file.TryGetProperty("env", out var env) && env.TryGetProperty("client", out var envClient))
+                    {
+                        if (envClient.GetString() == "unsupported") return;
+                    }
+
+                    if (!file.TryGetProperty("path", out var pathEl)) return;
+                    var relPath = pathEl.GetString();
+                    if (string.IsNullOrWhiteSpace(relPath)) return;
+
+                    var destPath = Path.Combine(inst.Path, relPath.Replace('/', Path.DirectorySeparatorChar));
+                    var dir = Path.GetDirectoryName(destPath);
+                    if (!string.IsNullOrEmpty(dir)) Directory.CreateDirectory(dir);
+
+                    if (!file.TryGetProperty("downloads", out var downloads) || downloads.GetArrayLength() == 0) return;
+
+                    foreach (var dl in downloads.EnumerateArray())
+                    {
+                        var url = dl.GetString();
+                        if (string.IsNullOrWhiteSpace(url)) continue;
+                        try
+                        {
+                            var data = await http.GetByteArrayAsync(url);
+                            if (data.Length > 0)
+                            {
+                                await File.WriteAllBytesAsync(destPath, data);
+                                break;
+                            }
+                        }
+                        catch
+                        {
+                            // Try next fallback URL if available
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LauncherLog.Error($"Failed to download modpack file for {packName}", ex);
+                }
+                finally
+                {
+                    var count = System.Threading.Interlocked.Increment(ref done);
+                    StatusText = $"Installing files ({count}/{total})...";
+                    sem.Release();
+                }
+            });
+
+            await Task.WhenAll(tasks);
+        }
+
+        await _instanceService.SaveInstanceAsync(inst);
+        return inst;
+    }
+
+    private async Task<Models.InstanceModel?> InstallCurseforgePackAsync(ModrinthProject project, string manifestPath, string extractDir)
+    {
+        var manifestJson = await File.ReadAllTextAsync(manifestPath);
+        using var manifestDoc = System.Text.Json.JsonDocument.Parse(manifestJson);
+        var manifest = manifestDoc.RootElement;
+
+        var mcVersion = "";
+        if (manifest.TryGetProperty("minecraft", out var mc) && mc.TryGetProperty("version", out var mv))
+            mcVersion = mv.GetString() ?? "";
+
+        if (string.IsNullOrWhiteSpace(mcVersion))
+        {
+            StatusText = "Invalid modpack: no Minecraft version found.";
+            return null;
+        }
+
+        var packName = project.Title;
+        if (manifest.TryGetProperty("name", out var np) && !string.IsNullOrWhiteSpace(np.GetString()))
+            packName = np.GetString()!;
+        if (string.IsNullOrWhiteSpace(packName))
+            packName = project.Slug ?? "Modpack";
+
+        var safeName = string.Join("_", packName.Split(Path.GetInvalidFileNameChars(), StringSplitOptions.RemoveEmptyEntries)).Trim();
+        if (string.IsNullOrWhiteSpace(safeName)) safeName = "Modpack";
+        var allNames = _instanceService.GetInstances().Select(i => i.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var finalName = safeName;
+        int num = 1;
+        while (allNames.Contains(finalName))
+        {
+            finalName = $"{safeName} ({num++})";
+        }
+
+        string loaderType = "Forge";
+        string loaderVersion = "";
+        if (manifest.TryGetProperty("minecraft", out var mc2) && mc2.TryGetProperty("modLoaders", out var mlList) && mlList.GetArrayLength() > 0)
+        {
+            var primaryLoader = mlList.EnumerateArray().FirstOrDefault(l => l.TryGetProperty("primary", out var prim) && prim.GetBoolean());
+            if (primaryLoader.ValueKind == System.Text.Json.JsonValueKind.Undefined)
+                primaryLoader = mlList.EnumerateArray().FirstOrDefault();
+
+            if (primaryLoader.TryGetProperty("id", out var idEl))
+            {
+                var idStr = idEl.GetString() ?? "";
+                if (idStr.Contains("fabric", StringComparison.OrdinalIgnoreCase))
+                {
+                    loaderType = "Fabric";
+                    loaderVersion = idStr.Replace("fabric-", "", StringComparison.OrdinalIgnoreCase);
+                }
+                else if (idStr.Contains("quilt", StringComparison.OrdinalIgnoreCase))
+                {
+                    loaderType = "Quilt";
+                    loaderVersion = idStr.Replace("quilt-", "", StringComparison.OrdinalIgnoreCase);
+                }
+                else if (idStr.Contains("neoforge", StringComparison.OrdinalIgnoreCase))
+                {
+                    loaderType = "NeoForge";
+                    loaderVersion = idStr.Replace("neoforge-", "", StringComparison.OrdinalIgnoreCase);
+                }
+                else if (idStr.Contains("forge", StringComparison.OrdinalIgnoreCase))
+                {
+                    loaderType = "Forge";
+                    loaderVersion = idStr.Replace("forge-", "", StringComparison.OrdinalIgnoreCase);
+                }
+            }
+        }
+
+        StatusText = $"Creating instance {finalName}...";
+        var inst = await _instanceService.CreateInstanceAsync(finalName, mcVersion, loaderType, loaderVersion);
+        if (inst == null)
+        {
+            StatusText = $"Failed to create instance for {packName}";
+            return null;
+        }
+
+        var baseDir = Path.GetDirectoryName(manifestPath) ?? extractDir;
+        var overridesDir = Path.Combine(baseDir, "overrides");
+        if (manifest.TryGetProperty("overrides", out var ovProp) && !string.IsNullOrWhiteSpace(ovProp.GetString()))
+            overridesDir = Path.Combine(baseDir, ovProp.GetString()!);
+
+        if (Directory.Exists(overridesDir))
+            CopyDirectoryRecursive(overridesDir, inst.Path);
+
+        await _instanceService.SaveInstanceAsync(inst);
+        return inst;
     }
 
     private static void CopyDirectoryRecursive(string sourceDir, string destDir)
@@ -896,148 +1103,6 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     [RelayCommand(AllowConcurrentExecutions = true)]
     private async Task InstallAsync(ModrinthProject project)
     {
-        if (project == null || project.IsInstalling) return;
-        project.IsInstalling = true;
-        Services.DiscordPresenceService.SetInstallingContent(project.Title);
-        StatusText = string.Format(L10n.T("mp_resolving"), project.Title);
-        try
-        {
-            var version = await ModrinthApiService.GetLatestVersionAsync(project.ProjectId, SelectedVersion, LoaderFacets);
-            if (version == null && !string.IsNullOrEmpty(SelectedVersion))
-                version = await ModrinthApiService.GetLatestVersionAsync(project.ProjectId, "", LoaderFacets);
-            if (version == null)
-            {
-                StatusText = string.Format(L10n.T("mp_noversion"), project.Title);
-                return;
-            }
-            var targetName = project.Title.Trim();
-            if (string.IsNullOrWhiteSpace(targetName)) targetName = project.Slug;
-            var allNames = _instanceService.GetInstances().Select(i => i.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
-            var finalName = targetName;
-            int idx = 1;
-            while (allNames.Contains(finalName))
-            {
-                finalName = $"{targetName}_{idx}";
-                idx++;
-            }
-            var gameVersion = SelectedVersion;
-            if (string.IsNullOrWhiteSpace(gameVersion) && version.GameVersions.Length > 0)
-                gameVersion = version.GameVersions[0];
-            if (string.IsNullOrWhiteSpace(gameVersion))
-                gameVersion = "1.20.1";
-            var loaderType = "Vanilla";
-            if (version.Loaders.Length > 0)
-            {
-                var l = version.Loaders[0].ToLowerInvariant();
-                loaderType = l switch
-                {
-                    "forge" => "Forge",
-                    "fabric" => "Fabric",
-                    "quilt" => "Quilt",
-                    "neoforge" => "NeoForge",
-                    _ => "Vanilla"
-                };
-            }
-            else
-            {
-                var catLoader = project.Categories.FirstOrDefault(c => c is "forge" or "fabric" or "quilt" or "neoforge");
-                if (!string.IsNullOrWhiteSpace(catLoader))
-                    loaderType = char.ToUpper(catLoader[0]) + catLoader[1..].ToLowerInvariant();
-            }
-            string loaderBuild = "";
-            if (loaderType != "Vanilla")
-            {
-                try
-                {
-                    var builds = await _modLoaderService.GetLoaderBuildsAsync(gameVersion, loaderType);
-                    loaderBuild = builds.FirstOrDefault() ?? "";
-                }
-                catch { }
-            }
-            var inst = await _instanceService.CreateInstanceAsync(finalName, gameVersion, loaderType, loaderBuild);
-            if (inst != null && !string.IsNullOrWhiteSpace(project.IconUrl))
-            {
-                try
-                {
-                    var iconBytes = await ModrinthApiService.GetIconAsync(project.IconUrl);
-                    if (iconBytes != null)
-                    {
-                        var ext = ".png";
-                        try { var uri = new Uri(project.IconUrl); var e = Path.GetExtension(uri.AbsolutePath); if (!string.IsNullOrWhiteSpace(e)) ext = e; } catch { }
-                        var iconPath = Path.Combine(inst.Path, $"icon{ext}");
-                        await File.WriteAllBytesAsync(iconPath, iconBytes);
-                        inst.IconPath = iconPath;
-                        await _instanceService.SaveInstanceAsync(inst);
-                    }
-                }
-                catch { }
-            }
-            if (inst == null)
-            {
-                StatusText = string.Format(L10n.T("mp_create_failed"), project.Title);
-                return;
-            }
-            StatusText = string.Format(L10n.T("mp_downloading"), project.Title);
-            var data = await ModrinthApiService.DownloadAsync(version.FileUrl);
-            if (data == null || data.Length == 0)
-            {
-                StatusText = string.Format(L10n.T("mp_download_failed"), project.Title);
-                return;
-            }
-            var mrpackPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.mrpack");
-            await File.WriteAllBytesAsync(mrpackPath, data);
-            try
-            {
-                using var zip = System.IO.Compression.ZipFile.OpenRead(mrpackPath);
-                foreach (var entry in zip.Entries)
-                {
-                    if (entry.FullName.StartsWith("overrides/", StringComparison.OrdinalIgnoreCase))
-                    {
-                        var relative = entry.FullName["overrides/".Length..];
-                        if (string.IsNullOrEmpty(relative)) continue;
-                        var destPath = Path.Combine(inst.Path, relative);
-                        var dir = Path.GetDirectoryName(destPath);
-                        if (!string.IsNullOrEmpty(dir)) Directory.CreateDirectory(dir);
-                        if (!entry.FullName.EndsWith("/"))
-                            entry.ExtractToFile(destPath, true);
-                    }
-                }
-                var hasOverrides = zip.Entries.Any(e => e.FullName.StartsWith("overrides/", StringComparison.OrdinalIgnoreCase));
-                if (!hasOverrides)
-                {
-                    foreach (var entry in zip.Entries)
-                    {
-                        if (entry.FullName == "modrinth.index.json") continue;
-                        if (entry.FullName.EndsWith("/")) continue;
-                        var destPath = Path.Combine(inst.Path, entry.FullName);
-                        var dir = Path.GetDirectoryName(destPath);
-                        if (!string.IsNullOrEmpty(dir)) Directory.CreateDirectory(dir);
-                        entry.ExtractToFile(destPath, true);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                LauncherLog.Error($"Failed to extract modpack {project.Title}", ex);
-            }
-            finally
-            {
-                try { File.Delete(mrpackPath); } catch { }
-            }
-            project.IsInstalled = true;
-            StatusText = string.Format(L10n.T("mp_installed_as"), project.Title, finalName);
-            _onInstalled?.Invoke();
-            UpdateInstalledFlags();
-            FlashInstalledFeedback();
-        }
-        catch (Exception ex)
-        {
-            LauncherLog.Error($"Modpack install failed for {project.Title}", ex);
-            StatusText = string.Format(L10n.T("mp_install_failed"), ex.Message);
-        }
-        finally
-        {
-            project.IsInstalling = false;
-        }
+        await InstallLatestAsync(project);
     }
 }

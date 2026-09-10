@@ -55,6 +55,12 @@ public partial class ContentBrowserWindow : Window
 
     private void OnCardTapped(object? sender, TappedEventArgs e)
     {
+        if (e.Source is Visual v && v.FindAncestorOfType<Button>(includeSelf: true) != null)
+        {
+            e.Handled = true;
+            return;
+        }
+
         if (sender is Control { DataContext: Models.ModrinthProject p } && DataContext is ContentBrowserViewModel vm)
             vm.OpenProjectPageCommand.Execute(p);
     }

@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
@@ -58,6 +60,9 @@ public static class ModrinthApiService
             { "Accept", "application/json" }
         }
     };
+
+    private static readonly ConcurrentDictionary<string, byte[]> IconMemoryCache = new();
+    private static readonly string IconDiskCacheDir = Path.Combine(ZenithPaths.AppDataDir, "cache", "icons");
 
     public static async Task<ModrinthSearchPage?> SearchAsync(
         string query, string gameVersion, IReadOnlyList<string> loaderFacets, int offset, int limit = 20)
@@ -210,8 +215,63 @@ public static class ModrinthApiService
 
     public static async Task<byte[]?> GetIconAsync(string url)
     {
-        try { return await Http.GetByteArrayAsync(url); }
-        catch { return null; }
+        if (string.IsNullOrWhiteSpace(url)) return null;
+
+        // 1. Memory cache
+        if (IconMemoryCache.TryGetValue(url, out var memBytes))
+            return memBytes;
+
+        // 2. Disk cache
+        string hash = ComputeHash(url);
+        string diskPath = Path.Combine(IconDiskCacheDir, $"{hash}.bin");
+
+        try
+        {
+            if (File.Exists(diskPath))
+            {
+                var diskBytes = await File.ReadAllBytesAsync(diskPath).ConfigureAwait(false);
+                if (diskBytes.Length > 0)
+                {
+                    if (IconMemoryCache.Count < 600)
+                        IconMemoryCache.TryAdd(url, diskBytes);
+                    return diskBytes;
+                }
+            }
+        }
+        catch { }
+
+        // 3. Network fetch
+        try
+        {
+            var bytes = await Http.GetByteArrayAsync(url).ConfigureAwait(false);
+            if (bytes != null && bytes.Length > 0)
+            {
+                if (IconMemoryCache.Count < 600)
+                    IconMemoryCache.TryAdd(url, bytes);
+
+                _ = Task.Run(() =>
+                {
+                    try
+                    {
+                        Directory.CreateDirectory(IconDiskCacheDir);
+                        File.WriteAllBytes(diskPath, bytes);
+                    }
+                    catch { }
+                });
+
+                return bytes;
+            }
+        }
+        catch { }
+
+        return null;
+    }
+
+    private static string ComputeHash(string input)
+    {
+        using var md5 = System.Security.Cryptography.MD5.Create();
+        var hash = md5.ComputeHash(System.Text.Encoding.UTF8.GetBytes(input));
+        return Convert.ToHexString(hash).ToLowerInvariant();
     }
 
     public static async Task<ModrinthFullProject?> GetFullProjectAsync(string projectId)

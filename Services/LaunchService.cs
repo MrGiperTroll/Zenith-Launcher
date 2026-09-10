@@ -1,4 +1,4 @@
-﻿using System.IO.Compression;
+using System.IO.Compression;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -67,12 +67,70 @@ public class LaunchService : ILaunchService
         WithManifestRetryAsync<object?>(async () => { await action().ConfigureAwait(false); return null; });
 
     // Safe JVM args for modern Java (17/21) — no deprecated/removed flags
-    private static readonly MArgument[] SafeJvmArgs =
+    private static readonly MArgument[] ModernSafeJvmArgs =
     [
         new MArgument("-XX:+UseG1GC"),
         new MArgument("-XX:MaxGCPauseMillis=50"),
         new MArgument("-Dlog4j2.formatMsgNoLookups=true"),
     ];
+
+    // Safe JVM args for legacy Java (8/11) — standard flags, compatible with Java 8
+    private static readonly MArgument[] LegacySafeJvmArgs =
+    [
+        new MArgument("-XX:+UseG1GC"),
+        new MArgument("-Dlog4j2.formatMsgNoLookups=true"),
+    ];
+
+    private static IEnumerable<MArgument> SanitizeJvmArgs(IEnumerable<MArgument> args, int javaMajor)
+    {
+        var obsoleteOnModern = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "-XX:+UseConcMarkSweepGC",
+            "-XX:+CMSIncrementalMode",
+            "-XX:+CMSClassUnloadingEnabled",
+            "-XX:+CMSPermGenSweepingEnabled",
+            "-XX:+UseParNewGC",
+            "-Xincgc",
+            "-XX:+AggressiveOpts",
+        };
+
+        var modernOnlyPrefixes = new[]
+        {
+            "--add-opens",
+            "--add-exports",
+            "--add-modules",
+            "--add-reads",
+            "--patch-module",
+            "--enable-preview",
+            "-XX:+UseZGC",
+            "-XX:+UseShenandoahGC",
+        };
+
+        foreach (var arg in args)
+        {
+            var val = arg.ToString()?.Trim() ?? "";
+            if (string.IsNullOrEmpty(val)) continue;
+
+            if (javaMajor >= 17)
+            {
+                if (obsoleteOnModern.Any(o => val.StartsWith(o, StringComparison.OrdinalIgnoreCase)) ||
+                    val.StartsWith("-XX:PermSize=", StringComparison.OrdinalIgnoreCase) ||
+                    val.StartsWith("-XX:MaxPermSize=", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+            }
+            else if (javaMajor <= 11)
+            {
+                if (modernOnlyPrefixes.Any(p => val.StartsWith(p, StringComparison.OrdinalIgnoreCase)))
+                {
+                    continue;
+                }
+            }
+
+            yield return arg;
+        }
+    }
 
     private LauncherConfigData? _cachedConfig;
     private DateTime _configLastRead = DateTime.MinValue;
@@ -259,18 +317,27 @@ public class LaunchService : ILaunchService
             await WithManifestRetryAsync(() => launcher.InstallAsync(instance.Version).AsTask());
             targetVersion = instance.Version;
 
+            var reqJavaForInstaller = InferRequiredJavaMajor(instance.Version);
+            var resolvedInstallerJava = await ResolveJavaAsync(reqJavaForInstaller, zenithRoot);
+            var javaExeToUse = "java";
+            if (!string.IsNullOrWhiteSpace(resolvedInstallerJava))
+            {
+                var consoleExe = Path.Combine(Path.GetDirectoryName(resolvedInstallerJava)!, "java.exe");
+                javaExeToUse = File.Exists(consoleExe) ? consoleExe : resolvedInstallerJava;
+            }
+
             if (!instance.LoaderType.Equals("Vanilla", StringComparison.OrdinalIgnoreCase))
             {
-                if (!TryFindJava())
+                if (string.IsNullOrWhiteSpace(resolvedInstallerJava) && !TryFindJava())
                 {
-                    LogReceived?.Invoke("[ERROR] Java not found on PATH. Cannot install mod loader.");
-                    throw new InvalidOperationException("Java is required but was not found on PATH or JAVA_HOME.");
+                    LogReceived?.Invoke("[ERROR] Java not found on PATH or runtime. Cannot install mod loader.");
+                    throw new InvalidOperationException($"Java {reqJavaForInstaller} is required but was not found on PATH or runtime.");
                 }
             }
 
             if (instance.LoaderType.Equals("Forge", StringComparison.OrdinalIgnoreCase))
             {
-                targetVersion = await InstallForgeAsync(instance, zenithRoot);
+                targetVersion = await InstallForgeAsync(instance, zenithRoot, javaExeToUse);
             }
             else if (instance.LoaderType.Equals("Fabric", StringComparison.OrdinalIgnoreCase))
             {
@@ -278,7 +345,7 @@ public class LaunchService : ILaunchService
             }
             else if (instance.LoaderType.Equals("NeoForge", StringComparison.OrdinalIgnoreCase))
             {
-                targetVersion = await InstallNeoForgeAsync(instance, zenithRoot);
+                targetVersion = await InstallNeoForgeAsync(instance, zenithRoot, javaExeToUse);
             }
             else if (instance.LoaderType.Equals("Quilt", StringComparison.OrdinalIgnoreCase))
             {
@@ -286,7 +353,7 @@ public class LaunchService : ILaunchService
             }
             else if (instance.LoaderType.Equals("OptiFine", StringComparison.OrdinalIgnoreCase))
             {
-                targetVersion = await InstallOptiFineAsync(instance, zenithRoot, basePath);
+                targetVersion = await InstallOptiFineAsync(instance, zenithRoot, basePath, javaExeToUse);
             }
 
             await WithManifestRetryAsync(() => launcher.GetAllVersionsAsync().AsTask());
@@ -436,25 +503,12 @@ public class LaunchService : ILaunchService
             }
         }
 
-        if (jvmArgs.Count > 0)
+        var requiredJava = JavaVersionHelper.InferRequiredJavaMajor(instance.Version);
+        if (version.JavaVersion != null)
         {
-            // Get version-specific JVM args (from version.json), filter bad flags
-            var versionJvmArgs = version.ConcatInheritedJvmArguments()
-                .Where(a => a.Values == null || a.Values.All(v => !v.Contains("sun-misc-unsafe-memory-access")))
-                .ToList();
-            launchOption.JvmArgumentOverrides = versionJvmArgs
-                .Concat(jvmArgs)
-                .Concat(SafeJvmArgs)
-                .ToArray();
-        }
-        else
-        {
-            var versionJvmArgs = version.ConcatInheritedJvmArguments()
-                .Where(a => a.Values == null || a.Values.All(v => !v.Contains("sun-misc-unsafe-memory-access")))
-                .ToList();
-            launchOption.JvmArgumentOverrides = versionJvmArgs
-                .Concat(SafeJvmArgs)
-                .ToArray();
+            var jv = version.JavaVersion.MajorVersion;
+            if (!string.IsNullOrEmpty(jv) && int.TryParse(jv, out var parsed))
+                requiredJava = parsed;
         }
 
         // Java resolution
@@ -468,16 +522,6 @@ public class LaunchService : ILaunchService
         }
         else if (javaMode == "Recommended")
         {
-            // Manifest usually declares the required Java; fall back to a
-            // game-version heuristic (8 / 17 / 21 / 25) when it is absent -
-            // covers brand-new releases and local custom profiles.
-            var requiredJava = InferRequiredJavaMajor(instance.Version);
-            if (version.JavaVersion != null)
-            {
-                var jv = version.JavaVersion.MajorVersion;
-                if (!string.IsNullOrEmpty(jv) && int.TryParse(jv, out var parsed))
-                    requiredJava = parsed;
-            }
             LogReceived?.Invoke($"Required Java version: {requiredJava}");
             var found = await ResolveJavaAsync(requiredJava, zenithRoot);
             if (found != null)
@@ -489,6 +533,23 @@ public class LaunchService : ILaunchService
 
         if (string.IsNullOrEmpty(launchOption.JavaPath))
             throw new InvalidOperationException("No suitable Java runtime found. Please install Java or set a custom path in Settings.");
+
+        var targetJavaMajor = requiredJava;
+        var safeArgs = targetJavaMajor <= 11 ? LegacySafeJvmArgs : ModernSafeJvmArgs;
+
+        // Get version-specific JVM args (from version.json), filter bad flags
+        var versionJvmArgs = version.ConcatInheritedJvmArguments()
+            .Where(a => a.Values == null || a.Values.All(v => !v.Contains("sun-misc-unsafe-memory-access")))
+            .ToList();
+
+        var combinedJvmArgs = versionJvmArgs
+            .Concat(jvmArgs)
+            .Concat(safeArgs);
+
+        launchOption.JvmArgumentOverrides = SanitizeJvmArgs(combinedJvmArgs, targetJavaMajor).ToArray();
+
+        // Ensure all required native libraries (.dll) are physically present in the instance's nativesDir
+        EnsureNativesExtracted(version, zenithRoot, nativesDir, targetVersion, instance.Version, msg => LogReceived?.Invoke(msg));
 
         var process = await launcher.BuildProcessAsync(targetVersion, launchOption);
 
@@ -976,16 +1037,19 @@ public class LaunchService : ILaunchService
         catch { return false; }
     }
 
-    private async Task RunJavaInstallerAsync(string arguments, int timeoutSec = 180)
+    private Task RunJavaInstallerAsync(string arguments, int timeoutSec = 180) =>
+        RunJavaInstallerAsync("java", arguments, timeoutSec);
+
+    private async Task RunJavaInstallerAsync(string javaExe, string arguments, int timeoutSec = 180)
     {
-        LogReceived?.Invoke($"Running: java {arguments}");
+        LogReceived?.Invoke($"Running: {javaExe} {arguments}");
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSec));
         var tcs = new TaskCompletionSource<bool>();
         using var proc = new Process
         {
             StartInfo = new ProcessStartInfo
             {
-                FileName = "java",
+                FileName = javaExe,
                 Arguments = arguments,
                 UseShellExecute = false,
                 CreateNoWindow = true,
@@ -1013,7 +1077,7 @@ public class LaunchService : ILaunchService
             throw new Exception($"Java installer exited with code {proc.ExitCode}. See logs for details.");
     }
 
-    private async Task<string> InstallForgeAsync(InstanceModel instance, string zenithRoot)
+    private async Task<string> InstallForgeAsync(InstanceModel instance, string zenithRoot, string javaExe = "java")
     {
         LogReceived?.Invoke("Checking Forge version info...");
 
@@ -1061,7 +1125,7 @@ public class LaunchService : ILaunchService
             }, tempInstaller);
 
             LogReceived?.Invoke("Installing Forge...");
-            await RunJavaInstallerAsync($"-jar \"{tempInstaller}\" --installClient \"{zenithRoot}\"");
+            await RunJavaInstallerAsync(javaExe, $"-jar \"{tempInstaller}\" --installClient \"{zenithRoot}\"");
 
             try { File.Delete(tempInstaller); } catch { }
         }
@@ -1076,6 +1140,122 @@ public class LaunchService : ILaunchService
     {
         if (config?.RamMb > 0) return config.RamMb;
         return version.StartsWith("1.7") || version.StartsWith("1.8") ? 2048 : 4096;
+    }
+
+    private static void EnsureNativesExtracted(
+        IVersion version,
+        string zenithRoot,
+        string nativesDir,
+        string targetVersion,
+        string gameVersion,
+        Action<string>? log = null)
+    {
+        try
+        {
+            Directory.CreateDirectory(nativesDir);
+
+            // 1. Copy from existing versions/.../natives directories if available
+            var candidateNativeDirs = new[]
+            {
+                Path.Combine(zenithRoot, "versions", targetVersion, "natives"),
+                Path.Combine(zenithRoot, "versions", gameVersion, "natives")
+            };
+
+            foreach (var candidateDir in candidateNativeDirs)
+            {
+                if (Directory.Exists(candidateDir))
+                {
+                    foreach (var dll in Directory.EnumerateFiles(candidateDir, "*.dll"))
+                    {
+                        var dest = Path.Combine(nativesDir, Path.GetFileName(dll));
+                        if (!File.Exists(dest) || new FileInfo(dest).Length == 0)
+                        {
+                            try { File.Copy(dll, dest, overwrite: true); } catch { }
+                        }
+                    }
+                }
+            }
+
+            // 2. Extract from version libraries classifiers and artifacts
+            if (version.Libraries != null)
+            {
+                foreach (var lib in version.Libraries)
+                {
+                    // Check classifiers (e.g. natives-windows)
+                    if (lib.Classifiers != null)
+                    {
+                        foreach (var kv in lib.Classifiers)
+                        {
+                            var key = kv.Key?.ToLowerInvariant() ?? "";
+                            var path = kv.Value?.Path;
+                            if (string.IsNullOrEmpty(path)) continue;
+
+                            if (key.Contains("windows") || path.Contains("natives-windows") || path.Contains("natives_windows"))
+                            {
+                                var jarPath = Path.Combine(zenithRoot, "libraries", path.Replace('/', Path.DirectorySeparatorChar));
+                                ExtractDllsFromJar(jarPath, nativesDir);
+                            }
+                        }
+                    }
+
+                    // Check artifact path
+                    if (lib.Artifact?.Path != null)
+                    {
+                        var path = lib.Artifact.Path;
+                        if (path.Contains("natives-windows") || path.Contains("natives_windows"))
+                        {
+                            var jarPath = Path.Combine(zenithRoot, "libraries", path.Replace('/', Path.DirectorySeparatorChar));
+                            ExtractDllsFromJar(jarPath, nativesDir);
+                        }
+                    }
+                }
+            }
+
+            // 3. Heuristic fallback for legacy Minecraft (1.12.2, 1.7.10, etc.):
+            // If lwjgl.dll / lwjgl64.dll is still missing, search for lwjgl-platform native jars in libraries
+            var hasLwjgl = File.Exists(Path.Combine(nativesDir, "lwjgl64.dll")) || File.Exists(Path.Combine(nativesDir, "lwjgl.dll"));
+            if (!hasLwjgl)
+            {
+                var librariesDir = Path.Combine(zenithRoot, "libraries");
+                if (Directory.Exists(librariesDir))
+                {
+                    var lwjglJars = Directory.EnumerateFiles(librariesDir, "*natives-windows*.jar", SearchOption.AllDirectories);
+                    foreach (var jar in lwjglJars)
+                    {
+                        ExtractDllsFromJar(jar, nativesDir);
+                    }
+                }
+            }
+
+            log?.Invoke($"Natives verified in: {nativesDir}");
+        }
+        catch (Exception ex)
+        {
+            log?.Invoke($"[WARN] EnsureNativesExtracted encountered an issue: {ex.Message}");
+        }
+    }
+
+    private static void ExtractDllsFromJar(string jarPath, string destDir)
+    {
+        if (!File.Exists(jarPath)) return;
+        try
+        {
+            using var archive = ZipFile.OpenRead(jarPath);
+            foreach (var entry in archive.Entries)
+            {
+                if (entry.FullName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+                {
+                    var fileName = Path.GetFileName(entry.FullName);
+                    if (string.IsNullOrEmpty(fileName)) continue;
+                    var destFile = Path.Combine(destDir, fileName);
+                    if (!File.Exists(destFile) || new FileInfo(destFile).Length == 0)
+                    {
+                        entry.ExtractToFile(destFile, overwrite: true);
+                    }
+                }
+            }
+        }
+        catch { }
     }
 
     private static string? ResolveForgeBuildFromList(string json, string gameVersion)
@@ -1223,7 +1403,7 @@ public class LaunchService : ILaunchService
         return targetVersion;
     }
 
-    private async Task<string> InstallNeoForgeAsync(InstanceModel instance, string zenithRoot)
+    private async Task<string> InstallNeoForgeAsync(InstanceModel instance, string zenithRoot, string javaExe = "java")
     {
         LogReceived?.Invoke("Checking NeoForge version info...");
 
@@ -1261,7 +1441,7 @@ public class LaunchService : ILaunchService
             }, tempInstaller);
 
             LogReceived?.Invoke("Running NeoForge Installer...");
-            await RunJavaInstallerAsync($"-jar \"{tempInstaller}\" --installClient \"{zenithRoot}\"");
+            await RunJavaInstallerAsync(javaExe, $"-jar \"{tempInstaller}\" --installClient \"{zenithRoot}\"");
 
             try { File.Delete(tempInstaller); } catch { }
         }
@@ -1304,7 +1484,7 @@ public class LaunchService : ILaunchService
         return targetVersion;
     }
 
-    private async Task<string> InstallOptiFineAsync(InstanceModel instance, string zenithRoot, string basePath)
+    private async Task<string> InstallOptiFineAsync(InstanceModel instance, string zenithRoot, string basePath, string javaExe = "java")
     {
         LogReceived?.Invoke("Fetching OptiFine metadata...");
 
@@ -1377,7 +1557,7 @@ public class LaunchService : ILaunchService
             var destOptifineJar = Path.Combine(ofLibDir, $"OptiFine-{ofEdition}.jar");
 
             LogReceived?.Invoke("Patching Minecraft with OptiFine (headless)...");
-            await RunJavaInstallerAsync($"-cp \"{tempInstaller}\" optifine.Patcher \"{vanillaJar}\" \"{tempInstaller}\" \"{destOptifineJar}\"");
+            await RunJavaInstallerAsync(javaExe, $"-cp \"{tempInstaller}\" optifine.Patcher \"{vanillaJar}\" \"{tempInstaller}\" \"{destOptifineJar}\"");
 
             string wrapperVersion = "2.3";
             string? versionJson = null;

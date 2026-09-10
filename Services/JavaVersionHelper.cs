@@ -14,22 +14,41 @@ public static class JavaVersionHelper
         if (string.IsNullOrEmpty(version))
             return L10n.T("java_display_auto");
 
-        if (version.StartsWith("1.20.5", StringComparison.OrdinalIgnoreCase) ||
-            version.StartsWith("1.20.6", StringComparison.OrdinalIgnoreCase) ||
-            version.StartsWith("1.21", StringComparison.OrdinalIgnoreCase))
-            return "(Java 21)";
+        var major = InferRequiredJavaMajor(version);
+        return $"(Java {major})";
+    }
 
-        if (version.StartsWith("1.7", StringComparison.OrdinalIgnoreCase) ||
-            version.StartsWith("1.8", StringComparison.OrdinalIgnoreCase) ||
-            version.StartsWith("1.12", StringComparison.OrdinalIgnoreCase) ||
-            version.StartsWith("1.16", StringComparison.OrdinalIgnoreCase) ||
-            version.StartsWith("1.17", StringComparison.OrdinalIgnoreCase) ||
-            version.StartsWith("1.18", StringComparison.OrdinalIgnoreCase) ||
-            version.StartsWith("1.19", StringComparison.OrdinalIgnoreCase) ||
-            version.StartsWith("1.20", StringComparison.OrdinalIgnoreCase))
-            return "(Java 17)";
+    public static int InferRequiredJavaMajor(string gameVersion)
+    {
+        if (string.IsNullOrWhiteSpace(gameVersion)) return 8;
 
-        return "(Java 25)";
+        var chars = new System.Collections.Generic.List<char>();
+        foreach (var c in gameVersion)
+        {
+            if (char.IsDigit(c) || c == '.') chars.Add(c);
+            else if (chars.Count > 0) break;
+        }
+        var numeric = new string(chars.ToArray()).TrimEnd('.');
+
+        var parts = numeric.Split('.');
+        if (parts.Length == 0 || !int.TryParse(parts[0], out var first))
+            return 8;
+
+        if (first >= 26) return 25;
+        if (first != 1) return 8;
+
+        if (parts.Length >= 2 && int.TryParse(parts[1], out var minor))
+        {
+            if (minor >= 21) return 21;
+            if (minor == 20)
+            {
+                if (parts.Length >= 3 && int.TryParse(parts[2], out var patch) && patch >= 5)
+                    return 21;
+                return 17;
+            }
+            if (minor >= 17) return 17;
+        }
+        return 8;
     }
 
     public static string CustomDisplay(string path)

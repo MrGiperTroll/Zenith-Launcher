@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
@@ -7,6 +7,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Styling;
+using Avalonia.VisualTree;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -156,6 +157,12 @@ public partial class MainWindow : Window
 
     private void OnModpackCardTapped(object? sender, TappedEventArgs e)
     {
+        if (e.Source is Visual v && v.FindAncestorOfType<Button>(includeSelf: true) != null)
+        {
+            e.Handled = true;
+            return;
+        }
+
         if (sender is Control { DataContext: Models.ModrinthProject p } && DataContext is MainWindowViewModel vm)
             vm.ModpacksBrowser.OpenProjectPageCommand.Execute(p);
     }
@@ -163,6 +170,34 @@ public partial class MainWindow : Window
     private void OnModpackButtonTapped(object? sender, TappedEventArgs e)
     {
         e.Handled = true;
+    }
+
+    private ScrollViewer? _modpacksScroll;
+    private bool _modpacksScrollAttached;
+
+    private void OnModpacksListAttached(object? sender, VisualTreeAttachmentEventArgs e)
+    {
+        if (_modpacksScrollAttached) return;
+        var list = this.FindControl<ListBox>("ModpacksList");
+        if (list == null) return;
+        foreach (var v in list.GetVisualDescendants())
+        {
+            if (v is ScrollViewer sv)
+            {
+                _modpacksScroll = sv;
+                sv.ScrollChanged += OnModpacksScrollChanged;
+                _modpacksScrollAttached = true;
+                break;
+            }
+        }
+    }
+
+    private void OnModpacksScrollChanged(object? sender, ScrollChangedEventArgs e)
+    {
+        if (sender is not ScrollViewer sv) return;
+        if (DataContext is not MainWindowViewModel vm) return;
+        if (sv.Extent.Height - sv.Offset.Y - sv.Viewport.Height < 350)
+            _ = vm.ModpacksBrowser.LoadMoreAsync();
     }
 
     private void OnInstanceCardTapped(object? sender, TappedEventArgs e)

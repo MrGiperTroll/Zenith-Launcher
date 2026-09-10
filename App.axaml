@@ -87,6 +87,28 @@
         <Style Selector="Border">
             <Setter Property="FocusAdorner" Value="{x:Null}"/>
         </Style>
+        <!-- Utilitarian tactile micro-interactions: crisp press feedback without layout thrashing -->
+        <Style Selector="Button">
+            <Setter Property="RenderTransform" Value="scale(1)"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.08" Easing="CubicEaseOut"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button:pressed">
+            <Setter Property="RenderTransform" Value="scale(0.982)"/>
+        </Style>
+        <Style Selector="Border[Cursor=Hand]">
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.12" Easing="CubicEaseOut"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Border[Cursor=Hand]:pointerover">
+            <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
+        </Style>
         <!-- Smooth dropdown / flyout animations + stylish dark menus -->
         <Style Selector="ComboBox /template/ Popup">
             <Setter Property="Opacity" Value="0"/>

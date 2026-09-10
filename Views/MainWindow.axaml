@@ -570,36 +570,42 @@
                         </Border>
                         <Border Grid.Row="1" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="8">
                             <Grid RowDefinitions="*,Auto">
-                                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                                    <StackPanel Spacing="8" Margin="4,4,18,4">
-                                        <ItemsControl ItemsSource="{Binding ModpacksBrowser.Results}">
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate x:DataType="models:ModrinthProject">
-                                                    <Border Margin="4" CornerRadius="10" Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" Padding="10" Tapped="OnModpackCardTapped" Cursor="Hand">
-                                                        <Grid ColumnDefinitions="48,*,120">
-                                                            <Border Width="48" Height="48" Background="{StaticResource ChipBrush}" CornerRadius="8" ClipToBounds="True">
-                                                                <Panel>
-                                                                    <Image Source="{Binding Icon}" Stretch="UniformToFill" Width="48" Height="48" IsVisible="{Binding HasIcon}"/>
-                                                                    <Path Data="M20 3H4C2.89 3 2 3.89 2 5V15C2 16.11 2.89 17 4 17H8V21L12 18H20C21.11 18 22 17.11 22 16V5C22 3.89 21.11 3 20 3M20 14H12L8 18V14H4V5H20V14Z" Fill="{StaticResource TextPlaceholderBrush}" Stretch="Uniform" Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding !HasIcon}"/>
-                                                                </Panel>
-                                                            </Border>
-                                                            <StackPanel Grid.Column="1" Margin="12,0,8,0" VerticalAlignment="Center" Spacing="2">
-                                                                <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
-                                                                <TextBlock Text="{Binding Author}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
-                                                                <TextBlock Text="{Binding Description}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" MaxLines="2" TextWrapping="Wrap"/>
-                                                                <TextBlock Text="{Binding DownloadsLabel}" FontSize="10" Foreground="{StaticResource TextCaptionBrush}"/>
-                                                            </StackPanel>
-                                                            <Button Grid.Column="2" Classes="primaryBtn modpackInstalledBtn" Classes.installed="{Binding IsInstalled}" Content="{Binding InstallButtonText}" IsEnabled="{Binding !IsInstalling}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ModpacksBrowser.DeleteOrInstallCommand}" CommandParameter="{Binding}" PointerEntered="OnModpackButtonHover" PointerExited="OnModpackButtonHoverOut" Tapped="OnModpackButtonTapped" VerticalAlignment="Center" HorizontalAlignment="Right" Padding="14,7" FontSize="11"/>
-                                                        </Grid>
+                                <ListBox x:Name="ModpacksList" ItemsSource="{Binding ModpacksBrowser.Results}" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" AttachedToVisualTree="OnModpacksListAttached">
+                                    <ListBox.ItemContainerTheme>
+                                        <ControlTheme TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                                            <Setter Property="Background" Value="Transparent"/>
+                                            <Setter Property="BorderThickness" Value="0"/>
+                                            <Setter Property="Padding" Value="0"/>
+                                            <Setter Property="Margin" Value="0"/>
+                                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                        </ControlTheme>
+                                    </ListBox.ItemContainerTheme>
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate x:DataType="models:ModrinthProject">
+                                            <Border Margin="4" CornerRadius="10" Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" Padding="10" Tapped="OnModpackCardTapped" Cursor="Hand">
+                                                <Grid ColumnDefinitions="48,*,120">
+                                                    <Border Width="48" Height="48" Background="{StaticResource ChipBrush}" CornerRadius="8" ClipToBounds="True">
+                                                        <Panel>
+                                                            <Image Source="{Binding Icon}" Stretch="UniformToFill" Width="48" Height="48" IsVisible="{Binding HasIcon}"/>
+                                                            <Path Data="M20 3H4C2.89 3 2 3.89 2 5V15C2 16.11 2.89 17 4 17H8V21L12 18H20C21.11 18 22 17.11 22 16V5C22 3.89 21.11 3 20 3M20 14H12L8 18V14H4V5H20V14Z" Fill="{StaticResource TextPlaceholderBrush}" Stretch="Uniform" Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding !HasIcon}"/>
+                                                        </Panel>
                                                     </Border>
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-<TextBlock Text="{l10n:Tr Key=mp_loading}" IsVisible="{Binding ModpacksBrowser.IsBusy}" HorizontalAlignment="Center" Margin="0,12" Foreground="{StaticResource TextMutedBrush}"/>
-                    <TextBlock Text="{l10n:Tr Key=mp_empty}" IsVisible="{Binding ModpacksBrowser.IsEmpty}" HorizontalAlignment="Center" Margin="0,12" Foreground="{StaticResource TextPlaceholderBrush}"/>
-                    <Button Content="{l10n:Tr Key=btn_load_more}" Command="{Binding ModpacksBrowser.LoadMoreCommand}" IsVisible="{Binding ModpacksBrowser.HasMore}" HorizontalAlignment="Center" Margin="0,8" Classes="subBtn"/>
-                                    </StackPanel>
-                                </ScrollViewer>
+                                                    <StackPanel Grid.Column="1" Margin="12,0,8,0" VerticalAlignment="Center" Spacing="2">
+                                                        <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                                        <TextBlock Text="{Binding Author}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                                                        <TextBlock Text="{Binding Description}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" MaxLines="2" TextWrapping="Wrap"/>
+                                                        <TextBlock Text="{Binding DownloadsLabel}" FontSize="10" Foreground="{StaticResource TextCaptionBrush}"/>
+                                                    </StackPanel>
+                                                    <Button Grid.Column="2" Classes="primaryBtn modpackInstalledBtn" Classes.installed="{Binding IsInstalled}" Content="{Binding InstallButtonText}" IsEnabled="{Binding !IsInstalling}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ModpacksBrowser.DeleteOrInstallCommand}" CommandParameter="{Binding}" PointerEntered="OnModpackButtonHover" PointerExited="OnModpackButtonHoverOut" Tapped="OnModpackButtonTapped" VerticalAlignment="Center" HorizontalAlignment="Right" Padding="14,7" FontSize="11"/>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                                <StackPanel Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Center" IsHitTestVisible="False">
+                                    <TextBlock Text="{l10n:Tr Key=mp_loading}" IsVisible="{Binding ModpacksBrowser.IsBusy}" HorizontalAlignment="Center" Margin="0,12" Foreground="{StaticResource TextMutedBrush}"/>
+                                    <TextBlock Text="{l10n:Tr Key=mp_empty}" IsVisible="{Binding ModpacksBrowser.IsEmpty}" HorizontalAlignment="Center" Margin="0,12" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                                </StackPanel>
                                 <TextBlock Grid.Row="1" Text="{Binding ModpacksBrowser.StatusText}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="4,8,0,0" TextWrapping="Wrap" IsVisible="{Binding ModpacksBrowser.StatusText, Converter={x:Static conv:ObjectConverters.IsNotNull}}"/>
                             </Grid>
                         </Border>

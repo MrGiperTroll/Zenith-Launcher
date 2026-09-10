@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -138,16 +139,19 @@ public partial class ModrinthProject : ObservableObject
     public void SetIcon(byte[]? bytes)
     {
         if (bytes is not { Length: > 0 }) return;
-        try
+        Task.Run(() =>
         {
-            using var ms = new MemoryStream(bytes);
-            var bmp = new Bitmap(ms);
-            Dispatcher.UIThread.Post(() =>
+            try
             {
-                Icon = bmp;
-                OnPropertyChanged(nameof(HasIcon));
-            });
-        }
-        catch { }
+                using var ms = new MemoryStream(bytes);
+                var bmp = Bitmap.DecodeToWidth(ms, 96, BitmapInterpolationMode.MediumQuality);
+                Dispatcher.UIThread.Post(() =>
+                {
+                    Icon = bmp;
+                    OnPropertyChanged(nameof(HasIcon));
+                });
+            }
+            catch { }
+        });
     }
 }

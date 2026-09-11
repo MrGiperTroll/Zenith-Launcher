@@ -694,6 +694,16 @@
                     <Panel IsVisible="{Binding IsContentBrowserView}" Margin="0,0,16,0">
                         <views:ContentBrowserView DataContext="{Binding CurrentContentBrowserVm}"/>
                     </Panel>
+
+                    <!-- In-Window Launcher Settings View -->
+                    <Panel IsVisible="{Binding IsSettingsView}" Margin="0,0,16,0">
+                        <views:LauncherSettingsView DataContext="{Binding}"/>
+                    </Panel>
+
+                    <!-- In-Window Server Manager View -->
+                    <Panel IsVisible="{Binding IsServerManagerView}" Margin="0,0,16,0">
+                        <views:ServerManagerView DataContext="{Binding CurrentServerManagerVm}"/>
+                    </Panel>
                 </Grid>
 
                 <!-- Full-Width Bottom Launch Bar -->

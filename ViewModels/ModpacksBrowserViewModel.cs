@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using CmlLib.Core;
@@ -31,6 +32,31 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     [ObservableProperty] private ObservableCollection<string> _availableSortOptions = new() { "Relevance", "Downloads", "Newest", "Recently Updated" };
 
     [ObservableProperty] private string _searchQuery = "";
+
+    private CancellationTokenSource? _searchCts;
+    private int _searchGeneration;
+
+    public Action<ModrinthProject?>? OnProjectSelectedChanged { get; set; }
+
+    partial void OnSearchQueryChanged(string value)
+    {
+        _searchCts?.Cancel();
+        _searchCts?.Dispose();
+        _searchCts = new CancellationTokenSource();
+        var token = _searchCts.Token;
+        _ = DebouncedSearchAsync(token);
+    }
+
+    private async Task DebouncedSearchAsync(CancellationToken token)
+    {
+        try
+        {
+            await Task.Delay(350, token);
+            if (token.IsCancellationRequested) return;
+            await ReloadAsync(token);
+        }
+        catch (OperationCanceledException) { }
+    }
     [ObservableProperty] private string _selectedVersion = "";
     [ObservableProperty] private string _selectedCategory = "";
     [ObservableProperty] private string _selectedLoader = "";
@@ -210,6 +236,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
         SelectedCompatibilityVersion = "";
         if (value != null) _ = LoadFullProjectAsync(value);
         else FullProject = null;
+        OnProjectSelectedChanged?.Invoke(value);
     }
 
     [RelayCommand]
@@ -402,10 +429,17 @@ public partial class ModpacksBrowserViewModel : ObservableObject
         string.IsNullOrWhiteSpace(SelectedLoader) ? Array.Empty<string>() : new[] { SelectedLoader.Trim().ToLowerInvariant() };
 
     [RelayCommand]
-    private Task Search() => ReloadAsync();
-
-    public async Task ReloadAsync()
+    public Task Search()
     {
+        _searchCts?.Cancel();
+        _searchCts?.Dispose();
+        _searchCts = new CancellationTokenSource();
+        return ReloadAsync(_searchCts.Token);
+    }
+
+    public async Task ReloadAsync(CancellationToken token = default)
+    {
+        var gen = Interlocked.Increment(ref _searchGeneration);
         IsBusy = true;
         StatusText = "";
         Results.Clear();
@@ -421,8 +455,8 @@ public partial class ModpacksBrowserViewModel : ObservableObject
                 "Recently Updated" => "updated",
                 _ => "relevance"
             };
-            // For category, pass as categories filter
-            var page = await ModrinthApiService.SearchAsync(SearchQuery, SelectedVersion, LoaderFacets, "modpack", sort, categoryFilter, 0, PageSize);
+            var page = await ModrinthApiService.SearchAsync(SearchQuery, SelectedVersion, LoaderFacets, "modpack", sort, categoryFilter, 0, PageSize, token);
+            if (token.IsCancellationRequested || gen != _searchGeneration) return;
             if (page == null)
             {
                 StatusText = L10n.T("mp_status_unreachable");
@@ -433,21 +467,31 @@ public partial class ModpacksBrowserViewModel : ObservableObject
             foreach (var p in page.Hits)
             {
                 Results.Add(p);
-                LoadIcon(p);
+                LoadIcon(p, gen);
             }
             UpdateInstalledFlags();
             StatusText = page.TotalHits == 0 ? L10n.T("mp_status_none") : string.Format(L10n.T("mp_status_count"), page.TotalHits);
         }
+        catch (OperationCanceledException)
+        {
+            // Cancelled cleanly
+        }
         catch (Exception ex)
         {
-            LauncherLog.Error("Modpack search failed", ex);
-            StatusText = string.Format(L10n.T("mp_status_failed"), ex.Message);
+            if (!token.IsCancellationRequested && gen == _searchGeneration)
+            {
+                LauncherLog.Error("Modpack search failed", ex);
+                StatusText = string.Format(L10n.T("mp_status_failed"), ex.Message);
+            }
         }
         finally
         {
-            IsBusy = false;
-            OnPropertyChanged(nameof(IsEmpty));
-            OnPropertyChanged(nameof(HasMore));
+            if (gen == _searchGeneration)
+            {
+                IsBusy = false;
+                OnPropertyChanged(nameof(IsEmpty));
+                OnPropertyChanged(nameof(HasMore));
+            }
         }
     }
 
@@ -456,6 +500,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     {
         if (IsBusy || IsLoadingMore || !HasMore) return;
         IsLoadingMore = true;
+        var gen = _searchGeneration;
         try
         {
             var categoryFilter = string.IsNullOrWhiteSpace(SelectedCategory) ? Array.Empty<string>() : new[] { SelectedCategory };
@@ -467,14 +512,14 @@ public partial class ModpacksBrowserViewModel : ObservableObject
                 _ => "relevance"
             };
             var page = await ModrinthApiService.SearchAsync(SearchQuery, SelectedVersion, LoaderFacets, "modpack", sort, categoryFilter, _offset, PageSize);
-            if (page != null)
+            if (page != null && gen == _searchGeneration)
             {
                 _offset = page.Offset + page.Hits.Count;
                 _totalHits = page.TotalHits;
                 foreach (var p in page.Hits)
                 {
                     Results.Add(p);
-                    LoadIcon(p);
+                    LoadIcon(p, gen);
                 }
                 UpdateInstalledFlags();
             }
@@ -485,16 +530,20 @@ public partial class ModpacksBrowserViewModel : ObservableObject
         }
         finally
         {
-            IsLoadingMore = false;
-            OnPropertyChanged(nameof(HasMore));
+            if (gen == _searchGeneration)
+            {
+                IsLoadingMore = false;
+                OnPropertyChanged(nameof(HasMore));
+            }
         }
     }
 
-    private async void LoadIcon(ModrinthProject project)
+    private async void LoadIcon(ModrinthProject project, int generation)
     {
         if (string.IsNullOrWhiteSpace(project.IconUrl) || project.HasIcon) return;
         var bytes = await ModrinthApiService.GetIconAsync(project.IconUrl);
-        project.SetIcon(bytes);
+        if (generation == _searchGeneration)
+            project.SetIcon(bytes);
     }
 
     public void UpdateInstalledFlags()

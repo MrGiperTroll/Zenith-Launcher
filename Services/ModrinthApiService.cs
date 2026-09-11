@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using CustomMcLauncher.Models;
 
@@ -65,15 +66,15 @@ public static class ModrinthApiService
     private static readonly string IconDiskCacheDir = Path.Combine(ZenithPaths.AppDataDir, "cache", "icons");
 
     public static async Task<ModrinthSearchPage?> SearchAsync(
-        string query, string gameVersion, IReadOnlyList<string> loaderFacets, int offset, int limit = 20)
-        => await SearchAsync(query, gameVersion, loaderFacets, null, "relevance", offset, limit);
+        string query, string gameVersion, IReadOnlyList<string> loaderFacets, int offset, int limit = 20, CancellationToken cancellationToken = default)
+        => await SearchAsync(query, gameVersion, loaderFacets, null, "relevance", offset, limit, cancellationToken);
 
     public static async Task<ModrinthSearchPage?> SearchAsync(
-        string query, string gameVersion, IReadOnlyList<string> loaderFacets, string? projectType, string sortIndex, int offset, int limit = 20)
-        => await SearchAsync(query, gameVersion, loaderFacets, projectType, sortIndex, Array.Empty<string>(), offset, limit);
+        string query, string gameVersion, IReadOnlyList<string> loaderFacets, string? projectType, string sortIndex, int offset, int limit = 20, CancellationToken cancellationToken = default)
+        => await SearchAsync(query, gameVersion, loaderFacets, projectType, sortIndex, Array.Empty<string>(), offset, limit, cancellationToken);
 
     public static async Task<ModrinthSearchPage?> SearchAsync(
-        string query, string gameVersion, IReadOnlyList<string> loaderFacets, string? projectType, string sortIndex, IReadOnlyList<string> categoryTags, int offset, int limit = 20)
+        string query, string gameVersion, IReadOnlyList<string> loaderFacets, string? projectType, string sortIndex, IReadOnlyList<string> categoryTags, int offset, int limit = 20, CancellationToken cancellationToken = default)
     {
         var facets = new List<string[]>();
         if (!string.IsNullOrWhiteSpace(gameVersion))
@@ -91,7 +92,7 @@ public static class ModrinthApiService
             url += "&query=" + Uri.EscapeDataString(query.Trim());
         url += "&facets=" + Uri.EscapeDataString(JsonSerializer.Serialize(facets));
 
-        var json = await Http.GetStringAsync(url);
+        var json = await Http.GetStringAsync(url, cancellationToken);
         using var doc = JsonDocument.Parse(json);
         var root = doc.RootElement;
 

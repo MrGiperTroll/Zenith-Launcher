@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -57,7 +58,27 @@ public partial class FileListViewModel : ObservableObject
     [ObservableProperty]
     private string _searchQuery = "";
 
-    partial void OnSearchQueryChanged(string value) => ApplyFilter();
+    private CancellationTokenSource? _filterCts;
+
+    partial void OnSearchQueryChanged(string value)
+    {
+        _filterCts?.Cancel();
+        _filterCts?.Dispose();
+        _filterCts = new CancellationTokenSource();
+        var token = _filterCts.Token;
+        _ = DebouncedFilterAsync(token);
+    }
+
+    private async Task DebouncedFilterAsync(CancellationToken token)
+    {
+        try
+        {
+            await Task.Delay(300, token);
+            if (token.IsCancellationRequested) return;
+            ApplyFilter();
+        }
+        catch (OperationCanceledException) { }
+    }
 
     [ObservableProperty]
     private bool _isDragOver;

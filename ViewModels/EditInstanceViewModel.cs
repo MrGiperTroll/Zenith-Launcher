@@ -520,7 +520,7 @@ public partial class EditInstanceViewModel : ViewModelBase
         }
     }
 
-    private void RefreshServers()
+    public void RefreshServers()
     {
         Servers.Clear();
         var file = Path.Combine(Instance.Path, "servers.dat");
@@ -599,13 +599,8 @@ public partial class EditInstanceViewModel : ViewModelBase
     private void OpenServerManager()
     {
         var path = Path.Combine(Instance.Path, "servers.dat");
-        if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow != null)
-        {
-            var vm = new ServerManagerViewModel(path);
-            var win = new Views.ServerManagerWindow { DataContext = vm };
-            win.Closed += (_, _) => RefreshServers();
-            win.ShowDialog(desktop.MainWindow);
-        }
+        var vm = new ServerManagerViewModel(path);
+        _host.NavigateToServerManager(vm, Instance, this);
     }
 
     [RelayCommand]

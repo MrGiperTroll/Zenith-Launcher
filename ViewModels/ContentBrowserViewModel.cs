@@ -6,6 +6,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -54,6 +55,31 @@ public partial class ContentBrowserViewModel : ObservableObject
 
     [ObservableProperty]
     private string _searchQuery = "";
+
+    private CancellationTokenSource? _searchCts;
+    private int _searchGeneration;
+
+    public Action<ModrinthProject?>? OnProjectSelectedChanged { get; set; }
+
+    partial void OnSearchQueryChanged(string value)
+    {
+        _searchCts?.Cancel();
+        _searchCts?.Dispose();
+        _searchCts = new CancellationTokenSource();
+        var token = _searchCts.Token;
+        _ = DebouncedSearchAsync(token);
+    }
+
+    private async Task DebouncedSearchAsync(CancellationToken token)
+    {
+        try
+        {
+            await Task.Delay(350, token);
+            if (token.IsCancellationRequested) return;
+            await ReloadAsync(token);
+        }
+        catch (OperationCanceledException) { }
+    }
 
     [ObservableProperty]
     private string _statusText = "";
@@ -254,6 +280,7 @@ public partial class ContentBrowserViewModel : ObservableObject
         SelectedCompatibilityVersion = _gameVersion;
         if (value != null && !_isLoadingByProjectId) _ = LoadFullProjectAsync(value);
         else if (value == null) FullProject = null;
+        OnProjectSelectedChanged?.Invoke(value);
     }
 
     [RelayCommand]
@@ -486,10 +513,17 @@ public partial class ContentBrowserViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private Task Search() => ReloadAsync();
-
-    public async Task ReloadAsync()
+    private Task Search()
     {
+        _searchCts?.Cancel();
+        _searchCts?.Dispose();
+        _searchCts = new CancellationTokenSource();
+        return ReloadAsync(_searchCts.Token);
+    }
+
+    public async Task ReloadAsync(CancellationToken token = default)
+    {
+        var gen = Interlocked.Increment(ref _searchGeneration);
         IsBusy = true;
         StatusText = "";
         Results.Clear();
@@ -501,7 +535,9 @@ public partial class ContentBrowserViewModel : ObservableObject
             var loaders = SelectedContentType == ContentType.Mod ? MapLoaders(_loaderType) : Array.Empty<string>();
             var projectType = SelectedContentType.ModrinthProjectType();
             var sortIndex = MapSortToModrinth(SelectedSort);
-            var page = await ModrinthApiService.SearchAsync(SearchQuery, _gameVersion, loaders, projectType, sortIndex, categoryTags, 0, PageSize);
+            var page = await ModrinthApiService.SearchAsync(SearchQuery, _gameVersion, loaders, projectType, sortIndex, categoryTags, 0, PageSize, token);
+
+            if (token.IsCancellationRequested || gen != _searchGeneration) return;
 
             if (page == null)
             {
@@ -513,23 +549,33 @@ public partial class ContentBrowserViewModel : ObservableObject
             foreach (var p in page.Hits)
             {
                 Results.Add(p);
-                LoadIcon(p);
+                LoadIcon(p, gen);
             }
             UpdateInstalledFlags();
             StatusText = page.TotalHits == 0
                 ? string.Format(L10n.T("cb_status_none"), SelectedContentType.DisplayName().ToLower())
                 : string.Format(L10n.T("cb_status_count"), page.TotalHits, SelectedContentType.DisplayName().ToLower(), _gameVersion);
         }
+        catch (OperationCanceledException)
+        {
+            // Ignored when superseded by newer search
+        }
         catch (Exception ex)
         {
-            LauncherLog.Error("Content search failed", ex);
-            StatusText = string.Format(L10n.T("mp_status_failed"), ex.Message);
+            if (!token.IsCancellationRequested && gen == _searchGeneration)
+            {
+                LauncherLog.Error("Content search failed", ex);
+                StatusText = string.Format(L10n.T("mp_status_failed"), ex.Message);
+            }
         }
         finally
         {
-            IsBusy = false;
-            OnPropertyChanged(nameof(IsEmpty));
-            OnPropertyChanged(nameof(HasMore));
+            if (gen == _searchGeneration)
+            {
+                IsBusy = false;
+                OnPropertyChanged(nameof(IsEmpty));
+                OnPropertyChanged(nameof(HasMore));
+            }
         }
     }
 
@@ -537,6 +583,7 @@ public partial class ContentBrowserViewModel : ObservableObject
     {
         if (IsBusy || IsLoadingMore || !HasMore) return;
         IsLoadingMore = true;
+        var gen = _searchGeneration;
         try
         {
             var categoryTags = AvailableTags.Where(t => t.IsSelected && !t.IsReset).Select(t => t.Name).ToList();
@@ -544,14 +591,14 @@ public partial class ContentBrowserViewModel : ObservableObject
             var projectType = SelectedContentType.ModrinthProjectType();
             var sortIndex = MapSortToModrinth(SelectedSort);
             var page = await ModrinthApiService.SearchAsync(SearchQuery, _gameVersion, loaders, projectType, sortIndex, categoryTags, _offset, PageSize);
-            if (page != null)
+            if (page != null && gen == _searchGeneration)
             {
                 _offset = page.Offset + page.Hits.Count;
                 _totalHits = page.TotalHits;
                 foreach (var p in page.Hits)
                 {
                     Results.Add(p);
-                    LoadIcon(p);
+                    LoadIcon(p, gen);
                 }
                 UpdateInstalledFlags();
             }
@@ -562,16 +609,20 @@ public partial class ContentBrowserViewModel : ObservableObject
         }
         finally
         {
-            IsLoadingMore = false;
-            OnPropertyChanged(nameof(HasMore));
+            if (gen == _searchGeneration)
+            {
+                IsLoadingMore = false;
+                OnPropertyChanged(nameof(HasMore));
+            }
         }
     }
 
-    private async void LoadIcon(ModrinthProject project)
+    private async void LoadIcon(ModrinthProject project, int generation)
     {
         if (string.IsNullOrWhiteSpace(project.IconUrl) || project.HasIcon) return;
         var bytes = await ModrinthApiService.GetIconAsync(project.IconUrl);
-        project.SetIcon(bytes);
+        if (generation == _searchGeneration)
+            project.SetIcon(bytes);
     }
 
     [RelayCommand]

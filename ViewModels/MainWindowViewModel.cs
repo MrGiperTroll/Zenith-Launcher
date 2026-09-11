@@ -28,7 +28,8 @@ public enum LauncherNavPage
     EditInstance,
     ContentBrowser,
     Settings,
-    ServerManager
+    ServerManager,
+    Accounts
 }
 
 public class BreadcrumbItem : ObservableObject
@@ -107,7 +108,31 @@ public partial class MainWindowViewModel : ViewModelBase
     private string _jvmArgs = "-XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC";
 
     [ObservableProperty]
+    private int _minRamMb = 1024;
+
+    partial void OnMinRamMbChanged(int value)
+    {
+        if (value > RamMb)
+            RamMb = value;
+        SaveLauncherConfig();
+    }
+
+    [ObservableProperty]
     private int _ramMb = 4096;
+
+    partial void OnRamMbChanged(int value)
+    {
+        if (value < MinRamMb)
+            MinRamMb = value;
+        SaveLauncherConfig();
+    }
+
+    [ObservableProperty]
+    private string _selectedLaunchBehavior = "KeepOpen";
+
+    public ObservableCollection<string> LaunchBehaviors { get; } = new() { "KeepOpen", "Hide", "Close" };
+
+    partial void OnSelectedLaunchBehaviorChanged(string value) => SaveLauncherConfig();
 
     [ObservableProperty]
     private int _gameWidth = 1280;
@@ -507,6 +532,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool IsContentBrowserView => CurrentPage == LauncherNavPage.ContentBrowser;
     public bool IsSettingsView => CurrentPage == LauncherNavPage.Settings;
     public bool IsServerManagerView => CurrentPage == LauncherNavPage.ServerManager;
+    public bool IsAccountsView => CurrentPage == LauncherNavPage.Accounts;
 
     public bool IsLaunchBarVisible => IsProfilesView || IsModpacksView;
 
@@ -585,6 +611,16 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             Page = LauncherNavPage.Settings,
             Title = L10n.T("nav_settings")
+        });
+    }
+
+    public void NavigateToAccounts()
+    {
+        RefreshState();
+        PushHistory(new HistoryEntry
+        {
+            Page = LauncherNavPage.Accounts,
+            Title = L10n.T("acc_manage")
         });
     }
 
@@ -673,6 +709,12 @@ public partial class MainWindowViewModel : ViewModelBase
             SaveLauncherConfig();
         }
 
+        if (CurrentPage == LauncherNavPage.Accounts && entry.Page != LauncherNavPage.Accounts)
+        {
+            try { _authCts?.Cancel(); } catch { /* already disposed */ }
+            ResetAuthUiState();
+        }
+
         if (CurrentPage == LauncherNavPage.ServerManager && entry.Page != LauncherNavPage.ServerManager)
         {
             CurrentEditInstanceVm?.RefreshServers();
@@ -702,6 +744,7 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsContentBrowserView));
         OnPropertyChanged(nameof(IsSettingsView));
         OnPropertyChanged(nameof(IsServerManagerView));
+        OnPropertyChanged(nameof(IsAccountsView));
         OnPropertyChanged(nameof(IsLaunchBarVisible));
 
         RebuildBreadcrumbs(entry);
@@ -723,6 +766,9 @@ public partial class MainWindowViewModel : ViewModelBase
                 break;
             case LauncherNavPage.Settings:
                 Services.DiscordPresenceService.SetInSettings();
+                break;
+            case LauncherNavPage.Accounts:
+                Services.DiscordPresenceService.SetCreatingAccount();
                 break;
             case LauncherNavPage.ServerManager:
                 if (entry.EditInstanceVm != null)
@@ -880,6 +926,15 @@ public partial class MainWindowViewModel : ViewModelBase
                     Title = L10n.T("nav_settings"),
                     IsLast = true,
                     OnClick = () => NavigateToSettings()
+                });
+                break;
+
+            case LauncherNavPage.Accounts:
+                Breadcrumbs.Add(new BreadcrumbItem
+                {
+                    Title = L10n.T("acc_manage"),
+                    IsLast = true,
+                    OnClick = () => NavigateToAccounts()
                 });
                 break;
 
@@ -1161,7 +1216,7 @@ public partial class MainWindowViewModel : ViewModelBase
     protected override void OnPropertyChanged(System.ComponentModel.PropertyChangedEventArgs e)
     {
         base.OnPropertyChanged(e);
-        if (e.PropertyName is "JvmArgs" or "RamMb" or "GameWidth" or "GameHeight" or "IsFullscreen" or "CustomJavaPath" or "SelectedJavaMode"
+        if (e.PropertyName is "JvmArgs" or "MinRamMb" or "RamMb" or "SelectedLaunchBehavior" or "GameWidth" or "GameHeight" or "IsFullscreen" or "CustomJavaPath" or "SelectedJavaMode"
             or "AutoManageJava" or "DiscordRpcEnabled" or "SelectedLanguage")
         {
             SaveLauncherConfig();
@@ -1177,7 +1232,9 @@ public partial class MainWindowViewModel : ViewModelBase
             var configData = new LauncherConfigData
             {
                 JvmArgs = JvmArgs,
+                MinRamMb = MinRamMb,
                 RamMb = RamMb,
+                LaunchBehavior = SelectedLaunchBehavior,
                 GameWidth = GameWidth,
                 GameHeight = GameHeight,
                 IsFullscreen = IsFullscreen,
@@ -1201,7 +1258,9 @@ public partial class MainWindowViewModel : ViewModelBase
     public LauncherConfigData GetLauncherConfigSnapshot() => new()
     {
         JvmArgs = JvmArgs,
+        MinRamMb = MinRamMb,
         RamMb = RamMb,
+        LaunchBehavior = SelectedLaunchBehavior,
         GameWidth = GameWidth,
         GameHeight = GameHeight,
         IsFullscreen = IsFullscreen,
@@ -1243,7 +1302,10 @@ public partial class MainWindowViewModel : ViewModelBase
                     }
 
                     if (!string.IsNullOrWhiteSpace(cfg.JvmArgs)) JvmArgs = cfg.JvmArgs;
+                    if (cfg.MinRamMb > 0) MinRamMb = cfg.MinRamMb;
                     if (cfg.RamMb > 0) RamMb = cfg.RamMb;
+                    if (!string.IsNullOrWhiteSpace(cfg.LaunchBehavior))
+                        SelectedLaunchBehavior = cfg.LaunchBehavior;
                     if (cfg.GameWidth > 0) GameWidth = cfg.GameWidth;
                     if (cfg.GameHeight > 0) GameHeight = cfg.GameHeight;
                     IsFullscreen = cfg.IsFullscreen;
@@ -1450,6 +1512,9 @@ public partial class MainWindowViewModel : ViewModelBase
             }
         }
     }
+
+    [RelayCommand]
+    private Task BrowseJavaPathAsync() => PickCustomJavaAsync();
 
     public async Task<bool> CheckCommandLineLaunchAsync(string[]? args)
     {
@@ -2225,22 +2290,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private void OpenAccountsDialog()
     {
-        RefreshState();
-        if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow != null)
-        {
-            var win = new Views.AccountsWindow { DataContext = this };
-            // Automatic sign-in cancellation: when the dialog closes - manually or
-            // together with the main window - any in-flight browser sign-in is cancelled
-            // and its state is hard-reset, unlocking the UI without reopening the dialog.
-            win.Closed += (_, _) =>
-            {
-                try { _authCts?.Cancel(); } catch { /* already disposed */ }
-                ResetAuthUiState();
-                Services.DiscordPresenceService.SetBrowsingProfiles();
-            };
-            Services.DiscordPresenceService.SetCreatingAccount();
-            win.ShowDialog(desktop.MainWindow);
-        }
+        NavigateToAccounts();
     }
 
     [RelayCommand]
@@ -2306,6 +2356,8 @@ public partial class MainWindowViewModel : ViewModelBase
         if (instance == null) return;
         if (instance.IsRunning || _launchingInstanceIds.Contains(instance.Id)) return;
 
+        if (instance.MinRamMb == null || instance.MinRamMb <= 0)
+            instance.MinRamMb = MinRamMb;
         instance.MaxMemoryMb = instance.RamMb ?? RamMb;
 
         _launchingInstanceIds.Add(instance.Id);
@@ -2325,6 +2377,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
             var process = await Task.Run(() => _launchService.LaunchAsync(instance, account));
             StatusText = string.Format(L10n.T("mw_status_launched"), instance.Name);
+            ApplyLaunchBehavior(process);
         }
         catch (HttpRequestException ex)
         {
@@ -2407,6 +2460,54 @@ public partial class MainWindowViewModel : ViewModelBase
         else
         {
             await LaunchGameAsync();
+        }
+    }
+
+    private void ApplyLaunchBehavior(Process? process)
+    {
+        if (Avalonia.Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop || desktop.MainWindow == null)
+            return;
+
+        var behavior = SelectedLaunchBehavior;
+        if (string.Equals(behavior, "Hide", StringComparison.OrdinalIgnoreCase))
+        {
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (desktop.MainWindow != null)
+                {
+                    desktop.MainWindow.WindowState = Avalonia.Controls.WindowState.Minimized;
+                }
+            });
+
+            if (process != null)
+            {
+                try
+                {
+                    process.EnableRaisingEvents = true;
+                    process.Exited += (_, _) =>
+                    {
+                        Dispatcher.UIThread.Post(() =>
+                        {
+                            if (desktop.MainWindow != null)
+                            {
+                                desktop.MainWindow.WindowState = Avalonia.Controls.WindowState.Normal;
+                                desktop.MainWindow.Activate();
+                            }
+                        });
+                    };
+                }
+                catch (Exception ex)
+                {
+                    LauncherLog.Error("Failed to hook Exited event for launch behavior restore", ex);
+                }
+            }
+        }
+        else if (string.Equals(behavior, "Close", StringComparison.OrdinalIgnoreCase))
+        {
+            Dispatcher.UIThread.Post(() =>
+            {
+                desktop.MainWindow?.Close();
+            });
         }
     }
 }

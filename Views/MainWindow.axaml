@@ -605,11 +605,17 @@
                     <!-- Modpacks View -->
                     <Grid IsVisible="{Binding IsModpacksView}" RowDefinitions="Auto,*" Margin="0,0,16,0" x:Name="ModpacksPane">
                         <Border Grid.Row="0" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="14" Margin="0,0,0,12">
-                            <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="8" VerticalAlignment="Center">
+                            <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="8" VerticalAlignment="Center">
                                 <TextBox Classes="darkInput" Text="{Binding ModpacksBrowser.SearchQuery}" PlaceholderText="{l10n:Tr Key=mp_search_hint}" FontSize="12" VerticalAlignment="Center">
                                     <TextBox.KeyBindings>
                                         <KeyBinding Gesture="Enter" Command="{Binding ModpacksBrowser.SearchCommand}"/>
                                     </TextBox.KeyBindings>
+                                    <TextBox.InnerRightContent>
+                                        <Button Command="{Binding ModpacksBrowser.ClearSearchCommand}"
+                                                IsVisible="{Binding ModpacksBrowser.SearchQuery, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}"
+                                                Background="Transparent" BorderThickness="0" Padding="8,0" Cursor="Hand" Content="✕"
+                                                Foreground="{StaticResource TextPlaceholderBrush}"/>
+                                    </TextBox.InnerRightContent>
                                 </TextBox>
                                 <ComboBox Grid.Column="1" MinWidth="112" ItemsSource="{Binding ModpacksBrowser.AvailableVersions}" SelectedItem="{Binding ModpacksBrowser.SelectedVersion}" FontSize="11" VerticalAlignment="Center">
                                     <ComboBox.ItemTemplate>
@@ -640,6 +646,9 @@
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
                                 <Button Grid.Column="5" Classes="primaryBtn" Content="{l10n:Tr Key=btn_search}" Command="{Binding ModpacksBrowser.SearchCommand}" Padding="14,7" FontSize="12" VerticalAlignment="Center"/>
+                                <Button Grid.Column="6" Classes="subBtn" Command="{Binding ModpacksBrowser.ResetFiltersCommand}" ToolTip.Tip="{l10n:Tr Key=cb_clear}" Padding="10,7" VerticalAlignment="Center">
+                                    <PathIcon Data="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" Width="13" Height="13" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </Button>
                             </Grid>
                         </Border>
                         <Border Grid.Row="1" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="8">
@@ -703,6 +712,11 @@
                     <!-- In-Window Server Manager View -->
                     <Panel IsVisible="{Binding IsServerManagerView}" Margin="0,0,16,0">
                         <views:ServerManagerView DataContext="{Binding CurrentServerManagerVm}"/>
+                    </Panel>
+
+                    <!-- In-Window Accounts View -->
+                    <Panel IsVisible="{Binding IsAccountsView}" Margin="0,0,16,0">
+                        <views:AccountsView DataContext="{Binding}"/>
                     </Panel>
                 </Grid>
 

@@ -1,0 +1,189 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:CustomMcLauncher.ViewModels"
+             xmlns:views="using:CustomMcLauncher.Views"
+             xmlns:conv="using:Avalonia.Data.Converters"
+             xmlns:l10n="using:CustomMcLauncher.Extensions"
+             x:Class="CustomMcLauncher.Views.AccountsView"
+             x:DataType="vm:MainWindowViewModel"
+             Background="{StaticResource BgBrush}">
+
+    <UserControl.Styles>
+        <Style Selector="TextBox.darkInput">
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="12,9"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+
+        <!-- Sign-in method buttons -->
+        <Style Selector="Button.methodBtn">
+            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderEditorBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="14,0"/>
+            <Setter Property="Height" Value="56"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        </Style>
+        <Style Selector="Button.methodBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
+        </Style>
+        <Style Selector="Button.methodBtn:disabled">
+            <Setter Property="Opacity" Value="0.5"/>
+        </Style>
+
+        <!-- Account row button -->
+        <Style Selector="Button.accRowBtn">
+            <Setter Property="Background" Value="{StaticResource CardBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="12,9"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.accRowBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource PanelBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
+        </Style>
+        <Style Selector="Button.accRowBtn.active">
+            <Setter Property="Background" Value="{StaticResource AccentDimBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBorderBrush}"/>
+        </Style>
+        <Style Selector="Button.accRowBtn.active:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource AccentDimBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBorderBrush}"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Border Background="{StaticResource CardAltBrush}" CornerRadius="12" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" ClipToBounds="True">
+        <Grid ColumnDefinitions="*,300" Margin="22,20">
+
+            <!-- LEFT: Account List -->
+            <Grid Grid.Column="0" RowDefinitions="Auto,*" Margin="0,0,20,0">
+                <StackPanel Grid.Row="0" Spacing="3" Margin="2,0,0,16">
+                    <TextBlock Text="{l10n:Tr Key=acc_manage}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                    <TextBlock Text="{l10n:Tr Key=acc_saved_hint}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                </StackPanel>
+
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Spacing="10" Margin="0,0,14,0">
+                        <ItemsControl ItemsSource="{Binding AccountRows}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:AccountRow">
+                                    <Button Classes="accRowBtn" Classes.active="{Binding IsActive}"
+                                            HorizontalAlignment="Stretch"
+                                            Margin="0,0,0,8"
+                                            Command="{Binding $parent[UserControl].((vm:MainWindowViewModel)DataContext).SwitchAccountCommand}"
+                                            CommandParameter="{Binding Model}">
+                                        <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
+                                            <!-- Skin head avatar -->
+                                            <Border Grid.Column="0" Width="40" Height="40" Background="{StaticResource IconChipBrush}" CornerRadius="8" ClipToBounds="True" Margin="0,0,12,0">
+                                                <Panel>
+                                                    <Image Source="{Binding HeadImage}" Stretch="UniformToFill" IsVisible="{Binding HasHead}" Width="40" Height="40"/>
+                                                    <TextBlock Text="{Binding Initial}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource AccentBrush}"
+                                                               HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding !HasHead}"/>
+                                                </Panel>
+                                            </Border>
+                                            <!-- Name + type -->
+                                            <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Username}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                                <Border Background="{StaticResource AccentSoftBrush}" CornerRadius="4" Padding="6,1" HorizontalAlignment="Left">
+                                                    <TextBlock Text="{Binding TypeDisplay}" FontSize="10" Foreground="{StaticResource AccentBrush}" FontWeight="Bold" VerticalAlignment="Center"/>
+                                                </Border>
+                                            </StackPanel>
+                                            <!-- Delete -->
+                                            <Button Grid.Column="2" Content="✕" Command="{Binding $parent[UserControl].((vm:MainWindowViewModel)DataContext).DeleteAccountCommand}" CommandParameter="{Binding Model}"
+                                                    Background="Transparent" Foreground="{StaticResource TextMutedBrush}" Padding="8,4" FontSize="12" Cursor="Hand" VerticalAlignment="Center" HorizontalAlignment="Right" ToolTip.Tip="{l10n:Tr Key=acc_remove}">
+                                                <Button.Styles>
+                                                    <Style Selector="Button:pointerover">
+                                                        <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
+                                                    </Style>
+                                                </Button.Styles>
+                                            </Button>
+                                        </Grid>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <TextBlock Text="{l10n:Tr Key=acc_empty}"
+                                   FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}" HorizontalAlignment="Center"
+                                   IsVisible="{Binding HasNoAccounts}" Padding="0,20"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+
+            <!-- RIGHT: Sign-in Methods -->
+            <Border Grid.Column="1" Background="{StaticResource SurfaceBrush}" CornerRadius="12"
+                    BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" Padding="18">
+                <Panel>
+                    <!-- Method buttons -->
+                    <StackPanel IsVisible="{Binding !IsOfflinePanelOpen}" Spacing="10">
+                        <TextBlock Text="{l10n:Tr Key=acc_add_header}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" LetterSpacing="1.2"
+                                   Margin="2,0,0,4"/>
+
+                        <Button Classes="methodBtn" Command="{Binding LoginMicrosoftCommand}">
+                            <StackPanel Orientation="Vertical" Spacing="2">
+                                <TextBlock Text="Microsoft" FontSize="13" FontWeight="Bold"/>
+                                <TextBlock Text="{l10n:Tr Key=acc_ms_hint}" FontSize="10" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Classes="methodBtn" Command="{Binding LoginElyByCommand}">
+                            <StackPanel Orientation="Vertical" Spacing="2">
+                                <TextBlock Text="Ely.by" FontSize="13" FontWeight="Bold"/>
+                                <TextBlock Text="{l10n:Tr Key=acc_ely_hint}" FontSize="10" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Classes="methodBtn" Command="{Binding ShowOfflinePanelCommand}">
+                            <StackPanel Orientation="Vertical" Spacing="2">
+                                <TextBlock Text="{l10n:Tr Key=acc_type_offline}" FontSize="13" FontWeight="Bold"/>
+                                <TextBlock Text="{l10n:Tr Key=acc_offline_hint}" FontSize="10" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Button>
+
+                        <TextBlock Text="{l10n:Tr Key=acc_browser_note}"
+                                   FontSize="10" Foreground="{StaticResource TextFaintBrush}" TextWrapping="Wrap" Margin="2,8,0,0"/>
+
+                        <!-- Sign-in error -->
+                        <Border Background="#33DC2626" BorderBrush="#66DC2626" BorderThickness="1" CornerRadius="8" Padding="10,8"
+                                IsVisible="{Binding AuthErrorText, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}">
+                            <TextBlock Text="{Binding AuthErrorText}" FontSize="11" Foreground="#FF7B7B" TextWrapping="Wrap"/>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Offline nickname form -->
+                    <StackPanel IsVisible="{Binding IsOfflinePanelOpen}" Spacing="12">
+                        <TextBlock Text="{l10n:Tr Key=acc_offline_badge}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" LetterSpacing="1.2" Margin="2,0,0,0"/>
+
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="{l10n:Tr Key=acc_nickname}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                            <TextBox Classes="darkInput" Text="{Binding NewOfflineUsername}" PlaceholderText="{l10n:Tr Key=placeholder_player}"/>
+                        </StackPanel>
+
+                        <Button Classes="methodBtn" Height="40" Background="{StaticResource AccentBrush}" Foreground="{StaticResource OnAccentBrush}"
+                                Command="{Binding AddOfflineAccountCommand}">
+                            <TextBlock Text="{l10n:Tr Key=acc_add_btn}" FontWeight="Bold" HorizontalAlignment="Center"/>
+                        </Button>
+
+                        <Button Classes="methodBtn" Height="40" Command="{Binding CancelOfflinePanelCommand}">
+                            <TextBlock Text="{l10n:Tr Key=btn_back}" HorizontalAlignment="Center"/>
+                        </Button>
+                    </StackPanel>
+                </Panel>
+            </Border>
+        </Grid>
+    </Border>
+</UserControl>

@@ -493,10 +493,24 @@ public partial class ContentBrowserViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private void ClearSearch()
+    {
+        SearchQuery = "";
+    }
+
+    [RelayCommand]
     private void ClearFilters()
+    {
+        ResetFilters();
+    }
+
+    [RelayCommand]
+    private void ResetFilters()
     {
         SearchQuery = "";
         foreach (var t in AvailableTags) t.IsSelected = false;
+        SelectedSort = ContentSortOption.Relevance;
+        SelectedSortDisplay = "Relevance";
         _ = ReloadAsync();
     }
 

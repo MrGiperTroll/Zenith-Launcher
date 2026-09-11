@@ -353,6 +353,23 @@ public class JavaModeDisplayConverter : IValueConverter
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
 }
 
+/// <summary>Localizes the Launch Behavior combo ("KeepOpen"/"Hide"/"Close").</summary>
+public class LaunchBehaviorDisplayConverter : IValueConverter
+{
+    public static readonly LaunchBehaviorDisplayConverter Instance = new();
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is not string s || string.IsNullOrWhiteSpace(s)) return "";
+        return s switch
+        {
+            "Hide" => L10n.T("lb_minimize"),
+            "Close" => L10n.T("lb_close"),
+            _ => L10n.T("lb_keep_open")
+        };
+    }
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
+}
+
 /// <summary>
 /// Localizes category slugs for display. The raw slug (adventure, magic, ...)
 /// stays canonical - it is what gets sent to the Modrinth API.

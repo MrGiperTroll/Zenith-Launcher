@@ -79,13 +79,26 @@ public static class ModrinthApiService
         var facets = new List<string[]>();
         if (!string.IsNullOrWhiteSpace(gameVersion))
             facets.Add(new[] { $"versions:{gameVersion}" });
-        foreach (var l in loaderFacets)
-            facets.Add(new[] { $"categories:{l}" });
+        if (loaderFacets.Count > 0)
+        {
+            var cleanLoaders = loaderFacets.Where(l => !string.IsNullOrWhiteSpace(l))
+                .Select(l => $"categories:{l.Trim().ToLowerInvariant()}")
+                .Distinct()
+                .ToArray();
+            if (cleanLoaders.Length > 0)
+                facets.Add(cleanLoaders);
+        }
         if (!string.IsNullOrWhiteSpace(projectType))
             facets.Add(new[] { $"project_type:{projectType}" });
-        foreach (var t in categoryTags)
-            if (!string.IsNullOrWhiteSpace(t))
-                facets.Add(new[] { $"categories:{t.Trim().ToLowerInvariant()}" });
+        if (categoryTags.Count > 0)
+        {
+            var cleanCats = categoryTags.Where(t => !string.IsNullOrWhiteSpace(t))
+                .Select(t => $"categories:{t.Trim().ToLowerInvariant()}")
+                .Distinct()
+                .ToArray();
+            if (cleanCats.Length > 0)
+                facets.Add(cleanCats);
+        }
 
         var url = $"{ApiBase}/search?limit={limit}&offset={offset}&index={Uri.EscapeDataString(sortIndex)}";
         if (!string.IsNullOrWhiteSpace(query))
@@ -122,6 +135,25 @@ public static class ModrinthApiService
                     ProjectType = GetString(hit, "project_type") ?? "mod"
                 });
             }
+        }
+
+        if (!string.IsNullOrWhiteSpace(query) && hits.Count > 1)
+        {
+            var trimmed = query.Trim();
+            hits.Sort((a, b) =>
+            {
+                bool aExact = string.Equals(a.Title, trimmed, StringComparison.OrdinalIgnoreCase) || string.Equals(a.Slug, trimmed, StringComparison.OrdinalIgnoreCase);
+                bool bExact = string.Equals(b.Title, trimmed, StringComparison.OrdinalIgnoreCase) || string.Equals(b.Slug, trimmed, StringComparison.OrdinalIgnoreCase);
+                if (aExact && !bExact) return -1;
+                if (!aExact && bExact) return 1;
+
+                bool aStarts = a.Title.StartsWith(trimmed, StringComparison.OrdinalIgnoreCase) || a.Slug.StartsWith(trimmed, StringComparison.OrdinalIgnoreCase);
+                bool bStarts = b.Title.StartsWith(trimmed, StringComparison.OrdinalIgnoreCase) || b.Slug.StartsWith(trimmed, StringComparison.OrdinalIgnoreCase);
+                if (aStarts && !bStarts) return -1;
+                if (!aStarts && bStarts) return 1;
+
+                return 0;
+            });
         }
 
         var total = GetInt(root, "total_hits");

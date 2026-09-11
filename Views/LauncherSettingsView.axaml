@@ -1,4 +1,4 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:CustomMcLauncher.ViewModels"
              xmlns:l10n="using:CustomMcLauncher.Extensions"
@@ -112,15 +112,35 @@
                     <StackPanel Spacing="16" IsVisible="{Binding IsSettingsTabGame}">
                         <TextBlock Text="{l10n:Tr set_game}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,4"/>
 
-                        <!-- Memory -->
+                        <!-- Min RAM (-Xms) -->
                         <StackPanel Spacing="2" IsVisible="{Binding IsSearchMemoryVisible}">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <TextBlock Text="{l10n:Tr set_memory}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                <TextBlock Text="{l10n:Tr set_min_memory}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                <Border Background="{StaticResource AccentSoftBrush}" CornerRadius="4" Padding="8,2">
+                                    <TextBlock Text="{Binding MinRamMb, StringFormat='{}{0} MB'}" FontSize="11" Foreground="{StaticResource AccentBrush}" FontWeight="Bold"/>
+                                </Border>
+                            </StackPanel>
+                            <TextBlock Text="{l10n:Tr set_min_memory_hint}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                            <Slider Minimum="512" Maximum="{Binding MaxRamMb}" Value="{Binding MinRamMb}" TickFrequency="512" IsSnapToTickEnabled="True" Margin="0,2,0,0"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="512 MB" FontSize="10" Foreground="{StaticResource TextCaptionBrush}"/>
+                                <TextBlock Grid.Column="1" Text="{Binding MaxRamMb, StringFormat='{}{0} MB'}" FontSize="10" Foreground="{StaticResource TextCaptionBrush}" HorizontalAlignment="Right"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Max RAM (-Xmx) -->
+                        <StackPanel Spacing="2" IsVisible="{Binding IsSearchMemoryVisible}">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="{l10n:Tr set_max_memory}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
                                 <Border Background="{StaticResource AccentSoftBrush}" CornerRadius="4" Padding="8,2">
                                     <TextBlock Text="{Binding RamMb, StringFormat='{}{0} MB'}" FontSize="11" Foreground="{StaticResource AccentBrush}" FontWeight="Bold"/>
                                 </Border>
                             </StackPanel>
-                            <TextBlock Text="{l10n:Tr set_memory_hint}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                            <TextBlock Text="{l10n:Tr set_max_memory_hint}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
                             <Slider Minimum="1024" Maximum="{Binding MaxRamMb}" Value="{Binding RamMb}" TickFrequency="512" IsSnapToTickEnabled="True" Margin="0,2,0,0"/>
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -132,7 +152,7 @@
                             </Grid>
                         </StackPanel>
 
-                        <!-- Resolution -->
+                        <!-- Resolution & Fullscreen -->
                         <StackPanel Spacing="6" IsVisible="{Binding IsSearchResolutionVisible}">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <TextBlock Text="{l10n:Tr set_resolution}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
@@ -146,14 +166,7 @@
                                 <TextBlock Grid.Column="4" Text="H" FontSize="12" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
                                 <CheckBox Grid.Column="5" IsChecked="{Binding IsLockAspectRatio}" Content="{l10n:Tr Key=lock_ratio}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="10,0,0,0"/>
                             </Grid>
-                        </StackPanel>
-
-                        <!-- Fullscreen -->
-                        <StackPanel Spacing="4" IsVisible="{Binding IsSearchFullscreenVisible}" Margin="0,8,0,0">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <CheckBox Content="{l10n:Tr set_fullscreen}" IsChecked="{Binding IsFullscreen}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"/>
-                            </StackPanel>
-                            <TextBlock Text="{l10n:Tr set_fullscreen_hint}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                            <CheckBox Content="{l10n:Tr set_fullscreen}" IsChecked="{Binding IsFullscreen}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" FontWeight="SemiBold" Margin="0,4,0,0"/>
                         </StackPanel>
 
                         <!-- Java Runtime -->
@@ -178,6 +191,11 @@
                                         HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                         ToolTip.Tip="{l10n:Tr Key=java_plus_tip}"
                                         Command="{Binding OpenJavaInstallerCommand}"/>
+                                <Button Classes="subBtn" Content="{l10n:Tr Key=btn_browse}"
+                                        Command="{Binding BrowseJavaPathCommand}"
+                                        Height="30" Padding="12,0" FontSize="11"
+                                        VerticalAlignment="Center"
+                                        ToolTip.Tip="{l10n:Tr Key=custom_java_hint}"/>
                                 <TextBlock Text="{Binding CurrentJavaDisplay}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                             </StackPanel>
                             <TextBox Classes="darkInput"
@@ -186,8 +204,34 @@
                                      FontSize="11" Padding="8,5"
                                      IsReadOnly="True"
                                      IsVisible="{Binding !IsCustomJavaMode}"/>
-                            <TextBox Classes="darkInput" Text="{Binding CustomJavaPath}" PlaceholderText="{l10n:Tr Key=custom_java_hint}" FontSize="11" Padding="8,5"
-                                     IsVisible="{Binding IsCustomJavaMode}"/>
+                            <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding IsCustomJavaMode}">
+                                <TextBox Grid.Column="0" Classes="darkInput" Text="{Binding CustomJavaPath}" PlaceholderText="{l10n:Tr Key=custom_java_hint}" FontSize="11" Padding="8,5"/>
+                                <Button Grid.Column="1" Classes="subBtn" Content="{l10n:Tr Key=btn_browse}" Command="{Binding BrowseJavaPathCommand}" Margin="6,0,0,0" Padding="12,0" Height="30" FontSize="11" VerticalAlignment="Center"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- JVM Arguments -->
+                        <StackPanel Spacing="6" IsVisible="{Binding IsSearchJvmArgsVisible}">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="{l10n:Tr set_jvmargs}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            </StackPanel>
+                            <TextBlock Text="{l10n:Tr set_jvmargs_hint}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                            <TextBox Classes="darkInput" Text="{Binding JvmArgs}" PlaceholderText="{l10n:Tr Key=ph_custom_jvm}" Padding="8,6" FontSize="11" AcceptsReturn="True" Height="54" TextWrapping="Wrap"/>
+                        </StackPanel>
+
+                        <!-- Launcher Behavior on Game Start -->
+                        <StackPanel Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="{l10n:Tr set_launch_behavior}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            </StackPanel>
+                            <TextBlock Text="{l10n:Tr set_launch_behavior_hint}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                            <ComboBox ItemsSource="{Binding LaunchBehaviors}" SelectedItem="{Binding SelectedLaunchBehavior}" HorizontalAlignment="Stretch">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Converter={x:Static vm:LaunchBehaviorDisplayConverter.Instance}}"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
                         </StackPanel>
                     </StackPanel>
 
@@ -221,14 +265,6 @@
                                 <CheckBox Content="{l10n:Tr vf_alphas}" IsChecked="{Binding ShowAlphas}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12"/>
                             </WrapPanel>
                             <CheckBox Content="{l10n:Tr vf_flatlist}" IsChecked="{Binding UseFlatVersionList}" Margin="0,2,0,0" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12"/>
-                        </StackPanel>
-
-                        <StackPanel Spacing="6" IsVisible="{Binding IsSearchJvmArgsVisible}">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <TextBlock Text="{l10n:Tr set_jvmargs}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                            </StackPanel>
-                            <TextBlock Text="{l10n:Tr set_jvmargs_hint}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
-                            <TextBox Classes="darkInput" Text="{Binding JvmArgs}" PlaceholderText="-XX:+UseG1GC ..." Padding="8,6" FontSize="11" AcceptsReturn="True" Height="54" TextWrapping="Wrap"/>
                         </StackPanel>
 
                         <StackPanel Spacing="6" IsVisible="{Binding IsSearchLanguageVisible}">

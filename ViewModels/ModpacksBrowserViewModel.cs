@@ -429,6 +429,23 @@ public partial class ModpacksBrowserViewModel : ObservableObject
         string.IsNullOrWhiteSpace(SelectedLoader) ? Array.Empty<string>() : new[] { SelectedLoader.Trim().ToLowerInvariant() };
 
     [RelayCommand]
+    public void ClearSearch()
+    {
+        SearchQuery = "";
+    }
+
+    [RelayCommand]
+    public void ResetFilters()
+    {
+        SearchQuery = "";
+        SelectedVersion = "";
+        SelectedCategory = "";
+        SelectedLoader = "";
+        SelectedSort = "Relevance";
+        _ = ReloadAsync();
+    }
+
+    [RelayCommand]
     public Task Search()
     {
         _searchCts?.Cancel();

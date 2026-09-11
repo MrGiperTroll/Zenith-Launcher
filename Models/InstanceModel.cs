@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Text.Json.Serialization;
 using Avalonia.Media.Imaging;
@@ -28,6 +28,7 @@ public partial class InstanceModel : ObservableObject
     [ObservableProperty] private string? _javaMode;
     [ObservableProperty] private string? _customJavaPath;
     [ObservableProperty] private string? _jvmArgs;
+    [ObservableProperty] private int? _minRamMb;
     [ObservableProperty] private int? _ramMb;
 
     // Logs tab display preferences

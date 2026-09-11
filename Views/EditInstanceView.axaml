@@ -1,4 +1,4 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:CustomMcLauncher.ViewModels"
         xmlns:models="using:CustomMcLauncher.Models"
@@ -146,6 +146,15 @@
                     <StackPanel Spacing="2">
                         <TextBlock Text="{l10n:Tr Key=ei_menu}" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextCaptionBrush}" LetterSpacing="1" Margin="10,6,10,8" HorizontalAlignment="Left"/>
 
+                        <Button Classes="sideTab" Command="{Binding SelectTabCommand}" CommandParameter="Overview">
+                            <Grid ColumnDefinitions="Auto,*">
+                                <Border Width="30" Height="30" Background="{StaticResource IconChipBrush}" CornerRadius="7" VerticalAlignment="Center">
+                                    <PathIcon Data="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" Width="15" Height="15" Foreground="{Binding IsOverviewTab, Converter={x:Static vm:EditInstanceWindowConverters.ActiveIcon}}"/>
+                                </Border>
+                                <TextBlock Grid.Column="1" Text="{l10n:Tr Key=tab_overview}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsOverviewTab, Converter={x:Static vm:EditInstanceWindowConverters.ActiveText}}"/>
+                            </Grid>
+                        </Button>
+
                         <Button Classes="sideTab" Command="{Binding SelectTabCommand}" CommandParameter="Logs">
                             <Button.Styles>
                                 <Style Selector="Button.sideTab.active">
@@ -233,6 +242,149 @@
             <!-- Content -->
             <Border Grid.Column="1" Background="{StaticResource LogSidebarBrush}">
                 <Grid>
+                <!-- Overview / Dashboard -->
+                <ScrollViewer IsVisible="{Binding IsOverviewTab}" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Spacing="16" Margin="24,20,24,24">
+                        <!-- Instance Hero Card -->
+                        <Border Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1" CornerRadius="10" Padding="20">
+                            <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
+                                <!-- Instance Icon -->
+                                <Border Width="64" Height="64" CornerRadius="10" ClipToBounds="True" Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1">
+                                    <Panel>
+                                        <Image Source="{Binding Instance.IconBitmap}" Stretch="UniformToFill" IsVisible="{Binding Instance.HasCustomIcon}"/>
+                                        <PathIcon Data="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4Z"
+                                                  Width="32" Height="32" Foreground="{StaticResource TextMutedBrush}"
+                                                  HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                  IsVisible="{Binding !Instance.HasCustomIcon}"/>
+                                    </Panel>
+                                </Border>
+
+                                <!-- Instance Details -->
+                                <StackPanel Grid.Column="1" Margin="16,0,0,0" VerticalAlignment="Center" Spacing="6">
+                                    <TextBlock Text="{Binding Instance.Name}" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <Border Background="{StaticResource PanelBrush}" CornerRadius="4" Padding="8,3">
+                                            <TextBlock Text="{Binding Instance.DisplayVersion}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                        </Border>
+                                        <Border Background="{StaticResource AccentDimBrush}" CornerRadius="4" Padding="8,3" IsVisible="{Binding Instance.LoaderType, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}">
+                                            <TextBlock Text="{Binding Instance.LoaderType}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource AccentBrush}"/>
+                                        </Border>
+                                        <Border Background="{StaticResource RowHoverBrush}" CornerRadius="4" Padding="8,3" IsVisible="{Binding Instance.IsRunning}">
+                                            <TextBlock Text="Running" FontSize="11" FontWeight="Bold" Foreground="{StaticResource SuccessBrush}"/>
+                                        </Border>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- Launch Button in Hero -->
+                                <Button Grid.Column="2" Classes="primaryBtn" Command="{Binding LaunchCommand}" IsEnabled="{Binding CanLaunch}" Padding="20,10" VerticalAlignment="Center">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <PathIcon Data="M8 5v14l11-7z" Width="14" Height="14" Foreground="{StaticResource OnAccentBrush}"/>
+                                        <TextBlock Text="{l10n:Tr Key=btn_launch}" FontWeight="Bold" FontSize="13"/>
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+                        </Border>
+
+                        <!-- Statistics Section -->
+                        <TextBlock Text="{l10n:Tr Key=tab_overview}" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,4,0,0"/>
+                        <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
+                            <!-- Playtime -->
+                            <Border Grid.Column="0" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1" CornerRadius="8" Padding="16,14">
+                                <StackPanel Spacing="6">
+                                    <TextBlock Text="{l10n:Tr Key=stat_playtime}" FontSize="11" Foreground="{StaticResource TextCaptionBrush}" FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding Instance.PlaytimeDisplay}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentBrush}"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Last Played -->
+                            <Border Grid.Column="1" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1" CornerRadius="8" Padding="16,14">
+                                <StackPanel Spacing="6">
+                                    <TextBlock Text="{l10n:Tr Key=stat_last_played}" FontSize="11" Foreground="{StaticResource TextCaptionBrush}" FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding Instance.LastPlayedDisplay}" FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Created At -->
+                            <Border Grid.Column="2" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1" CornerRadius="8" Padding="16,14">
+                                <StackPanel Spacing="6">
+                                    <TextBlock Text="{l10n:Tr Key=stat_created}" FontSize="11" Foreground="{StaticResource TextCaptionBrush}" FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding Instance.CreatedAtDisplay}" FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <!-- Quick Actions Section -->
+                        <TextBlock Text="{l10n:Tr Key=quick_actions}" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,8,0,0"/>
+                        <WrapPanel Orientation="Horizontal">
+                            <WrapPanel.Styles>
+                                <Style Selector="Button.quickActionBtn">
+                                    <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+                                    <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+                                    <Setter Property="BorderBrush" Value="{StaticResource BorderEditorBrush}"/>
+                                    <Setter Property="BorderThickness" Value="1"/>
+                                    <Setter Property="CornerRadius" Value="8"/>
+                                    <Setter Property="Padding" Value="14,10"/>
+                                    <Setter Property="Margin" Value="0,0,10,10"/>
+                                    <Setter Property="Cursor" Value="Hand"/>
+                                </Style>
+                                <Style Selector="Button.quickActionBtn:pointerover">
+                                    <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+                                    <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
+                                </Style>
+                            </WrapPanel.Styles>
+
+                            <Button Classes="quickActionBtn" Command="{Binding OpenInstanceFolderCommand}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <PathIcon Data="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="14" Height="14" Foreground="{StaticResource AccentBrush}"/>
+                                    <TextBlock Text="{l10n:Tr Key=btn_open_folder}" FontSize="12" FontWeight="SemiBold"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button Classes="quickActionBtn" Command="{Binding ManageModsCommand}" IsVisible="{Binding HasModsSupport}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <PathIcon Data="M20.8 22H3.2C2.54 22 2 21.46 2 20.8V3.2C2 2.54 2.54 2 3.2 2H20.8C21.46 2 22 2.54 22 3.2V20.8C22 21.46 21.46 22 20.8 22ZM7 4H4V17H7V4ZM10 4V20H14V4H10ZM17 4V12H20V4H17Z" Width="14" Height="14" Foreground="{StaticResource AccentBrush}"/>
+                                    <TextBlock Text="{l10n:Tr Key=btn_manage_mods}" FontSize="12" FontWeight="SemiBold"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button Classes="quickActionBtn" Command="{Binding OpenSettingsCommand}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <PathIcon Data="M19.14 12.94C19.18 12.64 19.2 12.33 19.2 12C19.2 11.68 19.18 11.36 19.13 11.06L21.16 9.5C21.34 9.36 21.39 9.11 21.28 8.9L19.36 5.55C19.24 5.33 18.99 5.25 18.77 5.33L16.38 6.29C15.88 5.9 15.34 5.58 14.76 5.35L14.4 2.81C14.36 2.57 14.16 2.4 13.91 2.4H10.09C9.84 2.4 9.64 2.57 9.6 2.81L9.24 5.35C8.66 5.58 8.12 5.9 7.62 6.29L5.23 5.33C5.01 5.25 4.76 5.33 4.64 5.55L2.72 8.9C2.61 9.11 2.66 9.37 2.84 9.5L4.87 11.06C4.82 11.36 4.8 11.68 4.8 12C4.8 12.32 4.82 12.64 4.87 12.94L2.84 14.5C2.66 14.64 2.61 14.88 2.72 15.1L4.64 18.45C4.76 18.67 5.01 18.75 5.23 18.67L7.62 17.71C8.12 18.1 8.66 18.42 9.24 18.65L9.6 21.19C9.64 21.43 9.84 21.6 10.09 21.6H13.91C14.16 21.6 14.36 21.43 14.4 21.19L14.76 18.65C15.34 18.42 15.88 18.1 16.38 17.71L18.77 18.67C18.99 18.75 19.24 18.67 19.36 18.45L21.28 15.1C21.39 14.89 21.34 14.64 21.16 14.5L19.13 12.94ZM12 15.5C10.1 15.5 8.5 13.9 8.5 12C8.5 10.1 10.1 8.5 12 8.5C13.9 8.5 15.5 10.1 15.5 12C15.5 13.9 13.9 15.5 12 15.5Z" Width="14" Height="14" Foreground="{StaticResource AccentBrush}"/>
+                                    <TextBlock Text="{l10n:Tr Key=set_general}" FontSize="12" FontWeight="SemiBold"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button Classes="quickActionBtn" Command="{Binding OpenLogsCommand}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <PathIcon Data="M20 19V7H4V19H20M20 3C21.1 3 22 3.9 22 5V19C22 20.1 21.1 21 20 21H4C2.9 21 2 20.1 2 19V5C2 3.9 2.9 3 4 3H20M13 13H17V15H13M13 9H17V11H13M13 17H17V19H13M7 13H11V15H7V17M7 9H11V11H7V13Z" Width="14" Height="14" Foreground="{StaticResource AccentBrush}"/>
+                                    <TextBlock Text="{l10n:Tr Key=tab_logs}" FontSize="12" FontWeight="SemiBold"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button Classes="quickActionBtn" Command="{Binding ExportCurseForgeCommand}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <PathIcon Data="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" Width="14" Height="14" Foreground="{StaticResource AccentBrush}"/>
+                                    <TextBlock Text="CurseForge" FontSize="12" FontWeight="SemiBold"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button Classes="quickActionBtn" Command="{Binding ExportModrinthCommand}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <PathIcon Data="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" Width="14" Height="14" Foreground="{StaticResource AccentBrush}"/>
+                                    <TextBlock Text="Modrinth (.mrpack)" FontSize="12" FontWeight="SemiBold"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button Classes="quickActionBtn" Command="{Binding ExportPrismCommand}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <PathIcon Data="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" Width="14" Height="14" Foreground="{StaticResource AccentBrush}"/>
+                                    <TextBlock Text="Prism / Zip" FontSize="12" FontWeight="SemiBold"/>
+                                </StackPanel>
+                            </Button>
+                        </WrapPanel>
+                    </StackPanel>
+                </ScrollViewer>
+
                 <!-- Logs -->
                 <Grid IsVisible="{Binding IsLogsTab}" RowDefinitions="Auto,*,Auto" Margin="4">
                     <!-- Log view options (Prism-style) -->
@@ -478,6 +630,15 @@
                             <TextBlock Text="{l10n:Tr Key=ei_jvm_hint}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
                             <TextBlock Text="{l10n:Tr Key=ei_inherited_generic}" FontSize="10" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding IsJvmArgsInherited}"/>
                             <TextBox Classes="darkInput" Text="{Binding JvmArgs}" PlaceholderText="-XX:+UseG1GC ..." Padding="8,6" FontSize="11" AcceptsReturn="True" Height="60" TextWrapping="Wrap"/>
+                            <Border Background="{StaticResource DangerBgBrush}" BorderBrush="{StaticResource DangerBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,6,0,0" IsVisible="{Binding HasJvmArgsWarning}">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="{l10n:Tr Key=jvm_warn_title}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource DangerBrush}"/>
+                                        <TextBlock Text="{Binding JvmArgsWarningMessage}" FontSize="11" Foreground="{StaticResource DangerLightBrush}" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                    <Button Grid.Column="1" Classes="dangerBtn" Content="{l10n:Tr Key=btn_clean_jvm_flags}" Command="{Binding CleanIncompatibleJvmArgsCommand}" FontSize="11" Padding="12,6" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                                </Grid>
+                            </Border>
                         </StackPanel>
 
                         <TextBlock Text="{l10n:Tr Key=ei_autosave_note}" FontSize="11" Foreground="{StaticResource TextCaptionBrush}"/>

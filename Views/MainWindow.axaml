@@ -449,7 +449,8 @@
                                                 BorderBrush="{Binding IsSelected, Converter={StaticResource BoolToBorderBrushConverter}}"
                                                 BorderThickness="1.5"
                                                 Tag="{Binding}" Cursor="Hand"
-                                                Tapped="OnInstanceCardTapped">
+                                                Tapped="OnInstanceCardTapped"
+                                                DoubleTapped="OnInstanceCardDoubleTapped">
                                             <Border.ContextMenu>
                                                 <ContextMenu Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderStrongBrush}">
                                                     <MenuItem Header="{l10n:Tr Key=mi_launch}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).LaunchSpecificInstanceCommand}" CommandParameter="{Binding}" FontWeight="Bold"/>
@@ -717,6 +718,11 @@
                     <!-- In-Window Accounts View -->
                     <Panel IsVisible="{Binding IsAccountsView}" Margin="0,0,16,0">
                         <views:AccountsView DataContext="{Binding}"/>
+                    </Panel>
+
+                    <!-- In-Window Create Profile View -->
+                    <Panel IsVisible="{Binding IsCreateProfileView}" Margin="0,0,16,0">
+                        <views:CreateProfileView DataContext="{Binding CreateProfileVm}"/>
                     </Panel>
                 </Grid>
 

@@ -205,6 +205,15 @@ public partial class MainWindow : Window
         if (sender is Control { DataContext: Models.InstanceModel instance } && DataContext is MainWindowViewModel vm)
             vm.SelectInstanceCommand.Execute(instance);
     }
+
+    private void OnInstanceCardDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        if (sender is Control { DataContext: Models.InstanceModel instance } && DataContext is MainWindowViewModel vm)
+        {
+            vm.SelectInstanceCommand.Execute(instance);
+            vm.NavigateToEditInstance(instance, "Overview");
+        }
+    }
 }
 
 public class BoolToBorderBrushConverter : IValueConverter

@@ -40,13 +40,14 @@ public partial class InstanceModel : ObservableObject
     // Playtime tracking
     [ObservableProperty] private long _playtimeSeconds;
     [ObservableProperty] private DateTime? _lastPlayed;
+    [ObservableProperty] private DateTime? _createdAt;
 
     [JsonIgnore]
     public string PlaytimeDisplay
     {
         get
         {
-            if (PlaytimeSeconds <= 0) return "Not played yet";
+            if (PlaytimeSeconds <= 0) return Services.L10n.T("stat_not_played");
             var t = TimeSpan.FromSeconds(PlaytimeSeconds);
             if (t.TotalHours >= 1) return $"{(int)t.TotalHours}h {t.Minutes}m";
             if (t.TotalMinutes >= 1) return $"{(int)t.TotalMinutes}m {t.Seconds}s";
@@ -56,7 +57,13 @@ public partial class InstanceModel : ObservableObject
 
     [JsonIgnore]
     public string LastPlayedDisplay =>
-        LastPlayed.HasValue ? LastPlayed.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm") : "Never";
+        LastPlayed.HasValue ? LastPlayed.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm") : Services.L10n.T("stat_never");
+
+    [JsonIgnore]
+    public string CreatedAtDisplay =>
+        CreatedAt.HasValue
+            ? CreatedAt.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+            : (System.IO.Directory.Exists(Path) ? System.IO.Directory.GetCreationTime(Path).ToString("dd.MM.yyyy HH:mm") : "—");
 
     [JsonIgnore]
     [ObservableProperty]
@@ -81,6 +88,17 @@ public partial class InstanceModel : ObservableObject
             return null;
         }
     }
+
+    [JsonIgnore]
+    public bool HasCustomIcon => !string.IsNullOrEmpty(IconPath) && File.Exists(IconPath);
+
+    public void RefreshTimeDisplays()
+    {
+        OnPropertyChanged(nameof(PlaytimeDisplay));
+        OnPropertyChanged(nameof(LastPlayedDisplay));
+        OnPropertyChanged(nameof(CreatedAtDisplay));
+    }
+
 
     [JsonIgnore]
     [ObservableProperty]

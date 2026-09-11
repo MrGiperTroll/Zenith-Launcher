@@ -1,0 +1,309 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:CustomMcLauncher.ViewModels"
+             xmlns:conv="using:Avalonia.Data.Converters"
+             xmlns:l10n="using:CustomMcLauncher.Extensions"
+             x:Class="CustomMcLauncher.Views.CreateProfileView"
+             x:DataType="vm:CreateProfileViewModel"
+             Background="{StaticResource BgBrush}">
+
+    <UserControl.Styles>
+        <Style Selector="TextBox.darkInput">
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="12,10"/>
+        </Style>
+        <Style Selector="ComboBox">
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="12,8"/>
+        </Style>
+        <Style Selector="Button.primaryBtn">
+            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="18,12"/>
+        </Style>
+        <Style Selector="Button.primaryBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource AccentBrushHover}"/>
+            <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
+        </Style>
+        <Style Selector="Button.primaryBtn:disabled">
+            <Setter Property="Background" Value="{StaticResource PanelBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextDisabledBrush}"/>
+        </Style>
+        <Style Selector="Button.subBtn">
+            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderEditorBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="18,12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.subBtn:pointerover">
+            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        </Style>
+        <Style Selector="Button.stepBtn">
+            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderEditorBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="Button.stepBtn:pointerover">
+            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        </Style>
+        <!-- Icon card: no hover/focus vignette -->
+        <Style Selector="Border.iconCard">
+            <Setter Property="Background" Value="{StaticResource CardBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderIconBrush}"/>
+        </Style>
+        <Style Selector="Border.iconCard:pointerover">
+            <Setter Property="Background" Value="{StaticResource CardBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderIconBrush}"/>
+        </Style>
+        <Style Selector="Button.subBtn:focus">
+            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderEditorBrush}"/>
+        </Style>
+        <Style Selector="Button.subBtn:focus /template/ ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderEditorBrush}"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Border Background="{StaticResource CardAltBrush}" CornerRadius="10" ClipToBounds="True">
+        <Grid ColumnDefinitions="200,*">
+            <!-- Left Vertical Stepper -->
+            <Border Grid.Column="0" Background="{StaticResource SurfaceBrush}" Padding="20,24" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,1,0">
+                <StackPanel Spacing="0">
+                    <TextBlock Text="{l10n:Tr Key=cp_title}" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                    <TextBlock Text="{Binding StepTitle}" FontSize="11" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,20"/>
+                    <!-- Step 1 -->
+                    <Grid ColumnDefinitions="Auto,*" Margin="0,0,0,4">
+                        <Border Width="28" Height="28" CornerRadius="14" VerticalAlignment="Top" Background="{Binding IsStep1, Converter={x:Static vm:StepToBrushConverter.Instance}}" BorderBrush="{Binding IsStep1, Converter={x:Static vm:StepToBrushConverter.Instance}}" BorderThickness="1">
+                            <TextBlock Text="1" FontSize="12" FontWeight="Bold" Foreground="{Binding IsStep1, Converter={x:Static vm:StepToForegroundConverter.Instance}}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Grid.Column="1" Text="{l10n:Tr Key=cp_step_info}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsStep1, Converter={x:Static vm:StepToTextBrushConverter.Instance}}"/>
+                    </Grid>
+                    <Border Height="18" Width="1" Background="{StaticResource BorderStrongBrush}" Margin="14,0,0,4" HorizontalAlignment="Left"/>
+                    <!-- Step 2 -->
+                    <Grid ColumnDefinitions="Auto,*">
+                        <Border Width="28" Height="28" CornerRadius="14" VerticalAlignment="Top" Background="{Binding IsStep2, Converter={x:Static vm:StepToBrushConverter.Instance}}" BorderBrush="{Binding IsStep2, Converter={x:Static vm:StepToBrushConverter.Instance}}" BorderThickness="1">
+                            <TextBlock Text="2" FontSize="12" FontWeight="Bold" Foreground="{Binding IsStep2, Converter={x:Static vm:StepToForegroundConverter.Instance}}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Grid.Column="1" Text="{l10n:Tr Key=cp_step_version}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsStep2, Converter={x:Static vm:StepToTextBrushConverter.Instance}}"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Right Content -->
+            <Grid Grid.Column="1" RowDefinitions="*,Auto">
+                <Border Grid.Row="0" Padding="24,20" Background="Transparent">
+                    <StackPanel>
+                        <!-- Step 1: Information -->
+                        <StackPanel IsVisible="{Binding IsStep1}" Spacing="18" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="540" Width="500">
+                            <TextBlock Text="{l10n:Tr Key=cp_panel_info}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="24">
+                                <StackPanel Grid.Column="0" Spacing="8">
+                                    <Border Width="104" Height="104" Classes="iconCard" BorderThickness="1" CornerRadius="16" ClipToBounds="True" HorizontalAlignment="Center">
+                                        <Panel>
+                                            <Image Source="{Binding IconPreview}" Stretch="UniformToFill" Width="102" Height="102" IsVisible="{Binding IconPreview, Converter={x:Static conv:ObjectConverters.IsNotNull}}"/>
+                                            <Path Data="{StaticResource ZenithLogoGeometry}" Fill="{StaticResource AccentBrush}" Stretch="Uniform" Width="52" Height="52" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding IconPreview, Converter={x:Static conv:ObjectConverters.IsNull}}"/>
+                                        </Panel>
+                                    </Border>
+                                    <Button Content="{l10n:Tr Key=cp_upload_icon}" Command="{Binding PickCustomIconCommand}" Classes="subBtn" Padding="10,6" FontSize="11" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                                    <Button Content="{l10n:Tr Key=btn_reset}" Command="{Binding ResetIconCommand}" Classes="subBtn" Padding="10,6" FontSize="11" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Top">
+                                    <TextBlock Text="{l10n:Tr Key=cp_name_label}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" LetterSpacing="0.5"/>
+                                    <Border BorderThickness="1" CornerRadius="10" Background="Transparent" BorderBrush="{Binding IsNameDuplicate, Converter={x:Static vm:BoolToErrorBrushConverter.Instance}}">
+                                        <TextBox Classes="darkInput" Text="{Binding ProfileName}" PlaceholderText="{l10n:Tr Key=ph_profile_name}" FontSize="14" Padding="14,12" BorderThickness="0"/>
+                                    </Border>
+                                    <TextBlock Text="{l10n:Tr Key=cp_name_hint2}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap" Margin="2,2,0,0"/>
+                                    <Border Height="14">
+                                        <TextBlock Text="{l10n:Tr Key=cp_duplicate}" FontSize="11" Foreground="{StaticResource DangerBrush}" IsVisible="{Binding IsNameDuplicate}"/>
+                                    </Border>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Step 2: Game Version -->
+                        <StackPanel IsVisible="{Binding IsStep2}" Spacing="12" VerticalAlignment="Stretch">
+                            <TextBlock Text="{l10n:Tr Key=cp_panel_version}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <!-- Loader / loader-version / search filter panel in a single row -->
+                            <Border Background="{StaticResource SurfaceBrush}" CornerRadius="10" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" Padding="8">
+                                <Grid ColumnDefinitions="140,Auto,*,Auto" ColumnSpacing="8" VerticalAlignment="Center">
+                                    <ComboBox ItemsSource="{Binding AvailableLoaders}" SelectedItem="{Binding SelectedLoader}" HorizontalAlignment="Stretch" VerticalAlignment="Center" FontSize="11">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                                    <Panel Width="16" Height="16" VerticalAlignment="Center">
+                                                        <!-- Official logo; vector fallback underneath -->
+                                                        <Path Data="{Binding Converter={x:Static vm:LoaderLogoGeometryConverter.Instance}}" Fill="{Binding Converter={x:Static vm:LoaderLogoBrushConverter.Instance}}" Stretch="Uniform" Width="16" Height="16"
+                                                              IsVisible="{Binding Converter={x:Static vm:LoaderOfficialIconMissingConverter.Instance}}"/>
+                                                        <Path Data="{Binding Converter={x:Static vm:LoaderLogoGeometryConverter.Instance}, ConverterParameter=2}" Fill="{Binding Converter={x:Static vm:LoaderLogoBrushConverter.Instance}, ConverterParameter=2}" Stretch="Uniform" Width="16" Height="16"
+                                                              IsVisible="{Binding Converter={x:Static vm:LoaderOfficialIconMissingConverter.Instance}}"/>
+                                                        <Path Data="{Binding Converter={x:Static vm:LoaderLogoGeometryConverter.Instance}, ConverterParameter=3}" Fill="{Binding Converter={x:Static vm:LoaderLogoBrushConverter.Instance}, ConverterParameter=3}" Stretch="Uniform" Width="16" Height="16"
+                                                              IsVisible="{Binding Converter={x:Static vm:LoaderOfficialIconMissingConverter.Instance}}"/>
+                                                        <Image Source="{Binding Converter={x:Static vm:LoaderOfficialIconConverter.Instance}}" Width="16" Height="16"/>
+                                                    </Panel>
+                                                    <TextBlock Text="{Binding}" FontSize="11" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                    <!-- Loader build picker - appears only for non-Vanilla loaders -->
+                                    <ComboBox Grid.Column="1" ItemsSource="{Binding AvailableLoaderBuilds}" SelectedItem="{Binding SelectedLoaderBuild}"
+                                              PlaceholderText="{l10n:Tr Key=cp_loader_ph}" IsVisible="{Binding IsLoaderBuildsVisible}"
+                                              MinWidth="100" MaxWidth="150" MaxDropDownHeight="220"
+                                              HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="11"/>
+                                    <TextBox Grid.Column="2" Classes="darkInput" Text="{Binding VersionSearchQuery}" PlaceholderText="{l10n:Tr Key=cp_search_versions}" FontSize="11" VerticalAlignment="Center"/>
+                                    
+                                    <!-- Version Filters: Single Row Checkboxes -->
+                                    <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center" Margin="4,0,0,0">
+                                        <CheckBox Content="{l10n:Tr Key=vf_releases}" IsChecked="{Binding ShowReleases}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                        <CheckBox Content="{l10n:Tr Key=vf_snapshots}" IsChecked="{Binding ShowSnapshots}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                        <CheckBox Content="{l10n:Tr Key=vf_betas}" IsChecked="{Binding ShowBetas}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                        <CheckBox Content="{l10n:Tr Key=vf_alphas}" IsChecked="{Binding ShowAlphas}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                            <TextBlock Text="{Binding LoaderError}" FontSize="11" Foreground="{StaticResource DangerStrongBrush}" TextWrapping="Wrap" IsVisible="{Binding LoaderErrorVisible}"/>
+                            <!-- Version Groups Accordion - stretched -->
+                            <Border Background="{StaticResource SurfaceBrush}" CornerRadius="10" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" Padding="8">
+                                <Panel>
+                                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" MaxHeight="300" IsVisible="{Binding !UseFlatVersionList}">
+                                    <ItemsControl ItemsSource="{Binding VersionGroups}" Margin="0,0,14,0">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:VersionGroup">
+                                                <StackPanel Margin="0,4">
+                                                    <Button Background="Transparent" BorderThickness="0" Cursor="Hand" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                                                            Command="{Binding $parent[UserControl].((vm:CreateProfileViewModel)DataContext).ToggleVersionGroupCommand}" CommandParameter="{Binding}">
+                                                        <Grid ColumnDefinitions="*,Auto">
+                                                            <TextBlock Text="{Binding Major}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                                            <TextBlock Grid.Column="1" Text="▼" FontSize="10" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" IsVisible="{Binding IsExpanded}"/>
+                                                            <TextBlock Grid.Column="1" Text="▶" FontSize="10" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" IsVisible="{Binding !IsExpanded}"/>
+                                                        </Grid>
+                                                    </Button>
+                                                    <ItemsControl IsVisible="{Binding IsExpanded}" ItemsSource="{Binding Versions}" Margin="8,4,0,0">
+                                                        <ItemsControl.ItemsPanel>
+                                                            <ItemsPanelTemplate>
+                                                                <WrapPanel Orientation="Horizontal"/>
+                                                            </ItemsPanelTemplate>
+                                                        </ItemsControl.ItemsPanel>
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <Button Content="{Binding}" Margin="3" Padding="8,5" FontSize="11" CornerRadius="6" Cursor="Hand"
+                                                                        Command="{Binding $parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectVersionCommand}" CommandParameter="{Binding}">
+                                                                    <Button.Background>
+                                                                        <MultiBinding Converter="{x:Static vm:EqualityToBrushConverter.Instance}">
+                                                                            <Binding Path="$parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectedVersion"/>
+                                                                            <Binding Path="."/>
+                                                                        </MultiBinding>
+                                                                    </Button.Background>
+                                                                    <Button.Foreground>
+                                                                        <MultiBinding Converter="{x:Static vm:EqualityToForegroundConverter.Instance}">
+                                                                            <Binding Path="$parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectedVersion"/>
+                                                                            <Binding Path="."/>
+                                                                        </MultiBinding>
+                                                                    </Button.Foreground>
+                                                                    <Button.BorderBrush>
+                                                                        <MultiBinding Converter="{x:Static vm:EqualityToBrushConverter.Instance}">
+                                                                            <Binding Path="$parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectedVersion"/>
+                                                                            <Binding Path="."/>
+                                                                        </MultiBinding>
+                                                                    </Button.BorderBrush>
+                                                                    <Button.BorderThickness>1</Button.BorderThickness>
+                                                                </Button>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+                                <!-- Flat list mode -->
+                                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" MaxHeight="300" IsVisible="{Binding UseFlatVersionList}">
+                                    <ItemsControl ItemsSource="{Binding FlatVersions}" Margin="4,2,10,2">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <StackPanel Spacing="3"/>
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:FlatVersionItem">
+                                                <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                                                        Padding="12,7" FontSize="12" CornerRadius="6" Cursor="Hand"
+                                                        Command="{Binding $parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectVersionCommand}" CommandParameter="{Binding Name}">
+                                                    <Button.Background>
+                                                        <MultiBinding Converter="{x:Static vm:EqualityToBrushConverter.Instance}">
+                                                            <Binding Path="$parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectedVersion"/>
+                                                            <Binding Path="Name"/>
+                                                        </MultiBinding>
+                                                    </Button.Background>
+                                                    <Button.Foreground>
+                                                        <MultiBinding Converter="{x:Static vm:EqualityToForegroundConverter.Instance}">
+                                                            <Binding Path="$parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectedVersion"/>
+                                                            <Binding Path="Name"/>
+                                                        </MultiBinding>
+                                                    </Button.Foreground>
+                                                    <Button.BorderBrush>
+                                                        <MultiBinding Converter="{x:Static vm:EqualityToBrushConverter.Instance}">
+                                                            <Binding Path="$parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectedVersion"/>
+                                                            <Binding Path="Name"/>
+                                                        </MultiBinding>
+                                                    </Button.BorderBrush>
+                                                    <Button.BorderThickness>1</Button.BorderThickness>
+                                                    <Grid ColumnDefinitions="*,Auto">
+                                                        <TextBlock Text="{Binding Name}" FontSize="12" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="1" Text="{Binding Kind}" FontSize="10" FontWeight="SemiBold"
+                                                                   Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                                                    </Grid>
+                                                </Button>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+                                </Panel>
+                            </Border>
+                        </StackPanel>
+
+                    </StackPanel>
+                </Border>
+
+                <!-- Bottom Panel -->
+                <Border Grid.Row="1" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,1,0,0" Padding="16,12">
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                        <Button Grid.Column="0" Content="{l10n:Tr Key=btn_reset}" Command="{Binding ResetWizardCommand}" Classes="subBtn" Padding="16,8" FontSize="11" HorizontalAlignment="Left"/>
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                            <Button Content="{l10n:Tr Key=btn_back}" Command="{Binding PreviousStepCommand}" Classes="subBtn" Padding="16,8" FontSize="11" IsVisible="{Binding IsStep2}"/>
+                            <Button Content="{l10n:Tr Key=cp_select_version}" Command="{Binding NextStepCommand}" Classes="primaryBtn" Padding="18,8" FontSize="12" IsVisible="{Binding IsStep1}" IsEnabled="{Binding CanNextStep1}"/>
+                            <Button Content="{l10n:Tr Key=cp_create}" Command="{Binding CreateCommand}" Classes="primaryBtn" Padding="18,8" FontSize="12" IsVisible="{Binding IsStep2}" IsEnabled="{Binding CanCreate}"/>
+                            <Button Content="{l10n:Tr Key=cancel}" Command="{Binding CancelCommand}" Classes="subBtn" Padding="16,8" FontSize="11"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+    </Border>
+</UserControl>

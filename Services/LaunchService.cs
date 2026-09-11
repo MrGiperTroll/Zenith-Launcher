@@ -593,12 +593,24 @@ public class LaunchService : ILaunchService
             }
         };
 
+        var launchStartTime = DateTime.UtcNow;
+        instance.LastPlayed = DateTime.UtcNow;
+        _ = _instanceService.SaveInstanceAsync(instance);
+
         process.Exited += (s, e) =>
         {
             _runningProcesses.TryRemove(instance.Id, out _);
             Dispatcher.UIThread.Post(() => instance.IsRunning = false);
             var exitCode = 1;
             try { exitCode = process.ExitCode; } catch { }
+
+            var sessionDuration = (DateTime.UtcNow - launchStartTime).TotalSeconds;
+            if (sessionDuration > 0)
+            {
+                instance.PlaytimeSeconds += (long)sessionDuration;
+                _ = _instanceService.SaveInstanceAsync(instance);
+            }
+
             try
             {
                 LogReceived?.Invoke($"Game {instance.Name} exited with code {exitCode}.");

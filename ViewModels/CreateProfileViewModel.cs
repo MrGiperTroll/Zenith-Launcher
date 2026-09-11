@@ -32,10 +32,17 @@ public partial class CreateProfileViewModel : ObservableObject
     private readonly IInstanceService _instanceService;
     private readonly ModLoaderService _modLoaderService;
     private readonly List<(string Name, string Type, string ReleaseTime)> _cachedVersions = new();
-    private readonly bool _showReleases;
-    private readonly bool _showSnapshots;
-    private readonly bool _showBetas;
-    private readonly bool _showAlphas;
+    
+    [ObservableProperty] private bool _showReleases = true;
+    [ObservableProperty] private bool _showSnapshots;
+    [ObservableProperty] private bool _showBetas;
+    [ObservableProperty] private bool _showAlphas;
+
+    partial void OnShowReleasesChanged(bool value) => BuildVersionGroups();
+    partial void OnShowSnapshotsChanged(bool value) => BuildVersionGroups();
+    partial void OnShowBetasChanged(bool value) => BuildVersionGroups();
+    partial void OnShowAlphasChanged(bool value) => BuildVersionGroups();
+
     private string? _pickedIconPath;
 
     [ObservableProperty] private int _currentStep = 1;
@@ -273,28 +280,28 @@ public partial class CreateProfileViewModel : ObservableObject
             switch (rawType)
             {
                 case "release":
-                    if (_showReleases) releases.Add(entry);
+                    if (ShowReleases) releases.Add(entry);
                     break;
                 case "snapshot":
-                    if (_showSnapshots) snapshots.Add(entry);
+                    if (ShowSnapshots) snapshots.Add(entry);
                     break;
                 case "old_beta":
-                    if (_showBetas) betas.Add(entry);
+                    if (ShowBetas) betas.Add(entry);
                     break;
                 case "old_alpha":
-                    if (_showAlphas) alphas.Add(entry);
+                    if (ShowAlphas) alphas.Add(entry);
                     break;
                 default:
                     // Unknown/local entry - classify by id. Genuine custom copies of a
                     // vanilla version land in their base folder; junk stays hidden.
                     if (LooksClassicOrAlphaId(name))
                     {
-                        if (_showAlphas) alphas.Add(entry);
+                        if (ShowAlphas) alphas.Add(entry);
                     }
                     else if (TryGetBaseMcVersion(name, out var loaderBase))
                     {
                         // Modloader profile -> its base Minecraft folder.
-                        if (_showReleases) releases.Add(entry);
+                        if (ShowReleases) releases.Add(entry);
                         groupKey[name] = GetMajorVersion(loaderBase);
                     }
                     // anything else stays hidden

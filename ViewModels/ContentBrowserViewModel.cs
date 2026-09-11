@@ -462,7 +462,7 @@ public partial class ContentBrowserViewModel : ObservableObject
         var tags = SelectedContentType switch
         {
             ContentType.Mod => new[] { "adventure", "magic", "technology", "utility", "library", "optimization", "worldgen", "equipment" },
-            ContentType.ResourcePack => new[] { "16x", "32x", "64x", "128x", "realistic", "cartoon", "themed", "vanilla-like" },
+            ContentType.ResourcePack => new[] { "16x", "32x", "48x", "64x", "128x", "256x", "512x+", "8x-", "realistic", "themed", "vanilla-like", "simplistic", "tweaks", "utility", "decoration" },
             ContentType.Shader => new[] { "realistic", "fantasy", "vanilla", "vibrant", "soft", "performance" },
             ContentType.DataPack => new[] { "utility", "adventure", "magic", "game-mechanics", "mobs", "optimization" },
             _ => Array.Empty<string>()

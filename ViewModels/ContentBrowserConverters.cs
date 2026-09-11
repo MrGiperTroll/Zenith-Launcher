@@ -62,6 +62,8 @@ public static class ContentBrowserConverters
                 "vibrant" => L10n.T("cat_vibrant"),
                 "soft" => L10n.T("cat_soft"),
                 "performance" => L10n.T("cat_performance"),
+                "simplistic" => L10n.T("cat_simplistic"),
+                "tweaks" => L10n.T("cat_tweaks"),
                 _ => s
             };
         }

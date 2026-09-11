@@ -257,13 +257,12 @@
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <TextBlock Text="{l10n:Tr set_versionfilters}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
                             </StackPanel>
-                            <TextBlock Text="{l10n:Tr set_versionfilters_hint}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
-                            <WrapPanel Orientation="Horizontal">
-                                <CheckBox Content="{l10n:Tr vf_releases}" IsChecked="{Binding ShowReleases}" Margin="0,0,16,4" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12"/>
-                                <CheckBox Content="{l10n:Tr vf_snapshots}" IsChecked="{Binding ShowSnapshots}" Margin="0,0,16,4" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12"/>
-                                <CheckBox Content="{l10n:Tr vf_betas}" IsChecked="{Binding ShowBetas}" Margin="0,0,16,4" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12"/>
+                            <StackPanel Orientation="Horizontal" Spacing="20" VerticalAlignment="Center">
+                                <CheckBox Content="{l10n:Tr vf_releases}" IsChecked="{Binding ShowReleases}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12"/>
+                                <CheckBox Content="{l10n:Tr vf_snapshots}" IsChecked="{Binding ShowSnapshots}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12"/>
+                                <CheckBox Content="{l10n:Tr vf_betas}" IsChecked="{Binding ShowBetas}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12"/>
                                 <CheckBox Content="{l10n:Tr vf_alphas}" IsChecked="{Binding ShowAlphas}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12"/>
-                            </WrapPanel>
+                            </StackPanel>
                             <CheckBox Content="{l10n:Tr vf_flatlist}" IsChecked="{Binding UseFlatVersionList}" Margin="0,2,0,0" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12"/>
                         </StackPanel>
 

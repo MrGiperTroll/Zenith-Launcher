@@ -49,6 +49,7 @@ public partial class EditInstanceViewModel : ViewModelBase
         LogsFullJava = instance.LogsFullJava;
 
         UpdateJavaDisplay();
+        ValidateJvmArgs();
 
         // Per-instance override tracking. Flags are recomputed AFTER the initial value
         // assignments: assigning an inherited (global) value must not mark the block as
@@ -124,10 +125,11 @@ public partial class EditInstanceViewModel : ViewModelBase
 
     // ----- Tabs -----
     [ObservableProperty]
-    private string _selectedTab = "Logs";
+    private string _selectedTab = "Overview";
 
     partial void OnSelectedTabChanged(string value)
     {
+        OnPropertyChanged(nameof(IsOverviewTab));
         OnPropertyChanged(nameof(IsLogsTab));
         OnPropertyChanged(nameof(IsModsTab));
         OnPropertyChanged(nameof(IsDataPacksTab));
@@ -146,6 +148,9 @@ public partial class EditInstanceViewModel : ViewModelBase
     {
         switch (tab)
         {
+            case "Overview":
+                Instance.RefreshTimeDisplays();
+                break;
             case "Mods":
                 if (HasModsSupport) _ = ModList.RefreshAsync();
                 break;
@@ -188,6 +193,7 @@ public partial class EditInstanceViewModel : ViewModelBase
         return true;
     }
 
+    public bool IsOverviewTab => SelectedTab == "Overview";
     public bool IsLogsTab => SelectedTab == "Logs";
     public bool IsModsTab => SelectedTab == "Mods" && HasModsSupport;
     public bool IsDataPacksTab => SelectedTab == "Data Packs";
@@ -197,6 +203,24 @@ public partial class EditInstanceViewModel : ViewModelBase
     public bool IsServersTab => SelectedTab == "Servers";
     public bool IsScreenshotsTab => SelectedTab == "Screenshots";
     public bool IsSettingsTab => SelectedTab == "Settings";
+
+    [RelayCommand]
+    private void ManageMods() => SelectTab("Mods");
+
+    [RelayCommand]
+    private void OpenSettings() => SelectTab("Settings");
+
+    [RelayCommand]
+    private void OpenLogs() => SelectTab("Logs");
+
+    [RelayCommand]
+    private void ExportCurseForge() => _host.ExportCurseForgeCommand.Execute(Instance);
+
+    [RelayCommand]
+    private void ExportModrinth() => _host.ExportModrinthCommand.Execute(Instance);
+
+    [RelayCommand]
+    private void ExportPrism() => _host.ExportPrismCommand.Execute(Instance);
 
     [RelayCommand]
     public void SelectTab(string tab)
@@ -700,6 +724,7 @@ public partial class EditInstanceViewModel : ViewModelBase
     {
         _jvmArgsDirty = false;
         JvmArgs = _globalConfig.JvmArgs ?? "";
+        ValidateJvmArgs();
         NotifyResetState(nameof(CanResetJvmArgs), nameof(IsJvmArgsInherited));
     }
 
@@ -731,6 +756,34 @@ public partial class EditInstanceViewModel : ViewModelBase
     private string _jvmArgs = "";
 
     [ObservableProperty]
+    private bool _hasJvmArgsWarning;
+
+    [ObservableProperty]
+    private string _jvmArgsWarningMessage = "";
+
+    [ObservableProperty]
+    private string _cleanedJvmArgs = "";
+
+    public void ValidateJvmArgs()
+    {
+        var targetMajor = JavaVersionHelper.InferRequiredJavaMajor(Instance.Version);
+        var res = JvmArgsValidator.Validate(JvmArgs, targetMajor);
+        HasJvmArgsWarning = res.HasIncompatibleFlags;
+        JvmArgsWarningMessage = res.WarningMessage;
+        CleanedJvmArgs = res.CleanedArgs;
+    }
+
+    [RelayCommand]
+    private void CleanIncompatibleJvmArgs()
+    {
+        if (HasJvmArgsWarning)
+        {
+            JvmArgs = CleanedJvmArgs;
+            ValidateJvmArgs();
+        }
+    }
+
+    [ObservableProperty]
     private int _ramMb = 4096;
 
     [ObservableProperty]
@@ -757,7 +810,11 @@ public partial class EditInstanceViewModel : ViewModelBase
         MarkJavaDirty();
     }
 
-    partial void OnJvmArgsChanged(string value) => MarkJvmArgsDirty();
+    partial void OnJvmArgsChanged(string value)
+    {
+        MarkJvmArgsDirty();
+        ValidateJvmArgs();
+    }
 
     partial void OnRamMbChanged(int value) => MarkMemoryDirty();
 

@@ -29,7 +29,8 @@ public enum LauncherNavPage
     ContentBrowser,
     Settings,
     ServerManager,
-    Accounts
+    Accounts,
+    CreateProfile
 }
 
 public class BreadcrumbItem : ObservableObject
@@ -50,6 +51,7 @@ public class HistoryEntry
     public EditInstanceViewModel? EditInstanceVm { get; set; }
     public ContentBrowserViewModel? ContentBrowserVm { get; set; }
     public ServerManagerViewModel? ServerManagerVm { get; set; }
+    public CreateProfileViewModel? CreateProfileVm { get; set; }
 }
 
 public partial class MainWindowViewModel : ViewModelBase
@@ -526,6 +528,9 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private ServerManagerViewModel? _currentServerManagerVm;
 
+    [ObservableProperty]
+    private CreateProfileViewModel? _createProfileVm;
+
     public bool IsProfilesView => CurrentPage == LauncherNavPage.Profiles;
     public bool IsModpacksView => CurrentPage == LauncherNavPage.Modpacks;
     public bool IsEditInstanceView => CurrentPage == LauncherNavPage.EditInstance;
@@ -533,6 +538,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool IsSettingsView => CurrentPage == LauncherNavPage.Settings;
     public bool IsServerManagerView => CurrentPage == LauncherNavPage.ServerManager;
     public bool IsAccountsView => CurrentPage == LauncherNavPage.Accounts;
+    public bool IsCreateProfileView => CurrentPage == LauncherNavPage.CreateProfile;
 
     public bool IsLaunchBarVisible => IsProfilesView || IsModpacksView;
 
@@ -621,6 +627,38 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             Page = LauncherNavPage.Accounts,
             Title = L10n.T("acc_manage")
+        });
+    }
+
+    public void NavigateToCreateProfile()
+    {
+        var vm = new CreateProfileViewModel(_instanceService, _modLoaderService,
+            UseFlatVersionList, ShowReleases, ShowSnapshots, ShowBetas, ShowAlphas);
+
+        vm.ProfileCreated += inst =>
+        {
+            _instanceService.SetSelectedInstance(inst.Id);
+            Dispatcher.UIThread.Post(() =>
+            {
+                RefreshState();
+                NavigateToProfiles();
+            });
+        };
+
+        vm.RequestClose += () =>
+        {
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (CanGoBack) GoBack();
+                else NavigateToProfiles();
+            });
+        };
+
+        PushHistory(new HistoryEntry
+        {
+            Page = LauncherNavPage.CreateProfile,
+            Title = L10n.T("cp_title"),
+            CreateProfileVm = vm
         });
     }
 
@@ -724,6 +762,7 @@ public partial class MainWindowViewModel : ViewModelBase
         CurrentEditInstanceVm = entry.EditInstanceVm;
         CurrentContentBrowserVm = entry.ContentBrowserVm;
         CurrentServerManagerVm = entry.ServerManagerVm;
+        CreateProfileVm = entry.CreateProfileVm;
 
         if (CurrentContentBrowserVm != null)
         {
@@ -745,6 +784,7 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsSettingsView));
         OnPropertyChanged(nameof(IsServerManagerView));
         OnPropertyChanged(nameof(IsAccountsView));
+        OnPropertyChanged(nameof(IsCreateProfileView));
         OnPropertyChanged(nameof(IsLaunchBarVisible));
 
         RebuildBreadcrumbs(entry);
@@ -769,6 +809,9 @@ public partial class MainWindowViewModel : ViewModelBase
                 break;
             case LauncherNavPage.Accounts:
                 Services.DiscordPresenceService.SetCreatingAccount();
+                break;
+            case LauncherNavPage.CreateProfile:
+                Services.DiscordPresenceService.SetEditingInstance("Creating Profile");
                 break;
             case LauncherNavPage.ServerManager:
                 if (entry.EditInstanceVm != null)
@@ -938,6 +981,15 @@ public partial class MainWindowViewModel : ViewModelBase
                 });
                 break;
 
+            case LauncherNavPage.CreateProfile:
+                Breadcrumbs.Add(new BreadcrumbItem
+                {
+                    Title = L10n.T("cp_title"),
+                    IsLast = true,
+                    OnClick = () => NavigateToCreateProfile()
+                });
+                break;
+
             case LauncherNavPage.ServerManager:
                 if (entry.Instance != null)
                 {
@@ -982,6 +1034,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private static string GetLocalizedTabTitle(string tab) => tab switch
     {
+        "Overview" => L10n.T("tab_overview"),
         "Logs" => L10n.T("tab_logs"),
         "Mods" => L10n.T("tab_mods"),
         "Resource Packs" => L10n.T("tab_resourcepacks"),
@@ -2235,35 +2288,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private void OpenNewInstanceDialog()
     {
-        try
-        {
-            if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow != null)
-            {
-                var vm = new CreateProfileViewModel(_instanceService, _modLoaderService,
-                    UseFlatVersionList, ShowReleases, ShowSnapshots, ShowBetas, ShowAlphas);
-                vm.ProfileCreated += inst =>
-                {
-                    _instanceService.SetSelectedInstance(inst.Id);
-                    Avalonia.Threading.Dispatcher.UIThread.Post(() => RefreshState());
-                };
-                var win = new Views.CreateProfileWindow { DataContext = vm };
-                vm.RequestClose += () => Avalonia.Threading.Dispatcher.UIThread.Post(() => win.Close());
-                win.Closed += (_, _) => Services.DiscordPresenceService.SetBrowsingProfiles();
-                Services.DiscordPresenceService.SetCreatingInstance();
-                win.ShowDialog(desktop.MainWindow);
-                return;
-            }
-        }
-        catch (Exception ex)
-        {
-            LauncherLog.Error("Failed to open Create Profile window", ex);
-        }
-        // Fallback to old overlay
-        FilterVersions();
-        IsVersionPickerOpen = false;
-        IsElyByErrorOpen = false;
-        IsCreateDialogOpen = true;
-        _ = UpdateAvailableLoadersAsync(SelectedVersion);
+        NavigateToCreateProfile();
     }
 
     [RelayCommand]

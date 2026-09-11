@@ -90,14 +90,43 @@ public static class ModrinthApiService
         }
         if (!string.IsNullOrWhiteSpace(projectType))
             facets.Add(new[] { $"project_type:{projectType}" });
+        var resTags = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "16x", "32x", "48x", "64x", "128x", "256x", "512x+", "8x-"
+        };
+        var selectedResolutions = new List<string>();
+
         if (categoryTags.Count > 0)
         {
-            var cleanCats = categoryTags.Where(t => !string.IsNullOrWhiteSpace(t))
-                .Select(t => $"categories:{t.Trim().ToLowerInvariant()}")
-                .Distinct()
-                .ToArray();
-            if (cleanCats.Length > 0)
-                facets.Add(cleanCats);
+            var resList = new List<string>();
+            var otherList = new List<string>();
+
+            foreach (var t in categoryTags)
+            {
+                if (string.IsNullOrWhiteSpace(t)) continue;
+                var trimmed = t.Trim().ToLowerInvariant();
+                if (resTags.Contains(trimmed))
+                {
+                    resList.Add(trimmed);
+                    selectedResolutions.Add(trimmed);
+                }
+                else
+                {
+                    otherList.Add(trimmed);
+                }
+            }
+
+            // Resolution facets: if one or more resolutions selected, group them in an OR facet
+            if (resList.Count > 0)
+            {
+                facets.Add(resList.Select(r => $"categories:{r}").Distinct().ToArray());
+            }
+
+            // General category tags: each category is its own AND facet
+            foreach (var cat in otherList.Distinct())
+            {
+                facets.Add(new[] { $"categories:{cat}" });
+            }
         }
 
         var url = $"{ApiBase}/search?limit={limit}&offset={offset}&index={Uri.EscapeDataString(sortIndex)}";
@@ -115,6 +144,15 @@ public static class ModrinthApiService
             foreach (var hit in h.EnumerateArray())
             {
                 var cats = GetStringArray(hit, "categories");
+                var dispCats = GetStringArray(hit, "display_categories");
+                var allCats = cats.Concat(dispCats).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+
+                if (selectedResolutions.Count > 0 &&
+                    !allCats.Any(c => selectedResolutions.Contains(c, StringComparer.OrdinalIgnoreCase)))
+                {
+                    continue;
+                }
+
                 var loaders = cats.Where(c => c is "fabric" or "forge" or "neoforged" or "quilt" or "iris" or "optifine").ToArray();
                 var otherCats = cats.Where(c => c is not "fabric" and not "forge" and not "neoforged" and not "quilt" and not "iris" and not "optifine").ToArray();
                 var updatedStr = GetString(hit, "date_modified");

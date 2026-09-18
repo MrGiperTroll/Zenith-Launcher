@@ -78,14 +78,27 @@
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="ClipToBounds" Value="True"/>
             <Setter Property="Transitions">
                 <Transitions>
                     <BrushTransition Property="Background" Duration="0:0:0.15"/>
                     <BrushTransition Property="Foreground" Duration="0:0:0.15"/>
+                    <DoubleTransition Property="Width" Duration="0:0:0.18" Easing="CubicEaseOut"/>
                 </Transitions>
             </Setter>
         </Style>
         <Style Selector="Button.railBtn:pointerover">
+            <Setter Property="Background" Value="{StaticResource TabActiveBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+        </Style>
+        <Style Selector="Border.expanded Button.railBtn">
+            <Setter Property="Width" Value="176"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="Padding" Value="12,0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+        </Style>
+        <Style Selector="Border.expanded Button.railBtn:pointerover">
             <Setter Property="Background" Value="{StaticResource TabActiveBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
         </Style>
@@ -181,6 +194,13 @@
             <Setter Property="Foreground" Value="{StaticResource DangerLightBrush}"/>
         </Style>
 
+        <Style Selector="Button.modpackInstalledBtn">
+            <Setter Property="Width" Value="114"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
         <Style Selector="Button.modpackInstalledBtn.installed">
             <Setter Property="Background" Value="{StaticResource AccentDimBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource AccentBrushHover}"/>
@@ -325,31 +345,75 @@
     </Window.Styles>
 
     <Grid>
-        <Grid ColumnDefinitions="64,*">
+        <Grid ColumnDefinitions="Auto,*">
             <!-- Left Rail -->
-            <Border Grid.Column="0" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,1,0" Padding="0,16">
+            <Border Grid.Column="0" Width="{Binding SidebarWidth}" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,1,0" Padding="0,16" Classes.expanded="{Binding IsSidebarExpanded}" ClipToBounds="True">
+                <Border.Transitions>
+                    <Transitions>
+                        <DoubleTransition Property="Width" Duration="0:0:0.18" Easing="CubicEaseOut"/>
+                    </Transitions>
+                </Border.Transitions>
                 <Grid RowDefinitions="Auto,Auto,*,Auto">
-                    <Button Grid.Row="0" Command="{Binding RefreshState}" Background="Transparent" Padding="0" BorderThickness="0" Cursor="Hand" ToolTip.Tip="{l10n:Tr Key=mw_profiles_title}" HorizontalAlignment="Center">
-                        <Border Width="42" Height="42" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderInputBrush}" BorderThickness="1" CornerRadius="10" HorizontalAlignment="Center">
-                            <Path Data="{StaticResource ZenithLogoGeometry}" Fill="{StaticResource SubtleEmeraldBrush}" Stretch="Uniform" Width="26" Height="26" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                    </Button>
+                    <Grid Grid.Row="0" Margin="12,0" HorizontalAlignment="Stretch">
+                        <!-- Expanded view: Logo + ZENITH text + Toggle button -->
+                        <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center" IsVisible="{Binding IsSidebarExpanded}">
+                            <Button Grid.Column="0" Command="{Binding RefreshState}" Background="Transparent" Padding="0" BorderThickness="0" Cursor="Hand" ToolTip.Tip="{l10n:Tr Key=mw_profiles_title}">
+                                <Border Width="36" Height="36" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderInputBrush}" BorderThickness="1" CornerRadius="8">
+                                    <Path Data="{StaticResource ZenithLogoGeometry}" Fill="{StaticResource SubtleEmeraldBrush}" Stretch="Uniform" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </Button>
+                            <TextBlock Grid.Column="1" Text="ZENITH" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                            <Button Grid.Column="2" Classes="navBtn" Command="{Binding ToggleSidebarCommand}" ToolTip.Tip="{l10n:Tr Key=nav_collapse}" VerticalAlignment="Center">
+                                <PathIcon Data="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" Width="14" Height="14"/>
+                            </Button>
+                        </Grid>
+
+                        <!-- Collapsed view: Centered Logo + Toggle Button under it -->
+                        <StackPanel Spacing="10" HorizontalAlignment="Center" IsVisible="{Binding !IsSidebarExpanded}">
+                            <Button Command="{Binding RefreshState}" Background="Transparent" Padding="0" BorderThickness="0" Cursor="Hand" ToolTip.Tip="{l10n:Tr Key=mw_profiles_title}" HorizontalAlignment="Center">
+                                <Border Width="40" Height="40" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderInputBrush}" BorderThickness="1" CornerRadius="10" HorizontalAlignment="Center">
+                                    <Path Data="{StaticResource ZenithLogoGeometry}" Fill="{StaticResource SubtleEmeraldBrush}" Stretch="Uniform" Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </Button>
+                            <Button Classes="navBtn" Command="{Binding ToggleSidebarCommand}" ToolTip.Tip="{l10n:Tr Key=nav_expand}" HorizontalAlignment="Center">
+                                <PathIcon Data="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" Width="14" Height="14"/>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
 
                     <StackPanel Grid.Row="1" Spacing="6" HorizontalAlignment="Center" Margin="0,24,0,0">
                         <Button Classes="railBtn" Command="{Binding ShowProfilesCommand}" ToolTip.Tip="{l10n:Tr Key=nav_profiles}">
-                            <PathIcon Data="M3 3H10V10H3V3M14 3H21V10H14V3M3 14H10V21H3V14M14 14H21V21H14V14Z" Width="17" Height="17"/>
+                            <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                                <PathIcon Data="M3 3H10V10H3V3M14 3H21V10H14V3M3 14H10V21H3V14M14 14H21V21H14V14Z" Width="17" Height="17"/>
+                                <TextBlock Text="{l10n:Tr Key=nav_profiles}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsSidebarExpanded}"/>
+                            </StackPanel>
                         </Button>
                         <Button Classes="railBtn" Command="{Binding ShowModpacksCommand}" ToolTip.Tip="{l10n:Tr Key=nav_modpacks}">
-                            <PathIcon Data="M20.5 11H19V7C19 5.9 18.1 5 17 5H13V3.5C13 2.12 11.88 1 10.5 1S8 2.12 8 3.5V5H4C2.9 5 2 5.9 2 7V10.8H3.5C4.99 10.8 6.2 12.01 6.2 13.5S4.99 16.2 3.5 16.2H2V20C2 21.1 2.9 22 4 22H7.8V20.5C7.8 19.01 9.01 17.8 10.5 17.8S13.2 19.01 13.2 20.5V22H17C18.1 22 19 21.1 19 20V16H20.5C21.88 16 23 14.88 23 13.5S21.88 11 20.5 11Z" Width="17" Height="17"/>
+                            <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                                <PathIcon Data="M20.5 11H19V7C19 5.9 18.1 5 17 5H13V3.5C13 2.12 11.88 1 10.5 1S8 2.12 8 3.5V5H4C2.9 5 2 5.9 2 7V10.8H3.5C4.99 10.8 6.2 12.01 6.2 13.5S4.99 16.2 3.5 16.2H2V20C2 21.1 2.9 22 4 22H7.8V20.5C7.8 19.01 9.01 17.8 10.5 17.8S13.2 19.01 13.2 20.5V22H17C18.1 22 19 21.1 19 20V16H20.5C21.88 16 23 14.88 23 13.5S21.88 11 20.5 11Z" Width="17" Height="17"/>
+                                <TextBlock Text="{l10n:Tr Key=nav_modpacks}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsSidebarExpanded}"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Classes="railBtn" Command="{Binding NavigateToCreateServerCommand}" ToolTip.Tip="{l10n:Tr Key=nav_create_server}">
+                            <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                                <PathIcon Data="M4 1H20C21.1 1 22 1.9 22 3V6C22 7.1 21.1 8 20 8H4C2.9 8 2 7.1 2 6V3C2 1.9 2.9 1 4 1ZM4 10H20C21.1 10 22 10.9 22 12V15C22 16.1 21.1 17 20 17H4C2.9 17 2 16.1 2 15V12C2 10.9 2.9 10 4 10ZM4 19H20C21.1 19 22 19.9 22 21V23H2V21C2 19.9 2.9 19 4 19ZM6 3V6H8V3H6ZM6 12V15H8V12H6ZM6 21V23H8V21H6Z" Width="17" Height="17"/>
+                                <TextBlock Text="{l10n:Tr Key=nav_create_server}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsSidebarExpanded}"/>
+                            </StackPanel>
                         </Button>
                     </StackPanel>
 
                     <StackPanel Grid.Row="3" Spacing="8" HorizontalAlignment="Center">
                         <Button Classes="railBtn" Command="{Binding OpenRootDirectoryCommand}" ToolTip.Tip="{l10n:Tr Key=nav_dir}">
-                            <PathIcon Data="M10 4H4C2.89 4 2 4.89 2 6V18A2 2 0 0 0 4 20H20A2 2 0 0 0 22 18V8C22 6.89 21.1 6 20 6H12L10 4Z" Width="17" Height="17"/>
+                            <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                                <PathIcon Data="M10 4H4C2.89 4 2 4.89 2 6V18A2 2 0 0 0 4 20H20A2 2 0 0 0 22 18V8C22 6.89 21.1 6 20 6H12L10 4Z" Width="17" Height="17"/>
+                                <TextBlock Text="{l10n:Tr Key=nav_dir}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsSidebarExpanded}"/>
+                            </StackPanel>
                         </Button>
                         <Button Classes="railBtn" Command="{Binding OpenSettingsDialogCommand}" ToolTip.Tip="{l10n:Tr Key=nav_settings}">
-                            <PathIcon Data="M12 15.5A3.5 3.5 0 0 1 8.5 12A3.5 3.5 0 0 1 12 8.5A3.5 3.5 0 0 1 15.5 12A3.5 3.5 0 0 1 12 15.5M19.43 12.97C19.47 12.65 19.5 12.33 19.5 12C19.5 11.67 19.47 11.34 19.43 11L21.54 9.37C21.73 9.22 21.78 8.95 21.66 8.73L19.66 5.27C19.54 5.05 19.27 4.96 19.05 5.05L16.56 6.05C16.04 5.66 15.5 5.32 14.87 5.07L14.5 2.42C14.46 2.18 14.25 2 14 2H10C9.75 2 9.54 2.18 9.5 2.42L9.13 5.07C8.5 5.32 7.96 5.66 7.44 6.05L4.95 5.05C4.73 4.96 4.34 5.05 4.34 5.27L2.34 8.73C2.21 8.95 2.27 9.22 2.46 9.37L4.57 11C4.53 11.34 4.5 11.67 4.5 12C4.5 12.33 4.53 12.65 4.57 12.97L2.46 14.63C2.27 14.78 2.21 15.05 2.34 15.27L4.34 18.73C4.46 18.95 4.73 19.03 4.95 18.95L7.44 17.94C7.96 18.34 8.5 18.68 9.13 18.93L9.5 21.58C9.54 21.82 9.75 22 10 22H14C14.25 22 14.46 21.82 14.5 21.58L14.87 18.93C15.5 18.67 16.04 18.34 16.56 17.94L19.05 18.95C19.27 19.03 19.54 18.95 19.66 18.73L21.66 15.27C21.78 15.05 21.73 14.78 21.54 14.63L19.43 12.97Z" Width="17" Height="17"/>
+                            <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                                <PathIcon Data="M12 15.5A3.5 3.5 0 0 1 8.5 12A3.5 3.5 0 0 1 12 8.5A3.5 3.5 0 0 1 15.5 12A3.5 3.5 0 0 1 12 15.5M19.43 12.97C19.47 12.65 19.5 12.33 19.5 12C19.5 11.67 19.47 11.34 19.43 11L21.54 9.37C21.73 9.22 21.78 8.95 21.66 8.73L19.66 5.27C19.54 5.05 19.27 4.96 19.05 5.05L16.56 6.05C16.04 5.66 15.5 5.32 14.87 5.07L14.5 2.42C14.46 2.18 14.25 2 14 2H10C9.75 2 9.54 2.18 9.5 2.42L9.13 5.07C8.5 5.32 7.96 5.66 7.44 6.05L4.95 5.05C4.73 4.96 4.34 5.05 4.34 5.27L2.34 8.73C2.21 8.95 2.27 9.22 2.46 9.37L4.57 11C4.53 11.34 4.5 11.67 4.5 12C4.5 12.33 4.53 12.65 4.57 12.97L2.46 14.63C2.27 14.78 2.21 15.05 2.34 15.27L4.34 18.73C4.46 18.95 4.73 19.03 4.95 18.95L7.44 17.94C7.96 18.34 8.5 18.68 9.13 18.93L9.5 21.58C9.54 21.82 9.75 22 10 22H14C14.25 22 14.46 21.82 14.5 21.58L14.87 18.93C15.5 18.67 16.04 18.34 16.56 17.94L19.05 18.95C19.27 19.03 19.54 18.95 19.66 18.73L21.66 15.27C21.78 15.05 21.73 14.78 21.54 14.63L19.43 12.97Z" Width="17" Height="17"/>
+                                <TextBlock Text="{l10n:Tr Key=nav_settings}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsSidebarExpanded}"/>
+                            </StackPanel>
                         </Button>
                     </StackPanel>
                 </Grid>
@@ -680,7 +744,7 @@
                                                         <TextBlock Text="{Binding Description}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" MaxLines="2" TextWrapping="Wrap"/>
                                                         <TextBlock Text="{Binding DownloadsLabel}" FontSize="10" Foreground="{StaticResource TextCaptionBrush}"/>
                                                     </StackPanel>
-                                                    <Button Grid.Column="2" Classes="primaryBtn modpackInstalledBtn" Classes.installed="{Binding IsInstalled}" Content="{Binding InstallButtonText}" IsEnabled="{Binding !IsInstalling}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ModpacksBrowser.DeleteOrInstallCommand}" CommandParameter="{Binding}" PointerEntered="OnModpackButtonHover" PointerExited="OnModpackButtonHoverOut" Tapped="OnModpackButtonTapped" VerticalAlignment="Center" HorizontalAlignment="Right" Padding="14,7" FontSize="11"/>
+                                                    <Button Grid.Column="2" Classes="primaryBtn modpackInstalledBtn" Classes.installed="{Binding IsInstalled}" Width="114" Height="30" Content="{Binding InstallButtonText}" IsEnabled="{Binding !IsInstalling}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ModpacksBrowser.DeleteOrInstallCommand}" CommandParameter="{Binding}" PointerEntered="OnModpackButtonHover" PointerExited="OnModpackButtonHoverOut" Tapped="OnModpackButtonTapped" VerticalAlignment="Center" HorizontalAlignment="Right" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontSize="11"/>
                                                 </Grid>
                                             </Border>
                                         </DataTemplate>
@@ -723,6 +787,11 @@
                     <!-- In-Window Create Profile View -->
                     <Panel IsVisible="{Binding IsCreateProfileView}" Margin="0,0,16,0">
                         <views:CreateProfileView DataContext="{Binding CreateProfileVm}"/>
+                    </Panel>
+
+                    <!-- In-Window Create Server View -->
+                    <Panel IsVisible="{Binding IsCreateServerView}" Margin="0,0,16,0">
+                        <views:CreateServerView DataContext="{Binding CreateServerVm}"/>
                     </Panel>
                 </Grid>
 

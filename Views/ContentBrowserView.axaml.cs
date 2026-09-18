@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -9,35 +9,28 @@ namespace CustomMcLauncher.Views;
 
 public partial class ContentBrowserView : UserControl
 {
-    private ScrollViewer? _listScroll;
     private bool _scrollAttached;
 
     public ContentBrowserView()
     {
         InitializeComponent();
+        ResultsList.AddHandler(ScrollViewer.ScrollChangedEvent, OnResultsScrollChanged);
         ResultsList.AttachedToVisualTree += OnResultsListAttached;
     }
 
     private void OnResultsListAttached(object? sender, VisualTreeAttachmentEventArgs e)
     {
         if (_scrollAttached) return;
-        foreach (var v in ResultsList.GetVisualDescendants())
-        {
-            if (v is ScrollViewer sv)
-            {
-                _listScroll = sv;
-                sv.ScrollChanged += OnResultsScrollChanged;
-                _scrollAttached = true;
-                break;
-            }
-        }
+        ResultsList.AddHandler(ScrollViewer.ScrollChangedEvent, OnResultsScrollChanged);
+        _scrollAttached = true;
     }
 
     private void OnResultsScrollChanged(object? sender, ScrollChangedEventArgs e)
     {
-        if (sender is not ScrollViewer sv) return;
+        if (e.Source is not ScrollViewer sv) return;
         if (DataContext is not ContentBrowserViewModel vm) return;
-        if (sv.Extent.Height - sv.Offset.Y - sv.Viewport.Height < 350)
+        if (sv.Extent.Height <= 0 || sv.Viewport.Height <= 0) return;
+        if (sv.Extent.Height - sv.Offset.Y - sv.Viewport.Height < 450)
             _ = vm.LoadMoreAsync();
     }
 

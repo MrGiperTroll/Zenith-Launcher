@@ -1,4 +1,4 @@
-﻿namespace CustomMcLauncher.Models;
+namespace CustomMcLauncher.Models;
 
 public class LauncherConfigData
 {
@@ -23,6 +23,8 @@ public class LauncherConfigData
 
     // UI language display name ("" = auto-detect from OS on first run).
     public string Language { get; set; } = "";
+
+    public bool IsSidebarExpanded { get; set; } = false;
 
     public bool IsSetupCompleted { get; set; }
 }

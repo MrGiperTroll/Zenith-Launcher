@@ -30,7 +30,8 @@ public enum LauncherNavPage
     Settings,
     ServerManager,
     Accounts,
-    CreateProfile
+    CreateProfile,
+    CreateServer
 }
 
 public class BreadcrumbItem : ObservableObject
@@ -52,6 +53,7 @@ public class HistoryEntry
     public ContentBrowserViewModel? ContentBrowserVm { get; set; }
     public ServerManagerViewModel? ServerManagerVm { get; set; }
     public CreateProfileViewModel? CreateProfileVm { get; set; }
+    public CreateServerViewModel? CreateServerVm { get; set; }
 }
 
 public partial class MainWindowViewModel : ViewModelBase
@@ -531,6 +533,9 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private CreateProfileViewModel? _createProfileVm;
 
+    [ObservableProperty]
+    private CreateServerViewModel? _createServerVm;
+
     public bool IsProfilesView => CurrentPage == LauncherNavPage.Profiles;
     public bool IsModpacksView => CurrentPage == LauncherNavPage.Modpacks;
     public bool IsEditInstanceView => CurrentPage == LauncherNavPage.EditInstance;
@@ -539,6 +544,24 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool IsServerManagerView => CurrentPage == LauncherNavPage.ServerManager;
     public bool IsAccountsView => CurrentPage == LauncherNavPage.Accounts;
     public bool IsCreateProfileView => CurrentPage == LauncherNavPage.CreateProfile;
+    public bool IsCreateServerView => CurrentPage == LauncherNavPage.CreateServer;
+
+    [ObservableProperty]
+    private bool _isSidebarExpanded;
+
+    public double SidebarWidth => IsSidebarExpanded ? 200 : 64;
+
+    partial void OnIsSidebarExpandedChanged(bool value)
+    {
+        OnPropertyChanged(nameof(SidebarWidth));
+        SaveLauncherConfig();
+    }
+
+    [RelayCommand]
+    public void ToggleSidebar()
+    {
+        IsSidebarExpanded = !IsSidebarExpanded;
+    }
 
     public bool IsLaunchBarVisible => IsProfilesView || IsModpacksView;
 
@@ -662,6 +685,61 @@ public partial class MainWindowViewModel : ViewModelBase
         });
     }
 
+    [RelayCommand]
+    public void NavigateToCreateServer()
+    {
+        CreateServerVm = new CreateServerViewModel(_instanceService, this);
+        PushHistory(new HistoryEntry
+        {
+            Page = LauncherNavPage.CreateServer,
+            Title = L10n.T("nav_create_server"),
+            CreateServerVm = CreateServerVm
+        });
+    }
+
+    private void NavigateBackToInstance(HistoryEntry entry, string? tab = null)
+    {
+        int foundIndex = -1;
+        for (int i = _historyIndex - 1; i >= 0; i--)
+        {
+            if (_navHistory[i].Page == LauncherNavPage.EditInstance && _navHistory[i].Instance == entry.Instance)
+            {
+                foundIndex = i;
+                break;
+            }
+        }
+
+        if (foundIndex >= 0)
+        {
+            _historyIndex = foundIndex;
+            var hist = _navHistory[_historyIndex];
+            if (!string.IsNullOrEmpty(tab) && hist.EditInstanceVm != null)
+            {
+                hist.SubTitle = tab;
+                hist.EditInstanceVm.SelectTab(tab);
+            }
+            ApplyHistoryEntry(hist);
+            UpdateHistoryButtons();
+        }
+        else if (entry.EditInstanceVm != null)
+        {
+            var targetTab = tab ?? entry.SubTitle ?? "Overview";
+            PushHistory(new HistoryEntry
+            {
+                Page = LauncherNavPage.EditInstance,
+                Title = entry.Instance?.Name ?? entry.Title,
+                SubTitle = targetTab,
+                Instance = entry.Instance,
+                EditInstanceVm = entry.EditInstanceVm
+            });
+            entry.EditInstanceVm.SelectTab(targetTab);
+        }
+        else
+        {
+            GoBack();
+        }
+    }
+
     public void NavigateToServerManager(ServerManagerViewModel vm, InstanceModel? instance, EditInstanceViewModel? editVm)
     {
         PushHistory(new HistoryEntry
@@ -675,7 +753,7 @@ public partial class MainWindowViewModel : ViewModelBase
         });
     }
 
-    public void NavigateToEditInstance(InstanceModel instance, string? tab = "Mods")
+    public void NavigateToEditInstance(InstanceModel instance, string? tab = "Overview")
     {
         var vm = new EditInstanceViewModel(instance, this, _instanceService);
         if (!string.IsNullOrEmpty(tab))
@@ -763,6 +841,7 @@ public partial class MainWindowViewModel : ViewModelBase
         CurrentContentBrowserVm = entry.ContentBrowserVm;
         CurrentServerManagerVm = entry.ServerManagerVm;
         CreateProfileVm = entry.CreateProfileVm;
+        CreateServerVm = entry.CreateServerVm;
 
         if (CurrentContentBrowserVm != null)
         {
@@ -785,6 +864,7 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsServerManagerView));
         OnPropertyChanged(nameof(IsAccountsView));
         OnPropertyChanged(nameof(IsCreateProfileView));
+        OnPropertyChanged(nameof(IsCreateServerView));
         OnPropertyChanged(nameof(IsLaunchBarVisible));
 
         RebuildBreadcrumbs(entry);
@@ -812,6 +892,9 @@ public partial class MainWindowViewModel : ViewModelBase
                 break;
             case LauncherNavPage.CreateProfile:
                 Services.DiscordPresenceService.SetEditingInstance("Creating Profile");
+                break;
+            case LauncherNavPage.CreateServer:
+                Services.DiscordPresenceService.SetEditingInstance("Creating Server");
                 break;
             case LauncherNavPage.ServerManager:
                 if (entry.EditInstanceVm != null)
@@ -865,26 +948,23 @@ public partial class MainWindowViewModel : ViewModelBase
 
             case LauncherNavPage.EditInstance:
                 var instName = entry.Instance?.Name ?? entry.Title;
-                var hasTab = !string.IsNullOrWhiteSpace(entry.SubTitle);
+                var currentTab = string.IsNullOrWhiteSpace(entry.SubTitle) ? "Overview" : entry.SubTitle;
                 Breadcrumbs.Add(new BreadcrumbItem
                 {
                     Title = instName,
-                    IsLast = !hasTab,
+                    IsLast = false,
                     OnClick = () =>
                     {
                         if (entry.EditInstanceVm != null)
-                            entry.EditInstanceVm.SelectTab("Mods");
+                            entry.EditInstanceVm.SelectTab("Overview");
                     }
                 });
-                if (hasTab)
+                Breadcrumbs.Add(new BreadcrumbItem
                 {
-                    Breadcrumbs.Add(new BreadcrumbItem
-                    {
-                        Title = GetLocalizedTabTitle(entry.SubTitle!),
-                        IsLast = true,
-                        OnClick = () => entry.EditInstanceVm?.SelectTab(entry.SubTitle!)
-                    });
-                }
+                    Title = GetLocalizedTabTitle(currentTab),
+                    IsLast = true,
+                    OnClick = () => entry.EditInstanceVm?.SelectTab(currentTab)
+                });
                 break;
 
             case LauncherNavPage.ContentBrowser:
@@ -895,25 +975,11 @@ public partial class MainWindowViewModel : ViewModelBase
                     IsLast = false,
                     OnClick = () =>
                     {
-                        if (entry.EditInstanceVm != null)
-                        {
-                            ApplyHistoryEntry(new HistoryEntry
-                            {
-                                Page = LauncherNavPage.EditInstance,
-                                Title = parentName,
-                                SubTitle = entry.SubTitle,
-                                Instance = entry.Instance,
-                                EditInstanceVm = entry.EditInstanceVm
-                            });
-                        }
-                        else
-                        {
-                            GoBack();
-                        }
+                        NavigateBackToInstance(entry, "Overview");
                     }
                 });
 
-                if (!string.IsNullOrWhiteSpace(entry.SubTitle))
+                if (!string.IsNullOrWhiteSpace(entry.SubTitle) && entry.SubTitle != "Overview")
                 {
                     Breadcrumbs.Add(new BreadcrumbItem
                     {
@@ -921,22 +987,7 @@ public partial class MainWindowViewModel : ViewModelBase
                         IsLast = false,
                         OnClick = () =>
                         {
-                            if (entry.EditInstanceVm != null)
-                            {
-                                entry.EditInstanceVm.SelectTab(entry.SubTitle);
-                                ApplyHistoryEntry(new HistoryEntry
-                                {
-                                    Page = LauncherNavPage.EditInstance,
-                                    Title = parentName,
-                                    SubTitle = entry.SubTitle,
-                                    Instance = entry.Instance,
-                                    EditInstanceVm = entry.EditInstanceVm
-                                });
-                            }
-                            else
-                            {
-                                GoBack();
-                            }
+                            NavigateBackToInstance(entry, entry.SubTitle);
                         }
                     });
                 }
@@ -990,6 +1041,15 @@ public partial class MainWindowViewModel : ViewModelBase
                 });
                 break;
 
+            case LauncherNavPage.CreateServer:
+                Breadcrumbs.Add(new BreadcrumbItem
+                {
+                    Title = L10n.T("cs_title"),
+                    IsLast = true,
+                    OnClick = () => NavigateToCreateServer()
+                });
+                break;
+
             case LauncherNavPage.ServerManager:
                 if (entry.Instance != null)
                 {
@@ -999,22 +1059,8 @@ public partial class MainWindowViewModel : ViewModelBase
                         IsLast = false,
                         OnClick = () =>
                         {
-                            if (entry.EditInstanceVm != null)
-                            {
-                                entry.EditInstanceVm.RefreshServers();
-                                ApplyHistoryEntry(new HistoryEntry
-                                {
-                                    Page = LauncherNavPage.EditInstance,
-                                    Title = entry.Instance.Name,
-                                    SubTitle = "Servers",
-                                    Instance = entry.Instance,
-                                    EditInstanceVm = entry.EditInstanceVm
-                                });
-                            }
-                            else
-                            {
-                                GoBack();
-                            }
+                            entry.EditInstanceVm?.RefreshServers();
+                            NavigateBackToInstance(entry, "Servers");
                         }
                     });
                 }
@@ -1297,7 +1343,8 @@ public partial class MainWindowViewModel : ViewModelBase
                 UseFlatVersionList = UseFlatVersionList,
                 AutoManageJava = AutoManageJava,
                 DiscordRpcEnabled = DiscordRpcEnabled,
-                Language = SelectedLanguage
+                Language = SelectedLanguage,
+                IsSidebarExpanded = IsSidebarExpanded
             };
             File.WriteAllText(configPath, System.Text.Json.JsonSerializer.Serialize(configData, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
         }
@@ -1323,7 +1370,8 @@ public partial class MainWindowViewModel : ViewModelBase
         UseFlatVersionList = UseFlatVersionList,
         AutoManageJava = AutoManageJava,
         DiscordRpcEnabled = DiscordRpcEnabled,
-        Language = SelectedLanguage
+        Language = SelectedLanguage,
+        IsSidebarExpanded = IsSidebarExpanded
     };
 
     public void LoadLauncherConfig()
@@ -1371,6 +1419,7 @@ public partial class MainWindowViewModel : ViewModelBase
                     UseFlatVersionList = cfg.UseFlatVersionList;
                     AutoManageJava = cfg.AutoManageJava;
                     DiscordRpcEnabled = cfg.DiscordRpcEnabled;
+                    IsSidebarExpanded = cfg.IsSidebarExpanded;
                 }
             }
         }

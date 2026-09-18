@@ -142,6 +142,7 @@ public partial class EditInstanceViewModel : ViewModelBase
         // Only refresh what the newly visible tab shows — rescanning every folder
         // on each switch was the source of the noticeable tab-switch lag.
         RefreshTabContent(value);
+        _host?.UpdateActiveInstanceTab(Instance.Name, value);
     }
 
     private void RefreshTabContent(string? tab)

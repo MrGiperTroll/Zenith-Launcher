@@ -1,0 +1,135 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:CustomMcLauncher.ViewModels"
+             xmlns:services="using:CustomMcLauncher.Services"
+             xmlns:l10n="using:CustomMcLauncher.Extensions"
+             x:Class="CustomMcLauncher.Views.CreateServerView"
+             x:DataType="vm:CreateServerViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="TextBox.darkInput">
+            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="10,8"/>
+        </Style>
+        <Style Selector="ComboBox">
+            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="10,6"/>
+        </Style>
+        <Style Selector="CheckBox">
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+    </UserControl.Styles>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Spacing="16" Margin="0,0,16,16" MaxWidth="680" HorizontalAlignment="Left">
+            <!-- Header Banner -->
+            <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="16" VerticalAlignment="Center">
+                    <Border Width="48" Height="48" CornerRadius="10" Background="{StaticResource PanelBrush}" VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <PathIcon Data="M4 1H20C21.1 1 22 1.9 22 3V6C22 7.1 21.1 8 20 8H4C2.9 8 2 7.1 2 6V3C2 1.9 2.9 1 4 1ZM4 10H20C21.1 10 22 10.9 22 12V15C22 16.1 21.1 17 20 17H4C2.9 17 2 16.1 2 15V12C2 10.9 2.9 10 4 10ZM4 19H20C21.1 19 22 19.9 22 21V23H2V21C2 19.9 2.9 19 4 19ZM6 3V6H8V3H6ZM6 12V15H8V12H6ZM6 21V23H8V21H6Z"
+                                  Width="24" Height="24" Foreground="{StaticResource AccentBrush}"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
+                        <TextBlock Text="{l10n:Tr Key=cs_title}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <TextBlock Text="{l10n:Tr Key=cs_creating}" FontSize="12" Foreground="{StaticResource TextMutedBrush}" IsVisible="{Binding IsBusy}"/>
+                        <TextBlock Text="{l10n:Tr Key=cs_status_ready}" FontSize="12" Foreground="{StaticResource TextMutedBrush}" IsVisible="{Binding !IsBusy}"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Configuration Form -->
+            <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
+                <StackPanel Spacing="16">
+                    <!-- Server Name -->
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="{l10n:Tr Key=cs_name}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBox Classes="darkInput" Text="{Binding ServerName}" IsEnabled="{Binding !IsBusy}"/>
+                    </StackPanel>
+
+                    <!-- Version & Software Grid -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="16">
+                        <!-- Version -->
+                        <StackPanel Grid.Column="0" Spacing="6">
+                            <TextBlock Text="{l10n:Tr Key=cs_version}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <ComboBox ItemsSource="{Binding AvailableVersions}" SelectedItem="{Binding SelectedVersion}" HorizontalAlignment="Stretch" IsEnabled="{Binding !IsBusy}"/>
+                        </StackPanel>
+
+                        <!-- Software -->
+                        <StackPanel Grid.Column="1" Spacing="6">
+                            <TextBlock Text="{l10n:Tr Key=cs_type}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <ComboBox ItemsSource="{Binding AvailableSoftware}" SelectedItem="{Binding SelectedSoftware}" HorizontalAlignment="Stretch" IsEnabled="{Binding !IsBusy}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate x:DataType="services:ServerSoftwareOption">
+                                        <TextBlock Text="{Binding DisplayName}" FontSize="12"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- RAM & Port Grid -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="16">
+                        <!-- RAM -->
+                        <StackPanel Grid.Column="0" Spacing="6">
+                            <TextBlock Text="{l10n:Tr Key=cs_ram}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <ComboBox ItemsSource="{Binding RamOptions}" SelectedItem="{Binding RamGb}" HorizontalAlignment="Stretch" IsEnabled="{Binding !IsBusy}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding, StringFormat='{}{0} GB'}" FontSize="12"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </StackPanel>
+
+                        <!-- Port -->
+                        <StackPanel Grid.Column="1" Spacing="6">
+                            <TextBlock Text="{l10n:Tr Key=cs_port}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <TextBox Classes="darkInput" Text="{Binding ServerPort}" IsEnabled="{Binding !IsBusy}"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Checkboxes -->
+                    <StackPanel Spacing="10" Margin="0,6,0,0">
+                        <CheckBox Content="{l10n:Tr Key=cs_eula}" IsChecked="{Binding AgreeEula}" IsEnabled="{Binding !IsBusy}"/>
+                        <CheckBox Content="{l10n:Tr Key=cs_online_mode}" IsChecked="{Binding OnlineMode}" IsEnabled="{Binding !IsBusy}"/>
+                    </StackPanel>
+
+                    <!-- Progress and Status -->
+                    <StackPanel Spacing="8" Margin="0,8,0,0" IsVisible="{Binding IsBusy}">
+                        <ProgressBar Value="{Binding ProgressPercent}" Minimum="0" Maximum="100" Height="6" Foreground="{StaticResource AccentBrush}"/>
+                        <TextBlock Text="{Binding StatusText}" FontSize="12" Foreground="{StaticResource AccentBrush}" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Success or Error Status -->
+                    <TextBlock Text="{Binding StatusText}" FontSize="13" FontWeight="Bold"
+                               Foreground="{Binding IsCreated, Converter={x:Static vm:EditInstanceWindowConverters.ActiveText}}"
+                               IsVisible="{Binding !IsBusy}" Margin="0,4,0,0"/>
+
+                    <!-- Action Buttons -->
+                    <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,12,0,0">
+                        <Button Grid.Column="0" Classes="subBtn" Content="{l10n:Tr Key=btn_back}" Command="{Binding CancelCommand}" Padding="16,9" FontSize="12"/>
+
+                        <!-- Before Creation Actions -->
+                        <Button Grid.Column="2" Classes="primaryBtn" Content="{l10n:Tr Key=cs_create_btn}" Command="{Binding CreateServerCommand}"
+                                IsEnabled="{Binding CanCreate}" IsVisible="{Binding !IsCreated}" Padding="20,9" FontSize="13"/>
+
+                        <!-- After Creation Actions -->
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" IsVisible="{Binding IsCreated}">
+                            <Button Classes="subBtn" Content="{l10n:Tr Key=cs_open_folder}" Command="{Binding OpenServerFolderCommand}" Padding="16,9" FontSize="12"/>
+                            <Button Classes="primaryBtn" Content="{l10n:Tr Key=cs_run_server}" Command="{Binding RunServerCommand}" Padding="20,9" FontSize="13"/>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

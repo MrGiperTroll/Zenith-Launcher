@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -60,7 +60,7 @@ public class ModLoaderService
     private static readonly string[] NeoForgeListHosts =
     {
         "https://maven.neoforged.net/api/maven/versions/releases/net/neoforged/neoforge",
-        "https://maven.neoforged.net/api/maven/versions/net/neoforged/neoforge"
+        "https://maven.neoforged.net/releases/net/neoforged/neoforge/maven-metadata.xml"
     };
 
     // NeoForge purged the 1.20.1 era (20.1.x) from every reachable mirror, but 1.20.1
@@ -68,6 +68,13 @@ public class ModLoaderService
     // 1.20.1 build pinned so NeoForge stays selectable and installable there.
     private static readonly string[] NeoForgeLegacyGameVersions = { "1.20.1" };
     private static readonly string[] NeoForgeLegacyBuilds = { "20.1.63" };
+
+    private static readonly string[] NeoForgeDefaultGameVersions =
+    {
+        "1.21.5", "1.21.4", "1.21.3", "1.21.2", "1.21.1", "1.21",
+        "1.20.6", "1.20.5", "1.20.4", "1.20.3", "1.20.2", "1.20.1",
+        "26.1", "26.2", "26.3"
+    };
 
     private static readonly string[] OptiFineVersionListHosts =
     {
@@ -616,14 +623,17 @@ public class ModLoaderService
                     int.TryParse(parts[0], out var major) && major > 0 &&
                     int.TryParse(parts[1], out var minor))
                 {
-                    // NeoForge X.0.x → MC 1.X; 20.x → MC 1.20.x; 26.x → MC 26.x
-                    var mc = minor == 0 ? $"1.{major}" : $"1.{major}.{minor}";
+                    // NeoForge 20.x -> MC 1.20.x; 21.x -> MC 1.21.x; >= 26 -> MC 26.x
+                    var mc = major >= 26
+                        ? (minor == 0 ? $"{major}" : $"{major}.{minor}")
+                        : (minor == 0 ? $"1.{major}" : $"1.{major}.{minor}");
                     if (major >= 20) set.Add(mc);
                 }
             }
         }
-        // Purged 1.20.1 era: keep NeoForge available for the most-used modding Minecraft version.
+        // Purged 1.20.1 era & default popular 1.21+ versions fallback
         foreach (var v in NeoForgeLegacyGameVersions) set.Add(v);
+        foreach (var v in NeoForgeDefaultGameVersions) set.Add(v);
         return set;
     }
 
@@ -636,8 +646,7 @@ public class ModLoaderService
             var raw = await TryFetchAsync(NeoForgeListHosts, ParseMavenVersionList).ConfigureAwait(false);
             if (raw is { Count: > 0 })
             {
-                // Exact major.minor match: MC 1.21 → 21.0.x, MC 1.21.4 → 21.4.x.
-                // A loose prefix pulled 21.1.x into MC 1.21 and 21.11.x into MC 1.21.1.
+                // Exact major.minor match: MC 1.21 → 21.0.x, MC 1.21.4 → 21.4.x, MC 26.1 → 26.1.x
                 var prefix = $"{target.Value.Major}.{target.Value.Minor}.";
                 foreach (var s in raw)
                     if (s.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
@@ -650,13 +659,22 @@ public class ModLoaderService
         return FinalizeBuilds(builds);
     }
 
-    /// <summary>MC "1.21" → NeoForge (21,0); "1.21.4" → (21,4). Null for non-1.x versions.</summary>
+    /// <summary>MC "1.21" → NeoForge (21,0); "1.21.4" → (21,4); "26.1" → (26,1).</summary>
     private static (int Major, int Minor)? ParseNeoForgeTarget(string gameVersion)
     {
         var parts = gameVersion.Split('.');
-        if (parts.Length < 2 || parts[0] != "1" || !int.TryParse(parts[1], out var major)) return null;
-        var minor = parts.Length >= 3 && int.TryParse(parts[2], out var m) ? m : 0;
-        return (major, minor);
+        if (parts.Length == 0) return null;
+        if (parts[0] == "1" && parts.Length >= 2 && int.TryParse(parts[1], out var major))
+        {
+            var minor = parts.Length >= 3 && int.TryParse(parts[2], out var m) ? m : 0;
+            return (major, minor);
+        }
+        if (int.TryParse(parts[0], out var directMajor) && directMajor >= 20)
+        {
+            var minor = parts.Length >= 2 && int.TryParse(parts[1], out var m) ? m : 0;
+            return (directMajor, minor);
+        }
+        return null;
     }
 
     private async Task<HashSet<string>> FetchOptiFineDatabaseAsync()

@@ -82,7 +82,12 @@ public static class ModrinthApiService
         if (loaderFacets.Count > 0)
         {
             var cleanLoaders = loaderFacets.Where(l => !string.IsNullOrWhiteSpace(l))
-                .Select(l => $"categories:{l.Trim().ToLowerInvariant()}")
+                .Select(l =>
+                {
+                    var trim = l.Trim().ToLowerInvariant();
+                    if (trim == "neoforged") trim = "neoforge";
+                    return $"categories:{trim}";
+                })
                 .Distinct()
                 .ToArray();
             if (cleanLoaders.Length > 0)
@@ -122,9 +127,42 @@ public static class ModrinthApiService
                 facets.Add(resList.Select(r => $"categories:{r}").Distinct().ToArray());
             }
 
-            // General category tags: each category is its own AND facet
+            // General category tags: each category is its own facet (or grouped OR facet for aliases)
             foreach (var cat in otherList.Distinct())
             {
+                if (projectType == "modpack")
+                {
+                    if (cat == "exploration")
+                    {
+                        facets.Add(new[] { "categories:adventure" });
+                        continue;
+                    }
+                }
+                else if (projectType == "shader")
+                {
+                    switch (cat)
+                    {
+                        case "realistic":
+                            facets.Add(new[] { "categories:realistic", "categories:semi-realistic" });
+                            continue;
+                        case "vanilla" or "vanilla-like":
+                            facets.Add(new[] { "categories:vanilla-like" });
+                            continue;
+                        case "fantasy":
+                            facets.Add(new[] { "categories:fantasy" });
+                            continue;
+                        case "performance":
+                            facets.Add(new[] { "categories:low", "categories:potato", "categories:medium" });
+                            continue;
+                        case "soft":
+                            facets.Add(new[] { "categories:atmosphere", "categories:bloom" });
+                            continue;
+                        case "vibrant":
+                            facets.Add(new[] { "categories:colored-lighting", "categories:bloom" });
+                            continue;
+                    }
+                }
+
                 facets.Add(new[] { $"categories:{cat}" });
             }
         }
@@ -134,18 +172,35 @@ public static class ModrinthApiService
             url += "&query=" + Uri.EscapeDataString(query.Trim());
         url += "&facets=" + Uri.EscapeDataString(JsonSerializer.Serialize(facets));
 
-        var json = await Http.GetStringAsync(url, cancellationToken);
+        using var response = await Http.GetAsync(url, cancellationToken).ConfigureAwait(false);
+        if (!response.IsSuccessStatusCode) return null;
+
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        return ParseSearchPage(json, selectedResolutions, query);
+    }
+
+    private static ModrinthSearchPage? ParseSearchPage(string json, IReadOnlyList<string> selectedResolutions, string? query = null)
+    {
         using var doc = JsonDocument.Parse(json);
         var root = doc.RootElement;
-
         var hits = new List<ModrinthProject>();
-        if (root.TryGetProperty("hits", out var h) && h.ValueKind == JsonValueKind.Array)
+        var totalHits = root.TryGetProperty("total_hits", out var th) ? th.GetInt32() : 0;
+        var offset = root.TryGetProperty("offset", out var off) ? off.GetInt32() : 0;
+        var limit = root.TryGetProperty("limit", out var lim) ? lim.GetInt32() : 20;
+
+        if (root.TryGetProperty("hits", out var hitsArr))
         {
-            foreach (var hit in h.EnumerateArray())
+            foreach (var hit in hitsArr.EnumerateArray())
             {
-                var cats = GetStringArray(hit, "categories");
-                var dispCats = GetStringArray(hit, "display_categories");
-                var allCats = cats.Concat(dispCats).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+                var cats = hit.TryGetProperty("categories", out var catsArr)
+                    ? catsArr.EnumerateArray().Select(c => c.GetString() ?? "").Where(c => !string.IsNullOrWhiteSpace(c)).ToArray()
+                    : Array.Empty<string>();
+
+                var addCats = hit.TryGetProperty("additional_categories", out var addCatsArr)
+                    ? addCatsArr.EnumerateArray().Select(c => c.GetString() ?? "").Where(c => !string.IsNullOrWhiteSpace(c)).ToArray()
+                    : Array.Empty<string>();
+
+                var allCats = cats.Concat(addCats).ToArray();
 
                 if (selectedResolutions.Count > 0 &&
                     !allCats.Any(c => selectedResolutions.Contains(c, StringComparer.OrdinalIgnoreCase)))
@@ -153,8 +208,8 @@ public static class ModrinthApiService
                     continue;
                 }
 
-                var loaders = cats.Where(c => c is "fabric" or "forge" or "neoforged" or "quilt" or "iris" or "optifine").ToArray();
-                var otherCats = cats.Where(c => c is not "fabric" and not "forge" and not "neoforged" and not "quilt" and not "iris" and not "optifine").ToArray();
+                var loaders = cats.Where(c => c is "fabric" or "forge" or "neoforge" or "neoforged" or "quilt" or "iris" or "optifine").ToArray();
+                var otherCats = cats.Where(c => c is not "fabric" and not "forge" and not "neoforge" and not "neoforged" and not "quilt" and not "iris" and not "optifine").ToArray();
                 var updatedStr = GetString(hit, "date_modified");
                 DateTime.TryParse(updatedStr, out var updated);
                 hits.Add(new ModrinthProject

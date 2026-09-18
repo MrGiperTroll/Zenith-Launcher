@@ -172,31 +172,24 @@ public partial class MainWindow : Window
         e.Handled = true;
     }
 
-    private ScrollViewer? _modpacksScroll;
     private bool _modpacksScrollAttached;
 
     private void OnModpacksListAttached(object? sender, VisualTreeAttachmentEventArgs e)
     {
         if (_modpacksScrollAttached) return;
-        var list = this.FindControl<ListBox>("ModpacksList");
-        if (list == null) return;
-        foreach (var v in list.GetVisualDescendants())
+        if (sender is ListBox list)
         {
-            if (v is ScrollViewer sv)
-            {
-                _modpacksScroll = sv;
-                sv.ScrollChanged += OnModpacksScrollChanged;
-                _modpacksScrollAttached = true;
-                break;
-            }
+            list.AddHandler(ScrollViewer.ScrollChangedEvent, OnModpacksScrollChanged);
+            _modpacksScrollAttached = true;
         }
     }
 
     private void OnModpacksScrollChanged(object? sender, ScrollChangedEventArgs e)
     {
-        if (sender is not ScrollViewer sv) return;
+        if (e.Source is not ScrollViewer sv) return;
         if (DataContext is not MainWindowViewModel vm) return;
-        if (sv.Extent.Height - sv.Offset.Y - sv.Viewport.Height < 350)
+        if (sv.Extent.Height <= 0 || sv.Viewport.Height <= 0) return;
+        if (sv.Extent.Height - sv.Offset.Y - sv.Viewport.Height < 450)
             _ = vm.ModpacksBrowser.LoadMoreAsync();
     }
 

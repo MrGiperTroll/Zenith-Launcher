@@ -464,7 +464,6 @@ public partial class ModpacksBrowserViewModel : ObservableObject
         _totalHits = 0;
         try
         {
-            var categoryFilter = string.IsNullOrWhiteSpace(SelectedCategory) ? Array.Empty<string>() : new[] { SelectedCategory };
             var sort = SelectedSort switch
             {
                 "Downloads" => "downloads",
@@ -472,6 +471,8 @@ public partial class ModpacksBrowserViewModel : ObservableObject
                 "Recently Updated" => "updated",
                 _ => "relevance"
             };
+            var catSlug = SelectedCategory == "exploration" ? "adventure" : SelectedCategory;
+            var categoryFilter = string.IsNullOrWhiteSpace(catSlug) ? Array.Empty<string>() : new[] { catSlug };
             var page = await ModrinthApiService.SearchAsync(SearchQuery, SelectedVersion, LoaderFacets, "modpack", sort, categoryFilter, 0, PageSize, token);
             if (token.IsCancellationRequested || gen != _searchGeneration) return;
             if (page == null)
@@ -480,7 +481,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
                 return;
             }
             _totalHits = page.TotalHits;
-            _offset = page.Hits.Count;
+            _offset = page.Limit;
             foreach (var p in page.Hits)
             {
                 Results.Add(p);
@@ -520,7 +521,8 @@ public partial class ModpacksBrowserViewModel : ObservableObject
         var gen = _searchGeneration;
         try
         {
-            var categoryFilter = string.IsNullOrWhiteSpace(SelectedCategory) ? Array.Empty<string>() : new[] { SelectedCategory };
+            var catSlug = SelectedCategory == "exploration" ? "adventure" : SelectedCategory;
+            var categoryFilter = string.IsNullOrWhiteSpace(catSlug) ? Array.Empty<string>() : new[] { catSlug };
             var sort = SelectedSort switch
             {
                 "Downloads" => "downloads",
@@ -531,14 +533,25 @@ public partial class ModpacksBrowserViewModel : ObservableObject
             var page = await ModrinthApiService.SearchAsync(SearchQuery, SelectedVersion, LoaderFacets, "modpack", sort, categoryFilter, _offset, PageSize);
             if (page != null && gen == _searchGeneration)
             {
-                _offset = page.Offset + page.Hits.Count;
-                _totalHits = page.TotalHits;
-                foreach (var p in page.Hits)
+                if (page.Hits.Count == 0)
                 {
-                    Results.Add(p);
-                    LoadIcon(p, gen);
+                    _offset = _totalHits;
                 }
-                UpdateInstalledFlags();
+                else
+                {
+                    _offset += page.Limit;
+                    _totalHits = page.TotalHits;
+                    var existing = Results.Select(r => r.ProjectId).ToHashSet();
+                    foreach (var p in page.Hits)
+                    {
+                        if (existing.Add(p.ProjectId))
+                        {
+                            Results.Add(p);
+                            LoadIcon(p, gen);
+                        }
+                    }
+                    UpdateInstalledFlags();
+                }
             }
         }
         catch (Exception ex)

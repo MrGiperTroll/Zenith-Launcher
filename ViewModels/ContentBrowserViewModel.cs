@@ -392,7 +392,7 @@ public partial class ContentBrowserViewModel : ObservableObject
     {
         "fabric" => new[] { "fabric" },
         "forge" => new[] { "forge" },
-        "neoforge" => new[] { "neoforged" },
+        "neoforge" => new[] { "neoforge" },
         "quilt" => new[] { "quilt" },
         _ => Array.Empty<string>()
     };
@@ -457,8 +457,8 @@ public partial class ContentBrowserViewModel : ObservableObject
     private void UpdateAvailableTags()
     {
         AvailableTags.Clear();
-        // Leading reset chip: clicking it clears the active category filter.
-        AvailableTags.Add(new BrowserTag { Name = "All", IsReset = true });
+        // Leading reset chip: clicking it clears the active category filter; active by default when nothing else is selected.
+        AvailableTags.Add(new BrowserTag { Name = "All", IsReset = true, IsSelected = true });
         var tags = SelectedContentType switch
         {
             ContentType.Mod => new[] { "adventure", "magic", "technology", "utility", "library", "optimization", "worldgen", "equipment" },
@@ -468,6 +468,16 @@ public partial class ContentBrowserViewModel : ObservableObject
             _ => Array.Empty<string>()
         };
         foreach (var t in tags) AvailableTags.Add(new BrowserTag { Name = t });
+    }
+
+    private void UpdateResetTagState()
+    {
+        var allTag = AvailableTags.FirstOrDefault(t => t.IsReset);
+        if (allTag != null)
+        {
+            bool anyOtherSelected = AvailableTags.Any(t => !t.IsReset && t.IsSelected);
+            allTag.IsSelected = !anyOtherSelected;
+        }
     }
 
     [RelayCommand]
@@ -485,10 +495,12 @@ public partial class ContentBrowserViewModel : ObservableObject
                     changed = true;
                 }
             }
+            tag.IsSelected = true;
             if (changed) _ = ReloadAsync();
             return;
         }
         tag.IsSelected = !tag.IsSelected;
+        UpdateResetTagState();
         _ = ReloadAsync();
     }
 
@@ -508,7 +520,7 @@ public partial class ContentBrowserViewModel : ObservableObject
     private void ResetFilters()
     {
         SearchQuery = "";
-        foreach (var t in AvailableTags) t.IsSelected = false;
+        foreach (var t in AvailableTags) t.IsSelected = t.IsReset;
         SelectedSort = ContentSortOption.Relevance;
         SelectedSortDisplay = "Relevance";
         _ = ReloadAsync();
@@ -559,7 +571,7 @@ public partial class ContentBrowserViewModel : ObservableObject
                 return;
             }
             _totalHits = page.TotalHits;
-            _offset = page.Hits.Count;
+            _offset = page.Limit;
             foreach (var p in page.Hits)
             {
                 Results.Add(p);
@@ -607,14 +619,25 @@ public partial class ContentBrowserViewModel : ObservableObject
             var page = await ModrinthApiService.SearchAsync(SearchQuery, _gameVersion, loaders, projectType, sortIndex, categoryTags, _offset, PageSize);
             if (page != null && gen == _searchGeneration)
             {
-                _offset = page.Offset + page.Hits.Count;
-                _totalHits = page.TotalHits;
-                foreach (var p in page.Hits)
+                if (page.Hits.Count == 0)
                 {
-                    Results.Add(p);
-                    LoadIcon(p, gen);
+                    _offset = _totalHits;
                 }
-                UpdateInstalledFlags();
+                else
+                {
+                    _offset += page.Limit;
+                    _totalHits = page.TotalHits;
+                    var existing = Results.Select(r => r.ProjectId).ToHashSet();
+                    foreach (var p in page.Hits)
+                    {
+                        if (existing.Add(p.ProjectId))
+                        {
+                            Results.Add(p);
+                            LoadIcon(p, gen);
+                        }
+                    }
+                    UpdateInstalledFlags();
+                }
             }
         }
         catch (Exception ex)

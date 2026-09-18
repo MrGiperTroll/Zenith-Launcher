@@ -660,7 +660,7 @@ public class ModLoaderService
     }
 
     /// <summary>MC "1.21" → NeoForge (21,0); "1.21.4" → (21,4); "26.1" → (26,1).</summary>
-    private static (int Major, int Minor)? ParseNeoForgeTarget(string gameVersion)
+    public static (int Major, int Minor)? ParseNeoForgeTarget(string gameVersion)
     {
         var parts = gameVersion.Split('.');
         if (parts.Length == 0) return null;
@@ -716,7 +716,7 @@ public class ModLoaderService
         return cleaned;
     }
 
-    private static int CompareBuildTokens(string x, string y)
+    public static int CompareBuildTokens(string x, string y)
     {
         var tx = TokenizeNumeric(x);
         var ty = TokenizeNumeric(y);

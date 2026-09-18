@@ -65,8 +65,8 @@
             <Setter Property="BorderBrush" Value="{StaticResource AccentBorderBrush}"/>
         </Style>
         <Style Selector="Button.accRowBtn.active:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource AccentDimBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource AccentBorderBrush}"/>
+            <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
         </Style>
     </Window.Styles>
 
@@ -178,12 +178,13 @@
                             <TextBox Classes="darkInput" Text="{Binding NewOfflineUsername}" PlaceholderText="{l10n:Tr Key=placeholder_player}"/>
                         </StackPanel>
 
-                        <Button Classes="methodBtn" Height="42" Background="{StaticResource AccentBrush}" Foreground="{StaticResource OnAccentBrush}"
+                        <Button Classes="primaryBtn" Height="42" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                                 Command="{Binding AddOfflineAccountCommand}">
                             <TextBlock Text="{l10n:Tr Key=acc_add_btn}" FontWeight="Bold" HorizontalAlignment="Center"/>
                         </Button>
 
-                        <Button Classes="methodBtn" Height="42" Command="{Binding CancelOfflinePanelCommand}">
+                        <Button Classes="subBtn" Height="42" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                                Command="{Binding CancelOfflinePanelCommand}">
                             <TextBlock Text="{l10n:Tr Key=btn_back}" HorizontalAlignment="Center"/>
                         </Button>
                     </StackPanel>

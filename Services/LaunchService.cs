@@ -1345,11 +1345,25 @@ public class LaunchService : ILaunchService
         var versions = ModLoaderService.ParseMavenVersionList(text);
         if (versions is null || versions.Count == 0) return null;
 
-        var prefix = gameVersion.StartsWith("1.") ? gameVersion[2..] : gameVersion;
-        foreach (var v in versions.OrderByDescending(s => s, StringComparer.OrdinalIgnoreCase))
+        var target = ModLoaderService.ParseNeoForgeTarget(gameVersion);
+        if (target != null)
         {
-            if (v.StartsWith(prefix)) return v;
-            if (v.StartsWith(gameVersion)) return v;
+            var prefix = $"{target.Value.Major}.{target.Value.Minor}.";
+            var matching = versions.Where(v => v.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)).ToList();
+            if (matching.Count > 0)
+            {
+                matching.Sort((a, b) => ModLoaderService.CompareBuildTokens(b, a));
+                return matching[0];
+            }
+        }
+
+        // Fallback prefix matching
+        var legacyPrefix = (gameVersion.StartsWith("1.") ? gameVersion[2..] : gameVersion) + ".";
+        var legacyMatching = versions.Where(v => v.StartsWith(legacyPrefix, StringComparison.OrdinalIgnoreCase) || v.StartsWith(gameVersion, StringComparison.OrdinalIgnoreCase)).ToList();
+        if (legacyMatching.Count > 0)
+        {
+            legacyMatching.Sort((a, b) => ModLoaderService.CompareBuildTokens(b, a));
+            return legacyMatching[0];
         }
 
         // NeoForge purged the 1.20.1 era (20.1.x) from all reachable mirrors; pin the

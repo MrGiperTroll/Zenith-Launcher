@@ -87,7 +87,7 @@
                 </Transitions>
             </Setter>
         </Style>
-        <Style Selector="Button.railBtn:pointerover">
+        <Style Selector="Button.railBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource TabActiveBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
         </Style>
@@ -98,7 +98,7 @@
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
             <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
         </Style>
-        <Style Selector="Border.expanded Button.railBtn:pointerover">
+        <Style Selector="Border.expanded Button.railBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource TabActiveBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
         </Style>
@@ -118,7 +118,7 @@
                 </Transitions>
             </Setter>
         </Style>
-        <Style Selector="Button.cardBtn:pointerover">
+        <Style Selector="Button.cardBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource PanelBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
         </Style>
@@ -172,7 +172,7 @@
                 </Transitions>
             </Setter>
         </Style>
-        <Style Selector="Button.subBtn:pointerover">
+        <Style Selector="Button.subBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
@@ -189,9 +189,10 @@
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
         </Style>
-<Style Selector="Button.dangerBtn:pointerover">
+        <Style Selector="Button.dangerBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource DangerBgDeepBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource DangerLightBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource DangerBrush}"/>
         </Style>
 
         <Style Selector="Button.modpackInstalledBtn">
@@ -206,7 +207,7 @@
             <Setter Property="Foreground" Value="{StaticResource AccentBrushHover}"/>
             <Setter Property="BorderBrush" Value="{StaticResource AccentBorderBrush}"/>
         </Style>
-        <Style Selector="Button.modpackInstalledBtn.installed:pointerover">
+        <Style Selector="Button.modpackInstalledBtn.installed:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource DangerBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource DangerBrush}"/>
@@ -220,15 +221,16 @@
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
-        <Style Selector="Button.dialogBtn:pointerover">
+        <Style Selector="Button.dialogBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
         </Style>
         <Style Selector="Button.dialogDanger">
             <Setter Property="Background" Value="{StaticResource DangerBorderBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource DangerLightBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource DangerBorderBrush}"/>
         </Style>
-        <Style Selector="Button.dialogDanger:pointerover">
+        <Style Selector="Button.dialogDanger:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource DangerBgDeepBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
         </Style>
@@ -243,9 +245,10 @@
             <Setter Property="FontSize" Value="11"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
         </Style>
-        <Style Selector="Button.sourceBtn:pointerover">
+        <Style Selector="Button.sourceBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
+            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
         </Style>
 
 
@@ -264,7 +267,7 @@
                 </Transitions>
             </Setter>
         </Style>
-        <Style Selector="Button.sideTab:pointerover">
+        <Style Selector="Button.sideTab:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource PanelBrush}"/>
         </Style>
 
@@ -277,7 +280,7 @@
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Padding" Value="10,8"/>
         </Style>
-<Style Selector="ComboBox">
+        <Style Selector="ComboBox">
             <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
@@ -315,7 +318,7 @@
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
-        <Style Selector="Button.navBtn:pointerover">
+        <Style Selector="Button.navBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource CardBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
         </Style>
@@ -334,7 +337,7 @@
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}"/>
         </Style>
-        <Style Selector="Button.breadcrumbBtn:pointerover">
+        <Style Selector="Button.breadcrumbBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource CardBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
         </Style>
@@ -354,31 +357,18 @@
                     </Transitions>
                 </Border.Transitions>
                 <Grid RowDefinitions="Auto,Auto,*,Auto">
-                    <Grid Grid.Row="0" Margin="12,0" HorizontalAlignment="Stretch">
-                        <!-- Expanded view: Logo + ZENITH text + Toggle button -->
-                        <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center" IsVisible="{Binding IsSidebarExpanded}">
-                            <Button Grid.Column="0" Command="{Binding RefreshState}" Background="Transparent" Padding="0" BorderThickness="0" Cursor="Hand" ToolTip.Tip="{l10n:Tr Key=mw_profiles_title}">
-                                <Border Width="36" Height="36" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderInputBrush}" BorderThickness="1" CornerRadius="8">
-                                    <Path Data="{StaticResource ZenithLogoGeometry}" Fill="{StaticResource SubtleEmeraldBrush}" Stretch="Uniform" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                            </Button>
-                            <TextBlock Grid.Column="1" Text="ZENITH" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="10,0,0,0"/>
-                            <Button Grid.Column="2" Classes="navBtn" Command="{Binding ToggleSidebarCommand}" ToolTip.Tip="{l10n:Tr Key=nav_collapse}" VerticalAlignment="Center">
-                                <PathIcon Data="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" Width="14" Height="14"/>
-                            </Button>
-                        </Grid>
-
-                        <!-- Collapsed view: Centered Logo + Toggle Button under it -->
-                        <StackPanel Spacing="10" HorizontalAlignment="Center" IsVisible="{Binding !IsSidebarExpanded}">
-                            <Button Command="{Binding RefreshState}" Background="Transparent" Padding="0" BorderThickness="0" Cursor="Hand" ToolTip.Tip="{l10n:Tr Key=mw_profiles_title}" HorizontalAlignment="Center">
-                                <Border Width="40" Height="40" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderInputBrush}" BorderThickness="1" CornerRadius="10" HorizontalAlignment="Center">
-                                    <Path Data="{StaticResource ZenithLogoGeometry}" Fill="{StaticResource SubtleEmeraldBrush}" Stretch="Uniform" Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                            </Button>
-                            <Button Classes="navBtn" Command="{Binding ToggleSidebarCommand}" ToolTip.Tip="{l10n:Tr Key=nav_expand}" HorizontalAlignment="Center">
-                                <PathIcon Data="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" Width="14" Height="14"/>
-                            </Button>
-                        </StackPanel>
+                    <Grid Grid.Row="0" HorizontalAlignment="Center">
+                        <!-- Collapsed: Centered burger button to expand -->
+                        <Button Classes="railBtn" Command="{Binding ToggleSidebarCommand}" ToolTip.Tip="{l10n:Tr Key=nav_expand}" IsVisible="{Binding !IsSidebarExpanded}">
+                            <PathIcon Data="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" Width="17" Height="17"/>
+                        </Button>
+                        <!-- Expanded: Burger button with collapse label -->
+                        <Button Classes="railBtn" Command="{Binding ToggleSidebarCommand}" ToolTip.Tip="{l10n:Tr Key=nav_collapse}" IsVisible="{Binding IsSidebarExpanded}">
+                            <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                                <PathIcon Data="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" Width="17" Height="17"/>
+                                <TextBlock Text="{l10n:Tr Key=nav_collapse}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                            </StackPanel>
+                        </Button>
                     </Grid>
 
                     <StackPanel Grid.Row="1" Spacing="6" HorizontalAlignment="Center" Margin="0,24,0,0">
@@ -396,7 +386,7 @@
                         </Button>
                         <Button Classes="railBtn" Command="{Binding NavigateToCreateServerCommand}" ToolTip.Tip="{l10n:Tr Key=nav_create_server}">
                             <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                                <PathIcon Data="M4 1H20C21.1 1 22 1.9 22 3V6C22 7.1 21.1 8 20 8H4C2.9 8 2 7.1 2 6V3C2 1.9 2.9 1 4 1ZM4 10H20C21.1 10 22 10.9 22 12V15C22 16.1 21.1 17 20 17H4C2.9 17 2 16.1 2 15V12C2 10.9 2.9 10 4 10ZM4 19H20C21.1 19 22 19.9 22 21V23H2V21C2 19.9 2.9 19 4 19ZM6 3V6H8V3H6ZM6 12V15H8V12H6ZM6 21V23H8V21H6Z" Width="17" Height="17"/>
+                                <PathIcon Data="M20 13H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1v-6c0-.55-.45-1-1-1zM7 19c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM20 3H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1zM7 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" Width="17" Height="17"/>
                                 <TextBlock Text="{l10n:Tr Key=nav_create_server}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsSidebarExpanded}"/>
                             </StackPanel>
                         </Button>

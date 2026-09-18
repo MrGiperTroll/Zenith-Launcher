@@ -56,7 +56,7 @@
                 </Transitions>
             </Setter>
         </Style>
-        <Style Selector="Button.subBtn:pointerover">
+        <Style Selector="Button.subBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
@@ -71,9 +71,10 @@
             <Setter Property="Padding" Value="14,9"/>
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
-        <Style Selector="Button.dangerBtn:pointerover">
+        <Style Selector="Button.dangerBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource DangerBgDeepBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource DangerLightBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource DangerBrush}"/>
         </Style>
 
         <Style Selector="Button.resetBtn">
@@ -85,7 +86,7 @@
             <Setter Property="Padding" Value="12,5"/>
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
-        <Style Selector="Button.resetBtn:pointerover">
+        <Style Selector="Button.resetBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource TabPressedBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource WarningBrightBrush}"/>
         </Style>
@@ -104,7 +105,7 @@
                 </Transitions>
             </Setter>
         </Style>
-        <Style Selector="Button.sideTab:pointerover">
+        <Style Selector="Button.sideTab:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource PanelBrush}"/>
         </Style>
 

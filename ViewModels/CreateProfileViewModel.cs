@@ -71,6 +71,31 @@ public partial class CreateProfileViewModel : ObservableObject
     public ObservableCollection<string> AvailableLoaderBuilds { get; } = new();
     public ObservableCollection<IconOption> AvailableIcons { get; } = new();
 
+    [ObservableProperty] private int _selectedRamMb = 4096;
+    [ObservableProperty] private int _maxRamMb = 16384;
+    [ObservableProperty] private string _selectedResolution = "1280x720 (HD)";
+    [ObservableProperty] private bool _isFullscreen;
+    [ObservableProperty] private string _selectedJavaMode = "Recommended";
+    [ObservableProperty] private string _customJavaPath = "";
+    public bool IsCustomJavaMode => SelectedJavaMode == "Custom";
+    partial void OnSelectedJavaModeChanged(string value) => OnPropertyChanged(nameof(IsCustomJavaMode));
+
+    public ObservableCollection<string> ResolutionOptions { get; } = new()
+    {
+        "1280x720 (HD)",
+        "1920x1080 (FHD)",
+        "2560x1440 (2K)",
+        "1024x640 (Default)",
+        "854x480 (Legacy)"
+    };
+
+    public ObservableCollection<string> JavaModes { get; } = new()
+    {
+        "Recommended",
+        "System",
+        "Custom"
+    };
+
     public bool CanCreate => !string.IsNullOrWhiteSpace(SelectedVersion) && !IsNameDuplicate && (SelectedLoader == "Vanilla" || !string.IsNullOrWhiteSpace(SelectedLoaderBuild));
     public bool CanNextStep1 => !string.IsNullOrWhiteSpace(ProfileName) && !IsNameDuplicate;
     public bool CanNextStep2 => !string.IsNullOrWhiteSpace(SelectedVersion);
@@ -108,6 +133,12 @@ public partial class CreateProfileViewModel : ObservableObject
         _ = LoadVersionsAsync();
         _ = InitializeLoadersAsync();
         LoadIcons();
+        try
+        {
+            var physMb = (int)(GC.GetGCMemoryInfo().TotalAvailableMemoryBytes / (1024 * 1024));
+            if (physMb > 4096) MaxRamMb = physMb;
+        }
+        catch { }
     }
 
     private string GenerateUniqueProfileName()
@@ -706,6 +737,67 @@ public partial class CreateProfileViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private void SelectPresetIcon(IconOption option)
+    {
+        SelectedIconOption = option;
+        if (option.IsCustom && !string.IsNullOrEmpty(option.FilePath) && File.Exists(option.FilePath))
+        {
+            _pickedIconPath = option.FilePath;
+            IconPath = option.FilePath;
+            try { IconPreview?.Dispose(); IconPreview = new Bitmap(option.FilePath); } catch { }
+        }
+        else if (!string.IsNullOrEmpty(option.GeometryData))
+        {
+            try
+            {
+                var bmp = RenderIconToBitmap(option.GeometryData, option.Color, 128);
+                var cacheDir = Path.Combine(ZenithPaths.AppDataDir, "temp_icons");
+                Directory.CreateDirectory(cacheDir);
+                var safeName = Regex.Replace(option.Name, @"[^\w]", "_");
+                var outPath = Path.Combine(cacheDir, $"{safeName}.png");
+                bmp.Save(outPath);
+                _pickedIconPath = outPath;
+                IconPath = outPath;
+                IconPreview?.Dispose();
+                IconPreview = bmp;
+            }
+            catch (Exception ex)
+            {
+                LauncherLog.Error("Failed to select preset icon", ex);
+            }
+        }
+    }
+
+    [RelayCommand]
+    private async Task PickCustomJavaAsync()
+    {
+        var topLevel = Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime d ? d.MainWindow : null;
+        if (topLevel?.StorageProvider == null) return;
+        var files = await topLevel.StorageProvider.OpenFilePickerAsync(new Avalonia.Platform.Storage.FilePickerOpenOptions
+        {
+            Title = "Select Java Binary (javaw.exe / java)",
+            AllowMultiple = false
+        });
+        if (files.Count > 0)
+        {
+            CustomJavaPath = files[0].Path.LocalPath;
+            SelectedJavaMode = "Custom";
+        }
+    }
+
+    private static void ParseResolution(string res, out int width, out int height)
+    {
+        width = 1280;
+        height = 720;
+        var m = Regex.Match(res, @"^(\d+)x(\d+)");
+        if (m.Success && int.TryParse(m.Groups[1].Value, out var w) && int.TryParse(m.Groups[2].Value, out var h))
+        {
+            width = w;
+            height = h;
+        }
+    }
+
+    [RelayCommand]
     private void Cancel() => RequestClose?.Invoke();
 
     [RelayCommand]
@@ -717,11 +809,22 @@ public partial class CreateProfileViewModel : ObservableObject
         var inst = await _instanceService.CreateInstanceAsync(name, SelectedVersion, SelectedLoader, SelectedLoaderBuild);
         if (inst != null)
         {
+            inst.RamMb = SelectedRamMb;
+            inst.MaxMemoryMb = SelectedRamMb;
+            ParseResolution(SelectedResolution, out var w, out var h);
+            inst.GameWidth = w;
+            inst.GameHeight = h;
+            inst.IsFullscreen = IsFullscreen;
+            inst.JavaMode = SelectedJavaMode;
+            if (SelectedJavaMode == "Custom" && !string.IsNullOrWhiteSpace(CustomJavaPath))
+                inst.CustomJavaPath = CustomJavaPath;
+
             if (!string.IsNullOrEmpty(_pickedIconPath) && File.Exists(_pickedIconPath))
             {
                 var dest = Path.Combine(inst.Path, $"icon{Path.GetExtension(_pickedIconPath)}");
-                try { File.Copy(_pickedIconPath, dest, true); inst.IconPath = dest; await _instanceService.SaveInstanceAsync(inst); } catch { }
+                try { File.Copy(_pickedIconPath, dest, true); inst.IconPath = dest; } catch { }
             }
+            await _instanceService.SaveInstanceAsync(inst);
             ProfileCreated?.Invoke(inst);
             RequestClose?.Invoke();
         }

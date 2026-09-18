@@ -10,6 +10,21 @@ using System.Threading.Tasks;
 namespace CustomMcLauncher.Services;
 
 public record ServerSoftwareOption(string Id, string DisplayName);
+public record ServerPluginItem(string FileName, string FileSizeDisplay, string FullPath, bool IsPlugin)
+{
+    public string Name => FileName;
+    public string Size => FileSizeDisplay;
+}
+
+public class ServerPlayerEntry
+{
+    public string Uuid { get; set; } = Guid.NewGuid().ToString();
+    public string Name { get; set; } = "";
+    public int Level { get; set; } = 4;
+    public bool BypassesPlayerLimit { get; set; } = false;
+    public string Reason { get; set; } = "Banned by an operator.";
+    public string Expires { get; set; } = "forever";
+}
 
 public class ServerCreatorService
 {
@@ -279,6 +294,185 @@ public class ServerCreatorService
                 var mbTotal = (double)totalBytes / (1024 * 1024);
                 progress.Report(($"{statusPrefix} ({mbRead:F1} / {mbTotal:F1} MB)", currentPercent));
             }
+        }
+    }
+
+    public static List<string> GetExistingServers()
+    {
+        var list = new List<string>();
+        try
+        {
+            if (Directory.Exists(DefaultServersDirectory))
+            {
+                foreach (var dir in Directory.GetDirectories(DefaultServersDirectory))
+                {
+                    list.Add(Path.GetFileName(dir));
+                }
+            }
+        }
+        catch { }
+        return list;
+    }
+
+    public static Dictionary<string, string> LoadProperties(string serverDir)
+    {
+        var props = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var file = Path.Combine(serverDir, "server.properties");
+        if (!File.Exists(file)) return props;
+
+        foreach (var line in File.ReadAllLines(file))
+        {
+            var trimmed = line.Trim();
+            if (trimmed.StartsWith("#") || !trimmed.Contains('=')) continue;
+            var idx = trimmed.IndexOf('=');
+            var key = trimmed[..idx].Trim();
+            var val = trimmed[(idx + 1)..].Trim();
+            props[key] = val;
+        }
+        return props;
+    }
+
+    public static void SaveProperties(string serverDir, IDictionary<string, string> properties)
+    {
+        var file = Path.Combine(serverDir, "server.properties");
+        var existingLines = File.Exists(file) ? File.ReadAllLines(file).ToList() : new List<string>();
+        var writtenKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        var newLines = new List<string>();
+        foreach (var line in existingLines)
+        {
+            var trimmed = line.Trim();
+            if (trimmed.StartsWith("#") || !trimmed.Contains('='))
+            {
+                newLines.Add(line);
+                continue;
+            }
+
+            var idx = trimmed.IndexOf('=');
+            var key = trimmed[..idx].Trim();
+            if (properties.TryGetValue(key, out var val))
+            {
+                newLines.Add($"{key}={val}");
+                writtenKeys.Add(key);
+            }
+            else
+            {
+                newLines.Add(line);
+                writtenKeys.Add(key);
+            }
+        }
+
+        foreach (var kvp in properties)
+        {
+            if (!writtenKeys.Contains(kvp.Key))
+            {
+                newLines.Add($"{kvp.Key}={kvp.Value}");
+            }
+        }
+
+        File.WriteAllLines(file, newLines);
+    }
+
+    public static List<ServerPluginItem> GetInstalledPluginsOrMods(string serverDir)
+    {
+        var list = new List<ServerPluginItem>();
+        try
+        {
+            var pluginsDir = Path.Combine(serverDir, "plugins");
+            if (Directory.Exists(pluginsDir))
+            {
+                foreach (var f in Directory.GetFiles(pluginsDir, "*.jar"))
+                {
+                    var fi = new FileInfo(f);
+                    list.Add(new ServerPluginItem(fi.Name, FormatBytes(fi.Length), fi.FullName, true));
+                }
+            }
+
+            var modsDir = Path.Combine(serverDir, "mods");
+            if (Directory.Exists(modsDir))
+            {
+                foreach (var f in Directory.GetFiles(modsDir, "*.jar"))
+                {
+                    var fi = new FileInfo(f);
+                    list.Add(new ServerPluginItem(fi.Name, FormatBytes(fi.Length), fi.FullName, false));
+                }
+            }
+        }
+        catch { }
+        return list;
+    }
+
+    private static string FormatBytes(long bytes)
+    {
+        if (bytes < 1024) return $"{bytes} B";
+        if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F1} KB";
+        return $"{bytes / (1024.0 * 1024.0):F1} MB";
+    }
+
+    public static void ResetWorld(string serverDir, string worldName = "world")
+    {
+        if (string.IsNullOrWhiteSpace(worldName)) worldName = "world";
+        var targets = new[]
+        {
+            Path.Combine(serverDir, worldName),
+            Path.Combine(serverDir, $"{worldName}_nether"),
+            Path.Combine(serverDir, $"{worldName}_the_end")
+        };
+
+        foreach (var t in targets)
+        {
+            if (Directory.Exists(t))
+            {
+                try { Directory.Delete(t, true); } catch (Exception ex) { LauncherLog.Warn($"Could not delete world dir {t}: {ex.Message}"); }
+            }
+        }
+    }
+
+    public static List<ServerPlayerEntry> LoadPlayerList(string serverDir, string fileName)
+    {
+        var list = new List<ServerPlayerEntry>();
+        var filePath = Path.Combine(serverDir, fileName);
+        if (!File.Exists(filePath)) return list;
+
+        try
+        {
+            using var doc = JsonDocument.Parse(File.ReadAllText(filePath));
+            if (doc.RootElement.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var el in doc.RootElement.EnumerateArray())
+                {
+                    var entry = new ServerPlayerEntry();
+                    if (el.TryGetProperty("name", out var n)) entry.Name = n.GetString() ?? "";
+                    if (el.TryGetProperty("uuid", out var u)) entry.Uuid = u.GetString() ?? "";
+                    if (el.TryGetProperty("level", out var l)) entry.Level = l.GetInt32();
+                    if (el.TryGetProperty("reason", out var r)) entry.Reason = r.GetString() ?? "";
+                    if (!string.IsNullOrWhiteSpace(entry.Name)) list.Add(entry);
+                }
+            }
+        }
+        catch { }
+        return list;
+    }
+
+    public static void SavePlayerList(string serverDir, string fileName, IEnumerable<ServerPlayerEntry> entries)
+    {
+        var filePath = Path.Combine(serverDir, fileName);
+        try
+        {
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            var rawList = entries.Select(e => new Dictionary<string, object>
+            {
+                ["uuid"] = string.IsNullOrWhiteSpace(e.Uuid) ? Guid.NewGuid().ToString() : e.Uuid,
+                ["name"] = e.Name,
+                ["level"] = e.Level,
+                ["bypassesPlayerLimit"] = e.BypassesPlayerLimit,
+                ["reason"] = e.Reason
+            }).ToList();
+            File.WriteAllText(filePath, JsonSerializer.Serialize(rawList, options));
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Error($"Failed to save player list {fileName}", ex);
         }
     }
 }

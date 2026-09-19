@@ -309,7 +309,20 @@
                                         </StackPanel>
                                     </Border>
 
-                                    <Button Classes="chipBtn" Padding="7,4" ToolTip.Tip="{l10n:Tr Key=cs_copy_ip}">
+                                    <!-- Direct 1-Click Copy Localhost Button -->
+                                    <Button Classes="chipBtn" Command="{Binding CopyIpCommand}" Padding="7,4" ToolTip.Tip="{l10n:Tr Key=cs_copy_ip}">
+                                        <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                            <PathIcon Data="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"
+                                                      Width="11" Height="11" Foreground="{StaticResource TextSecondaryBrush}" IsVisible="{Binding !IsIpCopied}"/>
+                                            <PathIcon Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                                                      Width="11" Height="11" Foreground="{StaticResource SuccessBrush}" IsVisible="{Binding IsIpCopied}"/>
+                                            <TextBlock Text="{l10n:Tr Key=cs_ip_copied}" IsVisible="{Binding IsIpCopied}" FontSize="11" Foreground="{StaticResource SuccessBrush}"/>
+                                            <TextBlock Text="{l10n:Tr Key=cs_copy_ip}" IsVisible="{Binding !IsIpCopied}" FontSize="11"/>
+                                        </StackPanel>
+                                    </Button>
+
+                                    <!-- Network Interfaces Selector Dropdown (Tailscale, Radmin, LAN) -->
+                                    <Button Classes="chipBtn" Padding="6,4" ToolTip.Tip="Network interfaces (Tailscale, Radmin, LAN)">
                                         <Button.Flyout>
                                             <Flyout Placement="BottomEdgeAlignedLeft">
                                                 <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="6" MinWidth="260">
@@ -334,15 +347,7 @@
                                                 </Border>
                                             </Flyout>
                                         </Button.Flyout>
-                                        <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                                            <PathIcon Data="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"
-                                                      Width="11" Height="11" Foreground="{StaticResource TextSecondaryBrush}" IsVisible="{Binding !IsIpCopied}"/>
-                                            <PathIcon Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
-                                                      Width="11" Height="11" Foreground="{StaticResource SuccessBrush}" IsVisible="{Binding IsIpCopied}"/>
-                                            <TextBlock Text="{l10n:Tr Key=cs_ip_copied}" IsVisible="{Binding IsIpCopied}" FontSize="11" Foreground="{StaticResource SuccessBrush}"/>
-                                            <TextBlock Text="{l10n:Tr Key=cs_copy_ip}" IsVisible="{Binding !IsIpCopied}" FontSize="11"/>
-                                            <PathIcon Data="M7 10l5 5 5-5z" Width="9" Height="9" Foreground="{StaticResource TextMutedBrush}" Margin="2,1,0,0"/>
-                                        </StackPanel>
+                                        <PathIcon Data="M7 10l5 5 5-5z" Width="9" Height="9" Foreground="{StaticResource TextMutedBrush}"/>
                                     </Button>
                                 </StackPanel>
                             </StackPanel>

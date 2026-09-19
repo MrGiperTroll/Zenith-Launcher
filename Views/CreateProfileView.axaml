@@ -187,7 +187,13 @@
                                                 <TextBlock Text="{l10n:Tr Key=set_java}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
                                                 <TextBlock Text="{l10n:Tr Key=set_java_mode_desc}" FontSize="10.5" Foreground="{StaticResource TextMutedBrush}"/>
                                             </StackPanel>
-                                            <ComboBox Grid.Column="1" ItemsSource="{Binding JavaOptions}" SelectedItem="{Binding SelectedJavaOption}" HorizontalAlignment="Stretch" FontSize="11"/>
+                                            <ComboBox Grid.Column="1" ItemsSource="{Binding JavaOptions}" SelectedItem="{Binding SelectedJavaOption}" HorizontalAlignment="Stretch" FontSize="11">
+                                                <ComboBox.ItemTemplate>
+                                                    <DataTemplate x:DataType="vm:JavaModeOption">
+                                                        <TextBlock Text="{Binding DisplayName}" FontSize="11"/>
+                                                    </DataTemplate>
+                                                </ComboBox.ItemTemplate>
+                                            </ComboBox>
                                         </Grid>
                                         <!-- Custom Java Path Row if SelectedJavaMode == "Custom" -->
                                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" IsVisible="{Binding IsCustomJavaMode}">

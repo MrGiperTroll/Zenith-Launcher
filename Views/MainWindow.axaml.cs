@@ -26,9 +26,9 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        Opacity = 1.0;
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
         DataContextChanged += OnDataContextChanged;
-        UiFx.FadeIn(this, 200);
     }
 
     private void OnDataContextChanged(object? sender, EventArgs e)

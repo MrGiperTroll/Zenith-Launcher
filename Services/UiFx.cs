@@ -5,6 +5,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 
 namespace CustomMcLauncher.Services;
 
@@ -19,6 +20,18 @@ public static class UiFx
     public static void FadeIn(Visual visual, int ms = 180, double slideY = 6, double startScale = 0.995)
     {
         if (visual == null) return;
+        if (visual is Window)
+        {
+            visual.Opacity = 1.0;
+            return;
+        }
+
+        if (visual is Control { IsLoaded: true })
+        {
+            FadeInNow(visual, ms, slideY, startScale);
+            return;
+        }
+
         visual.Opacity = 0;
 
         void OnAttached(object? sender, VisualTreeAttachmentEventArgs e)

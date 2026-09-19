@@ -556,6 +556,9 @@ public partial class CreateServerViewModel : ObservableObject
     }
 
     [RelayCommand]
+    public async Task CopyIpAsync() => await CopyAddressAsync(ServerIpDisplay);
+
+    [RelayCommand]
     public async Task CopyAddressAsync(string? address)
     {
         var target = string.IsNullOrWhiteSpace(address) ? ServerIpDisplay : address;

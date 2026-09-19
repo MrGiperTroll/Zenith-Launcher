@@ -20,6 +20,19 @@ public record ServerPluginItem(string FileName, string FileSizeDisplay, string F
     public string Size => FileSizeDisplay;
 }
 
+public class ServerFileItem
+{
+    public string Name { get; set; } = "";
+    public string FullPath { get; set; } = "";
+    public bool IsDirectory { get; set; }
+    public long SizeBytes { get; set; }
+    public string SizeDisplay { get; set; } = "";
+    public string ModifiedDisplay { get; set; } = "";
+    public string IconKind { get; set; } = "file";
+    public string IconData { get; set; } = "";
+    public string IconColor { get; set; } = "#9CA3AF";
+}
+
 public class ServerPlayerEntry
 {
     public string Uuid { get; set; } = Guid.NewGuid().ToString();
@@ -157,14 +170,15 @@ public class ServerCreatorService
 
         // 3. run.bat (Windows batch file)
         var minRam = Math.Max(1, ramGb / 2);
-        var maxRam = Math.Max(1, ramGb);
         var runBatPath = Path.Combine(targetDir, "run.bat");
+        var resolvedJava = JavaVersionHelper.FindOrResolveServerJava(targetDir, version, out _);
+        var javaCmd = string.IsNullOrWhiteSpace(resolvedJava) ? "java" : $"\"{resolvedJava}\"";
         var runBat =
             "@echo off\r\n" +
             $"title Minecraft Server - {serverName}\r\n" +
             $"echo Starting Minecraft Server ({version} - {software})...\r\n" +
-            $"java -Xms{minRam}G -Xmx{maxRam}G -jar server.jar nogui\r\n" +
-            "pause\r\n";
+            $"{javaCmd} -Xms{minRam}G -Xmx{ramGb}G -jar server.jar nogui\r\n" +
+            "if %ERRORLEVEL% NEQ 0 pause\r\n";
         await File.WriteAllTextAsync(runBatPath, runBat, ct);
 
         // 4. run.sh (Linux / macOS shell script)
@@ -172,7 +186,7 @@ public class ServerCreatorService
         var runSh =
             "#!/bin/bash\n" +
             $"echo \"Starting Minecraft Server ({version} - {software})...\"\n" +
-            $"java -Xms{minRam}G -Xmx{maxRam}G -jar server.jar nogui\n";
+            $"java -Xms{minRam}G -Xmx{ramGb}G -jar server.jar nogui\n";
         await File.WriteAllTextAsync(runShPath, runSh, ct);
 
         progress?.Report(("Server ready!", 100));
@@ -746,5 +760,28 @@ public class ServerCreatorService
         }
 
         return result;
+    }
+
+    public static void EnsureRunBatJava(string serverDir, string javaExePath)
+    {
+        try
+        {
+            var batPath = Path.Combine(serverDir, "run.bat");
+            if (!File.Exists(batPath)) return;
+            var text = File.ReadAllText(batPath);
+            var updated = System.Text.RegularExpressions.Regex.Replace(
+                text,
+                @"(^|\r?\n)(?:""[^""]+""|java)(\s+-Xm)",
+                $"$1\"{javaExePath}\"$2",
+                System.Text.RegularExpressions.RegexOptions.Multiline);
+            if (updated != text)
+            {
+                File.WriteAllText(batPath, updated);
+            }
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Warn($"Failed to ensure Java in run.bat: {ex.Message}");
+        }
     }
 }

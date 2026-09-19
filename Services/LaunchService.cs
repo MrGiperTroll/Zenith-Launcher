@@ -791,25 +791,39 @@ public class LaunchService : ILaunchService
             if (File.Exists(jh) && CheckJavaVersion(jh, major)) return jh;
         }
 
-        // Check installed JDKs
+        // Check installed JDKs in Program Files with wildcards
         var programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-        var candidates = new[]
+        var programFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+        var vendorBases = new[]
         {
-            Path.Combine(programFiles, "Eclipse Adoptium", $"jdk-{major}", "bin", "javaw.exe"),
-            Path.Combine(programFiles, "Eclipse Adoptium", $"jdk-{major}", "bin", "java.exe"),
-            Path.Combine(programFiles, "Java", $"jdk-{major}", "bin", "javaw.exe"),
-            Path.Combine(programFiles, "Java", $"jdk-{major}", "bin", "java.exe"),
-            Path.Combine(programFiles, "Amazon Corretto", $"jdk{major}.0", "bin", "javaw.exe"),
-            Path.Combine(programFiles, "Amazon Corretto", $"jdk{major}.0", "bin", "java.exe"),
-            Path.Combine(programFiles, "Zulu", $"zulu-{major}", "bin", "javaw.exe"),
-            Path.Combine(programFiles, "Zulu", $"zulu-{major}", "bin", "java.exe"),
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Java", $"jdk-{major}", "bin", "javaw.exe"),
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Java", $"jdk-{major}", "bin", "java.exe"),
+            Path.Combine(programFiles, "Eclipse Adoptium"),
+            Path.Combine(programFiles, "Java"),
+            Path.Combine(programFiles, "Amazon Corretto"),
+            Path.Combine(programFiles, "Zulu"),
+            Path.Combine(programFiles, "BellSoft"),
+            Path.Combine(programFiles, "Microsoft"),
+            Path.Combine(programFilesX86, "Eclipse Adoptium"),
+            Path.Combine(programFilesX86, "Java")
         };
 
-        foreach (var c in candidates)
+        var searchPatterns = new[] { $"jdk-{major}*", $"jdk{major}*", $"*jdk*{major}*", $"*jre*{major}*" };
+        foreach (var vBase in vendorBases)
         {
-            if (File.Exists(c) && CheckJavaVersion(c, major)) return c;
+            if (!Directory.Exists(vBase)) continue;
+            foreach (var pattern in searchPatterns)
+            {
+                try
+                {
+                    foreach (var dir in Directory.GetDirectories(vBase, pattern, SearchOption.TopDirectoryOnly))
+                    {
+                        var jw = Path.Combine(dir, "bin", "javaw.exe");
+                        if (File.Exists(jw) && CheckJavaVersion(jw, major)) return jw;
+                        var je = Path.Combine(dir, "bin", "java.exe");
+                        if (File.Exists(je) && CheckJavaVersion(je, major)) return je;
+                    }
+                }
+                catch { }
+            }
         }
         // Check PATH
         try

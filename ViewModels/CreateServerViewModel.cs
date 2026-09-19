@@ -21,6 +21,8 @@ public partial class CreateServerViewModel : ObservableObject
     private readonly MainWindowViewModel _host;
     private CancellationTokenSource? _cts;
     private Process? _serverProcess;
+    private StreamWriter? _serverStdin;
+    private CancellationTokenSource? _stopTimeoutCts;
     private DateTime _serverStartTime;
     private readonly DispatcherTimer _uptimeTimer;
 
@@ -45,7 +47,7 @@ public partial class CreateServerViewModel : ObservableObject
     [ObservableProperty] private bool _hasExistingServers;
     [ObservableProperty] private string? _selectedServerName;
     [ObservableProperty] private string _activeServerDirectory = "";
-    [ObservableProperty] private int _selectedTab; // 0=Overview, 1=Properties, 2=Plugins, 3=World, 4=Players
+    [ObservableProperty] private int _selectedTab; // 0=Overview, 1=Properties, 2=Plugins, 3=World, 4=Players, 5=Files
     [ObservableProperty] private int _playersSubTab; // 0=Ops, 1=Whitelist, 2=Bans
     [ObservableProperty] private string _newPlayerName = "";
     [ObservableProperty] private string _configStatusMessage = "";
@@ -80,6 +82,18 @@ public partial class CreateServerViewModel : ObservableObject
 
     // Overview Live Status & Inline Edit Properties
     [ObservableProperty] private bool _isServerRunning;
+    [ObservableProperty] private bool _isServerStopping;
+    [ObservableProperty] private bool _isForceStopAvailable;
+    [ObservableProperty] private bool _hasJavaMissingWarning;
+    [ObservableProperty] private int _missingJavaMajor = 25;
+    [ObservableProperty] private string _javaMissingWarningText = "";
+
+    public string StopButtonText => IsServerStopping ? L10n.T("cs_server_stopping") : L10n.T("cs_stop_server");
+    public string DownloadJavaButtonText => string.Format(L10n.T("cs_download_java"), MissingJavaMajor);
+    public bool CanShowStopButton => IsServerRunning;
+
+    partial void OnIsServerStoppingChanged(bool value) => OnPropertyChanged(nameof(StopButtonText));
+
     [ObservableProperty] private string _serverSoftwareDisplay = "Vanilla";
     [ObservableProperty] private string _serverAllocatedRamDisplay = "4 GB";
     [ObservableProperty] private string _uptimeText = "00:00:00";
@@ -88,7 +102,11 @@ public partial class CreateServerViewModel : ObservableObject
     [ObservableProperty] private string _serverIpDisplay = "localhost:25565";
     [ObservableProperty] private bool _isIpCopied;
     public bool CanEditServer => !IsServerRunning;
-    partial void OnIsServerRunningChanged(bool value) => OnPropertyChanged(nameof(CanEditServer));
+    partial void OnIsServerRunningChanged(bool value)
+    {
+        OnPropertyChanged(nameof(CanEditServer));
+        OnPropertyChanged(nameof(CanShowStopButton));
+    }
 
     public ObservableCollection<ServerNetworkEndpoint> NetworkEndpoints { get; } = new();
 
@@ -109,6 +127,14 @@ public partial class CreateServerViewModel : ObservableObject
     public ObservableCollection<ServerPlayerEntry> BansList { get; } = new();
     public ObservableCollection<string> OnlinePlayers { get; } = new();
 
+    // File Manager State
+    public ObservableCollection<ServerFileItem> ServerFiles { get; } = new();
+    [ObservableProperty] private string _currentBrowsePath = "";
+    [ObservableProperty] private string _currentBrowseRelativePath = "/";
+    [ObservableProperty] private bool _canNavigateUp;
+    [ObservableProperty] private bool _isFilesEmpty;
+    [ObservableProperty] private string _fileOperationStatus = "";
+
     [ObservableProperty] private bool _isRefreshingOnlinePlayers;
     [ObservableProperty] private string _onlinePlayersCountText = "0 players online";
 
@@ -117,6 +143,7 @@ public partial class CreateServerViewModel : ObservableObject
     public bool IsPluginsTab => SelectedTab == 2;
     public bool IsWorldTab => SelectedTab == 3;
     public bool IsPlayersTab => SelectedTab == 4;
+    public bool IsFilesTab => SelectedTab == 5;
 
     public bool IsOnlinePlayersSubTab => PlayersSubTab == 0;
     public bool IsOpsSubTab => PlayersSubTab == 1;
@@ -130,6 +157,11 @@ public partial class CreateServerViewModel : ObservableObject
         OnPropertyChanged(nameof(IsPluginsTab));
         OnPropertyChanged(nameof(IsWorldTab));
         OnPropertyChanged(nameof(IsPlayersTab));
+        OnPropertyChanged(nameof(IsFilesTab));
+        if (value == 5)
+        {
+            RefreshFiles();
+        }
         StateChanged?.Invoke();
     }
 
@@ -345,6 +377,12 @@ public partial class CreateServerViewModel : ObservableObject
         RefreshNetworkEndpoints();
 
         _ = RefreshOnlinePlayersAsync();
+
+        CurrentBrowsePath = ActiveServerDirectory;
+        if (SelectedTab == 5)
+        {
+            RefreshFiles();
+        }
 
         ConfigStatusMessage = "";
         WorldResetStatusMessage = "";
@@ -590,19 +628,76 @@ public partial class CreateServerViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public void StopServer()
+    public async Task StopServerAsync()
     {
-        if (_serverProcess != null && !_serverProcess.HasExited)
+        if (!IsServerRunning || _serverProcess == null || _serverProcess.HasExited)
         {
-            try
+            IsServerRunning = false;
+            IsServerStopping = false;
+            IsForceStopAvailable = false;
+            return;
+        }
+
+        IsServerStopping = true;
+        IsForceStopAvailable = false;
+
+        try
+        {
+            if (_serverStdin != null)
+            {
+                await _serverStdin.WriteLineAsync("stop");
+                await _serverStdin.FlushAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Warn($"Could not send 'stop' to server stdin: {ex.Message}");
+        }
+
+        _stopTimeoutCts?.Cancel();
+        _stopTimeoutCts = new CancellationTokenSource();
+        var ct = _stopTimeoutCts.Token;
+
+        _ = Task.Delay(10000, ct).ContinueWith(t =>
+        {
+            if (!t.IsCanceled)
+            {
+                Dispatcher.UIThread.Post(() =>
+                {
+                    if (IsServerRunning && IsServerStopping)
+                    {
+                        IsForceStopAvailable = true;
+                    }
+                });
+            }
+        }, ct);
+    }
+
+    [RelayCommand]
+    public void ForceStopServer()
+    {
+        try
+        {
+            if (_serverProcess != null && !_serverProcess.HasExited)
             {
                 _serverProcess.Kill(true);
             }
-            catch { }
         }
-        IsServerRunning = false;
-        _uptimeTimer.Stop();
-        UptimeText = "00:00:00";
+        catch (Exception ex)
+        {
+            LauncherLog.Error("Failed to force stop server", ex);
+        }
+        finally
+        {
+            IsServerRunning = false;
+            IsServerStopping = false;
+            IsForceStopAvailable = false;
+            _stopTimeoutCts?.Cancel();
+            _uptimeTimer.Stop();
+            UptimeText = "00:00:00";
+            _serverProcess = null;
+            _serverStdin = null;
+        }
     }
 
     [RelayCommand]
@@ -759,6 +854,19 @@ public partial class CreateServerViewModel : ObservableObject
 
         try
         {
+            var javaPath = JavaVersionHelper.FindOrResolveServerJava(dir, SelectedVersion, out int reqMajor);
+            if (string.IsNullOrWhiteSpace(javaPath))
+            {
+                MissingJavaMajor = reqMajor;
+                JavaMissingWarningText = string.Format(L10n.T("cs_java_missing_warn"), reqMajor);
+                HasJavaMissingWarning = true;
+                OnPropertyChanged(nameof(DownloadJavaButtonText));
+                return;
+            }
+
+            HasJavaMissingWarning = false;
+            ServerCreatorService.EnsureRunBatJava(dir, javaPath);
+
             var batPath = Path.Combine(dir, "run.bat");
             if (File.Exists(batPath))
             {
@@ -768,9 +876,11 @@ public partial class CreateServerViewModel : ObservableObject
                     StartInfo = new ProcessStartInfo
                     {
                         FileName = "cmd.exe",
-                        Arguments = $"/k title Minecraft Server - {title} && run.bat",
+                        Arguments = $"/c title Minecraft Server - {title} & run.bat",
                         WorkingDirectory = dir,
-                        UseShellExecute = true
+                        UseShellExecute = false,
+                        RedirectStandardInput = true,
+                        CreateNoWindow = false
                     },
                     EnableRaisingEvents = true
                 };
@@ -780,16 +890,25 @@ public partial class CreateServerViewModel : ObservableObject
                     Dispatcher.UIThread.Post(() =>
                     {
                         IsServerRunning = false;
+                        IsServerStopping = false;
+                        IsForceStopAvailable = false;
+                        _stopTimeoutCts?.Cancel();
                         _uptimeTimer.Stop();
                         UptimeText = "00:00:00";
+                        _serverProcess = null;
+                        _serverStdin = null;
                     });
                 };
 
                 if (p.Start())
                 {
                     _serverProcess = p;
+                    _serverStdin = p.StandardInput;
+                    _serverStdin.AutoFlush = true;
                     _serverStartTime = DateTime.Now;
                     IsServerRunning = true;
+                    IsServerStopping = false;
+                    IsForceStopAvailable = false;
                     _uptimeTimer.Start();
                 }
             }
@@ -797,6 +916,270 @@ public partial class CreateServerViewModel : ObservableObject
         catch (Exception ex)
         {
             LauncherLog.Error("Failed to run server in cmd", ex);
+        }
+    }
+
+    [RelayCommand]
+    public void DownloadMissingJava()
+    {
+        var url = JavaVersionHelper.AdoptiumDownloadUrl(MissingJavaMajor);
+        try
+        {
+            Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Error($"Failed to open download url: {url}", ex);
+        }
+    }
+
+    // ==========================================
+    // File Manager Operations
+    // ==========================================
+
+    [RelayCommand]
+    public void RefreshFiles()
+    {
+        if (string.IsNullOrWhiteSpace(ActiveServerDirectory) || !Directory.Exists(ActiveServerDirectory))
+        {
+            ServerFiles.Clear();
+            IsFilesEmpty = true;
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(CurrentBrowsePath) || !Directory.Exists(CurrentBrowsePath) ||
+            !CurrentBrowsePath.StartsWith(ActiveServerDirectory, StringComparison.OrdinalIgnoreCase))
+        {
+            CurrentBrowsePath = ActiveServerDirectory;
+        }
+
+        try
+        {
+            var activeFull = Path.GetFullPath(ActiveServerDirectory).TrimEnd('\\', '/');
+            var currFull = Path.GetFullPath(CurrentBrowsePath).TrimEnd('\\', '/');
+            CanNavigateUp = !string.Equals(activeFull, currFull, StringComparison.OrdinalIgnoreCase);
+
+            var rel = Path.GetRelativePath(activeFull, currFull);
+            CurrentBrowseRelativePath = string.IsNullOrWhiteSpace(rel) || rel == "." ? "/" : "/" + rel.Replace('\\', '/');
+
+            var items = new List<ServerFileItem>();
+
+            var dirs = Directory.GetDirectories(CurrentBrowsePath);
+            Array.Sort(dirs, StringComparer.OrdinalIgnoreCase);
+            foreach (var d in dirs)
+            {
+                var dirInfo = new DirectoryInfo(d);
+                items.Add(new ServerFileItem
+                {
+                    Name = dirInfo.Name,
+                    FullPath = d,
+                    IsDirectory = true,
+                    SizeBytes = 0,
+                    SizeDisplay = "--",
+                    ModifiedDisplay = dirInfo.LastWriteTime.ToString("yyyy-MM-dd HH:mm"),
+                    IconKind = "folder",
+                    IconData = "M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z",
+                    IconColor = "#60A5FA"
+                });
+            }
+
+            var files = Directory.GetFiles(CurrentBrowsePath);
+            Array.Sort(files, StringComparer.OrdinalIgnoreCase);
+            foreach (var f in files)
+            {
+                var fi = new FileInfo(f);
+                var ext = fi.Extension.ToLowerInvariant();
+                string iconData;
+                string iconColor;
+                string iconKind;
+
+                if (ext is ".properties" or ".yml" or ".yaml" or ".json" or ".toml" or ".txt")
+                {
+                    iconKind = "config";
+                    iconData = "M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z";
+                    iconColor = "#FBBF24";
+                }
+                else if (ext is ".jar" or ".bat" or ".sh" or ".cmd")
+                {
+                    iconKind = "package";
+                    iconData = "M12 2l-8 4.5v9L12 20l8-4.5v-9L12 2zm0 2.2l5.7 3.2L12 10.6 6.3 7.4 12 4.2z";
+                    iconColor = "#34D399";
+                }
+                else if (ext is ".log" or ".gz")
+                {
+                    iconKind = "log";
+                    iconData = "M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10H7v-2h10v2zm0-4H7V7h10v2z";
+                    iconColor = "#A78BFA";
+                }
+                else
+                {
+                    iconKind = "file";
+                    iconData = "M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z";
+                    iconColor = "#9CA3AF";
+                }
+
+                items.Add(new ServerFileItem
+                {
+                    Name = fi.Name,
+                    FullPath = f,
+                    IsDirectory = false,
+                    SizeBytes = fi.Length,
+                    SizeDisplay = FormatFileSize(fi.Length),
+                    ModifiedDisplay = fi.LastWriteTime.ToString("yyyy-MM-dd HH:mm"),
+                    IconKind = iconKind,
+                    IconData = iconData,
+                    IconColor = iconColor
+                });
+            }
+
+            ServerFiles.Clear();
+            foreach (var it in items) ServerFiles.Add(it);
+            IsFilesEmpty = ServerFiles.Count == 0;
+            FileOperationStatus = "";
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Error("Failed to refresh server files", ex);
+            FileOperationStatus = ex.Message;
+        }
+    }
+
+    private static string FormatFileSize(long bytes)
+    {
+        if (bytes < 1024) return $"{bytes} B";
+        if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F1} KB";
+        if (bytes < 1024 * 1024 * 1024) return $"{bytes / (1024.0 * 1024.0):F1} MB";
+        return $"{bytes / (1024.0 * 1024.0 * 1024.0):F2} GB";
+    }
+
+    [RelayCommand]
+    public void NavigateIntoFileItem(ServerFileItem? item)
+    {
+        if (item == null) return;
+        if (item.IsDirectory)
+        {
+            CurrentBrowsePath = item.FullPath;
+            RefreshFiles();
+        }
+        else
+        {
+            OpenFileItem(item);
+        }
+    }
+
+    [RelayCommand]
+    public void NavigateUpDirectory()
+    {
+        if (!CanNavigateUp) return;
+        try
+        {
+            var parent = Directory.GetParent(CurrentBrowsePath)?.FullName;
+            if (parent != null && parent.StartsWith(ActiveServerDirectory, StringComparison.OrdinalIgnoreCase))
+            {
+                CurrentBrowsePath = parent;
+                RefreshFiles();
+            }
+        }
+        catch { }
+    }
+
+    [RelayCommand]
+    public void OpenFileItem(ServerFileItem? item)
+    {
+        if (item == null) return;
+        try
+        {
+            if (item.IsDirectory)
+            {
+                CurrentBrowsePath = item.FullPath;
+                RefreshFiles();
+            }
+            else if (File.Exists(item.FullPath))
+            {
+                Process.Start(new ProcessStartInfo { FileName = item.FullPath, UseShellExecute = true });
+            }
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Error($"Failed to open file {item.FullPath}", ex);
+            FileOperationStatus = $"Open error: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
+    public void DeleteFileItem(ServerFileItem? item)
+    {
+        if (item == null) return;
+        try
+        {
+            if (item.IsDirectory && Directory.Exists(item.FullPath))
+            {
+                Directory.Delete(item.FullPath, true);
+            }
+            else if (File.Exists(item.FullPath))
+            {
+                File.Delete(item.FullPath);
+            }
+            RefreshFiles();
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Error($"Failed to delete {item.FullPath}", ex);
+            FileOperationStatus = $"Delete error: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
+    public async Task UploadServerFilesAsync()
+    {
+        if (string.IsNullOrWhiteSpace(CurrentBrowsePath) || !Directory.Exists(CurrentBrowsePath))
+            return;
+
+        var topLevel = Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop
+            ? desktop.MainWindow
+            : null;
+        if (topLevel?.StorageProvider == null) return;
+
+        var files = await topLevel.StorageProvider.OpenFilePickerAsync(new Avalonia.Platform.Storage.FilePickerOpenOptions
+        {
+            Title = L10n.T("cs_file_upload"),
+            AllowMultiple = true
+        });
+
+        if (files == null || files.Count == 0) return;
+
+        try
+        {
+            foreach (var f in files)
+            {
+                var local = f.Path.LocalPath;
+                if (!string.IsNullOrEmpty(local) && File.Exists(local))
+                {
+                    var dest = Path.Combine(CurrentBrowsePath, Path.GetFileName(local));
+                    File.Copy(local, dest, true);
+                }
+            }
+            RefreshFiles();
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Error("Failed to upload file(s)", ex);
+            FileOperationStatus = $"Upload error: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
+    public void OpenCurrentFolderInExplorer()
+    {
+        var target = Directory.Exists(CurrentBrowsePath) ? CurrentBrowsePath : ActiveServerDirectory;
+        if (string.IsNullOrWhiteSpace(target) || !Directory.Exists(target)) return;
+        try
+        {
+            Process.Start(new ProcessStartInfo { FileName = target, UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Error("Failed to open current folder in explorer", ex);
         }
     }
 

@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using System.IO.Compression;
+using System.Linq;
 
 namespace CustomMcLauncher.Services;
 
@@ -20,10 +22,18 @@ public static class JavaVersionHelper
 
     public static int InferRequiredJavaMajor(string gameVersion)
     {
-        if (string.IsNullOrWhiteSpace(gameVersion)) return 8;
+        if (string.IsNullOrWhiteSpace(gameVersion)) return 21;
+
+        var trimmed = gameVersion.Trim();
+        // Modern snapshots like 25w... or 26w... use Java 25
+        if (trimmed.StartsWith("25w", StringComparison.OrdinalIgnoreCase) ||
+            trimmed.StartsWith("26w", StringComparison.OrdinalIgnoreCase))
+        {
+            return 25;
+        }
 
         var chars = new System.Collections.Generic.List<char>();
-        foreach (var c in gameVersion)
+        foreach (var c in trimmed)
         {
             if (char.IsDigit(c) || c == '.') chars.Add(c);
             else if (chars.Count > 0) break;
@@ -32,24 +42,102 @@ public static class JavaVersionHelper
 
         var parts = numeric.Split('.');
         if (parts.Length == 0 || !int.TryParse(parts[0], out var first))
-            return 8;
+            return 21;
 
-        if (first >= 26) return 25;
-        if (first != 1) return 8;
+        // New versioning scheme: 25.x, 26.x and higher -> Java 25
+        if (first >= 25) return 25;
 
-        if (parts.Length >= 2 && int.TryParse(parts[1], out var minor))
+        if (first == 1)
         {
-            if (minor >= 21) return 21;
-            if (minor == 20)
+            if (parts.Length >= 2 && int.TryParse(parts[1], out var minor))
             {
-                if (parts.Length >= 3 && int.TryParse(parts[2], out var patch) && patch >= 5)
-                    return 21;
-                return 17;
+                if (minor >= 22) return 25;
+                if (minor >= 21) return 21;
+                if (minor == 20)
+                {
+                    if (parts.Length >= 3 && int.TryParse(parts[2], out var patch) && patch >= 5)
+                        return 21;
+                    return 17;
+                }
+                if (minor >= 17) return 17;
             }
-            if (minor >= 17) return 17;
         }
+        else if (first >= 2)
+        {
+            return 25;
+        }
+
         return 8;
     }
+
+    /// <summary>
+    /// Reads bytecode class major version from a JAR file (e.g. server.jar).
+    /// Returns 69 for Java 25, 65 for Java 21, 61 for Java 17, 52 for Java 8.
+    /// </summary>
+    public static int GetJarClassMajorVersion(string jarPath)
+    {
+        if (string.IsNullOrWhiteSpace(jarPath) || !File.Exists(jarPath)) return 0;
+        try
+        {
+            using var zip = ZipFile.OpenRead(jarPath);
+            var candidateEntries = zip.Entries.Where(e => e.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase));
+            var primary = candidateEntries.FirstOrDefault(e => e.FullName.Contains("Main.class"))
+                          ?? candidateEntries.FirstOrDefault();
+
+            if (primary != null)
+            {
+                using var stream = primary.Open();
+                var header = new byte[8];
+                int read = stream.Read(header, 0, 8);
+                if (read == 8 && header[0] == 0xCA && header[1] == 0xFE && header[2] == 0xBA && header[3] == 0xBE)
+                {
+                    int major = (header[6] << 8) | header[7];
+                    return major;
+                }
+            }
+        }
+        catch { }
+        return 0;
+    }
+
+    /// <summary>
+    /// Maps class file major version (e.g. 69, 65, 61, 52) to Java major version (25, 21, 17, 8).
+    /// </summary>
+    public static int ClassVersionToJavaMajor(int classMajor)
+    {
+        if (classMajor <= 0) return 21;
+        if (classMajor >= 69) return 25;
+        if (classMajor >= 45) return classMajor - 44;
+        return 8;
+    }
+
+    /// <summary>
+    /// Detects server java requirement by inspecting server.jar bytecode directly,
+    /// falling back to version string inference.
+    /// </summary>
+    public static string? FindOrResolveServerJava(string serverDir, string? gameVersion, out int requiredJavaMajor)
+    {
+        requiredJavaMajor = 21;
+        var serverJar = Path.Combine(serverDir, "server.jar");
+        if (File.Exists(serverJar))
+        {
+            var classVer = GetJarClassMajorVersion(serverJar);
+            if (classVer > 0)
+            {
+                requiredJavaMajor = ClassVersionToJavaMajor(classVer);
+            }
+        }
+
+        if (requiredJavaMajor == 21 && !string.IsNullOrWhiteSpace(gameVersion))
+        {
+            requiredJavaMajor = InferRequiredJavaMajor(gameVersion);
+        }
+
+        return FindJavaForVersion(requiredJavaMajor, preferConsole: true);
+    }
+
+    public static string AdoptiumDownloadUrl(int major) =>
+        $"https://adoptium.net/temurin/releases/?version={major}";
 
     public static string CustomDisplay(string path)
     {
@@ -75,11 +163,6 @@ public static class JavaVersionHelper
         return 17;
     }
 
-    /// <summary>
-    /// Locates the system Java the way a plain "System" launch would:
-    /// JAVA_HOME first, then a PATH scan. Returns null when nothing is found.
-    /// Used by the settings UI to always show a concrete javaw.exe path.
-    /// </summary>
     public static string? FindSystemJavaPath()
     {
         foreach (var exe in new[] { "javaw.exe", "java.exe" })
@@ -108,26 +191,29 @@ public static class JavaVersionHelper
     }
 
     /// <summary>
-    /// Resolves concrete javaw.exe path matching a specific Java major version.
-    /// Checks local .zenith/runtime, JAVA_HOME, Program Files JDKs, and fallback system Java.
+    /// Resolves concrete javaw.exe / java.exe path matching a specific Java major version.
+    /// Checks local .zenith/runtime, JAVA_HOME, Program Files JDKs (Adoptium, Oracle, Corretto, Zulu, etc.).
     /// </summary>
-    public static string? FindJavaForVersion(int major)
+    public static string? FindJavaForVersion(int major, bool preferConsole = false)
     {
+        var primaryExe = preferConsole ? "java.exe" : "javaw.exe";
+        var secondaryExe = preferConsole ? "javaw.exe" : "java.exe";
+
         // 1. Check <AppDataDir>/runtime/
         try
         {
             var javaDir = Path.Combine(ZenithPaths.AppDataDir, "runtime");
             if (Directory.Exists(javaDir))
             {
-                var patterns = new[] { $"jdk-{major}*", $"jdk{major}*", $"*jdk*{major}*" };
+                var patterns = new[] { $"jdk-{major}*", $"jdk{major}*", $"*jdk*{major}*", $"*jre*{major}*" };
                 foreach (var pattern in patterns)
                 {
                     foreach (var dir in Directory.GetDirectories(javaDir, pattern, SearchOption.TopDirectoryOnly))
                     {
-                        var javaw = Path.Combine(dir, "bin", "javaw.exe");
-                        if (File.Exists(javaw)) return javaw;
-                        var javaExe = Path.Combine(dir, "bin", "java.exe");
-                        if (File.Exists(javaExe)) return javaExe;
+                        var p1 = Path.Combine(dir, "bin", primaryExe);
+                        if (File.Exists(p1)) return p1;
+                        var p2 = Path.Combine(dir, "bin", secondaryExe);
+                        if (File.Exists(p2)) return p2;
                     }
                 }
             }
@@ -140,40 +226,63 @@ public static class JavaVersionHelper
             var javaHome = Environment.GetEnvironmentVariable("JAVA_HOME");
             if (!string.IsNullOrEmpty(javaHome))
             {
-                var jh = Path.Combine(javaHome, "bin", "javaw.exe");
-                if (File.Exists(jh) && GetJavaMajor(jh) == major) return jh;
-                jh = Path.Combine(javaHome, "bin", "java.exe");
-                if (File.Exists(jh) && GetJavaMajor(jh) == major) return jh;
+                var jh1 = Path.Combine(javaHome, "bin", primaryExe);
+                if (File.Exists(jh1) && GetJavaMajor(jh1) == major) return jh1;
+                var jh2 = Path.Combine(javaHome, "bin", secondaryExe);
+                if (File.Exists(jh2) && GetJavaMajor(jh2) == major) return jh2;
             }
         }
         catch { }
 
-        // 3. Check installed JDKs in Program Files
+        // 3. Check installed JDKs in Program Files with wildcards
         try
         {
             var programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
             var programFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
-            var candidates = new[]
+            var vendorBases = new[]
             {
-                Path.Combine(programFiles, "Eclipse Adoptium", $"jdk-{major}", "bin", "javaw.exe"),
-                Path.Combine(programFiles, "Eclipse Adoptium", $"jdk-{major}", "bin", "java.exe"),
-                Path.Combine(programFiles, "Java", $"jdk-{major}", "bin", "javaw.exe"),
-                Path.Combine(programFiles, "Java", $"jdk-{major}", "bin", "java.exe"),
-                Path.Combine(programFiles, "Amazon Corretto", $"jdk{major}.0", "bin", "javaw.exe"),
-                Path.Combine(programFiles, "Zulu", $"zulu-{major}", "bin", "javaw.exe"),
-                Path.Combine(programFilesX86, "Java", $"jdk-{major}", "bin", "javaw.exe")
+                Path.Combine(programFiles, "Eclipse Adoptium"),
+                Path.Combine(programFiles, "Java"),
+                Path.Combine(programFiles, "Amazon Corretto"),
+                Path.Combine(programFiles, "Zulu"),
+                Path.Combine(programFiles, "BellSoft"),
+                Path.Combine(programFiles, "Microsoft"),
+                Path.Combine(programFilesX86, "Eclipse Adoptium"),
+                Path.Combine(programFilesX86, "Java")
             };
-            foreach (var c in candidates)
+
+            var patterns = new[] { $"jdk-{major}*", $"jdk{major}*", $"*jdk*{major}*", $"*jre*{major}*" };
+
+            foreach (var vBase in vendorBases)
             {
-                if (File.Exists(c)) return c;
+                if (!Directory.Exists(vBase)) continue;
+                foreach (var pattern in patterns)
+                {
+                    try
+                    {
+                        foreach (var dir in Directory.GetDirectories(vBase, pattern, SearchOption.TopDirectoryOnly))
+                        {
+                            var p1 = Path.Combine(dir, "bin", primaryExe);
+                            if (File.Exists(p1)) return p1;
+                            var p2 = Path.Combine(dir, "bin", secondaryExe);
+                            if (File.Exists(p2)) return p2;
+                        }
+                    }
+                    catch { }
+                }
             }
         }
         catch { }
 
-        // 4. Fall back to system java path
+        // 4. Fall back to system java path only if major version matches
         var sys = FindSystemJavaPath();
-        if (!string.IsNullOrEmpty(sys))
+        if (!string.IsNullOrEmpty(sys) && GetJavaMajor(sys) == major)
         {
+            if (preferConsole && sys.EndsWith("javaw.exe", StringComparison.OrdinalIgnoreCase))
+            {
+                var consoleSys = Path.Combine(Path.GetDirectoryName(sys)!, "java.exe");
+                if (File.Exists(consoleSys)) return consoleSys;
+            }
             return sys;
         }
 

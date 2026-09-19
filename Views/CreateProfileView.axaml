@@ -121,8 +121,8 @@
                 <Border Grid.Row="0" Padding="24,20" Background="Transparent">
                     <StackPanel>
                         <!-- Step 1: Information & Out-of-the-box Settings -->
-                        <Grid IsVisible="{Binding IsStep1}" ColumnDefinitions="260,*" ColumnSpacing="28" Margin="4,2">
-                            <!-- Left: Icon Card & Ready-made Presets Gallery -->
+                        <Grid IsVisible="{Binding IsStep1}" ColumnDefinitions="180,*" ColumnSpacing="28" Margin="4,2">
+                            <!-- Left: Icon Card & Actions -->
                             <StackPanel Grid.Column="0" Spacing="12">
                                 <TextBlock Text="{l10n:Tr Key=cp_panel_info}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
                                 <Border Width="112" Height="112" Classes="iconCard" BorderThickness="1" CornerRadius="16" ClipToBounds="True" HorizontalAlignment="Left">
@@ -135,41 +135,6 @@
                                     <Button Grid.Column="0" Content="{l10n:Tr Key=cp_upload_icon}" Command="{Binding PickCustomIconCommand}" Classes="subBtn" Padding="8,7" FontSize="11" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
                                     <Button Grid.Column="1" Content="{l10n:Tr Key=btn_reset}" Command="{Binding ResetIconCommand}" Classes="subBtn" Padding="8,7" FontSize="11" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
                                 </Grid>
-
-                                <!-- Preset Icons Gallery -->
-                                <StackPanel Spacing="6" Margin="0,4,0,0">
-                                    <TextBlock Text="Ready-made Icons" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                    <ScrollViewer MaxHeight="220" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                                        <ItemsControl ItemsSource="{Binding AvailableIcons}">
-                                            <ItemsControl.ItemsPanel>
-                                                <ItemsPanelTemplate>
-                                                    <WrapPanel Orientation="Horizontal"/>
-                                                </ItemsPanelTemplate>
-                                            </ItemsControl.ItemsPanel>
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate x:DataType="services:IconOption">
-                                                    <Button Command="{Binding $parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectPresetIconCommand}"
-                                                            CommandParameter="{Binding}"
-                                                            Background="{StaticResource FieldBrush}"
-                                                            BorderBrush="{StaticResource BorderEditorBrush}"
-                                                            BorderThickness="1" CornerRadius="8"
-                                                            Padding="6" Margin="3" Cursor="Hand"
-                                                            ToolTip.Tip="{Binding Name}">
-                                                        <Button.Styles>
-                                                            <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-                                                                <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
-                                                                <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
-                                                            </Style>
-                                                        </Button.Styles>
-                                                        <Border Width="26" Height="26" CornerRadius="6" Background="{Binding Color}" ClipToBounds="True">
-                                                            <Path Data="{Binding GeometryData}" Fill="White" Stretch="Uniform" Width="16" Height="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                        </Border>
-                                                    </Button>
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-                                    </ScrollViewer>
-                                </StackPanel>
                             </StackPanel>
 
                             <!-- Right: Name, RAM, Resolution, Java Mode -->

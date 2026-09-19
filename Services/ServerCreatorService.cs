@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -35,9 +36,13 @@ public class ServerCreatorService
 
     public static IReadOnlyList<ServerSoftwareOption> AvailableSoftware { get; } = new List<ServerSoftwareOption>
     {
-        new("paper", "Paper (High Performance & Plugins)"),
-        new("vanilla", "Vanilla (Official Mojang Server)"),
-        new("fabric", "Fabric (Mods & Lightweight)")
+        new("vanilla", "Vanilla"),
+        new("paper", "Paper"),
+        new("purpur", "Purpur"),
+        new("spigot", "Spigot"),
+        new("fabric", "Fabric"),
+        new("forge", "Forge"),
+        new("neoforge", "NeoForge")
     };
 
     public async Task<List<string>> GetPopularReleaseVersionsAsync(CancellationToken ct = default)
@@ -96,8 +101,20 @@ public class ServerCreatorService
             case "paper":
                 await DownloadPaperServerAsync(version, serverJarPath, progress, ct);
                 break;
+            case "purpur":
+                await DownloadPurpurServerAsync(version, serverJarPath, progress, ct);
+                break;
+            case "spigot":
+                await DownloadSpigotServerAsync(version, serverJarPath, progress, ct);
+                break;
             case "fabric":
                 await DownloadFabricServerAsync(version, serverJarPath, progress, ct);
+                break;
+            case "forge":
+                await DownloadForgeServerAsync(version, serverJarPath, progress, ct);
+                break;
+            case "neoforge":
+                await DownloadNeoForgeServerAsync(version, serverJarPath, progress, ct);
                 break;
             case "vanilla":
             default:
@@ -259,6 +276,127 @@ public class ServerCreatorService
         }
 
         await DownloadVanillaServerAsync(version, targetJar, progress, ct);
+    }
+
+    private async Task DownloadPurpurServerAsync(string version, string targetJar, IProgress<(string Status, double Percent)>? progress, CancellationToken ct)
+    {
+        progress?.Report(($"Checking Purpur {version} server...", 20));
+        try
+        {
+            var purpurUrl = $"https://api.purpurmc.org/v2/purpur/{version}/latest/download";
+            await DownloadFileWithProgressAsync(purpurUrl, targetJar, $"Downloading Purpur {version}...", progress, 25, 85, ct);
+            return;
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Warn($"Purpur download failed for {version} ({ex.Message}), falling back to Paper.");
+        }
+
+        await DownloadPaperServerAsync(version, targetJar, progress, ct);
+    }
+
+    private async Task DownloadSpigotServerAsync(string version, string targetJar, IProgress<(string Status, double Percent)>? progress, CancellationToken ct)
+    {
+        progress?.Report(($"Checking Spigot {version} server...", 20));
+        try
+        {
+            var spigotUrl = $"https://download.getbukkit.org/spigot/spigot-{version}.jar";
+            await DownloadFileWithProgressAsync(spigotUrl, targetJar, $"Downloading Spigot {version}...", progress, 25, 85, ct);
+            return;
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Warn($"Direct Spigot download failed for {version} ({ex.Message}), falling back to Paper.");
+        }
+
+        await DownloadPaperServerAsync(version, targetJar, progress, ct);
+    }
+
+    private async Task DownloadForgeServerAsync(string version, string targetJar, IProgress<(string Status, double Percent)>? progress, CancellationToken ct)
+    {
+        progress?.Report(($"Resolving Forge server for {version}...", 20));
+        try
+        {
+            var modLoaderService = new ModLoaderService();
+            var builds = await modLoaderService.GetLoaderBuildsAsync(version, "Forge");
+            var forgeVer = builds.FirstOrDefault(b => !string.IsNullOrWhiteSpace(b) && b != "Latest (Auto)");
+            if (!string.IsNullOrEmpty(forgeVer))
+            {
+                var url = $"https://maven.minecraftforge.net/net/minecraftforge/forge/{version}-{forgeVer}/forge-{version}-{forgeVer}-installer.jar";
+                await DownloadFileWithProgressAsync(url, targetJar, $"Downloading Forge {version}-{forgeVer}...", progress, 25, 85, ct);
+                await RunServerInstallerAsync(Path.GetDirectoryName(targetJar)!, targetJar, progress, ct);
+                return;
+            }
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Warn($"Forge fetch failed for {version} ({ex.Message}), falling back to Vanilla.");
+        }
+
+        await DownloadVanillaServerAsync(version, targetJar, progress, ct);
+    }
+
+    private async Task DownloadNeoForgeServerAsync(string version, string targetJar, IProgress<(string Status, double Percent)>? progress, CancellationToken ct)
+    {
+        progress?.Report(($"Resolving NeoForge server for {version}...", 20));
+        try
+        {
+            var modLoaderService = new ModLoaderService();
+            var builds = await modLoaderService.GetLoaderBuildsAsync(version, "NeoForge");
+            var neoVer = builds.FirstOrDefault(b => !string.IsNullOrWhiteSpace(b) && b != "Latest (Auto)");
+            if (!string.IsNullOrEmpty(neoVer))
+            {
+                var url = $"https://maven.neoforged.net/releases/net/neoforged/neoforge/{neoVer}/neoforge-{neoVer}-installer.jar";
+                await DownloadFileWithProgressAsync(url, targetJar, $"Downloading NeoForge {neoVer}...", progress, 25, 85, ct);
+                await RunServerInstallerAsync(Path.GetDirectoryName(targetJar)!, targetJar, progress, ct);
+                return;
+            }
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Warn($"NeoForge fetch failed for {version} ({ex.Message}), falling back to Vanilla.");
+        }
+
+        await DownloadVanillaServerAsync(version, targetJar, progress, ct);
+    }
+
+    private static async Task RunServerInstallerAsync(string serverDir, string installerJar, IProgress<(string Status, double Percent)>? progress, CancellationToken ct)
+    {
+        progress?.Report(("Running server installer...", 80));
+        try
+        {
+            var psi = new ProcessStartInfo
+            {
+                FileName = "java",
+                Arguments = $"-jar \"{installerJar}\" --installServer",
+                WorkingDirectory = serverDir,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+            using var proc = Process.Start(psi);
+            if (proc != null)
+            {
+                await proc.WaitForExitAsync(ct);
+            }
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Warn($"Server installer execution notice: {ex.Message}");
+        }
+    }
+
+    public static void DeleteServer(string serverDir)
+    {
+        if (string.IsNullOrWhiteSpace(serverDir) || !Directory.Exists(serverDir)) return;
+        try
+        {
+            Directory.Delete(serverDir, true);
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Error($"Failed to delete server directory {serverDir}", ex);
+            throw;
+        }
     }
 
     private static async Task DownloadFileWithProgressAsync(

@@ -25,7 +25,7 @@ public partial class CreateServerViewModel : ObservableObject
     [ObservableProperty] private int _ramGb = 4;
     [ObservableProperty] private int _serverPort = 25565;
     [ObservableProperty] private bool _agreeEula = true;
-    [ObservableProperty] private bool _onlineMode = true;
+    [ObservableProperty] private bool _onlineMode = false; // Default: unchecked
 
     [ObservableProperty] private bool _isBusy;
     [ObservableProperty] private bool _isCreated;
@@ -33,8 +33,9 @@ public partial class CreateServerViewModel : ObservableObject
     [ObservableProperty] private double _progressPercent;
     [ObservableProperty] private string _createdServerDirectory = "";
 
-    // Dashboard Mode State
+    // Dashboard Mode & Master-Detail State
     [ObservableProperty] private bool _isDashboardMode;
+    [ObservableProperty] private bool _isCreatingNewServer;
     [ObservableProperty] private bool _hasExistingServers;
     [ObservableProperty] private string? _selectedServerName;
     [ObservableProperty] private string _activeServerDirectory = "";
@@ -44,6 +45,7 @@ public partial class CreateServerViewModel : ObservableObject
     [ObservableProperty] private string _configStatusMessage = "";
     [ObservableProperty] private bool _showWorldResetConfirm;
     [ObservableProperty] private string _worldResetStatusMessage = "";
+    [ObservableProperty] private bool _showDeleteServerConfirm;
 
     // server.properties Visual Editor Fields
     [ObservableProperty] private string _propsPort = "25565";
@@ -59,7 +61,7 @@ public partial class CreateServerViewModel : ObservableObject
     [ObservableProperty] private bool _propsWhitelist;
     [ObservableProperty] private bool _propsHardcore;
     [ObservableProperty] private int _propsMaxPlayers = 20;
-    [ObservableProperty] private bool _propsOnlineMode = true;
+    [ObservableProperty] private bool _propsOnlineMode = false;
     [ObservableProperty] private string _propsLevelName = "world";
     [ObservableProperty] private string _propsLevelSeed = "";
     [ObservableProperty] private string _propsLevelType = "minecraft:normal";
@@ -115,6 +117,12 @@ public partial class CreateServerViewModel : ObservableObject
         {
             SelectedServerName = ExistingServers[0];
             IsDashboardMode = true;
+            IsCreatingNewServer = false;
+        }
+        else
+        {
+            IsDashboardMode = false;
+            IsCreatingNewServer = true;
         }
         _ = LoadVersionsAsync();
     }
@@ -127,6 +135,85 @@ public partial class CreateServerViewModel : ObservableObject
             ExistingServers.Add(s);
         }
         HasExistingServers = ExistingServers.Count > 0;
+    }
+
+    [RelayCommand]
+    public void SelectServer(string serverName)
+    {
+        SelectedServerName = serverName;
+        IsCreatingNewServer = false;
+        IsDashboardMode = true;
+    }
+
+    [RelayCommand]
+    public void StartCreateNewServer()
+    {
+        IsCreatingNewServer = true;
+        ServerName = $"Server {ExistingServers.Count + 1}";
+        IsCreated = false;
+        StatusText = "";
+    }
+
+    [RelayCommand]
+    public void CancelCreateNewServer()
+    {
+        if (ExistingServers.Count > 0)
+        {
+            IsCreatingNewServer = false;
+            if (string.IsNullOrWhiteSpace(SelectedServerName))
+                SelectedServerName = ExistingServers[0];
+        }
+    }
+
+    [RelayCommand]
+    public void SetRam(string gb)
+    {
+        if (int.TryParse(gb, out var val) && val > 0)
+        {
+            RamGb = val;
+        }
+    }
+
+    [RelayCommand]
+    public void RequestDeleteServer()
+    {
+        ShowDeleteServerConfirm = true;
+    }
+
+    [RelayCommand]
+    public void CancelDeleteServer()
+    {
+        ShowDeleteServerConfirm = false;
+    }
+
+    [RelayCommand]
+    public void ConfirmDeleteServer()
+    {
+        if (string.IsNullOrWhiteSpace(ActiveServerDirectory)) return;
+
+        try
+        {
+            ServerCreatorService.DeleteServer(ActiveServerDirectory);
+            ShowDeleteServerConfirm = false;
+            RefreshExistingServers();
+            if (ExistingServers.Count > 0)
+            {
+                SelectedServerName = ExistingServers[0];
+                IsCreatingNewServer = false;
+                IsDashboardMode = true;
+            }
+            else
+            {
+                SelectedServerName = null;
+                ActiveServerDirectory = "";
+                IsCreatingNewServer = true;
+                IsDashboardMode = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Error("Failed to delete server", ex);
+        }
     }
 
     partial void OnSelectedServerNameChanged(string? value)
@@ -276,7 +363,7 @@ public partial class CreateServerViewModel : ObservableObject
             {
                 SelectedVersion = AvailableVersions[0];
             }
-            StatusText = L10n.T("cs_status_ready");
+            StatusText = "";
         }
         catch (Exception ex)
         {
@@ -328,6 +415,8 @@ public partial class CreateServerViewModel : ObservableObject
 
             RefreshExistingServers();
             SelectedServerName = Path.GetFileName(targetDir);
+            IsCreatingNewServer = false;
+            IsDashboardMode = true;
         }
         catch (OperationCanceledException)
         {

@@ -73,21 +73,17 @@ public partial class CreateProfileViewModel : ObservableObject
 
     [ObservableProperty] private int _selectedRamMb = 4096;
     [ObservableProperty] private int _maxRamMb = 16384;
-    [ObservableProperty] private string _selectedResolution = "1280x720 (HD)";
+    [ObservableProperty] private string _selectedResolution = "1920x1080";
     [ObservableProperty] private bool _isFullscreen;
     [ObservableProperty] private string _selectedJavaMode = "Recommended";
     [ObservableProperty] private string _customJavaPath = "";
+    [ObservableProperty] private string _resolvedJavaPath = "";
     public bool IsCustomJavaMode => SelectedJavaMode == "Custom";
     partial void OnSelectedJavaModeChanged(string value) => OnPropertyChanged(nameof(IsCustomJavaMode));
 
-    public ObservableCollection<string> ResolutionOptions { get; } = new()
-    {
-        "1280x720 (HD)",
-        "1920x1080 (FHD)",
-        "2560x1440 (2K)",
-        "1024x640 (Default)",
-        "854x480 (Legacy)"
-    };
+    public ObservableCollection<string> ResolutionOptions { get; } = new();
+    public ObservableCollection<JavaModeOption> JavaOptions { get; } = new();
+    [ObservableProperty] private JavaModeOption? _selectedJavaOption;
 
     public ObservableCollection<string> JavaModes { get; } = new()
     {
@@ -133,12 +129,133 @@ public partial class CreateProfileViewModel : ObservableObject
         _ = LoadVersionsAsync();
         _ = InitializeLoadersAsync();
         LoadIcons();
+        InitializeResolutions();
+        InitializeJavaOptions();
         try
         {
             var physMb = (int)(GC.GetGCMemoryInfo().TotalAvailableMemoryBytes / (1024 * 1024));
             if (physMb > 4096) MaxRamMb = physMb;
         }
         catch { }
+    }
+
+    private void InitializeResolutions()
+    {
+        ResolutionOptions.Clear();
+
+        var nativeWidth = 1920;
+        var nativeHeight = 1080;
+        try
+        {
+            var topLevel = Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime d ? d.MainWindow : null;
+            var screen = topLevel?.Screens.Primary ?? topLevel?.Screens.All.FirstOrDefault();
+            if (screen != null && screen.Bounds.Width > 0 && screen.Bounds.Height > 0)
+            {
+                nativeWidth = screen.Bounds.Width;
+                nativeHeight = screen.Bounds.Height;
+            }
+        }
+        catch { }
+
+        var currentLabel = $"{nativeWidth}x{nativeHeight} {L10n.T("res_current")}";
+        ResolutionOptions.Add(currentLabel);
+
+        var standardResolutions = new[]
+        {
+            "3840x2160",
+            "2560x1440",
+            "1920x1080",
+            "1600x900",
+            "1366x768",
+            "1280x720",
+            "2560x1600",
+            "1920x1200",
+            "1680x1050",
+            "1440x900",
+            "1280x800",
+            "1280x1024",
+            "1024x768"
+        };
+
+        foreach (var res in standardResolutions)
+        {
+            if (!ResolutionOptions.Contains(res))
+                ResolutionOptions.Add(res);
+        }
+
+        SelectedResolution = currentLabel;
+    }
+
+    private void InitializeJavaOptions()
+    {
+        JavaOptions.Clear();
+        var recMajor = JavaVersionHelper.InferRequiredJavaMajor(SelectedVersion ?? "1.21.4");
+        var sysPath = JavaVersionHelper.FindSystemJavaPath() ?? "";
+        var sysMajor = 17;
+        try
+        {
+            if (File.Exists(sysPath))
+            {
+                var vi = System.Diagnostics.FileVersionInfo.GetVersionInfo(sysPath);
+                sysMajor = vi.ProductMajorPart > 0 ? vi.ProductMajorPart : (vi.FileMajorPart > 0 ? vi.FileMajorPart : 17);
+            }
+        }
+        catch { }
+
+        var recOption = new JavaModeOption
+        {
+            Id = "Recommended",
+            DisplayName = $"Recommended (Java {recMajor})",
+            Path = !string.IsNullOrEmpty(sysPath) ? sysPath : "javaw.exe"
+        };
+
+        var sysOption = new JavaModeOption
+        {
+            Id = "System",
+            DisplayName = $"System (Java {sysMajor})",
+            Path = !string.IsNullOrEmpty(sysPath) ? sysPath : "javaw.exe"
+        };
+
+        var customOption = new JavaModeOption
+        {
+            Id = "Custom",
+            DisplayName = "Custom",
+            Path = CustomJavaPath
+        };
+
+        JavaOptions.Add(recOption);
+        JavaOptions.Add(sysOption);
+        JavaOptions.Add(customOption);
+
+        SelectedJavaOption = recOption;
+        SelectedJavaMode = "Recommended";
+        ResolvedJavaPath = recOption.Path;
+    }
+
+    partial void OnSelectedJavaOptionChanged(JavaModeOption? value)
+    {
+        if (value == null) return;
+        SelectedJavaMode = value.Id;
+        ResolvedJavaPath = value.Id == "Custom" ? CustomJavaPath : value.Path;
+        OnPropertyChanged(nameof(IsCustomJavaMode));
+    }
+
+    partial void OnCustomJavaPathChanged(string value)
+    {
+        if (SelectedJavaMode == "Custom")
+            ResolvedJavaPath = value;
+    }
+
+    [RelayCommand]
+    public void GoToStep(string stepStr)
+    {
+        if (int.TryParse(stepStr, out var s))
+        {
+            if (s == 1 && CurrentStep == 2)
+                CurrentStep = 1;
+            else if (s == 2 && CurrentStep == 1 && CanNextStep1)
+                CurrentStep = 2;
+        }
     }
 
     private string GenerateUniqueProfileName()
@@ -830,3 +947,12 @@ public partial class CreateProfileViewModel : ObservableObject
         }
     }
 }
+
+public class JavaModeOption
+{
+    public string Id { get; set; } = "";
+    public string DisplayName { get; set; } = "";
+    public string Path { get; set; } = "";
+    public override string ToString() => DisplayName;
+}
+

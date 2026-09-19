@@ -1,0 +1,74 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:CustomMcLauncher.Views"
+             x:Class="CustomMcLauncher.Views.RamCardControl">
+
+    <UserControl.Styles>
+        <Style Selector="TextBox.badgeInput">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="MinHeight" Value="20"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="TextBox.badgeInput:focus /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="14,9">
+        <StackPanel Spacing="5">
+            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                <StackPanel Grid.Column="0" Spacing="1" VerticalAlignment="Center">
+                    <TextBlock x:Name="TitleBlock" Text="Allocated RAM" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                    <TextBlock x:Name="SubtitleBlock" Text="" FontSize="10.5" Foreground="{StaticResource TextMutedBrush}"/>
+                </StackPanel>
+
+                <!-- Minimalist badge with in-place editing -->
+                <Border Grid.Column="1"
+                        x:Name="BadgeContainer"
+                        Background="{StaticResource FieldBrush}"
+                        BorderBrush="{StaticResource BorderSubtleBrush}"
+                        BorderThickness="1"
+                        CornerRadius="5"
+                        Height="24"
+                        MinWidth="76"
+                        Padding="6,0"
+                        VerticalAlignment="Center">
+                    <Panel VerticalAlignment="Center">
+                        <TextBlock x:Name="BadgeText"
+                                   Text="4096 MB"
+                                   FontSize="11"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource AccentBrush}"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   Cursor="IBeam"
+                                   ToolTip.Tip="Double-click to edit"/>
+                        <TextBox x:Name="EditTextBox"
+                                 Classes="badgeInput"
+                                 IsVisible="False"
+                                 FontSize="11"
+                                 FontWeight="SemiBold"
+                                 Foreground="{StaticResource TextPrimaryBrush}"
+                                 TextAlignment="Center"
+                                 VerticalAlignment="Center"
+                                 HorizontalAlignment="Stretch"/>
+                    </Panel>
+                </Border>
+            </Grid>
+
+            <!-- Compact Slider -->
+            <Slider x:Name="RamSlider"
+                    Minimum="1024"
+                    Maximum="16384"
+                    Value="4096"
+                    TickFrequency="512"
+                    IsSnapToTickEnabled="True"
+                    Margin="0,-3,0,0"/>
+        </StackPanel>
+    </Border>
+</UserControl>

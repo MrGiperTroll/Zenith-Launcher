@@ -750,37 +750,37 @@
                     </Grid>
 
                     <!-- In-Window Edit Instance View -->
-                    <Panel IsVisible="{Binding IsEditInstanceView}" Margin="0,0,16,0">
+                    <Panel x:Name="EditInstancePane" IsVisible="{Binding IsEditInstanceView}" Margin="0,0,16,0">
                         <views:EditInstanceView DataContext="{Binding CurrentEditInstanceVm}"/>
                     </Panel>
 
                     <!-- In-Window Content Browser View -->
-                    <Panel IsVisible="{Binding IsContentBrowserView}" Margin="0,0,16,0">
+                    <Panel x:Name="ContentBrowserPane" IsVisible="{Binding IsContentBrowserView}" Margin="0,0,16,0">
                         <views:ContentBrowserView DataContext="{Binding CurrentContentBrowserVm}"/>
                     </Panel>
 
                     <!-- In-Window Launcher Settings View -->
-                    <Panel IsVisible="{Binding IsSettingsView}" Margin="0,0,16,0">
+                    <Panel x:Name="SettingsPane" IsVisible="{Binding IsSettingsView}" Margin="0,0,16,0">
                         <views:LauncherSettingsView DataContext="{Binding}"/>
                     </Panel>
 
                     <!-- In-Window Server Manager View -->
-                    <Panel IsVisible="{Binding IsServerManagerView}" Margin="0,0,16,0">
+                    <Panel x:Name="ServerManagerPane" IsVisible="{Binding IsServerManagerView}" Margin="0,0,16,0">
                         <views:ServerManagerView DataContext="{Binding CurrentServerManagerVm}"/>
                     </Panel>
 
                     <!-- In-Window Accounts View -->
-                    <Panel IsVisible="{Binding IsAccountsView}" Margin="0,0,16,0">
+                    <Panel x:Name="AccountsPane" IsVisible="{Binding IsAccountsView}" Margin="0,0,16,0">
                         <views:AccountsView DataContext="{Binding}"/>
                     </Panel>
 
                     <!-- In-Window Create Profile View -->
-                    <Panel IsVisible="{Binding IsCreateProfileView}" Margin="0,0,16,0">
+                    <Panel x:Name="CreateProfilePane" IsVisible="{Binding IsCreateProfileView}" Margin="0,0,16,0">
                         <views:CreateProfileView DataContext="{Binding CreateProfileVm}"/>
                     </Panel>
 
                     <!-- In-Window Create Server View -->
-                    <Panel IsVisible="{Binding IsCreateServerView}" Margin="0,0,16,0">
+                    <Panel x:Name="CreateServerPane" IsVisible="{Binding IsCreateServerView}" Margin="0,0,16,0">
                         <views:CreateServerView DataContext="{Binding CreateServerVm}"/>
                     </Panel>
                 </Grid>

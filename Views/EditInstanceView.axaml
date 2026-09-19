@@ -511,16 +511,17 @@
                             <TextBlock Text="{l10n:Tr Key=ei_inherit_note}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}" TextWrapping="Wrap"/>
                         </StackPanel>
 
-                        <StackPanel Spacing="6">
-                            <Grid ColumnDefinitions="*,Auto">
-                                <TextBlock Text="{l10n:Tr Key=set_memory}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        <StackPanel Spacing="4">
+                            <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,2">
                                 <Button Grid.Column="1" Classes="resetBtn" Content="{l10n:Tr Key=btn_reset}" Command="{Binding ResetMemoryCommand}" IsVisible="{Binding CanResetMemory}" FontSize="11" Padding="10,4" VerticalAlignment="Center"/>
                             </Grid>
-                            <Border Background="{StaticResource AccentSoftBrush}" CornerRadius="4" Padding="8,2" HorizontalAlignment="Left">
-                                <TextBlock Text="{Binding RamMb, StringFormat='{}{0} MB'}" FontSize="11" Foreground="{StaticResource AccentBrush}" FontWeight="Bold"/>
-                            </Border>
+                            <views:RamCardControl Title="{l10n:Tr Key=set_memory}"
+                                                  Subtitle="{l10n:Tr Key=set_memory_hint}"
+                                                  Value="{Binding RamMb}"
+                                                  Minimum="1024"
+                                                  Maximum="{Binding MaxRamMb}"
+                                                  TickFrequency="512"/>
                             <TextBlock Text="{l10n:Tr Key=ei_inherited_generic}" FontSize="10" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding IsMemoryInherited}"/>
-                            <Slider Minimum="1024" Maximum="{Binding MaxRamMb}" Value="{Binding RamMb}" TickFrequency="512" IsSnapToTickEnabled="True"/>
                         </StackPanel>
 
                         <StackPanel Spacing="6">

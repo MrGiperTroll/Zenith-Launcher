@@ -47,7 +47,7 @@ public partial class CreateServerViewModel : ObservableObject
     [ObservableProperty] private string _worldResetStatusMessage = "";
     [ObservableProperty] private bool _showDeleteServerConfirm;
 
-    // server.properties Visual Editor Fields
+    // server.properties Visual Editor Fields (22 parameters)
     [ObservableProperty] private string _propsPort = "25565";
     [ObservableProperty] private string _propsMotd = "A Minecraft Server";
     [ObservableProperty] private string _propsGamemode = "survival";
@@ -65,6 +65,14 @@ public partial class CreateServerViewModel : ObservableObject
     [ObservableProperty] private string _propsLevelName = "world";
     [ObservableProperty] private string _propsLevelSeed = "";
     [ObservableProperty] private string _propsLevelType = "minecraft:normal";
+    [ObservableProperty] private bool _propsGenerateStructures = true;
+    [ObservableProperty] private bool _propsSpawnAnimals = true;
+    [ObservableProperty] private bool _propsSpawnMonsters = true;
+    [ObservableProperty] private bool _propsSpawnNpcs = true;
+    [ObservableProperty] private bool _propsAllowNether = true;
+    [ObservableProperty] private int _propsEntityBroadcastRangePercentage = 100;
+
+    public event Action? StateChanged;
 
     public ObservableCollection<string> AvailableVersions { get; } = new();
     public IReadOnlyList<ServerSoftwareOption> AvailableSoftware => ServerCreatorService.AvailableSoftware;
@@ -79,6 +87,10 @@ public partial class CreateServerViewModel : ObservableObject
     public ObservableCollection<ServerPlayerEntry> OpsList { get; } = new();
     public ObservableCollection<ServerPlayerEntry> WhitelistList { get; } = new();
     public ObservableCollection<ServerPlayerEntry> BansList { get; } = new();
+    public ObservableCollection<string> OnlinePlayers { get; } = new();
+
+    [ObservableProperty] private bool _isRefreshingOnlinePlayers;
+    [ObservableProperty] private string _onlinePlayersCountText = "0 players online";
 
     public bool IsOverviewTab => SelectedTab == 0;
     public bool IsPropertiesTab => SelectedTab == 1;
@@ -86,9 +98,10 @@ public partial class CreateServerViewModel : ObservableObject
     public bool IsWorldTab => SelectedTab == 3;
     public bool IsPlayersTab => SelectedTab == 4;
 
-    public bool IsOpsSubTab => PlayersSubTab == 0;
-    public bool IsWhitelistSubTab => PlayersSubTab == 1;
-    public bool IsBansSubTab => PlayersSubTab == 2;
+    public bool IsOnlinePlayersSubTab => PlayersSubTab == 0;
+    public bool IsOpsSubTab => PlayersSubTab == 1;
+    public bool IsWhitelistSubTab => PlayersSubTab == 2;
+    public bool IsBansSubTab => PlayersSubTab == 3;
 
     partial void OnSelectedTabChanged(int value)
     {
@@ -97,13 +110,22 @@ public partial class CreateServerViewModel : ObservableObject
         OnPropertyChanged(nameof(IsPluginsTab));
         OnPropertyChanged(nameof(IsWorldTab));
         OnPropertyChanged(nameof(IsPlayersTab));
+        StateChanged?.Invoke();
     }
+
+    partial void OnIsDashboardModeChanged(bool value) => StateChanged?.Invoke();
+    partial void OnIsCreatingNewServerChanged(bool value) => StateChanged?.Invoke();
 
     partial void OnPlayersSubTabChanged(int value)
     {
+        OnPropertyChanged(nameof(IsOnlinePlayersSubTab));
         OnPropertyChanged(nameof(IsOpsSubTab));
         OnPropertyChanged(nameof(IsWhitelistSubTab));
         OnPropertyChanged(nameof(IsBansSubTab));
+        if (value == 0)
+        {
+            _ = RefreshOnlinePlayersAsync();
+        }
     }
 
     public bool CanCreate => !IsBusy && !string.IsNullOrWhiteSpace(ServerName) && !string.IsNullOrWhiteSpace(SelectedVersion);
@@ -143,6 +165,7 @@ public partial class CreateServerViewModel : ObservableObject
         SelectedServerName = serverName;
         IsCreatingNewServer = false;
         IsDashboardMode = true;
+        StateChanged?.Invoke();
     }
 
     [RelayCommand]
@@ -152,6 +175,7 @@ public partial class CreateServerViewModel : ObservableObject
         ServerName = $"Server {ExistingServers.Count + 1}";
         IsCreated = false;
         StatusText = "";
+        StateChanged?.Invoke();
     }
 
     [RelayCommand]
@@ -162,6 +186,8 @@ public partial class CreateServerViewModel : ObservableObject
             IsCreatingNewServer = false;
             if (string.IsNullOrWhiteSpace(SelectedServerName))
                 SelectedServerName = ExistingServers[0];
+            IsDashboardMode = true;
+            StateChanged?.Invoke();
         }
     }
 
@@ -223,6 +249,7 @@ public partial class CreateServerViewModel : ObservableObject
             ActiveServerDirectory = Path.Combine(ServerCreatorService.DefaultServersDirectory, value);
             LoadServerDetails();
         }
+        StateChanged?.Invoke();
     }
 
     public void LoadServerDetails()
@@ -230,7 +257,7 @@ public partial class CreateServerViewModel : ObservableObject
         if (string.IsNullOrWhiteSpace(ActiveServerDirectory) || !Directory.Exists(ActiveServerDirectory))
             return;
 
-        // Load server.properties
+        // Load server.properties (all 22 parameters)
         var props = ServerCreatorService.LoadProperties(ActiveServerDirectory);
         if (props.TryGetValue("server-port", out var port)) PropsPort = port;
         if (props.TryGetValue("motd", out var motd)) PropsMotd = motd;
@@ -249,6 +276,12 @@ public partial class CreateServerViewModel : ObservableObject
         if (props.TryGetValue("level-name", out var ln)) PropsLevelName = ln;
         if (props.TryGetValue("level-seed", out var ls)) PropsLevelSeed = ls;
         if (props.TryGetValue("level-type", out var lt)) PropsLevelType = lt;
+        if (props.TryGetValue("generate-structures", out var gs) && bool.TryParse(gs, out var bGs)) PropsGenerateStructures = bGs;
+        if (props.TryGetValue("spawn-animals", out var sa) && bool.TryParse(sa, out var bSa)) PropsSpawnAnimals = bSa;
+        if (props.TryGetValue("spawn-monsters", out var sm) && bool.TryParse(sm, out var bSm)) PropsSpawnMonsters = bSm;
+        if (props.TryGetValue("spawn-npcs", out var sn) && bool.TryParse(sn, out var bSn)) PropsSpawnNpcs = bSn;
+        if (props.TryGetValue("allow-nether", out var an) && bool.TryParse(an, out var bAn)) PropsAllowNether = bAn;
+        if (props.TryGetValue("entity-broadcast-range-percentage", out var eb) && int.TryParse(eb, out var iEb)) PropsEntityBroadcastRangePercentage = iEb;
 
         // Load plugins / mods
         InstalledPlugins.Clear();
@@ -276,6 +309,8 @@ public partial class CreateServerViewModel : ObservableObject
             BansList.Add(b);
         }
 
+        _ = RefreshOnlinePlayersAsync();
+
         ConfigStatusMessage = "";
         WorldResetStatusMessage = "";
         ShowWorldResetConfirm = false;
@@ -296,6 +331,109 @@ public partial class CreateServerViewModel : ObservableObject
         if (int.TryParse(tabIndex, out var idx))
         {
             PlayersSubTab = idx;
+        }
+    }
+
+    [RelayCommand]
+    public async Task RefreshOnlinePlayersAsync()
+    {
+        if (string.IsNullOrWhiteSpace(ActiveServerDirectory) || !Directory.Exists(ActiveServerDirectory))
+            return;
+
+        IsRefreshingOnlinePlayers = true;
+        try
+        {
+            await Task.Run(() =>
+            {
+                var logFile = Path.Combine(ActiveServerDirectory, "logs", "latest.log");
+                var online = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+                if (File.Exists(logFile))
+                {
+                    try
+                    {
+                        using var fs = new FileStream(logFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                        using var reader = new StreamReader(fs);
+                        string? line;
+                        while ((line = reader.ReadLine()) != null)
+                        {
+                            int leftIdx = line.IndexOf(" left the game", StringComparison.OrdinalIgnoreCase);
+                            if (leftIdx > 0)
+                            {
+                                int colonIdx = line.IndexOf("]: ", StringComparison.Ordinal);
+                                int start = colonIdx > 0 ? colonIdx + 3 : 0;
+                                if (leftIdx > start)
+                                {
+                                    var name = line.Substring(start, leftIdx - start).Trim();
+                                    online.Remove(name);
+                                    continue;
+                                }
+                            }
+
+                            int lostIdx = line.IndexOf(" lost connection:", StringComparison.OrdinalIgnoreCase);
+                            if (lostIdx > 0)
+                            {
+                                int colonIdx = line.IndexOf("]: ", StringComparison.Ordinal);
+                                int start = colonIdx > 0 ? colonIdx + 3 : 0;
+                                if (lostIdx > start)
+                                {
+                                    var name = line.Substring(start, lostIdx - start).Trim();
+                                    online.Remove(name);
+                                    continue;
+                                }
+                            }
+
+                            int joinedIdx = line.IndexOf(" joined the game", StringComparison.OrdinalIgnoreCase);
+                            if (joinedIdx > 0)
+                            {
+                                int colonIdx = line.IndexOf("]: ", StringComparison.Ordinal);
+                                int start = colonIdx > 0 ? colonIdx + 3 : 0;
+                                if (joinedIdx > start)
+                                {
+                                    var name = line.Substring(start, joinedIdx - start).Trim();
+                                    if (!string.IsNullOrEmpty(name))
+                                        online.Add(name);
+                                    continue;
+                                }
+                            }
+
+                            int loggedInIdx = line.IndexOf(" logged in with entity id", StringComparison.OrdinalIgnoreCase);
+                            if (loggedInIdx > 0)
+                            {
+                                int colonIdx = line.IndexOf("]: ", StringComparison.Ordinal);
+                                int start = colonIdx > 0 ? colonIdx + 3 : 0;
+                                if (loggedInIdx > start)
+                                {
+                                    var segment = line.Substring(start, loggedInIdx - start).Trim();
+                                    int bracketIdx = segment.IndexOf('[');
+                                    var name = (bracketIdx > 0 ? segment.Substring(0, bracketIdx) : segment).Trim();
+                                    if (!string.IsNullOrEmpty(name))
+                                        online.Add(name);
+                                    continue;
+                                }
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        // File might be busy
+                    }
+                }
+
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    OnlinePlayers.Clear();
+                    foreach (var p in online)
+                    {
+                        OnlinePlayers.Add(p);
+                    }
+                    OnlinePlayersCountText = $"{OnlinePlayers.Count} player{(OnlinePlayers.Count == 1 ? "" : "s")} online";
+                });
+            });
+        }
+        finally
+        {
+            IsRefreshingOnlinePlayers = false;
         }
     }
 
@@ -323,7 +461,13 @@ public partial class CreateServerViewModel : ObservableObject
             ["online-mode"] = PropsOnlineMode ? "true" : "false",
             ["level-name"] = PropsLevelName,
             ["level-seed"] = PropsLevelSeed,
-            ["level-type"] = PropsLevelType
+            ["level-type"] = PropsLevelType,
+            ["generate-structures"] = PropsGenerateStructures ? "true" : "false",
+            ["spawn-animals"] = PropsSpawnAnimals ? "true" : "false",
+            ["spawn-monsters"] = PropsSpawnMonsters ? "true" : "false",
+            ["spawn-npcs"] = PropsSpawnNpcs ? "true" : "false",
+            ["allow-nether"] = PropsAllowNether ? "true" : "false",
+            ["entity-broadcast-range-percentage"] = PropsEntityBroadcastRangePercentage.ToString()
         };
 
         ServerCreatorService.SaveProperties(ActiveServerDirectory, dict);

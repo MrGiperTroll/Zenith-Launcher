@@ -536,6 +536,31 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private CreateServerViewModel? _createServerVm;
 
+    partial void OnCreateServerVmChanged(CreateServerViewModel? oldValue, CreateServerViewModel? newValue)
+    {
+        if (oldValue != null)
+        {
+            oldValue.StateChanged -= OnCreateServerStateChanged;
+        }
+        if (newValue != null)
+        {
+            newValue.StateChanged += OnCreateServerStateChanged;
+        }
+    }
+
+    private void OnCreateServerStateChanged()
+    {
+        if (CurrentPage == LauncherNavPage.CreateServer)
+        {
+            if (_historyIndex >= 0 && _historyIndex < _navHistory.Count)
+            {
+                var cur = _navHistory[_historyIndex];
+                if (cur.Page == LauncherNavPage.CreateServer)
+                    RebuildBreadcrumbs(cur);
+            }
+        }
+    }
+
     public bool IsProfilesView => CurrentPage == LauncherNavPage.Profiles;
     public bool IsModpacksView => CurrentPage == LauncherNavPage.Modpacks;
     public bool IsEditInstanceView => CurrentPage == LauncherNavPage.EditInstance;
@@ -1044,10 +1069,56 @@ public partial class MainWindowViewModel : ViewModelBase
             case LauncherNavPage.CreateServer:
                 Breadcrumbs.Add(new BreadcrumbItem
                 {
-                    Title = L10n.T("cs_title"),
-                    IsLast = true,
-                    OnClick = () => NavigateToCreateServer()
+                    Title = L10n.T("nav_create_server"),
+                    IsLast = false,
+                    OnClick = () =>
+                    {
+                        if (CreateServerVm != null && CreateServerVm.ExistingServers.Count > 0)
+                        {
+                            CreateServerVm.IsDashboardMode = true;
+                            CreateServerVm.IsCreatingNewServer = false;
+                        }
+                        RebuildBreadcrumbs(entry);
+                    }
                 });
+
+                if (CreateServerVm != null && CreateServerVm.IsDashboardMode && !CreateServerVm.IsCreatingNewServer && !string.IsNullOrWhiteSpace(CreateServerVm.SelectedServerName))
+                {
+                    Breadcrumbs.Add(new BreadcrumbItem
+                    {
+                        Title = CreateServerVm.SelectedServerName,
+                        IsLast = false,
+                        OnClick = () =>
+                        {
+                            CreateServerVm.SelectedTab = 0;
+                            RebuildBreadcrumbs(entry);
+                        }
+                    });
+
+                    string tabTitle = CreateServerVm.SelectedTab switch
+                    {
+                        0 => "Overview",
+                        1 => "server.properties",
+                        2 => "Plugins & Mods",
+                        3 => "World",
+                        4 => "Players",
+                        _ => "Server"
+                    };
+
+                    Breadcrumbs.Add(new BreadcrumbItem
+                    {
+                        Title = tabTitle,
+                        IsLast = true
+                    });
+                }
+                else
+                {
+                    Breadcrumbs.Add(new BreadcrumbItem
+                    {
+                        Title = L10n.T("cs_title"),
+                        IsLast = true
+                    });
+                }
                 break;
 
             case LauncherNavPage.ServerManager:

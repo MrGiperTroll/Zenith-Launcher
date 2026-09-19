@@ -1,10 +1,11 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:CustomMcLauncher.ViewModels"
+        xmlns:views="using:CustomMcLauncher.Views"
         xmlns:l10n="using:CustomMcLauncher.Extensions"
         x:Class="CustomMcLauncher.Views.LauncherSettingsWindow"
         x:DataType="vm:MainWindowViewModel"
-        Title="{l10n:Tr Key=set_window_title}"
+        Title="{l10n:Tr set_window_title}"
         Width="700" Height="540"
         MinWidth="620" MinHeight="480"
         WindowStartupLocation="CenterOwner"
@@ -118,24 +119,13 @@
                         <TextBlock Text="{l10n:Tr set_game}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,4"/>
 
                         <!-- Memory -->
-                        <StackPanel Spacing="2" IsVisible="{Binding IsSearchMemoryVisible}">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <TextBlock Text="{l10n:Tr set_memory}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                <Border Background="{StaticResource AccentSoftBrush}" CornerRadius="4" Padding="8,2">
-                                    <TextBlock Text="{Binding RamMb, StringFormat='{}{0} MB'}" FontSize="11" Foreground="{StaticResource AccentBrush}" FontWeight="Bold"/>
-                                </Border>
-                            </StackPanel>
-                            <TextBlock Text="{l10n:Tr set_memory_hint}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
-                            <Slider Minimum="1024" Maximum="{Binding MaxRamMb}" Value="{Binding RamMb}" TickFrequency="512" IsSnapToTickEnabled="True" Margin="0,2,0,0"/>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="1 GB" FontSize="10" Foreground="{StaticResource TextCaptionBrush}"/>
-                                <TextBlock Grid.Column="1" Text="{Binding MaxRamMb, StringFormat='{}{0} MB'}" FontSize="10" Foreground="{StaticResource TextCaptionBrush}" HorizontalAlignment="Right"/>
-                            </Grid>
-                        </StackPanel>
+                        <views:RamCardControl Title="{l10n:Tr set_memory}"
+                                              Subtitle="{l10n:Tr set_memory_hint}"
+                                              Value="{Binding RamMb}"
+                                              Minimum="1024"
+                                              Maximum="{Binding MaxRamMb}"
+                                              TickFrequency="512"
+                                              IsVisible="{Binding IsSearchMemoryVisible}"/>
 
                         <!-- Resolution -->
                         <StackPanel Spacing="6" IsVisible="{Binding IsSearchResolutionVisible}">

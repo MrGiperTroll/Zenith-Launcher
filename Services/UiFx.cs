@@ -14,8 +14,9 @@ public static class UiFx
     /// <summary>
     /// Fades a visual in (optionally sliding up) once it attaches to the visual
     /// tree. Safe to call from a window constructor right after InitializeComponent.
+    /// Balanced 180ms ease-out slide &amp; fade (8px offset) eliminates molasses delay.
     /// </summary>
-    public static void FadeIn(Visual visual, int ms = 150, double slideY = 0)
+    public static void FadeIn(Visual visual, int ms = 180, double slideY = 8)
     {
         if (visual == null) return;
 
@@ -30,12 +31,20 @@ public static class UiFx
 
     /// <summary>
     /// Starts the fade immediately - for visuals that are already rendered
-    /// (e.g. switching tabs inside a live window). Must be called on the UI thread.
+    /// (e.g. switching main view pages or live dialogs). Must be called on the UI thread.
     /// </summary>
-    public static void FadeInNow(Visual visual, int ms = 150, double slideY = 0)
+    public static void FadeInNow(Visual visual, int ms = 180, double slideY = 8)
     {
         if (visual == null || !Dispatcher.UIThread.CheckAccess()) return;
         _ = RunAsync(visual, CreateTranslate(visual, slideY), slideY, ms);
+    }
+
+    /// <summary>
+    /// Snappy micro-transition (80ms, 4px) for rapid internal tab switching with zero perceived latency.
+    /// </summary>
+    public static void MicroTabFade(Visual visual)
+    {
+        FadeInNow(visual, 80, 4);
     }
 
     private static TranslateTransform? CreateTranslate(Visual visual, double slideY)

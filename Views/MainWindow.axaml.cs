@@ -50,7 +50,25 @@ public partial class MainWindow : Window
                 ? this.FindControl<Grid>("ModpacksPane")
                 : this.FindControl<Grid>("ProfilesPane");
             if (pane != null)
-                UiFx.FadeInNow(pane, 140, 8);
+                UiFx.FadeInNow(pane, 180, 8);
+        }
+        else if (e.PropertyName == nameof(MainWindowViewModel.CurrentPage))
+        {
+            Control? pane = _subscribedVm!.CurrentPage switch
+            {
+                LauncherNavPage.Profiles => this.FindControl<Grid>("ProfilesPane"),
+                LauncherNavPage.Modpacks => this.FindControl<Grid>("ModpacksPane"),
+                LauncherNavPage.EditInstance => this.FindControl<Panel>("EditInstancePane"),
+                LauncherNavPage.ContentBrowser => this.FindControl<Panel>("ContentBrowserPane"),
+                LauncherNavPage.Settings => this.FindControl<Panel>("SettingsPane"),
+                LauncherNavPage.ServerManager => this.FindControl<Panel>("ServerManagerPane"),
+                LauncherNavPage.Accounts => this.FindControl<Panel>("AccountsPane"),
+                LauncherNavPage.CreateProfile => this.FindControl<Panel>("CreateProfilePane"),
+                LauncherNavPage.CreateServer => this.FindControl<Panel>("CreateServerPane"),
+                _ => null
+            };
+            if (pane != null)
+                UiFx.FadeInNow(pane, 180, 8);
         }
         else if (e.PropertyName == nameof(MainWindowViewModel.IsRightSidebarOpen))
         {

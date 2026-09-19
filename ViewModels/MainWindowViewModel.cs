@@ -131,6 +131,30 @@ public partial class MainWindowViewModel : ViewModelBase
         SaveLauncherConfig();
     }
 
+    [RelayCommand]
+    private void StepMinRamDown()
+    {
+        MinRamMb = Math.Clamp(MinRamMb - 512, 512, MaxRamMb);
+    }
+
+    [RelayCommand]
+    private void StepMinRamUp()
+    {
+        MinRamMb = Math.Clamp(MinRamMb + 512, 512, MaxRamMb);
+    }
+
+    [RelayCommand]
+    private void StepRamDown()
+    {
+        RamMb = Math.Clamp(RamMb - 512, 1024, MaxRamMb);
+    }
+
+    [RelayCommand]
+    private void StepRamUp()
+    {
+        RamMb = Math.Clamp(RamMb + 512, 1024, MaxRamMb);
+    }
+
     [ObservableProperty]
     private string _selectedLaunchBehavior = "KeepOpen";
 
@@ -1596,6 +1620,21 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(CanCreateInstance));
     }
 
+    [ObservableProperty]
+    private string _effectiveJavaPath = "";
+
+    partial void OnEffectiveJavaPathChanged(string value)
+    {
+        if (!string.Equals(value, ResolvedJavaPath, StringComparison.Ordinal) && !string.Equals(value, CustomJavaPath, StringComparison.Ordinal))
+        {
+            CustomJavaPath = value;
+            ResolvedJavaPath = value;
+            if (SelectedJavaMode != "Custom")
+                SelectedJavaMode = "Custom";
+            SaveLauncherConfig();
+        }
+    }
+
     partial void OnSelectedJavaModeChanged(string value)
     {
         UpdateJavaDisplay();
@@ -1615,11 +1654,13 @@ public partial class MainWindowViewModel : ViewModelBase
             case "Custom":
                 CurrentJavaDisplay = Services.JavaVersionHelper.CustomDisplay(CustomJavaPath);
                 ResolvedJavaPath = CustomJavaPath;
+                EffectiveJavaPath = CustomJavaPath;
                 break;
 
             case "System":
                 CurrentJavaDisplay = L10n.T("java_display_system_path");
                 ResolvedJavaPath = Services.JavaVersionHelper.FindSystemJavaPath() ?? "";
+                EffectiveJavaPath = ResolvedJavaPath;
                 break;
 
             default: // Recommended
@@ -1628,6 +1669,7 @@ public partial class MainWindowViewModel : ViewModelBase
                     ? Services.JavaVersionHelper.RecommendedDisplay(inst.Version)
                     : L10n.T("java_display_auto");
                 ResolvedJavaPath = "";
+                EffectiveJavaPath = "";
                 _ = ResolveRecommendedJavaPathAsync(inst?.Version);
                 break;
         }
@@ -1646,6 +1688,7 @@ public partial class MainWindowViewModel : ViewModelBase
             var path = await _launchService.ResolveJavaForDisplayAsync(mcVersion);
             if (SelectedJavaMode != "Recommended") return; // user switched meanwhile
             ResolvedJavaPath = path ?? "";
+            EffectiveJavaPath = ResolvedJavaPath;
         }
         catch (Exception ex)
         {
@@ -1679,7 +1722,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
             if (files.Count > 0)
             {
-                CustomJavaPath = files[0].Path.LocalPath;
+                var chosen = files[0].Path.LocalPath;
+                CustomJavaPath = chosen;
+                ResolvedJavaPath = chosen;
+                EffectiveJavaPath = chosen;
                 SelectedJavaMode = "Custom";
                 SaveLauncherConfig(); // picked file is active + persisted at once
             }

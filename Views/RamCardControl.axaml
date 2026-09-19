@@ -53,21 +53,21 @@
                 <Border Grid.Column="1"
                         x:Name="BadgeContainer"
                         Background="{StaticResource FieldBrush}"
-                        BorderBrush="{StaticResource BorderSubtleBrush}"
+                        BorderBrush="{StaticResource BorderStrongBrush}"
                         BorderThickness="1"
                         CornerRadius="5"
-                        Height="22"
-                        Width="86"
+                        Height="24"
+                        Width="90"
                         Padding="6,0"
                         VerticalAlignment="Center"
                         HorizontalAlignment="Right"
                         Cursor="IBeam"
                         ToolTip.Tip="Double-click to edit (MB)">
-                    <Grid ColumnDefinitions="*,22" VerticalAlignment="Center">
+                    <Grid ColumnDefinitions="*,24" VerticalAlignment="Center">
                         <TextBlock Grid.Column="0"
                                    x:Name="NumberText"
                                    Text="4096"
-                                   FontSize="11"
+                                   FontSize="11.5"
                                    FontWeight="SemiBold"
                                    Foreground="{StaticResource AccentBrush}"
                                    HorizontalAlignment="Right"
@@ -76,7 +76,7 @@
                                  x:Name="EditTextBox"
                                  Classes="badgeInput"
                                  IsVisible="False"
-                                 FontSize="11"
+                                 FontSize="11.5"
                                  FontWeight="SemiBold"
                                  Foreground="{StaticResource AccentBrush}"
                                  CaretBrush="{StaticResource AccentBrush}"
@@ -92,7 +92,7 @@
                                    FontWeight="SemiBold"
                                    Foreground="{StaticResource TextMutedBrush}"
                                    VerticalAlignment="Center"
-                                   Margin="3,0,0,0"
+                                   Margin="4,0,0,0"
                                    IsHitTestVisible="False"/>
                     </Grid>
                 </Border>

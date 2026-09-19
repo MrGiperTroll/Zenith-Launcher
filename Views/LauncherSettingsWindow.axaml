@@ -118,14 +118,56 @@
                     <StackPanel Spacing="16" IsVisible="{Binding IsSettingsTabGame}">
                         <TextBlock Text="{l10n:Tr set_game}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,4"/>
 
-                        <!-- Memory -->
-                        <views:RamCardControl Title="{l10n:Tr set_memory}"
-                                              Subtitle="{l10n:Tr set_memory_hint}"
-                                              Value="{Binding RamMb}"
-                                              Minimum="1024"
-                                              Maximum="{Binding MaxRamMb}"
-                                              TickFrequency="512"
-                                              IsVisible="{Binding IsSearchMemoryVisible}"/>
+                        <!-- Compact Memory Configuration (Min / Max RAM) -->
+                        <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="14,10" IsVisible="{Binding IsSearchMemoryVisible}">
+                            <StackPanel Spacing="10">
+                                <TextBlock Text="{l10n:Tr set_memory}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+
+                                <!-- Min RAM (-Xms) Row -->
+                                <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <TextBlock Text="{l10n:Tr set_min_memory}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                        <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
+                                            <TextBlock Text="-Xms" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
+                                        </Border>
+                                    </StackPanel>
+
+                                    <!-- Compact Counter Row -->
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                        <Button Command="{Binding StepMinRamDownCommand}" Classes="subBtn" Content="−" Width="26" Height="26" Padding="0" FontSize="12" FontWeight="Bold" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                                        <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="5" Height="26" Width="84" Padding="4,0" VerticalAlignment="Center">
+                                            <Grid ColumnDefinitions="*,22" VerticalAlignment="Center">
+                                                <TextBox Grid.Column="0" Classes="badgeInput" Text="{Binding MinRamMb, Mode=TwoWay}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}" TextAlignment="Right" VerticalAlignment="Center" BorderThickness="0" Background="Transparent" Padding="0"/>
+                                                <TextBlock Grid.Column="1" Text="MB" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="3,0,0,0" IsHitTestVisible="False"/>
+                                            </Grid>
+                                        </Border>
+                                        <Button Command="{Binding StepMinRamUpCommand}" Classes="subBtn" Content="+" Width="26" Height="26" Padding="0" FontSize="12" FontWeight="Bold" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- Max RAM (-Xmx) Row -->
+                                <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <TextBlock Text="{l10n:Tr set_max_memory}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                        <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
+                                            <TextBlock Text="-Xmx" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
+                                        </Border>
+                                    </StackPanel>
+
+                                    <!-- Compact Counter Row -->
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                        <Button Command="{Binding StepRamDownCommand}" Classes="subBtn" Content="−" Width="26" Height="26" Padding="0" FontSize="12" FontWeight="Bold" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                                        <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="5" Height="26" Width="84" Padding="4,0" VerticalAlignment="Center">
+                                            <Grid ColumnDefinitions="*,22" VerticalAlignment="Center">
+                                                <TextBox Grid.Column="0" Classes="badgeInput" Text="{Binding RamMb, Mode=TwoWay}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}" TextAlignment="Right" VerticalAlignment="Center" BorderThickness="0" Background="Transparent" Padding="0"/>
+                                                <TextBlock Grid.Column="1" Text="MB" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="3,0,0,0" IsHitTestVisible="False"/>
+                                            </Grid>
+                                        </Border>
+                                        <Button Command="{Binding StepRamUpCommand}" Classes="subBtn" Content="+" Width="26" Height="26" Padding="0" FontSize="12" FontWeight="Bold" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
 
                         <!-- Resolution -->
                         <StackPanel Spacing="6" IsVisible="{Binding IsSearchResolutionVisible}">
@@ -158,34 +200,27 @@
                             </StackPanel>
                             <TextBlock Text="{l10n:Tr set_java_hint}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
                             <CheckBox Content="{l10n:Tr set_autojava}" IsChecked="{Binding AutoManageJava}" Margin="0,2,0,0" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12"/>
-                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                <ComboBox Width="190" MinHeight="30" ItemsSource="{Binding JavaModes}" SelectedItem="{Binding SelectedJavaMode}"
-                                          VerticalAlignment="Center" VerticalContentAlignment="Center">
+                            <Grid ColumnDefinitions="190,Auto,*,Auto" ColumnSpacing="8" VerticalAlignment="Center">
+                                <ComboBox Grid.Column="0" MinHeight="30" ItemsSource="{Binding JavaModes}" SelectedItem="{Binding SelectedJavaMode}"
+                                          VerticalAlignment="Center" VerticalContentAlignment="Center" HorizontalAlignment="Stretch">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
                                             <TextBlock Text="{Binding Converter={x:Static vm:JavaModeDisplayConverter.Instance}}"/>
                                         </DataTemplate>
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
-                                <Button Classes="subBtn" Content="+" Width="30" Height="30" Padding="0"
+                                <Button Grid.Column="1" Classes="subBtn" Content="+" Width="30" Height="30" Padding="0"
                                         FontSize="16" FontWeight="Bold"
-                                        HorizontalAlignment="Left"
                                         HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                         ToolTip.Tip="{l10n:Tr Key=java_plus_tip}"
                                         Command="{Binding OpenJavaInstallerCommand}"/>
-                                <TextBlock Text="{Binding CurrentJavaDisplay}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                            </StackPanel>
-                            <!-- Real javaw.exe path - ALWAYS visible regardless of mode.
-                                 Read-only unless the Custom mode is selected; in Custom
-                                 mode the editable box below takes over. -->
-                            <TextBox Classes="darkInput"
-                                     Text="{Binding ResolvedJavaPath}"
-                                     PlaceholderText="{l10n:Tr Key=custom_java_hint}"
-                                     FontSize="11" Padding="8,5"
-                                     IsReadOnly="True"
-                                     IsVisible="{Binding !IsCustomJavaMode}"/>
-                            <TextBox Classes="darkInput" Text="{Binding CustomJavaPath}" PlaceholderText="{l10n:Tr Key=custom_java_hint}" FontSize="11" Padding="8,5"
-                                     IsVisible="{Binding IsCustomJavaMode}"/>
+                                <TextBlock Grid.Column="2" Text="{Binding CurrentJavaDisplay}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                            </Grid>
+                            <!-- Always-Visible Editable Java Path Row + Browse Button -->
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                <TextBox Grid.Column="0" Classes="darkInput" Text="{Binding EffectiveJavaPath}" PlaceholderText="{l10n:Tr Key=custom_java_hint}" FontSize="11" Padding="8,5"/>
+                                <Button Grid.Column="1" Classes="subBtn" Content="{l10n:Tr Key=btn_browse}" Command="{Binding BrowseJavaPathCommand}" Padding="12,0" Height="30" FontSize="11" VerticalAlignment="Center"/>
+                            </Grid>
                         </StackPanel>
                     </StackPanel>
 

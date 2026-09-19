@@ -301,11 +301,8 @@
 
                                 <!-- IP Badge + Copy with Network Interfaces Selector Flyout -->
                                 <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                    <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="6" Padding="7,3">
-                                        <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
-                                            <Ellipse Width="6" Height="6" Fill="{StaticResource AccentBrush}"/>
-                                            <TextBlock Text="{Binding ServerIpDisplay}" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}"/>
-                                        </StackPanel>
+                                    <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="6" Padding="8,3">
+                                        <TextBlock Text="{Binding ServerIpDisplay}" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center"/>
                                     </Border>
 
                                     <!-- Direct 1-Click Copy Localhost Button -->
@@ -406,17 +403,11 @@
                                     <StackPanel VerticalAlignment="Center" Spacing="4">
                                         <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                             <TextBlock Text="{Binding SelectedServerName}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                            <!-- Status Badge -->
+                                            <!-- Status Badge (Shown when online) -->
                                             <Border Background="{StaticResource SuccessBgBrush}" BorderBrush="{StaticResource SuccessBrush}" BorderThickness="1" CornerRadius="4" Padding="6,2" IsVisible="{Binding IsServerRunning}">
                                                 <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
                                                     <Ellipse Width="6" Height="6" Fill="{StaticResource SuccessBrush}"/>
                                                     <TextBlock Text="{l10n:Tr Key=cs_status_online}" FontSize="10.5" FontWeight="Bold" Foreground="{StaticResource SuccessBrush}"/>
-                                                </StackPanel>
-                                            </Border>
-                                            <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="4" Padding="6,2" IsVisible="{Binding !IsServerRunning}">
-                                                <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                                                    <Ellipse Width="6" Height="6" Fill="{StaticResource TextMutedBrush}"/>
-                                                    <TextBlock Text="{l10n:Tr Key=cs_status_offline}" FontSize="10.5" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"/>
                                                 </StackPanel>
                                             </Border>
                                         </StackPanel>
@@ -529,13 +520,9 @@
                     <!-- TAB 1: SERVER.PROPERTIES (Clean 2-column grid, no overlapping, locked if running) -->
                     <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="20" IsVisible="{Binding IsPropertiesTab}">
                         <StackPanel Spacing="16">
-                            <!-- Top bar: Title & Save Button with indicator -->
-                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                <StackPanel Spacing="2">
-                                    <TextBlock Text="{l10n:Tr Key=cs_props_title}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                    <TextBlock Text="Full visual editor for all 22 server configuration settings" FontSize="11.5" Foreground="{StaticResource TextMutedBrush}"/>
-                                </StackPanel>
-                                <Button Grid.Column="1" Classes="primaryBtn" Content="{l10n:Tr Key=cs_save_props}" Command="{Binding SavePropertiesCommand}" IsEnabled="{Binding CanEditServer}" Padding="18,7" FontSize="12"/>
+                            <!-- Top bar: Save Button with indicator -->
+                            <Grid HorizontalAlignment="Right">
+                                <Button Classes="primaryBtn" Content="{l10n:Tr Key=cs_save_props}" Command="{Binding SavePropertiesCommand}" IsEnabled="{Binding CanEditServer}" Padding="18,7" FontSize="12"/>
                             </Grid>
 
                             <!-- Running lock notification -->
@@ -754,10 +741,10 @@
                         </Border>
 
                         <!-- Danger Zone Card -->
-                        <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource DangerBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
+                        <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
                             <StackPanel Spacing="14">
                                 <StackPanel Spacing="2">
-                                    <TextBlock Text="{l10n:Tr Key=cs_danger_zone}" FontSize="14" FontWeight="Bold" Foreground="{StaticResource DangerLightBrush}"/>
+                                    <TextBlock Text="{l10n:Tr Key=cs_danger_zone}" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
                                     <TextBlock Text="{l10n:Tr Key=cs_danger_desc}" FontSize="11.5" Foreground="{StaticResource TextMutedBrush}"/>
                                 </StackPanel>
 
@@ -772,7 +759,7 @@
                                 </StackPanel>
 
                                 <!-- Reset World 5-Second Countdown Confirmation Box -->
-                                <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource DangerBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14" IsVisible="{Binding ShowWorldResetConfirm}" Margin="0,4,0,0">
+                                <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="14" IsVisible="{Binding ShowWorldResetConfirm}" Margin="0,4,0,0">
                                     <StackPanel Spacing="10">
                                         <TextBlock Text="Reset world data? All chunks, builds, and inventory will be deleted; a new world generates on next start."
                                                    Foreground="{StaticResource TextPrimaryBrush}" FontSize="12" TextWrapping="Wrap"/>
@@ -786,7 +773,7 @@
                                 </Border>
 
                                 <!-- Server Delete Confirmation Dialog -->
-                                <Border Background="{StaticResource DangerBgBrush}" BorderBrush="{StaticResource DangerBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14" IsVisible="{Binding ShowDeleteServerConfirm}" Margin="0,4,0,0">
+                                <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource DangerBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14" IsVisible="{Binding ShowDeleteServerConfirm}" Margin="0,4,0,0">
                                     <StackPanel Spacing="10">
                                         <TextBlock Text="{l10n:Tr Key=cs_delete_server_confirm}"
                                                    Foreground="{StaticResource DangerLightBrush}" FontWeight="Bold" FontSize="12" TextWrapping="Wrap"/>
@@ -810,7 +797,6 @@
                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                     <Button Classes="tabBtn" Classes.active="{Binding IsOnlinePlayersSubTab}" Command="{Binding SelectPlayersSubTabCommand}" CommandParameter="0">
                                         <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                            <Ellipse Width="7" Height="7" Fill="{StaticResource AccentBrush}" VerticalAlignment="Center"/>
                                             <TextBlock Text="{l10n:Tr Key=tab_online_players}" VerticalAlignment="Center"/>
                                             <Border Background="{StaticResource AccentDimBrush}" CornerRadius="4" Padding="5,1">
                                                 <TextBlock Text="{Binding OnlinePlayers.Count}" FontSize="10" FontWeight="Bold" Foreground="{StaticResource AccentBrush}"/>
@@ -847,10 +833,9 @@
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="x:String">
                                             <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="14,10" Margin="0,0,0,6">
-                                                <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
-                                                    <Ellipse Width="8" Height="8" Fill="{StaticResource AccentBrush}" Margin="0,0,10,0"/>
-                                                    <TextBlock Grid.Column="1" Text="{Binding}" FontWeight="Bold" FontSize="12.5" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                                                    <Border Grid.Column="2" Background="{StaticResource AccentDimBrush}" CornerRadius="4" Padding="6,2">
+                                                <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding}" FontWeight="Bold" FontSize="12.5" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                                    <Border Grid.Column="1" Background="{StaticResource AccentDimBrush}" CornerRadius="4" Padding="6,2">
                                                         <TextBlock Text="Online" FontSize="10" FontWeight="Bold" Foreground="{StaticResource AccentBrush}"/>
                                                     </Border>
                                                 </Grid>

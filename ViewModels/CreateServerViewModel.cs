@@ -274,11 +274,23 @@ public partial class CreateServerViewModel : ObservableObject
         StateChanged?.Invoke();
     }
 
+    private string GenerateUniqueServerName()
+    {
+        const string baseName = "Server";
+        var existing = ExistingServers.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        for (int i = 1; ; i++)
+        {
+            var candidate = $"{baseName} {i}";
+            if (!existing.Contains(candidate) && !Directory.Exists(Path.Combine(ServerCreatorService.DefaultServersDirectory, candidate)))
+                return candidate;
+        }
+    }
+
     [RelayCommand]
     public void StartCreateNewServer()
     {
         IsCreatingNewServer = true;
-        ServerName = $"Server {ExistingServers.Count + 1}";
+        ServerName = GenerateUniqueServerName();
         IsCreated = false;
         StatusText = "";
         StateChanged?.Invoke();

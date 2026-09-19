@@ -6,7 +6,7 @@ namespace CustomMcLauncher.Services;
 
 public static class ZenithTheme
 {
-    public const string DefaultAccent = "#10B981";
+    public const string DefaultAccent = "#3B82F6";
 
     public static string AccentHex { get; private set; } = DefaultAccent;
 
@@ -21,7 +21,7 @@ public static class ZenithTheme
         r["AccentBrush"] = new SolidColorBrush(accent);
         r["AccentBrushHover"] = new SolidColorBrush(Lighten(accent, 0.16f));
         r["AccentPressed"] = new SolidColorBrush(Darken(accent, 0.2f));
-        r["OnAccentBrush"] = new SolidColorBrush(Color.Parse("#041E13"));
+        r["OnAccentBrush"] = new SolidColorBrush(Colors.White);
         r["AccentSoftBrush"] = new SolidColorBrush(Blend(accent, Color.Parse("#080A0F"), 0.16f));
         r["AccentDimBrush"] = new SolidColorBrush(Blend(accent, Color.Parse("#080A0F"), 0.10f));
         r["AccentBorderBrush"] = new SolidColorBrush(Blend(accent, Color.Parse("#1B2236"), 0.5f));

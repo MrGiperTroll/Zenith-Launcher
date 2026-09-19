@@ -4,18 +4,18 @@
              RequestedThemeVariant="Default">
 
     <Application.Resources>
-        <SolidColorBrush x:Key="AccentBrush" Color="#10B981"/>
-        <SolidColorBrush x:Key="AccentBrushHover" Color="#34D399"/>
-        <SolidColorBrush x:Key="AccentPressed" Color="#0B8F64"/>
-        <SolidColorBrush x:Key="OnAccentBrush" Color="#041E13"/>
-        <SolidColorBrush x:Key="AccentSoftBrush" Color="#0D2B1E"/>
-        <SolidColorBrush x:Key="AccentDimBrush" Color="#0F1E1A"/>
-        <SolidColorBrush x:Key="AccentBorderBrush" Color="#165C44"/>
-        <SolidColorBrush x:Key="AccentTranslucentBrush" Color="#2210B981"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="#3B82F6"/>
+        <SolidColorBrush x:Key="AccentBrushHover" Color="#60A5FA"/>
+        <SolidColorBrush x:Key="AccentPressed" Color="#1D4ED8"/>
+        <SolidColorBrush x:Key="OnAccentBrush" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="AccentSoftBrush" Color="#1E293B"/>
+        <SolidColorBrush x:Key="AccentDimBrush" Color="#0F172A"/>
+        <SolidColorBrush x:Key="AccentBorderBrush" Color="#2563EB"/>
+        <SolidColorBrush x:Key="AccentTranslucentBrush" Color="#223B82F6"/>
 
-        <Color x:Key="AccentGradientStart">#22D396</Color>
-        <Color x:Key="AccentGradientMid">#10B981</Color>
-        <Color x:Key="AccentGradientEnd">#0B8F64</Color>
+        <Color x:Key="AccentGradientStart">#60A5FA</Color>
+        <Color x:Key="AccentGradientMid">#3B82F6</Color>
+        <Color x:Key="AccentGradientEnd">#1D4ED8</Color>
 
         <Geometry x:Key="ZenithLogoGeometry">M558.344 400.366C571.623 396.064 583.658 391.147 596.643 386.115L637.625 370.625C666.622 359.837 696.309 350.113 724.897 338.366C711.898 350.999 699.747 364.104 687.038 376.719L556.158 505.636C528.781 532.184 499.524 557.819 471.784 584.055L472.073 585.667C476.856 583.156 484.671 580.042 489.84 577.808L518.249 565.513C554.358 550.211 585.042 537.696 622.348 525.143C627.132 534.236 632.665 542.719 638.059 551.443C646.7 565.735 655.599 579.868 664.753 593.837C684.178 624.592 703.87 655.179 723.825 685.593C671.712 673.401 619.504 661.62 567.205 650.251C523.932 640.119 480.502 630.67 436.931 621.909L303.856 685C318.881 668.775 337.163 651.35 352.875 635.346C390.704 596.217 429.114 557.655 468.092 519.67L513.838 474.463C528.25 459.985 544.85 442.908 560.302 429.712C517.215 444.062 474.236 458.735 431.37 473.73C410.21 481.268 388.993 488.646 367.72 495.861C348.57 502.154 326.751 508.351 307.223 514.086C305.97 514.433 305.093 514.578 303.819 514.805L303.707 514.31L306.212 512.571L391.909 457.609C402.704 450.675 415.614 441.623 426.327 435.161C417.499 427.886 408.138 420.933 399.024 413.993C375.58 396.139 352.079 378.374 328.775 360.334C319.433 353.102 309.717 346.407 300.549 338.932C348.224 351.261 396.066 362.933 444.063 373.946L526.132 392.828C536.8 395.328 547.762 397.627 558.344 400.366Z</Geometry>
 
@@ -83,6 +83,14 @@
         <SolidColorBrush x:Key="SystemControlHighlightListAccentHighBrush" Color="Transparent"/>
         <SolidColorBrush x:Key="SystemControlHighlightListLowBrush" Color="Transparent"/>
         <SolidColorBrush x:Key="SystemControlHighlightListMediumBrush" Color="Transparent"/>
+
+        <!-- Slider Theme Brush Overrides -->
+        <SolidColorBrush x:Key="SliderTrackFill" Color="#3B82F6"/>
+        <SolidColorBrush x:Key="SliderTrackFillPointerOver" Color="#60A5FA"/>
+        <SolidColorBrush x:Key="SliderTrackFillPressed" Color="#1D4ED8"/>
+        <SolidColorBrush x:Key="SliderThumbBackground" Color="#3B82F6"/>
+        <SolidColorBrush x:Key="SliderThumbBackgroundPointerOver" Color="#60A5FA"/>
+        <SolidColorBrush x:Key="SliderThumbBackgroundPressed" Color="#1D4ED8"/>
     </Application.Resources>
 
     <Application.Styles>
@@ -338,6 +346,21 @@
         </Style>
         <Style Selector="Thumb.zenThumbV:pressed /template/ Border, Thumb.zenThumbH:pressed /template/ Border">
             <Setter Property="Background" Value="#5C6C8E"/>
+        </Style>
+
+        <!-- Slider: Active/Decreased portion filled with blue accent -->
+        <Style Selector="Slider:horizontal /template/ RepeatButton#PART_DecreaseButton">
+            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+        </Style>
+        <Style Selector="Slider:horizontal /template/ Thumb#PART_Thumb">
+            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrushHover}"/>
+        </Style>
+        <Style Selector="Slider:horizontal:pointerover /template/ RepeatButton#PART_DecreaseButton">
+            <Setter Property="Background" Value="{StaticResource AccentBrushHover}"/>
+        </Style>
+        <Style Selector="Slider:horizontal:pointerover /template/ Thumb#PART_Thumb">
+            <Setter Property="Background" Value="{StaticResource AccentBrushHover}"/>
         </Style>
     </Application.Styles>
 </Application>

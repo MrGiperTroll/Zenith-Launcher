@@ -179,7 +179,7 @@ public partial class CreateProfileViewModel : ObservableObject
             list.Add((nativeWidth, nativeHeight));
         }
 
-        var sorted = list.OrderBy(r => r.Width * r.Height).ThenBy(r => r.Width).ToList();
+        var sorted = list.OrderByDescending(r => r.Width * r.Height).ThenByDescending(r => r.Width).ToList();
         string? selectedItem = null;
         var currentSuffix = L10n.T("res_current");
 
@@ -197,7 +197,23 @@ public partial class CreateProfileViewModel : ObservableObject
             }
         }
 
-        SelectedResolution = selectedItem ?? ResolutionOptions.FirstOrDefault() ?? "1920x1080";
+        SelectedResolution = selectedItem ?? ResolutionOptions.FirstOrDefault(r => r.StartsWith("1920x1080")) ?? ResolutionOptions.FirstOrDefault() ?? "1920x1080";
+    }
+
+    [ObservableProperty] private string _effectiveJavaPath = "";
+
+    partial void OnEffectiveJavaPathChanged(string value)
+    {
+        if (!string.Equals(value, ResolvedJavaPath, StringComparison.Ordinal))
+        {
+            CustomJavaPath = value;
+            ResolvedJavaPath = value;
+            if (SelectedJavaMode != "Custom")
+            {
+                SelectedJavaMode = "Custom";
+                SelectedJavaOption = JavaOptions.FirstOrDefault(o => o.Id == "Custom");
+            }
+        }
     }
 
     private void InitializeJavaOptions()
@@ -238,20 +254,25 @@ public partial class CreateProfileViewModel : ObservableObject
         SelectedJavaOption = matched;
         SelectedJavaMode = matched.Id;
         ResolvedJavaPath = matched.Id == "Custom" ? (string.IsNullOrWhiteSpace(CustomJavaPath) ? sysPath : CustomJavaPath) : matched.Path;
+        EffectiveJavaPath = ResolvedJavaPath;
     }
 
     partial void OnSelectedJavaOptionChanged(JavaModeOption? value)
     {
         if (value == null) return;
         SelectedJavaMode = value.Id;
-        ResolvedJavaPath = value.Id == "Custom" ? CustomJavaPath : value.Path;
+        ResolvedJavaPath = value.Id == "Custom" ? (!string.IsNullOrWhiteSpace(CustomJavaPath) ? CustomJavaPath : value.Path) : value.Path;
+        EffectiveJavaPath = ResolvedJavaPath;
         OnPropertyChanged(nameof(IsCustomJavaMode));
     }
 
     partial void OnCustomJavaPathChanged(string value)
     {
         if (SelectedJavaMode == "Custom")
+        {
             ResolvedJavaPath = value;
+            EffectiveJavaPath = value;
+        }
     }
 
     [RelayCommand]
@@ -906,8 +927,12 @@ public partial class CreateProfileViewModel : ObservableObject
         });
         if (files.Count > 0)
         {
-            CustomJavaPath = files[0].Path.LocalPath;
+            var chosen = files[0].Path.LocalPath;
+            CustomJavaPath = chosen;
+            ResolvedJavaPath = chosen;
+            EffectiveJavaPath = chosen;
             SelectedJavaMode = "Custom";
+            SelectedJavaOption = JavaOptions.FirstOrDefault(o => o.Id == "Custom");
         }
     }
 
@@ -942,8 +967,8 @@ public partial class CreateProfileViewModel : ObservableObject
             inst.GameHeight = h;
             inst.IsFullscreen = IsFullscreen;
             inst.JavaMode = SelectedJavaMode;
-            if (SelectedJavaMode == "Custom" && !string.IsNullOrWhiteSpace(CustomJavaPath))
-                inst.CustomJavaPath = CustomJavaPath;
+            if (SelectedJavaMode == "Custom" && !string.IsNullOrWhiteSpace(EffectiveJavaPath))
+                inst.CustomJavaPath = EffectiveJavaPath;
 
             if (!string.IsNullOrEmpty(_pickedIconPath) && File.Exists(_pickedIconPath))
             {

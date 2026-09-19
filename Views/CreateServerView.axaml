@@ -236,11 +236,10 @@
                             <Grid ColumnDefinitions="*,*" ColumnSpacing="16">
                                 <!-- RAM Allocation: Unified RamCardControl -->
                                 <views:RamCardControl Grid.Column="0"
-                                                      Value="{Binding RamGb}"
-                                                      Minimum="1"
-                                                      Maximum="32"
-                                                      TickFrequency="1"
-                                                      IsGbMode="True"
+                                                      Value="{Binding RamMb}"
+                                                      Minimum="1024"
+                                                      Maximum="32768"
+                                                      TickFrequency="512"
                                                       Title="{l10n:Tr Key=cs_ram}"
                                                       IsEnabled="{Binding !IsBusy}"/>
 
@@ -356,17 +355,11 @@
                             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                 <Button Classes="subBtn" Content="{l10n:Tr Key=cs_open_folder}" Command="{Binding OpenServerFolderCommand}"/>
                                 <Button Classes="primaryBtn" Command="{Binding RunServerCommand}" IsVisible="{Binding !IsServerRunning}" Padding="18,8">
-                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                        <PathIcon Data="M8 5v14l11-7z" Width="13" Height="13" Foreground="{StaticResource OnAccentBrush}"/>
-                                        <TextBlock Text="{l10n:Tr Key=cs_run_server}" FontWeight="Bold"/>
-                                    </StackPanel>
+                                    <TextBlock Text="{l10n:Tr Key=cs_run_server}" FontWeight="Bold"/>
                                 </Button>
                                 <!-- Graceful Stop Button -->
                                 <Button Classes="subBtn" Command="{Binding StopServerCommand}" IsVisible="{Binding CanShowStopButton}" IsEnabled="{Binding !IsServerStopping}" Padding="18,8">
-                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                        <PathIcon Data="M6 6h12v12H6z" Width="12" Height="12" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                        <TextBlock Text="{Binding StopButtonText}" FontWeight="Bold"/>
-                                    </StackPanel>
+                                    <TextBlock Text="{Binding StopButtonText}" FontWeight="Bold"/>
                                 </Button>
                                 <!-- Emergency Force Stop Button (visible after timeout if server hangs) -->
                                 <Button Classes="dangerBtn" Command="{Binding ForceStopServerCommand}" IsVisible="{Binding IsForceStopAvailable}" Padding="14,8">
@@ -395,7 +388,7 @@
                             <Button Classes="tabBtn" Classes.active="{Binding IsPropertiesTab}" Command="{Binding SelectTabCommand}" CommandParameter="1" Content="{l10n:Tr Key=cs_tab_properties}"/>
                             <Button Classes="tabBtn" Classes.active="{Binding IsFilesTab}" Command="{Binding SelectTabCommand}" CommandParameter="5" Content="{l10n:Tr Key=cs_tab_files}"/>
                             <Button Classes="tabBtn" Classes.active="{Binding IsPluginsTab}" Command="{Binding SelectTabCommand}" CommandParameter="2" Content="{l10n:Tr Key=cs_tab_plugins}"/>
-                            <Button Classes="tabBtn" Classes.active="{Binding IsWorldTab}" Command="{Binding SelectTabCommand}" CommandParameter="3" Content="{l10n:Tr Key=cs_tab_world}"/>
+                            <Button Classes="tabBtn" Classes.active="{Binding IsSettingsTab}" Command="{Binding SelectTabCommand}" CommandParameter="3" Content="{l10n:Tr Key=cs_tab_settings}"/>
                             <Button Classes="tabBtn" Classes.active="{Binding IsPlayersTab}" Command="{Binding SelectTabCommand}" CommandParameter="4" Content="{l10n:Tr Key=cs_tab_players}"/>
                         </StackPanel>
                     </Border>
@@ -434,17 +427,11 @@
                                 <!-- Action Buttons -->
                                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                     <Button Classes="primaryBtn" Command="{Binding RunServerCommand}" IsVisible="{Binding !IsServerRunning}" Padding="16,8">
-                                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                            <PathIcon Data="M8 5v14l11-7z" Width="13" Height="13" Foreground="{StaticResource OnAccentBrush}"/>
-                                            <TextBlock Text="{l10n:Tr Key=cs_run_server}" FontWeight="Bold"/>
-                                        </StackPanel>
+                                        <TextBlock Text="{l10n:Tr Key=cs_run_server}" FontWeight="Bold"/>
                                     </Button>
                                     <!-- Graceful Stop Button -->
                                     <Button Classes="subBtn" Command="{Binding StopServerCommand}" IsVisible="{Binding CanShowStopButton}" IsEnabled="{Binding !IsServerStopping}" Padding="16,8">
-                                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                            <PathIcon Data="M6 6h12v12H6z" Width="12" Height="12" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                            <TextBlock Text="{Binding StopButtonText}" FontWeight="Bold"/>
-                                        </StackPanel>
+                                        <TextBlock Text="{Binding StopButtonText}" FontWeight="Bold"/>
                                     </Button>
                                     <!-- Emergency Force Stop Button -->
                                     <Button Classes="dangerBtn" Command="{Binding ForceStopServerCommand}" IsVisible="{Binding IsForceStopAvailable}" Padding="14,8">
@@ -534,12 +521,6 @@
                                             <TextBlock Text="Logs / Console"/>
                                         </StackPanel>
                                     </Button>
-                                    <Button Classes="subBtn" Command="{Binding RequestResetWorldCommand}">
-                                        <StackPanel Orientation="Horizontal" Spacing="6">
-                                            <PathIcon Data="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" Width="13" Height="13" Foreground="{StaticResource WarningBrush}"/>
-                                            <TextBlock Text="Reset World"/>
-                                        </StackPanel>
-                                    </Button>
                                 </StackPanel>
                             </Grid>
                         </Border>
@@ -575,69 +556,69 @@
                                 <!-- Left Column: Core Parameters -->
                                 <Border Grid.Column="0" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="10" Padding="16">
                                     <StackPanel Spacing="12">
-                                        <TextBlock Text="General &amp; Network" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{l10n:Tr Key=cs_prop_general_network}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"/>
 
                                         <StackPanel Spacing="4">
-                                            <TextBlock Text="Server Port" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{l10n:Tr Key=cs_prop_port}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
                                             <TextBox Classes="darkInput" Text="{Binding PropsPort}"/>
                                         </StackPanel>
 
                                         <StackPanel Spacing="4">
-                                            <TextBlock Text="MOTD (Server Description)" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{l10n:Tr Key=cs_prop_motd}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
                                             <TextBox Classes="darkInput" Text="{Binding PropsMotd}"/>
                                         </StackPanel>
 
                                         <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                                             <StackPanel Spacing="4">
-                                                <TextBlock Text="Gamemode" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                <TextBlock Text="{l10n:Tr Key=cs_prop_gamemode}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
                                                 <ComboBox ItemsSource="{Binding GamemodeOptions}" SelectedItem="{Binding PropsGamemode}" HorizontalAlignment="Stretch"/>
                                             </StackPanel>
                                             <StackPanel Grid.Column="1" Spacing="4">
-                                                <TextBlock Text="Difficulty" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                <TextBlock Text="{l10n:Tr Key=cs_prop_difficulty}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
                                                 <ComboBox ItemsSource="{Binding DifficultyOptions}" SelectedItem="{Binding PropsDifficulty}" HorizontalAlignment="Stretch"/>
                                             </StackPanel>
                                         </Grid>
 
                                         <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                                             <StackPanel Spacing="4">
-                                                <TextBlock Text="Max Players" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                <TextBlock Text="{l10n:Tr Key=cs_prop_max_players}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
                                                 <TextBox Classes="darkInput" Text="{Binding PropsMaxPlayers}"/>
                                             </StackPanel>
                                             <StackPanel Grid.Column="1" Spacing="4">
-                                                <TextBlock Text="Spawn Protection" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                <TextBlock Text="{l10n:Tr Key=cs_prop_spawn_protection}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
                                                 <TextBox Classes="darkInput" Text="{Binding PropsSpawnProtection}"/>
                                             </StackPanel>
                                         </Grid>
 
                                         <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                                             <StackPanel Spacing="4">
-                                                <TextBlock Text="View Distance" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                <TextBlock Text="{l10n:Tr Key=cs_prop_view_distance}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
                                                 <TextBox Classes="darkInput" Text="{Binding PropsViewDistance}"/>
                                             </StackPanel>
                                             <StackPanel Grid.Column="1" Spacing="4">
-                                                <TextBlock Text="Simulation Distance" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                <TextBlock Text="{l10n:Tr Key=cs_prop_sim_distance}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
                                                 <TextBox Classes="darkInput" Text="{Binding PropsSimulationDistance}"/>
                                             </StackPanel>
                                         </Grid>
 
                                         <StackPanel Spacing="4">
-                                            <TextBlock Text="Entity Broadcast Range (%)" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{l10n:Tr Key=cs_prop_entity_range}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
                                             <TextBox Classes="darkInput" Text="{Binding PropsEntityBroadcastRangePercentage}"/>
                                         </StackPanel>
 
                                         <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                                             <StackPanel Spacing="4">
-                                                <TextBlock Text="Level Name" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                <TextBlock Text="{l10n:Tr Key=cs_prop_level_name}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
                                                 <TextBox Classes="darkInput" Text="{Binding PropsLevelName}"/>
                                             </StackPanel>
                                             <StackPanel Grid.Column="1" Spacing="4">
-                                                <TextBlock Text="Level Type" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                <TextBlock Text="{l10n:Tr Key=cs_prop_level_type}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
                                                 <ComboBox ItemsSource="{Binding LevelTypeOptions}" SelectedItem="{Binding PropsLevelType}" HorizontalAlignment="Stretch"/>
                                             </StackPanel>
                                         </Grid>
 
                                         <StackPanel Spacing="4">
-                                            <TextBlock Text="Level Seed" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{l10n:Tr Key=cs_prop_level_seed}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
                                             <TextBox Classes="darkInput" Text="{Binding PropsLevelSeed}" PlaceholderText="Leave empty for random seed"/>
                                         </StackPanel>
                                     </StackPanel>
@@ -648,17 +629,17 @@
                                     <StackPanel Spacing="10">
                                         <TextBlock Text="{l10n:Tr Key=cs_props_rules}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"/>
 
-                                        <CheckBox Content="Online Mode (Mojang account verification)" IsChecked="{Binding PropsOnlineMode}"/>
-                                        <CheckBox Content="Whitelist Enabled (Only allowed players)" IsChecked="{Binding PropsWhitelist}"/>
-                                        <CheckBox Content="Enable PvP (Player vs player combat)" IsChecked="{Binding PropsPvp}"/>
-                                        <CheckBox Content="Hardcore Mode (Permadeath spectator)" IsChecked="{Binding PropsHardcore}"/>
-                                        <CheckBox Content="Allow Flight (Allow flight in survival)" IsChecked="{Binding PropsAllowFlight}"/>
-                                        <CheckBox Content="Enable Command Blocks" IsChecked="{Binding PropsCommandBlocks}"/>
-                                        <CheckBox Content="Allow Nether (Enable Nether dimension)" IsChecked="{Binding PropsAllowNether}"/>
-                                        <CheckBox Content="Generate Structures (Villages, fortresses)" IsChecked="{Binding PropsGenerateStructures}"/>
-                                        <CheckBox Content="Spawn Animals (Passive mobs)" IsChecked="{Binding PropsSpawnAnimals}"/>
-                                        <CheckBox Content="Spawn Monsters (Hostile mobs)" IsChecked="{Binding PropsSpawnMonsters}"/>
-                                        <CheckBox Content="Spawn NPCs (Villagers &amp; traders)" IsChecked="{Binding PropsSpawnNpcs}"/>
+                                        <CheckBox Content="{l10n:Tr Key=cs_prop_online_mode}" IsChecked="{Binding PropsOnlineMode}"/>
+                                        <CheckBox Content="{l10n:Tr Key=cs_prop_whitelist}" IsChecked="{Binding PropsWhitelist}"/>
+                                        <CheckBox Content="{l10n:Tr Key=cs_prop_pvp}" IsChecked="{Binding PropsPvp}"/>
+                                        <CheckBox Content="{l10n:Tr Key=cs_prop_hardcore}" IsChecked="{Binding PropsHardcore}"/>
+                                        <CheckBox Content="{l10n:Tr Key=cs_prop_allow_flight}" IsChecked="{Binding PropsAllowFlight}"/>
+                                        <CheckBox Content="{l10n:Tr Key=cs_prop_command_blocks}" IsChecked="{Binding PropsCommandBlocks}"/>
+                                        <CheckBox Content="{l10n:Tr Key=cs_prop_allow_nether}" IsChecked="{Binding PropsAllowNether}"/>
+                                        <CheckBox Content="{l10n:Tr Key=cs_prop_structures}" IsChecked="{Binding PropsGenerateStructures}"/>
+                                        <CheckBox Content="{l10n:Tr Key=cs_prop_spawn_animals}" IsChecked="{Binding PropsSpawnAnimals}"/>
+                                        <CheckBox Content="{l10n:Tr Key=cs_prop_spawn_monsters}" IsChecked="{Binding PropsSpawnMonsters}"/>
+                                        <CheckBox Content="{l10n:Tr Key=cs_prop_spawn_npcs}" IsChecked="{Binding PropsSpawnNpcs}"/>
                                     </StackPanel>
                                 </Border>
                             </Grid>
@@ -683,20 +664,42 @@
                             <!-- Empty State -->
                             <TextBlock Text="No plugins or mods installed yet. Click 'Add JAR...' to install one." FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding InstalledPlugins.Count, Converter={x:Static vm:EditInstanceWindowConverters.IsZero}}" Margin="0,16"/>
 
-                            <!-- Plugins List -->
+                            <!-- Plugins List (Rich Cards) -->
                             <ItemsControl ItemsSource="{Binding InstalledPlugins}" Margin="0,4,0,0">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate x:DataType="services:ServerPluginItem">
-                                        <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="14,10" Margin="0,0,0,8">
-                                            <Grid ColumnDefinitions="Auto,*,Auto,Auto" VerticalAlignment="Center">
-                                                <Border Background="{StaticResource AccentDimBrush}" CornerRadius="5" Padding="6,2" Margin="0,0,12,0">
-                                                    <TextBlock Text="{Binding IsPlugin, Converter={x:Static vm:EditInstanceWindowConverters.ActiveText}}" FontSize="10" FontWeight="Bold" Foreground="{StaticResource AccentBrush}"/>
+                                        <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="14,12" Margin="0,0,0,8">
+                                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalAlignment="Center">
+                                                <!-- Icon -->
+                                                <Border Grid.Column="0" Width="36" Height="36" CornerRadius="8" Background="{StaticResource IconChipBrush}" BorderBrush="{StaticResource BorderSubtleBrush}" BorderThickness="1" VerticalAlignment="Center">
+                                                    <PathIcon Data="M20.5 11H19V7c0-1.1-.9-2-2-2h-4V3.5C13 2.12 11.88 1 10.5 1S8 2.12 8 3.5V5H4c-1.1 0-1.99.9-1.99 2v3.8H3.5c1.49 0 2.7 1.21 2.7 2.7s-1.21 2.7-2.7 2.7H2V20c0 1.1.9 2 2 2h3.8v-1.5c0-1.49 1.21-2.7 2.7-2.7 1.49 0 2.7 1.21 2.7 2.7V22H17c1.1 0 2-.9 2-2v-4h1.5c1.38 0 2.5-1.12 2.5-2.5s-1.12-2.5-2.5-2.5z"
+                                                              Width="16" Height="16" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                                                 </Border>
 
-                                                <TextBlock Grid.Column="1" Text="{Binding Name}" FontWeight="SemiBold" FontSize="12.5" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                                                <TextBlock Grid.Column="2" Text="{Binding Size}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="16,0"/>
+                                                <!-- Name, Version, Description, Size -->
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3">
+                                                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" MaxWidth="360"/>
+                                                        <Border Background="{StaticResource AccentDimBrush}" CornerRadius="4" Padding="6,1" VerticalAlignment="Center" IsVisible="{Binding Version, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}">
+                                                            <TextBlock Text="{Binding Version}" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}"/>
+                                                        </Border>
+                                                        <Border Background="{StaticResource RowHoverBrush}" CornerRadius="4" Padding="6,1" VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding Size}" FontSize="10" Foreground="{StaticResource TextMutedBrush}"/>
+                                                        </Border>
+                                                        <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="4" Padding="6,1" VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding StatusText}" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                        </Border>
+                                                    </StackPanel>
+                                                    <TextBlock Text="{Binding Description}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" IsVisible="{Binding Description, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}"/>
+                                                </StackPanel>
 
-                                                <Button Grid.Column="3" Classes="dangerBtn" Content="Delete" Command="{Binding $parent[UserControl].((vm:CreateServerViewModel)DataContext).DeletePluginCommand}" CommandParameter="{Binding}" Padding="12,5" FontSize="11"/>
+                                                <!-- Action buttons: Toggle & Delete -->
+                                                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                                    <Button Classes="chipBtn" Command="{Binding $parent[UserControl].((vm:CreateServerViewModel)DataContext).TogglePluginCommand}" CommandParameter="{Binding}" Padding="10,5">
+                                                        <TextBlock Text="{Binding ToggleButtonText}" FontSize="11"/>
+                                                    </Button>
+                                                    <Button Classes="dangerBtn" Content="{l10n:Tr Key=cs_plugin_delete}" Command="{Binding $parent[UserControl].((vm:CreateServerViewModel)DataContext).DeletePluginCommand}" CommandParameter="{Binding}" Padding="10,5" FontSize="11"/>
+                                                </StackPanel>
                                             </Grid>
                                         </Border>
                                     </DataTemplate>
@@ -705,70 +708,91 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- TAB 3: WORLD & SERVER MANAGEMENT (Strict utilitarian, no AI-slop Danger Zone) -->
-                    <StackPanel Spacing="16" IsVisible="{Binding IsWorldTab}">
-                        <!-- World Settings Card -->
+                    <!-- TAB 3: SETTINGS (Technical Configuration & Danger Zone) -->
+                    <StackPanel Spacing="16" IsVisible="{Binding IsSettingsTab}">
+                        <!-- Technical Configuration Card -->
                         <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
                             <StackPanel Spacing="16">
                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                    <TextBlock Text="World Generation Settings" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
-                                        <Button Classes="subBtn" Content="Open World Folder" Command="{Binding OpenWorldFolderCommand}" Padding="12,7" FontSize="12"/>
-                                        <Button Classes="primaryBtn" Content="Save World Settings" Command="{Binding SavePropertiesCommand}" Padding="16,7" FontSize="12"/>
+                                    <StackPanel Spacing="2">
+                                        <TextBlock Text="{l10n:Tr Key=cs_settings_title}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                        <TextBlock Text="Technical configuration and launch environment for this server." FontSize="11.5" Foreground="{StaticResource TextMutedBrush}"/>
                                     </StackPanel>
+                                    <Button Grid.Column="1" Classes="primaryBtn" Command="{Binding SaveServerSettingsCommand}" Padding="18,7" FontSize="12">
+                                        <TextBlock Text="{l10n:Tr Key=cs_save_settings}" FontWeight="Bold"/>
+                                    </Button>
                                 </Grid>
 
-                                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="16">
-                                    <StackPanel Spacing="4">
-                                        <TextBlock Text="Level Name" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                        <TextBox Classes="darkInput" Text="{Binding PropsLevelName}"/>
-                                    </StackPanel>
+                                <!-- Status message -->
+                                <Border IsVisible="{Binding ServerSettingsStatusMessage, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}" Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource AccentBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6">
+                                    <TextBlock Text="{Binding ServerSettingsStatusMessage}" Foreground="{StaticResource AccentBrush}" FontWeight="SemiBold" FontSize="12"/>
+                                </Border>
 
-                                    <StackPanel Grid.Column="1" Spacing="4">
-                                        <TextBlock Text="Level Seed" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                        <TextBox Classes="darkInput" Text="{Binding PropsLevelSeed}"/>
-                                    </StackPanel>
+                                <!-- Java Executable Path -->
+                                <StackPanel Spacing="6">
+                                    <TextBlock Text="{l10n:Tr Key=cs_java_path}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                        <TextBox Classes="darkInput" Text="{Binding ServerJavaPath}" PlaceholderText="C:\Program Files\Java\jdk-25\bin\java.exe (or auto-resolved)"/>
+                                        <Button Grid.Column="1" Classes="subBtn" Command="{Binding BrowseServerJavaCommand}" Content="{l10n:Tr Key=cs_java_browse}" Padding="14,8"/>
+                                    </Grid>
+                                </StackPanel>
 
-                                    <StackPanel Grid.Column="2" Spacing="4">
-                                        <TextBlock Text="World Type" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                        <ComboBox ItemsSource="{Binding LevelTypeOptions}" SelectedItem="{Binding PropsLevelType}" HorizontalAlignment="Stretch"/>
-                                    </StackPanel>
-                                </Grid>
+                                <!-- RAM Allocation Card (Unified RamCardControl in MB) -->
+                                <views:RamCardControl Value="{Binding ServerRamMb}"
+                                                      Minimum="1024"
+                                                      Maximum="32768"
+                                                      TickFrequency="512"
+                                                      Title="{l10n:Tr Key=cs_server_ram}"
+                                                      IsEnabled="{Binding CanEditServer}"/>
+
+                                <!-- JVM Launch Arguments -->
+                                <StackPanel Spacing="6">
+                                    <TextBlock Text="{l10n:Tr Key=cs_jvm_args}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <TextBox Classes="darkInput" Text="{Binding ServerJvmArgs}" PlaceholderText="-XX:+UseG1GC -XX:+ParallelRefProcEnabled ..."/>
+                                </StackPanel>
                             </StackPanel>
                         </Border>
 
-                        <!-- Utilitarian World & Server Operations (Clean, matching launcher palette) -->
-                        <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
+                        <!-- Danger Zone Card -->
+                        <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource DangerBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
                             <StackPanel Spacing="14">
-                                <TextBlock Text="Server Data &amp; Maintenance" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                <TextBlock Text="Reset world save data to force a fresh regeneration, or delete this local server installation."
-                                           FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
-
-                                <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,4,0,0">
-                                    <Button Classes="subBtn" Content="Reset World" Command="{Binding RequestResetWorldCommand}" IsVisible="{Binding !ShowWorldResetConfirm}"/>
-                                    <Button Classes="dangerBtn" Content="Delete Server" Command="{Binding RequestDeleteServerCommand}" IsVisible="{Binding !ShowDeleteServerConfirm}"/>
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="{l10n:Tr Key=cs_danger_zone}" FontSize="14" FontWeight="Bold" Foreground="{StaticResource DangerLightBrush}"/>
+                                    <TextBlock Text="{l10n:Tr Key=cs_danger_desc}" FontSize="11.5" Foreground="{StaticResource TextMutedBrush}"/>
                                 </StackPanel>
 
-                                <!-- World Reset Confirmation Dialog -->
-                                <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="8" Padding="14" IsVisible="{Binding ShowWorldResetConfirm}" Margin="0,4,0,0">
-                                    <StackPanel Spacing="8">
-                                        <TextBlock Text="Reset world data? All chunks and player builds will be deleted; a new world will generate on next start."
-                                                   Foreground="{StaticResource TextPrimaryBrush}" FontSize="12"/>
+                                <!-- Danger Buttons -->
+                                <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,4,0,0">
+                                    <Button Classes="dangerBtn" Command="{Binding RequestResetWorldCommand}" IsVisible="{Binding !ShowWorldResetConfirm}" Padding="14,7">
+                                        <TextBlock Text="Reset World" FontSize="11.5" FontWeight="SemiBold"/>
+                                    </Button>
+                                    <Button Classes="dangerBtn" Command="{Binding RequestDeleteServerCommand}" IsVisible="{Binding !ShowDeleteServerConfirm}" Padding="14,7">
+                                        <TextBlock Text="{l10n:Tr Key=cs_delete_server_sure}" FontSize="11.5" FontWeight="SemiBold"/>
+                                    </Button>
+                                </StackPanel>
+
+                                <!-- Reset World 5-Second Countdown Confirmation Box -->
+                                <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource DangerBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14" IsVisible="{Binding ShowWorldResetConfirm}" Margin="0,4,0,0">
+                                    <StackPanel Spacing="10">
+                                        <TextBlock Text="Reset world data? All chunks, builds, and inventory will be deleted; a new world generates on next start."
+                                                   Foreground="{StaticResource TextPrimaryBrush}" FontSize="12" TextWrapping="Wrap"/>
                                         <StackPanel Orientation="Horizontal" Spacing="8">
-                                            <Button Classes="dangerBtn" Content="Confirm Reset" Command="{Binding ConfirmResetWorldCommand}"/>
-                                            <Button Classes="subBtn" Content="Cancel" Command="{Binding CancelResetWorldCommand}"/>
+                                            <Button Classes="dangerBtn" Command="{Binding ConfirmResetWorldCommand}" IsEnabled="{Binding CanConfirmResetWorld}" Padding="14,7">
+                                                <TextBlock Text="{Binding ResetButtonText}" FontWeight="Bold"/>
+                                            </Button>
+                                            <Button Classes="subBtn" Command="{Binding CancelResetWorldCommand}" Content="{l10n:Tr Key=btn_cancel}" Padding="14,7"/>
                                         </StackPanel>
                                     </StackPanel>
                                 </Border>
 
                                 <!-- Server Delete Confirmation Dialog -->
                                 <Border Background="{StaticResource DangerBgBrush}" BorderBrush="{StaticResource DangerBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14" IsVisible="{Binding ShowDeleteServerConfirm}" Margin="0,4,0,0">
-                                    <StackPanel Spacing="8">
-                                        <TextBlock Text="Are you sure you want to permanently delete this entire server folder and all its files?"
-                                                   Foreground="{StaticResource DangerLightBrush}" FontWeight="Bold" FontSize="12"/>
+                                    <StackPanel Spacing="10">
+                                        <TextBlock Text="{l10n:Tr Key=cs_delete_server_confirm}"
+                                                   Foreground="{StaticResource DangerLightBrush}" FontWeight="Bold" FontSize="12" TextWrapping="Wrap"/>
                                         <StackPanel Orientation="Horizontal" Spacing="8">
-                                            <Button Classes="dangerBtn" Content="Delete Server" Command="{Binding ConfirmDeleteServerCommand}"/>
-                                            <Button Classes="subBtn" Content="Cancel" Command="{Binding CancelDeleteServerCommand}"/>
+                                            <Button Classes="dangerBtn" Content="Confirm Delete" Command="{Binding ConfirmDeleteServerCommand}" Padding="14,7"/>
+                                            <Button Classes="subBtn" Content="{l10n:Tr Key=btn_cancel}" Command="{Binding CancelDeleteServerCommand}" Padding="14,7"/>
                                         </StackPanel>
                                     </StackPanel>
                                 </Border>
@@ -891,104 +915,153 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- TAB 5: FILE MANAGER -->
-                    <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="20" IsVisible="{Binding IsFilesTab}">
-                        <StackPanel Spacing="14">
-                            <!-- Files Header & Toolbar -->
-                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                <!-- Breadcrumb Path & Up Button -->
-                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                    <Button Classes="chipBtn" Command="{Binding NavigateUpDirectoryCommand}" IsEnabled="{Binding CanNavigateUp}" ToolTip.Tip="{l10n:Tr Key=cs_file_up}">
-                                        <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
-                                            <PathIcon Data="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z" Width="11" Height="11" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                            <TextBlock Text="{l10n:Tr Key=cs_file_up}" FontSize="11" FontWeight="SemiBold"/>
-                                        </StackPanel>
-                                    </Button>
-
-                                    <!-- Breadcrumb location -->
-                                    <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="6" Padding="10,5">
-                                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                            <PathIcon Data="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="13" Height="13" Foreground="{StaticResource AccentBrush}"/>
-                                            <TextBlock Text="{Binding CurrentBrowseRelativePath}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                        </StackPanel>
-                                    </Border>
-                                </StackPanel>
-
-                                <!-- Right action buttons: Upload, Refresh, Open in Explorer -->
-                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                    <Button Classes="chipBtn" Command="{Binding UploadServerFilesCommand}" Padding="10,6">
-                                        <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
-                                            <PathIcon Data="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z" Width="12" Height="12" Foreground="{StaticResource AccentBrush}"/>
-                                            <TextBlock Text="{l10n:Tr Key=cs_file_upload}" FontSize="11.5" FontWeight="SemiBold"/>
-                                        </StackPanel>
-                                    </Button>
-                                    <Button Classes="chipBtn" Command="{Binding RefreshFilesCommand}" Padding="10,6">
-                                        <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
-                                            <PathIcon Data="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" Width="12" Height="12" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                            <TextBlock Text="{l10n:Tr Key=cs_file_refresh}" FontSize="11.5" FontWeight="SemiBold"/>
-                                        </StackPanel>
-                                    </Button>
-                                    <Button Classes="subBtn" Command="{Binding OpenCurrentFolderInExplorerCommand}" Content="{l10n:Tr Key=cs_open_folder}" Padding="12,6" FontSize="11.5"/>
-                                </StackPanel>
-                            </Grid>
-
-                            <!-- Status / Error message if any -->
-                            <TextBlock Text="{Binding FileOperationStatus}" FontSize="11.5" Foreground="{StaticResource DangerLightBrush}" IsVisible="{Binding FileOperationStatus, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}"/>
-
-                            <!-- Table Header -->
-                            <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="8" Padding="14,8">
-                                <Grid ColumnDefinitions="*,160,100,140">
-                                    <TextBlock Text="Name" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"/>
-                                    <TextBlock Grid.Column="1" Text="Date Modified" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"/>
-                                    <TextBlock Grid.Column="2" Text="Size" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"/>
-                                    <TextBlock Grid.Column="3" Text="Actions" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Right"/>
-                                </Grid>
-                            </Border>
-
-                            <!-- Empty folder message -->
-                            <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="8" Padding="30" IsVisible="{Binding IsFilesEmpty}">
-                                <StackPanel Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                    <PathIcon Data="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="28" Height="28" Foreground="{StaticResource TextDisabledBrush}" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="{l10n:Tr Key=cs_file_empty}" FontSize="12.5" Foreground="{StaticResource TextPlaceholderBrush}" HorizontalAlignment="Center"/>
-                                </StackPanel>
-                            </Border>
-
-                            <!-- File List -->
-                            <ItemsControl ItemsSource="{Binding ServerFiles}" IsVisible="{Binding !IsFilesEmpty}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate x:DataType="services:ServerFileItem">
-                                        <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="12,8" Margin="0,0,0,4">
-                                            <Grid ColumnDefinitions="*,160,100,140" VerticalAlignment="Center">
-                                                <!-- Icon + Name -->
-                                                <Button Classes="tabBtn" Command="{Binding $parent[UserControl].((vm:CreateServerViewModel)DataContext).NavigateIntoFileItemCommand}" CommandParameter="{Binding}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="2,0">
-                                                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                                        <PathIcon Data="{Binding IconData}" Foreground="{Binding IconColor}" Width="15" Height="15" VerticalAlignment="Center"/>
-                                                        <TextBlock Text="{Binding Name}" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                                                    </StackPanel>
-                                                </Button>
-
-                                                <!-- Date Modified -->
-                                                <TextBlock Grid.Column="1" Text="{Binding ModifiedDisplay}" FontSize="11.5" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
-
-                                                <!-- Size -->
-                                                <TextBlock Grid.Column="2" Text="{Binding SizeDisplay}" FontSize="11.5" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
-
-                                                <!-- Actions -->
-                                                <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                                    <Button Classes="chipBtn" Command="{Binding $parent[UserControl].((vm:CreateServerViewModel)DataContext).OpenFileItemCommand}" CommandParameter="{Binding}" ToolTip.Tip="{l10n:Tr Key=cs_file_open}" Padding="8,4">
-                                                        <TextBlock Text="{l10n:Tr Key=cs_file_open}" FontSize="11"/>
-                                                    </Button>
-                                                    <Button Classes="dangerBtn" Command="{Binding $parent[UserControl].((vm:CreateServerViewModel)DataContext).DeleteFileItemCommand}" CommandParameter="{Binding}" ToolTip.Tip="{l10n:Tr Key=cs_file_delete}" Padding="8,4">
-                                                        <TextBlock Text="{l10n:Tr Key=cs_file_delete}" FontSize="11"/>
-                                                    </Button>
-                                                </StackPanel>
-                                            </Grid>
+                    <!-- TAB 5: FILE MANAGER & IN-APP EDITOR -->
+                    <StackPanel Spacing="16" IsVisible="{Binding IsFilesTab}">
+                        <!-- In-App File Editor Overlay Panel -->
+                        <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="20" IsVisible="{Binding IsFileEditorOpen}">
+                            <Grid RowDefinitions="Auto,*,Auto" RowSpacing="14">
+                                <!-- Top Bar: File Name, Path, Save & Close -->
+                                <Grid Grid.Row="0" ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                        <Border Width="32" Height="32" CornerRadius="6" Background="{StaticResource IconChipBrush}" BorderBrush="{StaticResource BorderSubtleBrush}" BorderThickness="1" VerticalAlignment="Center">
+                                            <PathIcon Data="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"
+                                                      Width="15" Height="15" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center"/>
                                         </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </StackPanel>
-                    </Border>
+                                        <StackPanel VerticalAlignment="Center" Spacing="1">
+                                            <TextBlock Text="{Binding EditingFileName}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                            <TextBlock Text="{Binding EditingFileFullPath}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" TextTrimming="CharacterEllipsis" MaxWidth="400"/>
+                                        </StackPanel>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding FileEditorStatusMessage}" FontSize="12" Foreground="{StaticResource SuccessBrush}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                        <Button Classes="primaryBtn" Command="{Binding SaveEditedFileCommand}" IsEnabled="{Binding !IsFileEditorSaving}" Padding="16,7" FontSize="12">
+                                            <TextBlock Text="{l10n:Tr Key=cs_editor_save}" FontWeight="Bold"/>
+                                        </Button>
+                                        <Button Classes="subBtn" Command="{Binding CloseFileEditorCommand}" Content="{l10n:Tr Key=cs_editor_close}" Padding="14,7" FontSize="12"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- Editor Content -->
+                                <TextBox Grid.Row="1" Classes="darkInput"
+                                         Text="{Binding EditingFileContent}"
+                                         AcceptsReturn="True"
+                                         AcceptsTab="True"
+                                         FontFamily="Cascadia Code, Consolas, Courier New, monospace"
+                                         FontSize="12.5"
+                                         MinHeight="420"
+                                         VerticalAlignment="Stretch"
+                                         HorizontalAlignment="Stretch"
+                                         ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                         ScrollViewer.HorizontalScrollBarVisibility="Auto"/>
+
+                                <!-- Bottom Status Bar -->
+                                <Grid Grid.Row="2" ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                    <TextBlock Text="Editing file directly inside Zenith Launcher" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                                    <Button Grid.Column="1" Classes="subBtn" Command="{Binding CloseFileEditorCommand}" Content="{l10n:Tr Key=cs_editor_close}" Padding="12,5" FontSize="11"/>
+                                </Grid>
+                            </Grid>
+                        </Border>
+
+                        <!-- File Manager Explorer Table -->
+                        <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="20" IsVisible="{Binding !IsFileEditorOpen}">
+                            <StackPanel Spacing="14">
+                                <!-- Files Header & Toolbar -->
+                                <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                    <!-- Breadcrumb Path & Up Button -->
+                                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <Button Classes="chipBtn" Command="{Binding NavigateUpDirectoryCommand}" IsEnabled="{Binding CanNavigateUp}" ToolTip.Tip="{l10n:Tr Key=cs_file_up}">
+                                            <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+                                                <PathIcon Data="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z" Width="11" Height="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                <TextBlock Text="{l10n:Tr Key=cs_file_up}" FontSize="11" FontWeight="SemiBold"/>
+                                            </StackPanel>
+                                        </Button>
+
+                                        <!-- Breadcrumb location -->
+                                        <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="6" Padding="10,5">
+                                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                                <PathIcon Data="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="13" Height="13" Foreground="{StaticResource AccentBrush}"/>
+                                                <TextBlock Text="{Binding CurrentBrowseRelativePath}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+
+                                    <!-- Right action buttons: Upload, Refresh, Open in Explorer -->
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <Button Classes="chipBtn" Command="{Binding UploadServerFilesCommand}" Padding="10,6">
+                                            <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+                                                <PathIcon Data="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z" Width="12" Height="12" Foreground="{StaticResource AccentBrush}"/>
+                                                <TextBlock Text="{l10n:Tr Key=cs_file_upload}" FontSize="11.5" FontWeight="SemiBold"/>
+                                            </StackPanel>
+                                        </Button>
+                                        <Button Classes="chipBtn" Command="{Binding RefreshFilesCommand}" Padding="10,6">
+                                            <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+                                                <PathIcon Data="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" Width="12" Height="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                <TextBlock Text="{l10n:Tr Key=cs_file_refresh}" FontSize="11.5" FontWeight="SemiBold"/>
+                                            </StackPanel>
+                                        </Button>
+                                        <Button Classes="subBtn" Command="{Binding OpenCurrentFolderInExplorerCommand}" Content="{l10n:Tr Key=cs_open_folder}" Padding="12,6" FontSize="11.5"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- Status / Error message if any -->
+                                <TextBlock Text="{Binding FileOperationStatus}" FontSize="11.5" Foreground="{StaticResource DangerLightBrush}" IsVisible="{Binding FileOperationStatus, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}"/>
+
+                                <!-- Table Header -->
+                                <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="8" Padding="14,8">
+                                    <Grid ColumnDefinitions="*,160,100,140">
+                                        <TextBlock Text="Name" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Grid.Column="1" Text="Date Modified" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Grid.Column="2" Text="Size" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Grid.Column="3" Text="Actions" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Right"/>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Empty folder message -->
+                                <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="8" Padding="30" IsVisible="{Binding IsFilesEmpty}">
+                                    <StackPanel Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <PathIcon Data="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="28" Height="28" Foreground="{StaticResource TextDisabledBrush}" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=cs_file_empty}" FontSize="12.5" Foreground="{StaticResource TextPlaceholderBrush}" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- File List -->
+                                <ItemsControl ItemsSource="{Binding ServerFiles}" IsVisible="{Binding !IsFilesEmpty}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="services:ServerFileItem">
+                                            <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="12,8" Margin="0,0,0,4">
+                                                <Grid ColumnDefinitions="*,160,100,140" VerticalAlignment="Center">
+                                                    <!-- Icon + Name -->
+                                                    <Button Classes="tabBtn" Command="{Binding $parent[UserControl].((vm:CreateServerViewModel)DataContext).NavigateIntoFileItemCommand}" CommandParameter="{Binding}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="2,0">
+                                                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                                            <PathIcon Data="{Binding IconData}" Foreground="{Binding IconColor}" Width="15" Height="15" VerticalAlignment="Center"/>
+                                                            <TextBlock Text="{Binding Name}" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                                        </StackPanel>
+                                                    </Button>
+
+                                                    <!-- Date Modified -->
+                                                    <TextBlock Grid.Column="1" Text="{Binding ModifiedDisplay}" FontSize="11.5" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+
+                                                    <!-- Size -->
+                                                    <TextBlock Grid.Column="2" Text="{Binding SizeDisplay}" FontSize="11.5" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+
+                                                    <!-- Actions -->
+                                                    <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                                        <Button Classes="chipBtn" Command="{Binding $parent[UserControl].((vm:CreateServerViewModel)DataContext).OpenFileItemCommand}" CommandParameter="{Binding}" ToolTip.Tip="{l10n:Tr Key=cs_file_open}" Padding="8,4">
+                                                            <TextBlock Text="{l10n:Tr Key=cs_file_open}" FontSize="11"/>
+                                                        </Button>
+                                                        <Button Classes="dangerBtn" Command="{Binding $parent[UserControl].((vm:CreateServerViewModel)DataContext).DeleteFileItemCommand}" CommandParameter="{Binding}" ToolTip.Tip="{l10n:Tr Key=cs_file_delete}" Padding="8,4">
+                                                            <TextBlock Text="{l10n:Tr Key=cs_file_delete}" FontSize="11"/>
+                                                        </Button>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
                 </StackPanel>
             </Panel>
         </ScrollViewer>

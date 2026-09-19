@@ -144,7 +144,7 @@ public partial class RamCardControl : UserControl
     private void UpdateBadgeText()
     {
         if (NumberText != null) NumberText.Text = Value.ToString();
-        if (UnitText != null) UnitText.Text = IsGbMode ? "GB" : "MB";
+        if (UnitText != null) UnitText.Text = "MB";
     }
 
     private void OnBadgeDoubleTapped(object? sender, TappedEventArgs e)
@@ -206,19 +206,10 @@ public partial class RamCardControl : UserControl
         var digitsOnly = new string(raw.Where(char.IsDigit).ToArray());
         if (!int.TryParse(digitsOnly, out var parsed)) return;
 
-        if (IsGbMode)
+        // Strictly store in MB. If user entered a small number (e.g. 4 or 8) or added "G"/"GB", convert to MB.
+        if (isGb || (parsed <= 64 && parsed > 0 && !isMb && parsed < Minimum))
         {
-            if (isMb || parsed >= 512)
-            {
-                parsed = Math.Max(1, (int)Math.Round(parsed / 1024.0));
-            }
-        }
-        else
-        {
-            if (isGb || (parsed <= 64 && parsed > 0 && !isMb && parsed < Minimum))
-            {
-                parsed *= 1024;
-            }
+            parsed *= 1024;
         }
 
         parsed = Math.Clamp(parsed, Minimum, Maximum);

@@ -1,13 +1,15 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="using:CustomMcLauncher.Views"
-             x:Class="CustomMcLauncher.Views.RamCardControl">
+              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+              xmlns:local="using:CustomMcLauncher.Views"
+              x:Class="CustomMcLauncher.Views.RamCardControl">
 
     <UserControl.Styles>
         <Style Selector="TextBox.badgeInput">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
             <Setter Property="CaretBrush" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="SelectionBrush" Value="{StaticResource AccentDimBrush}"/>
+            <Setter Property="FocusAdorner" Value="{x:Null}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="0"/>
             <Setter Property="Margin" Value="0"/>
@@ -39,57 +41,60 @@
         </Style>
     </UserControl.Styles>
 
-    <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="14,9">
-        <StackPanel Spacing="5">
+    <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="12,7">
+        <StackPanel Spacing="4">
             <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                 <StackPanel Grid.Column="0" Spacing="1" VerticalAlignment="Center">
-                    <TextBlock x:Name="TitleBlock" Text="Allocated RAM" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                    <TextBlock x:Name="SubtitleBlock" Text="" FontSize="10.5" Foreground="{StaticResource TextMutedBrush}"/>
+                    <TextBlock x:Name="TitleBlock" Text="Allocated RAM" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                    <TextBlock x:Name="SubtitleBlock" Text="" FontSize="10" Foreground="{StaticResource TextMutedBrush}"/>
                 </StackPanel>
 
-                <!-- Minimalist badge with seamless in-place editing -->
+                <!-- Minimalist badge with fixed geometry: never shifts or wraps -->
                 <Border Grid.Column="1"
                         x:Name="BadgeContainer"
                         Background="{StaticResource FieldBrush}"
                         BorderBrush="{StaticResource BorderSubtleBrush}"
                         BorderThickness="1"
                         CornerRadius="5"
-                        Height="24"
-                        MinWidth="76"
-                        Padding="7,0"
+                        Height="22"
+                        Width="86"
+                        Padding="6,0"
                         VerticalAlignment="Center"
+                        HorizontalAlignment="Right"
                         Cursor="IBeam"
-                        ToolTip.Tip="Double-click to edit">
-                    <StackPanel Orientation="Horizontal"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Spacing="3">
-                        <TextBlock x:Name="NumberText"
+                        ToolTip.Tip="Double-click to edit (MB)">
+                    <Grid ColumnDefinitions="*,22" VerticalAlignment="Center">
+                        <TextBlock Grid.Column="0"
+                                   x:Name="NumberText"
                                    Text="4096"
                                    FontSize="11"
                                    FontWeight="SemiBold"
                                    Foreground="{StaticResource AccentBrush}"
+                                   HorizontalAlignment="Right"
                                    VerticalAlignment="Center"/>
-                        <TextBox x:Name="EditTextBox"
+                        <TextBox Grid.Column="0"
+                                 x:Name="EditTextBox"
                                  Classes="badgeInput"
                                  IsVisible="False"
                                  FontSize="11"
                                  FontWeight="SemiBold"
                                  Foreground="{StaticResource AccentBrush}"
                                  CaretBrush="{StaticResource AccentBrush}"
-                                 SelectionBrush="{StaticResource AccentMutedBrush}"
+                                 SelectionBrush="{StaticResource AccentDimBrush}"
                                  TextAlignment="Right"
                                  VerticalAlignment="Center"
-                                 MinWidth="32"
-                                 MaxWidth="56"/>
-                        <TextBlock x:Name="UnitText"
+                                 HorizontalAlignment="Stretch"
+                                 FocusAdorner="{x:Null}"/>
+                        <TextBlock Grid.Column="1"
+                                   x:Name="UnitText"
                                    Text="MB"
-                                   FontSize="11"
+                                   FontSize="10"
                                    FontWeight="SemiBold"
-                                   Foreground="{StaticResource AccentBrush}"
+                                   Foreground="{StaticResource TextMutedBrush}"
                                    VerticalAlignment="Center"
+                                   Margin="3,0,0,0"
                                    IsHitTestVisible="False"/>
-                    </StackPanel>
+                    </Grid>
                 </Border>
             </Grid>
 
@@ -100,7 +105,7 @@
                     Value="4096"
                     TickFrequency="512"
                     IsSnapToTickEnabled="True"
-                    Margin="0,-3,0,0"/>
+                    Margin="0,-4,0,-2"/>
         </StackPanel>
     </Border>
 </UserControl>

@@ -30,7 +30,12 @@ public partial class CreateServerViewModel : ObservableObject
     [ObservableProperty] private string _serverName = "My Local Server";
     [ObservableProperty] private string _selectedVersion = "1.21.4";
     [ObservableProperty] private ServerSoftwareOption _selectedSoftware;
-    [ObservableProperty] private int _ramGb = 4;
+    [ObservableProperty] private int _ramMb = 4096;
+    public int RamGb
+    {
+        get => Math.Max(1, RamMb / 1024);
+        set => RamMb = value * 1024;
+    }
     [ObservableProperty] private int _serverPort = 25565;
     [ObservableProperty] private bool _agreeEula = true;
     [ObservableProperty] private bool _onlineMode = false; // Default: unchecked
@@ -47,13 +52,34 @@ public partial class CreateServerViewModel : ObservableObject
     [ObservableProperty] private bool _hasExistingServers;
     [ObservableProperty] private string? _selectedServerName;
     [ObservableProperty] private string _activeServerDirectory = "";
-    [ObservableProperty] private int _selectedTab; // 0=Overview, 1=Properties, 2=Plugins, 3=World, 4=Players, 5=Files
-    [ObservableProperty] private int _playersSubTab; // 0=Ops, 1=Whitelist, 2=Bans
+    [ObservableProperty] private int _selectedTab; // 0=Overview, 1=Properties, 2=Plugins, 3=Settings, 4=Players, 5=Files
+    [ObservableProperty] private int _playersSubTab; // 0=Online, 1=Ops, 2=Whitelist, 3=Bans
     [ObservableProperty] private string _newPlayerName = "";
     [ObservableProperty] private string _configStatusMessage = "";
     [ObservableProperty] private bool _showWorldResetConfirm;
     [ObservableProperty] private string _worldResetStatusMessage = "";
     [ObservableProperty] private bool _showDeleteServerConfirm;
+
+    // Technical Settings (Tab 3: Settings)
+    [ObservableProperty] private string _serverJavaPath = "";
+    [ObservableProperty] private string _serverJvmArgs = "";
+    [ObservableProperty] private int _serverRamMb = 4096;
+    [ObservableProperty] private string _serverSettingsStatusMessage = "";
+
+    // Reset World 5-Second Countdown Timer
+    [ObservableProperty] private bool _isResetCountdownActive;
+    [ObservableProperty] private int _resetCountdownSeconds = 5;
+    [ObservableProperty] private string _resetButtonText = "";
+    [ObservableProperty] private bool _canConfirmResetWorld;
+    private DispatcherTimer? _resetCountdownTimer;
+
+    // In-App File Editor State
+    [ObservableProperty] private bool _isFileEditorOpen;
+    [ObservableProperty] private string _editingFileName = "";
+    [ObservableProperty] private string _editingFileFullPath = "";
+    [ObservableProperty] private string _editingFileContent = "";
+    [ObservableProperty] private string _fileEditorStatusMessage = "";
+    [ObservableProperty] private bool _isFileEditorSaving;
 
     // server.properties Visual Editor Fields (22 parameters)
     [ObservableProperty] private string _propsPort = "25565";
@@ -95,7 +121,7 @@ public partial class CreateServerViewModel : ObservableObject
     partial void OnIsServerStoppingChanged(bool value) => OnPropertyChanged(nameof(StopButtonText));
 
     [ObservableProperty] private string _serverSoftwareDisplay = "Vanilla";
-    [ObservableProperty] private string _serverAllocatedRamDisplay = "4 GB";
+    [ObservableProperty] private string _serverAllocatedRamDisplay = "4096 MB";
     [ObservableProperty] private string _uptimeText = "00:00:00";
     [ObservableProperty] private bool _isEditingServerName;
     [ObservableProperty] private string _editingServerNameText = "";
@@ -113,8 +139,8 @@ public partial class CreateServerViewModel : ObservableObject
     public event Action? StateChanged;
 
     public ObservableCollection<string> AvailableVersions { get; } = new();
-    public IReadOnlyList<ServerSoftwareOption> AvailableSoftware => ServerCreatorService.AvailableSoftware;
-    public int[] RamOptions { get; } = { 2, 3, 4, 6, 8, 12, 16, 24, 32 };
+    public ObservableCollection<ServerSoftwareOption> AvailableSoftware { get; } = new();
+    public int[] RamOptions { get; } = { 1024, 2048, 3072, 4096, 6144, 8192, 12288, 16384, 24576, 32768 };
 
     public string[] GamemodeOptions { get; } = { "survival", "creative", "adventure", "spectator" };
     public string[] DifficultyOptions { get; } = { "peaceful", "easy", "normal", "hard" };
@@ -141,7 +167,8 @@ public partial class CreateServerViewModel : ObservableObject
     public bool IsOverviewTab => SelectedTab == 0;
     public bool IsPropertiesTab => SelectedTab == 1;
     public bool IsPluginsTab => SelectedTab == 2;
-    public bool IsWorldTab => SelectedTab == 3;
+    public bool IsSettingsTab => SelectedTab == 3;
+    public bool IsWorldTab => SelectedTab == 3; // Kept for safety
     public bool IsPlayersTab => SelectedTab == 4;
     public bool IsFilesTab => SelectedTab == 5;
 
@@ -155,6 +182,7 @@ public partial class CreateServerViewModel : ObservableObject
         OnPropertyChanged(nameof(IsOverviewTab));
         OnPropertyChanged(nameof(IsPropertiesTab));
         OnPropertyChanged(nameof(IsPluginsTab));
+        OnPropertyChanged(nameof(IsSettingsTab));
         OnPropertyChanged(nameof(IsWorldTab));
         OnPropertyChanged(nameof(IsPlayersTab));
         OnPropertyChanged(nameof(IsFilesTab));
@@ -185,7 +213,8 @@ public partial class CreateServerViewModel : ObservableObject
     public CreateServerViewModel(IInstanceService instanceService, MainWindowViewModel host)
     {
         _host = host;
-        _selectedSoftware = AvailableSoftware[0];
+        UpdateAvailableSoftware();
+        _selectedSoftware = AvailableSoftware.FirstOrDefault() ?? ServerCreatorService.AvailableSoftware[0];
         _uptimeTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
         _uptimeTimer.Tick += (s, e) =>
         {
@@ -209,6 +238,21 @@ public partial class CreateServerViewModel : ObservableObject
             IsCreatingNewServer = true;
         }
         _ = LoadVersionsAsync();
+    }
+
+    public void UpdateAvailableSoftware()
+    {
+        var compatible = ServerCreatorService.GetCompatibleSoftware(SelectedVersion);
+        AvailableSoftware.Clear();
+        foreach (var opt in compatible)
+        {
+            AvailableSoftware.Add(opt);
+        }
+
+        if (SelectedSoftware == null || !AvailableSoftware.Any(s => s.Id == SelectedSoftware.Id))
+        {
+            SelectedSoftware = AvailableSoftware.FirstOrDefault() ?? ServerCreatorService.AvailableSoftware[0];
+        }
     }
 
     public void RefreshExistingServers()
@@ -371,9 +415,13 @@ public partial class CreateServerViewModel : ObservableObject
             BansList.Add(b);
         }
 
-        ServerCreatorService.GetServerMetadata(ActiveServerDirectory, out var soft, out var ram);
+        ServerCreatorService.GetServerMetadata(ActiveServerDirectory, out var soft, out var ramDisplay, out var ramMb, out var javaPath, out var jvmArgs);
         ServerSoftwareDisplay = soft;
-        ServerAllocatedRamDisplay = ram;
+        ServerAllocatedRamDisplay = ramDisplay;
+        ServerRamMb = ramMb;
+        ServerJavaPath = javaPath;
+        ServerJvmArgs = jvmArgs;
+        ServerSettingsStatusMessage = "";
         RefreshNetworkEndpoints();
 
         _ = RefreshOnlinePlayersAsync();
@@ -387,6 +435,9 @@ public partial class CreateServerViewModel : ObservableObject
         ConfigStatusMessage = "";
         WorldResetStatusMessage = "";
         ShowWorldResetConfirm = false;
+        IsResetCountdownActive = false;
+        CanConfirmResetWorld = false;
+        _resetCountdownTimer?.Stop();
     }
 
     [RelayCommand]
@@ -647,6 +698,20 @@ public partial class CreateServerViewModel : ObservableObject
             {
                 await _serverStdin.WriteLineAsync("stop");
                 await _serverStdin.FlushAsync();
+
+                // Non-blocking trailing newline after short delay to unblock any pause or confirmation
+                _ = Task.Delay(1500).ContinueWith(async _ =>
+                {
+                    try
+                    {
+                        if (_serverStdin != null && IsServerRunning)
+                        {
+                            await _serverStdin.WriteLineAsync();
+                            await _serverStdin.FlushAsync();
+                        }
+                    }
+                    catch { }
+                });
             }
         }
         catch (Exception ex)
@@ -741,7 +806,12 @@ public partial class CreateServerViewModel : ObservableObject
         StatusText = "Loading versions...";
         try
         {
-            var versions = await _serverService.GetPopularReleaseVersionsAsync();
+            var versions = await _serverService.GetServerVersionsAsync(
+                _host.ShowReleases,
+                _host.ShowSnapshots,
+                _host.ShowBetas,
+                _host.ShowAlphas);
+
             AvailableVersions.Clear();
             foreach (var v in versions)
                 AvailableVersions.Add(v);
@@ -750,6 +820,7 @@ public partial class CreateServerViewModel : ObservableObject
             {
                 SelectedVersion = AvailableVersions[0];
             }
+            UpdateAvailableSoftware();
             StatusText = "";
         }
         catch (Exception ex)
@@ -764,7 +835,11 @@ public partial class CreateServerViewModel : ObservableObject
     }
 
     partial void OnServerNameChanged(string value) => OnPropertyChanged(nameof(CanCreate));
-    partial void OnSelectedVersionChanged(string value) => OnPropertyChanged(nameof(CanCreate));
+    partial void OnSelectedVersionChanged(string value)
+    {
+        UpdateAvailableSoftware();
+        OnPropertyChanged(nameof(CanCreate));
+    }
     partial void OnIsBusyChanged(bool value) => OnPropertyChanged(nameof(CanCreate));
 
     [RelayCommand]
@@ -789,7 +864,7 @@ public partial class CreateServerViewModel : ObservableObject
                 ServerName,
                 SelectedVersion,
                 SelectedSoftware.Id,
-                RamGb,
+                RamMb,
                 ServerPort,
                 AgreeEula,
                 OnlineMode,
@@ -1052,8 +1127,15 @@ public partial class CreateServerViewModel : ObservableObject
         return $"{bytes / (1024.0 * 1024.0 * 1024.0):F2} GB";
     }
 
+    private static readonly HashSet<string> TextExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".properties", ".json", ".txt", ".yml", ".yaml", ".log",
+        ".bat", ".sh", ".cmd", ".toml", ".cfg", ".ini", ".conf",
+        ".xml", ".md", ".env", ".csv", ".mcmeta"
+    };
+
     [RelayCommand]
-    public void NavigateIntoFileItem(ServerFileItem? item)
+    public async Task NavigateIntoFileItem(ServerFileItem? item)
     {
         if (item == null) return;
         if (item.IsDirectory)
@@ -1063,7 +1145,7 @@ public partial class CreateServerViewModel : ObservableObject
         }
         else
         {
-            OpenFileItem(item);
+            await OpenFileItem(item);
         }
     }
 
@@ -1084,7 +1166,7 @@ public partial class CreateServerViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public void OpenFileItem(ServerFileItem? item)
+    public async Task OpenFileItem(ServerFileItem? item)
     {
         if (item == null) return;
         try
@@ -1096,7 +1178,19 @@ public partial class CreateServerViewModel : ObservableObject
             }
             else if (File.Exists(item.FullPath))
             {
-                Process.Start(new ProcessStartInfo { FileName = item.FullPath, UseShellExecute = true });
+                var ext = Path.GetExtension(item.FullPath);
+                if (TextExtensions.Contains(ext))
+                {
+                    EditingFileName = Path.GetFileName(item.FullPath);
+                    EditingFileFullPath = item.FullPath;
+                    EditingFileContent = await File.ReadAllTextAsync(item.FullPath);
+                    FileEditorStatusMessage = "";
+                    IsFileEditorOpen = true;
+                }
+                else
+                {
+                    Process.Start(new ProcessStartInfo { FileName = item.FullPath, UseShellExecute = true });
+                }
             }
         }
         catch (Exception ex)
@@ -1104,6 +1198,38 @@ public partial class CreateServerViewModel : ObservableObject
             LauncherLog.Error($"Failed to open file {item.FullPath}", ex);
             FileOperationStatus = $"Open error: {ex.Message}";
         }
+    }
+
+    [RelayCommand]
+    public async Task SaveEditedFileAsync()
+    {
+        if (string.IsNullOrWhiteSpace(EditingFileFullPath)) return;
+        try
+        {
+            IsFileEditorSaving = true;
+            await File.WriteAllTextAsync(EditingFileFullPath, EditingFileContent ?? "");
+            FileEditorStatusMessage = L10n.T("cs_editor_saved");
+            RefreshFiles();
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Error($"Failed to save file {EditingFileFullPath}", ex);
+            FileEditorStatusMessage = $"Save error: {ex.Message}";
+        }
+        finally
+        {
+            IsFileEditorSaving = false;
+        }
+    }
+
+    [RelayCommand]
+    public void CloseFileEditor()
+    {
+        IsFileEditorOpen = false;
+        EditingFileName = "";
+        EditingFileFullPath = "";
+        EditingFileContent = "";
+        FileEditorStatusMessage = "";
     }
 
     [RelayCommand]
@@ -1184,6 +1310,25 @@ public partial class CreateServerViewModel : ObservableObject
     }
 
     // Plugins & Mods Management
+    [RelayCommand]
+    public void TogglePlugin(ServerPluginItem? item)
+    {
+        if (item == null || string.IsNullOrWhiteSpace(ActiveServerDirectory)) return;
+        try
+        {
+            ServerCreatorService.TogglePluginItem(item);
+            InstalledPlugins.Clear();
+            foreach (var p in ServerCreatorService.GetInstalledPluginsOrMods(ActiveServerDirectory))
+            {
+                InstalledPlugins.Add(p);
+            }
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Error($"Failed to toggle plugin {item.Name}", ex);
+        }
+    }
+
     [RelayCommand]
     public void DeletePlugin(ServerPluginItem item)
     {
@@ -1271,29 +1416,109 @@ public partial class CreateServerViewModel : ObservableObject
         }
     }
 
-    // World Management
+    // Technical Settings (Tab 3: Settings)
     [RelayCommand]
-    public void RequestResetWorld()
+    public async Task BrowseServerJavaAsync()
     {
-        ShowWorldResetConfirm = true;
-        WorldResetStatusMessage = "";
+        var topLevel = Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop
+            ? desktop.MainWindow
+            : null;
+        if (topLevel?.StorageProvider == null) return;
+
+        var files = await topLevel.StorageProvider.OpenFilePickerAsync(new Avalonia.Platform.Storage.FilePickerOpenOptions
+        {
+            Title = L10n.T("cs_java_browse"),
+            AllowMultiple = false,
+            FileTypeFilter = new[]
+            {
+                new Avalonia.Platform.Storage.FilePickerFileType("Java Executable")
+                {
+                    Patterns = new[] { "java.exe", "javaw.exe", "java", "*" }
+                }
+            }
+        });
+
+        if (files != null && files.Count > 0)
+        {
+            var localPath = files[0].Path.LocalPath;
+            if (!string.IsNullOrWhiteSpace(localPath))
+            {
+                ServerJavaPath = localPath;
+            }
+        }
     }
 
     [RelayCommand]
-    public void CancelResetWorld()
-    {
-        ShowWorldResetConfirm = false;
-    }
-
-    [RelayCommand]
-    public void ConfirmResetWorld()
+    public void SaveServerSettings()
     {
         if (string.IsNullOrWhiteSpace(ActiveServerDirectory)) return;
 
         try
         {
+            ServerCreatorService.SanitizeAndConfigureRunBat(ActiveServerDirectory, ServerJavaPath, ServerRamMb, ServerJvmArgs);
+            ServerAllocatedRamDisplay = $"{ServerRamMb} MB";
+            ServerSettingsStatusMessage = L10n.T("cs_settings_saved");
+            ConfigStatusMessage = L10n.T("cs_settings_saved");
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Error("Failed to save server settings", ex);
+            ServerSettingsStatusMessage = $"Save error: {ex.Message}";
+        }
+    }
+
+    // World Reset & Danger Actions (Tab 3: Settings)
+    [RelayCommand]
+    public void RequestResetWorld()
+    {
+        ShowWorldResetConfirm = true;
+        IsResetCountdownActive = true;
+        CanConfirmResetWorld = false;
+        ResetCountdownSeconds = 5;
+        ResetButtonText = string.Format(L10n.T("cs_reset_world_sure"), 5);
+        WorldResetStatusMessage = "";
+
+        _resetCountdownTimer?.Stop();
+        _resetCountdownTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+        _resetCountdownTimer.Tick += (s, e) =>
+        {
+            ResetCountdownSeconds--;
+            if (ResetCountdownSeconds > 0)
+            {
+                ResetButtonText = string.Format(L10n.T("cs_reset_world_sure"), ResetCountdownSeconds);
+            }
+            else
+            {
+                _resetCountdownTimer?.Stop();
+                IsResetCountdownActive = false;
+                CanConfirmResetWorld = true;
+                ResetButtonText = L10n.T("cs_reset_world_confirm");
+            }
+        };
+        _resetCountdownTimer.Start();
+    }
+
+    [RelayCommand]
+    public void CancelResetWorld()
+    {
+        _resetCountdownTimer?.Stop();
+        ShowWorldResetConfirm = false;
+        IsResetCountdownActive = false;
+        CanConfirmResetWorld = false;
+    }
+
+    [RelayCommand]
+    public void ConfirmResetWorld()
+    {
+        if (!CanConfirmResetWorld || string.IsNullOrWhiteSpace(ActiveServerDirectory)) return;
+
+        try
+        {
+            _resetCountdownTimer?.Stop();
             ServerCreatorService.ResetWorld(ActiveServerDirectory, PropsLevelName);
             ShowWorldResetConfirm = false;
+            IsResetCountdownActive = false;
+            CanConfirmResetWorld = false;
             WorldResetStatusMessage = $"World '{PropsLevelName}' folders removed. A new world will generate on next start!";
         }
         catch (Exception ex)

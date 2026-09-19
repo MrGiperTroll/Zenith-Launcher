@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
 using System.Net.NetworkInformation;
@@ -14,10 +15,31 @@ namespace CustomMcLauncher.Services;
 
 public record ServerSoftwareOption(string Id, string DisplayName);
 public record ServerNetworkEndpoint(string Label, string Address, string TypeName);
-public record ServerPluginItem(string FileName, string FileSizeDisplay, string FullPath, bool IsPlugin)
+
+public class ServerPluginItem
 {
-    public string Name => FileName;
+    public string FileName { get; set; } = "";
+    public string Name { get; set; } = "";
+    public string Version { get; set; } = "";
+    public string Description { get; set; } = "";
+    public string FileSizeDisplay { get; set; } = "";
+    public string FullPath { get; set; } = "";
+    public bool IsPlugin { get; set; }
+    public bool IsEnabled { get; set; } = true;
     public string Size => FileSizeDisplay;
+    public string StatusText => IsEnabled ? "Active" : "Disabled";
+    public string ToggleButtonText => IsEnabled ? L10n.T("cs_plugin_disable") : L10n.T("cs_plugin_enable");
+
+    public ServerPluginItem() { }
+    public ServerPluginItem(string fileName, string fileSizeDisplay, string fullPath, bool isPlugin)
+    {
+        FileName = fileName;
+        Name = Path.GetFileNameWithoutExtension(fileName);
+        FileSizeDisplay = fileSizeDisplay;
+        FullPath = fullPath;
+        IsPlugin = isPlugin;
+        IsEnabled = !fullPath.EndsWith(".disabled", StringComparison.OrdinalIgnoreCase);
+    }
 }
 
 public class ServerFileItem
@@ -61,7 +83,73 @@ public class ServerCreatorService
         new("neoforge", "NeoForge")
     };
 
+    public static IReadOnlyList<ServerSoftwareOption> GetCompatibleSoftware(string mcVersion)
+    {
+        var list = new List<ServerSoftwareOption>
+        {
+            new("vanilla", "Vanilla")
+        };
+
+        if (string.IsNullOrWhiteSpace(mcVersion)) return AvailableSoftware;
+
+        var v = ParseVersionParts(mcVersion);
+        bool isSnapshotOrTest = mcVersion.Contains("w") || mcVersion.Contains("pre") || mcVersion.Contains("rc") || mcVersion.Contains("Snapshot");
+
+        // Spigot: >= 1.8 (or 1.4.7+)
+        if (v.Minor >= 8 || v.Major > 1)
+        {
+            list.Add(new("spigot", "Spigot"));
+        }
+
+        // Paper: >= 1.8.8
+        if (v.Minor > 8 || (v.Minor == 8 && v.Patch >= 8) || v.Major > 1)
+        {
+            list.Add(new("paper", "Paper"));
+        }
+
+        // Purpur: >= 1.14.1
+        if (v.Minor >= 14 || v.Major > 1)
+        {
+            list.Add(new("purpur", "Purpur"));
+        }
+
+        // Fabric: >= 1.14 or modern snapshots
+        if (v.Minor >= 14 || v.Major > 1 || (isSnapshotOrTest && (mcVersion.StartsWith("19w") || mcVersion.StartsWith("2"))))
+        {
+            list.Add(new("fabric", "Fabric"));
+        }
+
+        // Forge: >= 1.1 up to 1.20.6 (Forge does not support vanilla snapshots without port)
+        if (v.Minor >= 1 && !isSnapshotOrTest)
+        {
+            list.Add(new("forge", "Forge"));
+        }
+
+        // NeoForge: >= 1.20.2
+        if (!isSnapshotOrTest && ((v.Minor == 20 && v.Patch >= 2) || v.Minor > 20 || v.Major > 1))
+        {
+            list.Add(new("neoforge", "NeoForge"));
+        }
+
+        return list;
+    }
+
+    private static (int Major, int Minor, int Patch) ParseVersionParts(string version)
+    {
+        var parts = version.Split('.');
+        int maj = 1, min = 0, patch = 0;
+        if (parts.Length > 0 && int.TryParse(parts[0], out var p0)) maj = p0;
+        if (parts.Length > 1 && int.TryParse(parts[1], out var p1)) min = p1;
+        if (parts.Length > 2 && int.TryParse(parts[2], out var p2)) patch = p2;
+        return (maj, min, patch);
+    }
+
     public async Task<List<string>> GetPopularReleaseVersionsAsync(CancellationToken ct = default)
+    {
+        return await GetServerVersionsAsync(true, false, false, false, ct);
+    }
+
+    public async Task<List<string>> GetServerVersionsAsync(bool showReleases, bool showSnapshots, bool showBetas, bool showAlphas, CancellationToken ct = default)
     {
         try
         {
@@ -74,10 +162,15 @@ public class ServerCreatorService
                 {
                     var type = item.TryGetProperty("type", out var t) ? t.GetString() : "";
                     var id = item.TryGetProperty("id", out var i) ? i.GetString() : "";
-                    if (type == "release" && !string.IsNullOrWhiteSpace(id))
-                    {
-                        versions.Add(id);
-                    }
+                    if (string.IsNullOrWhiteSpace(id)) continue;
+
+                    bool include = false;
+                    if (type == "release" && showReleases) include = true;
+                    else if (type == "snapshot" && showSnapshots) include = true;
+                    else if (type == "old_beta" && showBetas) include = true;
+                    else if (type == "old_alpha" && showAlphas) include = true;
+
+                    if (include) versions.Add(id);
                 }
             }
             if (versions.Count > 0) return versions;
@@ -95,13 +188,17 @@ public class ServerCreatorService
         string serverName,
         string version,
         string software,
-        int ramGb,
+        int ramMb,
         int port,
         bool agreeEula,
         bool onlineMode,
         IProgress<(string Status, double Percent)>? progress = null,
         CancellationToken ct = default)
     {
+        // Safe conversion if caller accidentally passed GB <= 64
+        if (ramMb <= 64 && ramMb > 0) ramMb *= 1024;
+        if (ramMb < 512) ramMb = 4096;
+
         var safeName = string.Join("_", serverName.Split(Path.GetInvalidFileNameChars())).Trim();
         if (string.IsNullOrWhiteSpace(safeName)) safeName = "MinecraftServer";
 
@@ -168,8 +265,8 @@ public class ServerCreatorService
             await File.WriteAllTextAsync(propsPath, props, ct);
         }
 
-        // 3. run.bat (Windows batch file)
-        var minRam = Math.Max(1, ramGb / 2);
+        // 3. run.bat (Windows batch file) - Uses strictly MB notation and graceful errorlevel check
+        var minRamMb = Math.Max(512, ramMb / 2);
         var runBatPath = Path.Combine(targetDir, "run.bat");
         var resolvedJava = JavaVersionHelper.FindOrResolveServerJava(targetDir, version, out _);
         var javaCmd = string.IsNullOrWhiteSpace(resolvedJava) ? "java" : $"\"{resolvedJava}\"";
@@ -177,7 +274,7 @@ public class ServerCreatorService
             "@echo off\r\n" +
             $"title Minecraft Server - {serverName}\r\n" +
             $"echo Starting Minecraft Server ({version} - {software})...\r\n" +
-            $"{javaCmd} -Xms{minRam}G -Xmx{ramGb}G -jar server.jar nogui\r\n" +
+            $"{javaCmd} -Xms{minRamMb}M -Xmx{ramMb}M -jar server.jar nogui\r\n" +
             "if %ERRORLEVEL% NEQ 0 pause\r\n";
         await File.WriteAllTextAsync(runBatPath, runBat, ct);
 
@@ -186,7 +283,7 @@ public class ServerCreatorService
         var runSh =
             "#!/bin/bash\n" +
             $"echo \"Starting Minecraft Server ({version} - {software})...\"\n" +
-            $"java -Xms{minRam}G -Xmx{ramGb}G -jar server.jar nogui\n";
+            $"java -Xms{minRamMb}M -Xmx{ramMb}M -jar server.jar nogui\n";
         await File.WriteAllTextAsync(runShPath, runSh, ct);
 
         progress?.Report(("Server ready!", 100));
@@ -536,25 +633,167 @@ public class ServerCreatorService
             var pluginsDir = Path.Combine(serverDir, "plugins");
             if (Directory.Exists(pluginsDir))
             {
-                foreach (var f in Directory.GetFiles(pluginsDir, "*.jar"))
+                foreach (var f in Directory.GetFiles(pluginsDir, "*.*")
+                    .Where(p => p.EndsWith(".jar", StringComparison.OrdinalIgnoreCase) ||
+                                p.EndsWith(".jar.disabled", StringComparison.OrdinalIgnoreCase)))
                 {
-                    var fi = new FileInfo(f);
-                    list.Add(new ServerPluginItem(fi.Name, FormatBytes(fi.Length), fi.FullName, true));
+                    list.Add(ReadPluginOrModItem(f, true));
                 }
             }
 
             var modsDir = Path.Combine(serverDir, "mods");
             if (Directory.Exists(modsDir))
             {
-                foreach (var f in Directory.GetFiles(modsDir, "*.jar"))
+                foreach (var f in Directory.GetFiles(modsDir, "*.*")
+                    .Where(p => p.EndsWith(".jar", StringComparison.OrdinalIgnoreCase) ||
+                                p.EndsWith(".jar.disabled", StringComparison.OrdinalIgnoreCase)))
                 {
-                    var fi = new FileInfo(f);
-                    list.Add(new ServerPluginItem(fi.Name, FormatBytes(fi.Length), fi.FullName, false));
+                    list.Add(ReadPluginOrModItem(f, false));
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Warn($"Failed to read installed plugins/mods: {ex.Message}");
+        }
+        return list;
+    }
+
+    private static ServerPluginItem ReadPluginOrModItem(string filePath, bool isPlugin)
+    {
+        var fi = new FileInfo(filePath);
+        var isEnabled = !filePath.EndsWith(".disabled", StringComparison.OrdinalIgnoreCase);
+        var cleanFileName = isEnabled ? fi.Name : fi.Name[..^".disabled".Length];
+        var fallbackName = Path.GetFileNameWithoutExtension(cleanFileName);
+
+        string name = fallbackName;
+        string version = "";
+        string description = isPlugin ? "Bukkit / Spigot / Paper Plugin" : "Fabric / Forge Mod";
+
+        try
+        {
+            using var zip = ZipFile.OpenRead(filePath);
+
+            // 1. Spigot / Paper plugin.yml or paper-plugin.yml
+            var pluginYml = zip.GetEntry("plugin.yml") ?? zip.GetEntry("paper-plugin.yml");
+            if (pluginYml != null)
+            {
+                using var stream = pluginYml.Open();
+                using var reader = new StreamReader(stream);
+                string? line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    var trimmed = line.Trim();
+                    if (trimmed.StartsWith("name:", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var val = trimmed[5..].Trim(' ', '"', '\'');
+                        if (!string.IsNullOrWhiteSpace(val)) name = val;
+                    }
+                    else if (trimmed.StartsWith("version:", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var val = trimmed[8..].Trim(' ', '"', '\'');
+                        if (!string.IsNullOrWhiteSpace(val)) version = val;
+                    }
+                    else if (trimmed.StartsWith("description:", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var val = trimmed[12..].Trim(' ', '"', '\'');
+                        if (!string.IsNullOrWhiteSpace(val)) description = val;
+                    }
+                }
+            }
+            else
+            {
+                // 2. Fabric mod: fabric.mod.json
+                var fabricEntry = zip.GetEntry("fabric.mod.json");
+                if (fabricEntry != null)
+                {
+                    using var stream = fabricEntry.Open();
+                    using var doc = JsonDocument.Parse(stream);
+                    var root = doc.RootElement;
+                    if (root.TryGetProperty("name", out var n) && !string.IsNullOrWhiteSpace(n.GetString())) name = n.GetString()!;
+                    if (root.TryGetProperty("version", out var v) && !string.IsNullOrWhiteSpace(v.GetString())) version = v.GetString()!;
+                    if (root.TryGetProperty("description", out var d) && !string.IsNullOrWhiteSpace(d.GetString())) description = d.GetString()!;
+                }
+                else
+                {
+                    // 3. Forge / NeoForge: META-INF/mods.toml
+                    var modsToml = zip.GetEntry("META-INF/mods.toml");
+                    if (modsToml != null)
+                    {
+                        using var stream = modsToml.Open();
+                        using var reader = new StreamReader(stream);
+                        string? line;
+                        while ((line = reader.ReadLine()) != null)
+                        {
+                            var trimmed = line.Trim();
+                            if (trimmed.StartsWith("displayName", StringComparison.OrdinalIgnoreCase) && trimmed.Contains('='))
+                            {
+                                var val = trimmed[(trimmed.IndexOf('=') + 1)..].Trim(' ', '"', '\'');
+                                if (!string.IsNullOrWhiteSpace(val)) name = val;
+                            }
+                            else if (trimmed.StartsWith("version", StringComparison.OrdinalIgnoreCase) && trimmed.Contains('='))
+                            {
+                                var val = trimmed[(trimmed.IndexOf('=') + 1)..].Trim(' ', '"', '\'');
+                                if (!string.IsNullOrWhiteSpace(val)) version = val;
+                            }
+                            else if (trimmed.StartsWith("description", StringComparison.OrdinalIgnoreCase) && trimmed.Contains('='))
+                            {
+                                var val = trimmed[(trimmed.IndexOf('=') + 1)..].Trim(' ', '"', '\'');
+                                if (!string.IsNullOrWhiteSpace(val)) description = val;
+                            }
+                        }
+                    }
                 }
             }
         }
         catch { }
-        return list;
+
+        return new ServerPluginItem
+        {
+            FileName = fi.Name,
+            Name = name,
+            Version = version,
+            Description = description,
+            FileSizeDisplay = FormatBytes(fi.Length),
+            FullPath = fi.FullName,
+            IsPlugin = isPlugin,
+            IsEnabled = isEnabled
+        };
+    }
+
+    public static bool TogglePluginItem(ServerPluginItem item) => TogglePluginItem(item, out _, out _);
+
+    public static bool TogglePluginItem(ServerPluginItem item, out string? newPath, out string? error)
+    {
+        newPath = null;
+        error = null;
+        try
+        {
+            if (!File.Exists(item.FullPath))
+            {
+                error = "File does not exist.";
+                return false;
+            }
+
+            if (item.IsEnabled)
+            {
+                newPath = item.FullPath + ".disabled";
+            }
+            else
+            {
+                newPath = item.FullPath.EndsWith(".disabled", StringComparison.OrdinalIgnoreCase)
+                    ? item.FullPath[..^".disabled".Length]
+                    : item.FullPath;
+            }
+
+            File.Move(item.FullPath, newPath, true);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+            return false;
+        }
     }
 
     private static string FormatBytes(long bytes)
@@ -633,8 +872,16 @@ public class ServerCreatorService
 
     public static void GetServerMetadata(string serverDir, out string software, out string ram)
     {
+        GetServerMetadata(serverDir, out software, out ram, out _, out _, out _);
+    }
+
+    public static void GetServerMetadata(string serverDir, out string software, out string ramDisplay, out int ramMb, out string javaPath, out string jvmArgs)
+    {
         software = "Vanilla";
-        ram = "4 GB";
+        ramMb = 4096;
+        ramDisplay = "4096 MB";
+        javaPath = "";
+        jvmArgs = "";
 
         try
         {
@@ -642,8 +889,50 @@ public class ServerCreatorService
             if (File.Exists(runBat))
             {
                 var content = File.ReadAllText(runBat);
-                var mRam = System.Text.RegularExpressions.Regex.Match(content, @"-Xmx(\d+)[gG]");
-                if (mRam.Success) ram = $"{mRam.Groups[1].Value} GB";
+
+                // Auto-sanitize on read if bare pause is still present
+                if (System.Text.RegularExpressions.Regex.IsMatch(content, @"(?m)^\s*pause\s*$"))
+                {
+                    content = System.Text.RegularExpressions.Regex.Replace(content, @"(?m)^\s*pause\s*$", "if %ERRORLEVEL% NEQ 0 pause");
+                    try { File.WriteAllText(runBat, content); } catch { }
+                }
+
+                // RAM in MB or GB
+                var mRamMb = System.Text.RegularExpressions.Regex.Match(content, @"-Xmx(\d+)[mM]");
+                if (mRamMb.Success && int.TryParse(mRamMb.Groups[1].Value, out var mb))
+                {
+                    ramMb = mb;
+                    ramDisplay = $"{mb} MB";
+                }
+                else
+                {
+                    var mRam = System.Text.RegularExpressions.Regex.Match(content, @"-Xmx(\d+)[gG]");
+                    if (mRam.Success && int.TryParse(mRam.Groups[1].Value, out var gb))
+                    {
+                        ramMb = gb * 1024;
+                        ramDisplay = $"{ramMb} MB";
+                    }
+                }
+
+                // Java path
+                var mJava = System.Text.RegularExpressions.Regex.Match(content, @"(?:^|\r?\n)(?:""([^""]+)""|([^\s\r\n]+java(?:\.exe)?))\s+");
+                if (mJava.Success)
+                {
+                    javaPath = !string.IsNullOrEmpty(mJava.Groups[1].Value) ? mJava.Groups[1].Value : mJava.Groups[2].Value;
+                }
+
+                // JVM args: flags between -Xmx and -jar
+                var jarIdx = content.IndexOf("-jar", StringComparison.OrdinalIgnoreCase);
+                var xmxMatch = System.Text.RegularExpressions.Regex.Match(content, @"-Xmx\d+[gGmM]");
+                if (jarIdx > 0 && xmxMatch.Success && xmxMatch.Index < jarIdx)
+                {
+                    var start = xmxMatch.Index + xmxMatch.Length;
+                    var between = content.Substring(start, jarIdx - start).Trim();
+                    if (!string.IsNullOrWhiteSpace(between))
+                    {
+                        jvmArgs = between;
+                    }
+                }
 
                 var mSoft = System.Text.RegularExpressions.Regex.Match(content, @"Starting Minecraft Server \(([^)]+)\)");
                 if (mSoft.Success)
@@ -762,26 +1051,66 @@ public class ServerCreatorService
         return result;
     }
 
-    public static void EnsureRunBatJava(string serverDir, string javaExePath)
+    public static void SanitizeAndConfigureRunBat(string serverDir, string? javaExePath = null, int? ramMb = null, string? customJvmArgs = null)
     {
         try
         {
             var batPath = Path.Combine(serverDir, "run.bat");
             if (!File.Exists(batPath)) return;
             var text = File.ReadAllText(batPath);
-            var updated = System.Text.RegularExpressions.Regex.Replace(
+
+            // 1. Stopping hang fix: ensure bare pause is replaced by errorlevel condition
+            text = System.Text.RegularExpressions.Regex.Replace(
                 text,
-                @"(^|\r?\n)(?:""[^""]+""|java)(\s+-Xm)",
-                $"$1\"{javaExePath}\"$2",
-                System.Text.RegularExpressions.RegexOptions.Multiline);
-            if (updated != text)
+                @"(?m)^\s*pause\s*$",
+                "if %ERRORLEVEL% NEQ 0 pause");
+
+            // 2. Update Java executable path if specified
+            if (!string.IsNullOrWhiteSpace(javaExePath))
             {
-                File.WriteAllText(batPath, updated);
+                text = System.Text.RegularExpressions.Regex.Replace(
+                    text,
+                    @"(^|\r?\n)(?:""[^""]+""|java)(\s+)",
+                    $"$1\"{javaExePath}\"$2",
+                    System.Text.RegularExpressions.RegexOptions.Multiline);
             }
+
+            // 3. Update RAM in MB if specified
+            if (ramMb.HasValue && ramMb.Value > 0)
+            {
+                var mb = ramMb.Value;
+                var minMb = Math.Max(512, mb / 2);
+                text = System.Text.RegularExpressions.Regex.Replace(text, @"-Xms\d+[gGmM]", $"-Xms{minMb}M");
+                text = System.Text.RegularExpressions.Regex.Replace(text, @"-Xmx\d+[gGmM]", $"-Xmx{mb}M");
+            }
+
+            // 4. Update custom JVM arguments if specified
+            if (customJvmArgs != null)
+            {
+                var jarIndex = text.IndexOf("-jar", StringComparison.OrdinalIgnoreCase);
+                if (jarIndex > 0)
+                {
+                    var xmxMatch = System.Text.RegularExpressions.Regex.Match(text, @"-Xmx\d+[gGmM]");
+                    if (xmxMatch.Success && xmxMatch.Index < jarIndex)
+                    {
+                        var before = text[..(xmxMatch.Index + xmxMatch.Length)];
+                        var after = text[jarIndex..];
+                        var jvmPart = string.IsNullOrWhiteSpace(customJvmArgs) ? " " : $" {customJvmArgs.Trim()} ";
+                        text = before + jvmPart + after;
+                    }
+                }
+            }
+
+            File.WriteAllText(batPath, text);
         }
         catch (Exception ex)
         {
-            LauncherLog.Warn($"Failed to ensure Java in run.bat: {ex.Message}");
+            LauncherLog.Warn($"Failed to configure run.bat: {ex.Message}");
         }
+    }
+
+    public static void EnsureRunBatJava(string serverDir, string javaExePath)
+    {
+        SanitizeAndConfigureRunBat(serverDir, javaExePath: javaExePath);
     }
 }

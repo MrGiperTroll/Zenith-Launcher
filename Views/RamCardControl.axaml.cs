@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
@@ -79,7 +79,7 @@ public partial class RamCardControl : UserControl
     {
         InitializeComponent();
 
-        BadgeText.DoubleTapped += OnBadgeDoubleTapped;
+        BadgeContainer.DoubleTapped += OnBadgeDoubleTapped;
         EditTextBox.KeyDown += OnEditTextBoxKeyDown;
         EditTextBox.LostFocus += OnEditTextBoxLostFocus;
 
@@ -96,6 +96,8 @@ public partial class RamCardControl : UserControl
                 }
             }
         };
+
+        UpdateBadgeText();
     }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -141,7 +143,8 @@ public partial class RamCardControl : UserControl
 
     private void UpdateBadgeText()
     {
-        BadgeText.Text = IsGbMode ? $"{Value} GB" : $"{Value} MB";
+        if (NumberText != null) NumberText.Text = Value.ToString();
+        if (UnitText != null) UnitText.Text = IsGbMode ? "GB" : "MB";
     }
 
     private void OnBadgeDoubleTapped(object? sender, TappedEventArgs e)
@@ -152,7 +155,7 @@ public partial class RamCardControl : UserControl
     private void BeginEdit()
     {
         _isEditing = true;
-        BadgeText.IsVisible = false;
+        NumberText.IsVisible = false;
         EditTextBox.IsVisible = true;
         EditTextBox.Text = Value.ToString();
         EditTextBox.Focus();
@@ -187,7 +190,7 @@ public partial class RamCardControl : UserControl
     {
         _isEditing = false;
         EditTextBox.IsVisible = false;
-        BadgeText.IsVisible = true;
+        NumberText.IsVisible = true;
     }
 
     private void CommitEdit()

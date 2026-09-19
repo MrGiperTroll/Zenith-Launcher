@@ -60,6 +60,21 @@ public static class JavaVersionHelper
         return L10n.T("java_display_notfound");
     }
 
+    public static int GetJavaMajor(string exePath)
+    {
+        try
+        {
+            if (File.Exists(exePath))
+            {
+                var vi = System.Diagnostics.FileVersionInfo.GetVersionInfo(exePath);
+                if (vi.ProductMajorPart > 0) return vi.ProductMajorPart;
+                if (vi.FileMajorPart > 0) return vi.FileMajorPart;
+            }
+        }
+        catch { }
+        return 17;
+    }
+
     /// <summary>
     /// Locates the system Java the way a plain "System" launch would:
     /// JAVA_HOME first, then a PATH scan. Returns null when nothing is found.
@@ -89,6 +104,79 @@ public static class JavaVersionHelper
                 catch { /* ignore malformed PATH entries */ }
             }
         }
+        return null;
+    }
+
+    /// <summary>
+    /// Resolves concrete javaw.exe path matching a specific Java major version.
+    /// Checks local .zenith/runtime, JAVA_HOME, Program Files JDKs, and fallback system Java.
+    /// </summary>
+    public static string? FindJavaForVersion(int major)
+    {
+        // 1. Check <AppDataDir>/runtime/
+        try
+        {
+            var javaDir = Path.Combine(ZenithPaths.AppDataDir, "runtime");
+            if (Directory.Exists(javaDir))
+            {
+                var patterns = new[] { $"jdk-{major}*", $"jdk{major}*", $"*jdk*{major}*" };
+                foreach (var pattern in patterns)
+                {
+                    foreach (var dir in Directory.GetDirectories(javaDir, pattern, SearchOption.TopDirectoryOnly))
+                    {
+                        var javaw = Path.Combine(dir, "bin", "javaw.exe");
+                        if (File.Exists(javaw)) return javaw;
+                        var javaExe = Path.Combine(dir, "bin", "java.exe");
+                        if (File.Exists(javaExe)) return javaExe;
+                    }
+                }
+            }
+        }
+        catch { }
+
+        // 2. Check JAVA_HOME if version matches
+        try
+        {
+            var javaHome = Environment.GetEnvironmentVariable("JAVA_HOME");
+            if (!string.IsNullOrEmpty(javaHome))
+            {
+                var jh = Path.Combine(javaHome, "bin", "javaw.exe");
+                if (File.Exists(jh) && GetJavaMajor(jh) == major) return jh;
+                jh = Path.Combine(javaHome, "bin", "java.exe");
+                if (File.Exists(jh) && GetJavaMajor(jh) == major) return jh;
+            }
+        }
+        catch { }
+
+        // 3. Check installed JDKs in Program Files
+        try
+        {
+            var programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+            var programFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+            var candidates = new[]
+            {
+                Path.Combine(programFiles, "Eclipse Adoptium", $"jdk-{major}", "bin", "javaw.exe"),
+                Path.Combine(programFiles, "Eclipse Adoptium", $"jdk-{major}", "bin", "java.exe"),
+                Path.Combine(programFiles, "Java", $"jdk-{major}", "bin", "javaw.exe"),
+                Path.Combine(programFiles, "Java", $"jdk-{major}", "bin", "java.exe"),
+                Path.Combine(programFiles, "Amazon Corretto", $"jdk{major}.0", "bin", "javaw.exe"),
+                Path.Combine(programFiles, "Zulu", $"zulu-{major}", "bin", "javaw.exe"),
+                Path.Combine(programFilesX86, "Java", $"jdk-{major}", "bin", "javaw.exe")
+            };
+            foreach (var c in candidates)
+            {
+                if (File.Exists(c)) return c;
+            }
+        }
+        catch { }
+
+        // 4. Fall back to system java path
+        var sys = FindSystemJavaPath();
+        if (!string.IsNullOrEmpty(sys))
+        {
+            return sys;
+        }
+
         return null;
     }
 }

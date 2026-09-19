@@ -277,186 +277,360 @@
                 <!-- CASE B: ACTIVE SERVER DASHBOARD -->
                 <StackPanel Spacing="16" IsVisible="{Binding !IsCreatingNewServer}">
                     <!-- Server Header Bar (No duplicate server icon, clean start button without (cmd)) -->
+                    <!-- Server Header Bar (Inline rename, live IP badge with network flyout, quick action) -->
                     <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="18,14">
                         <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                            <StackPanel VerticalAlignment="Center" Spacing="2">
-                                <TextBlock Text="{Binding SelectedServerName}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                <TextBlock Text="{Binding PropsPort, StringFormat='localhost:{0}'}" FontSize="12" Foreground="{StaticResource AccentBrush}" FontWeight="SemiBold"/>
+                            <!-- Left: Server Name with inline editing + IP badge with selector flyout -->
+                            <StackPanel VerticalAlignment="Center" Spacing="6">
+                                <Panel VerticalAlignment="Center">
+                                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" IsVisible="{Binding !IsEditingServerName}">
+                                        <TextBlock x:Name="ServerNameBlock" Text="{Binding SelectedServerName}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"
+                                                   Cursor="Hand" ToolTip.Tip="{l10n:Tr Key=cs_rename}" VerticalAlignment="Center"/>
+                                        <Button Classes="chipBtn" Command="{Binding StartRenameServerCommand}" IsEnabled="{Binding CanEditServer}"
+                                                Padding="4" VerticalAlignment="Center" ToolTip.Tip="{l10n:Tr Key=cs_rename}">
+                                            <PathIcon Data="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" Width="11" Height="11" Foreground="{StaticResource TextMutedBrush}"/>
+                                        </Button>
+                                    </StackPanel>
+
+                                    <!-- Editing state -->
+                                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6" VerticalAlignment="Center" IsVisible="{Binding IsEditingServerName}">
+                                        <TextBox x:Name="EditServerNameBox" Classes="darkInput" Text="{Binding EditingServerNameText}" FontSize="14" FontWeight="Bold" MinWidth="180" MaxWidth="320"/>
+                                        <Button Grid.Column="1" Classes="primaryBtn" Command="{Binding CommitRenameServerCommand}" Padding="8,4" FontSize="11" Content="✓"/>
+                                        <Button Grid.Column="2" Classes="subBtn" Command="{Binding CancelRenameServerCommand}" Padding="8,4" FontSize="11" Content="✕"/>
+                                    </Grid>
+                                </Panel>
+
+                                <!-- IP Badge + Copy with Network Interfaces Selector Flyout -->
+                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                    <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="6" Padding="7,3">
+                                        <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+                                            <Ellipse Width="6" Height="6" Fill="{StaticResource AccentBrush}"/>
+                                            <TextBlock Text="{Binding ServerIpDisplay}" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Button Classes="chipBtn" Padding="7,4" ToolTip.Tip="{l10n:Tr Key=cs_copy_ip}">
+                                        <Button.Flyout>
+                                            <Flyout Placement="BottomEdgeAlignedLeft">
+                                                <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="6" MinWidth="260">
+                                                    <StackPanel Spacing="4">
+                                                        <TextBlock Text="Server Addresses" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" Margin="6,4"/>
+                                                        <ItemsControl ItemsSource="{Binding NetworkEndpoints}">
+                                                            <ItemsControl.ItemTemplate>
+                                                                <DataTemplate x:DataType="services:ServerNetworkEndpoint">
+                                                                    <Button Classes="tabBtn" Command="{Binding $parent[views:CreateServerView].((vm:CreateServerViewModel)DataContext).CopyAddressCommand}" CommandParameter="{Binding Address}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="8,6">
+                                                                        <Grid ColumnDefinitions="*,Auto">
+                                                                            <StackPanel Spacing="1">
+                                                                                <TextBlock Text="{Binding Address}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}"/>
+                                                                                <TextBlock Text="{Binding Label}" FontSize="10" Foreground="{StaticResource TextMutedBrush}"/>
+                                                                            </StackPanel>
+                                                                            <PathIcon Grid.Column="1" Data="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" Width="12" Height="12" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                                        </Grid>
+                                                                    </Button>
+                                                                </DataTemplate>
+                                                            </ItemsControl.ItemTemplate>
+                                                        </ItemsControl>
+                                                    </StackPanel>
+                                                </Border>
+                                            </Flyout>
+                                        </Button.Flyout>
+                                        <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                            <PathIcon Data="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"
+                                                      Width="11" Height="11" Foreground="{StaticResource TextSecondaryBrush}" IsVisible="{Binding !IsIpCopied}"/>
+                                            <PathIcon Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                                                      Width="11" Height="11" Foreground="{StaticResource SuccessBrush}" IsVisible="{Binding IsIpCopied}"/>
+                                            <TextBlock Text="{l10n:Tr Key=cs_ip_copied}" IsVisible="{Binding IsIpCopied}" FontSize="11" Foreground="{StaticResource SuccessBrush}"/>
+                                            <TextBlock Text="{l10n:Tr Key=cs_copy_ip}" IsVisible="{Binding !IsIpCopied}" FontSize="11"/>
+                                            <PathIcon Data="M7 10l5 5 5-5z" Width="9" Height="9" Foreground="{StaticResource TextMutedBrush}" Margin="2,1,0,0"/>
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
                             </StackPanel>
 
+                            <!-- Right: Quick Open Folder + Run/Stop -->
                             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                 <Button Classes="subBtn" Content="{l10n:Tr Key=cs_open_folder}" Command="{Binding OpenServerFolderCommand}"/>
-                                <Button Classes="primaryBtn" Command="{Binding RunServerCommand}" Padding="18,8">
+                                <Button Classes="primaryBtn" Command="{Binding RunServerCommand}" IsVisible="{Binding !IsServerRunning}" Padding="18,8">
                                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                                         <PathIcon Data="M8 5v14l11-7z" Width="13" Height="13" Foreground="{StaticResource OnAccentBrush}"/>
                                         <TextBlock Text="{l10n:Tr Key=cs_run_server}" FontWeight="Bold"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Classes="dangerBtn" Command="{Binding StopServerCommand}" IsVisible="{Binding IsServerRunning}" Padding="18,8">
+                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                        <PathIcon Data="M6 6h12v12H6z" Width="13" Height="13" Foreground="{StaticResource DangerLightBrush}"/>
+                                        <TextBlock Text="{l10n:Tr Key=btn_kill_short}" FontWeight="Bold"/>
                                     </StackPanel>
                                 </Button>
                             </StackPanel>
                         </Grid>
                     </Border>
 
-                    <!-- Tabs Navigation Bar -->
+                    <!-- Tabs Navigation Bar (Localized) -->
                     <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="10" Padding="5">
                         <StackPanel Orientation="Horizontal" Spacing="4">
-                            <Button Classes="tabBtn" Classes.active="{Binding IsOverviewTab}" Command="{Binding SelectTabCommand}" CommandParameter="0" Content="Overview"/>
-                            <Button Classes="tabBtn" Classes.active="{Binding IsPropertiesTab}" Command="{Binding SelectTabCommand}" CommandParameter="1" Content="server.properties"/>
-                            <Button Classes="tabBtn" Classes.active="{Binding IsPluginsTab}" Command="{Binding SelectTabCommand}" CommandParameter="2" Content="Plugins &amp; Mods"/>
-                            <Button Classes="tabBtn" Classes.active="{Binding IsWorldTab}" Command="{Binding SelectTabCommand}" CommandParameter="3" Content="World Management"/>
-                            <Button Classes="tabBtn" Classes.active="{Binding IsPlayersTab}" Command="{Binding SelectTabCommand}" CommandParameter="4" Content="Players (Ops / Whitelist / Bans)"/>
+                            <Button Classes="tabBtn" Classes.active="{Binding IsOverviewTab}" Command="{Binding SelectTabCommand}" CommandParameter="0" Content="{l10n:Tr Key=cs_tab_overview}"/>
+                            <Button Classes="tabBtn" Classes.active="{Binding IsPropertiesTab}" Command="{Binding SelectTabCommand}" CommandParameter="1" Content="{l10n:Tr Key=cs_tab_properties}"/>
+                            <Button Classes="tabBtn" Classes.active="{Binding IsPluginsTab}" Command="{Binding SelectTabCommand}" CommandParameter="2" Content="{l10n:Tr Key=cs_tab_plugins}"/>
+                            <Button Classes="tabBtn" Classes.active="{Binding IsWorldTab}" Command="{Binding SelectTabCommand}" CommandParameter="3" Content="{l10n:Tr Key=cs_tab_world}"/>
+                            <Button Classes="tabBtn" Classes.active="{Binding IsPlayersTab}" Command="{Binding SelectTabCommand}" CommandParameter="4" Content="{l10n:Tr Key=cs_tab_players}"/>
                         </StackPanel>
                     </Border>
 
-                    <!-- TAB 0: OVERVIEW -->
+                    <!-- TAB 0: OVERVIEW (Rich live data & quick actions) -->
                     <StackPanel Spacing="16" IsVisible="{Binding IsOverviewTab}">
-                        <Grid ColumnDefinitions="*,*" ColumnSpacing="16">
-                            <!-- Information Card -->
-                            <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
-                                <StackPanel Spacing="12">
-                                    <TextBlock Text="Server Information" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <!-- Hero Status Banner -->
+                        <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
+                            <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal" Spacing="14" VerticalAlignment="Center">
+                                    <Border Width="48" Height="48" CornerRadius="10" Background="{StaticResource IconChipBrush}" BorderBrush="{StaticResource BorderSubtleBrush}" BorderThickness="1">
+                                        <PathIcon Data="M20 13H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1v-6c0-.55-.45-1-1-1zM7 19c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM20 3H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1zM7 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"
+                                                  Width="22" Height="22" Foreground="{StaticResource AccentBrush}"/>
+                                    </Border>
+                                    <StackPanel VerticalAlignment="Center" Spacing="4">
+                                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding SelectedServerName}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                            <!-- Status Badge -->
+                                            <Border Background="{StaticResource SuccessBgBrush}" BorderBrush="{StaticResource SuccessBrush}" BorderThickness="1" CornerRadius="4" Padding="6,2" IsVisible="{Binding IsServerRunning}">
+                                                <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                                    <Ellipse Width="6" Height="6" Fill="{StaticResource SuccessBrush}"/>
+                                                    <TextBlock Text="{l10n:Tr Key=cs_status_online}" FontSize="10.5" FontWeight="Bold" Foreground="{StaticResource SuccessBrush}"/>
+                                                </StackPanel>
+                                            </Border>
+                                            <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="4" Padding="6,2" IsVisible="{Binding !IsServerRunning}">
+                                                <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                                    <Ellipse Width="6" Height="6" Fill="{StaticResource TextMutedBrush}"/>
+                                                    <TextBlock Text="{l10n:Tr Key=cs_status_offline}" FontSize="10.5" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding ActiveServerDirectory}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" TextTrimming="CharacterEllipsis" MaxWidth="380"/>
+                                    </StackPanel>
+                                </StackPanel>
 
-                                    <Grid ColumnDefinitions="130,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" Margin="0,4,0,0">
-                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Local Address:" Foreground="{StaticResource TextMutedBrush}" FontSize="12" Margin="0,4"/>
-                                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding PropsPort, StringFormat='localhost:{0}'}" Foreground="{StaticResource AccentBrush}" FontWeight="Bold" FontSize="12" Margin="0,4"/>
+                                <!-- Action Buttons -->
+                                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                    <Button Classes="primaryBtn" Command="{Binding RunServerCommand}" IsVisible="{Binding !IsServerRunning}" Padding="16,8">
+                                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                            <PathIcon Data="M8 5v14l11-7z" Width="13" Height="13" Foreground="{StaticResource OnAccentBrush}"/>
+                                            <TextBlock Text="{l10n:Tr Key=cs_run_server}" FontWeight="Bold"/>
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Classes="dangerBtn" Command="{Binding StopServerCommand}" IsVisible="{Binding IsServerRunning}" Padding="16,8">
+                                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                            <PathIcon Data="M6 6h12v12H6z" Width="13" Height="13" Foreground="{StaticResource DangerLightBrush}"/>
+                                            <TextBlock Text="{l10n:Tr Key=btn_kill_short}" FontWeight="Bold"/>
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
 
-                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Port:" Foreground="{StaticResource TextMutedBrush}" FontSize="12" Margin="0,4"/>
-                                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding PropsPort}" Foreground="{StaticResource TextPrimaryBrush}" FontSize="12" Margin="0,4"/>
-
-                                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Gamemode:" Foreground="{StaticResource TextMutedBrush}" FontSize="12" Margin="0,4"/>
-                                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding PropsGamemode}" Foreground="{StaticResource TextPrimaryBrush}" FontSize="12" Margin="0,4"/>
-
-                                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Difficulty:" Foreground="{StaticResource TextMutedBrush}" FontSize="12" Margin="0,4"/>
-                                        <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding PropsDifficulty}" Foreground="{StaticResource TextPrimaryBrush}" FontSize="12" Margin="0,4"/>
-
-                                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Max Players:" Foreground="{StaticResource TextMutedBrush}" FontSize="12" Margin="0,4"/>
-                                        <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding PropsMaxPlayers}" Foreground="{StaticResource TextPrimaryBrush}" FontSize="12" Margin="0,4"/>
-
-                                        <TextBlock Grid.Row="5" Grid.Column="0" Text="World Name:" Foreground="{StaticResource TextMutedBrush}" FontSize="12" Margin="0,4"/>
-                                        <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding PropsLevelName}" Foreground="{StaticResource TextPrimaryBrush}" FontSize="12" Margin="0,4"/>
-                                    </Grid>
+                        <!-- Metrics Grid -->
+                        <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="12">
+                            <!-- 1. Status & Uptime -->
+                            <Border Grid.Row="0" Grid.Column="0" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="10" Padding="14">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="{l10n:Tr Key=cs_uptime}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
+                                    <TextBlock Text="{Binding UptimeText}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentBrush}"/>
+                                    <TextBlock Text="Server process runtime" FontSize="10.5" Foreground="{StaticResource TextMutedBrush}"/>
                                 </StackPanel>
                             </Border>
 
-                            <!-- Control Card -->
-                            <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
-                                <StackPanel Spacing="14">
-                                    <TextBlock Text="Server Execution" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                    <TextBlock Text="The Minecraft server runs in an interactive terminal window with live logs and direct command input (op, stop, whitelist reload)."
-                                               TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" LineHeight="18"/>
-
-                                    <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,8,0,0">
-                                        <Button Classes="primaryBtn" Command="{Binding RunServerCommand}" Padding="18,9" FontSize="12">
-                                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                                <PathIcon Data="M8 5v14l11-7z" Width="13" Height="13" Foreground="{StaticResource OnAccentBrush}"/>
-                                                <TextBlock Text="{l10n:Tr Key=cs_run_server}" FontWeight="Bold"/>
-                                            </StackPanel>
-                                        </Button>
-                                        <Button Classes="subBtn" Content="{l10n:Tr Key=cs_open_folder}" Command="{Binding OpenServerFolderCommand}" Padding="14,9" FontSize="12"/>
+                            <!-- 2. Online Players -->
+                            <Border Grid.Row="0" Grid.Column="1" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="10" Padding="14">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="{l10n:Tr Key=cs_tab_players}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <TextBlock Text="{Binding OnlinePlayers.Count}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                        <TextBlock Text="{Binding PropsMaxPlayers, StringFormat='/ {0}'}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"/>
                                     </StackPanel>
+                                    <TextBlock Text="Active connections" FontSize="10.5" Foreground="{StaticResource TextMutedBrush}"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- 3. Port & Address -->
+                            <Border Grid.Row="0" Grid.Column="2" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="10" Padding="14">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="{l10n:Tr Key=cs_port}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
+                                    <TextBlock Text="{Binding PropsPort}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="{Binding ServerIpDisplay}" FontSize="10.5" Foreground="{StaticResource AccentBrush}"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- 4. Software / Core Version -->
+                            <Border Grid.Row="1" Grid.Column="0" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="10" Padding="14">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="{l10n:Tr Key=cs_type}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
+                                    <TextBlock Text="{Binding ServerSoftwareDisplay}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Text="Core build" FontSize="10.5" Foreground="{StaticResource TextMutedBrush}"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- 5. Allocated RAM -->
+                            <Border Grid.Row="1" Grid.Column="1" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="10" Padding="14">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="{l10n:Tr Key=cs_ram}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
+                                    <TextBlock Text="{Binding ServerAllocatedRamDisplay}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentBrush}"/>
+                                    <TextBlock Text="Configured in run.bat" FontSize="10.5" Foreground="{StaticResource TextMutedBrush}"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- 6. World Name & Gamemode -->
+                            <Border Grid.Row="1" Grid.Column="2" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="10" Padding="14">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="{l10n:Tr Key=cs_tab_world}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
+                                    <TextBlock Text="{Binding PropsLevelName}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Text="{Binding PropsGamemode, StringFormat='Mode: {0}'}" FontSize="10.5" Foreground="{StaticResource TextMutedBrush}"/>
                                 </StackPanel>
                             </Border>
                         </Grid>
+
+                        <!-- Quick Actions Bar -->
+                        <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="18,14">
+                            <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
+                                <TextBlock Text="Quick Actions" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                                    <Button Classes="subBtn" Command="{Binding OpenServerFolderCommand}">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <PathIcon Data="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="13" Height="13" Foreground="{StaticResource AccentBrush}"/>
+                                            <TextBlock Text="{l10n:Tr Key=cs_open_folder}"/>
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Classes="subBtn" Command="{Binding OpenLogsCommand}">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <PathIcon Data="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" Width="13" Height="13" Foreground="{StaticResource AccentBrush}"/>
+                                            <TextBlock Text="Logs / Console"/>
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Classes="subBtn" Command="{Binding RequestResetWorldCommand}">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <PathIcon Data="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" Width="13" Height="13" Foreground="{StaticResource WarningBrush}"/>
+                                            <TextBlock Text="Reset World"/>
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
                     </StackPanel>
 
-                    <!-- TAB 1: SERVER.PROPERTIES -->
+                    <!-- TAB 1: SERVER.PROPERTIES (Clean 2-column grid, no overlapping, locked if running) -->
                     <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="20" IsVisible="{Binding IsPropertiesTab}">
-                        <StackPanel Spacing="18">
+                        <StackPanel Spacing="16">
+                            <!-- Top bar: Title & Save Button with indicator -->
                             <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                 <StackPanel Spacing="2">
-                                    <TextBlock Text="server.properties Configuration" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="{l10n:Tr Key=cs_props_title}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
                                     <TextBlock Text="Full visual editor for all 22 server configuration settings" FontSize="11.5" Foreground="{StaticResource TextMutedBrush}"/>
                                 </StackPanel>
-                                <Button Grid.Column="1" Classes="primaryBtn" Content="Save Configuration" Command="{Binding SavePropertiesCommand}" Padding="16,7" FontSize="12"/>
+                                <Button Grid.Column="1" Classes="primaryBtn" Content="{l10n:Tr Key=cs_save_props}" Command="{Binding SavePropertiesCommand}" IsEnabled="{Binding CanEditServer}" Padding="18,7" FontSize="12"/>
                             </Grid>
 
-                            <Grid ColumnDefinitions="*,*" ColumnSpacing="24">
-                                <!-- Left Column: Network, World & Gameplay Parameters -->
-                                <StackPanel Spacing="12">
-                                    <StackPanel Spacing="4">
-                                        <TextBlock Text="Server Port" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                        <TextBox Classes="darkInput" Text="{Binding PropsPort}"/>
-                                    </StackPanel>
-
-                                    <StackPanel Spacing="4">
-                                        <TextBlock Text="MOTD (Server Description)" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                        <TextBox Classes="darkInput" Text="{Binding PropsMotd}"/>
-                                    </StackPanel>
-
-                                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
-                                        <StackPanel Spacing="4">
-                                            <TextBlock Text="Gamemode" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                            <ComboBox ItemsSource="{Binding GamemodeOptions}" SelectedItem="{Binding PropsGamemode}" HorizontalAlignment="Stretch"/>
-                                        </StackPanel>
-                                        <StackPanel Grid.Column="1" Spacing="4">
-                                            <TextBlock Text="Difficulty" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                            <ComboBox ItemsSource="{Binding DifficultyOptions}" SelectedItem="{Binding PropsDifficulty}" HorizontalAlignment="Stretch"/>
-                                        </StackPanel>
-                                    </Grid>
-
-                                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
-                                        <StackPanel Spacing="4">
-                                            <TextBlock Text="Max Players" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                            <TextBox Classes="darkInput" Text="{Binding PropsMaxPlayers}"/>
-                                        </StackPanel>
-                                        <StackPanel Grid.Column="1" Spacing="4">
-                                            <TextBlock Text="Spawn Protection" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                            <TextBox Classes="darkInput" Text="{Binding PropsSpawnProtection}"/>
-                                        </StackPanel>
-                                    </Grid>
-
-                                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
-                                        <StackPanel Spacing="4">
-                                            <TextBlock Text="View Distance" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                            <TextBox Classes="darkInput" Text="{Binding PropsViewDistance}"/>
-                                        </StackPanel>
-                                        <StackPanel Grid.Column="1" Spacing="4">
-                                            <TextBlock Text="Simulation Distance" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                            <TextBox Classes="darkInput" Text="{Binding PropsSimulationDistance}"/>
-                                        </StackPanel>
-                                    </Grid>
-
-                                    <StackPanel Spacing="4">
-                                        <TextBlock Text="Entity Broadcast Range (%)" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                        <TextBox Classes="darkInput" Text="{Binding PropsEntityBroadcastRangePercentage}"/>
-                                    </StackPanel>
-
-                                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
-                                        <StackPanel Spacing="4">
-                                            <TextBlock Text="Level Name" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                            <TextBox Classes="darkInput" Text="{Binding PropsLevelName}"/>
-                                        </StackPanel>
-                                        <StackPanel Grid.Column="1" Spacing="4">
-                                            <TextBlock Text="Level Type" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                            <ComboBox ItemsSource="{Binding LevelTypeOptions}" SelectedItem="{Binding PropsLevelType}" HorizontalAlignment="Stretch"/>
-                                        </StackPanel>
-                                    </Grid>
-
-                                    <StackPanel Spacing="4">
-                                        <TextBlock Text="Level Seed" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                        <TextBox Classes="darkInput" Text="{Binding PropsLevelSeed}" PlaceholderText="Leave empty for random seed"/>
-                                    </StackPanel>
+                            <!-- Running lock notification -->
+                            <Border IsVisible="{Binding !CanEditServer}" Background="{StaticResource WarningBgBrush}" BorderBrush="{StaticResource WarningBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12,8">
+                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                    <PathIcon Data="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" Width="14" Height="14" Foreground="{StaticResource WarningBrush}"/>
+                                    <TextBlock Text="{l10n:Tr Key=cs_running_locked}" FontSize="12" Foreground="{StaticResource WarningBrightBrush}" VerticalAlignment="Center"/>
                                 </StackPanel>
-
-                                <!-- Right Column: Server Rules, Spawning & Dimensions Switches -->
-                                <StackPanel Spacing="10" Margin="0,4,0,0">
-                                    <TextBlock Text="Server Rules &amp; Spawning" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
-
-                                    <CheckBox Content="Online Mode (Mojang account verification)" IsChecked="{Binding PropsOnlineMode}"/>
-                                    <CheckBox Content="Whitelist Enabled (Only allowed players)" IsChecked="{Binding PropsWhitelist}"/>
-                                    <CheckBox Content="Enable PvP (Player vs player combat)" IsChecked="{Binding PropsPvp}"/>
-                                    <CheckBox Content="Hardcore Mode (Permadeath spectator)" IsChecked="{Binding PropsHardcore}"/>
-                                    <CheckBox Content="Allow Flight (Allow flight in survival)" IsChecked="{Binding PropsAllowFlight}"/>
-                                    <CheckBox Content="Enable Command Blocks" IsChecked="{Binding PropsCommandBlocks}"/>
-                                    <CheckBox Content="Allow Nether (Enable Nether dimension)" IsChecked="{Binding PropsAllowNether}"/>
-                                    <CheckBox Content="Generate Structures (Villages, fortresses)" IsChecked="{Binding PropsGenerateStructures}"/>
-                                    <CheckBox Content="Spawn Animals (Passive mobs)" IsChecked="{Binding PropsSpawnAnimals}"/>
-                                    <CheckBox Content="Spawn Monsters (Hostile mobs)" IsChecked="{Binding PropsSpawnMonsters}"/>
-                                    <CheckBox Content="Spawn NPCs (Villagers &amp; traders)" IsChecked="{Binding PropsSpawnNpcs}"/>
-                                </StackPanel>
-                            </Grid>
+                            </Border>
 
                             <!-- Feedback Message -->
-                            <TextBlock Text="{Binding ConfigStatusMessage}" Foreground="{StaticResource AccentBrush}" FontWeight="SemiBold" FontSize="12" IsVisible="{Binding ConfigStatusMessage, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}" Margin="0,4,0,0"/>
+                            <Border IsVisible="{Binding ConfigStatusMessage, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}" Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource AccentBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6">
+                                <TextBlock Text="{Binding ConfigStatusMessage}" Foreground="{StaticResource AccentBrush}" FontWeight="SemiBold" FontSize="12"/>
+                            </Border>
+
+                            <!-- Balanced 2-Column Grid -->
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="16" IsEnabled="{Binding CanEditServer}">
+                                <!-- Left Column: Core Parameters -->
+                                <Border Grid.Column="0" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="10" Padding="16">
+                                    <StackPanel Spacing="12">
+                                        <TextBlock Text="General &amp; Network" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"/>
+
+                                        <StackPanel Spacing="4">
+                                            <TextBlock Text="Server Port" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <TextBox Classes="darkInput" Text="{Binding PropsPort}"/>
+                                        </StackPanel>
+
+                                        <StackPanel Spacing="4">
+                                            <TextBlock Text="MOTD (Server Description)" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <TextBox Classes="darkInput" Text="{Binding PropsMotd}"/>
+                                        </StackPanel>
+
+                                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                            <StackPanel Spacing="4">
+                                                <TextBlock Text="Gamemode" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                <ComboBox ItemsSource="{Binding GamemodeOptions}" SelectedItem="{Binding PropsGamemode}" HorizontalAlignment="Stretch"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Spacing="4">
+                                                <TextBlock Text="Difficulty" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                <ComboBox ItemsSource="{Binding DifficultyOptions}" SelectedItem="{Binding PropsDifficulty}" HorizontalAlignment="Stretch"/>
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                            <StackPanel Spacing="4">
+                                                <TextBlock Text="Max Players" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                <TextBox Classes="darkInput" Text="{Binding PropsMaxPlayers}"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Spacing="4">
+                                                <TextBlock Text="Spawn Protection" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                <TextBox Classes="darkInput" Text="{Binding PropsSpawnProtection}"/>
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                            <StackPanel Spacing="4">
+                                                <TextBlock Text="View Distance" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                <TextBox Classes="darkInput" Text="{Binding PropsViewDistance}"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Spacing="4">
+                                                <TextBlock Text="Simulation Distance" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                <TextBox Classes="darkInput" Text="{Binding PropsSimulationDistance}"/>
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <StackPanel Spacing="4">
+                                            <TextBlock Text="Entity Broadcast Range (%)" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <TextBox Classes="darkInput" Text="{Binding PropsEntityBroadcastRangePercentage}"/>
+                                        </StackPanel>
+
+                                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                            <StackPanel Spacing="4">
+                                                <TextBlock Text="Level Name" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                <TextBox Classes="darkInput" Text="{Binding PropsLevelName}"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Spacing="4">
+                                                <TextBlock Text="Level Type" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                <ComboBox ItemsSource="{Binding LevelTypeOptions}" SelectedItem="{Binding PropsLevelType}" HorizontalAlignment="Stretch"/>
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <StackPanel Spacing="4">
+                                            <TextBlock Text="Level Seed" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <TextBox Classes="darkInput" Text="{Binding PropsLevelSeed}" PlaceholderText="Leave empty for random seed"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Right Column: Rules & Flags -->
+                                <Border Grid.Column="1" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="10" Padding="16">
+                                    <StackPanel Spacing="10">
+                                        <TextBlock Text="{l10n:Tr Key=cs_props_rules}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"/>
+
+                                        <CheckBox Content="Online Mode (Mojang account verification)" IsChecked="{Binding PropsOnlineMode}"/>
+                                        <CheckBox Content="Whitelist Enabled (Only allowed players)" IsChecked="{Binding PropsWhitelist}"/>
+                                        <CheckBox Content="Enable PvP (Player vs player combat)" IsChecked="{Binding PropsPvp}"/>
+                                        <CheckBox Content="Hardcore Mode (Permadeath spectator)" IsChecked="{Binding PropsHardcore}"/>
+                                        <CheckBox Content="Allow Flight (Allow flight in survival)" IsChecked="{Binding PropsAllowFlight}"/>
+                                        <CheckBox Content="Enable Command Blocks" IsChecked="{Binding PropsCommandBlocks}"/>
+                                        <CheckBox Content="Allow Nether (Enable Nether dimension)" IsChecked="{Binding PropsAllowNether}"/>
+                                        <CheckBox Content="Generate Structures (Villages, fortresses)" IsChecked="{Binding PropsGenerateStructures}"/>
+                                        <CheckBox Content="Spawn Animals (Passive mobs)" IsChecked="{Binding PropsSpawnAnimals}"/>
+                                        <CheckBox Content="Spawn Monsters (Hostile mobs)" IsChecked="{Binding PropsSpawnMonsters}"/>
+                                        <CheckBox Content="Spawn NPCs (Villagers &amp; traders)" IsChecked="{Binding PropsSpawnNpcs}"/>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
                         </StackPanel>
                     </Border>
 

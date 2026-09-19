@@ -2198,7 +2198,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private void StartRenameInstance(InstanceModel instance)
     {
-        if (instance == null) return;
+        if (instance == null || instance.IsRunning || instance.IsLaunching || _launchingInstanceIds.Contains(instance.Id)) return;
         instance.IsEditingName = true;
     }
 

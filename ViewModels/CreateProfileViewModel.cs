@@ -157,79 +157,87 @@ public partial class CreateProfileViewModel : ObservableObject
         }
         catch { }
 
-        var currentLabel = $"{nativeWidth}x{nativeHeight} {L10n.T("res_current")}";
-        ResolutionOptions.Add(currentLabel);
-
-        var standardResolutions = new[]
+        var list = new List<(int Width, int Height)>
         {
-            "3840x2160",
-            "2560x1440",
-            "1920x1080",
-            "1600x900",
-            "1366x768",
-            "1280x720",
-            "2560x1600",
-            "1920x1200",
-            "1680x1050",
-            "1440x900",
-            "1280x800",
-            "1280x1024",
-            "1024x768"
+            (1024, 768),
+            (1280, 720),
+            (1280, 800),
+            (1366, 768),
+            (1440, 900),
+            (1280, 1024),
+            (1600, 900),
+            (1680, 1050),
+            (1920, 1080),
+            (1920, 1200),
+            (2560, 1440),
+            (2560, 1600),
+            (3840, 2160)
         };
 
-        foreach (var res in standardResolutions)
+        if (!list.Any(r => r.Width == nativeWidth && r.Height == nativeHeight))
         {
-            if (!ResolutionOptions.Contains(res))
-                ResolutionOptions.Add(res);
+            list.Add((nativeWidth, nativeHeight));
         }
 
-        SelectedResolution = currentLabel;
+        var sorted = list.OrderBy(r => r.Width * r.Height).ThenBy(r => r.Width).ToList();
+        string? selectedItem = null;
+        var currentSuffix = L10n.T("res_current");
+
+        foreach (var (w, h) in sorted)
+        {
+            if (w == nativeWidth && h == nativeHeight)
+            {
+                var label = $"{w}x{h} {currentSuffix}".Trim();
+                ResolutionOptions.Add(label);
+                selectedItem = label;
+            }
+            else
+            {
+                ResolutionOptions.Add($"{w}x{h}");
+            }
+        }
+
+        SelectedResolution = selectedItem ?? ResolutionOptions.FirstOrDefault() ?? "1920x1080";
     }
 
     private void InitializeJavaOptions()
     {
+        var prevSelectedId = SelectedJavaOption?.Id ?? SelectedJavaMode;
         JavaOptions.Clear();
         var recMajor = JavaVersionHelper.InferRequiredJavaMajor(SelectedVersion ?? "1.21.4");
-        var sysPath = JavaVersionHelper.FindSystemJavaPath() ?? "";
-        var sysMajor = 17;
-        try
-        {
-            if (File.Exists(sysPath))
-            {
-                var vi = System.Diagnostics.FileVersionInfo.GetVersionInfo(sysPath);
-                sysMajor = vi.ProductMajorPart > 0 ? vi.ProductMajorPart : (vi.FileMajorPart > 0 ? vi.FileMajorPart : 17);
-            }
-        }
-        catch { }
+        var recPath = JavaVersionHelper.FindJavaForVersion(recMajor) ?? JavaVersionHelper.FindSystemJavaPath() ?? "javaw.exe";
+        var sysPath = JavaVersionHelper.FindSystemJavaPath() ?? "javaw.exe";
+        var sysMajor = JavaVersionHelper.GetJavaMajor(sysPath);
 
         var recOption = new JavaModeOption
         {
             Id = "Recommended",
             DisplayName = $"Recommended (Java {recMajor})",
-            Path = !string.IsNullOrEmpty(sysPath) ? sysPath : "javaw.exe"
+            Path = recPath
         };
 
         var sysOption = new JavaModeOption
         {
             Id = "System",
             DisplayName = $"System (Java {sysMajor})",
-            Path = !string.IsNullOrEmpty(sysPath) ? sysPath : "javaw.exe"
+            Path = sysPath
         };
 
         var customOption = new JavaModeOption
         {
             Id = "Custom",
             DisplayName = "Custom",
-            Path = CustomJavaPath
+            Path = !string.IsNullOrWhiteSpace(CustomJavaPath) ? CustomJavaPath : sysPath
         };
 
         JavaOptions.Add(recOption);
         JavaOptions.Add(sysOption);
         JavaOptions.Add(customOption);
 
-        SelectedJavaOption = recOption;
-        SelectedJavaMode = "Recommended";
-        ResolvedJavaPath = recOption.Path;
+        var matched = JavaOptions.FirstOrDefault(o => o.Id == prevSelectedId) ?? recOption;
+        SelectedJavaOption = matched;
+        SelectedJavaMode = matched.Id;
+        ResolvedJavaPath = matched.Id == "Custom" ? (string.IsNullOrWhiteSpace(CustomJavaPath) ? sysPath : CustomJavaPath) : matched.Path;
     }
 
     partial void OnSelectedJavaOptionChanged(JavaModeOption? value)
@@ -288,6 +296,7 @@ public partial class CreateProfileViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(CanCreate));
         OnPropertyChanged(nameof(CanNextStep2));
+        InitializeJavaOptions();
         // The loader list is static (every loader is always selectable) - it must NOT
         // be rebuilt here: rebuilding reset the ComboBox selection and visually
         // collapsed/blocked the loader dropdown whenever the user clicked a version.

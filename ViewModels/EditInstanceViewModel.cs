@@ -110,6 +110,7 @@ public partial class EditInstanceViewModel : ViewModelBase
             {
                 OnPropertyChanged(nameof(IsRunning));
                 OnPropertyChanged(nameof(CanLaunch));
+                OnPropertyChanged(nameof(CanEdit));
             }
         };
 
@@ -122,6 +123,8 @@ public partial class EditInstanceViewModel : ViewModelBase
     public bool IsRunning => Instance.IsRunning || Instance.IsLaunching;
 
     public bool CanLaunch => !IsRunning;
+
+    public bool CanEdit => !IsRunning;
 
     // ----- Tabs -----
     [ObservableProperty]
@@ -907,6 +910,7 @@ public partial class EditInstanceViewModel : ViewModelBase
         await Task.CompletedTask;
         OnPropertyChanged(nameof(IsRunning));
         OnPropertyChanged(nameof(CanLaunch));
+        OnPropertyChanged(nameof(CanEdit));
     }
 
     [RelayCommand]
@@ -916,6 +920,7 @@ public partial class EditInstanceViewModel : ViewModelBase
         _host.KillInstanceCommand.Execute(Instance);
         OnPropertyChanged(nameof(IsRunning));
         OnPropertyChanged(nameof(CanLaunch));
+        OnPropertyChanged(nameof(CanEdit));
     }
 
     [RelayCommand]

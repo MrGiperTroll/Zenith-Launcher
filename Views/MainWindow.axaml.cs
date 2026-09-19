@@ -50,7 +50,7 @@ public partial class MainWindow : Window
                 ? this.FindControl<Grid>("ModpacksPane")
                 : this.FindControl<Grid>("ProfilesPane");
             if (pane != null)
-                UiFx.FadeInNow(pane, 180, 8);
+                UiFx.FadeInNow(pane, 180, 6);
         }
         else if (e.PropertyName == nameof(MainWindowViewModel.CurrentPage))
         {
@@ -68,7 +68,7 @@ public partial class MainWindow : Window
                 _ => null
             };
             if (pane != null)
-                UiFx.FadeInNow(pane, 180, 8);
+                UiFx.FadeInNow(pane, 180, 6);
         }
         else if (e.PropertyName == nameof(MainWindowViewModel.IsRightSidebarOpen))
         {

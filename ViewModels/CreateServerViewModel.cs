@@ -6,6 +6,9 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Input;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CustomMcLauncher.Services;
@@ -17,6 +20,9 @@ public partial class CreateServerViewModel : ObservableObject
     private readonly ServerCreatorService _serverService = new();
     private readonly MainWindowViewModel _host;
     private CancellationTokenSource? _cts;
+    private Process? _serverProcess;
+    private DateTime _serverStartTime;
+    private readonly DispatcherTimer _uptimeTimer;
 
     // Creation Wizard Fields
     [ObservableProperty] private string _serverName = "My Local Server";
@@ -71,6 +77,20 @@ public partial class CreateServerViewModel : ObservableObject
     [ObservableProperty] private bool _propsSpawnNpcs = true;
     [ObservableProperty] private bool _propsAllowNether = true;
     [ObservableProperty] private int _propsEntityBroadcastRangePercentage = 100;
+
+    // Overview Live Status & Inline Edit Properties
+    [ObservableProperty] private bool _isServerRunning;
+    [ObservableProperty] private string _serverSoftwareDisplay = "Vanilla";
+    [ObservableProperty] private string _serverAllocatedRamDisplay = "4 GB";
+    [ObservableProperty] private string _uptimeText = "00:00:00";
+    [ObservableProperty] private bool _isEditingServerName;
+    [ObservableProperty] private string _editingServerNameText = "";
+    [ObservableProperty] private string _serverIpDisplay = "localhost:25565";
+    [ObservableProperty] private bool _isIpCopied;
+    public bool CanEditServer => !IsServerRunning;
+    partial void OnIsServerRunningChanged(bool value) => OnPropertyChanged(nameof(CanEditServer));
+
+    public ObservableCollection<ServerNetworkEndpoint> NetworkEndpoints { get; } = new();
 
     public event Action? StateChanged;
 
@@ -134,6 +154,16 @@ public partial class CreateServerViewModel : ObservableObject
     {
         _host = host;
         _selectedSoftware = AvailableSoftware[0];
+        _uptimeTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+        _uptimeTimer.Tick += (s, e) =>
+        {
+            if (IsServerRunning)
+            {
+                var span = DateTime.Now - _serverStartTime;
+                UptimeText = span.ToString(@"hh\:mm\:ss");
+            }
+        };
+
         RefreshExistingServers();
         if (ExistingServers.Count > 0)
         {
@@ -309,6 +339,11 @@ public partial class CreateServerViewModel : ObservableObject
             BansList.Add(b);
         }
 
+        ServerCreatorService.GetServerMetadata(ActiveServerDirectory, out var soft, out var ram);
+        ServerSoftwareDisplay = soft;
+        ServerAllocatedRamDisplay = ram;
+        RefreshNetworkEndpoints();
+
         _ = RefreshOnlinePlayersAsync();
 
         ConfigStatusMessage = "";
@@ -471,7 +506,117 @@ public partial class CreateServerViewModel : ObservableObject
         };
 
         ServerCreatorService.SaveProperties(ActiveServerDirectory, dict);
-        ConfigStatusMessage = "Settings saved to server.properties!";
+        ConfigStatusMessage = L10n.T("cs_save_props") + "!";
+        RefreshNetworkEndpoints();
+    }
+
+    [RelayCommand]
+    public void StartRenameServer()
+    {
+        if (IsServerRunning) return;
+        EditingServerNameText = SelectedServerName ?? "";
+        IsEditingServerName = true;
+    }
+
+    [RelayCommand]
+    public void CommitRenameServer()
+    {
+        if (!IsEditingServerName) return;
+        if (IsServerRunning)
+        {
+            IsEditingServerName = false;
+            return;
+        }
+
+        var newName = EditingServerNameText.Trim();
+        if (string.IsNullOrWhiteSpace(newName) || newName == SelectedServerName)
+        {
+            IsEditingServerName = false;
+            return;
+        }
+
+        if (ServerCreatorService.RenameServer(SelectedServerName!, newName, out var err))
+        {
+            SelectedServerName = newName;
+            ActiveServerDirectory = Path.Combine(ServerCreatorService.DefaultServersDirectory, newName);
+            RefreshExistingServers();
+            ConfigStatusMessage = "Server renamed successfully.";
+        }
+        else
+        {
+            ConfigStatusMessage = err ?? "Failed to rename server.";
+        }
+        IsEditingServerName = false;
+    }
+
+    [RelayCommand]
+    public void CancelRenameServer()
+    {
+        IsEditingServerName = false;
+    }
+
+    [RelayCommand]
+    public async Task CopyAddressAsync(string? address)
+    {
+        var target = string.IsNullOrWhiteSpace(address) ? ServerIpDisplay : address;
+        try
+        {
+            var topLevel = Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime d ? d.MainWindow : null;
+            if (topLevel?.Clipboard != null)
+            {
+                var transfer = new DataTransfer();
+                transfer.Add(DataTransferItem.CreateText(target));
+                await topLevel.Clipboard.SetDataAsync(transfer);
+            }
+            IsIpCopied = true;
+            _ = Task.Delay(2000).ContinueWith(_ => Dispatcher.UIThread.Post(() => IsIpCopied = false));
+        }
+        catch { }
+    }
+
+    public void RefreshNetworkEndpoints()
+    {
+        NetworkEndpoints.Clear();
+        var port = int.TryParse(PropsPort, out var p) ? p : 25565;
+        var list = ServerCreatorService.GetLocalNetworkEndpoints(port);
+        foreach (var ep in list)
+        {
+            NetworkEndpoints.Add(ep);
+        }
+        ServerIpDisplay = $"localhost:{port}";
+    }
+
+    [RelayCommand]
+    public void StopServer()
+    {
+        if (_serverProcess != null && !_serverProcess.HasExited)
+        {
+            try
+            {
+                _serverProcess.Kill(true);
+            }
+            catch { }
+        }
+        IsServerRunning = false;
+        _uptimeTimer.Stop();
+        UptimeText = "00:00:00";
+    }
+
+    [RelayCommand]
+    public void OpenLogs()
+    {
+        if (string.IsNullOrWhiteSpace(ActiveServerDirectory)) return;
+        var logFile = Path.Combine(ActiveServerDirectory, "logs", "latest.log");
+        if (File.Exists(logFile))
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo { FileName = logFile, UseShellExecute = true });
+                return;
+            }
+            catch { }
+        }
+        OpenServerFolder();
     }
 
     [RelayCommand]
@@ -615,14 +760,35 @@ public partial class CreateServerViewModel : ObservableObject
             if (File.Exists(batPath))
             {
                 var title = SelectedServerName ?? Path.GetFileName(dir);
-                // Launch detached external CMD window with interactive command prompt & live output
-                Process.Start(new ProcessStartInfo
+                var p = new Process
                 {
-                    FileName = "cmd.exe",
-                    Arguments = $"/c start \"Minecraft Server - {title}\" cmd.exe /k \"title Minecraft Server - {title} && cd /d \"\"{dir}\"\" && run.bat\"",
-                    WorkingDirectory = dir,
-                    UseShellExecute = true
-                });
+                    StartInfo = new ProcessStartInfo
+                    {
+                        FileName = "cmd.exe",
+                        Arguments = $"/k title Minecraft Server - {title} && run.bat",
+                        WorkingDirectory = dir,
+                        UseShellExecute = true
+                    },
+                    EnableRaisingEvents = true
+                };
+
+                p.Exited += (s, e) =>
+                {
+                    Dispatcher.UIThread.Post(() =>
+                    {
+                        IsServerRunning = false;
+                        _uptimeTimer.Stop();
+                        UptimeText = "00:00:00";
+                    });
+                };
+
+                if (p.Start())
+                {
+                    _serverProcess = p;
+                    _serverStartTime = DateTime.Now;
+                    IsServerRunning = true;
+                    _uptimeTimer.Start();
+                }
             }
         }
         catch (Exception ex)

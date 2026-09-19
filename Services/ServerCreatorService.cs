@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +13,7 @@ using System.Threading.Tasks;
 namespace CustomMcLauncher.Services;
 
 public record ServerSoftwareOption(string Id, string DisplayName);
+public record ServerNetworkEndpoint(string Label, string Address, string TypeName);
 public record ServerPluginItem(string FileName, string FileSizeDisplay, string FullPath, bool IsPlugin)
 {
     public string Name => FileName;
@@ -612,5 +615,136 @@ public class ServerCreatorService
         {
             LauncherLog.Error($"Failed to save player list {fileName}", ex);
         }
+    }
+
+    public static void GetServerMetadata(string serverDir, out string software, out string ram)
+    {
+        software = "Vanilla";
+        ram = "4 GB";
+
+        try
+        {
+            var runBat = Path.Combine(serverDir, "run.bat");
+            if (File.Exists(runBat))
+            {
+                var content = File.ReadAllText(runBat);
+                var mRam = System.Text.RegularExpressions.Regex.Match(content, @"-Xmx(\d+)[gG]");
+                if (mRam.Success) ram = $"{mRam.Groups[1].Value} GB";
+
+                var mSoft = System.Text.RegularExpressions.Regex.Match(content, @"Starting Minecraft Server \(([^)]+)\)");
+                if (mSoft.Success)
+                {
+                    software = mSoft.Groups[1].Value;
+                    return;
+                }
+            }
+
+            if (File.Exists(Path.Combine(serverDir, "purpur.yml"))) software = "Purpur";
+            else if (File.Exists(Path.Combine(serverDir, "paper-global.yml")) || File.Exists(Path.Combine(serverDir, "paper.yml"))) software = "Paper";
+            else if (File.Exists(Path.Combine(serverDir, "spigot.yml"))) software = "Spigot";
+            else if (File.Exists(Path.Combine(serverDir, "fabric-server-launch.jar"))) software = "Fabric";
+        }
+        catch { }
+    }
+
+    public static bool RenameServer(string oldName, string newName, out string? error)
+    {
+        error = null;
+        if (string.IsNullOrWhiteSpace(newName))
+        {
+            error = "Server name cannot be empty.";
+            return false;
+        }
+
+        var cleanNewName = string.Join("_", newName.Split(Path.GetInvalidFileNameChars())).Trim();
+        if (string.IsNullOrWhiteSpace(cleanNewName))
+        {
+            error = "Invalid characters in server name.";
+            return false;
+        }
+
+        var serversDir = DefaultServersDirectory;
+        var oldDir = Path.Combine(serversDir, oldName);
+        var newDir = Path.Combine(serversDir, cleanNewName);
+
+        if (!Directory.Exists(oldDir))
+        {
+            error = "Source server directory does not exist.";
+            return false;
+        }
+
+        if (Directory.Exists(newDir) && !oldDir.Equals(newDir, StringComparison.OrdinalIgnoreCase))
+        {
+            error = "A server with this name already exists.";
+            return false;
+        }
+
+        try
+        {
+            if (!oldDir.Equals(newDir, StringComparison.OrdinalIgnoreCase))
+            {
+                Directory.Move(oldDir, newDir);
+            }
+            return true;
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+            return false;
+        }
+    }
+
+    public static List<ServerNetworkEndpoint> GetLocalNetworkEndpoints(int port = 25565)
+    {
+        var result = new List<ServerNetworkEndpoint>();
+        result.Add(new ServerNetworkEndpoint($"Localhost ({port})", $"localhost:{port}", "Local"));
+
+        try
+        {
+            var interfaces = NetworkInterface.GetAllNetworkInterfaces()
+                .Where(ni => ni.OperationalStatus == OperationalStatus.Up &&
+                             ni.NetworkInterfaceType != NetworkInterfaceType.Loopback)
+                .ToList();
+
+            foreach (var ni in interfaces)
+            {
+                var ipProps = ni.GetIPProperties();
+                var unicastIpv4 = ipProps.UnicastAddresses
+                    .Where(u => u.Address.AddressFamily == AddressFamily.InterNetwork &&
+                                !System.Net.IPAddress.IsLoopback(u.Address))
+                    .Select(u => u.Address.ToString())
+                    .ToList();
+
+                foreach (var ip in unicastIpv4)
+                {
+                    string typeName;
+                    var desc = (ni.Description + " " + ni.Name).ToLowerInvariant();
+
+                    if (desc.Contains("tailscale") || ip.StartsWith("100."))
+                        typeName = "Tailscale";
+                    else if (desc.Contains("radmin") || ip.StartsWith("26."))
+                        typeName = "Radmin VPN";
+                    else if (desc.Contains("hamachi"))
+                        typeName = "Hamachi";
+                    else if (desc.Contains("playit"))
+                        typeName = "Playit.gg";
+                    else if (ni.NetworkInterfaceType == NetworkInterfaceType.Wireless80211)
+                        typeName = "Wi-Fi (LAN)";
+                    else if (ni.NetworkInterfaceType == NetworkInterfaceType.Ethernet)
+                        typeName = "Ethernet (LAN)";
+                    else
+                        typeName = "LAN";
+
+                    var label = $"{typeName} ({ip}:{port})";
+                    result.Add(new ServerNetworkEndpoint(label, $"{ip}:{port}", typeName));
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Error("Failed to scan network interfaces", ex);
+        }
+
+        return result;
     }
 }

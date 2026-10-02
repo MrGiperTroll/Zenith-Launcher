@@ -348,19 +348,86 @@
             <Setter Property="Background" Value="#5C6C8E"/>
         </Style>
 
-        <!-- Slider: Active/Decreased portion filled with blue accent -->
+        <!-- Slider: Active/Decreased portion filled with dynamic accent -->
         <Style Selector="Slider:horizontal /template/ RepeatButton#PART_DecreaseButton">
-            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
         </Style>
         <Style Selector="Slider:horizontal /template/ Thumb#PART_Thumb">
-            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource AccentBrushHover}"/>
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrushHover}"/>
         </Style>
         <Style Selector="Slider:horizontal:pointerover /template/ RepeatButton#PART_DecreaseButton">
-            <Setter Property="Background" Value="{StaticResource AccentBrushHover}"/>
+            <Setter Property="Background" Value="{DynamicResource AccentBrushHover}"/>
         </Style>
         <Style Selector="Slider:horizontal:pointerover /template/ Thumb#PART_Thumb">
-            <Setter Property="Background" Value="{StaticResource AccentBrushHover}"/>
+            <Setter Property="Background" Value="{DynamicResource AccentBrushHover}"/>
+        </Style>
+
+        <!-- Compact Numeric Badge Inputs (Used for RAM, ports, counters) -->
+        <Style Selector="TextBox.badgeInput">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="CaretBrush" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="SelectionBrush" Value="{DynamicResource AccentDimBrush}"/>
+            <Setter Property="FocusAdorner" Value="{x:Null}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="MinHeight" Value="0"/>
+            <Setter Property="Height" Value="22"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalContentAlignment" Value="Right"/>
+        </Style>
+        <Style Selector="TextBox.badgeInput /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="MinHeight" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0"/>
+        </Style>
+        <Style Selector="TextBox.badgeInput /template/ ScrollViewer#PART_ContentHost">
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="MinHeight" Value="0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="TextBox.badgeInput /template/ TextPresenter#PART_TextPresenter">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="TextBlock.Foreground" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+        <Style Selector="TextBox.badgeInput:pointerover /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style Selector="TextBox.badgeInput:focus /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style Selector="TextBox.badgeInput:focus /template/ TextPresenter#PART_TextPresenter">
+            <Setter Property="TextBlock.Foreground" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+
+        <!-- Clean borderless Title / Inline Renaming Inputs -->
+        <Style Selector="TextBox.titleInput">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="4,1"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="MinHeight" Value="0"/>
+            <Setter Property="FocusAdorner" Value="{x:Null}"/>
+            <Setter Property="SelectionBrush" Value="{DynamicResource AccentDimBrush}"/>
+            <Setter Property="CaretBrush" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+        <Style Selector="TextBox.titleInput:focus /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style Selector="TextBox.titleInput:pointerover /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
         </Style>
     </Application.Styles>
 </Application>

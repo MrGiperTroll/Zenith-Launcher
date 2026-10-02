@@ -3,43 +3,7 @@
               xmlns:local="using:CustomMcLauncher.Views"
               x:Class="CustomMcLauncher.Views.RamCardControl">
 
-    <UserControl.Styles>
-        <Style Selector="TextBox.badgeInput">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
-            <Setter Property="CaretBrush" Value="{StaticResource AccentBrush}"/>
-            <Setter Property="SelectionBrush" Value="{StaticResource AccentDimBrush}"/>
-            <Setter Property="FocusAdorner" Value="{x:Null}"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="Margin" Value="0"/>
-            <Setter Property="MinHeight" Value="18"/>
-            <Setter Property="Height" Value="20"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="HorizontalContentAlignment" Value="Right"/>
-        </Style>
-        <Style Selector="TextBox.badgeInput /template/ Border#PART_BorderElement">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-        </Style>
-        <Style Selector="TextBox.badgeInput:pointerover">
-            <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
-        </Style>
-        <Style Selector="TextBox.badgeInput:pointerover /template/ Border#PART_BorderElement">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-        </Style>
-        <Style Selector="TextBox.badgeInput:focus">
-            <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
-        </Style>
-        <Style Selector="TextBox.badgeInput:focus /template/ Border#PART_BorderElement">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-        </Style>
-        <Style Selector="TextBox.badgeInput:focus /template/ TextPresenter#PART_TextPresenter">
-            <Setter Property="TextBlock.Foreground" Value="{StaticResource AccentBrush}"/>
-        </Style>
-    </UserControl.Styles>
+
 
     <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="12,7">
         <StackPanel Spacing="4">
@@ -69,7 +33,7 @@
                                    Text="4096"
                                    FontSize="11.5"
                                    FontWeight="SemiBold"
-                                   Foreground="{StaticResource AccentBrush}"
+                                   Foreground="{DynamicResource AccentBrush}"
                                    HorizontalAlignment="Right"
                                    VerticalAlignment="Center"/>
                         <TextBox Grid.Column="0"
@@ -78,9 +42,9 @@
                                  IsVisible="False"
                                  FontSize="11.5"
                                  FontWeight="SemiBold"
-                                 Foreground="{StaticResource AccentBrush}"
-                                 CaretBrush="{StaticResource AccentBrush}"
-                                 SelectionBrush="{StaticResource AccentDimBrush}"
+                                 Foreground="{DynamicResource AccentBrush}"
+                                 CaretBrush="{DynamicResource AccentBrush}"
+                                 SelectionBrush="{DynamicResource AccentDimBrush}"
                                  TextAlignment="Right"
                                  VerticalAlignment="Center"
                                  HorizontalAlignment="Stretch"

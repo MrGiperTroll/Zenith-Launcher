@@ -13,6 +13,7 @@ public class LauncherConfigData
     public string JavaMode { get; set; } = "Recommended";
     public string CustomJavaPath { get; set; } = string.Empty;
     public string AccentColor { get; set; } = "";
+    public string LauncherName { get; set; } = "Zenith Launcher";
     public bool UseFlatVersionList { get; set; } = false;
 
     // Automatically download the required JRE (Adoptium) when no suitable local Java matches.

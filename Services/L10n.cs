@@ -51,6 +51,7 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
     public static event Action? LanguageChanged;
 
     private static string _currentCode = DetectSystemCode();
+    public static string CurrentLanguage => _currentCode;
 
     /// <summary>
     /// Translate a key in the current language. Never returns null or empty:
@@ -212,6 +213,14 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
         ["cs_open_folder"] = "Open Server Folder",
         ["cs_run_server"] = "Start Server",
         ["cs_status_ready"] = "Ready to create",
+        ["set_appearance"] = "Appearance",
+        ["set_launcher_name"] = "Launcher Name",
+        ["set_launcher_name_hint"] = "Customize the title shown on the header and window bar.",
+        ["set_theme"] = "Color Theme & Accent",
+        ["set_theme_hint"] = "Select a built-in theme or create your own custom accent.",
+        ["set_custom_theme"] = "Custom Accent Color",
+        ["set_apply"] = "Apply",
+        ["set_reset"] = "Reset",
         ["set_general"] = "General Settings",
         ["set_memory"] = "Allocated Memory",
         ["set_memory_hint"] = "RAM allocated to Minecraft.",
@@ -746,6 +755,14 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
         ["cs_open_folder"] = "Открыть папку сервера",
         ["cs_run_server"] = "Запустить сервер",
         ["cs_status_ready"] = "Готово к созданию",
+        ["set_appearance"] = "Внешний вид",
+        ["set_launcher_name"] = "Имя лаунчера",
+        ["set_launcher_name_hint"] = "Настройте имя и заголовок окна лаунчера.",
+        ["set_theme"] = "Цветовая тема и акцент",
+        ["set_theme_hint"] = "Выберите заготовленную тему или настройте собственный акцент.",
+        ["set_custom_theme"] = "Свой акцентный цвет",
+        ["set_apply"] = "Применить",
+        ["set_reset"] = "Сброс",
         ["set_general"] = "Общие настройки",
         ["set_memory"] = "Выделенная память",
         ["set_memory_hint"] = "Оперативная память для Minecraft.",

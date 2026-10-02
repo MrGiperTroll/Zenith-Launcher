@@ -105,8 +105,19 @@ public partial class MainWindowViewModel : ViewModelBase
     public string VersionLabel { get; } =
         System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.0.0";
 
-    public string WindowTitle { get; } =
-        $"Zenith Launcher v{System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.0.0"}";
+    [ObservableProperty]
+    private string _launcherName = "Zenith Launcher";
+
+    partial void OnLauncherNameChanged(string value)
+    {
+        OnPropertyChanged(nameof(WindowTitle));
+        SaveLauncherConfig();
+    }
+
+    public string WindowTitle => $"{LauncherName} v{VersionLabel}";
+
+    [RelayCommand]
+    public void ResetLauncherName() => LauncherName = "Zenith Launcher";
 
     [ObservableProperty]
     private string _jvmArgs = "-XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC";
@@ -303,6 +314,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private bool _isSearchJvmArgsVisible = true;
     [ObservableProperty] private bool _isSearchLanguageVisible = true;
     [ObservableProperty] private bool _isSearchDiscordVisible = true;
+    [ObservableProperty] private bool _isSearchAppearanceVisible = true;
 
     private void UpdateSearchVisibility()
     {
@@ -311,18 +323,19 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             IsSearchMemoryVisible = IsSearchResolutionVisible = IsSearchFullscreenVisible = IsSearchJavaVisible = true;
             IsSearchDirectoryVisible = IsSearchVersionFiltersVisible = IsSearchJvmArgsVisible = true;
-            IsSearchLanguageVisible = IsSearchDiscordVisible = true;
+            IsSearchLanguageVisible = IsSearchDiscordVisible = IsSearchAppearanceVisible = true;
             return;
         }
-        IsSearchMemoryVisible = "memory ram allocated".Contains(q);
-        IsSearchResolutionVisible = "resolution window size".Contains(q);
-        IsSearchFullscreenVisible = "fullscreen mode".Contains(q);
-        IsSearchJavaVisible = "java runtime manage automatic download".Contains(q);
-        IsSearchDirectoryVisible = "directory strategy isolation".Contains(q);
-        IsSearchVersionFiltersVisible = "version filters releases snapshots".Contains(q);
-        IsSearchJvmArgsVisible = "jvm arguments flags".Contains(q);
-        IsSearchLanguageVisible = "language localization english russian ukrainian turkish german french".Contains(q);
-        IsSearchDiscordVisible = "discord rpc rich presence application id".Contains(q);
+        IsSearchMemoryVisible = "memory ram allocated память озу".Contains(q);
+        IsSearchResolutionVisible = "resolution window size разрешение экран".Contains(q);
+        IsSearchFullscreenVisible = "fullscreen mode полноэкранный".Contains(q);
+        IsSearchJavaVisible = "java runtime manage automatic download джава".Contains(q);
+        IsSearchDirectoryVisible = "directory strategy isolation директория папка".Contains(q);
+        IsSearchVersionFiltersVisible = "version filters releases snapshots версии фильтры".Contains(q);
+        IsSearchJvmArgsVisible = "jvm arguments flags аргументы jvm".Contains(q);
+        IsSearchLanguageVisible = "language localization english russian ukrainian turkish german french язык".Contains(q);
+        IsSearchDiscordVisible = "discord rpc rich presence application id дискорд".Contains(q);
+        IsSearchAppearanceVisible = "appearance theme color accent name branding внешний вид тема цвет акцент оформление".Contains(q);
     }
 
     [ObservableProperty] private bool _autoManageJava = true;
@@ -414,19 +427,49 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
-    [ObservableProperty] private bool _isSettingsTabGame = true;
+    [ObservableProperty] private string _currentSettingsTab = "Game";
+    public bool IsSettingsTabGame => CurrentSettingsTab == "Game";
+    public bool IsSettingsTabGeneral => CurrentSettingsTab == "General";
+    public bool IsSettingsTabAppearance => CurrentSettingsTab == "Appearance";
+
     [ObservableProperty] private bool _isLockAspectRatio = false;
     [ObservableProperty] private int _maxRamMb = 16384;
 
     [RelayCommand]
     private void SwitchSettingsTab(string tab)
     {
-        IsSettingsTabGame = tab == "Game";
+        CurrentSettingsTab = tab;
         OnPropertyChanged(nameof(IsSettingsTabGame));
         OnPropertyChanged(nameof(IsSettingsTabGeneral));
+        OnPropertyChanged(nameof(IsSettingsTabAppearance));
     }
 
-    public bool IsSettingsTabGeneral => !IsSettingsTabGame;
+    // Theme Customization
+    public ObservableCollection<ThemePreset> AvailableThemes { get; } = new(ZenithTheme.Presets);
+
+    [ObservableProperty]
+    private string _currentAccentHex = ZenithTheme.DefaultAccent;
+
+    [ObservableProperty]
+    private string _customThemeHex = ZenithTheme.DefaultAccent;
+
+    [RelayCommand]
+    public void SelectTheme(string hex)
+    {
+        if (string.IsNullOrWhiteSpace(hex)) return;
+        hex = hex.Trim();
+        if (!hex.StartsWith("#")) hex = "#" + hex;
+        CurrentAccentHex = hex;
+        CustomThemeHex = hex;
+        ZenithTheme.Apply(hex);
+        SaveLauncherConfig();
+    }
+
+    [RelayCommand]
+    public void ApplyCustomTheme()
+    {
+        SelectTheme(CustomThemeHex);
+    }
 
     partial void OnGameWidthChanged(int value)
     {
@@ -1425,6 +1468,8 @@ public partial class MainWindowViewModel : ViewModelBase
             var configPath = ZenithPaths.ConfigFilePath;
             var configData = new LauncherConfigData
             {
+                LauncherName = LauncherName,
+                AccentColor = CurrentAccentHex,
                 JvmArgs = JvmArgs,
                 MinRamMb = MinRamMb,
                 RamMb = RamMb,
@@ -1452,6 +1497,8 @@ public partial class MainWindowViewModel : ViewModelBase
     /// </summary>
     public LauncherConfigData GetLauncherConfigSnapshot() => new()
     {
+        LauncherName = LauncherName,
+        AccentColor = CurrentAccentHex,
         JvmArgs = JvmArgs,
         MinRamMb = MinRamMb,
         RamMb = RamMb,
@@ -1480,6 +1527,20 @@ public partial class MainWindowViewModel : ViewModelBase
                 var cfg = System.Text.Json.JsonSerializer.Deserialize<LauncherConfigData>(json);
                 if (cfg != null)
                 {
+                    if (!string.IsNullOrWhiteSpace(cfg.LauncherName))
+                        LauncherName = cfg.LauncherName;
+
+                    if (!string.IsNullOrWhiteSpace(cfg.AccentColor))
+                    {
+                        CurrentAccentHex = cfg.AccentColor;
+                        CustomThemeHex = cfg.AccentColor;
+                        ZenithTheme.Apply(cfg.AccentColor);
+                    }
+                    else
+                    {
+                        ZenithTheme.Apply(ZenithTheme.DefaultAccent);
+                    }
+
                     // Language is restored FIRST and verbatim: an explicit
                     // choice (including "Auto") always wins over detection.
                     // The system language is consulted exactly once - on the

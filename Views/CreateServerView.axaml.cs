@@ -10,44 +10,63 @@ public partial class CreateServerView : UserControl
     {
         InitializeComponent();
 
-        var nameBlock = this.FindControl<TextBlock>("ServerNameBlock");
-        var editBox = this.FindControl<TextBox>("EditServerNameBox");
+        var nameInput = this.FindControl<TextBox>("ServerNameInput");
 
-        if (nameBlock != null)
+        if (nameInput != null)
         {
-            nameBlock.DoubleTapped += (s, e) =>
+            string? preRenameName = null;
+
+            nameInput.GotFocus += (s, e) =>
             {
-                if (DataContext is CreateServerViewModel vm && vm.CanEditServer)
+                if (DataContext is CreateServerViewModel vm)
                 {
-                    vm.StartRenameServerCommand.Execute(null);
-                    editBox?.Focus();
-                    editBox?.SelectAll();
+                    preRenameName = vm.SelectedServerName;
                 }
+                nameInput.SelectAll();
             };
-        }
 
-        if (editBox != null)
-        {
-            editBox.KeyDown += (s, e) =>
+            nameInput.DoubleTapped += (s, e) =>
+            {
+                nameInput.Focus();
+                nameInput.SelectAll();
+            };
+
+            nameInput.KeyDown += (s, e) =>
             {
                 if (DataContext is not CreateServerViewModel vm) return;
                 if (e.Key == Key.Enter)
                 {
-                    vm.CommitRenameServerCommand.Execute(null);
+                    var text = nameInput.Text?.Trim() ?? "";
+                    if (!string.IsNullOrWhiteSpace(text) && text != vm.SelectedServerName)
+                    {
+                        if (!vm.CommitRenameDirect(text))
+                        {
+                            nameInput.Text = vm.SelectedServerName;
+                        }
+                    }
+                    this.Focus();
                     e.Handled = true;
                 }
                 else if (e.Key == Key.Escape)
                 {
-                    vm.CancelRenameServerCommand.Execute(null);
+                    nameInput.Text = preRenameName ?? vm.SelectedServerName;
+                    this.Focus();
                     e.Handled = true;
                 }
             };
 
-            editBox.LostFocus += (s, e) =>
+            nameInput.LostFocus += (s, e) =>
             {
-                if (DataContext is CreateServerViewModel vm && vm.IsEditingServerName)
+                if (DataContext is CreateServerViewModel vm)
                 {
-                    vm.CommitRenameServerCommand.Execute(null);
+                    var text = nameInput.Text?.Trim() ?? "";
+                    if (!string.IsNullOrWhiteSpace(text) && text != vm.SelectedServerName)
+                    {
+                        if (!vm.CommitRenameDirect(text))
+                        {
+                            nameInput.Text = vm.SelectedServerName;
+                        }
+                    }
                 }
             };
         }

@@ -958,7 +958,7 @@
                             <Path Data="{StaticResource ZenithLogoGeometry}" Fill="{StaticResource SubtleEmeraldBrush}"
                                   Stretch="Uniform" Width="50" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
-                        <TextBlock Text="Zenith Launcher" FontSize="22" FontWeight="Bold" HorizontalAlignment="Center"
+                        <TextBlock Text="{Binding LauncherName}" FontSize="22" FontWeight="Bold" HorizontalAlignment="Center"
                                    Foreground="{StaticResource TextPrimaryBrush}" Margin="0,12,0,0"/>
                         <TextBlock Text="{Binding VersionLabel, Converter={x:Static vm:L10nFormatConverter.Instance}, ConverterParameter=about_version}" FontSize="12" HorizontalAlignment="Center"
                                    Foreground="{StaticResource TextMutedBrush}"/>

@@ -650,6 +650,28 @@ public partial class CreateServerViewModel : ObservableObject
         IsEditingServerName = false;
     }
 
+    public bool CommitRenameDirect(string newName)
+    {
+        if (IsServerRunning) return false;
+        newName = newName?.Trim() ?? "";
+        if (string.IsNullOrWhiteSpace(newName) || newName == SelectedServerName)
+            return false;
+
+        if (ServerCreatorService.RenameServer(SelectedServerName!, newName, out var err))
+        {
+            SelectedServerName = newName;
+            ActiveServerDirectory = Path.Combine(ServerCreatorService.DefaultServersDirectory, newName);
+            RefreshExistingServers();
+            ConfigStatusMessage = "Server renamed successfully.";
+            return true;
+        }
+        else
+        {
+            ConfigStatusMessage = err ?? "Failed to rename server.";
+            return false;
+        }
+    }
+
     [RelayCommand]
     public void CancelRenameServer()
     {
@@ -657,7 +679,23 @@ public partial class CreateServerViewModel : ObservableObject
     }
 
     [RelayCommand]
+    public void StepServerRamDown() => ServerRamMb = Math.Max(1024, ServerRamMb - 512);
+
+    [RelayCommand]
+    public void StepServerRamUp() => ServerRamMb = Math.Min(32768, ServerRamMb + 512);
+
+    [RelayCommand]
     public async Task CopyIpAsync() => await CopyAddressAsync(ServerIpDisplay);
+
+    [RelayCommand]
+    public async Task SelectAndCopyAddressAsync(string? address)
+    {
+        if (!string.IsNullOrWhiteSpace(address))
+        {
+            ServerIpDisplay = address;
+        }
+        await CopyAddressAsync(address);
+    }
 
     [RelayCommand]
     public async Task CopyAddressAsync(string? address)

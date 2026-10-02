@@ -15,6 +15,8 @@
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="SelectionForegroundBrush" Value="{DynamicResource OnAccentBrush}"/>
         </Style>
         <Style Selector="ComboBox">
             <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
@@ -289,6 +291,8 @@
                                              FontSize="17" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"
                                              VerticalAlignment="Center" VerticalContentAlignment="Center"
                                              MinWidth="50" MaxWidth="320"
+                                             SelectionBrush="{DynamicResource AccentBrush}"
+                                             SelectionForegroundBrush="{DynamicResource OnAccentBrush}"
                                              IsEnabled="{Binding CanEditServer}"
                                              ToolTip.Tip="Double-click to rename"/>
                                 </Border>
@@ -299,23 +303,21 @@
                                     <Button Classes="chipBtn" Padding="8,4" ToolTip.Tip="Available server network addresses">
                                         <Button.Flyout>
                                             <Flyout Placement="BottomEdgeAlignedLeft">
-                                                <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="6" MinWidth="260">
-                                                    <StackPanel Spacing="4">
-                                                        <TextBlock Text="Server Addresses" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" Margin="6,4"/>
-                                                        <ItemsControl ItemsSource="{Binding NetworkEndpoints}">
-                                                            <ItemsControl.ItemTemplate>
-                                                                <DataTemplate x:DataType="services:ServerNetworkEndpoint">
-                                                                    <Button Classes="tabBtn" Command="{Binding $parent[views:CreateServerView].((vm:CreateServerViewModel)DataContext).SelectAndCopyAddressCommand}" CommandParameter="{Binding Address}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="8,6">
-                                                                        <StackPanel Spacing="1">
-                                                                            <TextBlock Text="{Binding Address}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}"/>
-                                                                            <TextBlock Text="{Binding Label}" FontSize="10" Foreground="{StaticResource TextMutedBrush}"/>
-                                                                        </StackPanel>
-                                                                    </Button>
-                                                                </DataTemplate>
-                                                            </ItemsControl.ItemTemplate>
-                                                        </ItemsControl>
-                                                    </StackPanel>
-                                                </Border>
+                                                <StackPanel Spacing="4" MinWidth="260">
+                                                    <TextBlock Text="Server Addresses" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" Margin="6,4"/>
+                                                    <ItemsControl ItemsSource="{Binding NetworkEndpoints}">
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate x:DataType="services:ServerNetworkEndpoint">
+                                                                <Button Classes="tabBtn" Command="{Binding $parent[views:CreateServerView].((vm:CreateServerViewModel)DataContext).SelectAndCopyAddressCommand}" CommandParameter="{Binding Address}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="8,6">
+                                                                    <StackPanel Spacing="1">
+                                                                        <TextBlock Text="{Binding Address}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}"/>
+                                                                        <TextBlock Text="{Binding Label}" FontSize="10" Foreground="{StaticResource TextMutedBrush}"/>
+                                                                    </StackPanel>
+                                                                </Button>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </StackPanel>
                                             </Flyout>
                                         </Button.Flyout>
                                         <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
@@ -324,16 +326,14 @@
                                         </StackPanel>
                                     </Button>
 
-                                    <!-- Direct 1-Click Copy Button -->
-                                    <Button Classes="chipBtn" Command="{Binding CopyIpCommand}" Padding="8,4" ToolTip.Tip="{l10n:Tr Key=cs_copy_ip}">
-                                        <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+                                    <!-- Direct 1-Click Copy Button (Icon only) -->
+                                    <Button Classes="chipBtn" Command="{Binding CopyIpCommand}" Padding="8,6" ToolTip.Tip="{l10n:Tr Key=cs_copy_ip}" VerticalAlignment="Center">
+                                        <Panel VerticalAlignment="Center" HorizontalAlignment="Center">
                                             <PathIcon Data="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"
                                                       Width="11" Height="11" Foreground="{StaticResource TextSecondaryBrush}" IsVisible="{Binding !IsIpCopied}"/>
                                             <PathIcon Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
                                                       Width="11" Height="11" Foreground="{StaticResource SuccessBrush}" IsVisible="{Binding IsIpCopied}"/>
-                                            <TextBlock Text="{l10n:Tr Key=cs_copy_ip}" IsVisible="{Binding !IsIpCopied}" FontSize="11"/>
-                                            <TextBlock Text="{l10n:Tr Key=cs_ip_copied}" IsVisible="{Binding IsIpCopied}" FontSize="11" Foreground="{StaticResource SuccessBrush}"/>
-                                        </StackPanel>
+                                        </Panel>
                                     </Button>
                                 </StackPanel>
                             </StackPanel>
@@ -509,12 +509,7 @@
 
                     <!-- TAB 1: SERVER.PROPERTIES (Clean 2-column grid, no overlapping, locked if running) -->
                     <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="20" IsVisible="{Binding IsPropertiesTab}">
-                        <StackPanel Spacing="16">
-                            <!-- Top bar: Save Button with indicator -->
-                            <Grid HorizontalAlignment="Right">
-                                <Button Classes="primaryBtn" Content="{l10n:Tr Key=cs_save_props}" Command="{Binding SavePropertiesCommand}" IsEnabled="{Binding CanEditServer}" Padding="18,7" FontSize="12"/>
-                            </Grid>
-
+                        <StackPanel Spacing="14">
                             <!-- Running lock notification -->
                             <Border IsVisible="{Binding !CanEditServer}" Background="{StaticResource WarningBgBrush}" BorderBrush="{StaticResource WarningBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12,8">
                                 <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
@@ -532,7 +527,9 @@
                             <Grid ColumnDefinitions="*,*" ColumnSpacing="24" IsEnabled="{Binding CanEditServer}">
                                 <!-- Left Column: Core Parameters -->
                                 <StackPanel Grid.Column="0" Spacing="12">
-                                    <TextBlock Text="{l10n:Tr Key=cs_prop_general_network}" FontSize="12.5" FontWeight="Bold" Foreground="{StaticResource AccentBrush}"/>
+                                    <Grid Height="32" VerticalAlignment="Center">
+                                        <TextBlock Text="{l10n:Tr Key=cs_prop_general_network}" FontSize="12.5" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center"/>
+                                    </Grid>
 
                                     <StackPanel Spacing="4">
                                         <TextBlock Text="{l10n:Tr Key=cs_prop_port}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
@@ -601,7 +598,10 @@
 
                                 <!-- Right Column: Rules & Flags -->
                                 <StackPanel Grid.Column="1" Spacing="10">
-                                    <TextBlock Text="{l10n:Tr Key=cs_props_rules}" FontSize="12.5" FontWeight="Bold" Foreground="{StaticResource AccentBrush}"/>
+                                    <Grid ColumnDefinitions="*,Auto" Height="32" VerticalAlignment="Center">
+                                        <TextBlock Text="{l10n:Tr Key=cs_props_rules}" FontSize="12.5" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center"/>
+                                        <Button Grid.Column="1" Classes="primaryBtn" Content="{l10n:Tr Key=cs_save_props}" Command="{Binding SavePropertiesCommand}" IsEnabled="{Binding CanEditServer}" Padding="18,7" FontSize="12" VerticalAlignment="Center"/>
+                                    </Grid>
 
                                     <CheckBox Content="{l10n:Tr Key=cs_prop_online_mode}" IsChecked="{Binding PropsOnlineMode}"/>
                                     <CheckBox Content="{l10n:Tr Key=cs_prop_whitelist}" IsChecked="{Binding PropsWhitelist}"/>
@@ -722,14 +722,18 @@
 
                                         <!-- Compact Counter Row -->
                                         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                                            <Button Command="{Binding StepServerRamDownCommand}" Classes="subBtn" Content="−" Width="26" Height="26" Padding="0" FontSize="12" FontWeight="Bold" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
-                                            <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="5" Height="26" Width="88" Padding="4,0" VerticalAlignment="Center">
+                                            <Button Command="{Binding StepServerRamDownCommand}" Classes="subBtn" Width="26" Height="26" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" ToolTip.Tip="Decrease RAM">
+                                                <PathIcon Data="M5 11h14v2H5z" Width="9" Height="9" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                            </Button>
+                                            <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="5" Height="26" Width="98" Padding="6,0" VerticalAlignment="Center">
                                                 <Grid ColumnDefinitions="*,24" VerticalAlignment="Center">
                                                     <TextBox Grid.Column="0" Classes="badgeInput" Text="{Binding ServerRamMb, Mode=TwoWay}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" TextAlignment="Right" VerticalAlignment="Center" BorderThickness="0" Background="Transparent" Padding="0"/>
                                                     <TextBlock Grid.Column="1" Text="MB" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="3,0,0,0" IsHitTestVisible="False"/>
                                                 </Grid>
                                             </Border>
-                                            <Button Command="{Binding StepServerRamUpCommand}" Classes="subBtn" Content="+" Width="26" Height="26" Padding="0" FontSize="12" FontWeight="Bold" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                                            <Button Command="{Binding StepServerRamUpCommand}" Classes="subBtn" Width="26" Height="26" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" ToolTip.Tip="Increase RAM">
+                                                <PathIcon Data="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" Width="9" Height="9" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                            </Button>
                                         </StackPanel>
                                     </Grid>
 

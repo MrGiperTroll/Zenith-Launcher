@@ -22,6 +22,8 @@
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="SelectionForegroundBrush" Value="{DynamicResource OnAccentBrush}"/>
         </Style>
         <Style Selector="ComboBox">
             <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
@@ -47,6 +49,7 @@
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="Transitions">
                 <Transitions>
                     <BrushTransition Property="Background" Duration="0:0:0.15"/>
@@ -61,15 +64,32 @@
             <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderEditorBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="10"/>
-            <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="14,6"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="FontSize" Value="12"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
         </Style>
         <Style Selector="Button.subBtn:pointerover">
             <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        </Style>
+        <Style Selector="Button.primaryBtn">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="16,6"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Button.primaryBtn:pointerover">
+            <Setter Property="Background" Value="{DynamicResource AccentBrushHover}"/>
         </Style>
     </Window.Styles>
 
@@ -119,7 +139,7 @@
                                 <Border Width="30" Height="30" Background="{StaticResource IconChipBrush}" CornerRadius="7" VerticalAlignment="Center">
                                     <PathIcon Data="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61.27.34.69.54 1.13.54H7c.55 0 1-.45 1-1 0-.28.11-.53.29-.71.19-.18.44-.29.71-.29h2c2.76 0 5-2.24 5-5 0-4.42-3.58-8-8-8zm-5 9c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm3-3c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm4 0c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm3 3c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z" Width="15" Height="15" Foreground="{Binding IsSettingsTabAppearance, Converter={x:Static vm:EditInstanceWindowConverters.ActiveIcon}}"/>
                                 </Border>
-                                <TextBlock Grid.Column="1" Text="{l10n:Tr Key=set_appearance}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsSettingsTabAppearance, Converter={x:Static vm:EditInstanceWindowConverters.ActiveText}}"/>
+                                <TextBlock Grid.Column="1" Text="{l10n:Tr Key=set_launcher_settings}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsSettingsTabAppearance, Converter={x:Static vm:EditInstanceWindowConverters.ActiveText}}"/>
                             </Grid>
                         </Button>
                     </StackPanel>
@@ -150,14 +170,18 @@
 
                                     <!-- Compact Counter Row -->
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                                        <Button Command="{Binding StepMinRamDownCommand}" Classes="subBtn" Content="−" Width="26" Height="26" Padding="0" FontSize="12" FontWeight="Bold" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
-                                        <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="5" Height="26" Width="88" Padding="6,0" VerticalAlignment="Center">
+                                        <Button Command="{Binding StepMinRamDownCommand}" Classes="subBtn" Width="26" Height="26" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" ToolTip.Tip="Decrease RAM">
+                                            <PathIcon Data="M5 11h14v2H5z" Width="9" Height="9" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                        </Button>
+                                        <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="5" Height="26" Width="98" Padding="6,0" VerticalAlignment="Center">
                                             <Grid ColumnDefinitions="*,24" VerticalAlignment="Center">
                                                 <TextBox Grid.Column="0" Classes="badgeInput" Text="{Binding MinRamMb, Mode=TwoWay}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" TextAlignment="Right" VerticalAlignment="Center" BorderThickness="0" Background="Transparent"/>
                                                 <TextBlock Grid.Column="1" Text="MB" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="3,0,0,0" IsHitTestVisible="False"/>
                                             </Grid>
                                         </Border>
-                                        <Button Command="{Binding StepMinRamUpCommand}" Classes="subBtn" Content="+" Width="26" Height="26" Padding="0" FontSize="12" FontWeight="Bold" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                                        <Button Command="{Binding StepMinRamUpCommand}" Classes="subBtn" Width="26" Height="26" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" ToolTip.Tip="Increase RAM">
+                                            <PathIcon Data="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" Width="9" Height="9" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                        </Button>
                                     </StackPanel>
                                 </Grid>
 
@@ -172,14 +196,18 @@
 
                                     <!-- Compact Counter Row -->
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                                        <Button Command="{Binding StepRamDownCommand}" Classes="subBtn" Content="−" Width="26" Height="26" Padding="0" FontSize="12" FontWeight="Bold" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
-                                        <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="5" Height="26" Width="88" Padding="6,0" VerticalAlignment="Center">
+                                        <Button Command="{Binding StepRamDownCommand}" Classes="subBtn" Width="26" Height="26" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" ToolTip.Tip="Decrease RAM">
+                                            <PathIcon Data="M5 11h14v2H5z" Width="9" Height="9" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                        </Button>
+                                        <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="5" Height="26" Width="98" Padding="6,0" VerticalAlignment="Center">
                                             <Grid ColumnDefinitions="*,24" VerticalAlignment="Center">
                                                 <TextBox Grid.Column="0" Classes="badgeInput" Text="{Binding RamMb, Mode=TwoWay}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" TextAlignment="Right" VerticalAlignment="Center" BorderThickness="0" Background="Transparent"/>
                                                 <TextBlock Grid.Column="1" Text="MB" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="3,0,0,0" IsHitTestVisible="False"/>
                                             </Grid>
                                         </Border>
-                                        <Button Command="{Binding StepRamUpCommand}" Classes="subBtn" Content="+" Width="26" Height="26" Padding="0" FontSize="12" FontWeight="Bold" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                                        <Button Command="{Binding StepRamUpCommand}" Classes="subBtn" Width="26" Height="26" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" ToolTip.Tip="Increase RAM">
+                                            <PathIcon Data="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" Width="9" Height="9" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                        </Button>
                                     </StackPanel>
                                 </Grid>
                             </StackPanel>
@@ -225,17 +253,18 @@
                                         </DataTemplate>
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
-                                <Button Grid.Column="1" Classes="subBtn" Content="+" Width="30" Height="30" Padding="0"
-                                        FontSize="16" FontWeight="Bold"
+                                <Button Grid.Column="1" Classes="subBtn" Width="30" Height="30" Padding="0"
                                         HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                         ToolTip.Tip="{l10n:Tr Key=java_plus_tip}"
-                                        Command="{Binding OpenJavaInstallerCommand}"/>
+                                        Command="{Binding OpenJavaInstallerCommand}">
+                                    <PathIcon Data="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" Width="11" Height="11" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                </Button>
                                 <TextBlock Grid.Column="2" Text="{Binding CurrentJavaDisplay}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                             </Grid>
                             <!-- Always-Visible Editable Java Path Row + Browse Button -->
                             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                                 <TextBox Grid.Column="0" Classes="darkInput" Text="{Binding EffectiveJavaPath}" PlaceholderText="{l10n:Tr Key=custom_java_hint}" FontSize="11" Padding="8,5"/>
-                                <Button Grid.Column="1" Classes="subBtn" Content="{l10n:Tr Key=btn_browse}" Command="{Binding BrowseJavaPathCommand}" Padding="12,0" Height="30" FontSize="11" VerticalAlignment="Center"/>
+                                <Button Grid.Column="1" Classes="subBtn" Content="{l10n:Tr Key=btn_browse}" Command="{Binding BrowseJavaPathCommand}" Padding="12,0" Height="30" FontSize="11" VerticalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
                             </Grid>
                         </StackPanel>
                     </StackPanel>
@@ -294,9 +323,9 @@
                             <TextBlock Text="{l10n:Tr set_discord_hint}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
                         </StackPanel>
                     </StackPanel>
-                    <!-- Appearance Settings -->
+                    <!-- Launcher Settings -->
                     <StackPanel Spacing="16" IsVisible="{Binding IsSettingsTabAppearance}">
-                        <TextBlock Text="{l10n:Tr Key=set_appearance}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                        <TextBlock Text="{l10n:Tr Key=set_launcher_settings}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,4"/>
 
                         <!-- Launcher Name & Custom Branding Card -->
                         <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="14,12" IsVisible="{Binding IsSearchAppearanceVisible}">
@@ -307,7 +336,7 @@
                                 </StackPanel>
                                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" VerticalAlignment="Center">
                                     <TextBox Classes="darkInput" Text="{Binding LauncherName, Mode=TwoWay}" PlaceholderText="Zenith Launcher" Height="32" VerticalContentAlignment="Center"/>
-                                    <Button Grid.Column="1" Classes="subBtn" Command="{Binding ResetLauncherNameCommand}" Height="32" Padding="14,0" VerticalAlignment="Center" Content="{l10n:Tr Key=set_reset}"/>
+                                    <Button Grid.Column="1" Classes="subBtn" Command="{Binding ResetLauncherNameCommand}" Height="32" Padding="14,0" VerticalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Content="{l10n:Tr Key=set_reset}"/>
                                 </Grid>
                             </StackPanel>
                         </Border>
@@ -315,9 +344,15 @@
                         <!-- Theme Presets Card -->
                         <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="14,12" IsVisible="{Binding IsSearchAppearanceVisible}">
                             <StackPanel Spacing="12">
-                                <StackPanel Spacing="2">
+                                <StackPanel Spacing="3">
                                     <TextBlock Text="{l10n:Tr Key=set_theme}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
                                     <TextBlock Text="{l10n:Tr Key=set_theme_hint}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                                    <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="6" Padding="8,4" Margin="0,3,0,0" HorizontalAlignment="Left">
+                                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                            <PathIcon Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" Width="11" Height="11" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{l10n:Tr Key=set_theme_restart_note}" FontSize="10.5" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Border>
                                 </StackPanel>
 
                                 <!-- Grid/Wrap of Presets -->
@@ -334,10 +369,12 @@
                                                     Classes="subBtn"
                                                     Margin="0,0,8,8"
                                                     Padding="10,6"
-                                                    CornerRadius="7">
+                                                    CornerRadius="7"
+                                                    VerticalContentAlignment="Center"
+                                                    HorizontalContentAlignment="Center">
                                                 <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                                    <Border Width="16" Height="16" CornerRadius="8" Background="{Binding ColorBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
-                                                    <TextBlock Text="{Binding DisplayName}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                    <Border Width="16" Height="16" CornerRadius="8" Background="{Binding ColorBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding DisplayName}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,1,0,0"/>
                                                 </StackPanel>
                                             </Button>
                                         </DataTemplate>
@@ -350,7 +387,7 @@
                                     <Grid ColumnDefinitions="32,*,Auto" ColumnSpacing="8" VerticalAlignment="Center">
                                         <Border Grid.Column="0" Width="30" Height="30" CornerRadius="6" Background="{DynamicResource AccentBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" VerticalAlignment="Center" ToolTip.Tip="Active Theme Color"/>
                                         <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding CustomThemeHex, Mode=TwoWay}" PlaceholderText="#3B82F6" Height="32" VerticalContentAlignment="Center"/>
-                                        <Button Grid.Column="2" Classes="primaryBtn" Command="{Binding ApplyCustomThemeCommand}" Height="32" Padding="16,0" VerticalAlignment="Center" Content="{l10n:Tr Key=set_apply}"/>
+                                        <Button Grid.Column="2" Classes="primaryBtn" Command="{Binding ApplyCustomThemeCommand}" Height="32" Padding="16,0" VerticalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Content="{l10n:Tr Key=set_apply}"/>
                                     </Grid>
                                 </StackPanel>
                             </StackPanel>

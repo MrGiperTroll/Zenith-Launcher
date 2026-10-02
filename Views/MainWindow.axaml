@@ -58,6 +58,9 @@
             <Setter Property="Padding" Value="0"/>
             <Setter Property="Margin" Value="0"/>
             <Setter Property="FocusAdorner" Value="{x:Null}"/>
+            <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="SelectionForegroundBrush" Value="{DynamicResource OnAccentBrush}"/>
+            <Setter Property="CaretBrush" Value="{DynamicResource AccentBrush}"/>
         </Style>
         <Style Selector="TextBox.titleInput:focus /template/ Border#PART_BorderElement">
             <Setter Property="Background" Value="Transparent"/>
@@ -141,6 +144,8 @@
 
         <!-- Primary Buttons -->
         <Style Selector="Button.primaryBtn">
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
             <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
             <Setter Property="FontWeight" Value="Bold"/>
@@ -160,6 +165,8 @@
 
         <!-- Secondary Buttons -->
         <Style Selector="Button.subBtn">
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
             <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderEditorBrush}"/>

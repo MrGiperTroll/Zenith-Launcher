@@ -335,7 +335,7 @@ public partial class MainWindowViewModel : ViewModelBase
         IsSearchJvmArgsVisible = "jvm arguments flags аргументы jvm".Contains(q);
         IsSearchLanguageVisible = "language localization english russian ukrainian turkish german french язык".Contains(q);
         IsSearchDiscordVisible = "discord rpc rich presence application id дискорд".Contains(q);
-        IsSearchAppearanceVisible = "appearance theme color accent name branding внешний вид тема цвет акцент оформление".Contains(q);
+        IsSearchAppearanceVisible = "appearance theme color accent name branding внешний вид тема цвет акцент оформление launcher лаунчер настройки".Contains(q);
     }
 
     [ObservableProperty] private bool _autoManageJava = true;
@@ -430,7 +430,8 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private string _currentSettingsTab = "Game";
     public bool IsSettingsTabGame => CurrentSettingsTab == "Game";
     public bool IsSettingsTabGeneral => CurrentSettingsTab == "General";
-    public bool IsSettingsTabAppearance => CurrentSettingsTab == "Appearance";
+    public bool IsSettingsTabAppearance => CurrentSettingsTab is "Appearance" or "Launcher";
+    public bool IsSettingsTabLauncher => IsSettingsTabAppearance;
 
     [ObservableProperty] private bool _isLockAspectRatio = false;
     [ObservableProperty] private int _maxRamMb = 16384;
@@ -442,6 +443,7 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsSettingsTabGame));
         OnPropertyChanged(nameof(IsSettingsTabGeneral));
         OnPropertyChanged(nameof(IsSettingsTabAppearance));
+        OnPropertyChanged(nameof(IsSettingsTabLauncher));
     }
 
     // Theme Customization

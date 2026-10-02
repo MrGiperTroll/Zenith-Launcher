@@ -104,6 +104,8 @@
         </Style>
         <!-- Utilitarian tactile micro-interactions: crisp press feedback without layout thrashing -->
         <Style Selector="Button">
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
             <Setter Property="RenderTransform" Value="scale(1)"/>
             <Setter Property="Transitions">
                 <Transitions>
@@ -229,6 +231,17 @@
         <Style Selector="ListBox.selectable ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource AccentDimBrush}"/>
         </Style>
+        <!-- FlyoutPresenter: clean dark popup without extra gray frames -->
+        <Style Selector="FlyoutPresenter">
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="6"/>
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+        </Style>
+
         <!-- MenuFlyout and context menus -->
         <Style Selector="MenuFlyoutPresenter">
             <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
@@ -363,12 +376,19 @@
             <Setter Property="Background" Value="{DynamicResource AccentBrushHover}"/>
         </Style>
 
+        <!-- Universal TextBox Selection Highlight: vibrant AccentBrush with white text -->
+        <Style Selector="TextBox">
+            <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="SelectionForegroundBrush" Value="{DynamicResource OnAccentBrush}"/>
+        </Style>
+
         <!-- Compact Numeric Badge Inputs (Used for RAM, ports, counters) -->
         <Style Selector="TextBox.badgeInput">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
             <Setter Property="CaretBrush" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="SelectionBrush" Value="{DynamicResource AccentDimBrush}"/>
+            <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="SelectionForegroundBrush" Value="{DynamicResource OnAccentBrush}"/>
             <Setter Property="FocusAdorner" Value="{x:Null}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="0"/>
@@ -416,7 +436,8 @@
             <Setter Property="Margin" Value="0"/>
             <Setter Property="MinHeight" Value="0"/>
             <Setter Property="FocusAdorner" Value="{x:Null}"/>
-            <Setter Property="SelectionBrush" Value="{DynamicResource AccentDimBrush}"/>
+            <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="SelectionForegroundBrush" Value="{DynamicResource OnAccentBrush}"/>
             <Setter Property="CaretBrush" Value="{DynamicResource AccentBrush}"/>
         </Style>
         <Style Selector="TextBox.titleInput:focus /template/ Border#PART_BorderElement">

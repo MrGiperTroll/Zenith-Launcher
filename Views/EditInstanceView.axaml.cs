@@ -87,4 +87,10 @@ public partial class EditInstanceView : UserControl
         if (sender is Control { DataContext: Models.InstanceFileEntry entry } && DataContext is EditInstanceViewModel vm)
             vm.ShowDataPackDetails(entry);
     }
+
+    private void OnInstanceNameLostFocus(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is EditInstanceViewModel vm)
+            vm.SaveInstanceName();
+    }
 }

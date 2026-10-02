@@ -953,4 +953,12 @@ public partial class EditInstanceViewModel : ViewModelBase
 
         await _instanceService.SaveInstanceAsync(Instance);
     }
+
+    public async void SaveInstanceName()
+    {
+        if (string.IsNullOrWhiteSpace(Instance.Name))
+            Instance.Name = "Profile";
+        await _instanceService.SaveInstanceAsync(Instance);
+        _host?.RefreshState();
+    }
 }

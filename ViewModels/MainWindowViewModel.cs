@@ -455,6 +455,21 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private string _customThemeHex = ZenithTheme.DefaultAccent;
 
+    [ObservableProperty]
+    private bool _isRestartConfirmOpen;
+
+    [ObservableProperty]
+    private string _pendingRestartThemeHex = "";
+
+    [RelayCommand]
+    public void ChooseTheme(string hex)
+    {
+        if (string.IsNullOrWhiteSpace(hex)) return;
+        hex = hex.Trim();
+        if (!hex.StartsWith("#")) hex = "#" + hex;
+        CustomThemeHex = hex;
+    }
+
     [RelayCommand]
     public void SelectTheme(string hex)
     {
@@ -468,9 +483,59 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    public void RequestApplyTheme(string? hex = null)
+    {
+        var targetHex = !string.IsNullOrWhiteSpace(hex) ? hex : CustomThemeHex;
+        if (string.IsNullOrWhiteSpace(targetHex)) return;
+        targetHex = targetHex.Trim();
+        if (!targetHex.StartsWith("#")) targetHex = "#" + targetHex;
+
+        PendingRestartThemeHex = targetHex;
+        IsRestartConfirmOpen = true;
+    }
+
+    [RelayCommand]
+    public void CancelRestartConfirm()
+    {
+        IsRestartConfirmOpen = false;
+        PendingRestartThemeHex = "";
+    }
+
+    [RelayCommand]
+    public void ConfirmRestartAndApplyTheme()
+    {
+        IsRestartConfirmOpen = false;
+        var hex = !string.IsNullOrWhiteSpace(PendingRestartThemeHex) ? PendingRestartThemeHex : CustomThemeHex;
+        SelectTheme(hex);
+
+        try
+        {
+            var exePath = Environment.ProcessPath;
+            if (string.IsNullOrEmpty(exePath))
+                exePath = Process.GetCurrentProcess().MainModule?.FileName;
+
+            if (!string.IsNullOrEmpty(exePath) && System.IO.File.Exists(exePath))
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = exePath,
+                    UseShellExecute = true,
+                    WorkingDirectory = System.IO.Path.GetDirectoryName(exePath)
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Failed to restart launcher: {ex.Message}");
+        }
+
+        Environment.Exit(0);
+    }
+
+    [RelayCommand]
     public void ApplyCustomTheme()
     {
-        SelectTheme(CustomThemeHex);
+        RequestApplyTheme(CustomThemeHex);
     }
 
     partial void OnGameWidthChanged(int value)
@@ -2556,6 +2621,7 @@ public partial class MainWindowViewModel : ViewModelBase
         IsVersionPickerOpen = false;
         IsElyByErrorOpen = false;
         IsDeleteConfirmOpen = false;
+        IsRestartConfirmOpen = false;
         PendingDeleteInstance = null;
         FilterVersions();
     }

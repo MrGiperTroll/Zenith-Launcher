@@ -135,9 +135,19 @@
 
     <Grid RowDefinitions="Auto,*,Auto">
         <!-- Header -->
-        <Grid Grid.Row="0" Margin="20,16,20,12">
-            <StackPanel Spacing="2">
-                <TextBlock Text="{Binding Instance.Name}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+        <Grid Grid.Row="0" Margin="20,14,20,10">
+            <StackPanel Spacing="3">
+                <Border Background="{StaticResource ChipBrush}" CornerRadius="6" Padding="6,2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                    <TextBox Classes="titleInput"
+                             Text="{Binding Instance.Name, Mode=TwoWay}"
+                             FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"
+                             VerticalAlignment="Center" VerticalContentAlignment="Center"
+                             MinWidth="80" MaxWidth="400"
+                             SelectionBrush="{DynamicResource AccentBrush}"
+                             SelectionForegroundBrush="{DynamicResource OnAccentBrush}"
+                             LostFocus="OnInstanceNameLostFocus"
+                             ToolTip.Tip="Double-click to rename"/>
+                </Border>
                 <TextBlock Text="{Binding Instance.DisplayVersion}" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
             </StackPanel>
         </Grid>
@@ -149,6 +159,15 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Spacing="2">
                         <TextBlock Text="{l10n:Tr Key=ei_menu}" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextCaptionBrush}" LetterSpacing="1" Margin="10,6,10,8" HorizontalAlignment="Left"/>
+
+                        <Button Classes="sideTab" Command="{Binding SelectTabCommand}" CommandParameter="Overview">
+                            <Grid ColumnDefinitions="Auto,*">
+                                <Border Width="30" Height="30" Background="{StaticResource IconChipBrush}" CornerRadius="7" VerticalAlignment="Center">
+                                    <PathIcon Data="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" Width="15" Height="15" Foreground="{Binding IsOverviewTab, Converter={x:Static vm:EditInstanceWindowConverters.ActiveIcon}}"/>
+                                </Border>
+                                <TextBlock Grid.Column="1" Text="{l10n:Tr Key=tab_overview}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsOverviewTab, Converter={x:Static vm:EditInstanceWindowConverters.ActiveText}}"/>
+                            </Grid>
+                        </Button>
 
                         <Button Classes="sideTab" Command="{Binding SelectTabCommand}" CommandParameter="Logs">
                             <Button.Styles>
@@ -237,29 +256,198 @@
             <!-- Content -->
             <Border Grid.Column="1" Background="{StaticResource LogSidebarBrush}">
                 <Grid>
-                <!-- Logs -->
-                <Grid IsVisible="{Binding IsLogsTab}" RowDefinitions="Auto,*,Auto" Margin="4">
-                    <!-- Log view options (Prism-style) -->
-                    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="18" Margin="18,10,14,2">
-                        <CheckBox Content="{l10n:Tr Key=opt_follow_output}" IsChecked="{Binding LogsFollowOutput}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11"/>
-                        <CheckBox Content="{l10n:Tr Key=opt_wrap_lines}" IsChecked="{Binding LogsWrapLines}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11"/>
-                        <CheckBox Content="{l10n:Tr Key=opt_show_system}" IsChecked="{Binding LogsShowSystemMessages}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11"/>
-                        <CheckBox Content="{l10n:Tr Key=opt_full_logs}" IsChecked="{Binding LogsFullJava}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11"/>
+                <!-- Overview / Dashboard -->
+                <ScrollViewer IsVisible="{Binding IsOverviewTab}" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Spacing="16" Margin="24,20,24,24">
+                        <TextBlock Text="{l10n:Tr Key=tab_overview}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <!-- Instance Hero Card -->
+                        <Border Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1" CornerRadius="10" Padding="20">
+                            <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
+                                <!-- Instance Icon -->
+                                <Border Width="64" Height="64" CornerRadius="12" ClipToBounds="True" Background="{StaticResource ChipBrush}" BorderBrush="{StaticResource BorderIconBrush}" BorderThickness="1">
+                                    <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <Path IsVisible="{Binding !Instance.HasCustomIcon}"
+                                              Data="{StaticResource ZenithLogoGeometry}"
+                                              Fill="{DynamicResource AccentBrush}"
+                                              Stretch="Uniform"
+                                              Width="38" Height="38"
+                                              Margin="0,2.5,0,0"
+                                              HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <Image IsVisible="{Binding Instance.HasCustomIcon}"
+                                               Source="{Binding Instance.IconBitmap}"
+                                               Stretch="UniformToFill"
+                                               Width="64" Height="64"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Panel>
+                                </Border>
+
+                                <!-- Instance Details -->
+                                <StackPanel Grid.Column="1" Margin="16,0,16,0" VerticalAlignment="Center" Spacing="6">
+                                    <Border Background="{StaticResource ChipBrush}" CornerRadius="6" Padding="6,2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                        <TextBox Classes="titleInput"
+                                                 Text="{Binding Instance.Name, Mode=TwoWay}"
+                                                 FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"
+                                                 VerticalAlignment="Center" VerticalContentAlignment="Center"
+                                                 MinWidth="80" MaxWidth="380"
+                                                 SelectionBrush="{DynamicResource AccentBrush}"
+                                                 SelectionForegroundBrush="{DynamicResource OnAccentBrush}"
+                                                 LostFocus="OnInstanceNameLostFocus"
+                                                 ToolTip.Tip="Double-click to rename"/>
+                                    </Border>
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="4" Padding="8,3">
+                                            <TextBlock Text="{Binding Instance.DisplayVersion}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                        </Border>
+                                        <Border Background="{DynamicResource AccentDimBrush}" BorderBrush="{DynamicResource AccentBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="8,3" IsVisible="{Binding Instance.LoaderType, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}">
+                                            <TextBlock Text="{Binding Instance.LoaderType}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/>
+                                        </Border>
+                                        <Border Background="{StaticResource RowHoverBrush}" BorderBrush="{StaticResource SuccessBrush}" BorderThickness="1" CornerRadius="4" Padding="8,3" IsVisible="{Binding Instance.IsRunning}">
+                                            <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+                                                <Border Width="6" Height="6" CornerRadius="3" Background="{StaticResource SuccessBrush}" VerticalAlignment="Center"/>
+                                                <TextBlock Text="Running" FontSize="11" FontWeight="Bold" Foreground="{StaticResource SuccessBrush}" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="4" Padding="8,3" IsVisible="{Binding !Instance.IsRunning}">
+                                            <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+                                                <Border Width="6" Height="6" CornerRadius="3" Background="{StaticResource TextDisabledBrush}" VerticalAlignment="Center"/>
+                                                <TextBlock Text="Ready" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- Single Clean Open Folder Button next to instance details -->
+                                <Button Grid.Column="2" Classes="subBtn" Command="{Binding OpenInstanceFolderCommand}" Padding="16,9" VerticalAlignment="Center" ToolTip.Tip="{l10n:Tr Key=btn_open_folder}">
+                                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <PathIcon Data="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="14" Height="14" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=btn_open_folder}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+                        </Border>
+
+                        <!-- Overview Stats Grid (Lunar Client Styled) -->
+                        <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
+                            <!-- Card 1: Game Version -->
+                            <Border Grid.Column="0" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1" CornerRadius="10" Padding="14">
+                                <StackPanel Spacing="6">
+                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                        <PathIcon Data="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" Width="14" Height="14" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=lbl_version}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextPlaceholderBrush}" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding Instance.DisplayVersion}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="{Binding Instance.LoaderType, FallbackValue='Vanilla'}" FontSize="10.5" Foreground="{StaticResource TextMutedBrush}"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Card 2: Memory Allocated -->
+                            <Border Grid.Column="1" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1" CornerRadius="10" Padding="14">
+                                <StackPanel Spacing="6">
+                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                        <PathIcon Data="M2 9V7h2V5c0-1.1.9-2 2-2h12c1.1 0 2 .9 2 2v2h2v2h-2v2h2v2h-2v2h2v2h-2v2c0 1.1-.9 2-2 2H6c-1.1 0-2-.9-2-2v-2H2v-2h2v-2H2v-2h2V9H2zm4-4v14h12V5H6zm3 2h2v2H9V7zm0 4h2v2H9v-2zm0 4h2v2H9v-2zm4-8h2v2h-2V7zm0 4h2v2h-2v-2zm0 4h2v2h-2v-2z" Width="14" Height="14" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=set_memory}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextPlaceholderBrush}" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding RamMb, StringFormat='{}{0} MB'}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="{Binding MaxRamMb, StringFormat='Max available: {0} MB'}" FontSize="10.5" Foreground="{StaticResource TextMutedBrush}"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Card 3: Java Runtime -->
+                            <Border Grid.Column="2" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1" CornerRadius="10" Padding="14">
+                                <StackPanel Spacing="6">
+                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                        <PathIcon Data="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z" Width="14" Height="14" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=set_java}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextPlaceholderBrush}" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding SelectedJavaMode}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="{Binding JavaDisplayPath}" FontSize="10.5" Foreground="{StaticResource TextMutedBrush}" TextTrimming="CharacterEllipsis"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
                     </StackPanel>
-                    <Border Grid.Row="1" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource PanelBrush}" BorderThickness="1" CornerRadius="8" Padding="10" Margin="14,6,14,4" IsVisible="{Binding LogHasContent}">
-                        <ScrollViewer x:Name="LogScroll" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
-                                      ScrollChanged="OnLogScrollChanged">
-                            <SelectableTextBlock Text="{Binding LogText}" TextWrapping="{Binding LogTextWrapping}"
-                                       FontFamily="Consolas, Cascadia Code, Courier New" FontSize="11"
-                                       Foreground="{StaticResource TextSoftBrush}" MinWidth="600"/>
-                        </ScrollViewer>
+                </ScrollViewer>
+
+                <!-- Logs (Lunar Client styled terminal) -->
+                <Grid IsVisible="{Binding IsLogsTab}" RowDefinitions="Auto,*" Margin="16,14,16,14">
+                    <!-- Top Toolbar -->
+                    <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Margin="2,0,2,12" VerticalAlignment="Center">
+                        <!-- Left: Title & Status -->
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                            <TextBlock Text="{l10n:Tr Key=tab_logs}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            <Border Background="{StaticResource RowHoverBrush}" BorderBrush="{StaticResource SuccessBrush}" BorderThickness="1" CornerRadius="4" Padding="7,2" IsVisible="{Binding Instance.IsRunning}" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+                                    <Border Width="6" Height="6" CornerRadius="3" Background="{StaticResource SuccessBrush}" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Active" FontSize="10" FontWeight="Bold" Foreground="{StaticResource SuccessBrush}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="4" Padding="7,2" IsVisible="{Binding !Instance.IsRunning}" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+                                    <Border Width="6" Height="6" CornerRadius="3" Background="{StaticResource TextDisabledBrush}" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Idle" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- Middle: Log view options -->
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="14" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <CheckBox Content="{l10n:Tr Key=opt_follow_output}" IsChecked="{Binding LogsFollowOutput}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" VerticalAlignment="Center"/>
+                            <CheckBox Content="{l10n:Tr Key=opt_wrap_lines}" IsChecked="{Binding LogsWrapLines}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" VerticalAlignment="Center"/>
+                            <CheckBox Content="{l10n:Tr Key=opt_show_system}" IsChecked="{Binding LogsShowSystemMessages}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" VerticalAlignment="Center"/>
+                            <CheckBox Content="{l10n:Tr Key=opt_full_logs}" IsChecked="{Binding LogsFullJava}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" VerticalAlignment="Center"/>
+                        </StackPanel>
+
+                        <!-- Right: Actions -->
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <Button Classes="subBtn" Command="{Binding CopyLogsCommand}" Padding="12,6" FontSize="11" VerticalAlignment="Center" ToolTip.Tip="{l10n:Tr Key=btn_copy_logs}">
+                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                    <PathIcon Data="M16 1H4C2.9 1 2 1.9 2 3v14h2V3h12V1zm3 4H8C6.9 5 6 5.9 6 7v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" Width="13" Height="13" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{l10n:Tr Key=btn_copy_logs}" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Classes="subBtn" Command="{Binding OpenInstanceFolderCommand}" Padding="12,6" FontSize="11" VerticalAlignment="Center" ToolTip.Tip="{l10n:Tr Key=btn_open_folder}">
+                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                    <PathIcon Data="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="13" Height="13" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{l10n:Tr Key=btn_open_folder}" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Terminal Card -->
+                    <Border Grid.Row="1" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1" CornerRadius="10" ClipToBounds="True">
+                        <Grid RowDefinitions="Auto,*">
+                            <!-- Terminal Header Strip -->
+                            <Border Grid.Row="0" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,0,1" Padding="12,7">
+                                <Grid ColumnDefinitions="Auto,*,Auto">
+                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                        <Border Width="8" Height="8" CornerRadius="4" Background="#E05252" VerticalAlignment="Center"/>
+                                        <Border Width="8" Height="8" CornerRadius="4" Background="#E5A638" VerticalAlignment="Center"/>
+                                        <Border Width="8" Height="8" CornerRadius="4" Background="#43A047" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1" Text="{Binding Instance.Name, StringFormat='{}{0} ~ console'}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding Instance.DisplayVersion}" FontSize="10" Foreground="{StaticResource TextPlaceholderBrush}" VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- Terminal Content -->
+                            <Panel Grid.Row="1">
+                                <ScrollViewer x:Name="LogScroll" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                                              ScrollChanged="OnLogScrollChanged" Padding="14,10"
+                                              IsVisible="{Binding LogHasContent}">
+                                    <SelectableTextBlock Text="{Binding LogText}" TextWrapping="{Binding LogTextWrapping}"
+                                                         FontFamily="Consolas, Cascadia Code, Courier New" FontSize="11"
+                                                         Foreground="{StaticResource TextSoftBrush}" MinWidth="600"/>
+                                </ScrollViewer>
+
+                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8" IsVisible="{Binding !LogHasContent}">
+                                    <PathIcon Data="M20 19V7H4V19H20M20 3C21.1 3 22 3.9 22 5V19C22 20.1 21.1 21 20 21H4C2.9 21 2 20.1 2 19V5C2 3.9 2.9 3 4 3H20M13 13H17V15H13M13 9H17V11H13M13 17H17V19H13M7 13H11V15H7V17M7 9H11V11H7V13Z"
+                                              Width="32" Height="32" Foreground="{StaticResource TextPlaceholderBrush}" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding LogText}" TextWrapping="Wrap" FontFamily="Consolas, Cascadia Code, Courier New"
+                                               FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}" TextAlignment="Center"/>
+                                </StackPanel>
+                            </Panel>
+                        </Grid>
                     </Border>
-                    <SelectableTextBlock Grid.Row="1" Text="{Binding LogText}" TextWrapping="Wrap" FontFamily="Consolas, Cascadia Code, Courier New"
-                               FontSize="11" Foreground="{StaticResource TextSoftBrush}" Margin="20,16" IsVisible="{Binding !LogHasContent}"/>
-                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,4,14,10">
-                        <Button Classes="subBtn" Content="{l10n:Tr Key=btn_copy_logs}" Command="{Binding CopyLogsCommand}" Padding="14,7" FontSize="12"/>
-                        <Button Classes="subBtn" Content="{l10n:Tr Key=btn_open_folder}" Command="{Binding OpenInstanceFolderCommand}" Padding="14,7" FontSize="12" Margin="8,0,0,0"/>
-                    </StackPanel>
                 </Grid>
 
                 <!-- Mods -->
@@ -418,74 +606,160 @@
                     <views:FileListView x:Name="ScreenshotView" DataContext="{Binding ScreenshotList}"/>
                 </Grid>
 
-                <!-- Settings -->
+                <!-- Settings (Lunar Client styled grouped cards) -->
                 <ScrollViewer IsVisible="{Binding IsSettingsTab}" VerticalScrollBarVisibility="Auto">
-                    <StackPanel Spacing="18" Margin="20,12,20,16">
-                        <StackPanel Spacing="6">
-                            <TextBlock Text="{l10n:Tr Key=set_game}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                    <StackPanel Spacing="16" Margin="24,16,24,24">
+                        <!-- Header -->
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="{l10n:Tr Key=set_game}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
                             <TextBlock Text="{l10n:Tr Key=ei_inherit_note}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}" TextWrapping="Wrap"/>
                         </StackPanel>
 
-                        <StackPanel Spacing="4">
-                            <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,2">
-                                <Button Grid.Column="1" Classes="resetBtn" Content="{l10n:Tr Key=btn_reset}" Command="{Binding ResetMemoryCommand}" IsVisible="{Binding CanResetMemory}" FontSize="11" Padding="10,4" VerticalAlignment="Center"/>
-                            </Grid>
-                            <views:RamCardControl Title="{l10n:Tr Key=set_memory}"
-                                                  Subtitle="{l10n:Tr Key=set_memory_hint}"
-                                                  Value="{Binding RamMb}"
-                                                  Minimum="1024"
-                                                  Maximum="{Binding MaxRamMb}"
-                                                  TickFrequency="512"/>
-                            <TextBlock Text="{l10n:Tr Key=ei_inherited_generic}" FontSize="10" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding IsMemoryInherited}"/>
-                        </StackPanel>
+                        <!-- Locked notification banner if running -->
+                        <Border IsVisible="{Binding !CanEdit}" Background="{StaticResource WarningBgBrush}" BorderBrush="{StaticResource WarningBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="14,10">
+                            <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                <PathIcon Data="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" Width="16" Height="16" Foreground="{StaticResource WarningBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Text="{l10n:Tr Key=instance_running_locked}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource WarningBrightBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
 
-                        <StackPanel Spacing="6">
-                            <Grid ColumnDefinitions="*,Auto">
-                                <TextBlock Text="{l10n:Tr Key=lbl_window_size}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                                <Button Grid.Column="1" Classes="resetBtn" Content="{l10n:Tr Key=btn_reset}" Command="{Binding ResetWindowCommand}" IsVisible="{Binding CanResetWindow}" FontSize="11" Padding="10,4" VerticalAlignment="Center"/>
-                            </Grid>
-                            <TextBlock Text="{l10n:Tr Key=ei_inherited_generic}" FontSize="10" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding IsWindowInherited}"/>
-                            <Grid ColumnDefinitions="Auto,70,14,70,14,Auto" VerticalAlignment="Center">
-                                <TextBlock Text="W" FontSize="12" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,4,0"/>
-                                <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding GameWidth}" FontSize="12" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="26"/>
-                                <TextBlock Grid.Column="2" Text="×" FontSize="14" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                <TextBox Grid.Column="3" Classes="darkInput" Text="{Binding GameHeight}" FontSize="12" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="26"/>
-                                <TextBlock Grid.Column="4" Text="H" FontSize="12" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
-                            </Grid>
-                            <CheckBox Content="{l10n:Tr Key=set_fullscreen}" IsChecked="{Binding IsFullscreen}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" FontWeight="Bold" VerticalAlignment="Center" Margin="0,4,0,0"/>
-                        </StackPanel>
+                        <StackPanel Spacing="16" IsEnabled="{Binding CanEdit}">
+                            <!-- CARD 1: Memory Allocation -->
+                            <Border Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1" CornerRadius="10" Padding="18">
+                                <StackPanel Spacing="12">
+                                    <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
+                                        <Border Width="34" Height="34" Background="{StaticResource IconChipBrush}" CornerRadius="8" VerticalAlignment="Center" Margin="0,0,12,0">
+                                            <PathIcon Data="M2 9V7h2V5c0-1.1.9-2 2-2h12c1.1 0 2 .9 2 2v2h2v2h-2v2h2v2h-2v2h2v2h-2v2c0 1.1-.9 2-2 2H6c-1.1 0-2-.9-2-2v-2H2v-2h2v-2H2v-2h2V9H2zm4-4v14h12V5H6zm3 2h2v2H9V7zm0 4h2v2H9v-2zm0 4h2v2H9v-2zm4-8h2v2h-2V7zm0 4h2v2h-2v-2zm0 4h2v2h-2v-2z" Width="16" Height="16" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                            <TextBlock Text="{l10n:Tr Key=set_memory}" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                            <TextBlock Text="{l10n:Tr Key=set_memory_hint}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                            <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="4" Padding="6,2" IsVisible="{Binding IsMemoryInherited}" VerticalAlignment="Center">
+                                                <TextBlock Text="{l10n:Tr Key=ei_inherited_generic}" FontSize="10" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                                            </Border>
+                                            <Button Classes="resetBtn" Content="{l10n:Tr Key=btn_reset}" Command="{Binding ResetMemoryCommand}" IsVisible="{Binding CanResetMemory}" FontSize="11" Padding="10,4" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Grid>
 
-                        <StackPanel Spacing="6">
-                            <Grid ColumnDefinitions="*,Auto">
-                                <TextBlock Text="{l10n:Tr Key=set_java}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                                <Button Grid.Column="1" Classes="resetBtn" Content="{l10n:Tr Key=btn_reset}" Command="{Binding ResetJavaCommand}" IsVisible="{Binding CanResetJava}" FontSize="11" Padding="10,4" VerticalAlignment="Center"/>
-                            </Grid>
-                            <TextBlock Text="{Binding JavaDisplayPath}" FontSize="11" Foreground="{StaticResource AccentBrush}"/>
-                            <TextBlock Text="{l10n:Tr Key=ei_inherited_generic}" FontSize="10" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding IsJavaInherited}"/>
-                            <ComboBox ItemsSource="{Binding JavaModes}" SelectedItem="{Binding SelectedJavaMode}" HorizontalAlignment="Stretch">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding Converter={x:Static vm:JavaModeDisplayConverter.Instance}}"/>
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
-                            <Grid ColumnDefinitions="*,Auto">
-                                <TextBox Classes="darkInput" Text="{Binding CustomJavaPath}" PlaceholderText="{l10n:Tr Key=custom_java_hint}" FontSize="11" Padding="8,5"/>
-                                <Button Grid.Column="1" Classes="subBtn" Content="{l10n:Tr Key=browse}" Command="{Binding PickCustomJavaCommand}" Margin="6,0,0,0" Padding="10,5" FontSize="11"/>
-                            </Grid>
-                        </StackPanel>
+                                    <views:RamCardControl Title="{l10n:Tr Key=set_memory}"
+                                                          Subtitle="{l10n:Tr Key=set_memory_hint}"
+                                                          Value="{Binding RamMb}"
+                                                          Minimum="1024"
+                                                          Maximum="{Binding MaxRamMb}"
+                                                          TickFrequency="512"/>
+                                </StackPanel>
+                            </Border>
 
-                        <StackPanel Spacing="6">
-                            <Grid ColumnDefinitions="*,Auto">
-                                <TextBlock Text="{l10n:Tr Key=set_jvmargs}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                                <Button Grid.Column="1" Classes="resetBtn" Content="{l10n:Tr Key=btn_reset}" Command="{Binding ResetJvmArgsCommand}" IsVisible="{Binding CanResetJvmArgs}" FontSize="11" Padding="10,4" VerticalAlignment="Center"/>
-                            </Grid>
-                            <TextBlock Text="{l10n:Tr Key=ei_jvm_hint}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
-                            <TextBlock Text="{l10n:Tr Key=ei_inherited_generic}" FontSize="10" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding IsJvmArgsInherited}"/>
-                            <TextBox Classes="darkInput" Text="{Binding JvmArgs}" PlaceholderText="-XX:+UseG1GC ..." Padding="8,6" FontSize="11" AcceptsReturn="True" Height="60" TextWrapping="Wrap"/>
-                        </StackPanel>
+                            <!-- CARD 2: Window Size & Display -->
+                            <Border Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1" CornerRadius="10" Padding="18">
+                                <StackPanel Spacing="14">
+                                    <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
+                                        <Border Width="34" Height="34" Background="{StaticResource IconChipBrush}" CornerRadius="8" VerticalAlignment="Center" Margin="0,0,12,0">
+                                            <PathIcon Data="M20 3H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h6l-2 2v1h8v-1l-2-2h6c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 13H4V5h16v11z" Width="16" Height="16" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                            <TextBlock Text="{l10n:Tr Key=lbl_window_size}" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                            <TextBlock Text="Set default game window resolution and fullscreen state" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                            <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="4" Padding="6,2" IsVisible="{Binding IsWindowInherited}" VerticalAlignment="Center">
+                                                <TextBlock Text="{l10n:Tr Key=ei_inherited_generic}" FontSize="10" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                                            </Border>
+                                            <Button Classes="resetBtn" Content="{l10n:Tr Key=btn_reset}" Command="{Binding ResetWindowCommand}" IsVisible="{Binding CanResetWindow}" FontSize="11" Padding="10,4" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Grid>
 
-                        <TextBlock Text="{l10n:Tr Key=ei_autosave_note}" FontSize="11" Foreground="{StaticResource TextCaptionBrush}"/>
+                                    <Grid ColumnDefinitions="Auto,Auto,*" VerticalAlignment="Center" ColumnSpacing="18">
+                                        <!-- Width x Height inputs -->
+                                        <Grid ColumnDefinitions="Auto,80,18,80,Auto" VerticalAlignment="Center">
+                                            <TextBlock Text="W" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                            <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding GameWidth}" FontSize="12" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="30"/>
+                                            <TextBlock Grid.Column="2" Text="×" FontSize="14" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                            <TextBox Grid.Column="3" Classes="darkInput" Text="{Binding GameHeight}" FontSize="12" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="30"/>
+                                            <TextBlock Grid.Column="4" Text="H" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                        </Grid>
+
+                                        <!-- Fullscreen checkbox -->
+                                        <CheckBox Grid.Column="1" Content="{l10n:Tr Key=set_fullscreen}" IsChecked="{Binding IsFullscreen}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- CARD 3: Java Runtime -->
+                            <Border Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1" CornerRadius="10" Padding="18">
+                                <StackPanel Spacing="14">
+                                    <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
+                                        <Border Width="34" Height="34" Background="{StaticResource IconChipBrush}" CornerRadius="8" VerticalAlignment="Center" Margin="0,0,12,0">
+                                            <PathIcon Data="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z" Width="16" Height="16" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                            <TextBlock Text="{l10n:Tr Key=set_java}" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                            <TextBlock Text="{Binding JavaDisplayPath}" FontSize="11" Foreground="{DynamicResource AccentBrush}" TextTrimming="CharacterEllipsis"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                            <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="4" Padding="6,2" IsVisible="{Binding IsJavaInherited}" VerticalAlignment="Center">
+                                                <TextBlock Text="{l10n:Tr Key=ei_inherited_generic}" FontSize="10" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                                            </Border>
+                                            <Button Classes="resetBtn" Content="{l10n:Tr Key=btn_reset}" Command="{Binding ResetJavaCommand}" IsVisible="{Binding CanResetJava}" FontSize="11" Padding="10,4" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <StackPanel Spacing="8">
+                                        <ComboBox ItemsSource="{Binding JavaModes}" SelectedItem="{Binding SelectedJavaMode}" HorizontalAlignment="Stretch">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Converter={x:Static vm:JavaModeDisplayConverter.Instance}}"/>
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <TextBox Classes="darkInput" Text="{Binding CustomJavaPath}" PlaceholderText="{l10n:Tr Key=custom_java_hint}" FontSize="11" Padding="10,8"/>
+                                            <Button Grid.Column="1" Classes="subBtn" Content="{l10n:Tr Key=browse}" Command="{Binding PickCustomJavaCommand}" Margin="8,0,0,0" Padding="14,8" FontSize="11"/>
+                                        </Grid>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- CARD 4: JVM Arguments -->
+                            <Border Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1" CornerRadius="10" Padding="18">
+                                <StackPanel Spacing="12">
+                                    <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
+                                        <Border Width="34" Height="34" Background="{StaticResource IconChipBrush}" CornerRadius="8" VerticalAlignment="Center" Margin="0,0,12,0">
+                                            <PathIcon Data="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V6h16v12zM6 10l3 3-3 3 1.4 1.4L11.8 13l-4.4-4.4L6 10zm6 5h6v2h-6z" Width="16" Height="16" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                            <TextBlock Text="{l10n:Tr Key=set_jvmargs}" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                            <TextBlock Text="{l10n:Tr Key=ei_jvm_hint}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                            <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="4" Padding="6,2" IsVisible="{Binding IsJvmArgsInherited}" VerticalAlignment="Center">
+                                                <TextBlock Text="{l10n:Tr Key=ei_inherited_generic}" FontSize="10" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                                            </Border>
+                                            <Button Classes="resetBtn" Content="{l10n:Tr Key=btn_reset}" Command="{Binding ResetJvmArgsCommand}" IsVisible="{Binding CanResetJvmArgs}" FontSize="11" Padding="10,4" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <TextBox Classes="darkInput" Text="{Binding JvmArgs}" PlaceholderText="-XX:+UseG1GC -XX:+ParallelRefProcEnabled ..." Padding="10,8" FontSize="11" FontFamily="Consolas, Cascadia Code, Courier New" AcceptsReturn="True" Height="70" TextWrapping="Wrap"/>
+
+                                    <Border Background="{StaticResource DangerBgBrush}" BorderBrush="{StaticResource DangerBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,4,0,0" IsVisible="{Binding HasJvmArgsWarning}">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <StackPanel Spacing="3">
+                                                <TextBlock Text="{l10n:Tr Key=jvm_warn_title}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource DangerBrush}"/>
+                                                <TextBlock Text="{Binding JvmArgsWarningMessage}" FontSize="11" Foreground="{StaticResource DangerLightBrush}" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <Button Grid.Column="1" Classes="dangerBtn" Content="{l10n:Tr Key=btn_clean_jvm_flags}" Command="{Binding CleanIncompatibleJvmArgsCommand}" FontSize="11" Padding="12,6" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+
+                            <StackPanel Orientation="Horizontal" Spacing="6" Margin="2,4,0,0">
+                                <PathIcon Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" Width="12" Height="12" Foreground="{StaticResource TextCaptionBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Text="{l10n:Tr Key=ei_autosave_note}" FontSize="11" Foreground="{StaticResource TextCaptionBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </StackPanel>
                     </StackPanel>
                 </ScrollViewer>
                 </Grid>

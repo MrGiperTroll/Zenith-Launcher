@@ -533,7 +533,7 @@
                                             <StackPanel Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
                                                 <Border Width="68" Height="68" Background="{StaticResource ChipBrush}" CornerRadius="12" HorizontalAlignment="Center" ClipToBounds="True">
                                                     <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                        <Path IsVisible="{Binding IconBitmap, Converter={x:Static conv:ObjectConverters.IsNull}}" Data="{StaticResource ZenithLogoGeometry}" Fill="{StaticResource SubtleEmeraldBrush}" Stretch="Uniform" Width="40" Height="40" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <Path IsVisible="{Binding IconBitmap, Converter={x:Static conv:ObjectConverters.IsNull}}" Data="{StaticResource ZenithLogoGeometry}" Fill="{StaticResource SubtleEmeraldBrush}" Stretch="Uniform" Width="40" Height="40" Margin="0,2.5,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                         <Image IsVisible="{Binding IconBitmap, Converter={x:Static conv:ObjectConverters.IsNotNull}}" Source="{Binding IconBitmap}" Stretch="UniformToFill" Width="68" Height="68" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                     </Panel>
                                                 </Border>
@@ -586,6 +586,7 @@
                                                           Fill="{StaticResource SubtleEmeraldBrush}" 
                                                           Stretch="Uniform" 
                                                           Width="42" Height="42" 
+                                                          Margin="0,2.5,0,0"
                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                     <Image IsVisible="{Binding SelectedInstance.IconBitmap, Converter={x:Static conv:ObjectConverters.IsNotNull}}" 
                                                            Source="{Binding SelectedInstance.IconBitmap}" 
@@ -915,6 +916,25 @@
             </Border>
         </Border>
 
+        <!-- MODAL: Restart Confirmation (Theme Application) -->
+        <Border IsVisible="{Binding IsRestartConfirmOpen}" Background="{StaticResource OverlayBrush}">
+            <Border Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="400" Padding="22" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel Spacing="14">
+                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                        <Border Width="30" Height="30" CornerRadius="15" Background="{DynamicResource AccentSoftBrush}" VerticalAlignment="Center">
+                            <PathIcon Data="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0020 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A7.93 7.93 0 004 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z" Width="15" Height="15" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="{l10n:Tr Key=dialog_restart_title}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <TextBlock Text="{l10n:Tr Key=dialog_restart_theme_msg}" TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12.5" LineHeight="18"/>
+                    <Grid ColumnDefinitions="*,*" Margin="0,4,0,0">
+                        <Button Grid.Column="0" Content="{l10n:Tr Key=no}" Command="{Binding CancelRestartConfirmCommand}" Classes="subBtn" HorizontalContentAlignment="Center" Margin="0,0,6,0" Height="36"/>
+                        <Button Grid.Column="1" Classes="primaryBtn" Content="{l10n:Tr Key=yes}" Command="{Binding ConfirmRestartAndApplyThemeCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="6,0,0,0" Height="36"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Border>
+
         <!-- MODAL: Modpack Delete Confirmation -->
         <Border IsVisible="{Binding ModpacksBrowser.IsDeleteConfirmOpen}" Background="{StaticResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1"
@@ -963,7 +983,7 @@
                                 BorderBrush="{StaticResource BorderInputBrush}" BorderThickness="1"
                                 HorizontalAlignment="Center" ClipToBounds="True">
                             <Path Data="{StaticResource ZenithLogoGeometry}" Fill="{StaticResource SubtleEmeraldBrush}"
-                                  Stretch="Uniform" Width="50" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                  Stretch="Uniform" Width="50" Height="50" Margin="0,3,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <TextBlock Text="{Binding LauncherName}" FontSize="22" FontWeight="Bold" HorizontalAlignment="Center"
                                    Foreground="{StaticResource TextPrimaryBrush}" Margin="0,12,0,0"/>

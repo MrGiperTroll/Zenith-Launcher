@@ -221,8 +221,101 @@ public partial class MainWindow : Window
             _ = vm.ModpacksBrowser.LoadMoreAsync();
     }
 
+    private Border? _draggedCard;
+    private InstanceModel? _draggedInstance;
+    private Point _dragStartPos;
+    private bool _isDragging;
+    private bool _suppressNextTap;
+
+    private void OnInstanceCardPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed && sender is Border border && border.DataContext is InstanceModel instance)
+        {
+            _draggedCard = border;
+            _draggedInstance = instance;
+            _dragStartPos = e.GetPosition(this);
+            _isDragging = false;
+        }
+    }
+
+    private void OnInstanceCardPointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (_draggedCard == null || _draggedInstance == null) return;
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        {
+            ResetDrag();
+            return;
+        }
+
+        var currentPos = e.GetPosition(this);
+        var diff = currentPos - _dragStartPos;
+
+        if (!_isDragging && (Math.Abs(diff.X) > 8 || Math.Abs(diff.Y) > 8))
+        {
+            _isDragging = true;
+            _draggedCard.Opacity = 0.55;
+            e.Pointer.Capture(_draggedCard);
+        }
+    }
+
+    private void OnInstanceCardPointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        if (_draggedCard == null || _draggedInstance == null)
+        {
+            ResetDrag();
+            return;
+        }
+
+        if (_isDragging)
+        {
+            _suppressNextTap = true;
+            e.Pointer.Capture(null);
+
+            var hit = this.InputHitTest(e.GetPosition(this)) as Visual;
+            var targetCard = hit?.FindAncestorOfType<Border>(includeSelf: true);
+            while (targetCard != null && !targetCard.Classes.Contains("instanceCard"))
+            {
+                targetCard = targetCard.FindAncestorOfType<Border>(includeSelf: false);
+            }
+
+            if (targetCard != null && targetCard != _draggedCard && targetCard.DataContext is InstanceModel targetInstance && DataContext is MainWindowViewModel vm)
+            {
+                var relPos = e.GetPosition(targetCard);
+                bool dropAfter = relPos.X > targetCard.Bounds.Width / 2;
+                vm.ReorderInstance(_draggedInstance.Id, targetInstance.Id, dropAfter);
+            }
+
+            e.Handled = true;
+        }
+
+        ResetDrag();
+    }
+
+    private void OnInstanceCardPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
+    {
+        ResetDrag();
+    }
+
+    private void ResetDrag()
+    {
+        if (_draggedCard != null)
+        {
+            _draggedCard.Opacity = 1.0;
+        }
+        _draggedCard = null;
+        _draggedInstance = null;
+        _isDragging = false;
+    }
+
     private void OnInstanceCardTapped(object? sender, TappedEventArgs e)
     {
+        if (_suppressNextTap)
+        {
+            _suppressNextTap = false;
+            e.Handled = true;
+            return;
+        }
+
         if (sender is Control { DataContext: Models.InstanceModel instance } && DataContext is MainWindowViewModel vm)
             vm.SelectInstanceCommand.Execute(instance);
     }

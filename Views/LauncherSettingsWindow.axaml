@@ -172,7 +172,7 @@
                                         <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="5" Height="26" Padding="8,0" VerticalAlignment="Center">
                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                 <TextBox Classes="badgeInput" Text="{Binding MinRamMb, Mode=TwoWay}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" TextAlignment="Right" VerticalAlignment="Center" BorderThickness="0" Background="Transparent" MinWidth="34"/>
-                                                <TextBlock Text="MB" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="2,0,0,0" IsHitTestVisible="False"/>
+                                                <TextBlock Text="MB" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="5,0,0,0" IsHitTestVisible="False"/>
                                             </StackPanel>
                                         </Border>
                                         <Button Command="{Binding StepMinRamUpCommand}" Classes="subBtn" Width="26" Height="26" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" ToolTip.Tip="Increase RAM">
@@ -193,7 +193,7 @@
                                         <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="5" Height="26" Padding="8,0" VerticalAlignment="Center">
                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                 <TextBox Classes="badgeInput" Text="{Binding RamMb, Mode=TwoWay}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" TextAlignment="Right" VerticalAlignment="Center" BorderThickness="0" Background="Transparent" MinWidth="34"/>
-                                                <TextBlock Text="MB" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="2,0,0,0" IsHitTestVisible="False"/>
+                                                <TextBlock Text="MB" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="5,0,0,0" IsHitTestVisible="False"/>
                                             </StackPanel>
                                         </Border>
                                         <Button Command="{Binding StepRamUpCommand}" Classes="subBtn" Width="26" Height="26" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" ToolTip.Tip="Increase RAM">
@@ -204,54 +204,82 @@
                             </StackPanel>
                         </Border>
 
-                        <!-- Resolution -->
-                        <StackPanel Spacing="6" IsVisible="{Binding IsSearchResolutionVisible}">
-                            <TextBlock Text="{l10n:Tr set_resolution}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                            <Grid ColumnDefinitions="Auto,60,14,60,14,Auto,Auto" VerticalAlignment="Center">
-                                <TextBlock Text="W" FontSize="12" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,4,0"/>
-                                <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding GameWidth}" FontSize="12" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="26"/>
-                                <TextBlock Grid.Column="2" Text="×" FontSize="14" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                <TextBox Grid.Column="3" Classes="darkInput" Text="{Binding GameHeight}" FontSize="12" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="26"/>
-                                <TextBlock Grid.Column="4" Text="H" FontSize="12" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
-                                <CheckBox Grid.Column="5" IsChecked="{Binding IsLockAspectRatio}" Content="{l10n:Tr Key=lock_ratio}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="10,0,0,0"/>
-                            </Grid>
-                        </StackPanel>
-
-                        <!-- Fullscreen -->
-                        <StackPanel Spacing="4" IsVisible="{Binding IsSearchFullscreenVisible}" Margin="0,4,0,0">
-                            <CheckBox Content="{l10n:Tr set_fullscreen}" IsChecked="{Binding IsFullscreen}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"/>
-                        </StackPanel>
+                        <!-- Resolution & Fullscreen -->
+                        <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="14,12" IsVisible="{Binding IsSearchResolutionVisible}">
+                            <StackPanel Spacing="10">
+                                <TextBlock Text="{l10n:Tr set_resolution}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                <Grid ColumnDefinitions="Auto,60,14,60,14,Auto,Auto" VerticalAlignment="Center">
+                                    <TextBlock Text="W" FontSize="12" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                    <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding GameWidth}" FontSize="12" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="26"/>
+                                    <TextBlock Grid.Column="2" Text="×" FontSize="14" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                    <TextBox Grid.Column="3" Classes="darkInput" Text="{Binding GameHeight}" FontSize="12" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="26"/>
+                                    <TextBlock Grid.Column="4" Text="H" FontSize="12" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                    <CheckBox Grid.Column="5" IsChecked="{Binding IsLockAspectRatio}" Content="{l10n:Tr Key=lock_ratio}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                </Grid>
+                                <CheckBox Content="{l10n:Tr set_fullscreen}" IsChecked="{Binding IsFullscreen}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" FontWeight="SemiBold" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </Border>
 
                         <!-- Java Runtime -->
-                        <StackPanel Spacing="6" IsVisible="{Binding IsSearchJavaVisible}">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <TextBlock Text="{l10n:Tr set_java}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="14,12" IsVisible="{Binding IsSearchJavaVisible}">
+                            <StackPanel Spacing="10">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="{l10n:Tr set_java}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                </StackPanel>
+                                <TextBlock Text="{l10n:Tr set_java_hint}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                                <CheckBox Content="{l10n:Tr set_autojava}" IsChecked="{Binding AutoManageJava}" Margin="0,0,0,0" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12"/>
+                                <Grid ColumnDefinitions="190,Auto,*,Auto" ColumnSpacing="8" VerticalAlignment="Center">
+                                    <ComboBox Grid.Column="0" MinHeight="30" ItemsSource="{Binding JavaModes}" SelectedItem="{Binding SelectedJavaMode}"
+                                              VerticalAlignment="Center" VerticalContentAlignment="Center" HorizontalAlignment="Stretch">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Converter={x:Static vm:JavaModeDisplayConverter.Instance}}"/>
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                    <Button Grid.Column="1" Classes="subBtn" Width="30" Height="30" Padding="0"
+                                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                            ToolTip.Tip="{l10n:Tr Key=java_plus_tip}"
+                                            Command="{Binding OpenJavaInstallerCommand}">
+                                        <PathIcon Data="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" Width="11" Height="11" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                    </Button>
+                                    <TextBlock Grid.Column="2" Text="{Binding CurrentJavaDisplay}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                </Grid>
+                                <!-- Always-Visible Editable Java Path Row + Browse Button -->
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                    <TextBox Grid.Column="0" Classes="darkInput" Text="{Binding EffectiveJavaPath}" PlaceholderText="{l10n:Tr Key=custom_java_hint}" FontSize="11" Padding="8,5"/>
+                                    <Button Grid.Column="1" Classes="subBtn" Content="{l10n:Tr Key=btn_browse}" Command="{Binding BrowseJavaPathCommand}" Padding="12,0" Height="30" FontSize="11" VerticalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+                                </Grid>
                             </StackPanel>
-                            <TextBlock Text="{l10n:Tr set_java_hint}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
-                            <CheckBox Content="{l10n:Tr set_autojava}" IsChecked="{Binding AutoManageJava}" Margin="0,2,0,0" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12"/>
-                            <Grid ColumnDefinitions="190,Auto,*,Auto" ColumnSpacing="8" VerticalAlignment="Center">
-                                <ComboBox Grid.Column="0" MinHeight="30" ItemsSource="{Binding JavaModes}" SelectedItem="{Binding SelectedJavaMode}"
-                                          VerticalAlignment="Center" VerticalContentAlignment="Center" HorizontalAlignment="Stretch">
+                        </Border>
+
+                        <!-- JVM Arguments -->
+                        <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="14,12" IsVisible="{Binding IsSearchJvmArgsVisible}">
+                            <StackPanel Spacing="8">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="{l10n:Tr set_jvmargs}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                </StackPanel>
+                                <TextBlock Text="{l10n:Tr set_jvmargs_hint}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                                <TextBox Classes="darkInput" Text="{Binding JvmArgs}" PlaceholderText="{l10n:Tr Key=ph_custom_jvm}" Padding="8,6" FontSize="11" AcceptsReturn="True" Height="54" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Launcher Behavior on Game Start -->
+                        <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="14,12">
+                            <StackPanel Spacing="8">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="{l10n:Tr set_launch_behavior}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                </StackPanel>
+                                <TextBlock Text="{l10n:Tr set_launch_behavior_hint}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                                <ComboBox ItemsSource="{Binding LaunchBehaviors}" SelectedItem="{Binding SelectedLaunchBehavior}" HorizontalAlignment="Stretch">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
-                                            <TextBlock Text="{Binding Converter={x:Static vm:JavaModeDisplayConverter.Instance}}"/>
+                                            <TextBlock Text="{Binding Converter={x:Static vm:LaunchBehaviorDisplayConverter.Instance}}"/>
                                         </DataTemplate>
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
-                                <Button Grid.Column="1" Classes="subBtn" Width="30" Height="30" Padding="0"
-                                        HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                        ToolTip.Tip="{l10n:Tr Key=java_plus_tip}"
-                                        Command="{Binding OpenJavaInstallerCommand}">
-                                    <PathIcon Data="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" Width="11" Height="11" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                </Button>
-                                <TextBlock Grid.Column="2" Text="{Binding CurrentJavaDisplay}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                            </Grid>
-                            <!-- Always-Visible Editable Java Path Row + Browse Button -->
-                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                                <TextBox Grid.Column="0" Classes="darkInput" Text="{Binding EffectiveJavaPath}" PlaceholderText="{l10n:Tr Key=custom_java_hint}" FontSize="11" Padding="8,5"/>
-                                <Button Grid.Column="1" Classes="subBtn" Content="{l10n:Tr Key=btn_browse}" Command="{Binding BrowseJavaPathCommand}" Padding="12,0" Height="30" FontSize="11" VerticalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
-                            </Grid>
-                        </StackPanel>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
 
                     <!-- General Settings -->

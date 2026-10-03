@@ -653,6 +653,9 @@ public partial class MainWindowViewModel : ViewModelBase
     private bool _isAboutOpen;
 
     [ObservableProperty]
+    private bool _isJavaInstallerOpen;
+
+    [ObservableProperty]
     private LauncherNavPage _currentPage = LauncherNavPage.Profiles;
 
     [ObservableProperty]
@@ -2594,13 +2597,16 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private void OpenJavaInstaller()
     {
-        if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow != null)
-        {
-            var win = new Views.JavaInstallerWindow { DataContext = this };
-            win.Closed += (_, _) => Services.DiscordPresenceService.SetBrowsingProfiles();
-            Services.DiscordPresenceService.SetChoosingVersion();
-            win.ShowDialog(desktop.MainWindow);
-        }
+        IsJavaInstallerOpen = true;
+        Services.DiscordPresenceService.SetChoosingVersion();
+    }
+
+    [RelayCommand]
+    private void CloseJavaInstaller()
+    {
+        IsJavaInstallerOpen = false;
+        Services.DiscordPresenceService.SetBrowsingProfiles();
+        UpdateJavaDisplay();
     }
 
     [RelayCommand]
@@ -2618,6 +2624,7 @@ public partial class MainWindowViewModel : ViewModelBase
         SaveLauncherConfig();
         IsCreateDialogOpen = false;
         IsAboutOpen = false;
+        IsJavaInstallerOpen = false;
         IsVersionPickerOpen = false;
         IsElyByErrorOpen = false;
         IsDeleteConfirmOpen = false;

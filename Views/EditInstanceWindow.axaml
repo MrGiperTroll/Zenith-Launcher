@@ -301,18 +301,6 @@
                                         <Border Background="{DynamicResource AccentDimBrush}" BorderBrush="{DynamicResource AccentBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="8,3" IsVisible="{Binding Instance.LoaderType, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}">
                                             <TextBlock Text="{Binding Instance.LoaderType}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/>
                                         </Border>
-                                        <Border Background="{StaticResource RowHoverBrush}" BorderBrush="{StaticResource SuccessBrush}" BorderThickness="1" CornerRadius="4" Padding="8,3" IsVisible="{Binding Instance.IsRunning}">
-                                            <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
-                                                <Border Width="6" Height="6" CornerRadius="3" Background="{StaticResource SuccessBrush}" VerticalAlignment="Center"/>
-                                                <TextBlock Text="Running" FontSize="11" FontWeight="Bold" Foreground="{StaticResource SuccessBrush}" VerticalAlignment="Center"/>
-                                            </StackPanel>
-                                        </Border>
-                                        <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="4" Padding="8,3" IsVisible="{Binding !Instance.IsRunning}">
-                                            <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
-                                                <Border Width="6" Height="6" CornerRadius="3" Background="{StaticResource TextDisabledBrush}" VerticalAlignment="Center"/>
-                                                <TextBlock Text="Ready" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
-                                            </StackPanel>
-                                        </Border>
                                     </StackPanel>
                                 </StackPanel>
 
@@ -371,22 +359,8 @@
                 <Grid IsVisible="{Binding IsLogsTab}" RowDefinitions="Auto,*" Margin="16,14,16,14">
                     <!-- Top Toolbar -->
                     <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Margin="2,0,2,12" VerticalAlignment="Center">
-                        <!-- Left: Title & Status -->
-                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                            <TextBlock Text="{l10n:Tr Key=tab_logs}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                            <Border Background="{StaticResource RowHoverBrush}" BorderBrush="{StaticResource SuccessBrush}" BorderThickness="1" CornerRadius="4" Padding="7,2" IsVisible="{Binding Instance.IsRunning}" VerticalAlignment="Center">
-                                <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
-                                    <Border Width="6" Height="6" CornerRadius="3" Background="{StaticResource SuccessBrush}" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Active" FontSize="10" FontWeight="Bold" Foreground="{StaticResource SuccessBrush}" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Border>
-                            <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="4" Padding="7,2" IsVisible="{Binding !Instance.IsRunning}" VerticalAlignment="Center">
-                                <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
-                                    <Border Width="6" Height="6" CornerRadius="3" Background="{StaticResource TextDisabledBrush}" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Idle" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Border>
-                        </StackPanel>
+                        <!-- Left: Title -->
+                        <TextBlock Grid.Column="0" Text="{l10n:Tr Key=tab_logs}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
 
                         <!-- Middle: Log view options -->
                         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="14" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -415,38 +389,22 @@
 
                     <!-- Terminal Card -->
                     <Border Grid.Row="1" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1" CornerRadius="10" ClipToBounds="True">
-                        <Grid RowDefinitions="Auto,*">
-                            <!-- Terminal Header Strip -->
-                            <Border Grid.Row="0" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,0,1" Padding="12,7">
-                                <Grid ColumnDefinitions="Auto,*,Auto">
-                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                        <Border Width="8" Height="8" CornerRadius="4" Background="#E05252" VerticalAlignment="Center"/>
-                                        <Border Width="8" Height="8" CornerRadius="4" Background="#E5A638" VerticalAlignment="Center"/>
-                                        <Border Width="8" Height="8" CornerRadius="4" Background="#43A047" VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                    <TextBlock Grid.Column="1" Text="{Binding Instance.Name, StringFormat='{}{0} ~ console'}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="2" Text="{Binding Instance.DisplayVersion}" FontSize="10" Foreground="{StaticResource TextPlaceholderBrush}" VerticalAlignment="Center"/>
-                                </Grid>
-                            </Border>
+                        <Panel>
+                            <ScrollViewer x:Name="LogScroll" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                                          ScrollChanged="OnLogScrollChanged" Padding="14,10"
+                                          IsVisible="{Binding LogHasContent}">
+                                <SelectableTextBlock Text="{Binding LogText}" TextWrapping="{Binding LogTextWrapping}"
+                                                     FontFamily="Consolas, Cascadia Code, Courier New" FontSize="11"
+                                                     Foreground="{StaticResource TextSoftBrush}" MinWidth="600"/>
+                            </ScrollViewer>
 
-                            <!-- Terminal Content -->
-                            <Panel Grid.Row="1">
-                                <ScrollViewer x:Name="LogScroll" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
-                                              ScrollChanged="OnLogScrollChanged" Padding="14,10"
-                                              IsVisible="{Binding LogHasContent}">
-                                    <SelectableTextBlock Text="{Binding LogText}" TextWrapping="{Binding LogTextWrapping}"
-                                                         FontFamily="Consolas, Cascadia Code, Courier New" FontSize="11"
-                                                         Foreground="{StaticResource TextSoftBrush}" MinWidth="600"/>
-                                </ScrollViewer>
-
-                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8" IsVisible="{Binding !LogHasContent}">
-                                    <PathIcon Data="M20 19V7H4V19H20M20 3C21.1 3 22 3.9 22 5V19C22 20.1 21.1 21 20 21H4C2.9 21 2 20.1 2 19V5C2 3.9 2.9 3 4 3H20M13 13H17V15H13M13 9H17V11H13M13 17H17V19H13M7 13H11V15H7V17M7 9H11V11H7V13Z"
-                                              Width="32" Height="32" Foreground="{StaticResource TextPlaceholderBrush}" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="{Binding LogText}" TextWrapping="Wrap" FontFamily="Consolas, Cascadia Code, Courier New"
-                                               FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}" TextAlignment="Center"/>
-                                </StackPanel>
-                            </Panel>
-                        </Grid>
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8" IsVisible="{Binding !LogHasContent}">
+                                <PathIcon Data="M20 19V7H4V19H20M20 3C21.1 3 22 3.9 22 5V19C22 20.1 21.1 21 20 21H4C2.9 21 2 20.1 2 19V5C2 3.9 2.9 3 4 3H20M13 13H17V15H13M13 9H17V11H13M13 17H17V19H13M7 13H11V15H7V17M7 9H11V11H7V13Z"
+                                          Width="32" Height="32" Foreground="{StaticResource TextPlaceholderBrush}" HorizontalAlignment="Center"/>
+                                <TextBlock Text="{Binding LogText}" TextWrapping="Wrap" FontFamily="Consolas, Cascadia Code, Courier New"
+                                           FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}" TextAlignment="Center"/>
+                            </StackPanel>
+                        </Panel>
                     </Border>
                 </Grid>
 

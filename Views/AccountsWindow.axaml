@@ -103,12 +103,6 @@
                                             <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
                                                 <TextBlock Text="{Binding Username}" FontSize="13.5" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
                                                 <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                                    <Border Background="{StaticResource AccentDimBrush}" BorderBrush="{DynamicResource AccentBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="6,1.5" IsVisible="{Binding IsActive}">
-                                                        <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                                                            <Border Width="5" Height="5" CornerRadius="2.5" Background="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
-                                                            <TextBlock Text="ACTIVE" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
-                                                        </StackPanel>
-                                                    </Border>
                                                     <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="4" Padding="6,1.5">
                                                         <TextBlock Text="{Binding TypeDisplay}" FontSize="9.5" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                                     </Border>

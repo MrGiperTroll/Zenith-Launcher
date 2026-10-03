@@ -148,6 +148,64 @@
         <Style Selector="Border[Cursor=Hand]:pointerover">
             <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
         </Style>
+
+        <!-- Smooth Brush Transitions for Buttons -->
+        <Style Selector="Button /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.12" Easing="CubicEaseOut"/>
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.12" Easing="CubicEaseOut"/>
+                </Transitions>
+            </Setter>
+        </Style>
+
+        <!-- Instance card subtle elevation on hover -->
+        <Style Selector="Border.instanceCard">
+            <Setter Property="RenderTransform" Value="translateY(0px)"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.15" Easing="CubicEaseOut"/>
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15" Easing="CubicEaseOut"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Border.instanceCard:pointerover">
+            <Setter Property="RenderTransform" Value="translateY(-2px)"/>
+        </Style>
+
+        <!-- Version button style (for Java installer tiles and version selectors) -->
+        <Style Selector="Button.verBtn">
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="8,5"/>
+            <Setter Property="MinHeight" Value="34"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.verBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        </Style>
+        <Style Selector="Button.verBtn:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+        </Style>
+        <Style Selector="Button.verBtn:disabled">
+            <Setter Property="Opacity" Value="0.45"/>
+        </Style>
+
+        <!-- View Pane entry transitions -->
+        <Style Selector="Control.viewPane">
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.18" Easing="CubicEaseOut"/>
+                </Transitions>
+            </Setter>
+        </Style>
         <!-- Smooth dropdown / flyout animations + stylish dark menus -->
         <Style Selector="ComboBox /template/ Popup">
             <Setter Property="Opacity" Value="0"/>

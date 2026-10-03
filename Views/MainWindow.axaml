@@ -479,7 +479,7 @@
                 <!-- Center Workspace -->
                 <Grid Grid.Row="1" Margin="24,0,0,0">
                     <!-- Profiles View -->
-                    <Grid IsVisible="{Binding IsProfilesView}" ColumnDefinitions="*,Auto" x:Name="ProfilesPane">
+                    <Grid IsVisible="{Binding IsProfilesView}" ColumnDefinitions="*,Auto" x:Name="ProfilesPane" Classes="viewPane">
                         <ScrollViewer Grid.Column="0" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Padding="0,0,16,16">
                             <StackPanel Spacing="14">
                                 <Grid ColumnDefinitions="*,Auto" Margin="0,2,0,2">
@@ -509,6 +509,10 @@
                                                 BorderBrush="{Binding IsSelected, Converter={StaticResource BoolToBorderBrushConverter}}"
                                                 BorderThickness="1.5"
                                                 Tag="{Binding}" Cursor="Hand"
+                                                PointerPressed="OnInstanceCardPointerPressed"
+                                                PointerMoved="OnInstanceCardPointerMoved"
+                                                PointerReleased="OnInstanceCardPointerReleased"
+                                                PointerCaptureLost="OnInstanceCardPointerCaptureLost"
                                                 Tapped="OnInstanceCardTapped"
                                                 DoubleTapped="OnInstanceCardDoubleTapped">
                                             <Border.ContextMenu>
@@ -666,7 +670,7 @@
                     </Border>
                     </Grid>
                     <!-- Modpacks View -->
-                    <Grid IsVisible="{Binding IsModpacksView}" RowDefinitions="Auto,*" Margin="0,0,16,0" x:Name="ModpacksPane">
+                    <Grid IsVisible="{Binding IsModpacksView}" Classes="viewPane" RowDefinitions="Auto,*" Margin="0,0,16,0" x:Name="ModpacksPane">
                         <Border Grid.Row="0" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="14" Margin="0,0,0,12">
                             <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="8" VerticalAlignment="Center">
                                 <TextBox Classes="darkInput" Text="{Binding ModpacksBrowser.SearchQuery}" PlaceholderText="{l10n:Tr Key=mp_search_hint}" FontSize="12" VerticalAlignment="Center">
@@ -758,37 +762,37 @@
                     </Grid>
 
                     <!-- In-Window Edit Instance View -->
-                    <Panel x:Name="EditInstancePane" IsVisible="{Binding IsEditInstanceView}" Margin="0,0,16,0">
+                    <Panel x:Name="EditInstancePane" Classes="viewPane" IsVisible="{Binding IsEditInstanceView}" Margin="0,0,16,0">
                         <views:EditInstanceView DataContext="{Binding CurrentEditInstanceVm}"/>
                     </Panel>
 
                     <!-- In-Window Content Browser View -->
-                    <Panel x:Name="ContentBrowserPane" IsVisible="{Binding IsContentBrowserView}" Margin="0,0,16,0">
+                    <Panel x:Name="ContentBrowserPane" Classes="viewPane" IsVisible="{Binding IsContentBrowserView}" Margin="0,0,16,0">
                         <views:ContentBrowserView DataContext="{Binding CurrentContentBrowserVm}"/>
                     </Panel>
 
                     <!-- In-Window Launcher Settings View -->
-                    <Panel x:Name="SettingsPane" IsVisible="{Binding IsSettingsView}" Margin="0,0,16,0">
+                    <Panel x:Name="SettingsPane" Classes="viewPane" IsVisible="{Binding IsSettingsView}" Margin="0,0,16,0">
                         <views:LauncherSettingsView DataContext="{Binding}"/>
                     </Panel>
 
                     <!-- In-Window Server Manager View -->
-                    <Panel x:Name="ServerManagerPane" IsVisible="{Binding IsServerManagerView}" Margin="0,0,16,0">
+                    <Panel x:Name="ServerManagerPane" Classes="viewPane" IsVisible="{Binding IsServerManagerView}" Margin="0,0,16,0">
                         <views:ServerManagerView DataContext="{Binding CurrentServerManagerVm}"/>
                     </Panel>
 
                     <!-- In-Window Accounts View -->
-                    <Panel x:Name="AccountsPane" IsVisible="{Binding IsAccountsView}" Margin="0,0,16,0">
+                    <Panel x:Name="AccountsPane" Classes="viewPane" IsVisible="{Binding IsAccountsView}" Margin="0,0,16,0">
                         <views:AccountsView DataContext="{Binding}"/>
                     </Panel>
 
                     <!-- In-Window Create Profile View -->
-                    <Panel x:Name="CreateProfilePane" IsVisible="{Binding IsCreateProfileView}" Margin="0,0,16,0">
+                    <Panel x:Name="CreateProfilePane" Classes="viewPane" IsVisible="{Binding IsCreateProfileView}" Margin="0,0,16,0">
                         <views:CreateProfileView DataContext="{Binding CreateProfileVm}"/>
                     </Panel>
 
                     <!-- In-Window Create Server View -->
-                    <Panel x:Name="CreateServerPane" IsVisible="{Binding IsCreateServerView}" Margin="0,0,16,0">
+                    <Panel x:Name="CreateServerPane" Classes="viewPane" IsVisible="{Binding IsCreateServerView}" Margin="0,0,16,0">
                         <views:CreateServerView DataContext="{Binding CreateServerVm}"/>
                     </Panel>
                 </Grid>
@@ -976,15 +980,15 @@
     <!-- About modal -->
         <Border Background="{StaticResource OverlayBrush}" IsVisible="{Binding IsAboutOpen}" ZIndex="1000"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.RowSpan="3" Grid.ColumnSpan="3">
-            <Border Background="{StaticResource SurfaceBrush}" CornerRadius="18" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+            <Border Background="{StaticResource SurfaceBrush}" CornerRadius="16" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1"
                     Width="460" HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 18 46 0 #55000000">
-                <StackPanel Margin="36,38,36,30">
+                <StackPanel Margin="32,30,32,26">
                     <StackPanel Spacing="0" HorizontalAlignment="Center">
-                        <Border Width="88" Height="88" CornerRadius="22" Background="{StaticResource CardBrush}"
+                        <Border Width="80" Height="80" CornerRadius="20" Background="{StaticResource CardBrush}"
                                 BorderBrush="{StaticResource BorderInputBrush}" BorderThickness="1"
                                 HorizontalAlignment="Center" ClipToBounds="True">
-                            <Path Data="{StaticResource ZenithLogoGeometry}" Fill="{StaticResource SubtleEmeraldBrush}"
-                                  Stretch="Uniform" Width="50" Height="50" Margin="0,3,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <Path Data="{StaticResource ZenithLogoGeometry}" Fill="{DynamicResource AccentBrush}"
+                                  Stretch="Uniform" Width="46" Height="46" Margin="0,2,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <TextBlock Text="{Binding LauncherName}" FontSize="22" FontWeight="Bold" HorizontalAlignment="Center"
                                    Foreground="{StaticResource TextPrimaryBrush}" Margin="0,12,0,0"/>
@@ -993,42 +997,139 @@
                     </StackPanel>
 
                     <TextBlock Text="{l10n:Tr Key=app_tagline}"
-                               FontSize="12.5" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="19"
-                               TextAlignment="Center" Margin="0,18,0,0"/>
+                               FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="18"
+                               TextAlignment="Center" Margin="0,14,0,0"/>
 
-                    <Border Height="1" Background="{StaticResource BorderBrush}" Margin="0,20,0,18"/>
-
-                    <TextBlock Text="{l10n:Tr Key=useful_links}" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource TextCaptionBrush}"
-                               Margin="0,0,0,9"/>
-                    <StackPanel Orientation="Horizontal" Spacing="10">
-                        <Border Tag="https://fabricmc.net" Tapped="OnLinkTapped" Background="{StaticResource FieldBrush}" CornerRadius="8"
-                                Padding="14,9" Cursor="Hand">
-                            <StackPanel Orientation="Horizontal" Spacing="7">
-                                <PathIcon Data="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7zM19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7z" Width="13" Height="13" Foreground="{StaticResource AccentBrush}"/>
-                                <TextBlock Text="Fabric" FontSize="12" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center"/>
-                            </StackPanel>
+                    <!-- Tech Stack Chips -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="6" Margin="0,14,0,0">
+                        <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="5" Padding="8,3">
+                            <TextBlock Text=".NET 10" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"/>
                         </Border>
-                        <Border Tag="https://modrinth.com" Tapped="OnLinkTapped" Background="{StaticResource FieldBrush}" CornerRadius="8"
-                                Padding="14,9" Cursor="Hand">
-                            <StackPanel Orientation="Horizontal" Spacing="7">
-                                <PathIcon Data="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7zM19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7z" Width="13" Height="13" Foreground="{StaticResource AccentBrush}"/>
-                                <TextBlock Text="Modrinth" FontSize="12" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center"/>
-                            </StackPanel>
+                        <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="5" Padding="8,3">
+                            <TextBlock Text="Avalonia 11" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
                         </Border>
-                        <Border Tag="https://www.minecraft.net" Tapped="OnLinkTapped" Background="{StaticResource FieldBrush}" CornerRadius="8"
-                                Padding="14,9" Cursor="Hand">
-                            <StackPanel Orientation="Horizontal" Spacing="7">
-                                <PathIcon Data="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7zM19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7z" Width="13" Height="13" Foreground="{StaticResource AccentBrush}"/>
-                                <TextBlock Text="Minecraft" FontSize="12" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center"/>
-                            </StackPanel>
+                        <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="5" Padding="8,3">
+                            <TextBlock Text="C# 14" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
                         </Border>
                     </StackPanel>
 
-                    <TextBlock Text="{l10n:Tr Key=built_with}"
-                               FontSize="10.5" Foreground="{StaticResource TextCaptionBrush}" TextAlignment="Center" Margin="0,18,0,20"/>
+                    <Border Height="1" Background="{StaticResource BorderStrongBrush}" Margin="0,16,0,14"/>
+
+                    <TextBlock Text="{l10n:Tr Key=useful_links}" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource TextCaptionBrush}"
+                               Margin="0,0,0,8"/>
+                    <UniformGrid Columns="3" Margin="0,0,0,16">
+                        <Border Tag="https://fabricmc.net" Tapped="OnLinkTapped" Background="{StaticResource FieldBrush}" CornerRadius="6"
+                                Padding="8,7" Margin="0,0,4,0" Cursor="Hand">
+                            <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                                <PathIcon Data="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7zM19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7z" Width="11" Height="11" Foreground="{DynamicResource AccentBrush}"/>
+                                <TextBlock Text="Fabric" FontSize="11.5" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Tag="https://modrinth.com" Tapped="OnLinkTapped" Background="{StaticResource FieldBrush}" CornerRadius="6"
+                                Padding="8,7" Margin="2,0,2,0" Cursor="Hand">
+                            <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                                <PathIcon Data="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7zM19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7z" Width="11" Height="11" Foreground="{DynamicResource AccentBrush}"/>
+                                <TextBlock Text="Modrinth" FontSize="11.5" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Tag="https://www.minecraft.net" Tapped="OnLinkTapped" Background="{StaticResource FieldBrush}" CornerRadius="6"
+                                Padding="8,7" Margin="4,0,0,0" Cursor="Hand">
+                            <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                                <PathIcon Data="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7zM19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7z" Width="11" Height="11" Foreground="{DynamicResource AccentBrush}"/>
+                                <TextBlock Text="Minecraft" FontSize="11.5" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                    </UniformGrid>
+
                     <Button Classes="primaryBtn" Content="{l10n:Tr Key=close}" Command="{Binding CloseDialogsCommand}"
-                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Height="38"/>
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Height="36"/>
                 </StackPanel>
+            </Border>
+        </Border>
+
+    <!-- Java Runtime Installer In-App Modal -->
+        <Border Background="{StaticResource OverlayBrush}" IsVisible="{Binding IsJavaInstallerOpen}" ZIndex="1000"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.RowSpan="3" Grid.ColumnSpan="3">
+            <Border Background="{StaticResource SurfaceBrush}" CornerRadius="14" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1"
+                    Width="420" HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 18 46 0 #55000000" Padding="24,20,24,18">
+                <Grid RowDefinitions="Auto,Auto,Auto,Auto">
+                    <!-- Header -->
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="{l10n:Tr Key=java_installer_title}" FontSize="15" FontWeight="Bold"
+                                       Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <TextBlock Text="{l10n:Tr Key=java_installer_hint}" FontSize="11"
+                                       Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="✕" Command="{Binding CloseJavaInstallerCommand}" Classes="subBtn"
+                                Width="28" Height="28" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                VerticalAlignment="Top" Margin="8,0,0,0"/>
+                    </Grid>
+
+                    <!-- Version tiles -->
+                    <UniformGrid Grid.Row="1" Columns="2" Rows="3" Margin="0,0,0,10">
+                        <Button Classes="verBtn" Margin="0,0,4,6"
+                                Command="{Binding DownloadJavaCommand}" CommandParameter="8"
+                                IsEnabled="{Binding CanDownloadJava}">
+                            <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                                <TextBlock Text="Java 8" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <TextBlock Text="{l10n:Tr Key=java_tag_old}" FontSize="9" Foreground="{StaticResource WarningBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Classes="verBtn" Margin="4,0,0,6"
+                                Command="{Binding DownloadJavaCommand}" CommandParameter="11"
+                                IsEnabled="{Binding CanDownloadJava}">
+                            <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                                <TextBlock Text="Java 11" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <TextBlock Text="LTS" FontSize="9" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Classes="verBtn" Margin="0,0,4,6"
+                                Command="{Binding DownloadJavaCommand}" CommandParameter="16"
+                                IsEnabled="{Binding CanDownloadJava}">
+                            <TextBlock Text="Java 16" FontSize="12" FontWeight="SemiBold"/>
+                        </Button>
+                        <Button Classes="verBtn" Margin="4,0,0,6"
+                                Command="{Binding DownloadJavaCommand}" CommandParameter="17"
+                                IsEnabled="{Binding CanDownloadJava}">
+                            <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                                <TextBlock Text="Java 17" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <TextBlock Text="LTS" FontSize="9" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Classes="verBtn" Margin="0,0,4,0"
+                                Command="{Binding DownloadJavaCommand}" CommandParameter="21"
+                                IsEnabled="{Binding CanDownloadJava}">
+                            <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                                <TextBlock Text="Java 21" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <TextBlock Text="LTS" FontSize="9" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Classes="verBtn" Margin="4,0,0,0"
+                                Command="{Binding DownloadJavaCommand}" CommandParameter="25"
+                                IsEnabled="{Binding CanDownloadJava}">
+                            <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                                <TextBlock Text="Java 25" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <TextBlock Text="{l10n:Tr Key=java_tag_new}" FontSize="9" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </UniformGrid>
+
+                    <!-- Status -->
+                    <TextBlock Grid.Row="2" Text="{Binding JavaDownloadStatus}" FontSize="11"
+                               Foreground="{StaticResource WarningBrush}" TextWrapping="Wrap"
+                               VerticalAlignment="Center" Margin="2,4,2,8"
+                               IsVisible="{Binding JavaDownloadStatus, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}"/>
+
+                    <!-- Footer -->
+                    <Grid Grid.Row="3" ColumnDefinitions="*,96" Margin="0,6,0,0">
+                        <Button Grid.Column="0" Classes="subBtn" Content="{l10n:Tr Key=java_pick_manual}"
+                                Command="{Binding PickCustomJavaCommand}" HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Center"/>
+                        <Button Grid.Column="1" Classes="subBtn" Content="{l10n:Tr Key=close}"
+                                Command="{Binding CloseJavaInstallerCommand}" Margin="8,0,0,0"/>
+                    </Grid>
+                </Grid>
             </Border>
         </Border>
     </Grid>

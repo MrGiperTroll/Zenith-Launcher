@@ -435,7 +435,7 @@ public class LaunchService : ILaunchService
             jvmArgs.Add(new MArgument("-Dminecraft.launcher.version=2.0"));
         }
 
-        var minRam = instance.MinRamMb ?? (config?.MinRamMb > 0 ? config.MinRamMb : 1024);
+        var minRam = instance.MinRamMb ?? (config?.MinRamMb > 0 ? config.MinRamMb : 512);
         if (minRam > 0)
         {
             jvmArgs.Add(new MArgument($"-Xms{minRam}m"));

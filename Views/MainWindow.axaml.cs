@@ -50,7 +50,7 @@ public partial class MainWindow : Window
                 ? this.FindControl<Grid>("ModpacksPane")
                 : this.FindControl<Grid>("ProfilesPane");
             if (pane != null)
-                UiFx.FadeInNow(pane, 180, 6);
+                UiFx.FadeInNow(pane, 240, 4);
         }
         else if (e.PropertyName == nameof(MainWindowViewModel.CurrentPage))
         {
@@ -68,11 +68,29 @@ public partial class MainWindow : Window
                 _ => null
             };
             if (pane != null)
-                UiFx.FadeInNow(pane, 180, 6);
+                UiFx.FadeInNow(pane, 240, 4);
         }
         else if (e.PropertyName == nameof(MainWindowViewModel.IsRightSidebarOpen))
         {
             AnimateSidebar(_subscribedVm!.IsRightSidebarOpen);
+        }
+        else if (e.PropertyName == nameof(MainWindowViewModel.IsAboutOpen))
+        {
+            if (_subscribedVm!.IsAboutOpen)
+            {
+                var card = this.FindControl<Border>("AboutModalCard");
+                if (card != null)
+                    UiFx.FadeInNow(card, 240, 6);
+            }
+        }
+        else if (e.PropertyName == nameof(MainWindowViewModel.IsJavaInstallerOpen))
+        {
+            if (_subscribedVm!.IsJavaInstallerOpen)
+            {
+                var card = this.FindControl<Border>("JavaInstallerCard");
+                if (card != null)
+                    UiFx.FadeInNow(card, 240, 6);
+            }
         }
     }
 
@@ -82,7 +100,7 @@ public partial class MainWindow : Window
         if (sidebar == null) return;
 
         const double width = 300;
-        const int ms = 180;
+        const int ms = 240;
 
         // TranslateTransform (with its own X transition) drives the slide.
         var translate = sidebar.RenderTransform as TranslateTransform;
@@ -250,11 +268,21 @@ public partial class MainWindow : Window
         var currentPos = e.GetPosition(this);
         var diff = currentPos - _dragStartPos;
 
-        if (!_isDragging && (Math.Abs(diff.X) > 8 || Math.Abs(diff.Y) > 8))
+        if (!_isDragging && (Math.Abs(diff.X) > 6 || Math.Abs(diff.Y) > 6))
         {
             _isDragging = true;
-            _draggedCard.Opacity = 0.55;
+            _draggedCard.Classes.Add("dragging");
+            _draggedCard.ZIndex = 999;
+            _draggedCard.Opacity = 0.88;
             e.Pointer.Capture(_draggedCard);
+        }
+
+        if (_isDragging)
+        {
+            var group = new TransformGroup();
+            group.Children.Add(new TranslateTransform(diff.X, diff.Y));
+            group.Children.Add(new ScaleTransform(1.04, 1.04));
+            _draggedCard.RenderTransform = group;
         }
     }
 
@@ -271,21 +299,38 @@ public partial class MainWindow : Window
             _suppressNextTap = true;
             e.Pointer.Capture(null);
 
+            var movedId = _draggedInstance.Id;
+
+            _draggedCard.IsHitTestVisible = false;
             var hit = this.InputHitTest(e.GetPosition(this)) as Visual;
+            _draggedCard.IsHitTestVisible = true;
+
             var targetCard = hit?.FindAncestorOfType<Border>(includeSelf: true);
             while (targetCard != null && !targetCard.Classes.Contains("instanceCard"))
             {
                 targetCard = targetCard.FindAncestorOfType<Border>(includeSelf: false);
             }
 
-            if (targetCard != null && targetCard != _draggedCard && targetCard.DataContext is InstanceModel targetInstance && DataContext is MainWindowViewModel vm)
+            string? targetId = (targetCard?.DataContext as InstanceModel)?.Id;
+            bool dropAfter = false;
+            if (targetCard != null)
             {
                 var relPos = e.GetPosition(targetCard);
-                bool dropAfter = relPos.X > targetCard.Bounds.Width / 2;
-                vm.ReorderInstance(_draggedInstance.Id, targetInstance.Id, dropAfter);
+                dropAfter = relPos.X > targetCard.Bounds.Width / 2;
+            }
+
+            ResetDrag();
+
+            if (!string.IsNullOrEmpty(targetId) && targetId != movedId && DataContext is MainWindowViewModel vm)
+            {
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    vm.ReorderInstance(movedId, targetId, dropAfter);
+                }, Avalonia.Threading.DispatcherPriority.Background);
             }
 
             e.Handled = true;
+            return;
         }
 
         ResetDrag();
@@ -300,7 +345,11 @@ public partial class MainWindow : Window
     {
         if (_draggedCard != null)
         {
+            _draggedCard.Classes.Remove("dragging");
+            _draggedCard.ZIndex = 0;
             _draggedCard.Opacity = 1.0;
+            _draggedCard.IsHitTestVisible = true;
+            _draggedCard.ClearValue(Border.RenderTransformProperty);
         }
         _draggedCard = null;
         _draggedInstance = null;

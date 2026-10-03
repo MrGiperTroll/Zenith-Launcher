@@ -19,7 +19,7 @@ public partial class RamCardControl : UserControl
         AvaloniaProperty.Register<RamCardControl, int>(nameof(Value), 4096, defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
 
     public static readonly StyledProperty<int> MinimumProperty =
-        AvaloniaProperty.Register<RamCardControl, int>(nameof(Minimum), 1024);
+        AvaloniaProperty.Register<RamCardControl, int>(nameof(Minimum), 512);
 
     public static readonly StyledProperty<int> MaximumProperty =
         AvaloniaProperty.Register<RamCardControl, int>(nameof(Maximum), 16384);

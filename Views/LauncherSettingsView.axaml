@@ -164,10 +164,10 @@
                                         <Button Command="{Binding StepMinRamDownCommand}" Classes="subBtn" Width="26" Height="26" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" ToolTip.Tip="Decrease RAM">
                                             <PathIcon Data="M5 11h14v2H5z" Width="9" Height="9" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                                         </Button>
-                                        <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="5" Height="26" Padding="8,0" VerticalAlignment="Center">
+                                        <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="5" Height="26" Padding="10,0" VerticalAlignment="Center">
                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                 <TextBox Classes="badgeInput" Text="{Binding MinRamMb, Mode=TwoWay}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" TextAlignment="Right" VerticalAlignment="Center" BorderThickness="0" Background="Transparent" MinWidth="34"/>
-                                                <TextBlock Text="MB" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="5,0,0,0" IsHitTestVisible="False"/>
+                                                <TextBlock Text="MB" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="7,0,0,0" IsHitTestVisible="False"/>
                                             </StackPanel>
                                         </Border>
                                         <Button Command="{Binding StepMinRamUpCommand}" Classes="subBtn" Width="26" Height="26" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" ToolTip.Tip="Increase RAM">
@@ -185,10 +185,10 @@
                                         <Button Command="{Binding StepRamDownCommand}" Classes="subBtn" Width="26" Height="26" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" ToolTip.Tip="Decrease RAM">
                                             <PathIcon Data="M5 11h14v2H5z" Width="9" Height="9" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                                         </Button>
-                                        <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="5" Height="26" Padding="8,0" VerticalAlignment="Center">
+                                        <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="5" Height="26" Padding="10,0" VerticalAlignment="Center">
                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                 <TextBox Classes="badgeInput" Text="{Binding RamMb, Mode=TwoWay}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" TextAlignment="Right" VerticalAlignment="Center" BorderThickness="0" Background="Transparent" MinWidth="34"/>
-                                                <TextBlock Text="MB" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="5,0,0,0" IsHitTestVisible="False"/>
+                                                <TextBlock Text="MB" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="7,0,0,0" IsHitTestVisible="False"/>
                                             </StackPanel>
                                         </Border>
                                         <Button Command="{Binding StepRamUpCommand}" Classes="subBtn" Width="26" Height="26" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" ToolTip.Tip="Increase RAM">

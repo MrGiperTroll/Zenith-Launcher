@@ -21,7 +21,7 @@
                         BorderThickness="1"
                         CornerRadius="6"
                         Height="28"
-                        Padding="10,0"
+                        Padding="12,0"
                         VerticalAlignment="Center"
                         HorizontalAlignment="Right"
                         Cursor="IBeam"
@@ -52,7 +52,7 @@
                                    FontWeight="SemiBold"
                                    Foreground="{StaticResource TextMutedBrush}"
                                    VerticalAlignment="Center"
-                                   Margin="5,0,0,0"
+                                   Margin="7,0,0,0"
                                    IsHitTestVisible="False"/>
                     </StackPanel>
                 </Border>
@@ -60,7 +60,7 @@
 
             <!-- Compact Slider -->
             <Slider x:Name="RamSlider"
-                    Minimum="1024"
+                    Minimum="512"
                     Maximum="16384"
                     Value="4096"
                     TickFrequency="512"

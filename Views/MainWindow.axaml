@@ -87,9 +87,9 @@
             <Setter Property="ClipToBounds" Value="True"/>
             <Setter Property="Transitions">
                 <Transitions>
-                    <BrushTransition Property="Background" Duration="0:0:0.15"/>
-                    <BrushTransition Property="Foreground" Duration="0:0:0.15"/>
-                    <DoubleTransition Property="Width" Duration="0:0:0.18" Easing="CubicEaseOut"/>
+                    <BrushTransition Property="Background" Duration="0:0:0.2"/>
+                    <BrushTransition Property="Foreground" Duration="0:0:0.2"/>
+                    <DoubleTransition Property="Width" Duration="0:0:0.24" Easing="0.16, 1, 0.3, 1"/>
                 </Transitions>
             </Setter>
         </Style>
@@ -363,7 +363,7 @@
             <Border Grid.Column="0" Width="{Binding SidebarWidth}" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,1,0" Padding="0,16" Classes.expanded="{Binding IsSidebarExpanded}" ClipToBounds="True">
                 <Border.Transitions>
                     <Transitions>
-                        <DoubleTransition Property="Width" Duration="0:0:0.18" Easing="CubicEaseOut"/>
+                        <DoubleTransition Property="Width" Duration="0:0:0.24" Easing="0.16, 1, 0.3, 1"/>
                     </Transitions>
                 </Border.Transitions>
                 <Grid RowDefinitions="Auto,Auto,*,Auto">
@@ -407,7 +407,7 @@
                         </Button>
                         <Button Classes="railBtn" Command="{Binding OpenSettingsDialogCommand}" ToolTip.Tip="{l10n:Tr Key=nav_settings}">
                             <Grid ColumnDefinitions="44,*" VerticalAlignment="Center">
-                                <Path Grid.Column="0" Data="{StaticResource ZenithLogoGeometry}" Fill="{StaticResource TextSecondaryBrush}" Stretch="Uniform" Width="16" Height="16" Margin="0,1.5,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <PathIcon Grid.Column="0" Data="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" Width="17" Height="17" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 <TextBlock Grid.Column="1" Text="{l10n:Tr Key=nav_settings}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="2,0,8,0" IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsSidebarExpanded}"/>
                             </Grid>
                         </Button>
@@ -558,14 +558,14 @@
                             <TranslateTransform X="300">
                                 <TranslateTransform.Transitions>
                                     <Transitions>
-                                        <DoubleTransition Property="X" Easing="CubicEaseOut" Duration="0:0:0.18"/>
+                                        <DoubleTransition Property="X" Easing="0.16, 1, 0.3, 1" Duration="0:0:0.24"/>
                                     </Transitions>
                                 </TranslateTransform.Transitions>
                             </TranslateTransform>
                         </Border.RenderTransform>
                         <Border.Transitions>
                             <Transitions>
-                                <DoubleTransition Property="Opacity" Easing="CubicEaseOut" Duration="0:0:0.18"/>
+                                <DoubleTransition Property="Opacity" Easing="0.16, 1, 0.3, 1" Duration="0:0:0.24"/>
                             </Transitions>
                         </Border.Transitions>
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
@@ -980,28 +980,28 @@
     <!-- About modal -->
         <Border Background="{StaticResource OverlayBrush}" IsVisible="{Binding IsAboutOpen}" ZIndex="1000"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.RowSpan="3" Grid.ColumnSpan="3">
-            <Border Background="{StaticResource SurfaceBrush}" CornerRadius="16" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1"
-                    Width="460" HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 18 46 0 #55000000">
-                <StackPanel Margin="32,30,32,26">
+            <Border x:Name="AboutModalCard" Background="{StaticResource SurfaceBrush}" CornerRadius="16" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1"
+                    Width="480" HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 18 46 0 #55000000">
+                <StackPanel Margin="30,26,30,24">
                     <StackPanel Spacing="0" HorizontalAlignment="Center">
-                        <Border Width="80" Height="80" CornerRadius="20" Background="{StaticResource CardBrush}"
+                        <Border Width="76" Height="76" CornerRadius="18" Background="{StaticResource CardBrush}"
                                 BorderBrush="{StaticResource BorderInputBrush}" BorderThickness="1"
                                 HorizontalAlignment="Center" ClipToBounds="True">
                             <Path Data="{StaticResource ZenithLogoGeometry}" Fill="{DynamicResource AccentBrush}"
-                                  Stretch="Uniform" Width="46" Height="46" Margin="0,3.5,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                  Stretch="Uniform" Width="44" Height="44" Margin="0,3.5,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <TextBlock Text="{Binding LauncherName}" FontSize="22" FontWeight="Bold" HorizontalAlignment="Center"
-                                   Foreground="{StaticResource TextPrimaryBrush}" Margin="0,12,0,0"/>
+                                   Foreground="{StaticResource TextPrimaryBrush}" Margin="0,10,0,0"/>
                         <TextBlock Text="{Binding VersionLabel, Converter={x:Static vm:L10nFormatConverter.Instance}, ConverterParameter=about_version}" FontSize="12" HorizontalAlignment="Center"
                                    Foreground="{StaticResource TextMutedBrush}"/>
                     </StackPanel>
 
                     <TextBlock Text="{l10n:Tr Key=app_tagline}"
-                               FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="18"
-                               TextAlignment="Center" Margin="0,14,0,0"/>
+                               FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="17"
+                               TextAlignment="Center" Margin="0,10,0,0"/>
 
                     <!-- Tech Stack Chips -->
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="6" Margin="0,14,0,0">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="6" Margin="0,10,0,0">
                         <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="5" Padding="8,3">
                             <TextBlock Text=".NET 10" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"/>
                         </Border>
@@ -1013,27 +1013,45 @@
                         </Border>
                     </StackPanel>
 
-                    <Border Height="1" Background="{StaticResource BorderStrongBrush}" Margin="0,16,0,14"/>
+                    <!-- Core Features Highlight -->
+                    <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="14,10" Margin="0,12,0,0">
+                        <StackPanel Spacing="6">
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" VerticalAlignment="Center">
+                                <PathIcon Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" Width="10" Height="10" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="1" Text="Fully isolated instances with independent mods, configs, and Java" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                            </Grid>
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" VerticalAlignment="Center">
+                                <PathIcon Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" Width="10" Height="10" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="1" Text="Native Modrinth integration with one-click modpack install" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                            </Grid>
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" VerticalAlignment="Center">
+                                <PathIcon Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" Width="10" Height="10" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="1" Text="Built-in Java 8 / 17 / 21 auto-installer and GPU-composited UI" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Height="1" Background="{StaticResource BorderStrongBrush}" Margin="0,14,0,12"/>
 
                     <TextBlock Text="{l10n:Tr Key=useful_links}" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource TextCaptionBrush}"
-                               Margin="0,0,0,8"/>
-                    <UniformGrid Columns="3" Margin="0,0,0,16">
+                               Margin="0,0,0,6"/>
+                    <UniformGrid Columns="3" Margin="0,0,0,14">
                         <Border Tag="https://fabricmc.net" Tapped="OnLinkTapped" Background="{StaticResource FieldBrush}" CornerRadius="6"
-                                Padding="8,7" Margin="0,0,4,0" Cursor="Hand">
+                                Padding="8,6" Margin="0,0,4,0" Cursor="Hand">
                             <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
                                 <PathIcon Data="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7zM19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7z" Width="11" Height="11" Foreground="{DynamicResource AccentBrush}"/>
                                 <TextBlock Text="Fabric" FontSize="11.5" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Border>
                         <Border Tag="https://modrinth.com" Tapped="OnLinkTapped" Background="{StaticResource FieldBrush}" CornerRadius="6"
-                                Padding="8,7" Margin="2,0,2,0" Cursor="Hand">
+                                Padding="8,6" Margin="2,0,2,0" Cursor="Hand">
                             <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
                                 <PathIcon Data="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7zM19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7z" Width="11" Height="11" Foreground="{DynamicResource AccentBrush}"/>
                                 <TextBlock Text="Modrinth" FontSize="11.5" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Border>
                         <Border Tag="https://www.minecraft.net" Tapped="OnLinkTapped" Background="{StaticResource FieldBrush}" CornerRadius="6"
-                                Padding="8,7" Margin="4,0,0,0" Cursor="Hand">
+                                Padding="8,6" Margin="4,0,0,0" Cursor="Hand">
                             <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
                                 <PathIcon Data="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7zM19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7z" Width="11" Height="11" Foreground="{DynamicResource AccentBrush}"/>
                                 <TextBlock Text="Minecraft" FontSize="11.5" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
@@ -1042,7 +1060,7 @@
                     </UniformGrid>
 
                     <Button Classes="primaryBtn" Content="{l10n:Tr Key=close}" Command="{Binding CloseDialogsCommand}"
-                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Height="36"/>
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Height="34"/>
                 </StackPanel>
             </Border>
         </Border>
@@ -1050,7 +1068,7 @@
     <!-- Java Runtime Installer In-App Modal -->
         <Border Background="{StaticResource OverlayBrush}" IsVisible="{Binding IsJavaInstallerOpen}" ZIndex="1000"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.RowSpan="3" Grid.ColumnSpan="3">
-            <Border Background="{StaticResource SurfaceBrush}" CornerRadius="14" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1"
+            <Border x:Name="JavaInstallerCard" Background="{StaticResource SurfaceBrush}" CornerRadius="14" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1"
                     Width="420" HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 18 46 0 #55000000" Padding="24,20,24,18">
                 <Grid RowDefinitions="Auto,Auto,Auto,Auto">
                     <!-- Header -->

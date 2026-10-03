@@ -123,7 +123,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private string _jvmArgs = "-XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC";
 
     [ObservableProperty]
-    private int _minRamMb = 1024;
+    private int _minRamMb = 512;
 
     partial void OnMinRamMbChanged(int value)
     {
@@ -157,13 +157,13 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private void StepRamDown()
     {
-        RamMb = Math.Clamp(RamMb - 512, 1024, MaxRamMb);
+        RamMb = Math.Clamp(RamMb - 512, 512, MaxRamMb);
     }
 
     [RelayCommand]
     private void StepRamUp()
     {
-        RamMb = Math.Clamp(RamMb + 512, 1024, MaxRamMb);
+        RamMb = Math.Clamp(RamMb + 512, 512, MaxRamMb);
     }
 
     [ObservableProperty]
@@ -2027,13 +2027,16 @@ public partial class MainWindowViewModel : ViewModelBase
     public void ReorderInstance(string movedId, string targetId, bool dropAfter)
     {
         _instanceService.ReorderInstances(movedId, targetId, dropAfter);
-        Instances.Clear();
-        foreach (var inst in _instanceService.GetInstances())
+        var moved = Instances.FirstOrDefault(i => i.Id == movedId);
+        if (moved == null) return;
+
+        var all = _instanceService.GetInstances();
+        int newIdx = all.ToList().FindIndex(i => i.Id == movedId);
+        int oldIdx = Instances.IndexOf(moved);
+
+        if (oldIdx >= 0 && newIdx >= 0 && oldIdx != newIdx)
         {
-            inst.IsSelected = inst.Id == SelectedInstanceId;
-            inst.IsRunning = false;
-            inst.IsLaunching = false;
-            Instances.Add(inst);
+            Instances.Move(oldIdx, newIdx);
         }
     }
 

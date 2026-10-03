@@ -3,7 +3,7 @@ namespace CustomMcLauncher.Models;
 public class LauncherConfigData
 {
     public string JvmArgs { get; set; } = string.Empty;
-    public int MinRamMb { get; set; } = 1024;
+    public int MinRamMb { get; set; } = 512;
     public int RamMb { get; set; } = 4096;
     public int GameWidth { get; set; } = 1280;
     public int GameHeight { get; set; } = 720;

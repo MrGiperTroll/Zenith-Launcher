@@ -140,7 +140,7 @@ public partial class CreateServerViewModel : ObservableObject
 
     public ObservableCollection<string> AvailableVersions { get; } = new();
     public ObservableCollection<ServerSoftwareOption> AvailableSoftware { get; } = new();
-    public int[] RamOptions { get; } = { 1024, 2048, 3072, 4096, 6144, 8192, 12288, 16384, 24576, 32768 };
+    public int[] RamOptions { get; } = { 512, 1024, 2048, 3072, 4096, 6144, 8192, 12288, 16384, 24576, 32768 };
 
     public string[] GamemodeOptions { get; } = { "survival", "creative", "adventure", "spectator" };
     public string[] DifficultyOptions { get; } = { "peaceful", "easy", "normal", "hard" };
@@ -679,7 +679,7 @@ public partial class CreateServerViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public void StepServerRamDown() => ServerRamMb = Math.Max(1024, ServerRamMb - 512);
+    public void StepServerRamDown() => ServerRamMb = Math.Max(512, ServerRamMb - 512);
 
     [RelayCommand]
     public void StepServerRamUp() => ServerRamMb = Math.Min(32768, ServerRamMb + 512);

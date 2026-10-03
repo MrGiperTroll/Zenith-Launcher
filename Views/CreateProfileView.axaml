@@ -165,7 +165,7 @@
                                                       Subtitle="{l10n:Tr Key=set_memory_hint}"
                                                       Value="{Binding SelectedRamMb}"
                                                       Maximum="{Binding MaxRamMb}"
-                                                      Minimum="1024"
+                                                      Minimum="512"
                                                       TickFrequency="512"/>
 
                                 <!-- Window Resolution & Fullscreen -->

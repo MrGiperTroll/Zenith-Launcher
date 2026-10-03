@@ -557,7 +557,7 @@
                         <views:RamCardControl Title="{l10n:Tr Key=set_memory}"
                                               Subtitle="{l10n:Tr Key=set_memory_hint}"
                                               Value="{Binding RamMb}"
-                                              Minimum="1024"
+                                              Minimum="512"
                                               Maximum="{Binding MaxRamMb}"
                                               TickFrequency="512"/>
 

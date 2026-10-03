@@ -118,7 +118,7 @@
             <Setter Property="RenderTransform" Value="scale(1)"/>
             <Setter Property="Transitions">
                 <Transitions>
-                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.08" Easing="CubicEaseOut"/>
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.16" Easing="0.16, 1, 0.3, 1"/>
                 </Transitions>
             </Setter>
         </Style>
@@ -155,7 +155,7 @@
         <Style Selector="Border[Cursor=Hand]">
             <Setter Property="Transitions">
                 <Transitions>
-                    <BrushTransition Property="BorderBrush" Duration="0:0:0.12" Easing="CubicEaseOut"/>
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.2" Easing="0.16, 1, 0.3, 1"/>
                 </Transitions>
             </Setter>
         </Style>
@@ -167,8 +167,8 @@
         <Style Selector="Button /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Transitions">
                 <Transitions>
-                    <BrushTransition Property="Background" Duration="0:0:0.12" Easing="CubicEaseOut"/>
-                    <BrushTransition Property="BorderBrush" Duration="0:0:0.12" Easing="CubicEaseOut"/>
+                    <BrushTransition Property="Background" Duration="0:0:0.2" Easing="0.16, 1, 0.3, 1"/>
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.2" Easing="0.16, 1, 0.3, 1"/>
                 </Transitions>
             </Setter>
         </Style>
@@ -178,13 +178,17 @@
             <Setter Property="RenderTransform" Value="translateY(0px)"/>
             <Setter Property="Transitions">
                 <Transitions>
-                    <BrushTransition Property="BorderBrush" Duration="0:0:0.15" Easing="CubicEaseOut"/>
-                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15" Easing="CubicEaseOut"/>
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.22" Easing="0.16, 1, 0.3, 1"/>
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.22" Easing="0.16, 1, 0.3, 1"/>
                 </Transitions>
             </Setter>
         </Style>
         <Style Selector="Border.instanceCard:pointerover">
             <Setter Property="RenderTransform" Value="translateY(-2px)"/>
+        </Style>
+        <Style Selector="Border.instanceCard.dragging">
+            <Setter Property="Opacity" Value="0.88"/>
+            <Setter Property="ZIndex" Value="999"/>
         </Style>
 
         <!-- Version button style (for Java installer tiles and version selectors) -->
@@ -216,7 +220,7 @@
         <Style Selector="Control.viewPane">
             <Setter Property="Transitions">
                 <Transitions>
-                    <DoubleTransition Property="Opacity" Duration="0:0:0.18" Easing="CubicEaseOut"/>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.24" Easing="0.16, 1, 0.3, 1"/>
                 </Transitions>
             </Setter>
         </Style>
@@ -226,8 +230,8 @@
             <Setter Property="RenderTransform" Value="translateY(-6px)"/>
             <Setter Property="Transitions">
                 <Transitions>
-                    <DoubleTransition Property="Opacity" Duration="0:0:0.18" Easing="CubicEaseOut"/>
-                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.18" Easing="CubicEaseOut"/>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.22" Easing="0.16, 1, 0.3, 1"/>
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.22" Easing="0.16, 1, 0.3, 1"/>
                 </Transitions>
             </Setter>
         </Style>
@@ -336,8 +340,8 @@
             <Setter Property="RenderTransform" Value="translateY(-6px)"/>
             <Setter Property="Transitions">
                 <Transitions>
-                    <DoubleTransition Property="Opacity" Duration="0:0:0.16" Easing="CubicEaseOut"/>
-                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.16" Easing="CubicEaseOut"/>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.22" Easing="0.16, 1, 0.3, 1"/>
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.22" Easing="0.16, 1, 0.3, 1"/>
                 </Transitions>
             </Setter>
         </Style>

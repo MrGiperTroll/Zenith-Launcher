@@ -15,9 +15,9 @@ namespace CustomMcLauncher.Services;
 /// </summary>
 public static class UiFx
 {
-    private static readonly CubicEaseOut Ease = new();
+    private static readonly SplineEasing Ease = new(0.16, 1.0, 0.3, 1.0);
 
-    public static void FadeIn(Visual visual, int ms = 140, double slideY = 5, double startScale = 1.0)
+    public static void FadeIn(Visual visual, int ms = 240, double slideY = 4, double startScale = 1.0)
     {
         if (visual == null) return;
         if (visual is Window)
@@ -32,7 +32,7 @@ public static class UiFx
             return;
         }
 
-        visual.Opacity = 0;
+        visual.Opacity = 0.25;
 
         void OnAttached(object? sender, VisualTreeAttachmentEventArgs e)
         {
@@ -44,7 +44,7 @@ public static class UiFx
         visual.AttachedToVisualTree += OnAttached;
     }
 
-    public static void FadeInNow(Visual visual, int ms = 140, double slideY = 5, double startScale = 1.0)
+    public static void FadeInNow(Visual visual, int ms = 240, double slideY = 4, double startScale = 1.0)
     {
         if (visual is not Control control || !Dispatcher.UIThread.CheckAccess()) return;
 
@@ -79,8 +79,8 @@ public static class UiFx
             };
         }
 
-        // Snap to initial position
-        control.Opacity = 0;
+        // Snap to soft initial position (prevents black flash/flicker)
+        control.Opacity = 0.25;
         translate.Y = slideY;
 
         // Trigger smooth transition on next render frame
@@ -93,6 +93,6 @@ public static class UiFx
 
     public static void MicroTabFade(Visual visual)
     {
-        FadeInNow(visual, 90, 2);
+        FadeInNow(visual, 180, 2);
     }
 }

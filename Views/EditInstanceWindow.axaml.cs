@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using CustomMcLauncher.Services;
 using CustomMcLauncher.ViewModels;
 
 namespace CustomMcLauncher.Views;
@@ -31,7 +32,13 @@ public partial class EditInstanceWindow : Window
 
     private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(EditInstanceViewModel.LogText))
+        if (e.PropertyName == nameof(EditInstanceViewModel.SelectedTab))
+        {
+            var content = this.FindControl<Grid>("TabContentGrid");
+            if (content != null)
+                UiFx.FadeInNow(content, 220, 4);
+        }
+        else if (e.PropertyName == nameof(EditInstanceViewModel.LogText))
         {
             if (_followBottom && LogScroll != null)
             {

@@ -13,6 +13,25 @@ public partial class LauncherSettingsWindow : Window
         InitializeComponent();
         if (Content is Visual root)
             UiFx.FadeIn(root, 150, 10);
+
+        DataContextChanged += (_, _) =>
+        {
+            if (DataContext is MainWindowViewModel vm)
+            {
+                vm.PropertyChanged -= OnVmPropertyChanged;
+                vm.PropertyChanged += OnVmPropertyChanged;
+            }
+        };
+    }
+
+    private void OnVmPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(MainWindowViewModel.CurrentSettingsTab))
+        {
+            var sc = this.FindControl<ScrollViewer>("SettingsContentScroll");
+            if (sc != null)
+                UiFx.FadeInNow(sc, 220, 4);
+        }
     }
 
     protected override void OnClosed(EventArgs e)

@@ -76,12 +76,14 @@ public partial class EditInstanceViewModel : ViewModelBase
 
         HasModsSupport = IsLoaderWithModsSupport(instance.LoaderType);
         HasShaderSupport = HasShaderSupportFor(instance.LoaderType);
-        RefreshAvailableWorlds();
-        RefreshDataPacks();
 
-        _logTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(600) };
+        _logTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(1000) };
         _logTimer.Tick += (_, _) => RefreshLogs();
-        _logTimer.Start();
+        if (SelectedTab == "Logs")
+        {
+            _logTimer.Start();
+            RefreshLogs();
+        }
 
         // Mirror launch/download progress from the host (the actual launch runs on MainWindow's service)
         _host.PropertyChanged += (_, e) =>
@@ -114,8 +116,7 @@ public partial class EditInstanceViewModel : ViewModelBase
             }
         };
 
-        RefreshFileLists();
-        RefreshLogs();
+        Instance.RefreshTimeDisplays();
     }
 
     public void RefreshAllContent() => RefreshFileLists();
@@ -142,6 +143,17 @@ public partial class EditInstanceViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsServersTab));
         OnPropertyChanged(nameof(IsScreenshotsTab));
         OnPropertyChanged(nameof(IsSettingsTab));
+
+        if (value == "Logs")
+        {
+            if (!_logTimer.IsEnabled) _logTimer.Start();
+            RefreshLogs();
+        }
+        else
+        {
+            if (_logTimer.IsEnabled) _logTimer.Stop();
+        }
+
         // Only refresh what the newly visible tab shows — rescanning every folder
         // on each switch was the source of the noticeable tab-switch lag.
         RefreshTabContent(value);
@@ -360,36 +372,81 @@ public partial class EditInstanceViewModel : ViewModelBase
     private string LogFilePath =>
         Path.Combine(ZenithPaths.AppDataDir, "logs", $"instance_{Instance.Id}.log");
 
-    private void RefreshLogs()
+    private DateTime _lastLogModifiedUtc;
+    private long _lastLogLength;
+    private bool _isRefreshingLogs;
+
+    private async void RefreshLogs()
     {
+        if (SelectedTab != "Logs" || _isRefreshingLogs) return;
+        var path = LogFilePath;
+        if (!File.Exists(path))
+        {
+            LogText = "No logs yet. Launch the instance to see output here.";
+            LogHasContent = false;
+            _lastLogLength = 0;
+            _lastLogModifiedUtc = default;
+            return;
+        }
+
         try
         {
-            var sb = new StringBuilder();
-
-            if (File.Exists(LogFilePath))
+            var info = new FileInfo(path);
+            var modUtc = info.LastWriteTimeUtc;
+            var len = info.Length;
+            if (modUtc == _lastLogModifiedUtc && len == _lastLogLength && LogHasContent)
             {
-                var lines = File.ReadAllLines(LogFilePath);
-                if (!LogsShowSystemMessages)
-                    lines = lines.Where(l => !IsSystemMessage(l)).ToArray();
-                if (lines.Length > 0)
-                {
-                    var tail = LogsFullJava
-                        ? lines
-                        : lines.Skip(Math.Max(0, lines.Length - 1000)).ToArray();
-                    foreach (var line in tail)
-                        sb.AppendLine(line);
-                }
+                return;
             }
 
-            // Detailed Java logs written by the game itself (latest.log / debug.log)
-            if (LogsFullJava)
-                AppendGameJavaLogs(sb);
+            _isRefreshingLogs = true;
+            _lastLogModifiedUtc = modUtc;
+            _lastLogLength = len;
 
-            var text = sb.ToString().TrimEnd('\r', '\n');
-            LogText = text.Length == 0 ? "No logs yet. Launch the instance to see output here." : text;
-            LogHasContent = text.Length > 0;
+            bool showSys = LogsShowSystemMessages;
+            bool fullJava = LogsFullJava;
+            string instPath = Instance.Path;
+
+            var (text, hasContent) = await Task.Run(() =>
+            {
+                var sb = new StringBuilder();
+                try
+                {
+                    using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                    using var reader = new StreamReader(fs, Encoding.UTF8);
+                    var lines = new List<string>();
+                    string? l;
+                    while ((l = reader.ReadLine()) != null)
+                    {
+                        if (!showSys && IsSystemMessage(l)) continue;
+                        lines.Add(l);
+                    }
+
+                    if (lines.Count > 0)
+                    {
+                        var tail = fullJava ? lines : lines.Skip(Math.Max(0, lines.Count - 1000));
+                        foreach (var line in tail) sb.AppendLine(line);
+                    }
+                }
+                catch { }
+
+                if (fullJava)
+                {
+                    AppendGameJavaLogs(sb, instPath);
+                }
+
+                var res = sb.ToString().TrimEnd('\r', '\n');
+                return (res.Length == 0 ? "No logs yet. Launch the instance to see output here." : res, res.Length > 0);
+            });
+
+            LogText = text;
+            LogHasContent = hasContent;
         }
         catch { }
+        finally
+        {
+            _isRefreshingLogs = false;
+        }
     }
 
     private static bool IsSystemMessage(string line)
@@ -402,20 +459,30 @@ public partial class EditInstanceViewModel : ViewModelBase
                line.StartsWith("[CRITICAL", StringComparison.Ordinal);
     }
 
-    private void AppendGameJavaLogs(StringBuilder sb)
+    private static void AppendGameJavaLogs(StringBuilder sb, string instancePath)
     {
         foreach (var fileName in new[] { "debug.log", "latest.log" })
         {
-            var path = Path.Combine(Instance.Path, "logs", fileName);
+            var path = Path.Combine(instancePath, "logs", fileName);
             if (!File.Exists(path)) continue;
-            var allLines = File.ReadAllLines(path);
-            if (allLines.Length == 0) continue;
+            try
+            {
+                using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                using var reader = new StreamReader(fs, Encoding.UTF8);
+                var allLines = new List<string>();
+                string? line;
+                while ((line = reader.ReadLine()) != null)
+                    allLines.Add(line);
 
-            sb.AppendLine();
-            sb.AppendLine($"----- {fileName} ({allLines.Length} lines) -----");
-            var tail = allLines.Skip(Math.Max(0, allLines.Length - 5000));
-            foreach (var line in tail)
-                sb.AppendLine(line);
+                if (allLines.Count == 0) continue;
+
+                sb.AppendLine();
+                sb.AppendLine($"----- {fileName} ({allLines.Count} lines) -----");
+                var tail = allLines.Skip(Math.Max(0, allLines.Count - 5000));
+                foreach (var l in tail)
+                    sb.AppendLine(l);
+            }
+            catch { }
         }
     }
 

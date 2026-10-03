@@ -240,6 +240,7 @@ public partial class MainWindow : Window
     }
 
     private Border? _draggedCard;
+    private ContentPresenter? _draggedContainer;
     private InstanceModel? _draggedInstance;
     private Point _dragStartPos;
     private bool _isDragging;
@@ -271,9 +272,13 @@ public partial class MainWindow : Window
         if (!_isDragging && (Math.Abs(diff.X) > 6 || Math.Abs(diff.Y) > 6))
         {
             _isDragging = true;
+            _draggedContainer = _draggedCard.FindAncestorOfType<ContentPresenter>();
+            if (_draggedContainer != null)
+                _draggedContainer.ZIndex = 1000;
+
             _draggedCard.Classes.Add("dragging");
-            _draggedCard.ZIndex = 999;
-            _draggedCard.Opacity = 0.88;
+            _draggedCard.ZIndex = 1000;
+            _draggedCard.Opacity = 0.92;
             e.Pointer.Capture(_draggedCard);
         }
 
@@ -281,7 +286,7 @@ public partial class MainWindow : Window
         {
             var group = new TransformGroup();
             group.Children.Add(new TranslateTransform(diff.X, diff.Y));
-            group.Children.Add(new ScaleTransform(1.04, 1.04));
+            group.Children.Add(new ScaleTransform(1.05, 1.05));
             _draggedCard.RenderTransform = group;
         }
     }
@@ -297,7 +302,7 @@ public partial class MainWindow : Window
         if (_isDragging)
         {
             _suppressNextTap = true;
-            e.Pointer.Capture(null);
+            try { e.Pointer.Capture(null); } catch { }
 
             var movedId = _draggedInstance.Id;
 
@@ -325,7 +330,14 @@ public partial class MainWindow : Window
             {
                 Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                 {
-                    vm.ReorderInstance(movedId, targetId, dropAfter);
+                    try
+                    {
+                        vm.ReorderInstance(movedId, targetId, dropAfter);
+                    }
+                    catch (Exception ex)
+                    {
+                        LauncherLog.Error("Failed to reorder instance", ex);
+                    }
                 }, Avalonia.Threading.DispatcherPriority.Background);
             }
 
@@ -343,13 +355,19 @@ public partial class MainWindow : Window
 
     private void ResetDrag()
     {
+        if (_draggedContainer != null)
+        {
+            _draggedContainer.ZIndex = 0;
+            _draggedContainer = null;
+        }
+
         if (_draggedCard != null)
         {
             _draggedCard.Classes.Remove("dragging");
             _draggedCard.ZIndex = 0;
             _draggedCard.Opacity = 1.0;
             _draggedCard.IsHitTestVisible = true;
-            _draggedCard.ClearValue(Border.RenderTransformProperty);
+            _draggedCard.RenderTransform = null;
         }
         _draggedCard = null;
         _draggedInstance = null;

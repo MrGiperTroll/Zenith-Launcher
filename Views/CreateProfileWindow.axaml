@@ -132,7 +132,7 @@
                                     <Border Width="104" Height="104" Classes="iconCard" BorderThickness="1" CornerRadius="16" ClipToBounds="True" HorizontalAlignment="Center">
                                         <Panel>
                                             <Image Source="{Binding IconPreview}" Stretch="UniformToFill" Width="102" Height="102" IsVisible="{Binding IconPreview, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-                                            <Path Data="{StaticResource ZenithLogoGeometry}" Fill="{StaticResource AccentBrush}" Stretch="Uniform" Width="52" Height="52" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding IconPreview, Converter={x:Static ObjectConverters.IsNull}}"/>
+                                            <Path Data="{StaticResource ZenithLogoGeometry}" Fill="{StaticResource AccentBrush}" Stretch="Uniform" Width="52" Height="52" Margin="0,3.5,0,0" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding IconPreview, Converter={x:Static ObjectConverters.IsNull}}"/>
                                         </Panel>
                                     </Border>
                                     <Button Content="{l10n:Tr Key=cp_upload_icon}" Command="{Binding PickCustomIconCommand}" Classes="subBtn" Padding="10,6" FontSize="11" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>

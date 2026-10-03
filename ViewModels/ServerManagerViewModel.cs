@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Platform.Storage;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CustomMcLauncher.Services;
@@ -78,6 +79,24 @@ public partial class ServerManagerViewModel : ViewModelBase
         EditorAcceptTextures = entry.AcceptTextures;
         EditorHideAddress = entry.HideAddress;
         IsEditorOpen = true;
+    }
+
+    [RelayCommand]
+    private async Task CopyIpAsync(ServerEntry? entry)
+    {
+        if (entry == null || string.IsNullOrWhiteSpace(entry.Ip)) return;
+        try
+        {
+            var topLevel = Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime d ? d.MainWindow : null;
+            if (topLevel?.Clipboard != null)
+            {
+                var transfer = new DataTransfer();
+                transfer.Add(DataTransferItem.CreateText(entry.Ip));
+                await topLevel.Clipboard.SetDataAsync(transfer);
+                StatusText = $"Copied '{entry.Ip}' to clipboard";
+            }
+        }
+        catch { }
     }
 
     [RelayCommand]

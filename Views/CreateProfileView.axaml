@@ -137,7 +137,7 @@
                                 <Border Width="112" Height="112" Classes="iconCard" BorderThickness="1" CornerRadius="16" ClipToBounds="True" HorizontalAlignment="Center">
                                     <Panel>
                                         <Image Source="{Binding IconPreview}" Stretch="UniformToFill" Width="110" Height="110" IsVisible="{Binding IconPreview, Converter={x:Static conv:ObjectConverters.IsNotNull}}"/>
-                                        <Path Data="{StaticResource ZenithLogoGeometry}" Fill="{StaticResource AccentBrush}" Stretch="Uniform" Width="56" Height="56" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding IconPreview, Converter={x:Static conv:ObjectConverters.IsNull}}"/>
+                                        <Path Data="{StaticResource ZenithLogoGeometry}" Fill="{StaticResource AccentBrush}" Stretch="Uniform" Width="56" Height="56" Margin="0,3.5,0,0" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding IconPreview, Converter={x:Static conv:ObjectConverters.IsNull}}"/>
                                     </Panel>
                                 </Border>
                                 <Grid ColumnDefinitions="*,*" ColumnSpacing="8" Width="140" HorizontalAlignment="Center">

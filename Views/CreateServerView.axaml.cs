@@ -22,13 +22,14 @@ public partial class CreateServerView : UserControl
                 {
                     preRenameName = vm.SelectedServerName;
                 }
-                nameInput.SelectAll();
+                Avalonia.Threading.Dispatcher.UIThread.Post(() => nameInput.SelectAll());
             };
 
             nameInput.DoubleTapped += (s, e) =>
             {
+                e.Handled = true;
                 nameInput.Focus();
-                nameInput.SelectAll();
+                Avalonia.Threading.Dispatcher.UIThread.Post(() => nameInput.SelectAll());
             };
 
             nameInput.KeyDown += (s, e) =>

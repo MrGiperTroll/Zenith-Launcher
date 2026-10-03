@@ -91,6 +91,8 @@
         <SolidColorBrush x:Key="SliderThumbBackground" Color="#3B82F6"/>
         <SolidColorBrush x:Key="SliderThumbBackgroundPointerOver" Color="#60A5FA"/>
         <SolidColorBrush x:Key="SliderThumbBackgroundPressed" Color="#1D4ED8"/>
+        <!-- Text Selection Highlight Override -->
+        <SolidColorBrush x:Key="TextControlSelectionHighlightColor" Color="#3B82F6"/>
     </Application.Resources>
 
     <Application.Styles>
@@ -233,11 +235,11 @@
         </Style>
         <!-- FlyoutPresenter: clean dark popup without extra gray frames -->
         <Style Selector="FlyoutPresenter">
-            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
+            <Setter Property="Background" Value="{StaticResource CardBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="6"/>
+            <Setter Property="Padding" Value="4"/>
             <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
             <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
         </Style>
@@ -442,7 +444,7 @@
         <Style Selector="TextBox.titleInput">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="4,1"/>
+            <Setter Property="Padding" Value="0"/>
             <Setter Property="Margin" Value="0"/>
             <Setter Property="MinHeight" Value="0"/>
             <Setter Property="FocusAdorner" Value="{x:Null}"/>
@@ -450,15 +452,26 @@
             <Setter Property="SelectionForegroundBrush" Value="{DynamicResource OnAccentBrush}"/>
             <Setter Property="CaretBrush" Value="{DynamicResource AccentBrush}"/>
         </Style>
+        <Style Selector="TextBox.titleInput /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0"/>
+        </Style>
         <Style Selector="TextBox.titleInput:focus /template/ Border#PART_BorderElement">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderBrush" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0"/>
         </Style>
         <Style Selector="TextBox.titleInput:pointerover /template/ Border#PART_BorderElement">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderBrush" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0"/>
         </Style>
     </Application.Styles>
 </Application>

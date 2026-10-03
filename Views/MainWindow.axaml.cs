@@ -146,6 +146,16 @@ public partial class MainWindow : Window
         }
     }
 
+    private void OnInstanceNameDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        if (sender is TextBox tb)
+        {
+            e.Handled = true;
+            tb.Focus();
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => tb.SelectAll());
+        }
+    }
+
     private void OnInstanceNameLostFocus(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         if (DataContext is MainWindowViewModel vm)

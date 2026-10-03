@@ -88,6 +88,16 @@ public partial class EditInstanceView : UserControl
             vm.ShowDataPackDetails(entry);
     }
 
+    private void OnTitleDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        if (sender is TextBox tb)
+        {
+            e.Handled = true;
+            tb.Focus();
+            Dispatcher.UIThread.Post(() => tb.SelectAll());
+        }
+    }
+
     private void OnInstanceNameLostFocus(object? sender, RoutedEventArgs e)
     {
         if (DataContext is EditInstanceViewModel vm)

@@ -603,6 +603,7 @@
                                                      FontWeight="Bold" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}"
                                                      VerticalAlignment="Center" VerticalContentAlignment="Center"
                                                      HorizontalAlignment="Center" TextAlignment="Center" MinWidth="24" MaxWidth="180"
+                                                     DoubleTapped="OnInstanceNameDoubleTapped"
                                                      LostFocus="OnInstanceNameLostFocus"/>
                                         </Border>
 

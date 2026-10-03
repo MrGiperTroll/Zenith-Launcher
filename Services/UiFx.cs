@@ -56,8 +56,16 @@ public static class UiFx
             control.RenderTransform = translate;
         }
 
-        // Configure transitions once if not already present
-        if (control.Transitions == null || control.Transitions.Count == 0)
+        // Temporarily clear transitions so the reset to initial state snaps immediately without animating backwards
+        control.Transitions = null;
+        translate.Transitions = null;
+
+        // Snap to soft initial position (prevents black flash/flicker)
+        control.Opacity = 0.25;
+        translate.Y = slideY;
+
+        // Trigger smooth forward transition on next render frame
+        Dispatcher.UIThread.Post(() =>
         {
             control.Transitions = new Transitions
             {
@@ -77,15 +85,7 @@ public static class UiFx
                     Easing = Ease
                 }
             };
-        }
 
-        // Snap to soft initial position (prevents black flash/flicker)
-        control.Opacity = 0.25;
-        translate.Y = slideY;
-
-        // Trigger smooth transition on next render frame
-        Dispatcher.UIThread.Post(() =>
-        {
             control.Opacity = 1.0;
             translate.Y = 0;
         }, DispatcherPriority.Render);

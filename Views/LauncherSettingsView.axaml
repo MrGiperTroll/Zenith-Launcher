@@ -45,14 +45,12 @@
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="Background" Duration="0:0:0.15"/>
-                </Transitions>
-            </Setter>
         </Style>
-        <Style Selector="Button.sideTab:pointerover">
-            <Setter Property="Background" Value="{StaticResource PanelBrush}"/>
+        <Style Selector="Button.sideTab:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+        </Style>
+        <Style Selector="Button.sideTab.active /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource AccentDimBrush}"/>
         </Style>
         <Style Selector="Button.subBtn">
             <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
@@ -65,11 +63,17 @@
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.15"/>
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.15"/>
+                </Transitions>
+            </Setter>
         </Style>
-        <Style Selector="Button.subBtn:pointerover">
+        <Style Selector="Button.subBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
         </Style>
         <Style Selector="Button.primaryBtn">
             <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
@@ -96,13 +100,8 @@
                 <Grid RowDefinitions="Auto,*,Auto">
                     <TextBox Classes="darkInput" Text="{Binding SettingsSearchQuery}" PlaceholderText="{l10n:Tr Key=ph_search}" Padding="8,6" FontSize="11" Margin="0,0,0,12"/>
                     <StackPanel Grid.Row="1" Spacing="4">
-                        <Button Classes="sideTab" Command="{Binding SwitchSettingsTabCommand}" CommandParameter="Game"
+                        <Button Classes="sideTab" Classes.active="{Binding IsSettingsTabGame}" Command="{Binding SwitchSettingsTabCommand}" CommandParameter="Game"
                                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
-                            <Button.Styles>
-                                <Style Selector="Button.sideTab.active">
-                                    <Setter Property="Background" Value="{StaticResource AccentDimBrush}"/>
-                                </Style>
-                            </Button.Styles>
                             <Grid ColumnDefinitions="Auto,*">
                                 <Border Width="30" Height="30" Background="{StaticResource IconChipBrush}" CornerRadius="7" VerticalAlignment="Center">
                                     <PathIcon Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" Width="15" Height="15" Foreground="{Binding IsSettingsTabGame, Converter={x:Static vm:EditInstanceWindowConverters.ActiveIcon}}"/>
@@ -110,13 +109,8 @@
                                 <TextBlock Grid.Column="1" Text="{l10n:Tr Key=set_game}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsSettingsTabGame, Converter={x:Static vm:EditInstanceWindowConverters.ActiveText}}"/>
                             </Grid>
                         </Button>
-                        <Button Classes="sideTab" Command="{Binding SwitchSettingsTabCommand}" CommandParameter="General"
+                        <Button Classes="sideTab" Classes.active="{Binding IsSettingsTabGeneral}" Command="{Binding SwitchSettingsTabCommand}" CommandParameter="General"
                                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
-                            <Button.Styles>
-                                <Style Selector="Button.sideTab.active">
-                                    <Setter Property="Background" Value="{StaticResource AccentDimBrush}"/>
-                                </Style>
-                            </Button.Styles>
                             <Grid ColumnDefinitions="Auto,*">
                                 <Border Width="30" Height="30" Background="{StaticResource IconChipBrush}" CornerRadius="7" VerticalAlignment="Center">
                                     <PathIcon Data="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" Width="15" Height="15" Foreground="{Binding IsSettingsTabGeneral, Converter={x:Static vm:EditInstanceWindowConverters.ActiveIcon}}"/>
@@ -124,13 +118,8 @@
                                 <TextBlock Grid.Column="1" Text="{l10n:Tr Key=set_general}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsSettingsTabGeneral, Converter={x:Static vm:EditInstanceWindowConverters.ActiveText}}"/>
                             </Grid>
                         </Button>
-                        <Button Classes="sideTab" Command="{Binding SwitchSettingsTabCommand}" CommandParameter="Appearance"
+                        <Button Classes="sideTab" Classes.active="{Binding IsSettingsTabAppearance}" Command="{Binding SwitchSettingsTabCommand}" CommandParameter="Appearance"
                                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
-                            <Button.Styles>
-                                <Style Selector="Button.sideTab.active">
-                                    <Setter Property="Background" Value="{DynamicResource AccentDimBrush}"/>
-                                </Style>
-                            </Button.Styles>
                             <Grid ColumnDefinitions="Auto,*">
                                 <Border Width="30" Height="30" Background="{StaticResource IconChipBrush}" CornerRadius="7" VerticalAlignment="Center">
                                     <Path Data="{StaticResource ZenithLogoGeometry}" Fill="{Binding IsSettingsTabAppearance, Converter={x:Static vm:EditInstanceWindowConverters.ActiveIcon}}" Stretch="Uniform" Width="15" Height="15" Margin="0,1.5,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -144,7 +133,7 @@
             </Border>
 
             <!-- Content -->
-            <ScrollViewer Grid.Column="1" Padding="24,20,28,20" VerticalScrollBarVisibility="Auto">
+            <ScrollViewer x:Name="SettingsContentScroll" Grid.Column="1" Padding="24,20,28,20" VerticalScrollBarVisibility="Auto">
                 <StackPanel Spacing="20">
                     <!-- Game Settings -->
                     <StackPanel Spacing="16" IsVisible="{Binding IsSettingsTabGame}">
@@ -368,15 +357,15 @@
                                         <TextBlock Text="Accent Preview" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextPlaceholderBrush}" LetterSpacing="0.5"/>
                                         <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="12" VerticalAlignment="Center">
                                             <!-- Sample Primary Button -->
-                                            <Border Background="{DynamicResource AccentBrush}" CornerRadius="6" Padding="14,7" VerticalAlignment="Center">
+                                            <Border Background="{Binding PreviewAccentBrush}" CornerRadius="6" Padding="14,7" VerticalAlignment="Center">
                                                 <TextBlock Text="Primary Button" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource OnAccentBrush}"/>
                                             </Border>
                                             <!-- Sample Badge -->
-                                            <Border Grid.Column="1" Background="{DynamicResource AccentDimBrush}" BorderBrush="{DynamicResource AccentBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6" VerticalAlignment="Center">
-                                                <TextBlock Text="Accent Pill" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"/>
+                                            <Border Grid.Column="1" Background="{Binding PreviewAccentDimBrush}" BorderBrush="{Binding PreviewAccentBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6" VerticalAlignment="Center">
+                                                <TextBlock Text="Accent Pill" FontSize="11" FontWeight="SemiBold" Foreground="{Binding PreviewAccentBrush}"/>
                                             </Border>
                                             <!-- Sample Text -->
-                                            <TextBlock Grid.Column="2" Text="{Binding CustomThemeHex}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="2" Text="{Binding CustomThemeHex}" FontSize="12" FontWeight="Bold" Foreground="{Binding PreviewAccentBrush}" VerticalAlignment="Center"/>
                                         </Grid>
                                     </StackPanel>
                                 </Border>
@@ -386,7 +375,7 @@
                                     <StackPanel Spacing="10">
                                         <TextBlock Text="{l10n:Tr Key=set_custom_theme}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
                                         <Grid ColumnDefinitions="36,*,Auto" ColumnSpacing="10" VerticalAlignment="Center">
-                                            <Border Grid.Column="0" Width="36" Height="36" CornerRadius="8" Background="{DynamicResource AccentBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" VerticalAlignment="Center" ToolTip.Tip="Selected Accent"/>
+                                            <Border Grid.Column="0" Width="36" Height="36" CornerRadius="8" Background="{Binding PreviewAccentBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" VerticalAlignment="Center" ToolTip.Tip="Selected Accent"/>
                                             <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding CustomThemeHex, Mode=TwoWay}" PlaceholderText="#3B82F6" Height="36" VerticalContentAlignment="Center" ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.HorizontalScrollBarVisibility="Disabled" FontSize="12" FontWeight="SemiBold"/>
                                             <Button Grid.Column="2" Classes="primaryBtn" Command="{Binding RequestApplyThemeCommand}" Height="36" Padding="18,0" VerticalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Content="{l10n:Tr Key=set_apply}"/>
                                         </Grid>
@@ -404,12 +393,7 @@
         <Border IsVisible="{Binding IsRestartConfirmOpen}" Background="{StaticResource OverlayBrush}" ZIndex="999">
             <Border Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="390" Padding="22" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="14">
-                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                        <Border Width="30" Height="30" CornerRadius="15" Background="{DynamicResource AccentSoftBrush}" VerticalAlignment="Center">
-                            <PathIcon Data="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0020 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A7.93 7.93 0 004 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z" Width="15" Height="15" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <TextBlock Text="{l10n:Tr Key=dialog_restart_title}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                    </StackPanel>
+                    <TextBlock Text="{l10n:Tr Key=dialog_restart_title}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                     <TextBlock Text="{l10n:Tr Key=dialog_restart_theme_msg}" TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" LineHeight="17"/>
                     <Grid ColumnDefinitions="*,*" Margin="0,4,0,0">
                         <Button Grid.Column="0" Content="{l10n:Tr Key=no}" Command="{Binding CancelRestartConfirmCommand}" Classes="subBtn" HorizontalContentAlignment="Center" Margin="0,0,6,0" Height="34"/>

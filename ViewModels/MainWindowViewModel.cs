@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
+using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using CmlLib.Core;
@@ -456,6 +457,37 @@ public partial class MainWindowViewModel : ViewModelBase
     private string _customThemeHex = ZenithTheme.DefaultAccent;
 
     [ObservableProperty]
+    private IBrush _previewAccentBrush = new SolidColorBrush(Color.Parse(ZenithTheme.DefaultAccent));
+
+    [ObservableProperty]
+    private IBrush _previewAccentDimBrush = new SolidColorBrush(Color.FromArgb(45, 59, 130, 246));
+
+    [ObservableProperty]
+    private IBrush _previewAccentBorderBrush = new SolidColorBrush(Color.FromArgb(90, 59, 130, 246));
+
+    partial void OnCustomThemeHexChanged(string value)
+    {
+        UpdatePreviewBrushes(value);
+    }
+
+    private void UpdatePreviewBrushes(string? hex)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(hex)) return;
+            hex = hex.Trim();
+            if (!hex.StartsWith("#")) hex = "#" + hex;
+            if (Color.TryParse(hex, out var c))
+            {
+                PreviewAccentBrush = new SolidColorBrush(c);
+                PreviewAccentDimBrush = new SolidColorBrush(Color.FromArgb(45, c.R, c.G, c.B));
+                PreviewAccentBorderBrush = new SolidColorBrush(Color.FromArgb(90, c.R, c.G, c.B));
+            }
+        }
+        catch { }
+    }
+
+    [ObservableProperty]
     private bool _isRestartConfirmOpen;
 
     [ObservableProperty]
@@ -468,6 +500,7 @@ public partial class MainWindowViewModel : ViewModelBase
         hex = hex.Trim();
         if (!hex.StartsWith("#")) hex = "#" + hex;
         CustomThemeHex = hex;
+        UpdatePreviewBrushes(hex);
     }
 
     [RelayCommand]

@@ -175,20 +175,15 @@
 
         <!-- Instance card subtle elevation on hover -->
         <Style Selector="Border.instanceCard">
-            <Setter Property="RenderTransform" Value="translateY(0px)"/>
             <Setter Property="Transitions">
                 <Transitions>
-                    <BrushTransition Property="BorderBrush" Duration="0:0:0.22" Easing="0.16, 1, 0.3, 1"/>
-                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.22" Easing="0.16, 1, 0.3, 1"/>
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.2" Easing="0.16, 1, 0.3, 1"/>
+                    <BrushTransition Property="Background" Duration="0:0:0.2" Easing="0.16, 1, 0.3, 1"/>
                 </Transitions>
             </Setter>
         </Style>
-        <Style Selector="Border.instanceCard:pointerover">
-            <Setter Property="RenderTransform" Value="translateY(-2px)"/>
-        </Style>
         <Style Selector="Border.instanceCard.dragging">
-            <Setter Property="Opacity" Value="0.88"/>
-            <Setter Property="ZIndex" Value="999"/>
+            <Setter Property="Opacity" Value="0.92"/>
         </Style>
 
         <!-- Version button style (for Java installer tiles and version selectors) -->

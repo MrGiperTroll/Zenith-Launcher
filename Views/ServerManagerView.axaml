@@ -1,4 +1,4 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="CustomMcLauncher.Views.ServerManagerView"
              xmlns:views="using:CustomMcLauncher.Views"
@@ -23,46 +23,51 @@
         </Style>
     </UserControl.Styles>
 
-    <Border Background="{StaticResource CardAltBrush}" CornerRadius="12" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" Padding="20">
+    <Border Background="{StaticResource CardBrush}" CornerRadius="10" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" Padding="18">
         <Grid RowDefinitions="Auto,*,Auto">
             <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,14">
                 <StackPanel Spacing="2">
-                    <TextBlock Text="{l10n:Tr Key=sm_title}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                    <TextBlock Text="{l10n:Tr Key=sm_title}" FontSize="17" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
                     <TextBlock Text="{Binding StatusText}" FontSize="11" Foreground="{DynamicResource AccentBrush}"/>
                 </StackPanel>
                 <Button Grid.Column="1" Classes="primaryBtn" Content="{l10n:Tr Key=sm_add}" Command="{Binding AddServerCommand}" VerticalAlignment="Center" Padding="16,8"/>
             </Grid>
 
-            <Border Grid.Row="1" Background="{StaticResource ContentSurfaceBrush}" BorderBrush="{StaticResource PanelBrush}" BorderThickness="1" CornerRadius="10" Padding="8">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel>
-                        <ItemsControl ItemsSource="{Binding Servers}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="services:ServerEntry">
-                                    <Border Margin="0,2,0,2" Padding="10,8" CornerRadius="8" Background="{StaticResource CardBrush}">
-                                        <Grid ColumnDefinitions="*,Auto,Auto">
-                                            <StackPanel Spacing="2" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                                <TextBlock Text="{Binding Ip}" FontSize="11" Foreground="{StaticResource TextLabelBrush}"/>
-                                            </StackPanel>
-                                            <Button Grid.Column="1" Command="{Binding $parent[views:ServerManagerView].((vm:ServerManagerViewModel)DataContext).EditServerCommand}" CommandParameter="{Binding}"
-                                                    Background="Transparent" Foreground="{StaticResource TextLabelBrush}" Padding="8,6" Cursor="Hand" Margin="4,0">
-                                                <PathIcon Data="M3 17.25V21H6.75L17.81 9.94L14.06 6.19L3 17.25ZM20.71 7.04C21.1 6.65 21.1 6.02 20.71 5.63L18.37 3.29C17.98 2.9 17.35 2.9 16.96 3.29L15.13 5.12L18.88 8.87L20.71 7.04Z" Width="13" Height="13"/>
-                                            </Button>
-                                            <Button Grid.Column="2" Command="{Binding $parent[views:ServerManagerView].((vm:ServerManagerViewModel)DataContext).DeleteServerCommand}" CommandParameter="{Binding}"
-                                                    Background="Transparent" Foreground="{StaticResource DangerBrush}" Padding="8,6" Cursor="Hand" Margin="4,0">
-                                                <PathIcon Data="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" Width="13" Height="13"/>
-                                            </Button>
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                        <TextBlock Text="{l10n:Tr Key=sm_empty}" Foreground="{StaticResource TextPlaceholderBrush}" FontSize="12" HorizontalAlignment="Center" Padding="0,24"
-                                   IsVisible="{Binding Servers.Count, Converter={x:Static vm:EditInstanceWindowConverters.IsZero}}"/>
-                    </StackPanel>
-                </ScrollViewer>
-            </Border>
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <StackPanel Spacing="4">
+                    <ItemsControl ItemsSource="{Binding Servers}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="services:ServerEntry">
+                                <Border Margin="0,2" Padding="12,9" CornerRadius="8" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1">
+                                    <Grid ColumnDefinitions="*,Auto,Auto,Auto">
+                                        <StackPanel Spacing="2" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                            <TextBlock Text="{Binding Ip}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                                        </StackPanel>
+                                        <Button Grid.Column="1" Command="{Binding $parent[views:ServerManagerView].((vm:ServerManagerViewModel)DataContext).CopyIpCommand}" CommandParameter="{Binding}"
+                                                Background="Transparent" Foreground="{StaticResource TextSecondaryBrush}" Padding="8,6" Cursor="Hand" Margin="2,0"
+                                                ToolTip.Tip="{l10n:Tr Key=cs_copy_ip}">
+                                            <PathIcon Data="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" Width="12" Height="12"/>
+                                        </Button>
+                                        <Button Grid.Column="2" Command="{Binding $parent[views:ServerManagerView].((vm:ServerManagerViewModel)DataContext).EditServerCommand}" CommandParameter="{Binding}"
+                                                Background="Transparent" Foreground="{StaticResource TextSecondaryBrush}" Padding="8,6" Cursor="Hand" Margin="2,0"
+                                                ToolTip.Tip="{l10n:Tr Key=btn_edit}">
+                                            <PathIcon Data="M3 17.25V21H6.75L17.81 9.94L14.06 6.19L3 17.25ZM20.71 7.04C21.1 6.65 21.1 6.02 20.71 5.63L18.37 3.29C17.98 2.9 17.35 2.9 16.96 3.29L15.13 5.12L18.88 8.87L20.71 7.04Z" Width="12" Height="12"/>
+                                        </Button>
+                                        <Button Grid.Column="3" Command="{Binding $parent[views:ServerManagerView].((vm:ServerManagerViewModel)DataContext).DeleteServerCommand}" CommandParameter="{Binding}"
+                                                Background="Transparent" Foreground="{StaticResource DangerBrush}" Padding="8,6" Cursor="Hand" Margin="2,0"
+                                                ToolTip.Tip="{l10n:Tr Key=btn_delete}">
+                                            <PathIcon Data="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" Width="12" Height="12"/>
+                                        </Button>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock Text="{l10n:Tr Key=sm_empty}" Foreground="{StaticResource TextPlaceholderBrush}" FontSize="12" HorizontalAlignment="Center" Padding="0,24"
+                               IsVisible="{Binding Servers.Count, Converter={x:Static vm:EditInstanceWindowConverters.IsZero}}"/>
+                </StackPanel>
+            </ScrollViewer>
 
             <Border Grid.Row="2" IsVisible="{Binding IsEditorOpen}" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderInputBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,14,0,0">
                 <StackPanel Spacing="10">

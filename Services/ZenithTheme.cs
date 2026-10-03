@@ -30,6 +30,10 @@ public static class ZenithTheme
         r["AccentBorderBrush"] = new SolidColorBrush(Blend(accent, Color.Parse("#1B2236"), 0.5f));
         r["AccentTranslucentBrush"] = new SolidColorBrush(Color.FromArgb(0x22, accent.R, accent.G, accent.B));
 
+        // Text selection dynamic highlights
+        r["TextControlSelectionHighlightColor"] = accent;
+        r["TextSelectionBackground"] = new SolidColorBrush(accent);
+
         // Slider dynamic brush overrides
         r["SliderTrackFill"] = new SolidColorBrush(accent);
         r["SliderTrackFillPointerOver"] = new SolidColorBrush(hover);

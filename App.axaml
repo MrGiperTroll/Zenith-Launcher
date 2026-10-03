@@ -91,8 +91,15 @@
         <SolidColorBrush x:Key="SliderThumbBackground" Color="#3B82F6"/>
         <SolidColorBrush x:Key="SliderThumbBackgroundPointerOver" Color="#60A5FA"/>
         <SolidColorBrush x:Key="SliderThumbBackgroundPressed" Color="#1D4ED8"/>
-        <!-- Text Selection Highlight Override -->
-        <SolidColorBrush x:Key="TextControlSelectionHighlightColor" Color="#3B82F6"/>
+        <!-- Text Selection Highlight Overrides -->
+        <Color x:Key="TextControlSelectionHighlightColor">#3B82F6</Color>
+        <SolidColorBrush x:Key="TextControlSelectionHighlightBrush" Color="#3B82F6"/>
+        <SolidColorBrush x:Key="TextControlSelectionHighlightColorBrush" Color="#3B82F6"/>
+        <SolidColorBrush x:Key="TextSelectionHighlightColor" Color="#3B82F6"/>
+        <SolidColorBrush x:Key="TextSelectionBackground" Color="#3B82F6"/>
+        <!-- Flyout / Popup surface resources -->
+        <SolidColorBrush x:Key="FlyoutPresenterBackground" Color="#1E1E22"/>
+        <SolidColorBrush x:Key="FlyoutPresenterBorderBrush" Color="#2A2A30"/>
     </Application.Resources>
 
     <Application.Styles>
@@ -114,6 +121,13 @@
                     <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.08" Easing="CubicEaseOut"/>
                 </Transitions>
             </Setter>
+        </Style>
+        <Style Selector="Button /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Button ContentPresenter TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
         <Style Selector="Button:pressed">
             <Setter Property="RenderTransform" Value="scale(0.982)"/>
@@ -301,6 +315,15 @@
             <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
             <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
         </Style>
+        <Style Selector="FlyoutPresenter /template/ Border#LayoutRoot">
+            <Setter Property="Background" Value="{StaticResource CardBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+        </Style>
+        <Style Selector="FlyoutPresenter /template/ ScrollViewer#ScrollViewer">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
 
         <!-- MenuFlyout and context menus -->
         <Style Selector="MenuFlyoutPresenter">
@@ -443,6 +466,10 @@
             <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled"/>
             <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
         </Style>
+        <Style Selector="TextBox:focus">
+            <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="SelectionForegroundBrush" Value="{DynamicResource OnAccentBrush}"/>
+        </Style>
         <Style Selector="TextBox[AcceptsReturn=True]">
             <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
         </Style>
@@ -515,6 +542,14 @@
             <Setter Property="BorderBrush" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0"/>
+        </Style>
+        <Style Selector="TextBox.titleInput /template/ ScrollViewer#PART_ContentHost">
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="TextBox.titleInput /template/ TextPresenter#PART_TextPresenter">
             <Setter Property="Margin" Value="0"/>
         </Style>
         <Style Selector="TextBox.titleInput:focus /template/ Border#PART_BorderElement">

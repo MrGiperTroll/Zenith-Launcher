@@ -132,11 +132,11 @@
         <Style Selector="Button:pressed">
             <Setter Property="RenderTransform" Value="scale(0.982)"/>
         </Style>
-        <!-- Global Button Hover Brightening: always illuminate, never darken to black -->
+        <!-- Global Button Hover Brightening: only illuminate background, do NOT touch Foreground here
+             (specific classes like railBtn, sideTab, primaryBtn, dangerBtn manage their own Foreground) -->
         <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
         </Style>
         <Style Selector="Button.primaryBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource AccentBrushHover}"/>

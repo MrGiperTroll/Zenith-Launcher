@@ -357,7 +357,8 @@
         </Style>
     </Window.Styles>
 
-    <Grid Background="#080A0F">
+    <Panel Background="#080A0F">
+        <Grid>
         <Grid ColumnDefinitions="Auto,*">
             <!-- Left Rail -->
             <Border Grid.Column="0" Width="{Binding SidebarWidth}" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,1,0" Padding="0,16" Classes.expanded="{Binding IsSidebarExpanded}" ClipToBounds="True">
@@ -401,7 +402,7 @@
                     <StackPanel Grid.Row="3" Spacing="6" HorizontalAlignment="Center">
                         <Button Classes="railBtn" Command="{Binding OpenRootDirectoryCommand}" ToolTip.Tip="{l10n:Tr Key=nav_dir}">
                             <Grid ColumnDefinitions="44,*" VerticalAlignment="Center">
-                                <PathIcon Grid.Column="0" Data="M10 4H4C2.89 4 2 4.89 2 6V18A2 2 0 0 0 4 20H20A2 2 0 0 0 22 18V8C22 6.89 21.1 6 20 6H12L10 4Z" Width="17" Height="17" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <PathIcon Grid.Column="0" Data="M10 4H4C2.89 4 2 4.89 2 6V18A2 2 0 0 0 4 20H20A2 2 0 0 0 22 18V8C22 6.89 21.1 6 20 6H12L10 4Z" Width="17" Height="17" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 <TextBlock Grid.Column="1" Text="{l10n:Tr Key=nav_dir}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="2,0,8,0" IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsSidebarExpanded}"/>
                             </Grid>
                         </Button>
@@ -504,7 +505,7 @@
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
 <DataTemplate x:DataType="models:InstanceModel">
-                                        <Border Width="178" Height="178" Margin="2,2,14,14" CornerRadius="14"
+                                        <Border Width="150" Height="150" Margin="2,2,10,10" CornerRadius="12"
                                                 Classes="instanceCard"
                                                 BorderBrush="{Binding IsSelected, Converter={StaticResource BoolToBorderBrushConverter}}"
                                                 BorderThickness="1.5"
@@ -534,14 +535,14 @@
                                                     <MenuItem Header="{l10n:Tr Key=btn_delete_profile}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).RequestDeleteProfileCommand}" CommandParameter="{Binding}" Foreground="{StaticResource DangerBrush}"/>
                                                 </ContextMenu>
                                             </Border.ContextMenu>
-                                            <StackPanel Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                <Border Width="68" Height="68" Background="{StaticResource ChipBrush}" CornerRadius="12" HorizontalAlignment="Center" ClipToBounds="True">
+                                            <StackPanel Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <Border Width="56" Height="56" Background="{StaticResource ChipBrush}" CornerRadius="12" HorizontalAlignment="Center" ClipToBounds="True">
                                                     <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                        <Path IsVisible="{Binding IconBitmap, Converter={x:Static conv:ObjectConverters.IsNull}}" Data="{StaticResource ZenithLogoGeometry}" Fill="{StaticResource SubtleEmeraldBrush}" Stretch="Uniform" Width="40" Height="40" Margin="0,3.5,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                        <Image IsVisible="{Binding IconBitmap, Converter={x:Static conv:ObjectConverters.IsNotNull}}" Source="{Binding IconBitmap}" Stretch="UniformToFill" Width="68" Height="68" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <Path IsVisible="{Binding IconBitmap, Converter={x:Static conv:ObjectConverters.IsNull}}" Data="{StaticResource ZenithLogoGeometry}" Fill="{StaticResource SubtleEmeraldBrush}" Stretch="Uniform" Width="32" Height="32" Margin="0,3,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <Image IsVisible="{Binding IconBitmap, Converter={x:Static conv:ObjectConverters.IsNotNull}}" Source="{Binding IconBitmap}" Stretch="UniformToFill" Width="56" Height="56" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                     </Panel>
                                                 </Border>
-                                                <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center" TextAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="150"/>
+                                                <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center" TextAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="130"/>
                                                 <TextBlock Text="{Binding DisplayVersion}" FontSize="11" Foreground="{StaticResource TextFaintBrush}" FontWeight="SemiBold" HorizontalAlignment="Center"/>
                                             </StackPanel>
                                         </Border>
@@ -1146,4 +1147,7 @@
             </Border>
         </Border>
     </Grid>
+        <!-- DragOverlayPanel: topmost layer for drag ghost rendering -->
+        <Canvas x:Name="DragOverlayPanel" IsHitTestVisible="False" ZIndex="9999"/>
+    </Panel>
 </Window>

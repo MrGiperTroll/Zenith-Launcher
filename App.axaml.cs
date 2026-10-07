@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -14,6 +15,28 @@ public partial class App : Application
 {
     public override void Initialize()
     {
+        AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+        {
+            try
+            {
+                var crashPath = System.IO.Path.Combine(ZenithPaths.AppDataDir, "logs", "crash.log");
+                System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(crashPath)!);
+                System.IO.File.AppendAllText(crashPath, $"\n[{DateTime.Now}] UNHANDLED CRASH: {e.ExceptionObject}\n");
+                LauncherLog.Error("Unhandled crash", e.ExceptionObject as Exception ?? new Exception($"{e.ExceptionObject}"));
+            }
+            catch { }
+        };
+        TaskScheduler.UnobservedTaskException += (s, e) =>
+        {
+            try
+            {
+                var crashPath = System.IO.Path.Combine(ZenithPaths.AppDataDir, "logs", "crash.log");
+                System.IO.File.AppendAllText(crashPath, $"\n[{DateTime.Now}] UNOBSERVED TASK: {e.Exception}\n");
+                LauncherLog.Error("Unobserved task exception", e.Exception);
+            }
+            catch { }
+        };
+
         AvaloniaXamlLoader.Load(this);
         Name = "Zenith Launcher";
     }

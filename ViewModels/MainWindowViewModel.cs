@@ -2059,17 +2059,28 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public void ReorderInstance(string movedId, string targetId, bool dropAfter)
     {
-        _instanceService.ReorderInstances(movedId, targetId, dropAfter);
-        var moved = Instances.FirstOrDefault(i => i.Id == movedId);
-        if (moved == null) return;
-
-        var all = _instanceService.GetInstances();
-        int newIdx = all.ToList().FindIndex(i => i.Id == movedId);
-        int oldIdx = Instances.IndexOf(moved);
-
-        if (oldIdx >= 0 && newIdx >= 0 && oldIdx != newIdx)
+        try
         {
-            Instances.Move(oldIdx, newIdx);
+            _instanceService.ReorderInstances(movedId, targetId, dropAfter);
+
+            var moved = Instances.FirstOrDefault(i => i.Id == movedId);
+            if (moved == null) return;
+
+            var all = _instanceService.GetInstances().ToList();
+            int newIdx = all.FindIndex(i => i.Id == movedId);
+            int oldIdx = Instances.IndexOf(moved);
+
+            // Clamp to valid range before calling Move
+            if (oldIdx < 0 || newIdx < 0) return;
+            newIdx = Math.Clamp(newIdx, 0, Instances.Count - 1);
+            oldIdx = Math.Clamp(oldIdx, 0, Instances.Count - 1);
+
+            if (oldIdx != newIdx)
+                Instances.Move(oldIdx, newIdx);
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Error("ReorderInstance failed", ex);
         }
     }
 

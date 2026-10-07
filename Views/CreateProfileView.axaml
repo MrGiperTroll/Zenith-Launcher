@@ -163,12 +163,16 @@
                                 <!-- Profile Name -->
                                 <StackPanel Spacing="5">
                                     <TextBlock Text="{l10n:Tr Key=cp_name_label}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                    <Border BorderThickness="1" CornerRadius="10" Background="Transparent" BorderBrush="{Binding IsNameDuplicate, Converter={x:Static vm:BoolToErrorBrushConverter.Instance}}">
+                                    <Border BorderThickness="1" CornerRadius="10" Background="Transparent" 
+                                            BorderBrush="{Binding CanNextStep1, Converter={x:Static vm:BoolToErrorBrushConverter.InstanceInverted}}">
                                         <TextBox Classes="darkInput" Text="{Binding ProfileName}" PlaceholderText="{l10n:Tr Key=ph_profile_name}" FontSize="13" Padding="12,10" BorderThickness="0"/>
                                     </Border>
                                     <Grid ColumnDefinitions="*,Auto">
                                         <TextBlock Grid.Column="0" Text="{l10n:Tr Key=cp_name_hint2}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"/>
-                                        <TextBlock Grid.Column="1" Text="{l10n:Tr Key=cp_duplicate}" FontSize="11" Foreground="{StaticResource DangerBrush}" IsVisible="{Binding IsNameDuplicate}"/>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                                            <TextBlock Text="{l10n:Tr Key=cp_duplicate}" FontSize="11" Foreground="{StaticResource DangerBrush}" IsVisible="{Binding IsNameDuplicate}"/>
+                                            <TextBlock Text="Invalid characters in name" FontSize="11" Foreground="{StaticResource DangerBrush}" IsVisible="{Binding IsNameInvalid}"/>
+                                        </StackPanel>
                                     </Grid>
                                 </StackPanel>
 

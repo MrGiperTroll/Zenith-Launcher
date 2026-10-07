@@ -76,9 +76,14 @@ public class BoolToArrowConverter : IValueConverter
 public class BoolToErrorBrushConverter : IValueConverter
 {
     public static readonly BoolToErrorBrushConverter Instance = new();
+    public static readonly BoolToErrorBrushConverter InstanceInverted = new() { Invert = true };
+    public bool Invert { get; set; } = false;
+    
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         var isError = value is bool b && b;
+        if (Invert) isError = !isError;
+        
         if (isError)
         {
             if (Avalonia.Application.Current?.Resources.TryGetResource("DangerBrush", Avalonia.Styling.ThemeVariant.Default, out var res) == true && res is ISolidColorBrush db)

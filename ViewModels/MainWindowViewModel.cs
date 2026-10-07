@@ -573,12 +573,16 @@ public partial class MainWindowViewModel : ViewModelBase
 
     partial void OnGameWidthChanged(int value)
     {
+        if (value < 800) { GameWidth = 800; return; }
+        if (value > 7680) { GameWidth = 7680; return; }
         if (IsLockAspectRatio && value > 0)
             GameHeight = value * 9 / 16;
     }
 
     partial void OnGameHeightChanged(int value)
     {
+        if (value < 600) { GameHeight = 600; return; }
+        if (value > 4320) { GameHeight = 4320; return; }
         if (IsLockAspectRatio && value > 0)
             GameWidth = value * 16 / 9;
     }
@@ -1787,8 +1791,12 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private string _effectiveJavaPath = "";
 
+    [ObservableProperty]
+    private bool _isEffectiveJavaPathInvalid = false;
+
     partial void OnEffectiveJavaPathChanged(string value)
     {
+        IsEffectiveJavaPathInvalid = !string.IsNullOrWhiteSpace(value) && value != "java" && !File.Exists(value);
         if (!string.Equals(value, ResolvedJavaPath, StringComparison.Ordinal) && !string.Equals(value, CustomJavaPath, StringComparison.Ordinal))
         {
             CustomJavaPath = value;

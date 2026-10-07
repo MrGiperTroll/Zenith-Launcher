@@ -265,26 +265,37 @@ public class ServerCreatorService
             await File.WriteAllTextAsync(propsPath, props, ct);
         }
 
-        // 3. run.bat (Windows batch file) - Uses strictly MB notation and graceful errorlevel check
+        // 3. run.bat (Windows batch file)
         var minRamMb = Math.Max(512, ramMb / 2);
         var runBatPath = Path.Combine(targetDir, "run.bat");
         var resolvedJava = JavaVersionHelper.FindOrResolveServerJava(targetDir, version, out _);
         var javaCmd = string.IsNullOrWhiteSpace(resolvedJava) ? "java" : $"\"{resolvedJava}\"";
-        var runBat =
-            "@echo off\r\n" +
-            $"title Minecraft Server - {serverName}\r\n" +
-            $"echo Starting Minecraft Server ({version} - {software})...\r\n" +
-            $"{javaCmd} -Xms{minRamMb}M -Xmx{ramMb}M -jar server.jar nogui\r\n" +
-            "if %ERRORLEVEL% NEQ 0 pause\r\n";
-        await File.WriteAllTextAsync(runBatPath, runBat, ct);
+        
+        if (!File.Exists(runBatPath))
+        {
+            var runBat =
+                "@echo off\r\n" +
+                $"title Minecraft Server - {serverName}\r\n" +
+                $"echo Starting Minecraft Server ({version} - {software})...\r\n" +
+                $"{javaCmd} -Xms{minRamMb}M -Xmx{ramMb}M -jar server.jar nogui\r\n" +
+                "if %ERRORLEVEL% NEQ 0 pause\r\n";
+            await File.WriteAllTextAsync(runBatPath, runBat, ct);
+        }
+        else
+        {
+            SanitizeAndConfigureRunBat(targetDir, javaExePath: resolvedJava, ramMb: ramMb);
+        }
 
         // 4. run.sh (Linux / macOS shell script)
         var runShPath = Path.Combine(targetDir, "run.sh");
-        var runSh =
-            "#!/bin/bash\n" +
-            $"echo \"Starting Minecraft Server ({version} - {software})...\"\n" +
-            $"java -Xms{minRamMb}M -Xmx{ramMb}M -jar server.jar nogui\n";
-        await File.WriteAllTextAsync(runShPath, runSh, ct);
+        if (!File.Exists(runShPath))
+        {
+            var runSh =
+                "#!/bin/bash\n" +
+                $"echo \"Starting Minecraft Server ({version} - {software})...\"\n" +
+                $"java -Xms{minRamMb}M -Xmx{ramMb}M -jar server.jar nogui\n";
+            await File.WriteAllTextAsync(runShPath, runSh, ct);
+        }
 
         progress?.Report(("Server ready!", 100));
         return targetDir;

@@ -92,12 +92,22 @@ public partial class CreateProfileViewModel : ObservableObject
         "Custom"
     };
 
-    public bool CanCreate => !string.IsNullOrWhiteSpace(SelectedVersion) && !IsNameDuplicate && (SelectedLoader == "Vanilla" || !string.IsNullOrWhiteSpace(SelectedLoaderBuild));
-    public bool CanNextStep1 => !string.IsNullOrWhiteSpace(ProfileName) && !IsNameDuplicate;
+    public bool CanCreate => !string.IsNullOrWhiteSpace(SelectedVersion) && !IsNameDuplicate && !IsNameInvalid && (SelectedLoader == "Vanilla" || !string.IsNullOrWhiteSpace(SelectedLoaderBuild));
+    public bool CanNextStep1 => !string.IsNullOrWhiteSpace(ProfileName) && !IsNameDuplicate && !IsNameInvalid;
     public bool CanNextStep2 => !string.IsNullOrWhiteSpace(SelectedVersion);
     public bool IsLoaderTypesVisible => true;
     public bool IsLoaderBuildsVisible => SelectedLoader != "Vanilla";
     public bool CanSwapLoader => false;
+    
+    public bool IsNameInvalid
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(ProfileName)) return true;
+            return ProfileName.IndexOfAny(System.IO.Path.GetInvalidFileNameChars()) >= 0;
+        }
+    }
+    
     public bool IsNameDuplicate
     {
         get

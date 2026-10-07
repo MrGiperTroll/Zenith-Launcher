@@ -173,6 +173,12 @@
             </Setter>
         </Style>
 
+                <Style Selector=""Button.sideTab /template/ ContentPresenter#PART_ContentPresenter"">
+            <Setter Property=""Transitions"" Value=""{x:Null}""/>
+        </Style>
+        <Style Selector=""Button.stepLinkBtn /template/ ContentPresenter#PART_ContentPresenter"">
+            <Setter Property=""Transitions"" Value=""{x:Null}""/>
+        </Style>
         <!-- Instance card subtle elevation on hover -->
         <Style Selector="Border.instanceCard">
             <Setter Property="Transitions">

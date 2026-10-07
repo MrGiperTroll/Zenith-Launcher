@@ -42,7 +42,7 @@
             <Setter Property="Background" Value="Transparent"/>
         </Style>
         <Style Selector="Button.sideTab">
-            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Background" Value="{StaticResource RowHoverBrushTransparent}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Padding" Value="12,9"/>
@@ -343,7 +343,7 @@
                                     </ItemsControl.ItemsPanel>
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="services:ThemePreset">
-                                            <Button Command="{Binding DataContext.ChooseThemeCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            <Button Command="{Binding $parent[ItemsControl].((vm:MainWindowViewModel)DataContext).ChooseThemeCommand}"
                                                     CommandParameter="{Binding HexColor}"
                                                     Classes="subBtn"
                                                     Margin="0,0,8,8"
@@ -396,3 +396,7 @@
         </Panel>
     </Border>
 </Window>
+
+
+
+

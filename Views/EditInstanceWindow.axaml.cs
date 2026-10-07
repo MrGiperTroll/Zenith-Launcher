@@ -50,23 +50,10 @@ public partial class EditInstanceWindow : Window
     private void ScrollToEnd()
     {
         if (LogScroll == null) return;
-        var maxY = Math.Max(0, LogScroll.Extent.Height - LogScroll.Viewport.Height);
-        LogScroll.Offset = new Vector(LogScroll.Offset.X, maxY);
+        LogScroll.CaretIndex = LogScroll.Text?.Length ?? 0;
     }
 
-    private void OnLogScrollChanged(object? sender, ScrollChangedEventArgs e)
-    {
-        if (LogScroll == null) return;
-        var atBottom = LogScroll.Extent.Height - LogScroll.Offset.Y - LogScroll.Viewport.Height < 40;
-        if (atBottom)
-        {
-            _followBottom = true;
-        }
-        else if (e.OffsetDelta.Y < 0)
-        {
-            _followBottom = false;
-        }
-    }
+
 
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
@@ -111,3 +98,6 @@ public partial class EditInstanceWindow : Window
             vm.SaveInstanceName();
     }
 }
+
+
+

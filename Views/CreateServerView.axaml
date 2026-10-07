@@ -282,7 +282,7 @@
                     <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="18,14">
                         <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                             <!-- Left: Server Name with inline editing + IP badge with selector flyout -->
-                            <StackPanel VerticalAlignment="Center" Spacing="6">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="12">
                                 <!-- Direct In-Place Server Name Input (Profile-style inline rename) -->
                                 <TextBox x:Name="ServerNameInput"
                                          Classes="titleInput"
@@ -357,7 +357,7 @@
                                     <TextBlock Text="{Binding StopButtonText}" FontWeight="Bold"/>
                                 </Button>
                                 <!-- Emergency Force Stop Button (visible after timeout if server hangs) -->
-                                <Button Classes="dangerBtn" Command="{Binding ForceStopServerCommand}" IsVisible="{Binding IsForceStopAvailable}" Padding="14,8">
+                                <Button Classes="dangerBtn" Command="{Binding ForceStopServerCommand}" IsVisible="{Binding IsServerStopping}" Padding="14,8">
                                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                                         <PathIcon Data="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" Width="12" Height="12" Foreground="{StaticResource DangerLightBrush}"/>
                                         <TextBlock Text="{l10n:Tr Key=cs_force_stop}" FontWeight="Bold"/>
@@ -420,7 +420,7 @@
                                         <TextBlock Text="{Binding StopButtonText}" FontWeight="Bold"/>
                                     </Button>
                                     <!-- Emergency Force Stop Button -->
-                                    <Button Classes="dangerBtn" Command="{Binding ForceStopServerCommand}" IsVisible="{Binding IsForceStopAvailable}" Padding="14,8">
+                                    <Button Classes="dangerBtn" Command="{Binding ForceStopServerCommand}" IsVisible="{Binding IsServerStopping}" Padding="14,8">
                                         <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                                             <PathIcon Data="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" Width="12" Height="12" Foreground="{StaticResource DangerLightBrush}"/>
                                             <TextBlock Text="{l10n:Tr Key=cs_force_stop}" FontWeight="Bold"/>
@@ -986,6 +986,18 @@
 
                                     <!-- Right action buttons: Upload, Refresh, Open in Explorer -->
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                                                                <Button Classes="chipBtn" Command="{Binding CreateNewFolderCommand}" Padding="10,6">
+                                            <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+                                                <PathIcon Data="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="12" Height="12" Foreground="{StaticResource AccentBrush}"/>
+                                                <TextBlock Text="New Folder" FontSize="11.5" FontWeight="SemiBold"/>
+                                            </StackPanel>
+                                        </Button>
+                                        <Button Classes="chipBtn" Command="{Binding CreateNewFileCommand}" Padding="10,6">
+                                            <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+                                                <PathIcon Data="M6 2c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6H6zm7 7V3.5L18.5 9H13z" Width="12" Height="12" Foreground="{StaticResource AccentBrush}"/>
+                                                <TextBlock Text="New File" FontSize="11.5" FontWeight="SemiBold"/>
+                                            </StackPanel>
+                                        </Button>
                                         <Button Classes="chipBtn" Command="{Binding UploadServerFilesCommand}" Padding="10,6">
                                             <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
                                                 <PathIcon Data="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z" Width="12" Height="12" Foreground="{StaticResource AccentBrush}"/>
@@ -1001,6 +1013,15 @@
                                         <Button Classes="subBtn" Command="{Binding OpenCurrentFolderInExplorerCommand}" Content="{l10n:Tr Key=cs_open_folder}" Padding="12,6" FontSize="11.5"/>
                                     </StackPanel>
                                 </Grid>
+
+                                                                <!-- Rename Dialog -->
+                                <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="14,10" IsVisible="{Binding IsRenamingFile}" Margin="0,0,0,10">
+                                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" VerticalAlignment="Center">
+                                        <TextBox Classes="darkInput" Text="{Binding RenamingFileNewName}" Watermark="Enter new name..." VerticalAlignment="Center"/>
+                                        <Button Grid.Column="1" Classes="subBtn" Command="{Binding CancelRenameFileCommand}" Content="{l10n:Tr Key=btn_cancel}"/>
+                                        <Button Grid.Column="2" Classes="primaryBtn" Command="{Binding ConfirmRenameFileCommand}" Content="{l10n:Tr Key=cs_settings_save}" Padding="16,8"/>
+                                    </Grid>
+                                </Border>
 
                                 <!-- Status / Error message if any -->
                                 <TextBlock Text="{Binding FileOperationStatus}" FontSize="11.5" Foreground="{StaticResource DangerLightBrush}" IsVisible="{Binding FileOperationStatus, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}"/>
@@ -1048,6 +1069,9 @@
                                                         <Button Classes="chipBtn" Command="{Binding $parent[UserControl].((vm:CreateServerViewModel)DataContext).OpenFileItemCommand}" CommandParameter="{Binding}" ToolTip.Tip="{l10n:Tr Key=cs_file_open}" Padding="8,4">
                                                             <TextBlock Text="{l10n:Tr Key=cs_file_open}" FontSize="11"/>
                                                         </Button>
+                                                                                                                <Button Classes="chipBtn" Command="{Binding $parent[UserControl].((vm:CreateServerViewModel)DataContext).StartRenameFileCommand}" CommandParameter="{Binding}" ToolTip.Tip="Rename" Padding="8,4">
+                                                            <TextBlock Text="Rename" FontSize="11"/>
+                                                        </Button>
                                                         <Button Classes="dangerBtn" Command="{Binding $parent[UserControl].((vm:CreateServerViewModel)DataContext).DeleteFileItemCommand}" CommandParameter="{Binding}" ToolTip.Tip="{l10n:Tr Key=cs_file_delete}" Padding="8,4">
                                                             <TextBlock Text="{l10n:Tr Key=cs_file_delete}" FontSize="11"/>
                                                         </Button>
@@ -1065,3 +1089,10 @@
         </ScrollViewer>
     </Grid>
 </UserControl>
+
+
+
+
+
+
+

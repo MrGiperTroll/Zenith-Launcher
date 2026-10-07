@@ -554,7 +554,7 @@ public partial class ContentBrowserViewModel : ObservableObject
         var gen = Interlocked.Increment(ref _searchGeneration);
         IsBusy = true;
         StatusText = "";
-        Results.Clear();
+        foreach (var r in Results) { try { r.Icon?.Dispose(); } catch { } } Results.Clear();
         _offset = 0;
         _totalHits = 0;
         try
@@ -1323,3 +1323,4 @@ public partial class BrowserTag : ObservableObject
     [ObservableProperty]
     private bool _isSelected;
 }
+

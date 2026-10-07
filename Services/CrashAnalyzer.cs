@@ -22,12 +22,15 @@ public static class CrashAnalyzer
     public static CrashAnalysis Analyze(int exitCode, string instanceLogPath, string instanceBasePath)
     {
         return new CrashAnalysis(
-            Title: L10n.T(""crash_generic_title"") ?? ""Game Crashed"",
-            HumanSummary: ""The game crashed. This might be due to allocating too little memory or having conflicting mods."",
-            LikelyCause: ""Memory limits or Mod conflict"",
-            Evidence: new List<string> { $""Exit code: {exitCode}"" },
+            Title: L10n.T("crash_generic_title") ?? "Game Crashed",
+            HumanSummary: L10n.T("crash_generic_human"),
+            LikelyCause: "Memory limits or Mod conflict",
+            Evidence: new List<string> { $"Exit code: {exitCode}" },
             LogPath: instanceLogPath,
             ExitCode: exitCode
         );
     }
 }
+
+
+

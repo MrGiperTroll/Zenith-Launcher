@@ -14,14 +14,18 @@ public partial class CloneProfileViewModel : ObservableObject
     private readonly InstanceModel _source;
     private readonly IInstanceService _instanceService;
 
-    [ObservableProperty] private string _profileName;
+        [ObservableProperty] private string _profileName;
     [ObservableProperty] private bool _selectAll = true;
     [ObservableProperty] private bool _copyMods = true;
     [ObservableProperty] private bool _copyResourcePacks = true;
     [ObservableProperty] private bool _copyShaderPacks = true;
     [ObservableProperty] private bool _copyConfigs = true;
+    [ObservableProperty] private bool _copyOptions = true;
+    [ObservableProperty] private bool _copyServers = true;
     [ObservableProperty] private bool _copyWorlds = true;
     [ObservableProperty] private bool _copyDataPacks = true;
+    [ObservableProperty] private bool _copyScreenshots = true;
+    [ObservableProperty] private bool _copyLogs = true;
 
     public string SourceTitle => $"{_source.Name} • {_source.LoaderType} • Minecraft {_source.Version}";
     public bool IsNameDuplicate => !string.IsNullOrWhiteSpace(ProfileName)
@@ -49,14 +53,18 @@ public partial class CloneProfileViewModel : ObservableObject
     [RelayCommand]
     private void Cancel() => RequestClose?.Invoke();
 
-    private void SetAllComponents(bool v)
+        private void SetAllComponents(bool v)
     {
         CopyMods = v;
         CopyResourcePacks = v;
         CopyShaderPacks = v;
         CopyConfigs = v;
+        CopyOptions = v;
+        CopyServers = v;
         CopyWorlds = v;
         CopyDataPacks = v;
+        CopyScreenshots = v;
+        CopyLogs = v;
     }
 
     [RelayCommand]
@@ -72,23 +80,20 @@ public partial class CloneProfileViewModel : ObservableObject
         {
             if (Directory.Exists(_source.Path) && Directory.Exists(created.Path))
             {
-                if (CopyMods) CopyDir(created, "mods");
+                                if (CopyMods) CopyDir(created, "mods");
                 if (CopyResourcePacks) CopyDir(created, "resourcepacks");
                 if (CopyShaderPacks) CopyDir(created, "shaderpacks");
-                if (CopyConfigs)
-                {
-                    CopyDir(created, "config");
-                    CopyFile(created, "options.txt");
-                }
+                if (CopyConfigs) CopyDir(created, "config");
+                if (CopyOptions) CopyFile(created, "options.txt");
+                if (CopyServers) CopyFile(created, "servers.dat");
+                if (CopyScreenshots) CopyDir(created, "screenshots");
+                if (CopyLogs) CopyDir(created, "logs");
                 if (CopyDataPacks)
                 {
-                    // Data packs live inside each world folder
                     var savesSrc = Path.Combine(_source.Path, "saves");
                     if (Directory.Exists(savesSrc))
                         foreach (var world in Directory.GetDirectories(savesSrc))
                             CopyAbsolute(created, Path.Combine(world, "datapacks"));
-
-                    // Also copy a root-level datapacks folder when present
                     CopyDir(created, "datapacks");
                 }
                 if (CopyWorlds) CopyDir(created, "saves");
@@ -147,3 +152,4 @@ public partial class CloneProfileViewModel : ObservableObject
             CopyTree(subDir.FullName, Path.Combine(destinationDir, subDir.Name));
     }
 }
+

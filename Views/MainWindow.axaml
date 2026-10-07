@@ -511,9 +511,6 @@
                                                 BorderThickness="1.5"
                                                 Tag="{Binding}" Cursor="Hand"
                                                 PointerPressed="OnInstanceCardPointerPressed"
-                                                PointerMoved="OnInstanceCardPointerMoved"
-                                                PointerReleased="OnInstanceCardPointerReleased"
-                                                PointerCaptureLost="OnInstanceCardPointerCaptureLost"
                                                 Tapped="OnInstanceCardTapped"
                                                 DoubleTapped="OnInstanceCardDoubleTapped">
                                             <Border.ContextMenu>

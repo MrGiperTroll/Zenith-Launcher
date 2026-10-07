@@ -262,8 +262,9 @@ public partial class MainWindow : Window
         }
     }
 
-    private void OnInstanceCardPointerMoved(object? sender, PointerEventArgs e)
+    protected override void OnPointerMoved(PointerEventArgs e)
     {
+        base.OnPointerMoved(e);
         if (_draggedCard == null || _draggedInstance == null) return;
         if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
         {
@@ -277,13 +278,9 @@ public partial class MainWindow : Window
         if (!_isDragging && (Math.Abs(diff.X) > 8 || Math.Abs(diff.Y) > 8))
         {
             _isDragging = true;
-
-            // Find the drag overlay panel in XAML (x:Name="DragOverlayPanel")
             _dragOverlay = this.FindControl<Panel>("DragOverlayPanel");
-
             if (_dragOverlay != null)
             {
-                // Create ghost: a simple semi-transparent copy
                 var ghost = new Border
                 {
                     Width = _draggedCard.Bounds.Width,
@@ -301,17 +298,12 @@ public partial class MainWindow : Window
                 _dragOverlay.Children.Add(ghost);
             }
 
-            // Collapse the real card so WrapPanel reflows without losing capture
-            _draggedCard.Opacity = 0;
-            _draggedCard.Width = 0;
-            _draggedCard.Height = 0;
-            _draggedCard.Margin = new Thickness(0);
-            e.Pointer.Capture(_draggedCard);
+            // Real reflow - no capture lost crash since Window receives pointer events!
+            _draggedCard.IsVisible = false;
         }
 
         if (_isDragging && _ghostBorder != null && _dragOverlay != null)
         {
-            // Position ghost to follow cursor, offset by where user initially clicked within the card
             var ghostX = currentPos.X - _dragCardOffset.X;
             var ghostY = currentPos.Y - _dragCardOffset.Y;
             Canvas.SetLeft(_ghostBorder, ghostX);
@@ -319,8 +311,9 @@ public partial class MainWindow : Window
         }
     }
 
-    private void OnInstanceCardPointerReleased(object? sender, PointerReleasedEventArgs e)
+    protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
+        base.OnPointerReleased(e);
         if (_draggedCard == null || _draggedInstance == null)
         {
             ResetDrag();
@@ -330,26 +323,16 @@ public partial class MainWindow : Window
         if (_isDragging)
         {
             _suppressNextTap = true;
-            try { e.Pointer.Capture(null); } catch { }
-
             var movedId = _draggedInstance.Id;
             var dropPos = e.GetPosition(this);
 
-            // Restore the original card visibility before hit testing
-            _draggedCard.IsVisible = true;
-
-            // Remove ghost first to avoid interfering with hit test
             if (_dragOverlay != null && _ghostBorder != null)
             {
                 _dragOverlay.Children.Remove(_ghostBorder);
                 _ghostBorder = null;
             }
 
-            // Hit test with the original card hidden via opacity trick
-            _draggedCard.Opacity = 0;
             var hit = this.InputHitTest(dropPos) as Visual;
-            _draggedCard.Opacity = 1.0;
-
             var targetCard = hit?.FindAncestorOfType<Border>(includeSelf: true);
             while (targetCard != null && !targetCard.Classes.Contains("instanceCard"))
                 targetCard = targetCard.FindAncestorOfType<Border>(includeSelf: false);
@@ -387,7 +370,6 @@ public partial class MainWindow : Window
 
     private void ResetDrag()
     {
-        // Remove ghost overlay
         if (_dragOverlay != null && _ghostBorder != null)
         {
             try { _dragOverlay.Children.Remove(_ghostBorder); } catch { }
@@ -398,11 +380,6 @@ public partial class MainWindow : Window
         if (_draggedCard != null)
         {
             _draggedCard.IsVisible = true;
-            _draggedCard.Opacity = 1.0;
-            _draggedCard.Width = 150;
-            _draggedCard.Height = 150;
-            _draggedCard.Margin = new Thickness(2, 2, 10, 10);
-            _draggedCard.RenderTransform = null;
         }
         _draggedCard = null;
         _draggedInstance = null;

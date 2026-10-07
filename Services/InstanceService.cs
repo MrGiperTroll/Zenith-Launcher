@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -195,6 +195,40 @@ public class InstanceService : IInstanceService
                     }
                 }
                 catch { _instances = new(); }
+            }
+            
+            // Auto-discovery of manually dragged profile folders
+            if (Directory.Exists(_instancesDir))
+            {
+                bool discovered = false;
+                foreach (var dir in Directory.GetDirectories(_instancesDir))
+                {
+                    if (_instances.Any(i => string.Equals(i.Path, dir, StringComparison.OrdinalIgnoreCase)))
+                        continue;
+                    
+                    var instName = Path.GetFileName(dir);
+                    var newInst = new InstanceModel
+                    {
+                        Id = Guid.NewGuid().ToString("N"),
+                        Name = instName,
+                        Version = "1.20.1",
+                        LoaderType = "Vanilla",
+                        Path = dir,
+                        CreatedAt = Directory.GetCreationTime(dir)
+                    };
+                    _instances.Add(newInst);
+                    discovered = true;
+                }
+                if (discovered)
+                {
+                    // Save them back immediately so they persist and are selected properly later
+                    try
+                    {
+                        var store = new LocalStore { Instances = _instances, SelectedInstanceId = _selectedInstanceId };
+                        var json = JsonSerializer.Serialize(store, new JsonSerializerOptions { WriteIndented = true });
+                        File.WriteAllText(_instancesFilePath, json);
+                    } catch {}
+                }
             }
         }
     }

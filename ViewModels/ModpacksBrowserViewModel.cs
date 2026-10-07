@@ -222,7 +222,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     /// <summary>Button text: "Install" for new content, "Reinstall" for already-installed.</summary>
     public string ReinstallText => _showInstallFeedback
         ? "Installed"
-        : SelectedProject is { IsInstalled: true } && (VersionList == null || VersionList.Count == 0 || SelectedVersionForDetails == VersionList[0])
+        : SelectedProject is { IsInstalled: true } && (SelectedVersionForDetails == null || SelectedVersionForDetails.GameVersions.Contains(SelectedProject.InstalledGameVersion))
             ? L10n.T("mi_reinstall")
             : L10n.T("mi_install");
 
@@ -459,7 +459,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
         var gen = Interlocked.Increment(ref _searchGeneration);
         IsBusy = true;
         StatusText = "";
-        Results.Clear();
+        foreach (var r in Results) { try { r.Icon?.Dispose(); } catch { } } Results.Clear();
         _offset = 0;
         _totalHits = 0;
         try
@@ -595,7 +595,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
                 isInstalled = instanceNames.Any(n => n.Contains(slug) && slug.Length > 3);
                 if (isInstalled && slug.Length < 5) isInstalled = false; // avoid false positive for short slugs
             }
-            p.IsInstalled = isInstalled;
+            if (isInstalled) { var matching = instances.FirstOrDefault(i => i.Name.Equals(title, StringComparison.OrdinalIgnoreCase) || i.Name.Replace(" ", "-").Equals(slug, StringComparison.OrdinalIgnoreCase) || (i.Name.ToLowerInvariant().Contains(slug) && slug.Length > 3)); if (matching != null) { p.InstalledGameVersion = matching.Version; } } p.IsInstalled = isInstalled;
         }
     }
 
@@ -1185,3 +1185,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
         await InstallLatestAsync(project);
     }
 }
+
+
+
+

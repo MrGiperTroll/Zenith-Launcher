@@ -1282,6 +1282,91 @@ public partial class CreateServerViewModel : ObservableObject
         FileEditorStatusMessage = "";
     }
 
+        [ObservableProperty] private bool _isRenamingFile;
+    [ObservableProperty] private string _renamingFileNewName = "";
+    private ServerFileItem? _renamingFileItem;
+
+    [RelayCommand]
+    public void StartRenameFile(ServerFileItem? item)
+    {
+        if (item == null) return;
+        _renamingFileItem = item;
+        RenamingFileNewName = item.Name;
+        IsRenamingFile = true;
+    }
+
+    [RelayCommand]
+    public void CancelRenameFile()
+    {
+        IsRenamingFile = false;
+        _renamingFileItem = null;
+    }
+
+    [RelayCommand]
+    public void ConfirmRenameFile()
+    {
+        if (_renamingFileItem == null || string.IsNullOrWhiteSpace(RenamingFileNewName)) return;
+        try
+        {
+            var newPath = Path.Combine(CurrentBrowsePath, RenamingFileNewName.Trim());
+            if (newPath == _renamingFileItem.FullPath) { CancelRenameFile(); return; }
+            if (File.Exists(newPath) || Directory.Exists(newPath))
+            {
+                FileOperationStatus = "File or folder with this name already exists.";
+                return;
+            }
+            if (_renamingFileItem.IsDirectory)
+                Directory.Move(_renamingFileItem.FullPath, newPath);
+            else
+                File.Move(_renamingFileItem.FullPath, newPath);
+            
+            CancelRenameFile();
+            RefreshFiles();
+        }
+        catch (Exception ex)
+        {
+            FileOperationStatus = $"Rename failed: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
+    public void CreateNewFolder()
+    {
+        if (string.IsNullOrWhiteSpace(CurrentBrowsePath)) return;
+        try {
+            string baseName = "New Folder";
+            string name = baseName;
+            int counter = 1;
+            while (Directory.Exists(Path.Combine(CurrentBrowsePath, name)) || File.Exists(Path.Combine(CurrentBrowsePath, name))) {
+                name = $"{baseName} ({counter++})";
+            }
+            var di = Directory.CreateDirectory(Path.Combine(CurrentBrowsePath, name));
+            RefreshFiles();
+            var item = ServerFiles.FirstOrDefault(f => f.Name == name);
+            if (item != null) StartRenameFile(item);
+        } catch { }
+    }
+
+    [RelayCommand]
+    public void CreateNewFile()
+    {
+        if (string.IsNullOrWhiteSpace(CurrentBrowsePath)) return;
+        try {
+            string baseName = "new_file";
+            string ext = ".txt";
+            string name = baseName + ext;
+            int counter = 1;
+            while (Directory.Exists(Path.Combine(CurrentBrowsePath, name)) || File.Exists(Path.Combine(CurrentBrowsePath, name))) {
+                name = $"{baseName}_{counter++}{ext}";
+            }
+            File.WriteAllText(Path.Combine(CurrentBrowsePath, name), "");
+            RefreshFiles();
+            var item = ServerFiles.FirstOrDefault(f => f.Name == name);
+            if (item != null) StartRenameFile(item);
+        } catch { }
+    }
+
+
     [RelayCommand]
     public void DeleteFileItem(ServerFileItem? item)
     {
@@ -1658,3 +1743,8 @@ public partial class CreateServerViewModel : ObservableObject
         _host.GoBack();
     }
 }
+
+
+
+
+

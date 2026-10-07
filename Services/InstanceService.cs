@@ -23,6 +23,7 @@ public class InstanceService : IInstanceService
     private List<InstanceModel> _instances = new();
     private string? _selectedInstanceId;
     private readonly object _lock = new();
+    private FileSystemWatcher? _watcher;
 
     public InstanceService()
     {
@@ -33,8 +34,21 @@ public class InstanceService : IInstanceService
         Directory.CreateDirectory(zenithDir);
         Directory.CreateDirectory(_instancesDir);
 
-        LoadInstances();
+                LoadInstances();
+
+        try {
+            _watcher = new FileSystemWatcher(_instancesDir) { NotifyFilter = NotifyFilters.DirectoryName };
+            _watcher.Created += (s, e) => {
+                System.Threading.Tasks.Task.Delay(500).ContinueWith(_ => {
+                    LoadInstances();
+                    InstancesChanged?.Invoke();
+                });
+            };
+            _watcher.EnableRaisingEvents = true;
+        } catch { }
     }
+
+    public event Action? InstancesChanged;
 
     public IReadOnlyList<InstanceModel> GetInstances() { lock (_lock) return _instances.ToList().AsReadOnly(); }
 
@@ -298,7 +312,7 @@ public class InstanceService : IInstanceService
         return (true, null);
     }
 
-    public void ReorderInstances(string movedId, string targetId, bool dropAfter)
+    public void ReorderInstances(string movedId, string targetId, bool dropAfter, bool save = true)
     {
         lock (_lock)
         {
@@ -312,7 +326,7 @@ public class InstanceService : IInstanceService
             if (idx < 0) idx = 0;
             if (idx > _instances.Count) idx = _instances.Count;
             _instances.Insert(idx, moved);
-            SaveInstances();
+            if (save) SaveInstances();
         }
     }
 
@@ -337,3 +351,5 @@ public class InstanceService : IInstanceService
         public string? SelectedInstanceId { get; set; }
     }
 }
+
+

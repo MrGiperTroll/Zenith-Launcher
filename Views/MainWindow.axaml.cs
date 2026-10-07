@@ -239,7 +239,7 @@ public partial class MainWindow : Window
             _ = vm.ModpacksBrowser.LoadMoreAsync();
     }
 
-    private Border? _draggedCard;
+        private Border? _draggedCard;
     private InstanceModel? _draggedInstance;
     private Point _dragStartPos;
     private Point _dragCardOffset;
@@ -247,8 +247,8 @@ public partial class MainWindow : Window
     private bool _suppressNextTap;
 
     // Ghost overlay elements
-    private Border? _ghostBorder;
-    private Panel? _dragOverlay;
+    
+    
 
     private void OnInstanceCardPointerPressed(object? sender, PointerPressedEventArgs e)
     {
@@ -262,7 +262,7 @@ public partial class MainWindow : Window
         }
     }
 
-    protected override void OnPointerMoved(PointerEventArgs e)
+        protected override void OnPointerMoved(PointerEventArgs e)
     {
         base.OnPointerMoved(e);
         if (_draggedCard == null || _draggedInstance == null) return;
@@ -278,36 +278,43 @@ public partial class MainWindow : Window
         if (!_isDragging && (Math.Abs(diff.X) > 8 || Math.Abs(diff.Y) > 8))
         {
             _isDragging = true;
-            _dragOverlay = this.FindControl<Panel>("DragOverlayPanel");
-            if (_dragOverlay != null)
-            {
-                var ghost = new Border
-                {
-                    Width = _draggedCard.Bounds.Width,
-                    Height = _draggedCard.Bounds.Height,
-                    CornerRadius = _draggedCard.CornerRadius,
-                    Background = _draggedCard.Background,
-                    BorderBrush = _draggedCard.BorderBrush,
-                    BorderThickness = _draggedCard.BorderThickness,
-                    Opacity = 0.75,
-                    IsHitTestVisible = false,
-                    ZIndex = 9999,
-                    RenderTransform = new ScaleTransform(1.04, 1.04),
-                };
-                _ghostBorder = ghost;
-                _dragOverlay.Children.Add(ghost);
-            }
-
-            // Real reflow - no capture lost crash since Window receives pointer events!
-            _draggedCard.IsVisible = false;
+            _draggedCard.Classes.Add("dragging");
+            _draggedCard.IsHitTestVisible = false;
+            _draggedCard.ZIndex = 9999;
+            _draggedCard.Opacity = 0.5;
+            _draggedInstance.IsDragging = true;
         }
 
-        if (_isDragging && _ghostBorder != null && _dragOverlay != null)
+        if (_isDragging)
         {
-            var ghostX = currentPos.X - _dragCardOffset.X;
-            var ghostY = currentPos.Y - _dragCardOffset.Y;
-            Canvas.SetLeft(_ghostBorder, ghostX);
-            Canvas.SetTop(_ghostBorder, ghostY);
+            var transform = _draggedCard.RenderTransform as Avalonia.Media.TranslateTransform;
+            if (transform == null)
+            {
+                transform = new Avalonia.Media.TranslateTransform();
+                _draggedCard.RenderTransform = transform;
+            }
+            transform.X = diff.X;
+            transform.Y = diff.Y;
+            
+            var hit = this.InputHitTest(currentPos) as Avalonia.Visual;
+            var targetCard = hit?.FindAncestorOfType<Avalonia.Controls.Border>(includeSelf: true);
+            while (targetCard != null && !targetCard.Classes.Contains("instanceCard"))
+                targetCard = targetCard.FindAncestorOfType<Avalonia.Controls.Border>(includeSelf: false);
+                
+            string? targetId = (targetCard?.DataContext as Models.InstanceModel)?.Id;
+            string movedId = _draggedInstance.Id;
+            
+            if (!string.IsNullOrEmpty(targetId) && targetId != movedId && DataContext is ViewModels.MainWindowViewModel vm)
+            {
+                bool dropAfter = false;
+                if (targetCard != null)
+                {
+                    var relPos = e.GetPosition(targetCard);
+                    dropAfter = relPos.X > targetCard.Bounds.Width / 2;
+                }
+                try { vm.ReorderInstance(movedId, targetId, dropAfter, save: false); }
+                catch (Exception ex) { CustomMcLauncher.Services.LauncherLog.Error("Real-time reorder failed", ex); }
+            }
         }
     }
 
@@ -323,43 +330,16 @@ public partial class MainWindow : Window
         if (_isDragging)
         {
             _suppressNextTap = true;
-            var movedId = _draggedInstance.Id;
-            var dropPos = e.GetPosition(this);
-
-            if (_dragOverlay != null && _ghostBorder != null)
-            {
-                _dragOverlay.Children.Remove(_ghostBorder);
-                _ghostBorder = null;
-            }
-
-            var hit = this.InputHitTest(dropPos) as Visual;
-            var targetCard = hit?.FindAncestorOfType<Border>(includeSelf: true);
-            while (targetCard != null && !targetCard.Classes.Contains("instanceCard"))
-                targetCard = targetCard.FindAncestorOfType<Border>(includeSelf: false);
-
-            string? targetId = (targetCard?.DataContext as InstanceModel)?.Id;
-            bool dropAfter = false;
-            if (targetCard != null)
-            {
-                var relPos = e.GetPosition(targetCard);
-                dropAfter = relPos.X > targetCard.Bounds.Width / 2;
-            }
-
-            ResetDrag();
-
-            if (!string.IsNullOrEmpty(targetId) && targetId != movedId && DataContext is MainWindowViewModel vm)
+            if (DataContext is ViewModels.MainWindowViewModel vm)
             {
                 Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                 {
-                    try { vm.ReorderInstance(movedId, targetId, dropAfter); }
-                    catch (Exception ex) { LauncherLog.Error("Failed to reorder instance", ex); }
+                    try { vm.PersistInstanceOrder(); }
+                    catch (Exception ex) { CustomMcLauncher.Services.LauncherLog.Error("Failed to persist order", ex); }
                 }, Avalonia.Threading.DispatcherPriority.Background);
             }
-
             e.Handled = true;
-            return;
         }
-
         ResetDrag();
     }
 
@@ -370,21 +350,30 @@ public partial class MainWindow : Window
 
     private void ResetDrag()
     {
-        if (_dragOverlay != null && _ghostBorder != null)
-        {
-            try { _dragOverlay.Children.Remove(_ghostBorder); } catch { }
-            _ghostBorder = null;
-        }
-        _dragOverlay = null;
-
         if (_draggedCard != null)
         {
-            _draggedCard.IsVisible = true;
+            _draggedCard.Classes.Remove("dragging");
+            _draggedCard.IsHitTestVisible = true;
+            _draggedCard.ZIndex = 0;
+            _draggedCard.Opacity = 1.0;
+            
+            var transform = _draggedCard.RenderTransform as Avalonia.Media.TranslateTransform;
+            if (transform != null)
+            {
+                transform.X = 0;
+                transform.Y = 0;
+            }
+        }
+        
+        if (_draggedInstance != null)
+        {
+            _draggedInstance.IsDragging = false;
         }
         _draggedCard = null;
         _draggedInstance = null;
         _isDragging = false;
     }
+
 
     private void OnInstanceCardTapped(object? sender, TappedEventArgs e)
     {
@@ -425,3 +414,16 @@ public class BoolToBorderBrushConverter : IValueConverter
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotImplementedException();
 }
+
+
+
+
+
+
+
+
+
+
+
+
+

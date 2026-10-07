@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 
@@ -375,7 +375,7 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
         ["dir_mode_none"] = "Do not use separate directories",
         ["crash_generic_title"] = "Unexpected crash",
         ["crash_generic_cause"] = "Unknown cause",
-        ["crash_generic_human"] = "The game exited with code {0}. Check the technical evidence below - it usually names the failing component.",
+        ["crash_generic_human"] = "The game crashed. This might be due to allocating too little memory or having conflicting mods.",
 
         // ---------------- main window / navigation
         ["app_tagline"] = "Manage multiple Minecraft instances, mods, resource packs, worlds and servers - all in one clean launcher.",
@@ -922,7 +922,7 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
         ["dir_mode_none"] = "Не использовать отдельные папки",
         ["crash_generic_title"] = "Неожиданный сбой",
         ["crash_generic_cause"] = "Причина неизвестна",
-        ["crash_generic_human"] = "Игра завершилась с кодом {0}. Посмотрите технические подробности ниже — обычно там видно сбойный компонент.",
+        ["crash_generic_human"] = "The game crashed. This might be due to allocating too little memory or having conflicting mods.",
 
         ["app_tagline"] = "Управляйте несколькими экземплярами Minecraft, модами, ресурс-паками, мирами и серверами — всё в одном лаунчере.",
         ["useful_links"] = "ПОЛЕЗНЫЕ ССЫЛКИ",
@@ -1011,7 +1011,7 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
         ["cp_step_version"] = "Версия игры",
         ["cp_panel_info"] = "Данные профиля",
         ["cp_panel_version"] = "Версия игры и лоадер",
-        ["cp_upload_icon"] = "Загрузить",
+        ["cp_upload_icon"] = "Upload",
         ["btn_reset"] = "Сбросить",
         ["cp_name_hint2"] = "Профиль будет создан с этим именем. Позже его можно изменить в настройках.",
         ["cp_duplicate"] = "Такое имя уже существует",
@@ -1442,7 +1442,7 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
         ["dir_mode_none"] = "Не використовувати окремі папки",
         ["crash_generic_title"] = "Неочікуваний збій",
         ["crash_generic_cause"] = "Причина невідома",
-        ["crash_generic_human"] = "Гра завершилася з кодом {0}. Перегляньте технічні деталі нижче — там зазвичай видно збійний компонент.",
+        ["crash_generic_human"] = "The game crashed. This might be due to allocating too little memory or having conflicting mods.",
 
         ["app_tagline"] = "Керуйте кількома екземплярами Minecraft, модами, ресурс-паками, світами та серверами — все в одному лаунчері.",
         ["useful_links"] = "КОРИСНІ ПОСИЛАННЯ",
@@ -1529,7 +1529,7 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
         ["cp_step_version"] = "Версія гри",
         ["cp_panel_info"] = "Дані профілю",
         ["cp_panel_version"] = "Версія гри та лоадер",
-        ["cp_upload_icon"] = "Завантажити",
+        ["cp_upload_icon"] = "Upload",
         ["btn_reset"] = "Скинути",
         ["cp_name_hint2"] = "Профіль буде створено з цим ім'ям. Пізніше його можна змінити в налаштуваннях.",
         ["cp_duplicate"] = "Таке ім'я вже існує",
@@ -1960,7 +1960,7 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
         ["dir_mode_none"] = "Ayrı klasör kullanma",
         ["crash_generic_title"] = "Beklenmeyen çökme",
         ["crash_generic_cause"] = "Neden bilinmiyor",
-        ["crash_generic_human"] = "Oyun {0} koduyla sonlandı. Aşağıdaki teknik kanıtlara bakın - genellikle sorunun kaynağı görünür.",
+        ["crash_generic_human"] = "The game crashed. This might be due to allocating too little memory or having conflicting mods.",
 
         ["app_tagline"] = "Birden fazla Minecraft kurulumunu, modu, kaynak paketini, dünyayı ve sunucuyu tek bir başlatıcıda yönetin.",
         ["useful_links"] = "FAYDALI BAĞLANTILAR",
@@ -2047,7 +2047,7 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
         ["cp_step_version"] = "Oyun Sürümü",
         ["cp_panel_info"] = "Profil Bilgileri",
         ["cp_panel_version"] = "Oyun Sürümü ve Loader",
-        ["cp_upload_icon"] = "Simge Yükle",
+        ["cp_upload_icon"] = "Upload",
         ["btn_reset"] = "Sıfırla",
         ["cp_name_hint2"] = "Profil bu isimle oluşturulacak. Daha sonra ayarlardan değiştirebilirsiniz.",
         ["cp_duplicate"] = "Bu isim zaten mevcut",
@@ -2478,7 +2478,7 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
         ["crash_perm_human"] = "Das Spiel kann nicht in seine Ordner schreiben. Starte den Launcher als Administrator oder verschiebe das Profil aus einem geschützten Verzeichnis.",
         ["crash_generic_title"] = "Unerwarteter Absturz",
         ["crash_generic_cause"] = "Unbekannte Ursache",
-        ["crash_generic_human"] = "Das Spiel wurde mit Code {0} beendet. Siehe technische Hinweise unten - dort steht meist die betroffene Komponente.",
+        ["crash_generic_human"] = "The game crashed. This might be due to allocating too little memory or having conflicting mods.",
 
         ["app_tagline"] = "Verwalten Sie mehrere Minecraft-Installationen, Mods, Ressourcenpakete, Welten und Server - alles in einem Launcher.",
         ["useful_links"] = "NÜTZLICHE LINKS",
@@ -2565,7 +2565,7 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
         ["cp_step_version"] = "Spielversion",
         ["cp_panel_info"] = "Profilinformationen",
         ["cp_panel_version"] = "Spielversion & Loader",
-        ["cp_upload_icon"] = "Symbol hochladen",
+        ["cp_upload_icon"] = "Upload",
         ["btn_reset"] = "Zurücksetzen",
         ["cp_name_hint2"] = "Das Profil wird mit diesem Namen erstellt. Sie können ihn später in den Einstellungen ändern.",
         ["cp_duplicate"] = "Dieser Name existiert bereits",
@@ -2996,7 +2996,7 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
         ["dir_mode_none"] = "Ne pas utiliser de dossiers séparés",
         ["crash_generic_title"] = "Plantage inattendu",
         ["crash_generic_cause"] = "Cause inconnue",
-        ["crash_generic_human"] = "Le jeu s'est arrêté avec le code {0}. Consultez les preuves techniques ci-dessous - elles indiquent souvent le composant fautif.",
+        ["crash_generic_human"] = "The game crashed. This might be due to allocating too little memory or having conflicting mods.",
 
         ["app_tagline"] = "Gérez plusieurs instances de Minecraft, mods, packs de ressources, mondes et serveurs - tout dans un seul lanceur.",
         ["useful_links"] = "LIENS UTILES",
@@ -3083,7 +3083,7 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
         ["cp_step_version"] = "Version du jeu",
         ["cp_panel_info"] = "Informations du profil",
         ["cp_panel_version"] = "Version du jeu & Loader",
-        ["cp_upload_icon"] = "Téléverser une icône",
+        ["cp_upload_icon"] = "Upload",
         ["btn_reset"] = "Réinitialiser",
         ["cp_name_hint2"] = "Le profil sera créé avec ce nom. Vous pourrez le modifier plus tard dans les paramètres.",
         ["cp_duplicate"] = "Ce nom existe déjà",
@@ -3291,3 +3291,5 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
         ["update_failed"] = "Échec du téléchargement. Réessayez ou téléchargez depuis GitHub.",
     };
 }
+
+

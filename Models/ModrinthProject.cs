@@ -79,6 +79,7 @@ public partial class ModrinthProject : ObservableObject
 
     [ObservableProperty]
     private string _installedVersion = "";
+    [ObservableProperty] private string _installedGameVersion = "";
 
     [ObservableProperty]
     private bool _isHovered;
@@ -155,3 +156,4 @@ public partial class ModrinthProject : ObservableObject
         });
     }
 }
+

@@ -531,6 +531,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public void CancelRestartConfirm()
     {
         IsRestartConfirmOpen = false;
+        IsCloneDialogOpen = false;
         PendingRestartThemeHex = "";
     }
 
@@ -538,6 +539,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public void ConfirmRestartAndApplyTheme()
     {
         IsRestartConfirmOpen = false;
+        IsCloneDialogOpen = false;
         var hex = !string.IsNullOrWhiteSpace(PendingRestartThemeHex) ? PendingRestartThemeHex : CustomThemeHex;
         SelectTheme(hex);
 
@@ -1012,6 +1014,11 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         _navHistory.Add(entry);
+
+        while (_navHistory.Count > 20)
+        {
+            _navHistory.RemoveAt(0);
+        }
         _historyIndex = _navHistory.Count - 1;
         ApplyHistoryEntry(entry);
         UpdateHistoryButtons();
@@ -1368,6 +1375,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty]
     private InstanceModel? _pendingDeleteInstance;
+    [ObservableProperty] private bool _isCloneDialogOpen;
+    [ObservableProperty] private CloneProfileViewModel? _cloneDialogVm;
 
     public ObservableCollection<AccountRow> AccountRows { get; } = new();
 
@@ -2065,11 +2074,11 @@ public partial class MainWindowViewModel : ViewModelBase
             }
     }
 
-    public void ReorderInstance(string movedId, string targetId, bool dropAfter)
+    public void ReorderInstance(string movedId, string targetId, bool dropAfter, bool save = true)
     {
         try
         {
-            _instanceService.ReorderInstances(movedId, targetId, dropAfter);
+            _instanceService.ReorderInstances(movedId, targetId, dropAfter, save);
 
             var moved = Instances.FirstOrDefault(i => i.Id == movedId);
             if (moved == null) return;
@@ -2084,7 +2093,7 @@ public partial class MainWindowViewModel : ViewModelBase
             oldIdx = Math.Clamp(oldIdx, 0, Instances.Count - 1);
 
             if (oldIdx != newIdx)
-                Instances.Move(oldIdx, newIdx);
+                { var item = Instances[oldIdx]; Instances.RemoveAt(oldIdx); Instances.Insert(newIdx, item); }
         }
         catch (Exception ex)
         {
@@ -2207,37 +2216,22 @@ public partial class MainWindowViewModel : ViewModelBase
         GoBack();
     }
 
-    [RelayCommand]
+        [RelayCommand]
     private void OpenCopyDialog(InstanceModel instance)
     {
         var inst = instance ?? SelectedInstance;
         if (inst == null) return;
-        try
+
+        CloneDialogVm = new CloneProfileViewModel(inst, _instanceService);
+        CloneDialogVm.Cloned += created =>
         {
-            if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow != null)
-            {
-                var vm = new CloneProfileViewModel(inst, _instanceService);
-                vm.Cloned += created =>
-                {
-                    Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-                    {
-                        RefreshState();
-                        SelectInstance(created);
-                        StatusText = string.Format(L10n.T("mw_status_cloned"), created.Name);
-                    });
-                };
-                var win = new Views.CloneProfileWindow { DataContext = vm };
-                vm.RequestClose += () => Avalonia.Threading.Dispatcher.UIThread.Post(() => win.Close());
-                win.ShowDialog(desktop.MainWindow);
-                return;
-            }
-        }
-        catch (Exception ex)
-        {
-            LauncherLog.Error("Failed to open Clone Profile window", ex);
-        }
-        StatusText = L10n.T("mw_status_clone_open_failed");
+            Instances.Add(created);
+            SelectedInstance = created;
+        };
+        CloneDialogVm.RequestClose += () => IsCloneDialogOpen = false;
+        IsCloneDialogOpen = true;
     }
+
 
     private void FlushConsolePending()
     {
@@ -2684,6 +2678,7 @@ public partial class MainWindowViewModel : ViewModelBase
         IsElyByErrorOpen = false;
         IsDeleteConfirmOpen = false;
         IsRestartConfirmOpen = false;
+        IsCloneDialogOpen = false;
         PendingDeleteInstance = null;
         FilterVersions();
     }
@@ -2893,3 +2888,12 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 }
+
+
+
+
+
+
+
+
+

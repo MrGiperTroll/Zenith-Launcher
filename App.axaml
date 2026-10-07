@@ -27,11 +27,14 @@
         <SolidColorBrush x:Key="CardBrush" Color="#0D111A"/>
         <SolidColorBrush x:Key="CardAltBrush" Color="#0E121B"/>
         <SolidColorBrush x:Key="PanelBrush" Color="#151C2C"/>
+        <SolidColorBrush x:Key="PanelBrushTransparent" Color="#00151C2C"/>
+        <SolidColorBrush x:Key="RowHoverBrushTransparent" Color="#001B2338"/>
         <SolidColorBrush x:Key="ChipBrush" Color="#141A28"/>
         <SolidColorBrush x:Key="IconChipBrush" Color="#101623"/>
         <SolidColorBrush x:Key="FieldBrush" Color="#121724"/>
         <SolidColorBrush x:Key="RowHoverBrush" Color="#1B2338"/>
         <SolidColorBrush x:Key="TabActiveBrush" Color="#131826"/>
+        <SolidColorBrush x:Key="TabActiveBrushTransparent" Color="#00131826"/>
         <SolidColorBrush x:Key="TabHoverBrush" Color="#101725"/>
         <SolidColorBrush x:Key="TabPressedBrush" Color="#1B2435"/>
         <SolidColorBrush x:Key="InputFocusBrush" Color="#0F131E"/>
@@ -115,12 +118,6 @@
         <Style Selector="Button">
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
-            <Setter Property="RenderTransform" Value="scale(1)"/>
-            <Setter Property="Transitions">
-                <Transitions>
-                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.16" Easing="0.16, 1, 0.3, 1"/>
-                </Transitions>
-            </Setter>
         </Style>
         <Style Selector="Button /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="VerticalContentAlignment" Value="Center"/>
@@ -163,22 +160,9 @@
             <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
         </Style>
 
-        <!-- Smooth Brush Transitions for Buttons -->
-        <Style Selector="Button /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="Background" Duration="0:0:0.2" Easing="0.16, 1, 0.3, 1"/>
-                    <BrushTransition Property="BorderBrush" Duration="0:0:0.2" Easing="0.16, 1, 0.3, 1"/>
-                </Transitions>
-            </Setter>
-        </Style>
+        
 
-                <Style Selector=""Button.sideTab /template/ ContentPresenter#PART_ContentPresenter"">
-            <Setter Property=""Transitions"" Value=""{x:Null}""/>
-        </Style>
-        <Style Selector=""Button.stepLinkBtn /template/ ContentPresenter#PART_ContentPresenter"">
-            <Setter Property=""Transitions"" Value=""{x:Null}""/>
-        </Style>
+                
         <!-- Instance card subtle elevation on hover -->
         <Style Selector="Border.instanceCard">
             <Setter Property="Transitions">
@@ -573,3 +557,14 @@
         </Style>
     </Application.Styles>
 </Application>
+
+
+
+
+
+
+
+
+
+
+

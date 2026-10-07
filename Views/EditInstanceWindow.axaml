@@ -34,11 +34,7 @@
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Padding" Value="18,10"/>
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="Background" Duration="0:0:0.15"/>
-                </Transitions>
-            </Setter>
+
         </Style>
         <Style Selector="Button.primaryBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource AccentBrushHover}"/>
@@ -53,12 +49,7 @@
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Padding" Value="14,9"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="Background" Duration="0:0:0.15"/>
-                    <BrushTransition Property="BorderBrush" Duration="0:0:0.15"/>
-                </Transitions>
-            </Setter>
+
         </Style>
         <Style Selector="Button.subBtn:pointerover">
             <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
@@ -103,6 +94,11 @@
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Button.sideTab /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Transitions">
+                <Transitions />
+            </Setter>
         </Style>
         <Style Selector="Button.sideTab:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>

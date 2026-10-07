@@ -240,11 +240,15 @@ public partial class MainWindow : Window
     }
 
     private Border? _draggedCard;
-    private ContentPresenter? _draggedContainer;
     private InstanceModel? _draggedInstance;
     private Point _dragStartPos;
+    private Point _dragCardOffset;
     private bool _isDragging;
     private bool _suppressNextTap;
+
+    // Ghost overlay elements
+    private Border? _ghostBorder;
+    private Panel? _dragOverlay;
 
     private void OnInstanceCardPointerPressed(object? sender, PointerPressedEventArgs e)
     {
@@ -253,6 +257,7 @@ public partial class MainWindow : Window
             _draggedCard = border;
             _draggedInstance = instance;
             _dragStartPos = e.GetPosition(this);
+            _dragCardOffset = e.GetPosition(border);
             _isDragging = false;
         }
     }
@@ -269,25 +274,48 @@ public partial class MainWindow : Window
         var currentPos = e.GetPosition(this);
         var diff = currentPos - _dragStartPos;
 
-        if (!_isDragging && (Math.Abs(diff.X) > 6 || Math.Abs(diff.Y) > 6))
+        if (!_isDragging && (Math.Abs(diff.X) > 8 || Math.Abs(diff.Y) > 8))
         {
             _isDragging = true;
-            _draggedContainer = _draggedCard.FindAncestorOfType<ContentPresenter>();
-            if (_draggedContainer != null)
-                _draggedContainer.ZIndex = 1000;
 
-            _draggedCard.Classes.Add("dragging");
-            _draggedCard.ZIndex = 1000;
-            _draggedCard.Opacity = 0.92;
+            // Find the drag overlay panel in XAML (x:Name="DragOverlayPanel")
+            _dragOverlay = this.FindControl<Panel>("DragOverlayPanel");
+
+            if (_dragOverlay != null)
+            {
+                // Create ghost: a simple semi-transparent copy
+                var ghost = new Border
+                {
+                    Width = _draggedCard.Bounds.Width,
+                    Height = _draggedCard.Bounds.Height,
+                    CornerRadius = _draggedCard.CornerRadius,
+                    Background = _draggedCard.Background,
+                    BorderBrush = _draggedCard.BorderBrush,
+                    BorderThickness = _draggedCard.BorderThickness,
+                    Opacity = 0.75,
+                    IsHitTestVisible = false,
+                    ZIndex = 9999,
+                    RenderTransform = new ScaleTransform(1.04, 1.04),
+                };
+                _ghostBorder = ghost;
+                _dragOverlay.Children.Add(ghost);
+            }
+
+            // Collapse the real card so WrapPanel reflows without losing capture
+            _draggedCard.Opacity = 0;
+            _draggedCard.Width = 0;
+            _draggedCard.Height = 0;
+            _draggedCard.Margin = new Thickness(0);
             e.Pointer.Capture(_draggedCard);
         }
 
-        if (_isDragging)
+        if (_isDragging && _ghostBorder != null && _dragOverlay != null)
         {
-            var group = new TransformGroup();
-            group.Children.Add(new TranslateTransform(diff.X, diff.Y));
-            group.Children.Add(new ScaleTransform(1.05, 1.05));
-            _draggedCard.RenderTransform = group;
+            // Position ghost to follow cursor, offset by where user initially clicked within the card
+            var ghostX = currentPos.X - _dragCardOffset.X;
+            var ghostY = currentPos.Y - _dragCardOffset.Y;
+            Canvas.SetLeft(_ghostBorder, ghostX);
+            Canvas.SetTop(_ghostBorder, ghostY);
         }
     }
 
@@ -305,16 +333,26 @@ public partial class MainWindow : Window
             try { e.Pointer.Capture(null); } catch { }
 
             var movedId = _draggedInstance.Id;
+            var dropPos = e.GetPosition(this);
 
-            _draggedCard.IsHitTestVisible = false;
-            var hit = this.InputHitTest(e.GetPosition(this)) as Visual;
-            _draggedCard.IsHitTestVisible = true;
+            // Restore the original card visibility before hit testing
+            _draggedCard.IsVisible = true;
+
+            // Remove ghost first to avoid interfering with hit test
+            if (_dragOverlay != null && _ghostBorder != null)
+            {
+                _dragOverlay.Children.Remove(_ghostBorder);
+                _ghostBorder = null;
+            }
+
+            // Hit test with the original card hidden via opacity trick
+            _draggedCard.Opacity = 0;
+            var hit = this.InputHitTest(dropPos) as Visual;
+            _draggedCard.Opacity = 1.0;
 
             var targetCard = hit?.FindAncestorOfType<Border>(includeSelf: true);
             while (targetCard != null && !targetCard.Classes.Contains("instanceCard"))
-            {
                 targetCard = targetCard.FindAncestorOfType<Border>(includeSelf: false);
-            }
 
             string? targetId = (targetCard?.DataContext as InstanceModel)?.Id;
             bool dropAfter = false;
@@ -330,14 +368,8 @@ public partial class MainWindow : Window
             {
                 Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                 {
-                    try
-                    {
-                        vm.ReorderInstance(movedId, targetId, dropAfter);
-                    }
-                    catch (Exception ex)
-                    {
-                        LauncherLog.Error("Failed to reorder instance", ex);
-                    }
+                    try { vm.ReorderInstance(movedId, targetId, dropAfter); }
+                    catch (Exception ex) { LauncherLog.Error("Failed to reorder instance", ex); }
                 }, Avalonia.Threading.DispatcherPriority.Background);
             }
 
@@ -355,18 +387,21 @@ public partial class MainWindow : Window
 
     private void ResetDrag()
     {
-        if (_draggedContainer != null)
+        // Remove ghost overlay
+        if (_dragOverlay != null && _ghostBorder != null)
         {
-            _draggedContainer.ZIndex = 0;
-            _draggedContainer = null;
+            try { _dragOverlay.Children.Remove(_ghostBorder); } catch { }
+            _ghostBorder = null;
         }
+        _dragOverlay = null;
 
         if (_draggedCard != null)
         {
-            _draggedCard.Classes.Remove("dragging");
-            _draggedCard.ZIndex = 0;
+            _draggedCard.IsVisible = true;
             _draggedCard.Opacity = 1.0;
-            _draggedCard.IsHitTestVisible = true;
+            _draggedCard.Width = 150;
+            _draggedCard.Height = 150;
+            _draggedCard.Margin = new Thickness(2, 2, 10, 10);
             _draggedCard.RenderTransform = null;
         }
         _draggedCard = null;

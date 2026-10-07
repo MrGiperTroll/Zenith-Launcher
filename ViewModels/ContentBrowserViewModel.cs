@@ -261,10 +261,12 @@ public partial class ContentBrowserViewModel : ObservableObject
 
     public Models.ModrinthFullProject? VersionSelectorProject => FullProject;
 
-    /// <summary>Button text: "Install" for new content, "Reinstall" for already-installed.</summary>
+    /// <summary>Button text: "Install" for new content, "Reinstall" for already-installed same version, "Install" for different version.</summary>
     public string ReinstallText => _showInstallFeedback
         ? "Installed"
         : SelectedProject is { IsInstalled: true }
+            && (SelectedVersionForDetails == null
+                || string.Equals(SelectedVersionForDetails.VersionNumber, SelectedProject.InstalledVersion, StringComparison.OrdinalIgnoreCase))
             ? L10n.T("mi_reinstall")
             : L10n.T("mi_install");
 

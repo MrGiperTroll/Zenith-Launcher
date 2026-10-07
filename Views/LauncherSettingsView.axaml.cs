@@ -25,8 +25,17 @@ public partial class LauncherSettingsView : UserControl
         if (e.PropertyName == nameof(MainWindowViewModel.CurrentSettingsTab))
         {
             var sc = this.FindControl<ScrollViewer>("SettingsContentScroll");
-            if (sc != null)
-                UiFx.FadeInNow(sc, 220, 4);
+            if (sc?.Content is StackPanel sp)
+            {
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    foreach (var child in sp.Children)
+                    {
+                        if (child.IsVisible)
+                            UiFx.FadeInNow(child, 180, 2);
+                    }
+                }, Avalonia.Threading.DispatcherPriority.Render);
+            }
         }
     }
 }

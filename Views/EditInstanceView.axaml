@@ -30,11 +30,7 @@
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Padding" Value="18,10"/>
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="Background" Duration="0:0:0.15"/>
-                </Transitions>
-            </Setter>
+
         </Style>
         <Style Selector="Button.primaryBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource AccentBrushHover}"/>
@@ -49,12 +45,7 @@
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Padding" Value="14,9"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="Background" Duration="0:0:0.15"/>
-                    <BrushTransition Property="BorderBrush" Duration="0:0:0.15"/>
-                </Transitions>
-            </Setter>
+
         </Style>
         <Style Selector="Button.subBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
@@ -373,9 +364,13 @@
                             <ScrollViewer x:Name="LogScroll" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
                                           ScrollChanged="OnLogScrollChanged" Padding="14,10"
                                           IsVisible="{Binding LogHasContent}">
-                                <SelectableTextBlock Text="{Binding LogText}" TextWrapping="{Binding LogTextWrapping}"
-                                                     FontFamily="Consolas, Cascadia Code, Courier New" FontSize="11"
-                                                     Foreground="{StaticResource TextSoftBrush}" MinWidth="600"/>
+                                <TextBox Text="{Binding LogText}" TextWrapping="{Binding LogTextWrapping}"
+                                         IsReadOnly="True" BorderThickness="0" Background="Transparent"
+                                         ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                         FontFamily="Consolas, Cascadia Code, Courier New" FontSize="11"
+                                         Foreground="{StaticResource TextSoftBrush}" MinWidth="600"
+                                         FocusAdorner="{x:Null}"/>
                             </ScrollViewer>
 
                             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8" IsVisible="{Binding !LogHasContent}">

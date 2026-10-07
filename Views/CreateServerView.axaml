@@ -742,7 +742,7 @@
                                     </Grid>
 
                                     <!-- Compact Slider -->
-                                    <Slider Minimum="512" Maximum="32768" Value="{Binding ServerRamMb, Mode=TwoWay}" TickFrequency="512" IsSnapToTickEnabled="True" Margin="0,-2,0,0"/>
+                                    <Slider Minimum="512" Maximum="32768" Value="{Binding ServerRamMb, Mode=TwoWay}" TickFrequency="512" IsSnapToTickEnabled="True" Margin="0,-16,0,-22"/>
                                 </StackPanel>
 
                                 <!-- JVM Launch Arguments -->

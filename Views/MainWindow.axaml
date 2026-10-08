@@ -427,7 +427,7 @@
             <!-- Main Workspace -->
             <Grid Grid.Column="1" RowDefinitions="52,*,Auto">
                 <!-- Top Header -->
-                <Grid Grid.Row="0" Margin="8,0,24,0" VerticalAlignment="Center" ColumnDefinitions="*,Auto">
+                <Grid Grid.Row="0" Margin="0,0,24,0" VerticalAlignment="Center" ColumnDefinitions="*,Auto">
                     <!-- Left: Navigation (Back, Forward, Breadcrumbs) -->
                     <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                         <Button Classes="navBtn" Command="{Binding GoBackCommand}" ToolTip.Tip="{l10n:Tr Key=nav_back}">
@@ -437,7 +437,7 @@
                             <PathIcon Data="M8.59 16.59L13.17 12L8.59 7.41L10 6L16 12L10 18L8.59 16.59Z" Width="14" Height="14"/>
                         </Button>
 
-                        <Rectangle Width="1" Height="14" Fill="{StaticResource BorderDarkBrush}" Margin="4,0,6,0"/>
+                        
 
                         <!-- Breadcrumbs -->
                         <ItemsControl ItemsSource="{Binding Breadcrumbs}">
@@ -1202,7 +1202,7 @@
             </Border>
         </Border>
         <!-- DragOverlayPanel: topmost layer for drag ghost rendering -->
-        <Canvas x:Name="DragOverlayPanel" IsHitTestVisible="False" ZIndex="9999"/>
+        <Canvas x:Name="DragOverlayPanel" IsHitTestVisible="False" ClipToBounds="False" ZIndex="9999"/>
     </Grid>
     </LayoutTransformControl>
     </Panel>

@@ -20,7 +20,7 @@
 
         <!-- Content -->
         <TabControl Grid.Row="1" Background="Transparent">
-            <TabItem Header="Simple">
+            <TabItem Header="{l10n:Tr Key=theme_simple}">
                 <ScrollViewer Margin="0,16,0,0">
                     <StackPanel Spacing="24">
                         <!-- Presets -->
@@ -69,7 +69,7 @@
                 </ScrollViewer>
             </TabItem>
 
-            <TabItem Header="Advanced">
+            <TabItem Header="{l10n:Tr Key=theme_advanced}">
                 <ScrollViewer Margin="0,16,0,0">
                     <StackPanel Spacing="24">
                         <TextBlock Text="Advanced Theme Customization" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>

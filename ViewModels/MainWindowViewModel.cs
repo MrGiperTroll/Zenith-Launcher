@@ -440,6 +440,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool IsSettingsTabGame => CurrentSettingsTab == "Game";
     public bool IsSettingsTabGeneral => CurrentSettingsTab == "General";
     public bool IsSettingsTabAppearance => CurrentSettingsTab is "Appearance" or "Launcher";
+    public bool IsSettingsTabTheme => CurrentSettingsTab == "Theme";
     public bool IsSettingsTabLauncher => IsSettingsTabAppearance;
 
     [ObservableProperty] private bool _isLockAspectRatio = false;
@@ -452,6 +453,7 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsSettingsTabGame));
         OnPropertyChanged(nameof(IsSettingsTabGeneral));
         OnPropertyChanged(nameof(IsSettingsTabAppearance));
+        OnPropertyChanged(nameof(IsSettingsTabTheme));
         OnPropertyChanged(nameof(IsSettingsTabLauncher));
     }
 
@@ -1657,19 +1659,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
     
     [RelayCommand]
-    private void OpenThemeSettings()
+    private void OpenThemeEditor()
     {
-        // For now, we will open a new Theme Window instance.
-        // We will create ThemeSettingsWindow soon.
-        var window = new ThemeSettingsWindow
-        {
-            DataContext = this
-        };
-        // Needs a valid lifetime reference, usually we can just Show()
-        if (Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
-        {
-            window.ShowDialog(desktop.MainWindow);
-        }
+        SwitchSettingsTab("Theme");
     }
 
     public void LoadLauncherConfig()

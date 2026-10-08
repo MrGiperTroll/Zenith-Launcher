@@ -175,7 +175,7 @@
             </Setter>
         </Style>
         <Style Selector="Border.instanceCard.dragging">
-            <Setter Property="Opacity" Value="0.92"/>
+            <Setter Property="Opacity" Value="0.0"/>
         </Style>
 
         <!-- Version button style (for Java installer tiles and version selectors) -->

@@ -177,15 +177,14 @@
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate x:DataType="services:ThemePreset">
-                                        <Button x:CompileBindings="False"
-                                                Command="{Binding [ItemsControl].((vm:MainWindowViewModel)DataContext).ChooseThemeCommand}"
+                                        <Button Command="{Binding $parent[ItemsControl].((vm:MainWindowViewModel)DataContext).ChooseThemeCommand}"
                                                 CommandParameter="{Binding HexColor}"
                                                 Classes="subBtn"
                                                 CornerRadius="8"
                                                 Padding="10,6"
                                                 Margin="0,0,8,8">
                                             <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                                <Border Width="14" Height="14" CornerRadius="7" Background="{Binding HexColor}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" VerticalAlignment="Center"/>
+                                                <Border Width="14" Height="14" CornerRadius="7" Background="{Binding ColorBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" VerticalAlignment="Center"/>
                                                 <TextBlock Text="{Binding DisplayName}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </Button>

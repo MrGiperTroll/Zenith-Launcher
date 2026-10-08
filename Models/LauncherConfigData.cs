@@ -16,6 +16,11 @@ public class LauncherConfigData
     public string BgColor { get; set; } = "#080A0F";
     public string SurfaceColor { get; set; } = "#0D111A";
     public string PanelColor { get; set; } = "#121722";
+    public string SidebarBgColor { get; set; } = "#06080D";
+    public string CardColor { get; set; } = "#0D111A";
+    public string TextPrimaryColor { get; set; } = "#FFFFFF";
+    public string TextSecondaryColor { get; set; } = "#C5CBD6";
+    public string BorderDarkColor { get; set; } = "#121622";
     public string LauncherName { get; set; } = "Zenith Launcher";
     public bool UseFlatVersionList { get; set; } = false;
 

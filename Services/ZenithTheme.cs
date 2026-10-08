@@ -25,6 +25,11 @@ public static class ZenithTheme
         if (TryParse(cfg.BgColor)) r["BgBrush"] = new SolidColorBrush(Color.Parse(cfg.BgColor));
         if (TryParse(cfg.SurfaceColor)) r["SurfaceBrush"] = new SolidColorBrush(Color.Parse(cfg.SurfaceColor));
         if (TryParse(cfg.PanelColor)) r["PanelBrush"] = new SolidColorBrush(Color.Parse(cfg.PanelColor));
+        if (TryParse(cfg.SidebarBgColor)) r["SidebarBgBrush"] = new SolidColorBrush(Color.Parse(cfg.SidebarBgColor));
+        if (TryParse(cfg.CardColor)) r["CardBrush"] = new SolidColorBrush(Color.Parse(cfg.CardColor));
+        if (TryParse(cfg.TextPrimaryColor)) r["TextPrimaryBrush"] = new SolidColorBrush(Color.Parse(cfg.TextPrimaryColor));
+        if (TryParse(cfg.TextSecondaryColor)) r["TextSecondaryBrush"] = new SolidColorBrush(Color.Parse(cfg.TextSecondaryColor));
+        if (TryParse(cfg.BorderDarkColor)) r["BorderDarkBrush"] = new SolidColorBrush(Color.Parse(cfg.BorderDarkColor));
         if (TryParse(cfg.PanelColor)) {
             // Need a transparent version of panel brush for sidebar
             var pc = Color.Parse(cfg.PanelColor);

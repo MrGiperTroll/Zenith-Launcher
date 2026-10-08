@@ -486,6 +486,27 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private string _surfaceHex = "#0D111A";
     [ObservableProperty] private string _panelHex = "#121722";
 
+    [ObservableProperty]
+    private string _sidebarBgHex = "#06080D";
+    partial void OnSidebarBgHexChanged(string value) { if (!_isLoadingConfig) ZenithTheme.Apply(GetLauncherConfigSnapshot()); }
+
+    [ObservableProperty]
+    private string _cardHex = "#0D111A";
+    partial void OnCardHexChanged(string value) { if (!_isLoadingConfig) ZenithTheme.Apply(GetLauncherConfigSnapshot()); }
+
+    [ObservableProperty]
+    private string _textPrimaryHex = "#FFFFFF";
+    partial void OnTextPrimaryHexChanged(string value) { if (!_isLoadingConfig) ZenithTheme.Apply(GetLauncherConfigSnapshot()); }
+
+    [ObservableProperty]
+    private string _textSecondaryHex = "#C5CBD6";
+    partial void OnTextSecondaryHexChanged(string value) { if (!_isLoadingConfig) ZenithTheme.Apply(GetLauncherConfigSnapshot()); }
+
+    [ObservableProperty]
+    private string _borderDarkHex = "#121622";
+    partial void OnBorderDarkHexChanged(string value) { if (!_isLoadingConfig) ZenithTheme.Apply(GetLauncherConfigSnapshot()); }
+
+
 
 
 
@@ -1628,6 +1649,11 @@ public partial class MainWindowViewModel : ViewModelBase
                 BgColor = BgHex,
                 SurfaceColor = SurfaceHex,
                 PanelColor = PanelHex,
+            SidebarBgColor = SidebarBgHex,
+            CardColor = CardHex,
+            TextPrimaryColor = TextPrimaryHex,
+            TextSecondaryColor = TextSecondaryHex,
+            BorderDarkColor = BorderDarkHex,
                 JvmArgs = JvmArgs,
                 MinRamMb = MinRamMb,
                 RamMb = RamMb,
@@ -1662,6 +1688,11 @@ public partial class MainWindowViewModel : ViewModelBase
                 BgColor = BgHex,
                 SurfaceColor = SurfaceHex,
                 PanelColor = PanelHex,
+            SidebarBgColor = SidebarBgHex,
+            CardColor = CardHex,
+            TextPrimaryColor = TextPrimaryHex,
+            TextSecondaryColor = TextSecondaryHex,
+            BorderDarkColor = BorderDarkHex,
         JvmArgs = JvmArgs,
         MinRamMb = MinRamMb,
         RamMb = RamMb,
@@ -1710,6 +1741,11 @@ public partial class MainWindowViewModel : ViewModelBase
                     if (!string.IsNullOrWhiteSpace(cfg.BgColor)) BgHex = cfg.BgColor;
                     if (!string.IsNullOrWhiteSpace(cfg.SurfaceColor)) SurfaceHex = cfg.SurfaceColor;
                     if (!string.IsNullOrWhiteSpace(cfg.PanelColor)) PanelHex = cfg.PanelColor;
+                    if (!string.IsNullOrWhiteSpace(cfg.SidebarBgColor)) SidebarBgHex = cfg.SidebarBgColor;
+                    if (!string.IsNullOrWhiteSpace(cfg.CardColor)) CardHex = cfg.CardColor;
+                    if (!string.IsNullOrWhiteSpace(cfg.TextPrimaryColor)) TextPrimaryHex = cfg.TextPrimaryColor;
+                    if (!string.IsNullOrWhiteSpace(cfg.TextSecondaryColor)) TextSecondaryHex = cfg.TextSecondaryColor;
+                    if (!string.IsNullOrWhiteSpace(cfg.BorderDarkColor)) BorderDarkHex = cfg.BorderDarkColor;
                     if (!string.IsNullOrWhiteSpace(cfg.AccentColor))
                     {
                         CurrentAccentHex = cfg.AccentColor;

@@ -4,6 +4,7 @@
              xmlns:l10n="using:CustomMcLauncher.Extensions"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:services="using:CustomMcLauncher.Services"
+             xmlns:cp="using:Avalonia.Controls.ColorPicker"
              x:Class="CustomMcLauncher.Views.ThemeSettingsView"
              x:DataType="vm:MainWindowViewModel">
     
@@ -11,7 +12,7 @@
         <!-- Header -->
         <Border Grid.Row="0" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,0,1" Padding="0,0,0,16" Margin="0,0,0,16">
             <Grid ColumnDefinitions="Auto,*">
-                <Button Grid.Column="0" Classes="iconBtn" Command="{Binding OpenSettingsDialogCommand}" Margin="0,0,12,0" ToolTip.Tip="{l10n:Tr Key=back}">
+                <Button Grid.Column="0" Classes="iconBtn" Command="{Binding CloseThemeEditorCommand}" Margin="0,0,12,0" ToolTip.Tip="{l10n:Tr Key=back}">
                     <PathIcon Data="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" Width="16" Height="16" Foreground="{StaticResource TextPrimaryBrush}"/>
                 </Button>
                 <TextBlock Grid.Column="1" Text="Theme Editor" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
@@ -36,14 +37,13 @@
                                     <DataTemplate>
                                         <!-- x:CompileBindings="False" is required to access DataContext.RequestApplyThemeCommand from the parent -->
                                         <Button x:CompileBindings="False"
-                                                Command="{Binding [ItemsControl].DataContext.RequestApplyThemeCommand}"
+                                                Command="{Binding [ItemsControl].((vm:MainWindowViewModel)DataContext).ChooseThemeCommand}"
                                                 CommandParameter="{Binding HexColor}"
-                                                Background="{StaticResource PanelBrushTransparent}" 
-                                                BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" 
+                                                Classes="subBtn"
                                                 CornerRadius="8" Padding="12,8" Margin="0,0,8,8" Cursor="Hand">
                                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                                <Ellipse Width="16" Height="16" Fill="{Binding ColorBrush}"/>
-                                                <TextBlock Text="{Binding DisplayName}" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                                <Ellipse Width="16" Height="16" Fill="{Binding ColorBrush}" Stroke="{StaticResource BorderEditorBrush}" StrokeThickness="1"/>
+                                                <TextBlock Text="{Binding DisplayName}" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </Button>
                                     </DataTemplate>
@@ -80,25 +80,25 @@
                                 <Grid ColumnDefinitions="150,*,Auto" VerticalAlignment="Center">
                                     <TextBlock Text="Background Color" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                     <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding BgHex, Mode=TwoWay}" PlaceholderText="#080A0F" Margin="0,0,12,0"/>
-                                    <Border Grid.Column="2" Width="24" Height="24" CornerRadius="4" Background="{Binding BgHex}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1"/>
+                                    <ColorPicker Grid.Column="2" Color="{Binding BgColorValue, Mode=TwoWay}" Width="32" Height="32"/>
                                 </Grid>
                                 
                                 <Grid ColumnDefinitions="150,*,Auto" VerticalAlignment="Center">
                                     <TextBlock Text="Surface (Cards) Color" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                     <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding SurfaceHex, Mode=TwoWay}" PlaceholderText="#0D111A" Margin="0,0,12,0"/>
-                                    <Border Grid.Column="2" Width="24" Height="24" CornerRadius="4" Background="{Binding SurfaceHex}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1"/>
+                                    <ColorPicker Grid.Column="2" Color="{Binding SurfaceColorValue, Mode=TwoWay}" Width="32" Height="32"/>
                                 </Grid>
                                 
                                 <Grid ColumnDefinitions="150,*,Auto" VerticalAlignment="Center">
                                     <TextBlock Text="Panel (Sidebar) Color" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                     <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding PanelHex, Mode=TwoWay}" PlaceholderText="#121722" Margin="0,0,12,0"/>
-                                    <Border Grid.Column="2" Width="24" Height="24" CornerRadius="4" Background="{Binding PanelHex}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1"/>
+                                    <ColorPicker Grid.Column="2" Color="{Binding PanelColorValue, Mode=TwoWay}" Width="32" Height="32"/>
                                 </Grid>
                                 
                                 <Grid ColumnDefinitions="150,*,Auto" VerticalAlignment="Center">
                                     <TextBlock Text="Accent Color" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                     <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding CustomThemeHex, Mode=TwoWay}" PlaceholderText="#3B82F6" Margin="0,0,12,0"/>
-                                    <Border Grid.Column="2" Width="24" Height="24" CornerRadius="4" Background="{Binding CustomThemeHex}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1"/>
+                                    <ColorPicker Grid.Column="2" Color="{Binding CustomThemeColorValue, Mode=TwoWay}" Width="32" Height="32"/>
                                 </Grid>
 
                                 <Button Classes="primaryBtn" Content="Apply Theme Changes" Command="{Binding RequestApplyThemeCommand}" HorizontalAlignment="Right" Padding="20,10"/>

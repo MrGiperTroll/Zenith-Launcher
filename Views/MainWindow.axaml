@@ -361,7 +361,7 @@
     </Window.Styles>
 
     <Panel Background="{DynamicResource BgBrush}">
-        <controls:ParticleSystemControl ParticleType="{Binding SelectedParticle}" IsHitTestVisible="False"/>
+        
         <LayoutTransformControl>
             <LayoutTransformControl.LayoutTransform>
                 <ScaleTransform ScaleX="{Binding LauncherScale}" ScaleY="{Binding LauncherScale}"/>
@@ -1205,6 +1205,7 @@
         <Canvas x:Name="DragOverlayPanel" IsHitTestVisible="False" ClipToBounds="False" ZIndex="9999"/>
     </Grid>
     </LayoutTransformControl>
+    <controls:ParticleSystemControl ParticleType="{Binding SelectedParticle}" IsHitTestVisible="False"/>
     </Panel>
 </Window>
 

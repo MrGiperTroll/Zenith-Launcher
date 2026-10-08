@@ -465,13 +465,29 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty]
     private string _customThemeHex = ZenithTheme.DefaultAccent;
+    public Avalonia.Media.Color BgColorValue {
+        get => Avalonia.Media.Color.TryParse(BgHex, out var c) ? c : Avalonia.Media.Colors.Black;
+        set { BgHex = value.ToString(); OnPropertyChanged(nameof(BgColorValue)); }
+    }
+    public Avalonia.Media.Color SurfaceColorValue {
+        get => Avalonia.Media.Color.TryParse(SurfaceHex, out var c) ? c : Avalonia.Media.Colors.Black;
+        set { SurfaceHex = value.ToString(); OnPropertyChanged(nameof(SurfaceColorValue)); }
+    }
+    public Avalonia.Media.Color PanelColorValue {
+        get => Avalonia.Media.Color.TryParse(PanelHex, out var c) ? c : Avalonia.Media.Colors.Black;
+        set { PanelHex = value.ToString(); OnPropertyChanged(nameof(PanelColorValue)); }
+    }
+    public Avalonia.Media.Color CustomThemeColorValue {
+        get => Avalonia.Media.Color.TryParse(CustomThemeHex, out var c) ? c : Avalonia.Media.Colors.Black;
+        set { CustomThemeHex = value.ToString(); OnPropertyChanged(nameof(CustomThemeColorValue)); }
+    }
     [ObservableProperty] private string _bgHex = "#080A0F";
     [ObservableProperty] private string _surfaceHex = "#0D111A";
     [ObservableProperty] private string _panelHex = "#121722";
 
-    partial void OnBgHexChanged(string value) => SaveLauncherConfig();
-    partial void OnSurfaceHexChanged(string value) => SaveLauncherConfig();
-    partial void OnPanelHexChanged(string value) => SaveLauncherConfig();
+
+
+
 
 
     [ObservableProperty]
@@ -486,7 +502,12 @@ public partial class MainWindowViewModel : ViewModelBase
     partial void OnCustomThemeHexChanged(string value)
     {
         UpdatePreviewBrushes(value);
+        OnPropertyChanged(nameof(CustomThemeColorValue));
+        ZenithTheme.Apply(GetLauncherConfigSnapshot());
     }
+    partial void OnBgHexChanged(string value) { OnPropertyChanged(nameof(BgColorValue)); ZenithTheme.Apply(GetLauncherConfigSnapshot()); SaveLauncherConfig(); }
+    partial void OnSurfaceHexChanged(string value) { OnPropertyChanged(nameof(SurfaceColorValue)); ZenithTheme.Apply(GetLauncherConfigSnapshot()); SaveLauncherConfig(); }
+    partial void OnPanelHexChanged(string value) { OnPropertyChanged(nameof(PanelColorValue)); ZenithTheme.Apply(GetLauncherConfigSnapshot()); SaveLauncherConfig(); }
 
     private void UpdatePreviewBrushes(string? hex)
     {
@@ -1662,6 +1683,12 @@ public partial class MainWindowViewModel : ViewModelBase
     private void OpenThemeEditor()
     {
         SwitchSettingsTab("Theme");
+    }
+    
+    [RelayCommand]
+    private void CloseThemeEditor()
+    {
+        SwitchSettingsTab("Appearance");
     }
 
     public void LoadLauncherConfig()

@@ -134,7 +134,7 @@
             </Border>
 
             <!-- Content -->
-            <ScrollViewer x:Name="SettingsContentScroll" Grid.Column="1" Padding="24,20,28,20" VerticalScrollBarVisibility="Auto">
+            <ScrollViewer x:Name="SettingsContentScroll" Grid.Column="1" Padding="24,20,28,20" VerticalScrollBarVisibility="Auto" IsVisible="{Binding !IsSettingsTabTheme}">
                 <StackPanel Spacing="20">
                     <!-- Game Settings -->
                     <StackPanel Spacing="16" IsVisible="{Binding IsSettingsTabGame}">
@@ -345,6 +345,7 @@
                       </StackPanel>
                   </StackPanel>
               </ScrollViewer>
+              <views:ThemeSettingsView Grid.Column="1" IsVisible="{Binding IsSettingsTabTheme}" Padding="24,20,28,20"/>
         </Grid>
 
         <!-- MODAL: Restart Confirmation (Theme Application) -->

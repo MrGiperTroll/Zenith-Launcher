@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace CustomMcLauncher.ViewModels;
+namespace CustomMcLauncher.Common.Utils;
 
 /// <summary>
 /// Strips raw HTML tags and image markdown from Modrinth body text

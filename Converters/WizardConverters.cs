@@ -5,7 +5,7 @@ using Avalonia.Data.Converters;
 using Avalonia.Media;
 using CustomMcLauncher.Services;
 
-namespace CustomMcLauncher.ViewModels;
+namespace CustomMcLauncher.Converters;
 
 public class StepToBrushConverter : IValueConverter
 {

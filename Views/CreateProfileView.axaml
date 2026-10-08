@@ -1,6 +1,8 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:CustomMcLauncher.ViewModels"
+        xmlns:converters="using:CustomMcLauncher.Converters"
+        xmlns:controls="using:CustomMcLauncher.Controls"
              xmlns:views="using:CustomMcLauncher.Views"
              xmlns:services="using:CustomMcLauncher.Services"
              xmlns:conv="using:Avalonia.Data.Converters"
@@ -117,10 +119,10 @@
                     <Button Classes="stepLinkBtn" Command="{Binding GoToStepCommand}" CommandParameter="1"
                             HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
                         <Grid ColumnDefinitions="Auto,*" Margin="0,0,0,4">
-                            <Border Width="28" Height="28" CornerRadius="7" VerticalAlignment="Top" Background="{Binding IsStep1, Converter={x:Static vm:StepToBrushConverter.Instance}}" BorderBrush="{Binding IsStep1, Converter={x:Static vm:StepToBrushConverter.Instance}}" BorderThickness="1">
-                                <TextBlock Text="1" FontSize="12" FontWeight="Bold" Foreground="{Binding IsStep1, Converter={x:Static vm:StepToForegroundConverter.Instance}}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <Border Width="28" Height="28" CornerRadius="7" VerticalAlignment="Top" Background="{Binding IsStep1, Converter={x:Static converters:StepToBrushConverter.Instance}}" BorderBrush="{Binding IsStep1, Converter={x:Static converters:StepToBrushConverter.Instance}}" BorderThickness="1">
+                                <TextBlock Text="1" FontSize="12" FontWeight="Bold" Foreground="{Binding IsStep1, Converter={x:Static converters:StepToForegroundConverter.Instance}}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
-                            <TextBlock Grid.Column="1" Text="{l10n:Tr Key=cp_step_info}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsStep1, Converter={x:Static vm:StepToTextBrushConverter.Instance}}"/>
+                            <TextBlock Grid.Column="1" Text="{l10n:Tr Key=cp_step_info}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsStep1, Converter={x:Static converters:StepToTextBrushConverter.Instance}}"/>
                         </Grid>
                     </Button>
                     <Border Height="18" Width="1" Background="{StaticResource BorderStrongBrush}" Margin="14,0,0,4" HorizontalAlignment="Left"/>
@@ -128,10 +130,10 @@
                     <Button Classes="stepLinkBtn" Command="{Binding GoToStepCommand}" CommandParameter="2"
                             HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
                         <Grid ColumnDefinitions="Auto,*">
-                            <Border Width="28" Height="28" CornerRadius="7" VerticalAlignment="Top" Background="{Binding IsStep2, Converter={x:Static vm:StepToBrushConverter.Instance}}" BorderBrush="{Binding IsStep2, Converter={x:Static vm:StepToBrushConverter.Instance}}" BorderThickness="1">
-                                <TextBlock Text="2" FontSize="12" FontWeight="Bold" Foreground="{Binding IsStep2, Converter={x:Static vm:StepToForegroundConverter.Instance}}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <Border Width="28" Height="28" CornerRadius="7" VerticalAlignment="Top" Background="{Binding IsStep2, Converter={x:Static converters:StepToBrushConverter.Instance}}" BorderBrush="{Binding IsStep2, Converter={x:Static converters:StepToBrushConverter.Instance}}" BorderThickness="1">
+                                <TextBlock Text="2" FontSize="12" FontWeight="Bold" Foreground="{Binding IsStep2, Converter={x:Static converters:StepToForegroundConverter.Instance}}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
-                            <TextBlock Grid.Column="1" Text="{l10n:Tr Key=cp_step_version}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsStep2, Converter={x:Static vm:StepToTextBrushConverter.Instance}}"/>
+                            <TextBlock Grid.Column="1" Text="{l10n:Tr Key=cp_step_version}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsStep2, Converter={x:Static converters:StepToTextBrushConverter.Instance}}"/>
                         </Grid>
                     </Button>
                 </StackPanel>
@@ -164,7 +166,7 @@
                                 <StackPanel Spacing="5">
                                     <TextBlock Text="{l10n:Tr Key=cp_name_label}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
                                     <Border BorderThickness="1" CornerRadius="10" Background="Transparent" 
-                                            BorderBrush="{Binding CanNextStep1, Converter={x:Static vm:BoolToErrorBrushConverter.InstanceInverted}}">
+                                            BorderBrush="{Binding CanNextStep1, Converter={x:Static converters:BoolToErrorBrushConverter.InstanceInverted}}">
                                         <TextBox Classes="darkInput" Text="{Binding ProfileName}" PlaceholderText="{l10n:Tr Key=ph_profile_name}" FontSize="13" Padding="12,10" BorderThickness="0"/>
                                     </Border>
                                     <Grid ColumnDefinitions="*,Auto">
@@ -177,7 +179,7 @@
                                 </StackPanel>
 
                                 <!-- Unified RAM Allocation Card -->
-                                <views:RamCardControl Title="{l10n:Tr Key=set_ram}"
+                                <controls:RamCardControl Title="{l10n:Tr Key=set_ram}"
                                                       Subtitle="{l10n:Tr Key=set_memory_hint}"
                                                       Value="{Binding SelectedRamMb}"
                                                       Maximum="{Binding MaxRamMb}"
@@ -233,13 +235,13 @@
                                                 <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                                     <Panel Width="16" Height="16" VerticalAlignment="Center">
                                                         <!-- Official logo; vector fallback underneath -->
-                                                        <Path Data="{Binding Converter={x:Static vm:LoaderLogoGeometryConverter.Instance}}" Fill="{Binding Converter={x:Static vm:LoaderLogoBrushConverter.Instance}}" Stretch="Uniform" Width="16" Height="16"
-                                                              IsVisible="{Binding Converter={x:Static vm:LoaderOfficialIconMissingConverter.Instance}}"/>
-                                                        <Path Data="{Binding Converter={x:Static vm:LoaderLogoGeometryConverter.Instance}, ConverterParameter=2}" Fill="{Binding Converter={x:Static vm:LoaderLogoBrushConverter.Instance}, ConverterParameter=2}" Stretch="Uniform" Width="16" Height="16"
-                                                              IsVisible="{Binding Converter={x:Static vm:LoaderOfficialIconMissingConverter.Instance}}"/>
-                                                        <Path Data="{Binding Converter={x:Static vm:LoaderLogoGeometryConverter.Instance}, ConverterParameter=3}" Fill="{Binding Converter={x:Static vm:LoaderLogoBrushConverter.Instance}, ConverterParameter=3}" Stretch="Uniform" Width="16" Height="16"
-                                                              IsVisible="{Binding Converter={x:Static vm:LoaderOfficialIconMissingConverter.Instance}}"/>
-                                                        <Image Source="{Binding Converter={x:Static vm:LoaderOfficialIconConverter.Instance}}" Width="16" Height="16"/>
+                                                        <Path Data="{Binding Converter={x:Static converters:LoaderLogoGeometryConverter.Instance}}" Fill="{Binding Converter={x:Static converters:LoaderLogoBrushConverter.Instance}}" Stretch="Uniform" Width="16" Height="16"
+                                                              IsVisible="{Binding Converter={x:Static converters:LoaderOfficialIconMissingConverter.Instance}}"/>
+                                                        <Path Data="{Binding Converter={x:Static converters:LoaderLogoGeometryConverter.Instance}, ConverterParameter=2}" Fill="{Binding Converter={x:Static converters:LoaderLogoBrushConverter.Instance}, ConverterParameter=2}" Stretch="Uniform" Width="16" Height="16"
+                                                              IsVisible="{Binding Converter={x:Static converters:LoaderOfficialIconMissingConverter.Instance}}"/>
+                                                        <Path Data="{Binding Converter={x:Static converters:LoaderLogoGeometryConverter.Instance}, ConverterParameter=3}" Fill="{Binding Converter={x:Static converters:LoaderLogoBrushConverter.Instance}, ConverterParameter=3}" Stretch="Uniform" Width="16" Height="16"
+                                                              IsVisible="{Binding Converter={x:Static converters:LoaderOfficialIconMissingConverter.Instance}}"/>
+                                                        <Image Source="{Binding Converter={x:Static converters:LoaderOfficialIconConverter.Instance}}" Width="16" Height="16"/>
                                                     </Panel>
                                                     <TextBlock Text="{Binding}" FontSize="11" VerticalAlignment="Center"/>
                                                 </StackPanel>
@@ -290,19 +292,19 @@
                                                                 <Button Content="{Binding}" Margin="3" Padding="12,8" FontSize="12" MinHeight="36" CornerRadius="6" Cursor="Hand"
                                                                         Command="{Binding $parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectVersionCommand}" CommandParameter="{Binding}">
                                                                     <Button.Background>
-                                                                        <MultiBinding Converter="{x:Static vm:EqualityToBrushConverter.Instance}">
+                                                                        <MultiBinding Converter="{x:Static converters:EqualityToBrushConverter.Instance}">
                                                                             <Binding Path="$parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectedVersion"/>
                                                                             <Binding Path="."/>
                                                                         </MultiBinding>
                                                                     </Button.Background>
                                                                     <Button.Foreground>
-                                                                        <MultiBinding Converter="{x:Static vm:EqualityToForegroundConverter.Instance}">
+                                                                        <MultiBinding Converter="{x:Static converters:EqualityToForegroundConverter.Instance}">
                                                                             <Binding Path="$parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectedVersion"/>
                                                                             <Binding Path="."/>
                                                                         </MultiBinding>
                                                                     </Button.Foreground>
                                                                     <Button.BorderBrush>
-                                                                        <MultiBinding Converter="{x:Static vm:EqualityToBrushConverter.Instance}">
+                                                                        <MultiBinding Converter="{x:Static converters:EqualityToBrushConverter.Instance}">
                                                                             <Binding Path="$parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectedVersion"/>
                                                                             <Binding Path="."/>
                                                                         </MultiBinding>
@@ -331,19 +333,19 @@
                                                         Padding="14,9" FontSize="12" MinHeight="38" CornerRadius="6" Cursor="Hand"
                                                         Command="{Binding $parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectVersionCommand}" CommandParameter="{Binding Name}">
                                                     <Button.Background>
-                                                        <MultiBinding Converter="{x:Static vm:EqualityToBrushConverter.Instance}">
+                                                        <MultiBinding Converter="{x:Static converters:EqualityToBrushConverter.Instance}">
                                                             <Binding Path="$parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectedVersion"/>
                                                             <Binding Path="Name"/>
                                                         </MultiBinding>
                                                     </Button.Background>
                                                     <Button.Foreground>
-                                                        <MultiBinding Converter="{x:Static vm:EqualityToForegroundConverter.Instance}">
+                                                        <MultiBinding Converter="{x:Static converters:EqualityToForegroundConverter.Instance}">
                                                             <Binding Path="$parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectedVersion"/>
                                                             <Binding Path="Name"/>
                                                         </MultiBinding>
                                                     </Button.Foreground>
                                                     <Button.BorderBrush>
-                                                        <MultiBinding Converter="{x:Static vm:EqualityToBrushConverter.Instance}">
+                                                        <MultiBinding Converter="{x:Static converters:EqualityToBrushConverter.Instance}">
                                                             <Binding Path="$parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectedVersion"/>
                                                             <Binding Path="Name"/>
                                                         </MultiBinding>

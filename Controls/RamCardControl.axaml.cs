@@ -5,7 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 
-namespace CustomMcLauncher.Views;
+namespace CustomMcLauncher.Controls;
 
 public partial class RamCardControl : UserControl
 {

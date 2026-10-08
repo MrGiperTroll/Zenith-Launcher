@@ -14,6 +14,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CustomMcLauncher.Models;
 using CustomMcLauncher.Services;
+using CustomMcLauncher.ViewModels.Common;
 
 namespace CustomMcLauncher.ViewModels;
 

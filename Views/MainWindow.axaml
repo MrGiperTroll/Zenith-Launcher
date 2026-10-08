@@ -1,7 +1,8 @@
-<Window xmlns="https://github.com/avaloniaui"
+﻿<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:CustomMcLauncher.Controls"
         xmlns:vm="using:CustomMcLauncher.ViewModels"
+        xmlns:converters="using:CustomMcLauncher.Converters"
         xmlns:models="using:CustomMcLauncher.Models"
         xmlns:conv="using:Avalonia.Data.Converters"
         xmlns:views="using:CustomMcLauncher.Views"
@@ -20,7 +21,7 @@
 <Window.Resources>
         <Geometry x:Key="ZenithLogoGeometry">M558.344 400.366C571.623 396.064 583.658 391.147 596.643 386.115L637.625 370.625C666.622 359.837 696.309 350.113 724.897 338.366C711.898 350.999 699.747 364.104 687.038 376.719L556.158 505.636C528.781 532.184 499.524 557.819 471.784 584.055L472.073 585.667C476.856 583.156 484.671 580.042 489.84 577.808L518.249 565.513C554.358 550.211 585.042 537.696 622.348 525.143C627.132 534.236 632.665 542.719 638.059 551.443C646.7 565.735 655.599 579.868 664.753 593.837C684.178 624.592 703.87 655.179 723.825 685.593C671.712 673.401 619.504 661.62 567.205 650.251C523.932 640.119 480.502 630.67 436.931 621.909L303.856 685C318.881 668.775 337.163 651.35 352.875 635.346C390.704 596.217 429.114 557.655 468.092 519.67L513.838 474.463C528.25 459.985 544.85 442.908 560.302 429.712C517.215 444.062 474.236 458.735 431.37 473.73C410.21 481.268 388.993 488.646 367.72 495.861C348.57 502.154 326.751 508.351 307.223 514.086C305.97 514.433 305.093 514.578 303.819 514.805L303.707 514.31L306.212 512.571L391.909 457.609C402.704 450.675 415.614 441.623 426.327 435.161C417.499 427.886 408.138 420.933 399.024 413.993C375.58 396.139 352.079 378.374 328.775 360.334C319.433 353.102 309.717 346.407 300.549 338.932C348.224 351.261 396.066 362.933 444.063 373.946L526.132 392.828C536.8 395.328 547.762 397.627 558.344 400.366Z</Geometry>
 
-        <views:BoolToBorderBrushConverter x:Key="BoolToBorderBrushConverter"/>
+        <converters:BoolToBorderBrushConverter x:Key="BoolToBorderBrushConverter"/>
     </Window.Resources>
 
     <Window.Styles>
@@ -696,7 +697,7 @@
                                 <StackPanel Spacing="4">
                                     <TextBlock Text="{l10n:Tr Key=clone_new_name}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
                                     <Border BorderThickness="1" CornerRadius="10" Background="{StaticResource InputBrush}"
-                                            BorderBrush="{Binding IsNameDuplicate, Converter={x:Static vm:BoolToErrorBrushConverter.Instance}}">
+                                            BorderBrush="{Binding IsNameDuplicate, Converter={x:Static converters:BoolToErrorBrushConverter.Instance}}">
                                         <TextBox Classes="darkInput" Text="{Binding ProfileName}" PlaceholderText="{l10n:Tr Key=clone_ph}" BorderThickness="0"/>
                                     </Border>
                                     <TextBlock Text="{l10n:Tr Key=cp_duplicate}" FontSize="11" Foreground="{StaticResource DangerBrush}" IsVisible="{Binding IsNameDuplicate}" Margin="0,2,0,0"/>
@@ -748,28 +749,28 @@
                                 <ComboBox MinWidth="112" Margin="0,0,8,8" ItemsSource="{Binding ModpacksBrowser.AvailableVersions}" SelectedItem="{Binding ModpacksBrowser.SelectedVersion}" FontSize="11" VerticalAlignment="Center">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
-                                            <TextBlock Text="{Binding Converter={x:Static vm:BlankTextConverter.Instance}, ConverterParameter=mp_all_versions}" FontSize="11"/>
+                                            <TextBlock Text="{Binding Converter={x:Static converters:BlankTextConverter.Instance}, ConverterParameter=mp_all_versions}" FontSize="11"/>
                                         </DataTemplate>
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
                                 <ComboBox MinWidth="118" Margin="0,0,8,8" ItemsSource="{Binding ModpacksBrowser.AvailableCategories}" SelectedItem="{Binding ModpacksBrowser.SelectedCategory}" FontSize="11" VerticalAlignment="Center">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
-                                            <TextBlock Text="{Binding Converter={x:Static vm:CategoryDisplayConverter.Instance}}" FontSize="11"/>
+                                            <TextBlock Text="{Binding Converter={x:Static converters:CategoryDisplayConverter.Instance}}" FontSize="11"/>
                                         </DataTemplate>
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
                                 <ComboBox MinWidth="108" Margin="0,0,8,8" ItemsSource="{Binding ModpacksBrowser.AvailableLoaders}" SelectedItem="{Binding ModpacksBrowser.SelectedLoader}" FontSize="11" VerticalAlignment="Center">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
-                                            <TextBlock Text="{Binding Converter={x:Static vm:LoaderDisplayConverter.Instance}}" FontSize="11"/>
+                                            <TextBlock Text="{Binding Converter={x:Static converters:LoaderDisplayConverter.Instance}}" FontSize="11"/>
                                         </DataTemplate>
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
                                 <ComboBox MinWidth="132" Margin="0,0,8,8" ItemsSource="{Binding ModpacksBrowser.AvailableSortOptions}" SelectedItem="{Binding ModpacksBrowser.SelectedSort}" FontSize="11" VerticalAlignment="Center">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
-                                            <TextBlock Text="{Binding Converter={x:Static vm:SortDisplayConverter.Instance}}" FontSize="11"/>
+                                            <TextBlock Text="{Binding Converter={x:Static converters:SortDisplayConverter.Instance}}" FontSize="11"/>
                                         </DataTemplate>
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
@@ -973,7 +974,7 @@
             <Border Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="380" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="14">
                     <TextBlock Text="{l10n:Tr Key=dialog_delete_title}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource DangerBrush}"/>
-                    <TextBlock Text="{Binding PendingDeleteInstance.Name, Converter={x:Static vm:L10nFormatConverter.Instance}, ConverterParameter=dialog_delete_confirm}" TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" LineHeight="17"/>
+                    <TextBlock Text="{Binding PendingDeleteInstance.Name, Converter={x:Static converters:L10nFormatConverter.Instance}, ConverterParameter=dialog_delete_confirm}" TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" LineHeight="17"/>
                     <Grid ColumnDefinitions="*,*" Margin="0,4,0,0">
                         <Button Grid.Column="0" Content="{l10n:Tr Key=cancel}" Command="{Binding CancelDeleteProfileCommand}" Classes="subBtn" HorizontalContentAlignment="Center" Margin="0,0,6,0"/>
                         <Button Grid.Column="1" Classes="dangerBtn" Content="{l10n:Tr Key=delete}" Command="{Binding ConfirmDeleteProfileCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="6,0,0,0" Background="{StaticResource DangerBorderBrush}"/>
@@ -1062,7 +1063,7 @@
                         </Border>
                         <TextBlock Text="{Binding LauncherName}" FontSize="22" FontWeight="Bold" HorizontalAlignment="Center"
                                    Foreground="{StaticResource TextPrimaryBrush}" Margin="0,10,0,0"/>
-                        <TextBlock Text="{Binding VersionLabel, Converter={x:Static vm:L10nFormatConverter.Instance}, ConverterParameter=about_version}" FontSize="12" HorizontalAlignment="Center"
+                        <TextBlock Text="{Binding VersionLabel, Converter={x:Static converters:L10nFormatConverter.Instance}, ConverterParameter=about_version}" FontSize="12" HorizontalAlignment="Center"
                                    Foreground="{StaticResource TextMutedBrush}"/>
                     </StackPanel>
 
@@ -1207,7 +1208,7 @@
                     <TextBlock Grid.Row="2" Text="{Binding JavaDownloadStatus}" FontSize="11"
                                Foreground="{StaticResource WarningBrush}" TextWrapping="Wrap"
                                VerticalAlignment="Center" Margin="2,4,2,8"
-                               IsVisible="{Binding JavaDownloadStatus, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}"/>
+                               IsVisible="{Binding JavaDownloadStatus, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
 
                     <!-- Footer -->
                     <Grid Grid.Row="3" ColumnDefinitions="*,96" Margin="0,6,0,0">

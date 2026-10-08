@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using CustomMcLauncher.Services;
+using CustomMcLauncher.UI.Animations;
 
 namespace CustomMcLauncher.Views;
 

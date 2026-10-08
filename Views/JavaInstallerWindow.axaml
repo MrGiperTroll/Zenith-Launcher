@@ -1,8 +1,9 @@
-<Window xmlns="https://github.com/avaloniaui"
+﻿<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="CustomMcLauncher.Views.JavaInstallerWindow"
         xmlns:l10n="using:CustomMcLauncher.Extensions"
         xmlns:vm="using:CustomMcLauncher.ViewModels"
+        xmlns:converters="using:CustomMcLauncher.Converters"
         x:DataType="vm:MainWindowViewModel"
         Title="{l10n:Tr Key=java_installer_title}"
         Width="400" Height="296"
@@ -113,7 +114,7 @@
         <TextBlock Grid.Row="3" Text="{Binding JavaDownloadStatus}" FontSize="11"
                    Foreground="{StaticResource WarningBrush}" TextWrapping="Wrap"
                    VerticalAlignment="Bottom" Margin="2,6,2,6" MinHeight="20"
-                   IsVisible="{Binding JavaDownloadStatus, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}"/>
+                   IsVisible="{Binding JavaDownloadStatus, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
 
         <!-- Footer -->
         <Grid Grid.Row="4" ColumnDefinitions="*,96" Margin="0,6,0,0">

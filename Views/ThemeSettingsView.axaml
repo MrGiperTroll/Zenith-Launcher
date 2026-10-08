@@ -360,6 +360,32 @@
                                             <Border Width="18" Height="18" CornerRadius="4" Background="{Binding PanelHex, Converter={x:Static vm:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
                                         </Button>
                                     </Grid>
+                                    <!-- Inputs / Controls -->
+                                    <Grid ColumnDefinitions="160,*,Auto" VerticalAlignment="Center">
+                                        <TextBlock Text="Inputs / Controls" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                        <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding FieldHex, Mode=TwoWay}" PlaceholderText="#121724"/>
+                                        <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="Choose Color">
+                                            <Button.Flyout>
+                                                <Flyout Placement="BottomEdgeAlignedRight">
+                                                    <ColorView Color="{Binding FieldHex, Mode=TwoWay, Converter={x:Static vm:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
+                                                </Flyout>
+                                            </Button.Flyout>
+                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding FieldHex, Converter={x:Static vm:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
+                                        </Button>
+                                    </Grid>
+                                    <!-- Hover / Active Tint -->
+                                    <Grid ColumnDefinitions="160,*,Auto" VerticalAlignment="Center">
+                                        <TextBlock Text="Hover / Active Tint" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                        <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding HoverHex, Mode=TwoWay}" PlaceholderText="#1B2338"/>
+                                        <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="Choose Color">
+                                            <Button.Flyout>
+                                                <Flyout Placement="BottomEdgeAlignedRight">
+                                                    <ColorView Color="{Binding HoverHex, Mode=TwoWay, Converter={x:Static vm:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
+                                                </Flyout>
+                                            </Button.Flyout>
+                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding HoverHex, Converter={x:Static vm:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
+                                        </Button>
+                                    </Grid>
                                     <!-- Primary Text -->
                                     <Grid ColumnDefinitions="160,*,Auto" VerticalAlignment="Center">
                                         <TextBlock Text="Primary Text" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>

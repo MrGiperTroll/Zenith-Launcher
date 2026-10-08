@@ -12,19 +12,14 @@
         Width="1280" Height="780"
         MinWidth="1080" MinHeight="680"
         WindowStartupLocation="CenterScreen"
-        Background="#080A0F"
+        Background="{DynamicResource BgBrush}"
         TransparencyLevelHint="None"
-        TransparencyBackgroundFallback="#080A0F"
+        TransparencyBackgroundFallback="{DynamicResource BgBrush}"
         Opacity="1">
 
 <Window.Resources>
         <Geometry x:Key="ZenithLogoGeometry">M558.344 400.366C571.623 396.064 583.658 391.147 596.643 386.115L637.625 370.625C666.622 359.837 696.309 350.113 724.897 338.366C711.898 350.999 699.747 364.104 687.038 376.719L556.158 505.636C528.781 532.184 499.524 557.819 471.784 584.055L472.073 585.667C476.856 583.156 484.671 580.042 489.84 577.808L518.249 565.513C554.358 550.211 585.042 537.696 622.348 525.143C627.132 534.236 632.665 542.719 638.059 551.443C646.7 565.735 655.599 579.868 664.753 593.837C684.178 624.592 703.87 655.179 723.825 685.593C671.712 673.401 619.504 661.62 567.205 650.251C523.932 640.119 480.502 630.67 436.931 621.909L303.856 685C318.881 668.775 337.163 651.35 352.875 635.346C390.704 596.217 429.114 557.655 468.092 519.67L513.838 474.463C528.25 459.985 544.85 442.908 560.302 429.712C517.215 444.062 474.236 458.735 431.37 473.73C410.21 481.268 388.993 488.646 367.72 495.861C348.57 502.154 326.751 508.351 307.223 514.086C305.97 514.433 305.093 514.578 303.819 514.805L303.707 514.31L306.212 512.571L391.909 457.609C402.704 450.675 415.614 441.623 426.327 435.161C417.499 427.886 408.138 420.933 399.024 413.993C375.58 396.139 352.079 378.374 328.775 360.334C319.433 353.102 309.717 346.407 300.549 338.932C348.224 351.261 396.066 362.933 444.063 373.946L526.132 392.828C536.8 395.328 547.762 397.627 558.344 400.366Z</Geometry>
 
-        <LinearGradientBrush x:Key="SubtleEmeraldBrush" StartPoint="0%,0%" EndPoint="100%,100%">
-            <GradientStop Color="{StaticResource AccentGradientStart}" Offset="0.0"/>
-            <GradientStop Color="{StaticResource AccentGradientMid}" Offset="0.45"/>
-            <GradientStop Color="{StaticResource AccentGradientEnd}" Offset="1.0"/>
-        </LinearGradientBrush>
         <views:BoolToBorderBrushConverter x:Key="BoolToBorderBrushConverter"/>
     </Window.Resources>
 
@@ -97,8 +92,11 @@
             </Setter>
         </Style>
         <Style Selector="Button.railBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource TabActiveBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource TabActiveBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+        <Style Selector="Button.railBtn:pointerover PathIcon">
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
         </Style>
         <Style Selector="Border.expanded Button.railBtn">
             <Setter Property="Width" Value="170"/>
@@ -106,17 +104,20 @@
             <Setter Property="Padding" Value="0"/>
             <Setter Property="HorizontalAlignment" Value="Center"/>
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
         </Style>
         <Style Selector="Border.expanded Button.railBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource TabActiveBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource TabActiveBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+        <Style Selector="Border.expanded Button.railBtn:pointerover PathIcon">
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
         </Style>
 
         <!-- Cards -->
-<Style Selector="Button.cardBtn">
-            <Setter Property="Background" Value="{StaticResource InputFocusBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderInputBrush}"/>
+        <Style Selector="Button.cardBtn">
+            <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderCardSoftBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="14"/>
             <Setter Property="Padding" Value="14"/>
@@ -129,13 +130,13 @@
             </Setter>
         </Style>
         <Style Selector="Button.cardBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource PanelBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource PanelBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
         </Style>
 
         <!-- Instance card border (no Button wrapper — Border handles click + drag) -->
         <Style Selector="Border.instanceCard">
-            <Setter Property="Background" Value="{StaticResource InputFocusBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
             <Setter Property="Transitions">
                 <Transitions>
                     <BrushTransition Property="Background" Duration="0:0:0.15"/>
@@ -143,7 +144,7 @@
             </Setter>
         </Style>
         <Style Selector="Border.instanceCard:pointerover">
-            <Setter Property="Background" Value="{StaticResource PanelBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource PanelBrush}"/>
         </Style>
 
         <!-- Primary Buttons -->
@@ -322,7 +323,7 @@
         <!-- Navigation Buttons (<, >) -->
         <Style Selector="Button.navBtn">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Width" Value="28"/>
             <Setter Property="Height" Value="28"/>
@@ -333,8 +334,11 @@
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
         <Style Selector="Button.navBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource CardBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+        <Style Selector="Button.navBtn:pointerover PathIcon">
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
         </Style>
         <Style Selector="Button.navBtn:disabled">
             <Setter Property="Opacity" Value="0.3"/>
@@ -641,28 +645,28 @@
 
                                     <Button Classes="subBtn" Command="{Binding EditInstanceCommand}" CommandParameter="{Binding SelectedInstance}" Height="38">
                                         <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-                                            <PathIcon Data="M3 17.25V21H6.75L17.81 9.94L14.06 6.19L3 17.25ZM20.71 7.04C21.1 6.65 21.1 6.02 20.71 5.63L18.37 3.29C17.98 2.9 17.35 2.9 16.96 3.29L15.13 5.12L18.88 8.87L20.71 7.04Z" Width="12" Height="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <PathIcon Data="M3 17.25V21H6.75L17.81 9.94L14.06 6.19L3 17.25ZM20.71 7.04C21.1 6.65 21.1 6.02 20.71 5.63L18.37 3.29C17.98 2.9 17.35 2.9 16.96 3.29L15.13 5.12L18.88 8.87L20.71 7.04Z" Width="12" Height="12"/>
                                             <TextBlock Text="{l10n:Tr Key=btn_edit_instance}" FontSize="12" FontWeight="SemiBold"/>
                                         </StackPanel>
                                     </Button>
 
                                     <Button Classes="subBtn" Command="{Binding OpenProfileFolderCommand}" CommandParameter="{Binding SelectedInstance}" Height="38">
                                         <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-                                            <PathIcon Data="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="13" Height="13" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <PathIcon Data="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="13" Height="13"/>
                                             <TextBlock Text="{l10n:Tr Key=btn_open_folder}" FontSize="12" FontWeight="SemiBold"/>
                                         </StackPanel>
                                     </Button>
 
                                     <Button Classes="subBtn" Command="{Binding OpenCopyDialogCommand}" CommandParameter="{Binding SelectedInstance}" Height="38">
                                         <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-                                            <PathIcon Data="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" Width="12" Height="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <PathIcon Data="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" Width="12" Height="12"/>
                                             <TextBlock Text="{l10n:Tr Key=btn_clone_profile}" FontSize="12" FontWeight="SemiBold"/>
                                         </StackPanel>
                                     </Button>
 
 <Button Classes="subBtn" Command="{Binding CreateDesktopShortcutCommand}" CommandParameter="{Binding SelectedInstance}" Height="38">
                                         <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-                                            <PathIcon Data="M3 4H15V6H5V18H17V11H19V19C19 19.55 18.55 20 18 20H4C3.45 20 3 19.55 3 19V5C3 4.45 3.45 4 3 4ZM14 6V4H21V11H19V7.41L10.17 16.24L8.76 14.83L17.59 6H14Z" Width="13" Height="13" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,-1,0,0"/>
+                                            <PathIcon Data="M3 4H15V6H5V18H17V11H19V19C19 19.55 18.55 20 18 20H4C3.45 20 3 19.55 3 19V5C3 4.45 3.45 4 3 4ZM14 6V4H21V11H19V7.41L10.17 16.24L8.76 14.83L17.59 6H14Z" Width="13" Height="13" Margin="0,-1,0,0"/>
                                             <TextBlock Text="{l10n:Tr Key=btn_shortcut}" FontSize="12" FontWeight="SemiBold"/>
                                         </StackPanel>
                                     </Button>

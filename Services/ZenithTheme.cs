@@ -21,41 +21,87 @@ public static class ZenithTheme
         var hover = Lighten(accent, 0.16f);
         var pressed = Darken(accent, 0.2f);
 
-        
-        if (TryParse(cfg.BgColor)) r["BgBrush"] = new SolidColorBrush(Color.Parse(cfg.BgColor));
-        if (TryParse(cfg.SurfaceColor)) r["SurfaceBrush"] = new SolidColorBrush(Color.Parse(cfg.SurfaceColor));
-        if (TryParse(cfg.PanelColor)) r["PanelBrush"] = new SolidColorBrush(Color.Parse(cfg.PanelColor));
-        if (TryParse(cfg.SidebarBgColor)) r["SidebarBgBrush"] = new SolidColorBrush(Color.Parse(cfg.SidebarBgColor));
-        if (TryParse(cfg.CardColor)) r["CardBrush"] = new SolidColorBrush(Color.Parse(cfg.CardColor));
-        if (TryParse(cfg.TextPrimaryColor)) r["TextPrimaryBrush"] = new SolidColorBrush(Color.Parse(cfg.TextPrimaryColor));
-        if (TryParse(cfg.TextSecondaryColor)) r["TextSecondaryBrush"] = new SolidColorBrush(Color.Parse(cfg.TextSecondaryColor));
-        if (TryParse(cfg.BorderDarkColor)) r["BorderDarkBrush"] = new SolidColorBrush(Color.Parse(cfg.BorderDarkColor));
-        if (TryParse(cfg.PanelColor)) {
-            // Need a transparent version of panel brush for sidebar
-            var pc = Color.Parse(cfg.PanelColor);
-            r["PanelBrushTransparent"] = new SolidColorBrush(Color.FromArgb(0, pc.R, pc.G, pc.B));
-        }
+        var bg = TryParse(cfg.BgColor) ? Color.Parse(cfg.BgColor) : Color.Parse("#080A0F");
+        var sidebarBg = TryParse(cfg.SidebarBgColor) ? Color.Parse(cfg.SidebarBgColor) : Color.Parse("#06080D");
+        var surface = TryParse(cfg.SurfaceColor) ? Color.Parse(cfg.SurfaceColor) : Color.Parse("#0A0D15");
+        var card = TryParse(cfg.CardColor) ? Color.Parse(cfg.CardColor) : Color.Parse("#0D111A");
+        var panel = TryParse(cfg.PanelColor) ? Color.Parse(cfg.PanelColor) : Color.Parse("#151C2C");
+        var borderDark = TryParse(cfg.BorderDarkColor) ? Color.Parse(cfg.BorderDarkColor) : Color.Parse("#121622");
+        var field = TryParse(cfg.FieldColor) ? Color.Parse(cfg.FieldColor) : Blend(panel, card, 0.5f);
+        var hoverTint = TryParse(cfg.HoverColor) ? Color.Parse(cfg.HoverColor) : Blend(accent, card, 0.22f);
+        var textPrimary = TryParse(cfg.TextPrimaryColor) ? Color.Parse(cfg.TextPrimaryColor) : Colors.White;
+        var textSecondary = TryParse(cfg.TextSecondaryColor) ? Color.Parse(cfg.TextSecondaryColor) : Color.Parse("#C5CBD6");
 
-        r["AccentBrush"] = new SolidColorBrush(accent);
-        r["AccentBrushHover"] = new SolidColorBrush(hover);
-        r["AccentPressed"] = new SolidColorBrush(pressed);
-        r["OnAccentBrush"] = new SolidColorBrush(Colors.White);
-        r["AccentSoftBrush"] = new SolidColorBrush(Blend(accent, Color.Parse("#080A0F"), 0.16f));
-        r["AccentDimBrush"] = new SolidColorBrush(Blend(accent, Color.Parse("#080A0F"), 0.10f));
-        r["AccentBorderBrush"] = new SolidColorBrush(Blend(accent, Color.Parse("#1B2236"), 0.5f));
-        r["AccentTranslucentBrush"] = new SolidColorBrush(Color.FromArgb(0x22, accent.R, accent.G, accent.B));
+        // Surfaces
+        SetBrushColor(r, "BgBrush", bg);
+        SetBrushColor(r, "SidebarBgBrush", sidebarBg);
+        SetBrushColor(r, "SurfaceBrush", surface);
+        SetBrushColor(r, "ContentSurfaceBrush", Blend(surface, bg, 0.4f));
+        SetBrushColor(r, "CardBrush", card);
+        SetBrushColor(r, "CardAltBrush", Blend(card, surface, 0.45f));
+        SetBrushColor(r, "PanelBrush", panel);
+        SetBrushColor(r, "PanelBrushTransparent", Color.FromArgb(0, panel.R, panel.G, panel.B));
+        SetBrushColor(r, "FieldBrush", field);
+        SetBrushColor(r, "InputFocusBrush", Blend(field, bg, 0.35f));
+        SetBrushColor(r, "ChipBrush", Blend(card, panel, 0.5f));
+        SetBrushColor(r, "IconChipBrush", Blend(card, bg, 0.5f));
+        SetBrushColor(r, "LogSidebarBrush", Blend(bg, sidebarBg, 0.5f));
+
+        // Hovers and Tabs
+        SetBrushColor(r, "RowHoverBrush", hoverTint);
+        SetBrushColor(r, "RowHoverBrushTransparent", Color.FromArgb(0, hoverTint.R, hoverTint.G, hoverTint.B));
+        var tabActive = Blend(accent, sidebarBg, 0.22f);
+        SetBrushColor(r, "TabActiveBrush", tabActive);
+        SetBrushColor(r, "TabActiveBrushTransparent", Color.FromArgb(0, tabActive.R, tabActive.G, tabActive.B));
+        SetBrushColor(r, "TabHoverBrush", Blend(accent, sidebarBg, 0.14f));
+        SetBrushColor(r, "TabPressedBrush", Blend(pressed, sidebarBg, 0.28f));
+
+        // Borders
+        SetBrushColor(r, "BorderDarkBrush", borderDark);
+        SetBrushColor(r, "BorderStrongBrush", Lighten(borderDark, 0.08f));
+        SetBrushColor(r, "BorderCardSoftBrush", Lighten(borderDark, 0.05f));
+        SetBrushColor(r, "BorderInputBrush", Lighten(borderDark, 0.07f));
+        SetBrushColor(r, "BorderHoverBrush", Blend(accent, borderDark, 0.55f));
+        SetBrushColor(r, "BorderEditorBrush", Lighten(borderDark, 0.09f));
+        SetBrushColor(r, "BorderIconBrush", Lighten(borderDark, 0.06f));
+        SetBrushColor(r, "BorderSoftBrush", Lighten(borderDark, 0.04f));
+
+        // Accents
+        SetBrushColor(r, "AccentBrush", accent);
+        SetBrushColor(r, "AccentBrushHover", hover);
+        SetBrushColor(r, "AccentPressed", pressed);
+        SetBrushColor(r, "OnAccentBrush", Colors.White);
+        SetBrushColor(r, "AccentSoftBrush", Blend(accent, bg, 0.22f));
+        SetBrushColor(r, "AccentDimBrush", Blend(accent, bg, 0.12f));
+        SetBrushColor(r, "AccentBorderBrush", Blend(accent, borderDark, 0.55f));
+        SetBrushColor(r, "AccentTranslucentBrush", Color.FromArgb(0x22, accent.R, accent.G, accent.B));
+
+        // Text
+        SetBrushColor(r, "TextPrimaryBrush", textPrimary);
+        SetBrushColor(r, "TextSecondaryBrush", textSecondary);
+        SetBrushColor(r, "TextSoftBrush", Blend(textPrimary, textSecondary, 0.5f));
+        SetBrushColor(r, "TextLabelBrush", Blend(textSecondary, bg, 0.8f));
+        SetBrushColor(r, "TextMutedBrush", Blend(textSecondary, bg, 0.65f));
+        SetBrushColor(r, "TextSubtleBrush", Blend(textSecondary, bg, 0.55f));
+        SetBrushColor(r, "TextFaintBrush", Blend(textSecondary, bg, 0.45f));
+        SetBrushColor(r, "TextPlaceholderBrush", Blend(textSecondary, bg, 0.40f));
+        SetBrushColor(r, "TextCaptionBrush", Blend(textSecondary, bg, 0.30f));
+        SetBrushColor(r, "TextDisabledBrush", Blend(textSecondary, bg, 0.35f));
 
         // Text selection dynamic highlights
         r["TextControlSelectionHighlightColor"] = accent;
-        r["TextSelectionBackground"] = new SolidColorBrush(accent);
+        SetBrushColor(r, "TextSelectionBackground", accent);
+        SetBrushColor(r, "TextControlSelectionHighlightBrush", accent);
+        SetBrushColor(r, "TextControlSelectionHighlightColorBrush", accent);
+        SetBrushColor(r, "TextSelectionHighlightColor", accent);
 
         // Slider dynamic brush overrides
-        r["SliderTrackFill"] = new SolidColorBrush(accent);
-        r["SliderTrackFillPointerOver"] = new SolidColorBrush(hover);
-        r["SliderTrackFillPressed"] = new SolidColorBrush(pressed);
-        r["SliderThumbBackground"] = new SolidColorBrush(accent);
-        r["SliderThumbBackgroundPointerOver"] = new SolidColorBrush(hover);
-        r["SliderThumbBackgroundPressed"] = new SolidColorBrush(pressed);
+        SetBrushColor(r, "SliderTrackFill", accent);
+        SetBrushColor(r, "SliderTrackFillPointerOver", hover);
+        SetBrushColor(r, "SliderTrackFillPressed", pressed);
+        SetBrushColor(r, "SliderThumbBackground", accent);
+        SetBrushColor(r, "SliderThumbBackgroundPointerOver", hover);
+        SetBrushColor(r, "SliderThumbBackgroundPressed", pressed);
 
         // Gradients
         r["AccentGradientStart"] = hover;
@@ -63,16 +109,36 @@ public static class ZenithTheme
         r["AccentGradientEnd"] = pressed;
 
         // Subtle logo dynamic gradient
-        r["SubtleEmeraldBrush"] = new LinearGradientBrush
+        if (r.TryGetValue("SubtleEmeraldBrush", out var seb) && seb is LinearGradientBrush lgb && lgb.GradientStops.Count >= 2)
         {
-            StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
-            EndPoint = new RelativePoint(1, 1, RelativeUnit.Relative),
-            GradientStops = new GradientStops
+            lgb.GradientStops[0].Color = hover;
+            lgb.GradientStops[1].Color = pressed;
+        }
+        else
+        {
+            r["SubtleEmeraldBrush"] = new LinearGradientBrush
             {
-                new GradientStop(hover, 0),
-                new GradientStop(pressed, 1)
-            }
-        };
+                StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
+                EndPoint = new RelativePoint(1, 1, RelativeUnit.Relative),
+                GradientStops = new GradientStops
+                {
+                    new GradientStop(hover, 0),
+                    new GradientStop(pressed, 1)
+                }
+            };
+        }
+    }
+
+    private static void SetBrushColor(Avalonia.Controls.IResourceDictionary r, string key, Color color)
+    {
+        if (r.TryGetValue(key, out var obj) && obj is SolidColorBrush brush)
+        {
+            brush.Color = color;
+        }
+        else
+        {
+            r[key] = new SolidColorBrush(color);
+        }
     }
 
     private static bool TryParse(string? hex)
@@ -112,6 +178,8 @@ public static class ZenithTheme
         var card = Blend(accent, Color.Parse("#0D111A"), 0.09f);
         var panel = Blend(accent, Color.Parse("#121722"), 0.12f);
         var borderDark = Blend(accent, Color.Parse("#121622"), 0.16f);
+        var field = Blend(accent, Color.Parse("#121724"), 0.10f);
+        var hover = Blend(accent, Color.Parse("#1B2338"), 0.20f);
 
         return new Models.LauncherConfigData
         {
@@ -121,6 +189,8 @@ public static class ZenithTheme
             SurfaceColor = ColorToHex(surface),
             CardColor = ColorToHex(card),
             PanelColor = ColorToHex(panel),
+            FieldColor = ColorToHex(field),
+            HoverColor = ColorToHex(hover),
             BorderDarkColor = ColorToHex(borderDark),
             TextPrimaryColor = "#FFFFFF",
             TextSecondaryColor = "#C5CBD6"

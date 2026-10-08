@@ -487,6 +487,19 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private string _bgHex = "#080A0F";
     [ObservableProperty] private string _surfaceHex = "#0D111A";
     [ObservableProperty] private string _panelHex = "#121722";
+    [ObservableProperty] private string _fieldHex = "#121724";
+    public Avalonia.Media.Color FieldColorValue {
+        get => Avalonia.Media.Color.TryParse(FieldHex, out var c) ? c : Avalonia.Media.Colors.Black;
+        set { FieldHex = value.ToString(); OnPropertyChanged(nameof(FieldColorValue)); }
+    }
+    partial void OnFieldHexChanged(string value) { OnPropertyChanged(nameof(FieldColorValue)); if (!_isLoadingConfig) ZenithTheme.Apply(GetLauncherConfigSnapshot()); }
+
+    [ObservableProperty] private string _hoverHex = "#1B2338";
+    public Avalonia.Media.Color HoverColorValue {
+        get => Avalonia.Media.Color.TryParse(HoverHex, out var c) ? c : Avalonia.Media.Colors.Black;
+        set { HoverHex = value.ToString(); OnPropertyChanged(nameof(HoverColorValue)); }
+    }
+    partial void OnHoverHexChanged(string value) { OnPropertyChanged(nameof(HoverColorValue)); if (!_isLoadingConfig) ZenithTheme.Apply(GetLauncherConfigSnapshot()); }
 
     [ObservableProperty]
     private string _sidebarBgHex = "#06080D";
@@ -508,12 +521,6 @@ public partial class MainWindowViewModel : ViewModelBase
     private string _borderDarkHex = "#121622";
     partial void OnBorderDarkHexChanged(string value) { if (!_isLoadingConfig) ZenithTheme.Apply(GetLauncherConfigSnapshot()); }
 
-
-
-
-
-
-
     [ObservableProperty]
     private IBrush _previewAccentBrush = new SolidColorBrush(Color.Parse(ZenithTheme.DefaultAccent));
 
@@ -533,7 +540,7 @@ public partial class MainWindowViewModel : ViewModelBase
         UpdatePreviewBrushes(value);
         OnPropertyChanged(nameof(CustomThemeColorValue));
 
-        if (!_isLoadingConfig && !_isHarmonizingPalette && !string.IsNullOrWhiteSpace(value))
+        if (!_isLoadingConfig && !_isHarmonizingPalette && !string.IsNullOrWhiteSpace(value) && IsThemeSubTabSimple)
         {
             _isHarmonizingPalette = true;
             try
@@ -544,6 +551,8 @@ public partial class MainWindowViewModel : ViewModelBase
                 SurfaceHex = harmonized.SurfaceColor!;
                 CardHex = harmonized.CardColor!;
                 PanelHex = harmonized.PanelColor!;
+                FieldHex = harmonized.FieldColor!;
+                HoverHex = harmonized.HoverColor!;
                 BorderDarkHex = harmonized.BorderDarkColor!;
                 TextPrimaryHex = harmonized.TextPrimaryColor!;
                 TextSecondaryHex = harmonized.TextSecondaryColor!;
@@ -552,6 +561,10 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 _isHarmonizingPalette = false;
             }
+            ZenithTheme.Apply(GetLauncherConfigSnapshot());
+        }
+        else if (!_isLoadingConfig && !string.IsNullOrWhiteSpace(value))
+        {
             ZenithTheme.Apply(GetLauncherConfigSnapshot());
         }
     }
@@ -598,6 +611,8 @@ public partial class MainWindowViewModel : ViewModelBase
     private string _savedSurfaceHex = "#0D111A";
     private string _savedCardHex = "#0D111A";
     private string _savedPanelHex = "#121722";
+    private string _savedFieldHex = "#121724";
+    private string _savedHoverHex = "#1B2338";
     private string _savedBorderDarkHex = "#121622";
     private string _savedTextPrimaryHex = "#FFFFFF";
     private string _savedTextSecondaryHex = "#C5CBD6";
@@ -610,6 +625,8 @@ public partial class MainWindowViewModel : ViewModelBase
         _savedSurfaceHex = SurfaceHex;
         _savedCardHex = CardHex;
         _savedPanelHex = PanelHex;
+        _savedFieldHex = FieldHex;
+        _savedHoverHex = HoverHex;
         _savedBorderDarkHex = BorderDarkHex;
         _savedTextPrimaryHex = TextPrimaryHex;
         _savedTextSecondaryHex = TextSecondaryHex;
@@ -623,6 +640,8 @@ public partial class MainWindowViewModel : ViewModelBase
             || !string.Equals(_savedSurfaceHex, SurfaceHex, StringComparison.OrdinalIgnoreCase)
             || !string.Equals(_savedCardHex, CardHex, StringComparison.OrdinalIgnoreCase)
             || !string.Equals(_savedPanelHex, PanelHex, StringComparison.OrdinalIgnoreCase)
+            || !string.Equals(_savedFieldHex, FieldHex, StringComparison.OrdinalIgnoreCase)
+            || !string.Equals(_savedHoverHex, HoverHex, StringComparison.OrdinalIgnoreCase)
             || !string.Equals(_savedBorderDarkHex, BorderDarkHex, StringComparison.OrdinalIgnoreCase)
             || !string.Equals(_savedTextPrimaryHex, TextPrimaryHex, StringComparison.OrdinalIgnoreCase)
             || !string.Equals(_savedTextSecondaryHex, TextSecondaryHex, StringComparison.OrdinalIgnoreCase)
@@ -639,6 +658,8 @@ public partial class MainWindowViewModel : ViewModelBase
             SurfaceHex = _savedSurfaceHex;
             CardHex = _savedCardHex;
             PanelHex = _savedPanelHex;
+            FieldHex = _savedFieldHex;
+            HoverHex = _savedHoverHex;
             BorderDarkHex = _savedBorderDarkHex;
             TextPrimaryHex = _savedTextPrimaryHex;
             TextSecondaryHex = _savedTextSecondaryHex;
@@ -668,6 +689,8 @@ public partial class MainWindowViewModel : ViewModelBase
         SurfaceHex = harmonized.SurfaceColor!;
         CardHex = harmonized.CardColor!;
         PanelHex = harmonized.PanelColor!;
+        FieldHex = harmonized.FieldColor!;
+        HoverHex = harmonized.HoverColor!;
         BorderDarkHex = harmonized.BorderDarkColor!;
         TextPrimaryHex = harmonized.TextPrimaryColor!;
         TextSecondaryHex = harmonized.TextSecondaryColor!;
@@ -693,6 +716,8 @@ public partial class MainWindowViewModel : ViewModelBase
             SurfaceHex = harmonized.SurfaceColor!;
             CardHex = harmonized.CardColor!;
             PanelHex = harmonized.PanelColor!;
+            FieldHex = harmonized.FieldColor!;
+            HoverHex = harmonized.HoverColor!;
             BorderDarkHex = harmonized.BorderDarkColor!;
             TextPrimaryHex = harmonized.TextPrimaryColor!;
             TextSecondaryHex = harmonized.TextSecondaryColor!;
@@ -1799,11 +1824,13 @@ public partial class MainWindowViewModel : ViewModelBase
                 BgColor = BgHex,
                 SurfaceColor = SurfaceHex,
                 PanelColor = PanelHex,
-            SidebarBgColor = SidebarBgHex,
-            CardColor = CardHex,
-            TextPrimaryColor = TextPrimaryHex,
-            TextSecondaryColor = TextSecondaryHex,
-            BorderDarkColor = BorderDarkHex,
+                SidebarBgColor = SidebarBgHex,
+                CardColor = CardHex,
+                FieldColor = FieldHex,
+                HoverColor = HoverHex,
+                TextPrimaryColor = TextPrimaryHex,
+                TextSecondaryColor = TextSecondaryHex,
+                BorderDarkColor = BorderDarkHex,
                 JvmArgs = JvmArgs,
                 MinRamMb = MinRamMb,
                 RamMb = RamMb,
@@ -1817,7 +1844,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 UseFlatVersionList = UseFlatVersionList,
                 AutoManageJava = AutoManageJava,
                 DiscordRpcEnabled = DiscordRpcEnabled,
-        LauncherScale = LauncherScale,
+                LauncherScale = LauncherScale,
                 SelectedParticle = SelectedParticle,
                 Language = SelectedLanguage,
                 ThemeSubTab = ThemeSubTab,
@@ -1836,14 +1863,16 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         LauncherName = LauncherName,
         AccentColor = CurrentAccentHex,
-                BgColor = BgHex,
-                SurfaceColor = SurfaceHex,
-                PanelColor = PanelHex,
-            SidebarBgColor = SidebarBgHex,
-            CardColor = CardHex,
-            TextPrimaryColor = TextPrimaryHex,
-            TextSecondaryColor = TextSecondaryHex,
-            BorderDarkColor = BorderDarkHex,
+        BgColor = BgHex,
+        SurfaceColor = SurfaceHex,
+        PanelColor = PanelHex,
+        SidebarBgColor = SidebarBgHex,
+        CardColor = CardHex,
+        FieldColor = FieldHex,
+        HoverColor = HoverHex,
+        TextPrimaryColor = TextPrimaryHex,
+        TextSecondaryColor = TextSecondaryHex,
+        BorderDarkColor = BorderDarkHex,
         JvmArgs = JvmArgs,
         MinRamMb = MinRamMb,
         RamMb = RamMb,
@@ -1907,6 +1936,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public void LoadLauncherConfig()
     {
+        _isLoadingConfig = true;
         try
         {
             var configPath = ZenithPaths.ConfigFilePath;
@@ -1919,12 +1949,20 @@ public partial class MainWindowViewModel : ViewModelBase
                     if (!string.IsNullOrWhiteSpace(cfg.LauncherName))
                         LauncherName = cfg.LauncherName;
 
-                    
+                    if (!string.IsNullOrWhiteSpace(cfg.ThemeSubTab))
+                    {
+                        ThemeSubTab = cfg.ThemeSubTab;
+                        OnPropertyChanged(nameof(IsThemeSubTabSimple));
+                        OnPropertyChanged(nameof(IsThemeSubTabAdvanced));
+                    }
+
                     if (!string.IsNullOrWhiteSpace(cfg.BgColor)) BgHex = cfg.BgColor;
                     if (!string.IsNullOrWhiteSpace(cfg.SurfaceColor)) SurfaceHex = cfg.SurfaceColor;
                     if (!string.IsNullOrWhiteSpace(cfg.PanelColor)) PanelHex = cfg.PanelColor;
                     if (!string.IsNullOrWhiteSpace(cfg.SidebarBgColor)) SidebarBgHex = cfg.SidebarBgColor;
                     if (!string.IsNullOrWhiteSpace(cfg.CardColor)) CardHex = cfg.CardColor;
+                    if (!string.IsNullOrWhiteSpace(cfg.FieldColor)) FieldHex = cfg.FieldColor;
+                    if (!string.IsNullOrWhiteSpace(cfg.HoverColor)) HoverHex = cfg.HoverColor;
                     if (!string.IsNullOrWhiteSpace(cfg.TextPrimaryColor)) TextPrimaryHex = cfg.TextPrimaryColor;
                     if (!string.IsNullOrWhiteSpace(cfg.TextSecondaryColor)) TextSecondaryHex = cfg.TextSecondaryColor;
                     if (!string.IsNullOrWhiteSpace(cfg.BorderDarkColor)) BorderDarkHex = cfg.BorderDarkColor;
@@ -1932,12 +1970,10 @@ public partial class MainWindowViewModel : ViewModelBase
                     {
                         CurrentAccentHex = cfg.AccentColor;
                         CustomThemeHex = cfg.AccentColor;
-                        ZenithTheme.Apply(cfg);
+                        UpdatePreviewBrushes(cfg.AccentColor);
                     }
-                    else
-                    {
-                        ZenithTheme.Apply(new Models.LauncherConfigData { AccentColor = ZenithTheme.DefaultAccent });
-                    }
+
+                    ZenithTheme.Apply(GetLauncherConfigSnapshot());
 
                     // Language is restored FIRST and verbatim: an explicit
                     // choice (including "Auto") always wins over detection.
@@ -1975,12 +2011,6 @@ public partial class MainWindowViewModel : ViewModelBase
                     DiscordRpcEnabled = cfg.DiscordRpcEnabled;
                     if (cfg.LauncherScale > 0.4 && cfg.LauncherScale < 3.0) LauncherScale = cfg.LauncherScale;
                     if (!string.IsNullOrEmpty(cfg.SelectedParticle)) SelectedParticle = cfg.SelectedParticle;
-                    if (!string.IsNullOrWhiteSpace(cfg.ThemeSubTab))
-                    {
-                        ThemeSubTab = cfg.ThemeSubTab;
-                        OnPropertyChanged(nameof(IsThemeSubTabSimple));
-                        OnPropertyChanged(nameof(IsThemeSubTabAdvanced));
-                    }
                     IsSidebarExpanded = cfg.IsSidebarExpanded;
                     SnapshotCurrentSavedTheme();
                 }
@@ -1989,6 +2019,10 @@ public partial class MainWindowViewModel : ViewModelBase
         catch (Exception ex)
         {
             LauncherLog.Error("Failed to load launcher config - keeping current settings.", ex);
+        }
+        finally
+        {
+            _isLoadingConfig = false;
         }
     }
 

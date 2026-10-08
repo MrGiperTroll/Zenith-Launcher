@@ -298,7 +298,7 @@ public partial class MainWindow : Window
                     Width = _draggedCard.Bounds.Width,
                     Height = _draggedCard.Bounds.Height,
                     Fill = new Avalonia.Media.ImageBrush(bmp) { Stretch = Avalonia.Media.Stretch.Fill },
-                    Opacity = 0.90,
+                    Opacity = 1.0,
                     IsHitTestVisible = false,
                     ZIndex = 9999
                 };
@@ -306,7 +306,7 @@ public partial class MainWindow : Window
             }
             
             _draggedInstance.IsDragging = true;
-            _draggedCard.Opacity = 0.4; // Hide the real card but keep it barely visible for bounding box
+            _draggedCard.Opacity = 0.0;
         }
 
         if (_isDragging && _ghostRect != null)

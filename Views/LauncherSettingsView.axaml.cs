@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using CustomMcLauncher.Services;
 using CustomMcLauncher.UI.Animations;
 using CustomMcLauncher.ViewModels;
+using CustomMcLauncher.ViewModels.Pages;
 
 namespace CustomMcLauncher.Views;
 
@@ -13,7 +14,7 @@ public partial class LauncherSettingsView : UserControl
         InitializeComponent();
         DataContextChanged += (_, _) =>
         {
-            if (DataContext is MainWindowViewModel vm)
+            if (DataContext is LauncherSettingsViewModel vm)
             {
                 vm.PropertyChanged -= OnVmPropertyChanged;
                 vm.PropertyChanged += OnVmPropertyChanged;
@@ -23,7 +24,7 @@ public partial class LauncherSettingsView : UserControl
 
     private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(MainWindowViewModel.CurrentSettingsTab))
+        if (e.PropertyName == nameof(LauncherSettingsViewModel.CurrentSettingsTab))
         {
             var sc = this.FindControl<ScrollViewer>("SettingsContentScroll");
             if (sc != null && sc.IsVisible && sc.Content is StackPanel sp)

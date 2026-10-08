@@ -1,13 +1,14 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:CustomMcLauncher.ViewModels"
+              xmlns:pages="using:CustomMcLauncher.ViewModels.Pages"
         xmlns:converters="using:CustomMcLauncher.Converters"
              xmlns:controls="using:CustomMcLauncher.Controls"
              xmlns:l10n="using:CustomMcLauncher.Extensions"
              xmlns:theming="using:CustomMcLauncher.UI.Theming"
               xmlns:services="using:CustomMcLauncher.Services"
              x:Class="CustomMcLauncher.Views.ThemeSettingsView"
-             x:DataType="vm:MainWindowViewModel">
+             x:DataType="pages:ThemeSettingsViewModel">
     
     <UserControl.Styles>
         <Style Selector="TextBox.darkInput">
@@ -212,7 +213,7 @@
                                     </ItemsControl.ItemsPanel>
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="theming:ThemePreset">
-                                            <Button Command="{Binding $parent[ItemsControl].((vm:MainWindowViewModel)DataContext).ChooseThemeCommand}"
+                                            <Button Command="{Binding $parent[ItemsControl].((pages:ThemeSettingsViewModel)DataContext).ChooseThemeCommand}"
                                                     CommandParameter="{Binding HexColor}"
                                                     Classes="subBtn"
                                                     Width="120"

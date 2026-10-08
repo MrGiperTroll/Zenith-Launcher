@@ -100,6 +100,35 @@ public static class ZenithTheme
             (byte)(fg.G * alpha + bg.G * (1 - alpha)),
             (byte)(fg.B * alpha + bg.B * (1 - alpha)));
 
+    public static Models.LauncherConfigData GenerateHarmonizedPalette(string accentHex)
+    {
+        if (!TryParse(accentHex)) accentHex = DefaultAccent;
+        var accent = Color.Parse(accentHex);
+
+        // Harmonize dark surfaces with a subtle tint of the chosen accent color (Anti-AI-slop: clean, restrained, high-contrast)
+        var bg = Blend(accent, Color.Parse("#080A0F"), 0.05f);
+        var sidebarBg = Blend(accent, Color.Parse("#06080D"), 0.04f);
+        var surface = Blend(accent, Color.Parse("#0D111A"), 0.08f);
+        var card = Blend(accent, Color.Parse("#0D111A"), 0.09f);
+        var panel = Blend(accent, Color.Parse("#121722"), 0.12f);
+        var borderDark = Blend(accent, Color.Parse("#121622"), 0.16f);
+
+        return new Models.LauncherConfigData
+        {
+            AccentColor = accentHex,
+            BgColor = ColorToHex(bg),
+            SidebarBgColor = ColorToHex(sidebarBg),
+            SurfaceColor = ColorToHex(surface),
+            CardColor = ColorToHex(card),
+            PanelColor = ColorToHex(panel),
+            BorderDarkColor = ColorToHex(borderDark),
+            TextPrimaryColor = "#FFFFFF",
+            TextSecondaryColor = "#C5CBD6"
+        };
+    }
+
+    public static string ColorToHex(Color c) => $"#{c.R:X2}{c.G:X2}{c.B:X2}";
+
     public static readonly ThemePreset[] Presets =
     {
         new("blue", "Classic Blue", "Классическая синяя", "#3B82F6"),

@@ -58,6 +58,23 @@
         <Style Selector="Button.primaryBtn:pointerover">
             <Setter Property="Background" Value="{DynamicResource AccentBrushHover}"/>
         </Style>
+        <Style Selector="Button.previewSampleBtn">
+            <Setter Property="Background" Value="{Binding PreviewAccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="14,6"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Button.previewSampleBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{Binding PreviewAccentHoverBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
+        </Style>
         <Style Selector="Button.subTabBtn">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
@@ -99,7 +116,7 @@
             <StackPanel Orientation="Horizontal" Spacing="4">
                 <Button Classes="subTabBtn" Classes.active="{Binding IsThemeSubTabSimple}" Command="{Binding SwitchThemeSubTabCommand}" CommandParameter="Simple">
                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                        <PathIcon Data="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 19.4c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.9-1.9C9.22 19.59 10.56 20 12 20c4.97 0 9-4.03 9-9s-4.03-9-9-9zm0 15c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z" Width="13" Height="13" VerticalAlignment="Center"/>
+                        <PathIcon Data="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 19.4c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.9-1.9C9.22 19.59 10.56 20 12 20c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-5.5 9c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5-.67 1.5-1.5 1.5-1.5-.67-1.5-1.5zm3 4c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5-.67 1.5-1.5 1.5-1.5-.67-1.5-1.5zm1-7c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5-.67 1.5-1.5 1.5-1.5-.67-1.5-1.5zm4 4c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5-.67 1.5-1.5 1.5-1.5-.67-1.5-1.5z" Width="13" Height="13" VerticalAlignment="Center"/>
                         <TextBlock Text="{l10n:Tr Key=theme_simple}" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
@@ -136,7 +153,7 @@
                                 <Grid ColumnDefinitions="Auto,*,Auto" Margin="14" VerticalAlignment="Center">
                                     <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                                         <Border Width="34" Height="34" CornerRadius="7" Background="{Binding SurfaceHex, Converter={x:Static vm:HexToBrushConverter.Instance}}" BorderBrush="{Binding BorderDarkHex, Converter={x:Static vm:HexToBrushConverter.Instance}}" BorderThickness="1" VerticalAlignment="Center">
-                                            <PathIcon Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" Width="16" Height="16" Foreground="{Binding PreviewAccentBrush}"/>
+                                            <Path Data="{StaticResource ZenithLogoGeometry}" Fill="{Binding PreviewAccentBrush}" Stretch="Uniform" Width="18" Height="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Border>
                                         <StackPanel VerticalAlignment="Center" Spacing="2">
                                             <TextBlock Text="Zenith Launcher" FontSize="13" FontWeight="Bold" Foreground="{Binding TextPrimaryHex, Converter={x:Static vm:HexToBrushConverter.Instance}}"/>
@@ -148,7 +165,7 @@
                                         <Border Background="{Binding SurfaceHex, Converter={x:Static vm:HexToBrushConverter.Instance}}" BorderBrush="{Binding BorderDarkHex, Converter={x:Static vm:HexToBrushConverter.Instance}}" BorderThickness="1" CornerRadius="6" Padding="10,5" VerticalAlignment="Center">
                                             <TextBlock Text="{Binding CustomThemeHex}" FontSize="11" FontWeight="SemiBold" Foreground="{Binding PreviewAccentBrush}"/>
                                         </Border>
-                                        <Button Background="{Binding PreviewAccentBrush}" Foreground="{DynamicResource OnAccentBrush}" CornerRadius="8" Content="Sample Button" Padding="14,6" Height="28" FontWeight="SemiBold" FontSize="12" Cursor="Hand"/>
+                                        <Button Classes="previewSampleBtn" Content="Sample Button"/>
                                     </StackPanel>
                                 </Grid>
                             </Panel>
@@ -166,28 +183,48 @@
                                 <TextBlock Text="{l10n:Tr Key=set_theme_hint}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
                             </StackPanel>
 
-                            <ItemsControl ItemsSource="{x:Static services:ZenithTheme.Presets}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <WrapPanel Orientation="Horizontal"/>
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate x:DataType="services:ThemePreset">
-                                        <Button Command="{Binding $parent[ItemsControl].((vm:MainWindowViewModel)DataContext).ChooseThemeCommand}"
-                                                CommandParameter="{Binding HexColor}"
-                                                Classes="subBtn"
-                                                CornerRadius="8"
-                                                Padding="10,6"
-                                                Margin="0,0,8,8">
-                                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                                <Border Width="14" Height="14" CornerRadius="7" Background="{Binding ColorBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" VerticalAlignment="Center"/>
-                                                <TextBlock Text="{Binding DisplayName}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                                            </StackPanel>
-                                        </Button>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
+                            <WrapPanel Orientation="Horizontal">
+                                <ItemsControl ItemsSource="{x:Static services:ZenithTheme.Presets}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel Orientation="Horizontal"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="services:ThemePreset">
+                                            <Button Command="{Binding $parent[ItemsControl].((vm:MainWindowViewModel)DataContext).ChooseThemeCommand}"
+                                                    CommandParameter="{Binding HexColor}"
+                                                    Classes="subBtn"
+                                                    CornerRadius="8"
+                                                    Padding="10,6"
+                                                    Margin="0,0,8,8">
+                                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                                    <Border Width="14" Height="14" CornerRadius="7" Background="{Binding ColorBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding DisplayName}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <!-- Custom Single Color Harmonizer Button -->
+                                <Button Classes="subBtn"
+                                        CornerRadius="8"
+                                        Padding="10,6"
+                                        Margin="0,0,8,8"
+                                        ToolTip.Tip="Pick custom color and auto-harmonize full palette">
+                                    <Button.Flyout>
+                                        <Flyout Placement="BottomEdgeAlignedLeft">
+                                            <ColorView Color="{Binding CustomThemeHex, Mode=TwoWay, Converter={x:Static vm:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
+                                        </Flyout>
+                                    </Button.Flyout>
+                                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <Border Width="14" Height="14" CornerRadius="7" Background="{Binding CustomThemeHex, Converter={x:Static vm:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=theme_custom_color}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                        <PathIcon Data="M7 10l5 5 5-5z" Width="10" Height="10" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </WrapPanel>
                         </StackPanel>
                     </Border>
 

@@ -348,6 +348,14 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty] private bool _discordRpcEnabled = true;
 
+    [ObservableProperty] private double _launcherScale = 1.0;
+
+    [ObservableProperty] private string _selectedParticle = "None";
+
+    partial void OnSelectedParticleChanged(string value) => SaveLauncherConfig();
+
+    partial void OnLauncherScaleChanged(double value) => SaveLauncherConfig();
+
     partial void OnDiscordRpcEnabledChanged(bool value)
     {
         if (!value)
@@ -455,6 +463,14 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty]
     private string _customThemeHex = ZenithTheme.DefaultAccent;
+    [ObservableProperty] private string _bgHex = "#080A0F";
+    [ObservableProperty] private string _surfaceHex = "#0D111A";
+    [ObservableProperty] private string _panelHex = "#121722";
+
+    partial void OnBgHexChanged(string value) => SaveLauncherConfig();
+    partial void OnSurfaceHexChanged(string value) => SaveLauncherConfig();
+    partial void OnPanelHexChanged(string value) => SaveLauncherConfig();
+
 
     [ObservableProperty]
     private IBrush _previewAccentBrush = new SolidColorBrush(Color.Parse(ZenithTheme.DefaultAccent));
@@ -511,7 +527,7 @@ public partial class MainWindowViewModel : ViewModelBase
         if (!hex.StartsWith("#")) hex = "#" + hex;
         CurrentAccentHex = hex;
         CustomThemeHex = hex;
-        ZenithTheme.Apply(hex);
+        ZenithTheme.Apply(GetLauncherConfigSnapshot());
         SaveLauncherConfig();
     }
 
@@ -523,8 +539,7 @@ public partial class MainWindowViewModel : ViewModelBase
         targetHex = targetHex.Trim();
         if (!targetHex.StartsWith("#")) targetHex = "#" + targetHex;
 
-        PendingRestartThemeHex = targetHex;
-        IsRestartConfirmOpen = true;
+        SelectTheme(targetHex);
     }
 
     [RelayCommand]
@@ -750,7 +765,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isSidebarExpanded;
 
-    public double SidebarWidth => IsSidebarExpanded ? 200 : 64;
+    public double SidebarWidth => IsSidebarExpanded ? 240 : 64;
 
     partial void OnIsSidebarExpandedChanged(bool value)
     {
@@ -1570,7 +1585,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         base.OnPropertyChanged(e);
         if (e.PropertyName is "JvmArgs" or "MinRamMb" or "RamMb" or "SelectedLaunchBehavior" or "GameWidth" or "GameHeight" or "IsFullscreen" or "CustomJavaPath" or "SelectedJavaMode"
-            or "AutoManageJava" or "DiscordRpcEnabled" or "SelectedLanguage")
+            or "AutoManageJava" or "DiscordRpcEnabled" or "SelectedLanguage" or "LauncherScale" or "SelectedParticle")
         {
             SaveLauncherConfig();
         }
@@ -1586,6 +1601,9 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 LauncherName = LauncherName,
                 AccentColor = CurrentAccentHex,
+                BgColor = BgHex,
+                SurfaceColor = SurfaceHex,
+                PanelColor = PanelHex,
                 JvmArgs = JvmArgs,
                 MinRamMb = MinRamMb,
                 RamMb = RamMb,
@@ -1599,6 +1617,8 @@ public partial class MainWindowViewModel : ViewModelBase
                 UseFlatVersionList = UseFlatVersionList,
                 AutoManageJava = AutoManageJava,
                 DiscordRpcEnabled = DiscordRpcEnabled,
+        LauncherScale = LauncherScale,
+                SelectedParticle = SelectedParticle,
                 Language = SelectedLanguage,
                 IsSidebarExpanded = IsSidebarExpanded
             };
@@ -1615,6 +1635,9 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         LauncherName = LauncherName,
         AccentColor = CurrentAccentHex,
+                BgColor = BgHex,
+                SurfaceColor = SurfaceHex,
+                PanelColor = PanelHex,
         JvmArgs = JvmArgs,
         MinRamMb = MinRamMb,
         RamMb = RamMb,
@@ -1632,6 +1655,23 @@ public partial class MainWindowViewModel : ViewModelBase
         IsSidebarExpanded = IsSidebarExpanded
     };
 
+    
+    [RelayCommand]
+    private void OpenThemeSettings()
+    {
+        // For now, we will open a new Theme Window instance.
+        // We will create ThemeSettingsWindow soon.
+        var window = new ThemeSettingsWindow
+        {
+            DataContext = this
+        };
+        // Needs a valid lifetime reference, usually we can just Show()
+        if (Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            window.ShowDialog(desktop.MainWindow);
+        }
+    }
+
     public void LoadLauncherConfig()
     {
         try
@@ -1646,15 +1686,19 @@ public partial class MainWindowViewModel : ViewModelBase
                     if (!string.IsNullOrWhiteSpace(cfg.LauncherName))
                         LauncherName = cfg.LauncherName;
 
+                    
+                    if (!string.IsNullOrWhiteSpace(cfg.BgColor)) BgHex = cfg.BgColor;
+                    if (!string.IsNullOrWhiteSpace(cfg.SurfaceColor)) SurfaceHex = cfg.SurfaceColor;
+                    if (!string.IsNullOrWhiteSpace(cfg.PanelColor)) PanelHex = cfg.PanelColor;
                     if (!string.IsNullOrWhiteSpace(cfg.AccentColor))
                     {
                         CurrentAccentHex = cfg.AccentColor;
                         CustomThemeHex = cfg.AccentColor;
-                        ZenithTheme.Apply(cfg.AccentColor);
+                        ZenithTheme.Apply(cfg);
                     }
                     else
                     {
-                        ZenithTheme.Apply(ZenithTheme.DefaultAccent);
+                        ZenithTheme.Apply(new Models.LauncherConfigData { AccentColor = ZenithTheme.DefaultAccent });
                     }
 
                     // Language is restored FIRST and verbatim: an explicit
@@ -1691,6 +1735,8 @@ public partial class MainWindowViewModel : ViewModelBase
                     UseFlatVersionList = cfg.UseFlatVersionList;
                     AutoManageJava = cfg.AutoManageJava;
                     DiscordRpcEnabled = cfg.DiscordRpcEnabled;
+                    if (cfg.LauncherScale > 0.4 && cfg.LauncherScale < 3.0) LauncherScale = cfg.LauncherScale;
+                    if (!string.IsNullOrEmpty(cfg.SelectedParticle)) SelectedParticle = cfg.SelectedParticle;
                     IsSidebarExpanded = cfg.IsSidebarExpanded;
                 }
             }

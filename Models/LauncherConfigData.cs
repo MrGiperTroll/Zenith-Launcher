@@ -13,6 +13,9 @@ public class LauncherConfigData
     public string JavaMode { get; set; } = "Recommended";
     public string CustomJavaPath { get; set; } = string.Empty;
     public string AccentColor { get; set; } = "";
+    public string BgColor { get; set; } = "#080A0F";
+    public string SurfaceColor { get; set; } = "#0D111A";
+    public string PanelColor { get; set; } = "#121722";
     public string LauncherName { get; set; } = "Zenith Launcher";
     public bool UseFlatVersionList { get; set; } = false;
 
@@ -25,6 +28,8 @@ public class LauncherConfigData
     // UI language display name ("" = auto-detect from OS on first run).
     public string Language { get; set; } = "";
 
+    public string SelectedParticle { get; set; } = "None";
+    public double LauncherScale { get; set; } = 1.0;
     public bool IsSidebarExpanded { get; set; } = false;
 
     public bool IsSetupCompleted { get; set; }

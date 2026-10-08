@@ -209,7 +209,7 @@
                             <Button Classes="sideTab" Classes.active="{Binding IsServersTab}" Command="{Binding SelectTabCommand}" CommandParameter="Servers">
                                 <Grid ColumnDefinitions="Auto,*">
                                     <Border Width="30" Height="30" Background="{StaticResource IconChipBrush}" CornerRadius="7" VerticalAlignment="Center">
-                                        <PathIcon Data="M4 1H20C21.1 1 22 1.9 22 3V6C22 7.1 21.1 8 20 8H4C2.9 8 2 7.1 2 6V3C2 1.9 2.9 1 4 1ZM4 10H20C21.1 10 22 10.9 22 12V15C22 16.1 21.1 17 20 17H4C2.9 17 2 16.1 2 15V12C2 10.9 2.9 10 4 10ZM4 19H20C21.1 19 22 19.9 22 21V23H2V21C2 19.9 2.9 19 4 19ZM6 3V6H8V3H6ZM6 12V15H8V12H6ZM6 21V23H8V21H6Z" Width="15" Height="15" Foreground="{Binding IsServersTab, Converter={x:Static vm:EditInstanceWindowConverters.ActiveIcon}}"/>
+                                        <PathIcon Data="M20 13H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1v-6c0-.55-.45-1-1-1zM7 19c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM20 3H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1zM7 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" Width="15" Height="15" Foreground="{Binding IsServersTab, Converter={x:Static vm:EditInstanceWindowConverters.ActiveIcon}}"/>
                                     </Border>
                                     <TextBlock Grid.Column="1" Text="{l10n:Tr Key=tab_servers}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsServersTab, Converter={x:Static vm:EditInstanceWindowConverters.ActiveText}}"/>
                                 </Grid>

@@ -13,7 +13,7 @@ namespace CustomMcLauncher.Controls;
 public class AnimatedWrapPanel : Panel
 {
     public static readonly StyledProperty<TimeSpan> AnimationDurationProperty =
-        AvaloniaProperty.Register<AnimatedWrapPanel, TimeSpan>(nameof(AnimationDuration), TimeSpan.FromMilliseconds(200));
+        AvaloniaProperty.Register<AnimatedWrapPanel, TimeSpan>(nameof(AnimationDuration), TimeSpan.FromMilliseconds(250));
 
     public TimeSpan AnimationDuration
     {
@@ -95,13 +95,13 @@ public class AnimatedWrapPanel : Panel
                         {
                             Property = TranslateTransform.XProperty,
                             Duration = AnimationDuration,
-                            Easing = new CubicEaseOut()
+                            Easing = new QuarticEaseOut()
                         },
                         new DoubleTransition
                         {
                             Property = TranslateTransform.YProperty,
                             Duration = AnimationDuration,
-                            Easing = new CubicEaseOut()
+                            Easing = new QuarticEaseOut()
                         }
                     };
                 }

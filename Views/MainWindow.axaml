@@ -360,9 +360,14 @@
         </Style>
     </Window.Styles>
 
-    <Panel Background="#080A0F">
-        <Grid>
-        <Grid ColumnDefinitions="Auto,*">
+    <Panel Background="{DynamicResource BgBrush}">
+        <controls:ParticleSystemControl ParticleType="{Binding SelectedParticle}" IsHitTestVisible="False"/>
+        <LayoutTransformControl>
+            <LayoutTransformControl.LayoutTransform>
+                <ScaleTransform ScaleX="{Binding LauncherScale}" ScaleY="{Binding LauncherScale}"/>
+            </LayoutTransformControl.LayoutTransform>
+            <Grid>
+            <Grid ColumnDefinitions="Auto,*">
             <!-- Left Rail -->
             <Border Grid.Column="0" Width="{Binding SidebarWidth}" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,1,0" Padding="0,16" Classes.expanded="{Binding IsSidebarExpanded}" ClipToBounds="True">
                 <Border.Transitions>
@@ -422,7 +427,7 @@
             <!-- Main Workspace -->
             <Grid Grid.Column="1" RowDefinitions="52,*,Auto">
                 <!-- Top Header -->
-                <Grid Grid.Row="0" Margin="24,0,24,0" VerticalAlignment="Center" ColumnDefinitions="*,Auto">
+                <Grid Grid.Row="0" Margin="8,0,24,0" VerticalAlignment="Center" ColumnDefinitions="*,Auto">
                     <!-- Left: Navigation (Back, Forward, Breadcrumbs) -->
                     <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                         <Button Classes="navBtn" Command="{Binding GoBackCommand}" ToolTip.Tip="{l10n:Tr Key=nav_back}">
@@ -1196,9 +1201,10 @@
                 </Grid>
             </Border>
         </Border>
-    </Grid>
         <!-- DragOverlayPanel: topmost layer for drag ghost rendering -->
         <Canvas x:Name="DragOverlayPanel" IsHitTestVisible="False" ZIndex="9999"/>
+    </Grid>
+    </LayoutTransformControl>
     </Panel>
 </Window>
 

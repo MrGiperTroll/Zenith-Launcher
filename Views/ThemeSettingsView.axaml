@@ -1,0 +1,112 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:CustomMcLauncher.ViewModels"
+             xmlns:l10n="using:CustomMcLauncher.Extensions"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             xmlns:services="using:CustomMcLauncher.Services"
+             x:Class="CustomMcLauncher.Views.ThemeSettingsView"
+             x:DataType="vm:MainWindowViewModel">
+    
+    <Grid RowDefinitions="Auto,*">
+        <!-- Header -->
+        <Border Grid.Row="0" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,0,1" Padding="0,0,0,16" Margin="0,0,0,16">
+            <Grid ColumnDefinitions="Auto,*">
+                <Button Grid.Column="0" Classes="iconBtn" Command="{Binding OpenSettingsDialogCommand}" Margin="0,0,12,0" ToolTip.Tip="{l10n:Tr Key=back}">
+                    <PathIcon Data="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" Width="16" Height="16" Foreground="{StaticResource TextPrimaryBrush}"/>
+                </Button>
+                <TextBlock Grid.Column="1" Text="Theme Editor" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+
+        <!-- Content -->
+        <TabControl Grid.Row="1" Background="Transparent">
+            <TabItem Header="Simple">
+                <ScrollViewer Margin="0,16,0,0">
+                    <StackPanel Spacing="24">
+                        <!-- Presets -->
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="Theme Presets" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <ItemsControl ItemsSource="{x:Static services:ZenithTheme.Presets}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel Orientation="Horizontal"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <!-- x:CompileBindings="False" is required to access DataContext.RequestApplyThemeCommand from the parent -->
+                                        <Button x:CompileBindings="False"
+                                                Command="{Binding [ItemsControl].DataContext.RequestApplyThemeCommand}"
+                                                CommandParameter="{Binding HexColor}"
+                                                Background="{StaticResource PanelBrushTransparent}" 
+                                                BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" 
+                                                CornerRadius="8" Padding="12,8" Margin="0,0,8,8" Cursor="Hand">
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <Ellipse Width="16" Height="16" Fill="{Binding ColorBrush}"/>
+                                                <TextBlock Text="{Binding DisplayName}" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+
+                        <!-- Particles -->
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="{l10n:Tr Key=theme_particles}" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <Border Background="{StaticResource PanelBrushTransparent}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="8" Padding="16">
+                                <StackPanel Spacing="12">
+                                    <TextBlock Text="Выберите эффект для фона лаунчера:" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <ComboBox SelectedItem="{Binding SelectedParticle}" HorizontalAlignment="Left" Width="200">
+                                        <sys:String>None</sys:String>
+                                        <sys:String>Snowflakes</sys:String>
+                                        <sys:String>Leaves</sys:String>
+                                    </ComboBox>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Advanced">
+                <ScrollViewer Margin="0,16,0,0">
+                    <StackPanel Spacing="24">
+                        <TextBlock Text="Advanced Theme Customization" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                        
+                        <!-- Core Brushes -->
+                        <Border Background="{StaticResource PanelBrushTransparent}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="8" Padding="16">
+                            <StackPanel Spacing="16">
+                                <Grid ColumnDefinitions="150,*,Auto" VerticalAlignment="Center">
+                                    <TextBlock Text="Background Color" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding BgHex, Mode=TwoWay}" PlaceholderText="#080A0F" Margin="0,0,12,0"/>
+                                    <Border Grid.Column="2" Width="24" Height="24" CornerRadius="4" Background="{Binding BgHex}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1"/>
+                                </Grid>
+                                
+                                <Grid ColumnDefinitions="150,*,Auto" VerticalAlignment="Center">
+                                    <TextBlock Text="Surface (Cards) Color" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding SurfaceHex, Mode=TwoWay}" PlaceholderText="#0D111A" Margin="0,0,12,0"/>
+                                    <Border Grid.Column="2" Width="24" Height="24" CornerRadius="4" Background="{Binding SurfaceHex}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1"/>
+                                </Grid>
+                                
+                                <Grid ColumnDefinitions="150,*,Auto" VerticalAlignment="Center">
+                                    <TextBlock Text="Panel (Sidebar) Color" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding PanelHex, Mode=TwoWay}" PlaceholderText="#121722" Margin="0,0,12,0"/>
+                                    <Border Grid.Column="2" Width="24" Height="24" CornerRadius="4" Background="{Binding PanelHex}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1"/>
+                                </Grid>
+                                
+                                <Grid ColumnDefinitions="150,*,Auto" VerticalAlignment="Center">
+                                    <TextBlock Text="Accent Color" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding CustomThemeHex, Mode=TwoWay}" PlaceholderText="#3B82F6" Margin="0,0,12,0"/>
+                                    <Border Grid.Column="2" Width="24" Height="24" CornerRadius="4" Background="{Binding CustomThemeHex}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1"/>
+                                </Grid>
+
+                                <Button Classes="primaryBtn" Content="Apply Theme Changes" Command="{Binding RequestApplyThemeCommand}" HorizontalAlignment="Right" Padding="20,10"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</UserControl>

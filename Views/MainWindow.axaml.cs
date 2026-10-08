@@ -239,16 +239,18 @@ public partial class MainWindow : Window
             _ = vm.ModpacksBrowser.LoadMoreAsync();
     }
 
-        private Border? _draggedCard;
+    private Border? _draggedCard;
     private InstanceModel? _draggedInstance;
     private Point _dragStartPos;
     private Point _dragCardOffset;
     private bool _isDragging;
     private bool _suppressNextTap;
-
+    
     // Ghost overlay elements
-    
-    
+    private Avalonia.Controls.Shapes.Rectangle? _ghostRect;
+    private Avalonia.Threading.DispatcherTimer? _reorderTimer;
+    private string? _pendingTargetId;
+    private bool _pendingDropAfter;
 
     private void OnInstanceCardPointerPressed(object? sender, PointerPressedEventArgs e)
     {
@@ -262,7 +264,7 @@ public partial class MainWindow : Window
         }
     }
 
-        protected override void OnPointerMoved(PointerEventArgs e)
+    protected override void OnPointerMoved(PointerEventArgs e)
     {
         base.OnPointerMoved(e);
         if (_draggedCard == null || _draggedInstance == null) return;
@@ -280,26 +282,47 @@ public partial class MainWindow : Window
             _isDragging = true;
             _draggedCard.Classes.Add("dragging");
             _draggedCard.IsHitTestVisible = false;
-            _draggedCard.ZIndex = 9999;
-            _draggedCard.Opacity = 0.5;
+            
+            var dragOverlay = this.FindControl<Canvas>("DragOverlayPanel");
+            if (dragOverlay != null)
+            {
+                var topLevel = Avalonia.Controls.TopLevel.GetTopLevel(this);
+                double dpi = topLevel?.RenderScaling ?? 1.0;
+                double lScale = (DataContext as ViewModels.MainWindowViewModel)?.LauncherScale ?? 1.0;
+                double scale = dpi * lScale;
+                var bmp = new Avalonia.Media.Imaging.RenderTargetBitmap(new PixelSize((int)Math.Ceiling(_draggedCard.Bounds.Width * scale), (int)Math.Ceiling(_draggedCard.Bounds.Height * scale)), new Vector(96 * scale, 96 * scale));
+                bmp.Render(_draggedCard);
+                
+                _ghostRect = new Avalonia.Controls.Shapes.Rectangle
+                {
+                    Width = _draggedCard.Bounds.Width,
+                    Height = _draggedCard.Bounds.Height,
+                    Fill = new Avalonia.Media.ImageBrush(bmp) { Stretch = Avalonia.Media.Stretch.Fill },
+                    Opacity = 0.90,
+                    IsHitTestVisible = false,
+                    ZIndex = 9999
+                };
+                dragOverlay.Children.Add(_ghostRect);
+            }
+            
             _draggedInstance.IsDragging = true;
+            _draggedCard.Opacity = 0.01; // Hide the real card but keep it barely visible for bounding box
         }
 
-        if (_isDragging)
+        if (_isDragging && _ghostRect != null)
         {
-            var transform = _draggedCard.RenderTransform as Avalonia.Media.TranslateTransform;
-            if (transform == null)
+            var dragOverlay = this.FindControl<Canvas>("DragOverlayPanel");
+            if (dragOverlay != null) 
             {
-                transform = new Avalonia.Media.TranslateTransform();
-                _draggedCard.RenderTransform = transform;
+                var ghostStart = e.GetPosition(dragOverlay);
+                Canvas.SetLeft(_ghostRect, ghostStart.X - _dragCardOffset.X);
+                Canvas.SetTop(_ghostRect, ghostStart.Y - _dragCardOffset.Y);
             }
-            transform.X = diff.X;
-            transform.Y = diff.Y;
             
             var hit = this.InputHitTest(currentPos) as Avalonia.Visual;
-            var targetCard = hit?.FindAncestorOfType<Avalonia.Controls.Border>(includeSelf: true);
+            var targetCard = hit?.FindAncestorOfType<Border>(includeSelf: true);
             while (targetCard != null && !targetCard.Classes.Contains("instanceCard"))
-                targetCard = targetCard.FindAncestorOfType<Avalonia.Controls.Border>(includeSelf: false);
+                targetCard = targetCard.FindAncestorOfType<Border>(includeSelf: false);
                 
             string? targetId = (targetCard?.DataContext as Models.InstanceModel)?.Id;
             string movedId = _draggedInstance.Id;
@@ -312,8 +335,39 @@ public partial class MainWindow : Window
                     var relPos = e.GetPosition(targetCard);
                     dropAfter = relPos.X > targetCard.Bounds.Width / 2;
                 }
-                try { vm.ReorderInstance(movedId, targetId, dropAfter, save: false); }
-                catch (Exception ex) { CustomMcLauncher.Services.LauncherLog.Error("Real-time reorder failed", ex); }
+                
+                if (_pendingTargetId != targetId || _pendingDropAfter != dropAfter)
+                {
+                    _pendingTargetId = targetId;
+                    _pendingDropAfter = dropAfter;
+                    
+                    if (_reorderTimer != null)
+                    {
+                        _reorderTimer.Stop();
+                    }
+                    else
+                    {
+                        _reorderTimer = new Avalonia.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(150) };
+                        _reorderTimer.Tick += (s, args) => 
+                        {
+                            _reorderTimer.Stop();
+                            if (_pendingTargetId != null && DataContext is ViewModels.MainWindowViewModel currentVm)
+                            {
+                                try { currentVm.ReorderInstance(movedId, _pendingTargetId, _pendingDropAfter, save: false); }
+                                catch (Exception ex) { CustomMcLauncher.Services.LauncherLog.Error("Real-time reorder failed", ex); }
+                            }
+                        };
+                    }
+                    _reorderTimer.Start();
+                }
+            }
+            else
+            {
+                if (_reorderTimer != null)
+                {
+                    _reorderTimer.Stop();
+                }
+                _pendingTargetId = null;
             }
         }
     }
@@ -350,6 +404,20 @@ public partial class MainWindow : Window
 
     private void ResetDrag()
     {
+        if (_reorderTimer != null)
+        {
+            _reorderTimer.Stop();
+            _reorderTimer = null;
+        }
+        _pendingTargetId = null;
+
+        var dragOverlay = this.FindControl<Canvas>("DragOverlayPanel");
+        if (dragOverlay != null && _ghostRect != null)
+        {
+            dragOverlay.Children.Remove(_ghostRect);
+        }
+        _ghostRect = null;
+
         if (_draggedCard != null)
         {
             _draggedCard.Classes.Remove("dragging");

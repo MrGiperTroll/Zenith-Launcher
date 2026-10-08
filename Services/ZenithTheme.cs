@@ -10,9 +10,9 @@ public static class ZenithTheme
 
     public static string AccentHex { get; private set; } = DefaultAccent;
 
-    public static void Apply(string? hex)
+    public static void Apply(Models.LauncherConfigData cfg)
     {
-        AccentHex = TryParse(hex) ? hex! : DefaultAccent;
+        AccentHex = TryParse(cfg.AccentColor) ? cfg.AccentColor! : DefaultAccent;
 
         if (Application.Current is not { } app) return;
         var r = app.Resources;
@@ -20,6 +20,16 @@ public static class ZenithTheme
         var accent = Color.Parse(AccentHex);
         var hover = Lighten(accent, 0.16f);
         var pressed = Darken(accent, 0.2f);
+
+        
+        if (TryParse(cfg.BgColor)) r["BgBrush"] = new SolidColorBrush(Color.Parse(cfg.BgColor));
+        if (TryParse(cfg.SurfaceColor)) r["SurfaceBrush"] = new SolidColorBrush(Color.Parse(cfg.SurfaceColor));
+        if (TryParse(cfg.PanelColor)) r["PanelBrush"] = new SolidColorBrush(Color.Parse(cfg.PanelColor));
+        if (TryParse(cfg.PanelColor)) {
+            // Need a transparent version of panel brush for sidebar
+            var pc = Color.Parse(cfg.PanelColor);
+            r["PanelBrushTransparent"] = new SolidColorBrush(Color.FromArgb(0, pc.R, pc.G, pc.B));
+        }
 
         r["AccentBrush"] = new SolidColorBrush(accent);
         r["AccentBrushHover"] = new SolidColorBrush(hover);

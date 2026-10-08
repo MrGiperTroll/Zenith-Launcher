@@ -315,12 +315,16 @@
                     <StackPanel Spacing="16" IsVisible="{Binding IsSettingsTabAppearance}">
                         <TextBlock Text="Launcher Settings" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,4"/>
 
-                        <StackPanel Spacing="6" IsVisible="{Binding IsSearchDiscordVisible}">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <CheckBox Content="{l10n:Tr set_discord}" IsChecked="{Binding DiscordRpcEnabled}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" VerticalAlignment="Center"/>
-                            </StackPanel>
-                            <TextBlock Text="{l10n:Tr set_discord_hint}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
-                        </StackPanel>
+                        <!-- Discord Rich Presence Card -->
+                        <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="10" Padding="12,10" IsVisible="{Binding IsSearchDiscordVisible}">
+                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                <StackPanel Grid.Column="0" Spacing="4" VerticalAlignment="Center">
+                                    <TextBlock Text="{l10n:Tr set_discord}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="{l10n:Tr set_discord_hint}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <CheckBox Grid.Column="1" IsChecked="{Binding DiscordRpcEnabled}" VerticalAlignment="Center" Margin="16,0,0,0"/>
+                            </Grid>
+                        </Border>
 
                         <!-- Edit Theme Card -->
                         <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="10" Padding="12,10" IsVisible="{Binding IsSearchAppearanceVisible}">

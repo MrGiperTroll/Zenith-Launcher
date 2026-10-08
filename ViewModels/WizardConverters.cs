@@ -358,6 +358,24 @@ public class JavaModeDisplayConverter : IValueConverter
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
 }
 
+/// <summary>Localizes particle effect names ("None"/"Snowflakes"/"Leaves").</summary>
+public class ParticleDisplayConverter : IValueConverter
+{
+    public static readonly ParticleDisplayConverter Instance = new();
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is not string s || string.IsNullOrWhiteSpace(s)) return "";
+        return s switch
+        {
+            "None" => L10n.T("particle_none"),
+            "Snowflakes" => L10n.T("particle_snow"),
+            "Leaves" => L10n.T("particle_leaves"),
+            _ => s
+        };
+    }
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
+}
+
 /// <summary>Localizes the Launch Behavior combo ("KeepOpen"/"Hide"/"Close").</summary>
 public class LaunchBehaviorDisplayConverter : IValueConverter
 {

@@ -306,7 +306,7 @@ public partial class MainWindow : Window
             }
             
             _draggedInstance.IsDragging = true;
-            _draggedCard.Opacity = 0.01; // Hide the real card but keep it barely visible for bounding box
+            _draggedCard.Opacity = 0.4; // Hide the real card but keep it barely visible for bounding box
         }
 
         if (_isDragging && _ghostRect != null)
@@ -347,7 +347,7 @@ public partial class MainWindow : Window
                     }
                     else
                     {
-                        _reorderTimer = new Avalonia.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(150) };
+                        _reorderTimer = new Avalonia.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(200) };
                         _reorderTimer.Tick += (s, args) => 
                         {
                             _reorderTimer.Stop();

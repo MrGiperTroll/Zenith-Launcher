@@ -1,7 +1,15 @@
-import re
-with open('Services/L10n.cs', 'r', encoding='utf-8-sig') as f:
-    content = f.read()
-content = content.replace('[\"cp_upload_icon\"] = \"Загрузить иконку\"', '[\"cp_upload_icon\"] = \"Загрузить\"')
-content = content.replace('[\"cp_upload_icon\"] = \"Завантажити іконку\"', '[\"cp_upload_icon\"] = \"Завантажити\"')
-with open('Services/L10n.cs', 'w', encoding='utf-8-sig') as f:
-    f.write(content)
+п»їimport re
+
+with open('Services/L10n.cs', 'r', encoding='utf-8') as f:
+    text = f.read()
+
+# Add to English
+en_insert = '["theme_advanced"] = "Advanced",\n        ["theme_simple"] = "Simple",\n        ["theme_customize"] = "Customize",'
+text = text.replace('["theme_particles"] = "Background Particles (Leaves/Snow)",', '["theme_particles"] = "Background Particles (Leaves/Snow)",\n        ' + en_insert)
+
+# Add to Russian
+ru_insert = '["theme_advanced"] = "РџСЂРѕРґРІРёРЅСѓС‚С‹Рµ",\n        ["theme_simple"] = "РџСЂРѕСЃС‚С‹Рµ",\n        ["theme_customize"] = "РљР°СЃС‚РѕРјРёР·Р°С†РёСЏ",'
+text = text.replace('["theme_particles"] = "Р§Р°СЃС‚РёС†С‹ РЅР° С„РѕРЅРµ (Р›РёСЃС‚СЊСЏ/РЎРЅРµРі)",', '["theme_particles"] = "Р§Р°СЃС‚РёС†С‹ РЅР° С„РѕРЅРµ (Р›РёСЃС‚СЊСЏ/РЎРЅРµРі)",\n        ' + ru_insert)
+
+with open('Services/L10n.cs', 'w', encoding='utf-8') as f:
+    f.write(text)

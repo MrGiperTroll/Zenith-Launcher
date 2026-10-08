@@ -845,7 +845,7 @@
 
                     <!-- In-Window Accounts View -->
                     <Panel x:Name="AccountsPane" Classes="viewPane" IsVisible="{Binding IsAccountsView}" Margin="0,0,16,0">
-                        <views:AccountsView DataContext="{Binding}"/>
+                        <views:AccountsView DataContext="{Binding AccountsVm}"/>
                     </Panel>
 
                     <!-- In-Window Create Profile View -->

@@ -587,6 +587,72 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private string _pendingRestartThemeHex = "";
 
+    [ObservableProperty]
+    private bool _isThemeDiscardConfirmOpen;
+
+    private string _pendingThemeSubTab = "";
+
+    // Track saved theme baseline to detect unsaved modifications
+    private string _savedBgHex = "#080A0F";
+    private string _savedSidebarBgHex = "#06080D";
+    private string _savedSurfaceHex = "#0D111A";
+    private string _savedCardHex = "#0D111A";
+    private string _savedPanelHex = "#121722";
+    private string _savedBorderDarkHex = "#121622";
+    private string _savedTextPrimaryHex = "#FFFFFF";
+    private string _savedTextSecondaryHex = "#C5CBD6";
+    private string _savedCustomThemeHex = ZenithTheme.DefaultAccent;
+
+    public void SnapshotCurrentSavedTheme()
+    {
+        _savedBgHex = BgHex;
+        _savedSidebarBgHex = SidebarBgHex;
+        _savedSurfaceHex = SurfaceHex;
+        _savedCardHex = CardHex;
+        _savedPanelHex = PanelHex;
+        _savedBorderDarkHex = BorderDarkHex;
+        _savedTextPrimaryHex = TextPrimaryHex;
+        _savedTextSecondaryHex = TextSecondaryHex;
+        _savedCustomThemeHex = CustomThemeHex;
+    }
+
+    public bool HasUnsavedThemeChanges()
+    {
+        return !string.Equals(_savedBgHex, BgHex, StringComparison.OrdinalIgnoreCase)
+            || !string.Equals(_savedSidebarBgHex, SidebarBgHex, StringComparison.OrdinalIgnoreCase)
+            || !string.Equals(_savedSurfaceHex, SurfaceHex, StringComparison.OrdinalIgnoreCase)
+            || !string.Equals(_savedCardHex, CardHex, StringComparison.OrdinalIgnoreCase)
+            || !string.Equals(_savedPanelHex, PanelHex, StringComparison.OrdinalIgnoreCase)
+            || !string.Equals(_savedBorderDarkHex, BorderDarkHex, StringComparison.OrdinalIgnoreCase)
+            || !string.Equals(_savedTextPrimaryHex, TextPrimaryHex, StringComparison.OrdinalIgnoreCase)
+            || !string.Equals(_savedTextSecondaryHex, TextSecondaryHex, StringComparison.OrdinalIgnoreCase)
+            || !string.Equals(_savedCustomThemeHex, CustomThemeHex, StringComparison.OrdinalIgnoreCase);
+    }
+
+    public void RevertThemeToSaved()
+    {
+        _isLoadingConfig = true;
+        try
+        {
+            BgHex = _savedBgHex;
+            SidebarBgHex = _savedSidebarBgHex;
+            SurfaceHex = _savedSurfaceHex;
+            CardHex = _savedCardHex;
+            PanelHex = _savedPanelHex;
+            BorderDarkHex = _savedBorderDarkHex;
+            TextPrimaryHex = _savedTextPrimaryHex;
+            TextSecondaryHex = _savedTextSecondaryHex;
+            CustomThemeHex = _savedCustomThemeHex;
+            CurrentAccentHex = _savedCustomThemeHex;
+            UpdatePreviewBrushes(_savedCustomThemeHex);
+            ZenithTheme.Apply(GetLauncherConfigSnapshot());
+        }
+        finally
+        {
+            _isLoadingConfig = false;
+        }
+    }
+
     [RelayCommand]
     public void ChooseTheme(string hex)
     {
@@ -618,18 +684,23 @@ public partial class MainWindowViewModel : ViewModelBase
         CurrentAccentHex = hex;
         CustomThemeHex = hex;
 
-        var harmonized = ZenithTheme.GenerateHarmonizedPalette(hex);
-        BgHex = harmonized.BgColor!;
-        SidebarBgHex = harmonized.SidebarBgColor!;
-        SurfaceHex = harmonized.SurfaceColor!;
-        CardHex = harmonized.CardColor!;
-        PanelHex = harmonized.PanelColor!;
-        BorderDarkHex = harmonized.BorderDarkColor!;
-        TextPrimaryHex = harmonized.TextPrimaryColor!;
-        TextSecondaryHex = harmonized.TextSecondaryColor!;
+        // If in Advanced mode, preserve the user's manual palette customizations instead of wiping them!
+        if (IsThemeSubTabSimple)
+        {
+            var harmonized = ZenithTheme.GenerateHarmonizedPalette(hex);
+            BgHex = harmonized.BgColor!;
+            SidebarBgHex = harmonized.SidebarBgColor!;
+            SurfaceHex = harmonized.SurfaceColor!;
+            CardHex = harmonized.CardColor!;
+            PanelHex = harmonized.PanelColor!;
+            BorderDarkHex = harmonized.BorderDarkColor!;
+            TextPrimaryHex = harmonized.TextPrimaryColor!;
+            TextSecondaryHex = harmonized.TextSecondaryColor!;
+        }
 
         ZenithTheme.Apply(GetLauncherConfigSnapshot());
         SaveLauncherConfig();
+        SnapshotCurrentSavedTheme();
     }
 
     [RelayCommand]
@@ -682,6 +753,28 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         Environment.Exit(0);
+    }
+
+    [RelayCommand]
+    public void ConfirmDiscardThemeChanges()
+    {
+        IsThemeDiscardConfirmOpen = false;
+        RevertThemeToSaved();
+        if (!string.IsNullOrWhiteSpace(_pendingThemeSubTab))
+        {
+            ThemeSubTab = _pendingThemeSubTab;
+            _pendingThemeSubTab = "";
+            OnPropertyChanged(nameof(IsThemeSubTabSimple));
+            OnPropertyChanged(nameof(IsThemeSubTabAdvanced));
+            SaveLauncherConfig();
+        }
+    }
+
+    [RelayCommand]
+    public void CancelDiscardThemeChanges()
+    {
+        IsThemeDiscardConfirmOpen = false;
+        _pendingThemeSubTab = "";
     }
 
     [RelayCommand]
@@ -1727,6 +1820,7 @@ public partial class MainWindowViewModel : ViewModelBase
         LauncherScale = LauncherScale,
                 SelectedParticle = SelectedParticle,
                 Language = SelectedLanguage,
+                ThemeSubTab = ThemeSubTab,
                 IsSidebarExpanded = IsSidebarExpanded
             };
             File.WriteAllText(configPath, System.Text.Json.JsonSerializer.Serialize(configData, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
@@ -1766,10 +1860,10 @@ public partial class MainWindowViewModel : ViewModelBase
         LauncherScale = LauncherScale,
         SelectedParticle = SelectedParticle,
         Language = SelectedLanguage,
+        ThemeSubTab = ThemeSubTab,
         IsSidebarExpanded = IsSidebarExpanded
     };
 
-    
     [ObservableProperty]
     private string _themeSubTab = "Simple";
 
@@ -1779,20 +1873,35 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     public void SwitchThemeSubTab(string tab)
     {
+        if (ThemeSubTab == tab) return;
+
+        if (HasUnsavedThemeChanges())
+        {
+            _pendingThemeSubTab = tab;
+            IsThemeDiscardConfirmOpen = true;
+            return;
+        }
+
         ThemeSubTab = tab;
         OnPropertyChanged(nameof(IsThemeSubTabSimple));
         OnPropertyChanged(nameof(IsThemeSubTabAdvanced));
+        SaveLauncherConfig();
     }
 
     [RelayCommand]
     private void OpenThemeEditor()
     {
+        SnapshotCurrentSavedTheme();
         SwitchSettingsTab("Theme");
     }
     
     [RelayCommand]
     private void CloseThemeEditor()
     {
+        if (HasUnsavedThemeChanges())
+        {
+            RevertThemeToSaved();
+        }
         SwitchSettingsTab("Appearance");
     }
 
@@ -1866,7 +1975,14 @@ public partial class MainWindowViewModel : ViewModelBase
                     DiscordRpcEnabled = cfg.DiscordRpcEnabled;
                     if (cfg.LauncherScale > 0.4 && cfg.LauncherScale < 3.0) LauncherScale = cfg.LauncherScale;
                     if (!string.IsNullOrEmpty(cfg.SelectedParticle)) SelectedParticle = cfg.SelectedParticle;
+                    if (!string.IsNullOrWhiteSpace(cfg.ThemeSubTab))
+                    {
+                        ThemeSubTab = cfg.ThemeSubTab;
+                        OnPropertyChanged(nameof(IsThemeSubTabSimple));
+                        OnPropertyChanged(nameof(IsThemeSubTabAdvanced));
+                    }
                     IsSidebarExpanded = cfg.IsSidebarExpanded;
+                    SnapshotCurrentSavedTheme();
                 }
             }
         }

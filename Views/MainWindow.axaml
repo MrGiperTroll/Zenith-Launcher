@@ -430,7 +430,7 @@
                 <!-- Top Header -->
                 <Grid Grid.Row="0" Margin="0,0,24,0" VerticalAlignment="Center" ColumnDefinitions="*,Auto">
                     <!-- Left: Navigation (Back, Forward, Breadcrumbs) -->
-                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="16,0,0,0">
                         <Button Classes="navBtn" Command="{Binding GoBackCommand}" ToolTip.Tip="{l10n:Tr Key=nav_back}">
                             <PathIcon Data="M15.41 16.59L10.83 12L15.41 7.41L14 6L8 12L14 18L15.41 16.59Z" Width="14" Height="14"/>
                         </Button>
@@ -987,6 +987,20 @@
                     <Grid ColumnDefinitions="*,*" Margin="0,4,0,0">
                         <Button Grid.Column="0" Content="{l10n:Tr Key=no}" Command="{Binding CancelRestartConfirmCommand}" Classes="subBtn" HorizontalContentAlignment="Center" Margin="0,0,6,0" Height="36"/>
                         <Button Grid.Column="1" Classes="primaryBtn" Content="{l10n:Tr Key=yes}" Command="{Binding ConfirmRestartAndApplyThemeCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="6,0,0,0" Height="36"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Border>
+
+        <!-- MODAL: Discard Changes Confirmation (Theme Tab Switch) -->
+        <Border IsVisible="{Binding IsThemeDiscardConfirmOpen}" Background="{StaticResource OverlayBrush}">
+            <Border Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="400" Padding="22" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel Spacing="14">
+                    <TextBlock Text="{l10n:Tr Key=dialog_discard_title}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Text="{l10n:Tr Key=dialog_discard_theme_msg}" TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12.5" LineHeight="18"/>
+                    <Grid ColumnDefinitions="*,*" Margin="0,4,0,0">
+                        <Button Grid.Column="0" Content="{l10n:Tr Key=no}" Command="{Binding CancelDiscardThemeChangesCommand}" Classes="subBtn" HorizontalContentAlignment="Center" Margin="0,0,6,0" Height="36"/>
+                        <Button Grid.Column="1" Classes="primaryBtn" Content="{l10n:Tr Key=yes}" Command="{Binding ConfirmDiscardThemeChangesCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="6,0,0,0" Height="36"/>
                     </Grid>
                 </StackPanel>
             </Border>

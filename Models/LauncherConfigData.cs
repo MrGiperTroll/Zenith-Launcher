@@ -37,5 +37,7 @@ public class LauncherConfigData
     public double LauncherScale { get; set; } = 1.0;
     public bool IsSidebarExpanded { get; set; } = false;
 
+    public string ThemeSubTab { get; set; } = "Simple";
+
     public bool IsSetupCompleted { get; set; }
 }

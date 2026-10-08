@@ -1,13 +1,14 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:CustomMcLauncher.ViewModels"
+             xmlns:pages="using:CustomMcLauncher.ViewModels.Pages"
         xmlns:converters="using:CustomMcLauncher.Converters"
              xmlns:views="using:CustomMcLauncher.Views"
              xmlns:l10n="using:CustomMcLauncher.Extensions"
              xmlns:services="using:CustomMcLauncher.Services"
              x:Name="RootSettingsControl"
              x:Class="CustomMcLauncher.Views.LauncherSettingsView"
-             x:DataType="vm:MainWindowViewModel"
+             x:DataType="pages:LauncherSettingsViewModel"
              Background="{StaticResource BgBrush}">
 
     <UserControl.Styles>
@@ -363,7 +364,7 @@
                       </StackPanel>
                   </StackPanel>
               </ScrollViewer>
-              <views:ThemeSettingsView Grid.Column="1" IsVisible="{Binding IsSettingsTabTheme}" Padding="24,20,28,20"/>
+              <views:ThemeSettingsView Grid.Column="1" DataContext="{Binding ThemeSettingsVm}" IsVisible="{Binding $parent[UserControl].((pages:LauncherSettingsViewModel)DataContext).IsSettingsTabTheme}" Padding="24,20,28,20"/>
         </Grid>
 
         <!-- MODAL: Restart Confirmation (Theme Application) -->

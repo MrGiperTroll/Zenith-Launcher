@@ -20,6 +20,7 @@ using CustomMcLauncher.Models;
 using CustomMcLauncher.Services;
 using CustomMcLauncher.UI.Theming;
 using CustomMcLauncher.ViewModels.Common;
+using CustomMcLauncher.ViewModels.Pages;
 using CustomMcLauncher.Views;
 
 namespace CustomMcLauncher.ViewModels;
@@ -1694,8 +1695,33 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
+    public ThemeSettingsViewModel ThemeSettingsVm { get; }
+    public LauncherSettingsViewModel LauncherSettingsVm { get; }
+
     public MainWindowViewModel()
     {
+        ThemeSettingsVm = new ThemeSettingsViewModel
+        {
+            GetConfigSnapshot = () => GetLauncherConfigSnapshot(),
+            SaveConfigRequested = () => SaveLauncherConfig()
+        };
+        LauncherSettingsVm = new LauncherSettingsViewModel(ThemeSettingsVm)
+        {
+            SaveConfigRequested = () => SaveLauncherConfig(),
+            VersionFiltersChanged = () => FilterVersions(),
+            LanguageChanged = lang => SelectedLanguage = lang,
+            DiscordRpcChanged = enabled => DiscordRpcEnabled = enabled,
+            OpenJavaInstallerRequested = () => OpenJavaInstaller(),
+            GetRecommendedJavaDisplay = () =>
+            {
+                var inst = SelectedInstance ?? _instanceService?.GetSelectedInstance();
+                return inst != null
+                    ? Services.JavaVersionHelper.RecommendedDisplay(inst.Version)
+                    : L10n.T("java_display_auto");
+            },
+            GetWindowTitle = () => WindowTitle
+        };
+
         LoadLauncherConfig();
 
         // Force-apply the language even when the loaded value equals the
@@ -1920,6 +1946,8 @@ public partial class MainWindowViewModel : ViewModelBase
                 SimpleAccentColor = _savedSimpleAccentHex,
                 IsSidebarExpanded = IsSidebarExpanded
             };
+            LauncherSettingsVm?.ApplyToConfig(configData);
+            ThemeSettingsVm?.ApplyToConfig(configData);
             File.WriteAllText(configPath, System.Text.Json.JsonSerializer.Serialize(configData, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
         }
         catch { }
@@ -1929,39 +1957,45 @@ public partial class MainWindowViewModel : ViewModelBase
     /// Snapshot of the current global launcher settings, used by the instance editor
     /// so per-instance settings inherit the global defaults unless explicitly overridden.
     /// </summary>
-    public LauncherConfigData GetLauncherConfigSnapshot() => new()
+    public LauncherConfigData GetLauncherConfigSnapshot()
     {
-        LauncherName = LauncherName,
-        AccentColor = CurrentAccentHex,
-        BgColor = BgHex,
-        SurfaceColor = SurfaceHex,
-        PanelColor = PanelHex,
-        SidebarBgColor = SidebarBgHex,
-        CardColor = CardHex,
-        FieldColor = FieldHex,
-        HoverColor = HoverHex,
-        TextPrimaryColor = TextPrimaryHex,
-        TextSecondaryColor = TextSecondaryHex,
-        BorderDarkColor = BorderDarkHex,
-        JvmArgs = JvmArgs,
-        MinRamMb = MinRamMb,
-        RamMb = RamMb,
-        LaunchBehavior = SelectedLaunchBehavior,
-        GameWidth = GameWidth,
-        GameHeight = GameHeight,
-        IsFullscreen = IsFullscreen,
-        SelectedDirectoryMode = SelectedDirectoryMode,
-        JavaMode = SelectedJavaMode,
-        CustomJavaPath = CustomJavaPath,
-        UseFlatVersionList = UseFlatVersionList,
-        AutoManageJava = AutoManageJava,
-        DiscordRpcEnabled = DiscordRpcEnabled,
-        LauncherScale = LauncherScale,
-        SelectedParticle = SelectedParticle,
-        Language = SelectedLanguage,
-        ThemeSubTab = ThemeSubTab,
-        IsSidebarExpanded = IsSidebarExpanded
-    };
+        var snapshot = new LauncherConfigData
+        {
+            LauncherName = LauncherName,
+            AccentColor = CurrentAccentHex,
+            BgColor = BgHex,
+            SurfaceColor = SurfaceHex,
+            PanelColor = PanelHex,
+            SidebarBgColor = SidebarBgHex,
+            CardColor = CardHex,
+            FieldColor = FieldHex,
+            HoverColor = HoverHex,
+            TextPrimaryColor = TextPrimaryHex,
+            TextSecondaryColor = TextSecondaryHex,
+            BorderDarkColor = BorderDarkHex,
+            JvmArgs = JvmArgs,
+            MinRamMb = MinRamMb,
+            RamMb = RamMb,
+            LaunchBehavior = SelectedLaunchBehavior,
+            GameWidth = GameWidth,
+            GameHeight = GameHeight,
+            IsFullscreen = IsFullscreen,
+            SelectedDirectoryMode = SelectedDirectoryMode,
+            JavaMode = SelectedJavaMode,
+            CustomJavaPath = CustomJavaPath,
+            UseFlatVersionList = UseFlatVersionList,
+            AutoManageJava = AutoManageJava,
+            DiscordRpcEnabled = DiscordRpcEnabled,
+            LauncherScale = LauncherScale,
+            SelectedParticle = SelectedParticle,
+            Language = SelectedLanguage,
+            ThemeSubTab = ThemeSubTab,
+            IsSidebarExpanded = IsSidebarExpanded
+        };
+        LauncherSettingsVm?.ApplyToConfig(snapshot);
+        ThemeSettingsVm?.ApplyToConfig(snapshot);
+        return snapshot;
+    }
 
     [ObservableProperty]
     private string _themeSubTab = "Simple";
@@ -2106,6 +2140,8 @@ public partial class MainWindowViewModel : ViewModelBase
                     if (cfg.LauncherScale > 0.4 && cfg.LauncherScale < 3.0) LauncherScale = cfg.LauncherScale;
                     if (!string.IsNullOrEmpty(cfg.SelectedParticle)) SelectedParticle = cfg.SelectedParticle;
                     IsSidebarExpanded = cfg.IsSidebarExpanded;
+                    LauncherSettingsVm?.LoadFromConfig(cfg);
+                    ThemeSettingsVm?.LoadFromConfig(cfg);
                     SnapshotCurrentSavedTheme();
                 }
             }

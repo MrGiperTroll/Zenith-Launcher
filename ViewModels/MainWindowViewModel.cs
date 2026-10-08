@@ -98,7 +98,6 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly IInstanceService _instanceService;
     private readonly ILaunchService _launchService;
     private readonly ModLoaderService _modLoaderService;
-    private readonly List<Views.EditInstanceWindow> _editInstanceWindows = new();
     private readonly List<(string Name, string Type)> _cachedVersions = new();
 
     [ObservableProperty]

@@ -1,9 +1,11 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:CustomMcLauncher.ViewModels"
+        xmlns:converters="using:CustomMcLauncher.Converters"
              xmlns:controls="using:CustomMcLauncher.Controls"
              xmlns:l10n="using:CustomMcLauncher.Extensions"
-             xmlns:services="using:CustomMcLauncher.Services"
+             xmlns:theming="using:CustomMcLauncher.UI.Theming"
+              xmlns:services="using:CustomMcLauncher.Services"
              x:Class="CustomMcLauncher.Views.ThemeSettingsView"
              x:DataType="vm:MainWindowViewModel">
     
@@ -159,7 +161,7 @@
                         </Grid>
 
                         <!-- Preview Sandbox Box (Dynamic live update) -->
-                        <Border Background="{Binding BgHex, Converter={x:Static vm:HexToBrushConverter.Instance}}" BorderBrush="{Binding BorderDarkHex, Converter={x:Static vm:HexToBrushConverter.Instance}}" BorderThickness="1" CornerRadius="8" Height="90" ClipToBounds="True">
+                        <Border Background="{Binding BgHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{Binding BorderDarkHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderThickness="1" CornerRadius="8" Height="90" ClipToBounds="True">
                             <Panel>
                                 <!-- Simulated particle animation layer -->
                                 <controls:ParticleSystemControl ParticleType="{Binding SelectedParticle}" IsHitTestVisible="False"/>
@@ -167,17 +169,17 @@
                                 <!-- Sample UI elements displaying active theme styles -->
                                 <Grid ColumnDefinitions="Auto,*,Auto" Margin="14" VerticalAlignment="Center">
                                     <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                                        <Border Width="34" Height="34" CornerRadius="7" Background="{Binding SurfaceHex, Converter={x:Static vm:HexToBrushConverter.Instance}}" BorderBrush="{Binding BorderDarkHex, Converter={x:Static vm:HexToBrushConverter.Instance}}" BorderThickness="1" VerticalAlignment="Center">
+                                        <Border Width="34" Height="34" CornerRadius="7" Background="{Binding SurfaceHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{Binding BorderDarkHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderThickness="1" VerticalAlignment="Center">
                                             <Path Data="{StaticResource ZenithLogoGeometry}" Fill="{Binding PreviewAccentBrush}" Stretch="Uniform" Width="18" Height="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Border>
                                         <StackPanel VerticalAlignment="Center" Spacing="2">
-                                            <TextBlock Text="Zenith Launcher" FontSize="13" FontWeight="Bold" Foreground="{Binding TextPrimaryHex, Converter={x:Static vm:HexToBrushConverter.Instance}}"/>
-                                            <TextBlock Text="{Binding SelectedParticle, StringFormat='Effect: {0}'}" FontSize="11" Foreground="{Binding TextSecondaryHex, Converter={x:Static vm:HexToBrushConverter.Instance}}"/>
+                                            <TextBlock Text="Zenith Launcher" FontSize="13" FontWeight="Bold" Foreground="{Binding TextPrimaryHex, Converter={x:Static converters:HexToBrushConverter.Instance}}"/>
+                                            <TextBlock Text="{Binding SelectedParticle, StringFormat='Effect: {0}'}" FontSize="11" Foreground="{Binding TextSecondaryHex, Converter={x:Static converters:HexToBrushConverter.Instance}}"/>
                                         </StackPanel>
                                     </StackPanel>
 
                                     <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                        <Border Background="{Binding SurfaceHex, Converter={x:Static vm:HexToBrushConverter.Instance}}" BorderBrush="{Binding BorderDarkHex, Converter={x:Static vm:HexToBrushConverter.Instance}}" BorderThickness="1" CornerRadius="6" Padding="10,5" VerticalAlignment="Center">
+                                        <Border Background="{Binding SurfaceHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{Binding BorderDarkHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderThickness="1" CornerRadius="6" Padding="10,5" VerticalAlignment="Center">
                                             <TextBlock Text="{Binding CustomThemeHex}" FontSize="11" FontWeight="SemiBold" Foreground="{Binding PreviewAccentBrush}"/>
                                         </Border>
                                         <Button Classes="previewSampleBtn" Content="Sample Button"/>
@@ -202,14 +204,14 @@
                             </Grid>
 
                             <WrapPanel Orientation="Horizontal">
-                                <ItemsControl ItemsSource="{x:Static services:ZenithTheme.Presets}">
+                                <ItemsControl ItemsSource="{x:Static theming:ZenithTheme.Presets}">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
                                             <WrapPanel Orientation="Horizontal"/>
                                         </ItemsPanelTemplate>
                                     </ItemsControl.ItemsPanel>
                                     <ItemsControl.ItemTemplate>
-                                        <DataTemplate x:DataType="services:ThemePreset">
+                                        <DataTemplate x:DataType="theming:ThemePreset">
                                             <Button Command="{Binding $parent[ItemsControl].((vm:MainWindowViewModel)DataContext).ChooseThemeCommand}"
                                                     CommandParameter="{Binding HexColor}"
                                                     Classes="subBtn"
@@ -237,11 +239,11 @@
                                         ToolTip.Tip="Pick custom color and auto-harmonize full palette">
                                     <Button.Flyout>
                                         <Flyout Placement="BottomEdgeAlignedLeft">
-                                            <ColorView Color="{Binding CustomThemeHex, Mode=TwoWay, Converter={x:Static vm:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
+                                            <ColorView Color="{Binding CustomThemeHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
                                         </Flyout>
                                     </Button.Flyout>
                                     <Grid ColumnDefinitions="14,*,Auto" VerticalAlignment="Center">
-                                        <Border Grid.Column="0" Width="14" Height="14" CornerRadius="7" Background="{Binding CustomThemeHex, Converter={x:Static vm:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <Border Grid.Column="0" Width="14" Height="14" CornerRadius="7" Background="{Binding CustomThemeHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         <TextBlock Grid.Column="1" Text="{l10n:Tr Key=theme_custom_color}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" Margin="8,0,4,0" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
                                         <PathIcon Grid.Column="2" Data="M7 10l5 5 5-5z" Width="10" Height="10" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                     </Grid>
@@ -260,7 +262,7 @@
                             <ComboBox Grid.Column="1" ItemsSource="{Binding ParticleOptions}" SelectedItem="{Binding SelectedParticle}" Width="190" VerticalAlignment="Center">
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
-                                        <TextBlock Text="{Binding Converter={x:Static vm:ParticleDisplayConverter.Instance}}"/>
+                                        <TextBlock Text="{Binding Converter={x:Static converters:ParticleDisplayConverter.Instance}}"/>
                                     </DataTemplate>
                                 </ComboBox.ItemTemplate>
                             </ComboBox>
@@ -280,7 +282,7 @@
                             <ComboBox Grid.Column="1" ItemsSource="{Binding ParticleOptions}" SelectedItem="{Binding SelectedParticle}" Width="190" VerticalAlignment="Center">
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
-                                        <TextBlock Text="{Binding Converter={x:Static vm:ParticleDisplayConverter.Instance}}"/>
+                                        <TextBlock Text="{Binding Converter={x:Static converters:ParticleDisplayConverter.Instance}}"/>
                                     </DataTemplate>
                                 </ComboBox.ItemTemplate>
                             </ComboBox>
@@ -304,10 +306,10 @@
                                         <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="Choose Color">
                                             <Button.Flyout>
                                                 <Flyout Placement="BottomEdgeAlignedRight">
-                                                    <ColorView Color="{Binding CustomThemeHex, Mode=TwoWay, Converter={x:Static vm:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
+                                                    <ColorView Color="{Binding CustomThemeHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
                                                 </Flyout>
                                             </Button.Flyout>
-                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding CustomThemeHex, Converter={x:Static vm:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
+                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding CustomThemeHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
                                         </Button>
                                     </Grid>
                                     <!-- Background Color -->
@@ -317,10 +319,10 @@
                                         <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="Choose Color">
                                             <Button.Flyout>
                                                 <Flyout Placement="BottomEdgeAlignedRight">
-                                                    <ColorView Color="{Binding BgHex, Mode=TwoWay, Converter={x:Static vm:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
+                                                    <ColorView Color="{Binding BgHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
                                                 </Flyout>
                                             </Button.Flyout>
-                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding BgHex, Converter={x:Static vm:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
+                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding BgHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
                                         </Button>
                                     </Grid>
                                     <!-- Sidebar Background -->
@@ -330,10 +332,10 @@
                                         <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="Choose Color">
                                             <Button.Flyout>
                                                 <Flyout Placement="BottomEdgeAlignedRight">
-                                                    <ColorView Color="{Binding SidebarBgHex, Mode=TwoWay, Converter={x:Static vm:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
+                                                    <ColorView Color="{Binding SidebarBgHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
                                                 </Flyout>
                                             </Button.Flyout>
-                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding SidebarBgHex, Converter={x:Static vm:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
+                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding SidebarBgHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
                                         </Button>
                                     </Grid>
                                     <!-- Surface (Cards) -->
@@ -343,10 +345,10 @@
                                         <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="Choose Color">
                                             <Button.Flyout>
                                                 <Flyout Placement="BottomEdgeAlignedRight">
-                                                    <ColorView Color="{Binding SurfaceHex, Mode=TwoWay, Converter={x:Static vm:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
+                                                    <ColorView Color="{Binding SurfaceHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
                                                 </Flyout>
                                             </Button.Flyout>
-                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding SurfaceHex, Converter={x:Static vm:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
+                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding SurfaceHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
                                         </Button>
                                     </Grid>
                                     <!-- Card Color -->
@@ -356,10 +358,10 @@
                                         <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="Choose Color">
                                             <Button.Flyout>
                                                 <Flyout Placement="BottomEdgeAlignedRight">
-                                                    <ColorView Color="{Binding CardHex, Mode=TwoWay, Converter={x:Static vm:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
+                                                    <ColorView Color="{Binding CardHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
                                                 </Flyout>
                                             </Button.Flyout>
-                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding CardHex, Converter={x:Static vm:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
+                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding CardHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
                                         </Button>
                                     </Grid>
                                     <!-- Panel (Editor) Color -->
@@ -369,10 +371,10 @@
                                         <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="Choose Color">
                                             <Button.Flyout>
                                                 <Flyout Placement="BottomEdgeAlignedRight">
-                                                    <ColorView Color="{Binding PanelHex, Mode=TwoWay, Converter={x:Static vm:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
+                                                    <ColorView Color="{Binding PanelHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
                                                 </Flyout>
                                             </Button.Flyout>
-                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding PanelHex, Converter={x:Static vm:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
+                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding PanelHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
                                         </Button>
                                     </Grid>
                                     <!-- Inputs / Controls -->
@@ -382,10 +384,10 @@
                                         <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="Choose Color">
                                             <Button.Flyout>
                                                 <Flyout Placement="BottomEdgeAlignedRight">
-                                                    <ColorView Color="{Binding FieldHex, Mode=TwoWay, Converter={x:Static vm:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
+                                                    <ColorView Color="{Binding FieldHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
                                                 </Flyout>
                                             </Button.Flyout>
-                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding FieldHex, Converter={x:Static vm:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
+                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding FieldHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
                                         </Button>
                                     </Grid>
                                     <!-- Hover / Active Tint -->
@@ -395,10 +397,10 @@
                                         <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="Choose Color">
                                             <Button.Flyout>
                                                 <Flyout Placement="BottomEdgeAlignedRight">
-                                                    <ColorView Color="{Binding HoverHex, Mode=TwoWay, Converter={x:Static vm:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
+                                                    <ColorView Color="{Binding HoverHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
                                                 </Flyout>
                                             </Button.Flyout>
-                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding HoverHex, Converter={x:Static vm:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
+                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding HoverHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
                                         </Button>
                                     </Grid>
                                     <!-- Primary Text -->
@@ -408,10 +410,10 @@
                                         <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="Choose Color">
                                             <Button.Flyout>
                                                 <Flyout Placement="BottomEdgeAlignedRight">
-                                                    <ColorView Color="{Binding TextPrimaryHex, Mode=TwoWay, Converter={x:Static vm:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
+                                                    <ColorView Color="{Binding TextPrimaryHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
                                                 </Flyout>
                                             </Button.Flyout>
-                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding TextPrimaryHex, Converter={x:Static vm:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
+                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding TextPrimaryHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
                                         </Button>
                                     </Grid>
                                     <!-- Secondary Text -->
@@ -421,10 +423,10 @@
                                         <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="Choose Color">
                                             <Button.Flyout>
                                                 <Flyout Placement="BottomEdgeAlignedRight">
-                                                    <ColorView Color="{Binding TextSecondaryHex, Mode=TwoWay, Converter={x:Static vm:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
+                                                    <ColorView Color="{Binding TextSecondaryHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
                                                 </Flyout>
                                             </Button.Flyout>
-                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding TextSecondaryHex, Converter={x:Static vm:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
+                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding TextSecondaryHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
                                         </Button>
                                     </Grid>
                                     <!-- Borders -->
@@ -434,10 +436,10 @@
                                         <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="Choose Color">
                                             <Button.Flyout>
                                                 <Flyout Placement="BottomEdgeAlignedRight">
-                                                    <ColorView Color="{Binding BorderDarkHex, Mode=TwoWay, Converter={x:Static vm:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
+                                                    <ColorView Color="{Binding BorderDarkHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
                                                 </Flyout>
                                             </Button.Flyout>
-                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding BorderDarkHex, Converter={x:Static vm:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
+                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding BorderDarkHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
                                         </Button>
                                     </Grid>
 

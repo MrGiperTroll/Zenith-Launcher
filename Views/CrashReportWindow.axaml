@@ -1,9 +1,10 @@
-<Window xmlns="https://github.com/avaloniaui"
+﻿<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="CustomMcLauncher.Views.CrashReportWindow"
         xmlns:self="using:CustomMcLauncher.Views"
         x:DataType="self:CrashReportWindowVm"
         xmlns:vm="using:CustomMcLauncher.ViewModels"
+        xmlns:converters="using:CustomMcLauncher.Converters"
         Title="{l10n:Tr crash_window_title}"
         xmlns:l10n="using:CustomMcLauncher.Extensions"
         Width="620" Height="480"
@@ -65,7 +66,7 @@
 
                 <!-- Broken mod requirements (Fabric dependency tree) -->
                 <StackPanel Spacing="5"
-                            IsVisible="{Binding Requirements.Count, Converter={x:Static vm:EditInstanceWindowConverters.IsNonZero}}">
+                            IsVisible="{Binding Requirements.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsNonZero}}">
                     <TextBlock Text="{l10n:Tr crash_req_header}" FontSize="11" FontWeight="SemiBold"
                                Foreground="{StaticResource WarningBrush}"/>
                     <Border Background="{StaticResource SurfaceBrush}" CornerRadius="8" Padding="12,10"

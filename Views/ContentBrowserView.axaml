@@ -1,6 +1,7 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:CustomMcLauncher.ViewModels"
+        xmlns:converters="using:CustomMcLauncher.Converters"
         xmlns:models="using:CustomMcLauncher.Models"
         xmlns:l10n="using:CustomMcLauncher.Extensions"
         xmlns:views="using:CustomMcLauncher.Views"
@@ -148,7 +149,7 @@
                 <ComboBox Grid.Column="0" ItemsSource="{Binding AvailableContentTypes}" SelectedItem="{Binding SelectedContentType}" VerticalAlignment="Center">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding Converter={x:Static vm:ContentBrowserConverters.ContentTypeDisplay}}"/>
+                            <TextBlock Text="{Binding Converter={x:Static converters:ContentBrowserConverters.ContentTypeDisplay}}"/>
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>
@@ -166,7 +167,7 @@
                 <ComboBox Grid.Column="2" ItemsSource="{Binding SortOptions}" SelectedItem="{Binding SelectedSortDisplay}" VerticalAlignment="Center" FontSize="11">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding Converter={x:Static vm:SortDisplayConverter.Instance}}" FontSize="11"/>
+                            <TextBlock Text="{Binding Converter={x:Static converters:SortDisplayConverter.Instance}}" FontSize="11"/>
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>
@@ -207,7 +208,7 @@
                                             <TextBlock Text="{Binding Title}" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
                                             <TextBlock Text="{Binding Author}" FontSize="10.5" Foreground="{StaticResource TextLabelBrush}" TextTrimming="CharacterEllipsis"/>
                                             <TextBlock Text="{Binding Description}" FontSize="10.5" Foreground="{StaticResource TextMutedBrush}" TextTrimming="CharacterEllipsis" MaxLines="2" TextWrapping="Wrap"/>
-                                            <TextBlock Text="{Binding TagsLabel}" FontSize="9.5" Foreground="{StaticResource AccentBrush}" TextTrimming="CharacterEllipsis" IsVisible="{Binding TagsLabel, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}"/>
+                                            <TextBlock Text="{Binding TagsLabel}" FontSize="9.5" Foreground="{StaticResource AccentBrush}" TextTrimming="CharacterEllipsis" IsVisible="{Binding TagsLabel, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
                                         </StackPanel>
                                         <!-- Right: stats + fixed button -->
                                         <Grid Grid.Column="2" RowDefinitions="*,Auto" Margin="0,8,12,8">
@@ -226,7 +227,7 @@
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
-                    <Border Grid.Row="1" Background="{StaticResource BgBrush}" Padding="8,6" IsVisible="{Binding StatusText, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}">
+                    <Border Grid.Row="1" Background="{StaticResource BgBrush}" Padding="8,6" IsVisible="{Binding StatusText, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}">
                         <TextBlock Text="{Binding StatusText}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                     </Border>
                 </Grid>
@@ -264,7 +265,7 @@
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="vm:BrowserTag">
-                                    <Button Classes="tagChip" Classes.selected="{Binding IsSelected}" Content="{Binding Name, Converter={x:Static vm:ContentBrowserConverters.TagDisplay}}" Margin="0,0,6,6"
+                                    <Button Classes="tagChip" Classes.selected="{Binding IsSelected}" Content="{Binding Name, Converter={x:Static converters:ContentBrowserConverters.TagDisplay}}" Margin="0,0,6,6"
                                             Command="{Binding $parent[views:ContentBrowserView].((vm:ContentBrowserViewModel)DataContext).ApplyTagCommand}" CommandParameter="{Binding}"/>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
@@ -277,8 +278,8 @@
                     <StackPanel Spacing="6">
                         <TextBlock Text="{l10n:Tr Key=cb_quick_info}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextCaptionBrush}" LetterSpacing="1"/>
                         <TextBlock FontSize="11" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap">
-                            <Run Text="{l10n:Tr Key=cb_type}" FontWeight="SemiBold"/><Run Text=" "/><Run Text="{Binding SelectedContentType, Converter={x:Static vm:ContentBrowserConverters.ContentTypeDisplay}}"/>
-                            <LineBreak/><Run Text="{l10n:Tr Key=cb_sort}" FontWeight="SemiBold"/><Run Text=" "/><Run Text="{Binding SelectedSortDisplay, Converter={x:Static vm:SortDisplayConverter.Instance}}"/>
+                            <Run Text="{l10n:Tr Key=cb_type}" FontWeight="SemiBold"/><Run Text=" "/><Run Text="{Binding SelectedContentType, Converter={x:Static converters:ContentBrowserConverters.ContentTypeDisplay}}"/>
+                            <LineBreak/><Run Text="{l10n:Tr Key=cb_sort}" FontWeight="SemiBold"/><Run Text=" "/><Run Text="{Binding SelectedSortDisplay, Converter={x:Static converters:SortDisplayConverter.Instance}}"/>
                         </TextBlock>
                         <Button Classes="subBtn" Content="{l10n:Tr Key=cb_clear}" Command="{Binding ClearFiltersCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
                     </StackPanel>

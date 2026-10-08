@@ -1,6 +1,8 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:CustomMcLauncher.ViewModels"
+        xmlns:converters="using:CustomMcLauncher.Converters"
+        xmlns:controls="using:CustomMcLauncher.Controls"
              xmlns:views="using:CustomMcLauncher.Views"
              xmlns:services="using:CustomMcLauncher.Services"
              xmlns:l10n="using:CustomMcLauncher.Extensions"
@@ -163,7 +165,7 @@
                     <StackPanel Spacing="4">
                         <TextBlock Text="No servers created yet. Click '+ New' to create one."
                                    FontSize="11" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"
-                                   IsVisible="{Binding ExistingServers.Count, Converter={x:Static vm:EditInstanceWindowConverters.IsZero}}"
+                                   IsVisible="{Binding ExistingServers.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}"
                                    Margin="4,16"/>
 
                         <ListBox Classes="serverList" ItemsSource="{Binding ExistingServers}" SelectedItem="{Binding SelectedServerName}">
@@ -237,7 +239,7 @@
                             <!-- RAM Allocation & Port Grid -->
                             <Grid ColumnDefinitions="*,*" ColumnSpacing="16">
                                 <!-- RAM Allocation: Unified RamCardControl -->
-                                <views:RamCardControl Grid.Column="0"
+                                <controls:RamCardControl Grid.Column="0"
                                                       Value="{Binding RamMb}"
                                                       Minimum="512"
                                                       Maximum="32768"
@@ -264,7 +266,7 @@
                             </StackPanel>
 
                             <!-- Error Status -->
-                            <TextBlock Text="{Binding StatusText}" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource DangerLightBrush}" IsVisible="{Binding StatusText, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}" Margin="0,4,0,0"/>
+                            <TextBlock Text="{Binding StatusText}" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource DangerLightBrush}" IsVisible="{Binding StatusText, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}" Margin="0,4,0,0"/>
 
                             <!-- Action Buttons -->
                             <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,12,0,0">
@@ -533,7 +535,7 @@
                             </Border>
 
                             <!-- Feedback Message -->
-                            <Border IsVisible="{Binding ConfigStatusMessage, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}" Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource AccentBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6">
+                            <Border IsVisible="{Binding ConfigStatusMessage, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}" Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource AccentBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6">
                                 <TextBlock Text="{Binding ConfigStatusMessage}" Foreground="{StaticResource AccentBrush}" FontWeight="SemiBold" FontSize="12"/>
                             </Border>
 
@@ -644,7 +646,7 @@
                             </Grid>
 
                             <!-- Empty State -->
-                            <TextBlock Text="No plugins or mods installed yet. Click 'Add JAR...' to install one." FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding InstalledPlugins.Count, Converter={x:Static vm:EditInstanceWindowConverters.IsZero}}" Margin="0,16"/>
+                            <TextBlock Text="No plugins or mods installed yet. Click 'Add JAR...' to install one." FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding InstalledPlugins.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}" Margin="0,16"/>
 
                             <!-- Plugins List (Rich Cards) -->
                             <ItemsControl ItemsSource="{Binding InstalledPlugins}" Margin="0,4,0,0">
@@ -662,7 +664,7 @@
                                                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3">
                                                     <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                                         <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" MaxWidth="360"/>
-                                                        <Border Background="{StaticResource AccentDimBrush}" CornerRadius="4" Padding="6,1" VerticalAlignment="Center" IsVisible="{Binding Version, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}">
+                                                        <Border Background="{StaticResource AccentDimBrush}" CornerRadius="4" Padding="6,1" VerticalAlignment="Center" IsVisible="{Binding Version, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}">
                                                             <TextBlock Text="{Binding Version}" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}"/>
                                                         </Border>
                                                         <Border Background="{StaticResource RowHoverBrush}" CornerRadius="4" Padding="6,1" VerticalAlignment="Center">
@@ -672,7 +674,7 @@
                                                             <TextBlock Text="{Binding StatusText}" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
                                                         </Border>
                                                     </StackPanel>
-                                                    <TextBlock Text="{Binding Description}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" IsVisible="{Binding Description, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}"/>
+                                                    <TextBlock Text="{Binding Description}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" IsVisible="{Binding Description, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
                                                 </StackPanel>
 
                                                 <!-- Action buttons: Toggle & Delete -->
@@ -706,7 +708,7 @@
                                 </Grid>
 
                                 <!-- Status message -->
-                                <Border IsVisible="{Binding ServerSettingsStatusMessage, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}" Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource AccentBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6">
+                                <Border IsVisible="{Binding ServerSettingsStatusMessage, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}" Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource AccentBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6">
                                     <TextBlock Text="{Binding ServerSettingsStatusMessage}" Foreground="{StaticResource AccentBrush}" FontWeight="SemiBold" FontSize="12"/>
                                 </Border>
 
@@ -797,7 +799,7 @@
                                     </StackPanel>
                                 </Border>
 
-                                <TextBlock Text="{Binding WorldResetStatusMessage}" Foreground="{StaticResource AccentBrush}" FontWeight="SemiBold" FontSize="12" IsVisible="{Binding WorldResetStatusMessage, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}" Margin="0,4,0,0"/>
+                                <TextBlock Text="{Binding WorldResetStatusMessage}" Foreground="{StaticResource AccentBrush}" FontWeight="SemiBold" FontSize="12" IsVisible="{Binding WorldResetStatusMessage, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}" Margin="0,4,0,0"/>
                             </StackPanel>
                         </Border>
                     </StackPanel>
@@ -840,7 +842,7 @@
                                     </Button>
                                 </Grid>
 
-                                <TextBlock Text="No players currently online (or server is offline)." FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding OnlinePlayers.Count, Converter={x:Static vm:EditInstanceWindowConverters.IsZero}}" Margin="0,8"/>
+                                <TextBlock Text="No players currently online (or server is offline)." FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding OnlinePlayers.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}" Margin="0,8"/>
 
                                 <ItemsControl ItemsSource="{Binding OnlinePlayers}">
                                     <ItemsControl.ItemTemplate>
@@ -860,7 +862,7 @@
 
                             <!-- Ops List -->
                             <StackPanel IsVisible="{Binding IsOpsSubTab}">
-                                <TextBlock Text="No operators registered in ops.json." FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding OpsList.Count, Converter={x:Static vm:EditInstanceWindowConverters.IsZero}}" Margin="0,8"/>
+                                <TextBlock Text="No operators registered in ops.json." FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding OpsList.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}" Margin="0,8"/>
                                 <ItemsControl ItemsSource="{Binding OpsList}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="services:ServerPlayerEntry">
@@ -878,7 +880,7 @@
 
                             <!-- Whitelist List -->
                             <StackPanel IsVisible="{Binding IsWhitelistSubTab}">
-                                <TextBlock Text="No players in whitelist.json." FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding WhitelistList.Count, Converter={x:Static vm:EditInstanceWindowConverters.IsZero}}" Margin="0,8"/>
+                                <TextBlock Text="No players in whitelist.json." FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding WhitelistList.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}" Margin="0,8"/>
                                 <ItemsControl ItemsSource="{Binding WhitelistList}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="services:ServerPlayerEntry">
@@ -895,7 +897,7 @@
 
                             <!-- Bans List -->
                             <StackPanel IsVisible="{Binding IsBansSubTab}">
-                                <TextBlock Text="No banned players in banned-players.json." FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding BansList.Count, Converter={x:Static vm:EditInstanceWindowConverters.IsZero}}" Margin="0,8"/>
+                                <TextBlock Text="No banned players in banned-players.json." FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding BansList.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}" Margin="0,8"/>
                                 <ItemsControl ItemsSource="{Binding BansList}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="services:ServerPlayerEntry">
@@ -1024,7 +1026,7 @@
                                 </Border>
 
                                 <!-- Status / Error message if any -->
-                                <TextBlock Text="{Binding FileOperationStatus}" FontSize="11.5" Foreground="{StaticResource DangerLightBrush}" IsVisible="{Binding FileOperationStatus, Converter={x:Static vm:EditInstanceWindowConverters.IsNotEmpty}}"/>
+                                <TextBlock Text="{Binding FileOperationStatus}" FontSize="11.5" Foreground="{StaticResource DangerLightBrush}" IsVisible="{Binding FileOperationStatus, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
 
                                 <!-- Table Header -->
                                 <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="8" Padding="14,8">

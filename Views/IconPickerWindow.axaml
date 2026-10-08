@@ -1,6 +1,7 @@
-<Window xmlns="https://github.com/avaloniaui"
+﻿<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:CustomMcLauncher.ViewModels"
+        xmlns:converters="using:CustomMcLauncher.Converters"
         xmlns:l10n="using:CustomMcLauncher.Extensions"
         x:Class="CustomMcLauncher.Views.IconPickerWindow"
         x:DataType="vm:IconPickerViewModel"
@@ -59,9 +60,9 @@
                             <DataTemplate>
                                 <Button Classes="iconBtn" Margin="4" Command="{Binding $parent[Window].((vm:IconPickerViewModel)DataContext).SelectIconCommand}" CommandParameter="{Binding}" ToolTip.Tip="{Binding Name}">
                                     <Panel>
-                                        <Image Source="{Binding FilePath, Converter={x:Static vm:IconPathToBitmapConverter.Instance}}" Stretch="UniformToFill" Width="64" Height="64" IsVisible="{Binding FilePath, Converter={x:Static vm:IsNotNullConverter.Instance}}"/>
-                                        <Border Background="{Binding Color, Converter={x:Static vm:StringToBrushConverter.Instance}}" CornerRadius="8" IsVisible="{Binding FilePath, Converter={x:Static vm:IsNullConverter.Instance}}">
-                                            <Path Data="{Binding GeometryData}" Fill="White" Stretch="Uniform" Width="28" Height="28" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding GeometryData, Converter={x:Static vm:IsNotNullConverter.Instance}}"/>
+                                        <Image Source="{Binding FilePath, Converter={x:Static converters:IconPathToBitmapConverter.Instance}}" Stretch="UniformToFill" Width="64" Height="64" IsVisible="{Binding FilePath, Converter={x:Static converters:IsNotNullConverter.Instance}}"/>
+                                        <Border Background="{Binding Color, Converter={x:Static converters:StringToBrushConverter.Instance}}" CornerRadius="8" IsVisible="{Binding FilePath, Converter={x:Static converters:IsNullConverter.Instance}}">
+                                            <Path Data="{Binding GeometryData}" Fill="White" Stretch="Uniform" Width="28" Height="28" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding GeometryData, Converter={x:Static converters:IsNotNullConverter.Instance}}"/>
                                         </Border>
                                         <Border Background="#80000000" CornerRadius="8" IsVisible="{Binding IsCustom}" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Height="14">
                                             <TextBlock Text="{Binding Name}" FontSize="7" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>

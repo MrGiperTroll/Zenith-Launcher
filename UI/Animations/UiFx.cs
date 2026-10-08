@@ -6,7 +6,7 @@ using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Threading;
 
-namespace CustomMcLauncher.Services;
+namespace CustomMcLauncher.UI.Animations;
 
 /// <summary>
 /// High-performance GPU-composited UI transitions (fade / subtle slide).

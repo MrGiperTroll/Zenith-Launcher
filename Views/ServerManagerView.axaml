@@ -1,8 +1,9 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="CustomMcLauncher.Views.ServerManagerView"
              xmlns:views="using:CustomMcLauncher.Views"
              xmlns:vm="using:CustomMcLauncher.ViewModels"
+        xmlns:converters="using:CustomMcLauncher.Converters"
              xmlns:services="using:CustomMcLauncher.Services"
              xmlns:l10n="using:CustomMcLauncher.Extensions"
              x:DataType="vm:ServerManagerViewModel"
@@ -65,7 +66,7 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                     <TextBlock Text="{l10n:Tr Key=sm_empty}" Foreground="{StaticResource TextPlaceholderBrush}" FontSize="12" HorizontalAlignment="Center" Padding="0,24"
-                               IsVisible="{Binding Servers.Count, Converter={x:Static vm:EditInstanceWindowConverters.IsZero}}"/>
+                               IsVisible="{Binding Servers.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}"/>
                 </StackPanel>
             </ScrollViewer>
 

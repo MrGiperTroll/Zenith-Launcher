@@ -6,7 +6,7 @@ using Avalonia.Media;
 using CustomMcLauncher.Models;
 using CustomMcLauncher.Services;
 
-namespace CustomMcLauncher.ViewModels;
+namespace CustomMcLauncher.Converters;
 
 public static class ContentBrowserConverters
 {

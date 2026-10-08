@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CustomMcLauncher.Common.Utils;
 using CustomMcLauncher.Models;
 using CustomMcLauncher.Services;
 

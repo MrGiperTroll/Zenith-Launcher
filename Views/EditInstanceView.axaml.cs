@@ -6,6 +6,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using CustomMcLauncher.Services;
+using CustomMcLauncher.UI.Animations;
 using CustomMcLauncher.ViewModels;
 
 namespace CustomMcLauncher.Views;

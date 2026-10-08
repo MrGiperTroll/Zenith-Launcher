@@ -4,7 +4,7 @@ using Avalonia.Data.Converters;
 using Avalonia.Media;
 using Avalonia.Styling;
 
-namespace CustomMcLauncher.ViewModels;
+namespace CustomMcLauncher.Converters;
 
 public static class EditInstanceWindowConverters
 {

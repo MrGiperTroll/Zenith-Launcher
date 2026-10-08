@@ -1,7 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
               xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-              xmlns:local="using:CustomMcLauncher.Views"
-              x:Class="CustomMcLauncher.Views.RamCardControl">
+              xmlns:local="using:CustomMcLauncher.Controls"
+              x:Class="CustomMcLauncher.Controls.RamCardControl">
 
 
 

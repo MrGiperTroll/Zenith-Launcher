@@ -18,6 +18,8 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CustomMcLauncher.Models;
 using CustomMcLauncher.Services;
+using CustomMcLauncher.UI.Theming;
+using CustomMcLauncher.ViewModels.Common;
 using CustomMcLauncher.Views;
 
 namespace CustomMcLauncher.ViewModels;

@@ -59,6 +59,7 @@ public class HistoryEntry
 
 public partial class MainWindowViewModel : ViewModelBase
 {
+    private bool _isLoadingConfig = false;
     [ObservableProperty] private bool _showReleases = true;
     [ObservableProperty] private bool _showSnapshots = false;
     [ObservableProperty] private bool _showBetas = false;
@@ -503,11 +504,11 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         UpdatePreviewBrushes(value);
         OnPropertyChanged(nameof(CustomThemeColorValue));
-        ZenithTheme.Apply(GetLauncherConfigSnapshot());
+        if (!_isLoadingConfig) ZenithTheme.Apply(GetLauncherConfigSnapshot());
     }
-    partial void OnBgHexChanged(string value) { OnPropertyChanged(nameof(BgColorValue)); ZenithTheme.Apply(GetLauncherConfigSnapshot()); SaveLauncherConfig(); }
-    partial void OnSurfaceHexChanged(string value) { OnPropertyChanged(nameof(SurfaceColorValue)); ZenithTheme.Apply(GetLauncherConfigSnapshot()); SaveLauncherConfig(); }
-    partial void OnPanelHexChanged(string value) { OnPropertyChanged(nameof(PanelColorValue)); ZenithTheme.Apply(GetLauncherConfigSnapshot()); SaveLauncherConfig(); }
+    partial void OnBgHexChanged(string value) { OnPropertyChanged(nameof(BgColorValue)); if (!_isLoadingConfig) ZenithTheme.Apply(GetLauncherConfigSnapshot()); }
+    partial void OnSurfaceHexChanged(string value) { OnPropertyChanged(nameof(SurfaceColorValue)); if (!_isLoadingConfig) ZenithTheme.Apply(GetLauncherConfigSnapshot()); }
+    partial void OnPanelHexChanged(string value) { OnPropertyChanged(nameof(PanelColorValue)); if (!_isLoadingConfig) ZenithTheme.Apply(GetLauncherConfigSnapshot()); }
 
     private void UpdatePreviewBrushes(string? hex)
     {

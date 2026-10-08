@@ -107,6 +107,7 @@
 
     <Application.Styles>
         <FluentTheme />
+        <StyleInclude Source="avares://Avalonia.Controls.ColorPicker/Themes/Fluent/Fluent.xaml" />
         <!-- Remove default focus adorners — no ugly square borders on icons/buttons -->
         <Style Selector="Button /template/ ContentPresenter">
             <Setter Property="FocusAdorner" Value="{x:Null}"/>

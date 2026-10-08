@@ -526,11 +526,34 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private IBrush _previewAccentBorderBrush = new SolidColorBrush(Color.FromArgb(90, 59, 130, 246));
 
+    private bool _isHarmonizingPalette = false;
+
     partial void OnCustomThemeHexChanged(string value)
     {
         UpdatePreviewBrushes(value);
         OnPropertyChanged(nameof(CustomThemeColorValue));
-        if (!_isLoadingConfig) ZenithTheme.Apply(GetLauncherConfigSnapshot());
+
+        if (!_isLoadingConfig && !_isHarmonizingPalette && !string.IsNullOrWhiteSpace(value))
+        {
+            _isHarmonizingPalette = true;
+            try
+            {
+                var harmonized = ZenithTheme.GenerateHarmonizedPalette(value);
+                BgHex = harmonized.BgColor!;
+                SidebarBgHex = harmonized.SidebarBgColor!;
+                SurfaceHex = harmonized.SurfaceColor!;
+                CardHex = harmonized.CardColor!;
+                PanelHex = harmonized.PanelColor!;
+                BorderDarkHex = harmonized.BorderDarkColor!;
+                TextPrimaryHex = harmonized.TextPrimaryColor!;
+                TextSecondaryHex = harmonized.TextSecondaryColor!;
+            }
+            finally
+            {
+                _isHarmonizingPalette = false;
+            }
+            ZenithTheme.Apply(GetLauncherConfigSnapshot());
+        }
     }
     partial void OnBgHexChanged(string value) { OnPropertyChanged(nameof(BgColorValue)); if (!_isLoadingConfig) ZenithTheme.Apply(GetLauncherConfigSnapshot()); }
     partial void OnSurfaceHexChanged(string value) { OnPropertyChanged(nameof(SurfaceColorValue)); if (!_isLoadingConfig) ZenithTheme.Apply(GetLauncherConfigSnapshot()); }
@@ -617,7 +640,8 @@ public partial class MainWindowViewModel : ViewModelBase
         targetHex = targetHex.Trim();
         if (!targetHex.StartsWith("#")) targetHex = "#" + targetHex;
 
-        SelectTheme(targetHex);
+        PendingRestartThemeHex = targetHex;
+        IsRestartConfirmOpen = true;
     }
 
     [RelayCommand]

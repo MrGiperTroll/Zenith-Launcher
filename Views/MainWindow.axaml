@@ -74,7 +74,6 @@
             <Setter Property="BorderThickness" Value="0"/>
         </Style>
 
-        <!-- Rail Buttons -->
         <Style Selector="Button.railBtn">
             <Setter Property="Background" Value="{StaticResource TabActiveBrushTransparent}"/>
             <Setter Property="Foreground" Value="{StaticResource TextDisabledBrush}"/>
@@ -83,10 +82,12 @@
             <Setter Property="CornerRadius" Value="10"/>
             <Setter Property="Padding" Value="0"/>
             <Setter Property="HorizontalAlignment" Value="Center"/>
-            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="ClipToBounds" Value="True"/>
+            <Setter Property="ToolTip.Placement" Value="Right"/>
+            <Setter Property="ToolTip.HorizontalOffset" Value="12"/>
             <Setter Property="Transitions">
                 <Transitions>
                     <BrushTransition Property="Background" Duration="0:0:0.2"/>
@@ -100,10 +101,10 @@
             <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
         </Style>
         <Style Selector="Border.expanded Button.railBtn">
-            <Setter Property="Width" Value="164"/>
+            <Setter Property="Width" Value="170"/>
             <Setter Property="Height" Value="44"/>
             <Setter Property="Padding" Value="0"/>
-            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
             <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
         </Style>

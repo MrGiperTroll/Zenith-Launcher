@@ -31,6 +31,33 @@ public partial class MainWindow : Window
         Opacity = 1.0;
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
         DataContextChanged += OnDataContextChanged;
+        
+        // RAM optimization: when the window is minimized or deactivated, collect GC generation and release unneeded working set
+        PropertyChanged += (s, e) =>
+        {
+            if (e.Property == WindowStateProperty && WindowState == WindowState.Minimized)
+            {
+                OptimizeMemory();
+            }
+        };
+        Deactivated += (s, e) =>
+        {
+            OptimizeMemory();
+        };
+    }
+
+    private static void OptimizeMemory()
+    {
+        Task.Run(() =>
+        {
+            try
+            {
+                GC.Collect(2, GCCollectionMode.Aggressive, false, true);
+                GC.WaitForPendingFinalizers();
+                GC.Collect(2, GCCollectionMode.Aggressive, false, true);
+            }
+            catch { }
+        });
     }
 
     private void OnDataContextChanged(object? sender, EventArgs e)

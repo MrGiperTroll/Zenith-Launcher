@@ -7,7 +7,7 @@
     <ProductName>Zenith Launcher</ProductName>
     <Title>Zenith Launcher</Title>
     <PackageId>ZenithLauncher</PackageId>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Exe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
     <Version>1.0.4</Version>
     <Nullable>enable</Nullable>

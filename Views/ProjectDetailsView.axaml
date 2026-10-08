@@ -1,4 +1,4 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:CustomMcLauncher.ViewModels"
         xmlns:converters="using:CustomMcLauncher.Converters"
@@ -50,9 +50,35 @@
                 </Transitions>
             </Setter>
         </Style>
+        <Style Selector="Button.dialogBtn">
+            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderEditorBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.dialogBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
+        </Style>
+        <Style Selector="Button.dialogDanger">
+            <Setter Property="Background" Value="{StaticResource DangerBorderBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource DangerLightBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource DangerBorderBrush}"/>
+        </Style>
+        <Style Selector="Button.dialogDanger:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource DangerBgDeepBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
+        </Style>
+        <Style Selector="Button.dialogDanger:disabled /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Opacity" Value="0.45"/>
+        </Style>
     </UserControl.Styles>
 
-    <Grid RowDefinitions="Auto,Auto,*">
+    <Panel>
+        <Grid RowDefinitions="Auto,Auto,*">
 
         <!-- ========== HEADER (compact) ========== -->
         <Border Grid.Row="0" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}"
@@ -356,6 +382,25 @@
 
             </StackPanel>
         </Grid>
-    </Grid>
+        </Grid>
+
+        <!-- MODAL: Reinstall Confirmation Overlay -->
+        <Border IsVisible="{Binding IsReinstallConfirmOpen}" Background="{StaticResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1200">
+            <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1"
+                    CornerRadius="12" MaxWidth="380" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="{Binding ReinstallConfirmTitle}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource DangerLightBrush}"/>
+                    <TextBlock Text="{Binding ReinstallConfirmMessage}" FontSize="12.5" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="18"/>
+                    <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" Margin="0,8,0,0">
+                        <Button Content="{l10n:Tr Key=no}" Command="{Binding CancelReinstallCommand}" Classes="dialogBtn"
+                                Width="90" Height="34" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                        <Button Content="{Binding ReinstallConfirmButtonText}" Command="{Binding ConfirmReinstallCommand}"
+                                IsEnabled="{Binding CanConfirmReinstall}" Classes="dialogBtn dialogDanger"
+                                MinWidth="110" Height="34" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Border>
+    </Panel>
 </UserControl>
 

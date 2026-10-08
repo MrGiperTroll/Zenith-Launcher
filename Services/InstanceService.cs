@@ -221,15 +221,35 @@ public class InstanceService : IInstanceService
                         continue;
                     
                     var instName = Path.GetFileName(dir);
-                    var newInst = new InstanceModel
+                    var instJsonPath = Path.Combine(dir, "instance.json");
+                    InstanceModel? newInst = null;
+                    if (File.Exists(instJsonPath))
                     {
-                        Id = Guid.NewGuid().ToString("N"),
-                        Name = instName,
-                        Version = "1.20.1",
-                        LoaderType = "Vanilla",
-                        Path = dir,
-                        CreatedAt = Directory.GetCreationTime(dir)
-                    };
+                        try
+                        {
+                            var jsonText = File.ReadAllText(instJsonPath);
+                            newInst = JsonSerializer.Deserialize<InstanceModel>(jsonText);
+                        }
+                        catch { }
+                    }
+
+                    if (newInst == null)
+                    {
+                        newInst = new InstanceModel
+                        {
+                            Id = Guid.NewGuid().ToString("N"),
+                            Name = instName,
+                            Version = "1.20.1",
+                            LoaderType = "Vanilla",
+                            Path = dir,
+                            CreatedAt = Directory.GetCreationTime(dir)
+                        };
+                    }
+                    else
+                    {
+                        if (string.IsNullOrEmpty(newInst.Path)) newInst.Path = dir;
+                        if (string.IsNullOrEmpty(newInst.Name)) newInst.Name = instName;
+                    }
                     _instances.Add(newInst);
                     discovered = true;
                 }

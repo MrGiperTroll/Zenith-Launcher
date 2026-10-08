@@ -219,18 +219,72 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     [ObservableProperty]
     private Models.ModrinthProjectVersion? _selectedVersionForDetails;
 
+    // --- Reinstall confirmation modal ---
+    [ObservableProperty]
+    private bool _isReinstallConfirmOpen;
+
+    [ObservableProperty]
+    private bool _canConfirmReinstall;
+
+    [ObservableProperty]
+    private int _reinstallCountdownSeconds;
+
+    [ObservableProperty]
+    private string _reinstallConfirmTitle = "";
+
+    [ObservableProperty]
+    private string _reinstallConfirmMessage = "";
+
+    private CancellationTokenSource? _reinstallCts;
+
+    public string ReinstallConfirmButtonText => ReinstallCountdownSeconds > 0
+        ? $"{L10n.T("mi_reinstall")} ({ReinstallCountdownSeconds})"
+        : L10n.T("mi_reinstall");
+
     public Models.ModrinthFullProject? VersionSelectorProject => FullProject;
 
-    /// <summary>Button text: "Install" for new content, "Reinstall" for already-installed same version, "Install" for different version.</summary>
-    public string ReinstallText => _showInstallFeedback
-        ? "Installed"
-        : SelectedProject is { IsInstalled: true }
-            && (SelectedVersionForDetails == null
-                || string.IsNullOrEmpty(SelectedProject.InstalledVersion)
-                || string.Equals(SelectedVersionForDetails.VersionNumber, SelectedProject.InstalledVersion, StringComparison.OrdinalIgnoreCase)
-                || string.Equals(SelectedVersionForDetails.Id, SelectedProject.InstalledVersion, StringComparison.OrdinalIgnoreCase))
-            ? L10n.T("mi_reinstall")
-            : L10n.T("mi_install");
+    /// <summary>Button text: "Install" for new content or different version, "Reinstall" only if the selected version is already installed.</summary>
+    public string ReinstallText
+    {
+        get
+        {
+            if (_showInstallFeedback) return "Installed";
+            if (SelectedProject == null || !SelectedProject.IsInstalled) return L10n.T("mi_install");
+
+            var instances = _instanceService.GetInstances();
+            var slug = SelectedProject.Slug?.ToLowerInvariant() ?? "";
+            var title = SelectedProject.Title.ToLowerInvariant();
+            var projectId = SelectedProject.ProjectId;
+
+            bool IsMatchingInstance(Models.InstanceModel inst)
+            {
+                return (!string.IsNullOrEmpty(inst.ModpackId) && (inst.ModpackId.Equals(projectId, StringComparison.OrdinalIgnoreCase) || inst.ModpackId.Equals(slug, StringComparison.OrdinalIgnoreCase)))
+                    || inst.Name.Equals(title, StringComparison.OrdinalIgnoreCase)
+                    || inst.Name.Replace(" ", "-").Equals(slug, StringComparison.OrdinalIgnoreCase)
+                    || (inst.Name.ToLowerInvariant().Contains(slug) && slug.Length > 3);
+            }
+
+            if (SelectedVersionForDetails != null)
+            {
+                var verNum = SelectedVersionForDetails.VersionNumber;
+                var verId = SelectedVersionForDetails.Id;
+                bool isVersionInstalled = instances.Any(i => IsMatchingInstance(i) &&
+                    (!string.IsNullOrEmpty(i.ModpackVersion) &&
+                     (string.Equals(i.ModpackVersion, verNum, StringComparison.OrdinalIgnoreCase) ||
+                      string.Equals(i.ModpackVersion, verId, StringComparison.OrdinalIgnoreCase))));
+
+                return isVersionInstalled ? L10n.T("mi_reinstall") : L10n.T("mi_install");
+            }
+
+            // If no specific version selected, check if any instance has an installed version recorded
+            if (!string.IsNullOrEmpty(SelectedProject.InstalledVersion))
+            {
+                return L10n.T("mi_reinstall");
+            }
+
+            return L10n.T("mi_reinstall");
+        }
+    }
 
     partial void OnSelectedProjectChanged(ModrinthProjectItemViewModel? value)
     {
@@ -1153,6 +1207,87 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     private void MainAction()
     {
         if (SelectedProject == null) return;
+
+        // Check if the current action is Reinstall
+        bool isReinstall = ReinstallText == L10n.T("mi_reinstall");
+        if (isReinstall)
+        {
+            StartReinstallConfirmation();
+            return;
+        }
+
+        if (SelectedVersionForDetails != null)
+        {
+            InstallSelectedVersion(SelectedVersionForDetails);
+            return;
+        }
+        OpenVersionSelector(SelectedProject);
+    }
+
+    private void StartReinstallConfirmation()
+    {
+        _reinstallCts?.Cancel();
+        _reinstallCts?.Dispose();
+        _reinstallCts = new CancellationTokenSource();
+        var token = _reinstallCts.Token;
+
+        var projTitle = SelectedProject?.Title ?? "Modpack";
+        var verStr = SelectedVersionForDetails?.VersionNumber ?? SelectedProject?.InstalledVersion ?? "";
+        ReinstallConfirmTitle = $"{L10n.T("mi_reinstall")}: {projTitle}";
+        ReinstallConfirmMessage = !string.IsNullOrWhiteSpace(verStr)
+            ? $"Files for {projTitle} ({verStr}) will be overwritten. Are you sure you want to reinstall?"
+            : $"Files for {projTitle} will be overwritten. Are you sure you want to reinstall?";
+
+        CanConfirmReinstall = false;
+        ReinstallCountdownSeconds = 3;
+        OnPropertyChanged(nameof(ReinstallConfirmButtonText));
+        IsReinstallConfirmOpen = true;
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                for (int s = 3; s > 0; s--)
+                {
+                    await Dispatcher.UIThread.InvokeAsync(() =>
+                    {
+                        ReinstallCountdownSeconds = s;
+                        OnPropertyChanged(nameof(ReinstallConfirmButtonText));
+                    });
+                    await Task.Delay(1000, token);
+                }
+
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    ReinstallCountdownSeconds = 0;
+                    CanConfirmReinstall = true;
+                    OnPropertyChanged(nameof(ReinstallConfirmButtonText));
+                });
+            }
+            catch (OperationCanceledException)
+            {
+                // Cancelled by user
+            }
+        }, token);
+    }
+
+    [RelayCommand]
+    private void CancelReinstall()
+    {
+        _reinstallCts?.Cancel();
+        _reinstallCts?.Dispose();
+        _reinstallCts = null;
+        IsReinstallConfirmOpen = false;
+        CanConfirmReinstall = false;
+        ReinstallCountdownSeconds = 0;
+    }
+
+    [RelayCommand]
+    private void ConfirmReinstall()
+    {
+        if (!CanConfirmReinstall || SelectedProject == null) return;
+        CancelReinstall();
+
         if (SelectedVersionForDetails != null)
         {
             InstallSelectedVersion(SelectedVersionForDetails);

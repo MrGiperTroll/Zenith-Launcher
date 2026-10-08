@@ -9,9 +9,11 @@ using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.VisualTree;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Threading.Tasks;
 using CustomMcLauncher.Models;
 using CustomMcLauncher.Services;
@@ -280,31 +282,50 @@ public partial class MainWindow : Window
         if (!_isDragging && (Math.Abs(diff.X) > 8 || Math.Abs(diff.Y) > 8))
         {
             _isDragging = true;
-            _draggedCard.Classes.Add("dragging");
-            _draggedCard.IsHitTestVisible = false;
             
+            var cardWidth = Math.Max(150.0, _draggedCard.Bounds.Width > 0 ? _draggedCard.Bounds.Width : 150.0);
+            var cardHeight = Math.Max(150.0, _draggedCard.Bounds.Height > 0 ? _draggedCard.Bounds.Height : 150.0);
+
             var dragOverlay = this.FindControl<Canvas>("DragOverlayPanel");
             if (dragOverlay != null)
             {
                 var topLevel = Avalonia.Controls.TopLevel.GetTopLevel(this);
                 double dpi = topLevel?.RenderScaling ?? 1.0;
                 double lScale = (DataContext as ViewModels.MainWindowViewModel)?.LauncherScale ?? 1.0;
+                if (lScale <= 0.1) lScale = 1.0;
                 double scale = dpi * lScale;
-                var bmp = new Avalonia.Media.Imaging.RenderTargetBitmap(new PixelSize((int)Math.Ceiling(_draggedCard.Bounds.Width * scale), (int)Math.Ceiling(_draggedCard.Bounds.Height * scale)), new Vector(96 * scale, 96 * scale));
-                bmp.Render(_draggedCard);
                 
-                _ghostRect = new Avalonia.Controls.Shapes.Rectangle
+                int bmpW = Math.Max(1, (int)Math.Ceiling(cardWidth * scale));
+                int bmpH = Math.Max(1, (int)Math.Ceiling(cardHeight * scale));
+                
+                try
                 {
-                    Width = _draggedCard.Bounds.Width,
-                    Height = _draggedCard.Bounds.Height,
-                    Fill = new Avalonia.Media.ImageBrush(bmp) { Stretch = Avalonia.Media.Stretch.Fill },
-                    Opacity = 1.0,
-                    IsHitTestVisible = false,
-                    ZIndex = 9999
-                };
-                dragOverlay.Children.Add(_ghostRect);
+                    var bmp = new Avalonia.Media.Imaging.RenderTargetBitmap(new PixelSize(bmpW, bmpH), new Vector(96 * scale, 96 * scale));
+                    bmp.Render(_draggedCard);
+
+                    _ghostRect = new Avalonia.Controls.Shapes.Rectangle
+                    {
+                        Width = cardWidth,
+                        Height = cardHeight,
+                        Fill = new Avalonia.Media.ImageBrush(bmp) { Stretch = Avalonia.Media.Stretch.Fill },
+                        Opacity = 0.92,
+                        IsHitTestVisible = false,
+                        ZIndex = 9999
+                    };
+                    dragOverlay.Children.Add(_ghostRect);
+
+                    var ghostStart = e.GetPosition(dragOverlay);
+                    Canvas.SetLeft(_ghostRect, ghostStart.X - _dragCardOffset.X);
+                    Canvas.SetTop(_ghostRect, ghostStart.Y - _dragCardOffset.Y);
+                }
+                catch (Exception ex)
+                {
+                    CustomMcLauncher.Services.LauncherLog.Error("Failed to create drag ghost", ex);
+                }
             }
-            
+
+            _draggedCard.Classes.Add("dragging");
+            _draggedCard.IsHitTestVisible = false;
             _draggedInstance.IsDragging = true;
             _draggedCard.Opacity = 0.0;
         }
@@ -319,23 +340,13 @@ public partial class MainWindow : Window
                 Canvas.SetTop(_ghostRect, ghostStart.Y - _dragCardOffset.Y);
             }
             
-            var hit = this.InputHitTest(currentPos) as Avalonia.Visual;
-            var targetCard = hit?.FindAncestorOfType<Border>(includeSelf: true);
-            while (targetCard != null && !targetCard.Classes.Contains("instanceCard"))
-                targetCard = targetCard.FindAncestorOfType<Border>(includeSelf: false);
-                
+            // Spatial card hit-testing and end-of-list detection
+            var (targetCard, dropAfter) = FindTargetCardAndPlacement(currentPos);
             string? targetId = (targetCard?.DataContext as Models.InstanceModel)?.Id;
             string movedId = _draggedInstance.Id;
             
             if (!string.IsNullOrEmpty(targetId) && targetId != movedId && DataContext is ViewModels.MainWindowViewModel vm)
             {
-                bool dropAfter = false;
-                if (targetCard != null)
-                {
-                    var relPos = e.GetPosition(targetCard);
-                    dropAfter = relPos.X > targetCard.Bounds.Width / 2;
-                }
-                
                 if (_pendingTargetId != targetId || _pendingDropAfter != dropAfter)
                 {
                     _pendingTargetId = targetId;
@@ -347,7 +358,7 @@ public partial class MainWindow : Window
                     }
                     else
                     {
-                        _reorderTimer = new Avalonia.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(200) };
+                        _reorderTimer = new Avalonia.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(150) };
                         _reorderTimer.Tick += (s, args) => 
                         {
                             _reorderTimer.Stop();
@@ -370,6 +381,78 @@ public partial class MainWindow : Window
                 _pendingTargetId = null;
             }
         }
+    }
+
+    private (Border? targetCard, bool dropAfter) FindTargetCardAndPlacement(Point currentPos)
+    {
+        // 1. First attempt: Direct input hit test under pointer
+        var hit = this.InputHitTest(currentPos) as Avalonia.Visual;
+        var directCard = hit?.FindAncestorOfType<Border>(includeSelf: true);
+        while (directCard != null && !directCard.Classes.Contains("instanceCard"))
+            directCard = directCard.FindAncestorOfType<Border>(includeSelf: false);
+
+        if (directCard != null && directCard != _draggedCard)
+        {
+            var relPos = directCard.TranslatePoint(currentPos, this);
+            // Check position relative to the target card
+            var pointInCard = this.TranslatePoint(currentPos, directCard) ?? new Point(directCard.Bounds.Width / 2, 0);
+            bool after = pointInCard.X > directCard.Bounds.Width / 2;
+            return (directCard, after);
+        }
+
+        // 2. Spatial proximity fallback: find closest card or handle end-of-list empty space
+        var itemsCtrl = this.FindControl<ItemsControl>("InstancesItemsControl");
+        if (itemsCtrl == null) return (null, false);
+
+        var wrapPanel = itemsCtrl.FindDescendantOfType<Controls.AnimatedWrapPanel>();
+        if (wrapPanel == null) return (null, false);
+
+        var pointerInWrap = this.TranslatePoint(currentPos, wrapPanel);
+        if (!pointerInWrap.HasValue) return (null, false);
+
+        var p = pointerInWrap.Value;
+        var cards = new List<Border>();
+        foreach (var visual in wrapPanel.GetVisualChildren())
+        {
+            if (visual is Border b && b.Classes.Contains("instanceCard") && b.DataContext is Models.InstanceModel)
+                cards.Add(b);
+        }
+
+        if (cards.Count == 0) return (null, false);
+
+        // Check if pointer is past the last card in the layout
+        var lastCard = cards.Last();
+        if (p.Y > lastCard.Bounds.Bottom + 10 || (p.Y >= lastCard.Bounds.Top && p.X > lastCard.Bounds.Right))
+        {
+            return (lastCard, true);
+        }
+
+        // Check if pointer is before the first card
+        var firstCard = cards.First();
+        if (p.Y < firstCard.Bounds.Top - 10 || (p.Y <= firstCard.Bounds.Bottom && p.X < firstCard.Bounds.Left))
+        {
+            return (firstCard, false);
+        }
+
+        // Find card with closest center point to pointer
+        Border? closest = null;
+        double minDist = double.MaxValue;
+        bool dropAfterClosest = false;
+
+        foreach (var card in cards)
+        {
+            if (card == _draggedCard) continue;
+            var center = new Point(card.Bounds.X + card.Bounds.Width / 2, card.Bounds.Y + card.Bounds.Height / 2);
+            double dist = Math.Pow(p.X - center.X, 2) + Math.Pow(p.Y - center.Y, 2);
+            if (dist < minDist)
+            {
+                minDist = dist;
+                closest = card;
+                dropAfterClosest = p.X > center.X;
+            }
+        }
+
+        return (closest, dropAfterClosest);
     }
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)

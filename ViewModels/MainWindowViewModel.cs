@@ -353,7 +353,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty] private string _selectedParticle = "None";
 
-    public string[] ParticleOptions { get; } = new[] { "None", "Snowflakes", "Leaves" };
+    public string[] ParticleOptions { get; } = new[] { "None", "Snowflakes", "Leaves", "Sakura" };
 
     partial void OnSelectedParticleChanged(string value) => SaveLauncherConfig();
 

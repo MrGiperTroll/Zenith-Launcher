@@ -370,6 +370,7 @@ public class ParticleDisplayConverter : IValueConverter
             "None" => L10n.T("particle_none"),
             "Snowflakes" => L10n.T("particle_snow"),
             "Leaves" => L10n.T("particle_leaves"),
+            "Sakura" => L10n.T("particle_sakura"),
             _ => s
         };
     }
@@ -486,4 +487,48 @@ public class DirectoryModeDisplayConverter : IValueConverter
     }
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => value ?? string.Empty;
 }
+
+/// <summary>Converts a HEX string (e.g. #3B82F6) to an Avalonia IBrush.</summary>
+public class HexToBrushConverter : IValueConverter
+{
+    public static readonly HexToBrushConverter Instance = new();
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is string hex && !string.IsNullOrWhiteSpace(hex))
+        {
+            hex = hex.Trim();
+            if (!hex.StartsWith("#")) hex = "#" + hex;
+            if (Color.TryParse(hex, out var c))
+                return new SolidColorBrush(c);
+        }
+        return new SolidColorBrush(Colors.Transparent);
+    }
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
+}
+
+/// <summary>Two-way converter between a HEX string and Avalonia Color for ColorView/ColorPicker.</summary>
+public class HexToColorConverter : IValueConverter
+{
+    public static readonly HexToColorConverter Instance = new();
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is string hex && !string.IsNullOrWhiteSpace(hex))
+        {
+            hex = hex.Trim();
+            if (!hex.StartsWith("#")) hex = "#" + hex;
+            if (Color.TryParse(hex, out var c))
+                return c;
+        }
+        return Colors.White;
+    }
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is Color c)
+        {
+            return $"#{c.R:X2}{c.G:X2}{c.B:X2}";
+        }
+        return value?.ToString() ?? "#FFFFFF";
+    }
+}
+
 

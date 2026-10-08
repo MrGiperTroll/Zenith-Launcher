@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Controls;
@@ -86,6 +86,10 @@ public class ParticleSystemControl : Control
             {
                 p.Vx = Math.Sin(p.Y / 30.0) * 2.0; // Wiggle
             }
+            else if (ParticleType == "Sakura")
+            {
+                p.Vx = Math.Sin(p.Y / 22.0) * 1.5 + 0.4; // Gentle breeze wiggle
+            }
 
             if (p.Y > Bounds.Height + 20 || p.X < -20 || p.X > Bounds.Width + 20)
             {
@@ -100,9 +104,13 @@ public class ParticleSystemControl : Control
     {
         if (ParticleType == "None") return;
 
-        var brush = ParticleType == "Snowflakes" 
-            ? new SolidColorBrush(Colors.White, 0.4) 
-            : new SolidColorBrush(Color.Parse("#88E28743")); // Fall leaf color
+        var brush = ParticleType switch
+        {
+            "Snowflakes" => new SolidColorBrush(Colors.White, 0.45),
+            "Leaves" => new SolidColorBrush(Color.Parse("#88E28743")),
+            "Sakura" => new SolidColorBrush(Color.Parse("#99FFB7C5")), // Soft pastel sakura petal
+            _ => new SolidColorBrush(Colors.White, 0.4)
+        };
 
         foreach (var p in _particles)
         {

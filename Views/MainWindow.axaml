@@ -434,7 +434,7 @@
                 <!-- Top Header -->
                 <Grid Grid.Row="0" Margin="0,0,24,0" VerticalAlignment="Center" ColumnDefinitions="*,Auto">
                     <!-- Left: Navigation (Back, Forward, Breadcrumbs) -->
-                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="16,0,0,0">
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="24,0,0,0">
                         <Button Classes="navBtn" Command="{Binding GoBackCommand}" ToolTip.Tip="{l10n:Tr Key=nav_back}">
                             <PathIcon Data="M15.41 16.59L10.83 12L15.41 7.41L14 6L8 12L14 18L15.41 16.59Z" Width="14" Height="14"/>
                         </Button>

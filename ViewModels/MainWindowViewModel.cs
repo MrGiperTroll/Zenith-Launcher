@@ -452,6 +452,13 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private void SwitchSettingsTab(string tab)
     {
+        if (IsSettingsTabTheme && tab != "Theme" && HasUnsavedThemeChanges())
+        {
+            _pendingThemeDiscardNavAction = () => SwitchSettingsTab(tab);
+            IsThemeDiscardConfirmOpen = true;
+            return;
+        }
+
         CurrentSettingsTab = tab;
         OnPropertyChanged(nameof(IsSettingsTabGame));
         OnPropertyChanged(nameof(IsSettingsTabGeneral));
@@ -603,9 +610,18 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isThemeDiscardConfirmOpen;
 
-    private string _pendingThemeSubTab = "";
+    [ObservableProperty]
+    private bool _isApplyButtonHighlighted;
 
-    // Track saved theme baseline to detect unsaved modifications
+    private Action? _pendingThemeDiscardNavAction;
+
+    [ObservableProperty]
+    private string _simpleAccentHex = ZenithTheme.DefaultAccent;
+
+    // Saved Simple baseline
+    private string _savedSimpleAccentHex = ZenithTheme.DefaultAccent;
+
+    // Saved Advanced baseline
     private string _savedBgHex = "#080A0F";
     private string _savedSidebarBgHex = "#06080D";
     private string _savedSurfaceHex = "#0D111A";
@@ -620,6 +636,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public void SnapshotCurrentSavedTheme()
     {
+        _savedSimpleAccentHex = SimpleAccentHex;
+
         _savedBgHex = BgHex;
         _savedSidebarBgHex = SidebarBgHex;
         _savedSurfaceHex = SurfaceHex;
@@ -635,6 +653,11 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public bool HasUnsavedThemeChanges()
     {
+        if (IsThemeSubTabSimple)
+        {
+            return !string.Equals(_savedSimpleAccentHex, SimpleAccentHex, StringComparison.OrdinalIgnoreCase);
+        }
+
         return !string.Equals(_savedBgHex, BgHex, StringComparison.OrdinalIgnoreCase)
             || !string.Equals(_savedSidebarBgHex, SidebarBgHex, StringComparison.OrdinalIgnoreCase)
             || !string.Equals(_savedSurfaceHex, SurfaceHex, StringComparison.OrdinalIgnoreCase)
@@ -648,7 +671,35 @@ public partial class MainWindowViewModel : ViewModelBase
             || !string.Equals(_savedCustomThemeHex, CustomThemeHex, StringComparison.OrdinalIgnoreCase);
     }
 
-    public void RevertThemeToSaved()
+    public void ApplySimpleTheme(string hex)
+    {
+        _isLoadingConfig = true;
+        try
+        {
+            SimpleAccentHex = hex;
+            CurrentAccentHex = hex;
+            CustomThemeHex = hex;
+            var harmonized = ZenithTheme.GenerateHarmonizedPalette(hex);
+            BgHex = harmonized.BgColor!;
+            SidebarBgHex = harmonized.SidebarBgColor!;
+            SurfaceHex = harmonized.SurfaceColor!;
+            CardHex = harmonized.CardColor!;
+            PanelHex = harmonized.PanelColor!;
+            FieldHex = harmonized.FieldColor!;
+            HoverHex = harmonized.HoverColor!;
+            BorderDarkHex = harmonized.BorderDarkColor!;
+            TextPrimaryHex = harmonized.TextPrimaryColor!;
+            TextSecondaryHex = harmonized.TextSecondaryColor!;
+            UpdatePreviewBrushes(hex);
+            ZenithTheme.Apply(GetLauncherConfigSnapshot());
+        }
+        finally
+        {
+            _isLoadingConfig = false;
+        }
+    }
+
+    public void ApplyAdvancedSavedTheme()
     {
         _isLoadingConfig = true;
         try
@@ -674,28 +725,30 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
+    public void ApplySimpleSavedTheme()
+    {
+        ApplySimpleTheme(_savedSimpleAccentHex);
+    }
+
+    public void RevertThemeToSaved()
+    {
+        if (IsThemeSubTabSimple)
+        {
+            ApplySimpleSavedTheme();
+        }
+        else
+        {
+            ApplyAdvancedSavedTheme();
+        }
+    }
+
     [RelayCommand]
     public void ChooseTheme(string hex)
     {
         if (string.IsNullOrWhiteSpace(hex)) return;
         hex = hex.Trim();
         if (!hex.StartsWith("#")) hex = "#" + hex;
-        CustomThemeHex = hex;
-        
-        // Auto-harmonize the palette based on the chosen accent color
-        var harmonized = ZenithTheme.GenerateHarmonizedPalette(hex);
-        BgHex = harmonized.BgColor!;
-        SidebarBgHex = harmonized.SidebarBgColor!;
-        SurfaceHex = harmonized.SurfaceColor!;
-        CardHex = harmonized.CardColor!;
-        PanelHex = harmonized.PanelColor!;
-        FieldHex = harmonized.FieldColor!;
-        HoverHex = harmonized.HoverColor!;
-        BorderDarkHex = harmonized.BorderDarkColor!;
-        TextPrimaryHex = harmonized.TextPrimaryColor!;
-        TextSecondaryHex = harmonized.TextSecondaryColor!;
-
-        UpdatePreviewBrushes(hex);
+        ApplySimpleTheme(hex);
     }
 
     [RelayCommand]
@@ -704,34 +757,27 @@ public partial class MainWindowViewModel : ViewModelBase
         if (string.IsNullOrWhiteSpace(hex)) return;
         hex = hex.Trim();
         if (!hex.StartsWith("#")) hex = "#" + hex;
-        CurrentAccentHex = hex;
-        CustomThemeHex = hex;
 
-        // If in Advanced mode, preserve the user's manual palette customizations instead of wiping them!
         if (IsThemeSubTabSimple)
         {
-            var harmonized = ZenithTheme.GenerateHarmonizedPalette(hex);
-            BgHex = harmonized.BgColor!;
-            SidebarBgHex = harmonized.SidebarBgColor!;
-            SurfaceHex = harmonized.SurfaceColor!;
-            CardHex = harmonized.CardColor!;
-            PanelHex = harmonized.PanelColor!;
-            FieldHex = harmonized.FieldColor!;
-            HoverHex = harmonized.HoverColor!;
-            BorderDarkHex = harmonized.BorderDarkColor!;
-            TextPrimaryHex = harmonized.TextPrimaryColor!;
-            TextSecondaryHex = harmonized.TextSecondaryColor!;
+            ApplySimpleTheme(hex);
+            _savedSimpleAccentHex = hex;
+        }
+        else
+        {
+            CurrentAccentHex = hex;
+            CustomThemeHex = hex;
+            ZenithTheme.Apply(GetLauncherConfigSnapshot());
+            SnapshotCurrentSavedTheme();
         }
 
-        ZenithTheme.Apply(GetLauncherConfigSnapshot());
         SaveLauncherConfig();
-        SnapshotCurrentSavedTheme();
     }
 
     [RelayCommand]
     public void RequestApplyTheme(string? hex = null)
     {
-        var targetHex = !string.IsNullOrWhiteSpace(hex) ? hex : CustomThemeHex;
+        var targetHex = !string.IsNullOrWhiteSpace(hex) ? hex : (IsThemeSubTabSimple ? SimpleAccentHex : CustomThemeHex);
         if (string.IsNullOrWhiteSpace(targetHex)) return;
         targetHex = targetHex.Trim();
         if (!targetHex.StartsWith("#")) targetHex = "#" + targetHex;
@@ -753,7 +799,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         IsRestartConfirmOpen = false;
         IsCloneDialogOpen = false;
-        var hex = !string.IsNullOrWhiteSpace(PendingRestartThemeHex) ? PendingRestartThemeHex : CustomThemeHex;
+        var hex = !string.IsNullOrWhiteSpace(PendingRestartThemeHex) ? PendingRestartThemeHex : (IsThemeSubTabSimple ? SimpleAccentHex : CustomThemeHex);
         SelectTheme(hex);
 
         try
@@ -785,21 +831,22 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         IsThemeDiscardConfirmOpen = false;
         RevertThemeToSaved();
-        if (!string.IsNullOrWhiteSpace(_pendingThemeSubTab))
-        {
-            ThemeSubTab = _pendingThemeSubTab;
-            _pendingThemeSubTab = "";
-            OnPropertyChanged(nameof(IsThemeSubTabSimple));
-            OnPropertyChanged(nameof(IsThemeSubTabAdvanced));
-            SaveLauncherConfig();
-        }
+        var action = _pendingThemeDiscardNavAction;
+        _pendingThemeDiscardNavAction = null;
+        action?.Invoke();
     }
 
     [RelayCommand]
     public void CancelDiscardThemeChanges()
     {
         IsThemeDiscardConfirmOpen = false;
-        _pendingThemeSubTab = "";
+        _pendingThemeDiscardNavAction = null;
+        // Highlight/flash Apply button for ~1.2s to guide the user
+        IsApplyButtonHighlighted = true;
+        _ = Task.Delay(1200).ContinueWith(_ =>
+        {
+            Dispatcher.UIThread.Post(() => IsApplyButtonHighlighted = false);
+        });
     }
 
     [RelayCommand]
@@ -1015,6 +1062,13 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     public void GoBack()
     {
+        if (CurrentPage == LauncherNavPage.Settings && IsSettingsTabTheme && HasUnsavedThemeChanges())
+        {
+            _pendingThemeDiscardNavAction = () => GoBack();
+            IsThemeDiscardConfirmOpen = true;
+            return;
+        }
+
         if (CurrentPage == LauncherNavPage.ContentBrowser && CurrentContentBrowserVm?.SelectedProject != null)
         {
             CurrentContentBrowserVm.SelectedProject = null;
@@ -1038,6 +1092,13 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     public void GoForward()
     {
+        if (CurrentPage == LauncherNavPage.Settings && IsSettingsTabTheme && HasUnsavedThemeChanges())
+        {
+            _pendingThemeDiscardNavAction = () => GoForward();
+            IsThemeDiscardConfirmOpen = true;
+            return;
+        }
+
         if (_historyIndex >= 0 && _historyIndex < _navHistory.Count - 1)
         {
             _historyIndex++;
@@ -1243,6 +1304,13 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void PushHistory(HistoryEntry entry)
     {
+        if (CurrentPage == LauncherNavPage.Settings && IsSettingsTabTheme && entry.Page != LauncherNavPage.Settings && HasUnsavedThemeChanges())
+        {
+            _pendingThemeDiscardNavAction = () => PushHistory(entry);
+            IsThemeDiscardConfirmOpen = true;
+            return;
+        }
+
         if (_historyIndex >= 0 && _historyIndex < _navHistory.Count - 1)
         {
             _navHistory.RemoveRange(_historyIndex + 1, _navHistory.Count - (_historyIndex + 1));
@@ -1848,6 +1916,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 SelectedParticle = SelectedParticle,
                 Language = SelectedLanguage,
                 ThemeSubTab = ThemeSubTab,
+                SimpleAccentColor = _savedSimpleAccentHex,
                 IsSidebarExpanded = IsSidebarExpanded
             };
             File.WriteAllText(configPath, System.Text.Json.JsonSerializer.Serialize(configData, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
@@ -1904,16 +1973,19 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         if (ThemeSubTab == tab) return;
 
-        if (HasUnsavedThemeChanges())
-        {
-            _pendingThemeSubTab = tab;
-            IsThemeDiscardConfirmOpen = true;
-            return;
-        }
-
         ThemeSubTab = tab;
         OnPropertyChanged(nameof(IsThemeSubTabSimple));
         OnPropertyChanged(nameof(IsThemeSubTabAdvanced));
+
+        if (IsThemeSubTabSimple)
+        {
+            ApplySimpleSavedTheme();
+        }
+        else
+        {
+            ApplyAdvancedSavedTheme();
+        }
+
         SaveLauncherConfig();
     }
 
@@ -1929,7 +2001,9 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         if (HasUnsavedThemeChanges())
         {
-            RevertThemeToSaved();
+            _pendingThemeDiscardNavAction = () => SwitchSettingsTab("Appearance");
+            IsThemeDiscardConfirmOpen = true;
+            return;
         }
         SwitchSettingsTab("Appearance");
     }
@@ -1966,6 +2040,17 @@ public partial class MainWindowViewModel : ViewModelBase
                     if (!string.IsNullOrWhiteSpace(cfg.TextPrimaryColor)) TextPrimaryHex = cfg.TextPrimaryColor;
                     if (!string.IsNullOrWhiteSpace(cfg.TextSecondaryColor)) TextSecondaryHex = cfg.TextSecondaryColor;
                     if (!string.IsNullOrWhiteSpace(cfg.BorderDarkColor)) BorderDarkHex = cfg.BorderDarkColor;
+                    if (!string.IsNullOrWhiteSpace(cfg.SimpleAccentColor))
+                    {
+                        SimpleAccentHex = cfg.SimpleAccentColor;
+                        _savedSimpleAccentHex = cfg.SimpleAccentColor;
+                    }
+                    else if (!string.IsNullOrWhiteSpace(cfg.AccentColor))
+                    {
+                        SimpleAccentHex = cfg.AccentColor;
+                        _savedSimpleAccentHex = cfg.AccentColor;
+                    }
+
                     if (!string.IsNullOrWhiteSpace(cfg.AccentColor))
                     {
                         CurrentAccentHex = cfg.AccentColor;
@@ -1973,7 +2058,15 @@ public partial class MainWindowViewModel : ViewModelBase
                         UpdatePreviewBrushes(cfg.AccentColor);
                     }
 
-                    ZenithTheme.Apply(GetLauncherConfigSnapshot());
+                    // Apply the theme corresponding to the saved ThemeSubTab
+                    if (IsThemeSubTabSimple)
+                    {
+                        ApplySimpleTheme(SimpleAccentHex);
+                    }
+                    else
+                    {
+                        ZenithTheme.Apply(GetLauncherConfigSnapshot());
+                    }
 
                     // Language is restored FIRST and verbatim: an explicit
                     // choice (including "Auto") always wins over detection.

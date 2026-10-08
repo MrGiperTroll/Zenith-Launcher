@@ -219,10 +219,14 @@ public partial class ModpacksBrowserViewModel : ObservableObject
 
     public Models.ModrinthFullProject? VersionSelectorProject => FullProject;
 
-    /// <summary>Button text: "Install" for new content, "Reinstall" for already-installed.</summary>
+    /// <summary>Button text: "Install" for new content, "Reinstall" for already-installed same version, "Install" for different version.</summary>
     public string ReinstallText => _showInstallFeedback
         ? "Installed"
-        : SelectedProject is { IsInstalled: true } && (SelectedVersionForDetails == null || SelectedVersionForDetails.GameVersions.Contains(SelectedProject.InstalledGameVersion))
+        : SelectedProject is { IsInstalled: true }
+            && (SelectedVersionForDetails == null
+                || string.IsNullOrEmpty(SelectedProject.InstalledVersion)
+                || string.Equals(SelectedVersionForDetails.VersionNumber, SelectedProject.InstalledVersion, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(SelectedVersionForDetails.Id, SelectedProject.InstalledVersion, StringComparison.OrdinalIgnoreCase))
             ? L10n.T("mi_reinstall")
             : L10n.T("mi_install");
 
@@ -595,7 +599,21 @@ public partial class ModpacksBrowserViewModel : ObservableObject
                 isInstalled = instanceNames.Any(n => n.Contains(slug) && slug.Length > 3);
                 if (isInstalled && slug.Length < 5) isInstalled = false; // avoid false positive for short slugs
             }
-            if (isInstalled) { var matching = instances.FirstOrDefault(i => i.Name.Equals(title, StringComparison.OrdinalIgnoreCase) || i.Name.Replace(" ", "-").Equals(slug, StringComparison.OrdinalIgnoreCase) || (i.Name.ToLowerInvariant().Contains(slug) && slug.Length > 3)); if (matching != null) { p.InstalledGameVersion = matching.Version; } } p.IsInstalled = isInstalled;
+            if (isInstalled)
+            {
+                var matching = instances.FirstOrDefault(i =>
+                    (!string.IsNullOrEmpty(i.ModpackId) && (i.ModpackId.Equals(p.ProjectId, StringComparison.OrdinalIgnoreCase) || i.ModpackId.Equals(slug, StringComparison.OrdinalIgnoreCase)))
+                    || i.Name.Equals(title, StringComparison.OrdinalIgnoreCase)
+                    || i.Name.Replace(" ", "-").Equals(slug, StringComparison.OrdinalIgnoreCase)
+                    || (i.Name.ToLowerInvariant().Contains(slug) && slug.Length > 3));
+
+                if (matching != null)
+                {
+                    p.InstalledGameVersion = matching.Version;
+                    p.InstalledVersion = matching.ModpackVersion;
+                }
+            }
+            p.IsInstalled = isInstalled;
         }
     }
 
@@ -640,7 +658,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
                 return;
             }
             await File.WriteAllBytesAsync(zipPath, data);
-            var instance = await InstallModpackFromZipAsync(project, zipPath, tempDir);
+            var instance = await InstallModpackFromZipAsync(project, zipPath, tempDir, version.VersionNumber);
             if (instance != null)
             {
                 project.IsInstalled = true;
@@ -744,7 +762,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
                 return;
             }
             await File.WriteAllBytesAsync(zipPath, data);
-            var instance = await InstallModpackFromZipAsync(project, zipPath, tempDir);
+            var instance = await InstallModpackFromZipAsync(project, zipPath, tempDir, version.VersionNumber);
             if (instance != null)
             {
                 project.IsInstalled = true;
@@ -764,7 +782,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
         }
     }
 
-    private async Task<Models.InstanceModel?> InstallModpackFromZipAsync(ModrinthProject project, string zipPath, string tempDir)
+    private async Task<Models.InstanceModel?> InstallModpackFromZipAsync(ModrinthProject project, string zipPath, string tempDir, string installedVersion = "")
     {
         try
         {
@@ -789,11 +807,11 @@ public partial class ModpacksBrowserViewModel : ObservableObject
 
             if (File.Exists(modrinthIndexPath))
             {
-                return await InstallModrinthMrpackAsync(project, modrinthIndexPath, extractDir);
+                return await InstallModrinthMrpackAsync(project, modrinthIndexPath, extractDir, installedVersion);
             }
             else if (File.Exists(curseforgeManifestPath))
             {
-                return await InstallCurseforgePackAsync(project, curseforgeManifestPath, extractDir);
+                return await InstallCurseforgePackAsync(project, curseforgeManifestPath, extractDir, installedVersion);
             }
             else
             {
@@ -813,7 +831,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
         }
     }
 
-    private async Task<Models.InstanceModel?> InstallModrinthMrpackAsync(ModrinthProject project, string indexPath, string extractDir)
+    private async Task<Models.InstanceModel?> InstallModrinthMrpackAsync(ModrinthProject project, string indexPath, string extractDir, string installedVersion = "")
     {
         var jsonText = await File.ReadAllTextAsync(indexPath);
         using var doc = System.Text.Json.JsonDocument.Parse(jsonText);
@@ -879,6 +897,11 @@ public partial class ModpacksBrowserViewModel : ObservableObject
             StatusText = $"Failed to create instance for {packName}";
             return null;
         }
+
+        inst.ModpackId = project.ProjectId;
+        inst.ModpackVersion = !string.IsNullOrWhiteSpace(installedVersion)
+            ? installedVersion
+            : (root.TryGetProperty("versionId", out var vidProp) ? vidProp.GetString() ?? "" : "");
 
         // Copy icon
         if (!string.IsNullOrWhiteSpace(project.IconUrl))
@@ -978,7 +1001,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
         return inst;
     }
 
-    private async Task<Models.InstanceModel?> InstallCurseforgePackAsync(ModrinthProject project, string manifestPath, string extractDir)
+    private async Task<Models.InstanceModel?> InstallCurseforgePackAsync(ModrinthProject project, string manifestPath, string extractDir, string installedVersion = "")
     {
         var manifestJson = await File.ReadAllTextAsync(manifestPath);
         using var manifestDoc = System.Text.Json.JsonDocument.Parse(manifestJson);
@@ -1051,6 +1074,11 @@ public partial class ModpacksBrowserViewModel : ObservableObject
             StatusText = $"Failed to create instance for {packName}";
             return null;
         }
+
+        inst.ModpackId = project.ProjectId;
+        inst.ModpackVersion = !string.IsNullOrWhiteSpace(installedVersion)
+            ? installedVersion
+            : (manifest.TryGetProperty("version", out var vProp) ? vProp.GetString() ?? "" : "");
 
         var baseDir = Path.GetDirectoryName(manifestPath) ?? extractDir;
         var overridesDir = Path.Combine(baseDir, "overrides");

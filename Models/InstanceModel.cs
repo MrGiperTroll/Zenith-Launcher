@@ -21,6 +21,10 @@ public partial class InstanceModel : ObservableObject
     [ObservableProperty] private int _maxMemoryMb = 4096;
     [ObservableProperty] private string? _iconPath;
 
+    // Modpack package tracking
+    [ObservableProperty] private string _modpackId = "";
+    [ObservableProperty] private string _modpackVersion = "";
+
     // Per-instance overrides (null = use global launcher settings)
     [ObservableProperty] private int? _gameWidth;
     [ObservableProperty] private int? _gameHeight;

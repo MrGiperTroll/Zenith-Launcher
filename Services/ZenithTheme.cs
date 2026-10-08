@@ -94,6 +94,10 @@ public static class ZenithTheme
         SetBrushColor(r, "TextControlSelectionHighlightBrush", accent);
         SetBrushColor(r, "TextControlSelectionHighlightColorBrush", accent);
         SetBrushColor(r, "TextSelectionHighlightColor", accent);
+        SetBrushColor(r, "TextControlBorderBrushFocused", accent);
+        SetBrushColor(r, "TextControlBackgroundFocused", field);
+        SetBrushColor(r, "TextControlBackgroundPointerOver", surface);
+        SetBrushColor(r, "TextControlBorderBrushPointerOver", Blend(accent, borderDark, 0.55f));
 
         // Slider dynamic brush overrides
         SetBrushColor(r, "SliderTrackFill", accent);

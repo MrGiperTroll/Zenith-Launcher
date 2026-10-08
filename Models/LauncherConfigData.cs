@@ -13,6 +13,7 @@ public class LauncherConfigData
     public string JavaMode { get; set; } = "Recommended";
     public string CustomJavaPath { get; set; } = string.Empty;
     public string AccentColor { get; set; } = "";
+    public string SimpleAccentColor { get; set; } = "#3B82F6";
     public string BgColor { get; set; } = "#080A0F";
     public string SurfaceColor { get; set; } = "#0D111A";
     public string PanelColor { get; set; } = "#121722";

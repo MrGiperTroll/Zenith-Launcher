@@ -9,14 +9,24 @@
     
     <UserControl.Styles>
         <Style Selector="TextBox.darkInput">
-            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Padding" Value="10,8"/>
             <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}"/>
             <Setter Property="SelectionForegroundBrush" Value="{DynamicResource OnAccentBrush}"/>
+            <Setter Property="CaretBrush" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+        <Style Selector="TextBox.darkInput:pointerover /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderHoverBrush}"/>
+        </Style>
+        <Style Selector="TextBox.darkInput:focus /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="{DynamicResource FieldBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
         </Style>
         <Style Selector="ComboBox">
             <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
@@ -57,6 +67,11 @@
         </Style>
         <Style Selector="Button.primaryBtn:pointerover">
             <Setter Property="Background" Value="{DynamicResource AccentBrushHover}"/>
+        </Style>
+        <Style Selector="Button.primaryBtn.applyHighlight">
+            <Setter Property="Background" Value="{DynamicResource AccentBrushHover}"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="BorderBrush" Value="#FFFFFF"/>
         </Style>
         <Style Selector="Button.previewSampleBtn">
             <Setter Property="Background" Value="{Binding PreviewAccentBrush}"/>
@@ -183,7 +198,7 @@
                                     <TextBlock Text="{l10n:Tr Key=set_theme}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
                                     <TextBlock Text="{l10n:Tr Key=set_theme_hint}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
                                 </StackPanel>
-                                <Button Grid.Column="1" Classes="primaryBtn" Command="{Binding RequestApplyThemeCommand}" Content="{l10n:Tr Key=set_apply}" Padding="16,6" VerticalAlignment="Center"/>
+                                <Button Grid.Column="1" Classes="primaryBtn" Classes.applyHighlight="{Binding IsApplyButtonHighlighted}" Command="{Binding RequestApplyThemeCommand}" Content="{l10n:Tr Key=set_apply}" Padding="16,6" VerticalAlignment="Center"/>
                             </Grid>
 
                             <WrapPanel Orientation="Horizontal">
@@ -426,7 +441,7 @@
                                         </Button>
                                     </Grid>
 
-                                    <Button Classes="primaryBtn" Command="{Binding RequestApplyThemeCommand}" Content="{l10n:Tr Key=set_apply}" HorizontalAlignment="Right" Padding="18,6" Margin="0,4,0,0"/>
+                                    <Button Classes="primaryBtn" Classes.applyHighlight="{Binding IsApplyButtonHighlighted}" Command="{Binding RequestApplyThemeCommand}" Content="{l10n:Tr Key=set_apply}" HorizontalAlignment="Right" Padding="18,6" Margin="0,4,0,0"/>
                                 </StackPanel>
                             </Border>
                         </StackPanel>

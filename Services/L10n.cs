@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 
@@ -394,10 +394,13 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
         ["theme_edit_desc"] = "Customize colors, animations, and the overall look and feel of Zenith.",
         ["theme_simple"] = "Simple",
         ["theme_particles"] = "Background Particles (Leaves/Snow)",
+        ["particle_none"] = "None (Disabled)",
+        ["particle_snow"] = "Snowflakes",
+        ["particle_leaves"] = "Falling Leaves",
+        ["theme_preview"] = "Live Preview",
         ["theme_advanced"] = "Advanced",
         ["theme_edit"] = "Edit Theme",
         ["theme_edit_desc"] = "Customize colors, animations, and the overall look and feel of Zenith.",
-        ["theme_simple"] = "Simple",
         ["theme_customize"] = "Customize",
         ["settings_scale"] = "Launcher Scale",
         ["nav_about"] = "About",
@@ -949,12 +952,15 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
         ["theme_customize"] = "Настрой свою тему",
         ["btn_customize"] = "Настроить",
         ["theme_advanced"] = "Продвинутый",
-        ["theme_simple"] = "Простой",
+        ["theme_simple"] = "Простые",
         ["theme_particles"] = "Частицы на фоне (Листья/Снег)",
+        ["particle_none"] = "Выключено",
+        ["particle_snow"] = "Снегопад (Снежинки)",
+        ["particle_leaves"] = "Листопад (Осенние листья)",
+        ["theme_preview"] = "Предпросмотр",
         ["theme_advanced"] = "Продвинутые",
         ["theme_edit"] = "Изменить тему",
         ["theme_edit_desc"] = "Настройте цвета, анимации и внешний вид Zenith.",
-        ["theme_simple"] = "Простые",
         ["theme_customize"] = "Кастомизация",
         ["settings_scale"] = "Масштаб лаунчера",
         ["nav_about"] = "О программе",

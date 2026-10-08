@@ -353,6 +353,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty] private string _selectedParticle = "None";
 
+    public string[] ParticleOptions { get; } = new[] { "None", "Snowflakes", "Leaves" };
+
     partial void OnSelectedParticleChanged(string value) => SaveLauncherConfig();
 
     partial void OnLauncherScaleChanged(double value) => SaveLauncherConfig();
@@ -1706,11 +1708,27 @@ public partial class MainWindowViewModel : ViewModelBase
         UseFlatVersionList = UseFlatVersionList,
         AutoManageJava = AutoManageJava,
         DiscordRpcEnabled = DiscordRpcEnabled,
+        LauncherScale = LauncherScale,
+        SelectedParticle = SelectedParticle,
         Language = SelectedLanguage,
         IsSidebarExpanded = IsSidebarExpanded
     };
 
     
+    [ObservableProperty]
+    private string _themeSubTab = "Simple";
+
+    public bool IsThemeSubTabSimple => ThemeSubTab == "Simple";
+    public bool IsThemeSubTabAdvanced => ThemeSubTab == "Advanced";
+
+    [RelayCommand]
+    public void SwitchThemeSubTab(string tab)
+    {
+        ThemeSubTab = tab;
+        OnPropertyChanged(nameof(IsThemeSubTabSimple));
+        OnPropertyChanged(nameof(IsThemeSubTabAdvanced));
+    }
+
     [RelayCommand]
     private void OpenThemeEditor()
     {

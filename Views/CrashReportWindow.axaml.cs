@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -9,17 +9,18 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using CustomMcLauncher.Services;
+using CustomMcLauncher.ViewModels.Dialogs;
 
 namespace CustomMcLauncher.Views;
 
 public partial class CrashReportWindow : Window
 {
-    private readonly CrashReportWindowVm _vm;
+    private readonly CrashReportViewModel _vm;
 
     public CrashReportWindow(CrashAnalysis analysis)
     {
         InitializeComponent();
-        _vm = new CrashReportWindowVm(analysis);
+        _vm = new CrashReportViewModel(analysis);
         DataContext = _vm;
     }
 
@@ -56,25 +57,4 @@ public partial class CrashReportWindow : Window
     }
 
     private void OnCloseClick(object? sender, RoutedEventArgs e) => Close();
-}
-
-/// <summary>Presentation wrapper over the raw analysis record.</summary>
-public sealed class CrashReportWindowVm
-{
-    public CrashAnalysis Analysis { get; }
-    public string Title { get; }
-    public string LikelyCauseLabel { get; }
-    public string HumanSummary { get; }
-    public string ExitCodeLine { get; }
-    public IReadOnlyList<string> Evidence => Analysis.Evidence;
-    public IReadOnlyList<string> Requirements => Analysis.Requirements ?? Array.Empty<string>();
-
-    public CrashReportWindowVm(CrashAnalysis analysis)
-    {
-        Analysis = analysis;
-        Title = L10n.T("crash_window_title");
-        LikelyCauseLabel = analysis.LikelyCause;
-        HumanSummary = analysis.HumanSummary;
-        ExitCodeLine = string.Format(L10n.T("crash_exit_code"), analysis.ExitCode);
-    }
 }

@@ -4,8 +4,9 @@
              xmlns:views="using:CustomMcLauncher.Views"
              xmlns:conv="using:Avalonia.Data.Converters"
              xmlns:l10n="using:CustomMcLauncher.Extensions"
+             xmlns:pages="using:CustomMcLauncher.ViewModels.Pages"
              x:Class="CustomMcLauncher.Views.AccountsView"
-             x:DataType="vm:MainWindowViewModel"
+             x:DataType="pages:AccountsViewModel"
              Background="{StaticResource BgBrush}">
 
     <UserControl.Styles>
@@ -84,7 +85,7 @@
                                     <Button Classes="accRowBtn" Classes.active="{Binding IsActive}"
                                             HorizontalAlignment="Stretch"
                                             Margin="0,0,0,8"
-                                            Command="{Binding $parent[UserControl].((vm:MainWindowViewModel)DataContext).SwitchAccountCommand}"
+                                            Command="{Binding $parent[UserControl].((pages:AccountsViewModel)DataContext).SwitchAccountCommand}"
                                             CommandParameter="{Binding Model}">
                                         <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
                                             <!-- Skin head avatar -->
@@ -105,7 +106,7 @@
                                                 </StackPanel>
                                             </StackPanel>
                                             <!-- Delete Button -->
-                                            <Button Grid.Column="2" Command="{Binding $parent[UserControl].((vm:MainWindowViewModel)DataContext).DeleteAccountCommand}" CommandParameter="{Binding Model}"
+                                            <Button Grid.Column="2" Command="{Binding $parent[UserControl].((pages:AccountsViewModel)DataContext).DeleteAccountCommand}" CommandParameter="{Binding Model}"
                                                     Background="Transparent" Padding="8" Cursor="Hand" VerticalAlignment="Center" HorizontalAlignment="Right" ToolTip.Tip="{l10n:Tr Key=acc_remove}">
                                                 <PathIcon Data="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" Width="13" Height="13" Foreground="{StaticResource TextMutedBrush}">
                                                     <PathIcon.Styles>

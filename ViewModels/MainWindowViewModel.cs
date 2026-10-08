@@ -193,32 +193,17 @@ public partial class MainWindowViewModel : ViewModelBase
     private string _elyByErrorMessage = "A connection issue occurred while preparing the game. Please verify your internet connection.\n\nRecommendation: Try switching to an Offline account to launch and play without an internet connection.";
 
     // Accounts
-    public ObservableCollection<AccountModel> Accounts { get; } = new();
+    public ObservableCollection<AccountModel> Accounts => AccountsVm.Accounts;
 
-    [ObservableProperty]
-    private AccountModel? _selectedAccount;
+    public AccountModel? SelectedAccount
+    {
+        get => AccountsVm.SelectedAccount;
+        set => AccountsVm.SelectedAccount = value;
+    }
 
-    [ObservableProperty]
-    private string _activeAccountName = "Steve";
+    public string ActiveAccountName => AccountsVm.ActiveAccountName;
 
-    [ObservableProperty]
-    private string _activeAccountType = "Offline";
-
-    [ObservableProperty]
-    private string _newOfflineUsername = string.Empty;
-
-    /// <summary>True while a browser-based sign-in (Microsoft / Ely.by OAuth) is in flight.</summary>
-    [ObservableProperty]
-    private bool _isAccountsBusy = false;
-
-    /// <summary>Last sign-in error, shown inside the accounts dialog (StatusText is hidden behind it).</summary>
-    [ObservableProperty]
-    private string _authErrorText = string.Empty;
-
-    private CancellationTokenSource? _authCts;
-
-    // Sign-in cancellation is automatic: closing the accounts dialog (or the main
-    // window with it) cancels _authCts via AccountsWindow.Closed -> see OpenAccountsDialog.
+    public string ActiveAccountType => AccountsVm.ActiveAccountType;
 
     // Profiles / Instances
     public ObservableCollection<InstanceModel> Instances { get; } = new();
@@ -1338,8 +1323,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         if (CurrentPage == LauncherNavPage.Accounts && entry.Page != LauncherNavPage.Accounts)
         {
-            try { _authCts?.Cancel(); } catch { /* already disposed */ }
-            ResetAuthUiState();
+            AccountsVm.ResetAuthUiState();
         }
 
         if (CurrentPage == LauncherNavPage.ServerManager && entry.Page != LauncherNavPage.ServerManager)
@@ -1683,20 +1667,13 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private bool _isCloneDialogOpen;
     [ObservableProperty] private CloneProfileViewModel? _cloneDialogVm;
 
-    public ObservableCollection<AccountRow> AccountRows { get; } = new();
+    public ObservableCollection<AccountRow> AccountRows => AccountsVm.AccountRows;
 
-    public AccountRow? ActiveAccountRow
-    {
-        get
-        {
-            foreach (var r in AccountRows)
-                if (r.IsActive) return r;
-            return null;
-        }
-    }
+    public AccountRow? ActiveAccountRow => AccountsVm.ActiveAccountRow;
 
     public ThemeSettingsViewModel ThemeSettingsVm { get; }
     public LauncherSettingsViewModel LauncherSettingsVm { get; }
+    public AccountsViewModel AccountsVm { get; }
 
     public MainWindowViewModel()
     {
@@ -1731,6 +1708,17 @@ public partial class MainWindowViewModel : ViewModelBase
         Services.L10n.ApplyDisplay(SelectedLanguage);
 
         _accountService = new AccountService();
+        AccountsVm = new AccountsViewModel(_accountService);
+        AccountsVm.AccountStateChanged += () =>
+        {
+            OnPropertyChanged(nameof(ActiveAccountName));
+            OnPropertyChanged(nameof(ActiveAccountType));
+            OnPropertyChanged(nameof(ActiveAccountRow));
+            OnPropertyChanged(nameof(SelectedAccount));
+            OnPropertyChanged(nameof(Accounts));
+            OnPropertyChanged(nameof(AccountRows));
+        };
+        AccountsVm.OnStatusMessage += msg => StatusText = msg;
         _instanceService = new InstanceService();
         _launchService = new LaunchService((IInstanceService)_instanceService);
         _modLoaderService = new ModLoaderService();
@@ -2480,25 +2468,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public void RefreshState()
     {
-        var allAccs = _accountService.GetAccounts();
-        Accounts.Clear();
-        foreach (var acc in allAccs)
-            Accounts.Add(acc);
-
-        var activeAcc = _accountService.GetActiveAccount();
-        ActiveAccountName = activeAcc?.Username ?? "Steve";
-        ActiveAccountType = activeAcc?.Type.ToString() ?? "Offline";
-        SelectedAccount = activeAcc;
-
-        AccountRows.Clear();
-        foreach (var acc in allAccs)
-        {
-            var row = new AccountRow(acc) { IsActive = activeAcc != null && acc.Id == activeAcc.Id };
-            AccountRows.Add(row);
-            _ = row.LoadHeadAsync();
-        }
-        HasNoAccounts = AccountRows.Count == 0;
-        OnPropertyChanged(nameof(ActiveAccountRow));
+        AccountsVm.RefreshAccounts();
 
         Instances.Clear();
         foreach (var inst in _instanceService.GetInstances())
@@ -2720,161 +2690,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [RelayCommand]
     private void CloseConsoleDialog() => IsConsoleDialogOpen = false;
-
-    [RelayCommand]
-    private void SwitchAccount(AccountModel account)
-    {
-        if (account == null) return;
-        _accountService.SetActiveAccount(account.Id);
-        RefreshState();
-    }
-
-    [RelayCommand]
-    private void DeleteAccount(AccountModel account)
-    {
-        if (account == null) return;
-        _accountService.RemoveAccount(account.Id);
-        RefreshState();
-    }
-
-    /// <summary>True while the right panel of the accounts window shows the offline-name form.</summary>
-    /// <summary>True when the accounts dialog should show its empty-state hint.</summary>
-    [ObservableProperty]
-    private bool _hasNoAccounts;
-
-    [ObservableProperty]
-    private bool _isOfflinePanelOpen = false;
-
-    [RelayCommand]
-    private async Task AddOfflineAccountAsync()
-    {
-        if (!string.IsNullOrWhiteSpace(NewOfflineUsername))
-        {
-            var acc = await _accountService.AddOfflineAccountAsync(NewOfflineUsername.Trim());
-            _accountService.SetActiveAccount(acc.Id);
-            NewOfflineUsername = "";
-            IsOfflinePanelOpen = false;
-            RefreshState();
-        }
-    }
-
-    [RelayCommand]
-    private void ShowOfflinePanel() => IsOfflinePanelOpen = true;
-
-    /// <summary>
-    /// Hard-resets every in-progress sign-in flag so the accounts UI unlocks
-    /// immediately - used when the accounts dialog closes while a browser
-    /// sign-in is still waiting (tab closed, browser closed, error, timeout).
-    /// </summary>
-    public void ResetAuthUiState()
-    {
-        IsAccountsBusy = false;
-        AuthErrorText = "";
-    }
-
-    [RelayCommand]
-    private void CancelOfflinePanel() => IsOfflinePanelOpen = false;
-
-    [RelayCommand]
-    private async Task LoginElyByAsync()
-    {
-        if (IsAccountsBusy)
-        {
-            StatusText = L10n.T("mw_status_signin_busy");
-            return;
-        }
-        IsAccountsBusy = true;
-        AuthErrorText = "";
-        using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-        _authCts = cts;
-        try
-        {
-            StatusText = L10n.T("acc_status_ely_browser");
-            await _accountService.AuthenticateElyByOAuthAsync(cts.Token);
-            RefreshState();
-            StatusText = L10n.T("acc_status_ely_added");
-        }
-        catch (OperationCanceledException)
-        {
-            var msg = L10n.T("mw_status_signin_timeout");
-            StatusText = msg;
-            AuthErrorText = msg;
-        }
-        catch (InvalidOperationException ex)
-        {
-            LauncherLog.Error("Ely.by login failed", ex);
-            StatusText = ex.Message;
-            AuthErrorText = ex.Message;
-        }
-        catch (HttpRequestException ex)
-        {
-            LauncherLog.Error("Ely.by login failed", ex);
-            var msg = L10n.T("acc_status_conn_unreachable");
-            StatusText = msg;
-            AuthErrorText = msg;
-        }
-        catch (Exception ex)
-        {
-            LauncherLog.Error("Ely.by login failed", ex);
-            var msg = $"Ely.by login failed ({ex.GetType().Name}). See launcher.log for details.";
-            StatusText = msg;
-            AuthErrorText = msg;
-        }
-        finally
-        {
-            // Clear only our own CTS: a newer sign-in may have replaced _authCts.
-            if (ReferenceEquals(_authCts, cts)) _authCts = null;
-            IsAccountsBusy = false;
-        }
-    }
-
-    [RelayCommand]
-    private async Task LoginMicrosoftAsync() => await LoginMicrosoftInternalAsync();
-    private async Task LoginMicrosoftInternalAsync()
-    {
-        if (IsAccountsBusy)
-        {
-            StatusText = L10n.T("mw_status_signin_busy");
-            return;
-        }
-        IsAccountsBusy = true;
-        AuthErrorText = "";
-        using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5)); // browser sign-in takes time
-        _authCts = cts;
-        try
-        {
-            StatusText = "Signing in with Microsoft...";
-            var acc = await _accountService.AuthenticateMicrosoftAsync(cts.Token);
-            _accountService.SetActiveAccount(acc.Id);
-            RefreshState();
-            StatusText = L10n.T("acc_status_ms_added");
-        }
-        catch (OperationCanceledException)
-        {
-            var msg = L10n.T("mw_status_signin_timeout");
-            StatusText = msg;
-            AuthErrorText = msg;
-        }
-        catch (InvalidOperationException ex)
-        {
-            LauncherLog.Error("Microsoft login failed", ex);
-            StatusText = ex.Message;
-            AuthErrorText = ex.Message;
-        }
-        catch (Exception ex)
-        {
-            LauncherLog.Error("Microsoft login failed", ex);
-            var msg = string.Format(L10n.T("acc_status_ms_failed"), ex.GetType().Name);
-            StatusText = msg;
-            AuthErrorText = msg;
-        }
-        finally
-        {
-            // Clear only our own CTS: a newer sign-in may have replaced _authCts.
-            if (ReferenceEquals(_authCts, cts)) _authCts = null;
-            IsAccountsBusy = false;
-        }
-    }
 
     [RelayCommand]
     private void StartRenameInstance(InstanceModel instance)

@@ -7,10 +7,11 @@ using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CustomMcLauncher.Services;
+using CustomMcLauncher.ViewModels.Common;
 
-namespace CustomMcLauncher.Models;
+namespace CustomMcLauncher.ViewModels.Items;
 
-public partial class ModrinthProject : ObservableObject
+public partial class ModrinthProjectItemViewModel : ViewModelBase
 {
     public string ProjectId { get; init; } = "";
     public string Slug { get; init; } = "";
@@ -66,7 +67,6 @@ public partial class ModrinthProject : ObservableObject
 
     public string LoadersLabel =>
         Loaders.Length > 0 ? string.Join(", ", Loaders) : "";
-
 
     [ObservableProperty]
     private Bitmap? _icon;
@@ -156,4 +156,3 @@ public partial class ModrinthProject : ObservableObject
         });
     }
 }
-

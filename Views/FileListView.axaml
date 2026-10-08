@@ -1,4 +1,4 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:CustomMcLauncher.ViewModels"
         xmlns:converters="using:CustomMcLauncher.Converters"
@@ -77,7 +77,7 @@
                                 <Border Width="48" Height="48" Background="{StaticResource IconChipBrush}" CornerRadius="8"
                                         ClipToBounds="True" HorizontalAlignment="Left" VerticalAlignment="Center">
                                     <Panel>
-                                        <Image Source="{Binding PreviewImage}" Stretch="UniformToFill" Width="48" Height="48"
+                                        <Image Source="{Binding PreviewBytes, Converter={x:Static converters:BytesToBitmapConverter.Instance}}" Stretch="UniformToFill" Width="48" Height="48"
                                                IsVisible="{Binding HasPreview}"/>
                                         <Path Data="M14 2H6A2 2 0 0 0 4 4V20A2 2 0 0 0 6 22H18A2 2 0 0 0 20 20V6L14 2Z"
                                               Width="20" Height="20" Stretch="Uniform" Fill="{StaticResource TextPlaceholderBrush}"
@@ -166,7 +166,7 @@
                                 <StackPanel>
                                     <Border Height="112" Background="{StaticResource CardAltBrush}" ClipToBounds="True">
                                         <Panel>
-                                            <Image Source="{Binding PreviewImage}" Stretch="Uniform" Width="188" Height="112"
+                                            <Image Source="{Binding PreviewBytes, Converter={x:Static converters:BytesToBitmapConverter.Instance}}" Stretch="Uniform" Width="188" Height="112"
                                                    HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding HasPreview}"/>
                                             <Path Data="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01 3.5-4.51 4.5 6H5l3.5-4.5z"
                                                   Width="42" Height="42" Stretch="Uniform" Fill="{StaticResource TextPlaceholderBrush}"

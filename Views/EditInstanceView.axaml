@@ -258,7 +258,7 @@
                                               Margin="0,3.5,0,0"
                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         <Image IsVisible="{Binding Instance.HasCustomIcon}"
-                                               Source="{Binding Instance.IconBitmap}"
+                                               Source="{Binding Instance.IconPath, Converter={x:Static converters:IconPathToBitmapConverter.Instance}}"
                                                Stretch="UniformToFill"
                                                Width="64" Height="64"
                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -450,7 +450,7 @@
                                         <Grid ColumnDefinitions="48,*,Auto" MinHeight="52" Margin="4,6,4,6">
                                             <Border Width="40" Height="40" Background="{StaticResource IconChipBrush}" CornerRadius="8" ClipToBounds="True" HorizontalAlignment="Left" VerticalAlignment="Center">
                                                 <Panel>
-                                                    <Image Source="{Binding PreviewImage}" Stretch="UniformToFill" Width="40" Height="40" IsVisible="{Binding HasPreview}"/>
+                                                    <Image Source="{Binding PreviewBytes, Converter={x:Static converters:BytesToBitmapConverter.Instance}}" Stretch="UniformToFill" Width="40" Height="40" IsVisible="{Binding HasPreview}"/>
                                                     <Path Data="M14 2H6A2 2 0 0 0 4 4V20A2 2 0 0 0 6 22H18A2 2 0 0 0 20 20V6L14 2Z" Width="20" Height="20" Stretch="Uniform" Fill="{StaticResource TextPlaceholderBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding !HasPreview}"/>
                                                 </Panel>
                                             </Border>
@@ -506,7 +506,7 @@
                                             <Border Width="44" Height="44" Background="{StaticResource IconChipBrush}" CornerRadius="10"
                                                     ClipToBounds="True" HorizontalAlignment="Left" VerticalAlignment="Center">
                                                 <Panel>
-                                                    <Image Source="{Binding PreviewImage}" Stretch="Uniform" Width="38" Height="38"
+                                                    <Image Source="{Binding PreviewBytes, Converter={x:Static converters:BytesToBitmapConverter.Instance}}" Stretch="Uniform" Width="38" Height="38"
                                                            HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding HasPreview}"/>
                                                     <Path Data="M4 1H20C21.1 1 22 1.9 22 3V6C22 7.1 21.1 8 20 8H4C2.9 8 2 7.1 2 6V3C2 1.9 2.9 1 4 1ZM4 10H20C21.1 10 22 10.9 22 12V15C22 16.1 21.1 17 20 17H4C2.9 17 2 16.1 2 15V12C2 10.9 2.9 10 4 10ZM6 3V6H8V3H6ZM6 12V15H8V12H6Z"
                                                           Width="20" Height="20" Stretch="Uniform" Fill="{StaticResource TextPlaceholderBrush}"

@@ -4,6 +4,7 @@
         xmlns:vm="using:CustomMcLauncher.ViewModels"
         xmlns:converters="using:CustomMcLauncher.Converters"
         xmlns:models="using:CustomMcLauncher.Models"
+        xmlns:items="using:CustomMcLauncher.ViewModels.Items"
         xmlns:conv="using:Avalonia.Data.Converters"
         xmlns:views="using:CustomMcLauncher.Views"
         xmlns:l10n="using:CustomMcLauncher.Extensions"
@@ -549,8 +550,8 @@
                                             <StackPanel Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
                                                 <Border Width="56" Height="56" Background="{StaticResource ChipBrush}" CornerRadius="12" HorizontalAlignment="Center" ClipToBounds="True">
                                                     <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                        <Path IsVisible="{Binding IconBitmap, Converter={x:Static conv:ObjectConverters.IsNull}}" Data="{StaticResource ZenithLogoGeometry}" Fill="{StaticResource SubtleEmeraldBrush}" Stretch="Uniform" Width="32" Height="32" Margin="0,3,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                        <Image IsVisible="{Binding IconBitmap, Converter={x:Static conv:ObjectConverters.IsNotNull}}" Source="{Binding IconBitmap}" Stretch="UniformToFill" Width="56" Height="56" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <Path IsVisible="{Binding !HasCustomIcon}" Data="{StaticResource ZenithLogoGeometry}" Fill="{StaticResource SubtleEmeraldBrush}" Stretch="Uniform" Width="32" Height="32" Margin="0,3,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <Image IsVisible="{Binding HasCustomIcon}" Source="{Binding IconPath, Converter={x:Static converters:IconPathToBitmapConverter.Instance}}" Stretch="UniformToFill" Width="56" Height="56" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                     </Panel>
                                                 </Border>
                                                 <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center" TextAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="130"/>
@@ -597,15 +598,15 @@
                                                 HorizontalAlignment="Center">
                                             <Border Width="72" Height="72" Background="{StaticResource ChipBrush}" BorderBrush="{StaticResource BorderIconBrush}" BorderThickness="1" CornerRadius="16" ClipToBounds="True" HorizontalAlignment="Center">
                                                 <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                    <Path IsVisible="{Binding SelectedInstance.IconBitmap, Converter={x:Static conv:ObjectConverters.IsNull}}" 
+                                                    <Path IsVisible="{Binding !SelectedInstance.HasCustomIcon}" 
                                                           Data="{StaticResource ZenithLogoGeometry}" 
                                                           Fill="{StaticResource SubtleEmeraldBrush}" 
                                                           Stretch="Uniform" 
                                                           Width="42" Height="42" 
-                                                          Margin="0,3.5,0,0"
+                                                          Margin="0,3.5,0,0" 
                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                    <Image IsVisible="{Binding SelectedInstance.IconBitmap, Converter={x:Static conv:ObjectConverters.IsNotNull}}" 
-                                                           Source="{Binding SelectedInstance.IconBitmap}" 
+                                                    <Image IsVisible="{Binding SelectedInstance.HasCustomIcon}" 
+                                                           Source="{Binding SelectedInstance.IconPath, Converter={x:Static converters:IconPathToBitmapConverter.Instance}}" 
                                                            Stretch="UniformToFill" 
                                                            Width="72" Height="72" 
                                                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -793,7 +794,7 @@
                                         </ControlTheme>
                                     </ListBox.ItemContainerTheme>
                                     <ListBox.ItemTemplate>
-                                        <DataTemplate x:DataType="models:ModrinthProject">
+                                        <DataTemplate x:DataType="items:ModrinthProjectItemViewModel">
                                             <Border Margin="4" CornerRadius="10" Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" Padding="10" Tapped="OnModpackCardTapped" Cursor="Hand">
                                                 <Grid ColumnDefinitions="48,*,120">
                                                     <Border Width="48" Height="48" Background="{StaticResource ChipBrush}" CornerRadius="8" ClipToBounds="True">

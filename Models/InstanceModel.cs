@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Text.Json.Serialization;
-using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace CustomMcLauncher.Models;
@@ -74,26 +73,6 @@ public partial class InstanceModel : ObservableObject
     private double _launchProgressPercent;
 
     [JsonIgnore]
-    private Bitmap? _cachedIcon;
-
-    [JsonIgnore]
-    public Bitmap? IconBitmap
-    {
-        get
-        {
-            if (!string.IsNullOrEmpty(IconPath) && File.Exists(IconPath))
-            {
-                if (_cachedIcon == null)
-                {
-                    try { _cachedIcon = new Bitmap(IconPath); } catch { return null; }
-                }
-                return _cachedIcon;
-            }
-            return null;
-        }
-    }
-
-    [JsonIgnore]
     public bool HasCustomIcon => !string.IsNullOrEmpty(IconPath) && File.Exists(IconPath);
 
     public void RefreshTimeDisplays()
@@ -126,9 +105,7 @@ public partial class InstanceModel : ObservableObject
 
     partial void OnIconPathChanged(string? value)
     {
-        _cachedIcon?.Dispose();
-        _cachedIcon = null;
-        OnPropertyChanged(nameof(IconBitmap));
+        OnPropertyChanged(nameof(HasCustomIcon));
     }
 }
 

@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Text.Json.Serialization;
-using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace CustomMcLauncher.Models;
@@ -46,13 +45,11 @@ public partial class InstanceFileEntry : ObservableObject
     private string _modrinthProjectId = "";
 
     [JsonIgnore]
-    private Bitmap? _previewImage;
+    [ObservableProperty]
+    private byte[]? _previewBytes;
 
     [JsonIgnore]
-    public Bitmap? PreviewImage => _previewImage;
-
-    [JsonIgnore]
-    public bool HasPreview => _previewImage != null;
+    public bool HasPreview => PreviewBytes != null && PreviewBytes.Length > 0;
 
     public string DisplayName =>
         IsEnabled ? (IsDirectory ? Name.TrimEnd(Path.DirectorySeparatorChar) : Name)
@@ -63,23 +60,15 @@ public partial class InstanceFileEntry : ObservableObject
     public void SetPreview(byte[]? bytes, int decodeWidth = 64, bool allowDirectory = false)
     {
         _ = decodeWidth;
-        _previewImage?.Dispose();
-        _previewImage = null;
-
         if (bytes is { Length: > 0 } && (!IsDirectory || allowDirectory))
         {
-            try
-            {
-                using var ms = new MemoryStream(bytes);
-                _previewImage = new Bitmap(ms);
-            }
-            catch
-            {
-                _previewImage = null;
-            }
+            PreviewBytes = bytes;
+        }
+        else
+        {
+            PreviewBytes = null;
         }
 
-        OnPropertyChanged(nameof(PreviewImage));
         OnPropertyChanged(nameof(HasPreview));
     }
 }

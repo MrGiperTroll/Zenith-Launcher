@@ -1,8 +1,9 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:CustomMcLauncher.ViewModels"
         xmlns:converters="using:CustomMcLauncher.Converters"
         xmlns:models="using:CustomMcLauncher.Models"
+        xmlns:items="using:CustomMcLauncher.ViewModels.Items"
         xmlns:l10n="using:CustomMcLauncher.Extensions"
         xmlns:views="using:CustomMcLauncher.Views"
         xmlns:conv="using:Avalonia.Data.Converters"
@@ -193,7 +194,7 @@
                             </ControlTheme>
                         </ListBox.ItemContainerTheme>
                         <ListBox.ItemTemplate>
-                            <DataTemplate x:DataType="models:ModrinthProject">
+                            <DataTemplate x:DataType="items:ModrinthProjectItemViewModel">
                                 <Border Margin="4" CornerRadius="10" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" Padding="0" ClipToBounds="True" Tapped="OnCardTapped" Cursor="Hand">
                                     <Grid ColumnDefinitions="64,*,140" Height="88">
                                         <!-- Icon -->

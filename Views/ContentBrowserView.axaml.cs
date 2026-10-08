@@ -36,13 +36,13 @@ public partial class ContentBrowserView : UserControl
 
     private void OnInstalledButtonHover(object? sender, PointerEventArgs e)
     {
-        if (sender is Button { DataContext: Models.ModrinthProject p })
+        if (sender is Button { DataContext: ViewModels.Items.ModrinthProjectItemViewModel p })
             p.IsHovered = true;
     }
 
     private void OnInstalledButtonHoverOut(object? sender, PointerEventArgs e)
     {
-        if (sender is Button { DataContext: Models.ModrinthProject p })
+        if (sender is Button { DataContext: ViewModels.Items.ModrinthProjectItemViewModel p })
             p.IsHovered = false;
     }
 
@@ -54,7 +54,7 @@ public partial class ContentBrowserView : UserControl
             return;
         }
 
-        if (sender is Control { DataContext: Models.ModrinthProject p } && DataContext is ContentBrowserViewModel vm)
+        if (sender is Control { DataContext: ViewModels.Items.ModrinthProjectItemViewModel p } && DataContext is ContentBrowserViewModel vm)
             vm.OpenProjectPageCommand.Execute(p);
     }
 

@@ -47,3 +47,25 @@ public class IsNotNullConverter : IValueConverter
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) => value != null && !(value is string str2 && string.IsNullOrWhiteSpace(str2));
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
 }
+
+public class BytesToBitmapConverter : IValueConverter
+{
+    public static readonly BytesToBitmapConverter Instance = new();
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is byte[] bytes && bytes.Length > 0)
+        {
+            try
+            {
+                using var ms = new System.IO.MemoryStream(bytes);
+                return new Bitmap(ms);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+        return null;
+    }
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
+}

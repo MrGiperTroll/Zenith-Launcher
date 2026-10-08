@@ -13,6 +13,7 @@ using CommunityToolkit.Mvvm.Input;
 using CustomMcLauncher.Common.Utils;
 using CustomMcLauncher.Models;
 using CustomMcLauncher.Services;
+using CustomMcLauncher.ViewModels.Items;
 
 namespace CustomMcLauncher.ViewModels;
 
@@ -26,7 +27,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     private int _totalHits;
     private bool _showInstallFeedback;
 
-    public ObservableCollection<ModrinthProject> Results { get; } = new();
+    public ObservableCollection<ModrinthProjectItemViewModel> Results { get; } = new();
     public ObservableCollection<string> AvailableVersions { get; } = new();
     [ObservableProperty] private ObservableCollection<string> _availableCategories = new();
     [ObservableProperty] private ObservableCollection<string> _availableLoaders = new();
@@ -37,7 +38,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     private CancellationTokenSource? _searchCts;
     private int _searchGeneration;
 
-    public Action<ModrinthProject?>? OnProjectSelectedChanged { get; set; }
+    public Action<ModrinthProjectItemViewModel?>? OnProjectSelectedChanged { get; set; }
 
     partial void OnSearchQueryChanged(string value)
     {
@@ -66,13 +67,13 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     [ObservableProperty] private bool _isBusy;
     [ObservableProperty] private bool _isLoadingMore;
 
-    [ObservableProperty] private ModrinthProject? _pendingDelete;
+    [ObservableProperty] private ModrinthProjectItemViewModel? _pendingDelete;
 
-    [ObservableProperty] private ModrinthProject? _selectedProject;
+    [ObservableProperty] private ModrinthProjectItemViewModel? _selectedProject;
 
     public bool IsDetailsOpen => SelectedProject != null;
 
-    public ModrinthProject? DetailsProject => SelectedProject;
+    public ModrinthProjectItemViewModel? DetailsProject => SelectedProject;
 
     public bool InstallButtonVisible => SelectedProject != null;
 
@@ -231,7 +232,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
             ? L10n.T("mi_reinstall")
             : L10n.T("mi_install");
 
-    partial void OnSelectedProjectChanged(ModrinthProject? value)
+    partial void OnSelectedProjectChanged(ModrinthProjectItemViewModel? value)
     {
         OnPropertyChanged(nameof(IsDetailsOpen));
         OnPropertyChanged(nameof(DetailsProject));
@@ -272,7 +273,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     public string DeleteConfirmText =>
         PendingDelete == null ? "" : string.Format(L10n.T("cb_delete_confirm"), PendingDelete.Title);
 
-    partial void OnPendingDeleteChanged(ModrinthProject? value)
+    partial void OnPendingDeleteChanged(ModrinthProjectItemViewModel? value)
     {
         OnPropertyChanged(nameof(IsDeleteConfirmOpen));
         OnPropertyChanged(nameof(DeleteItemName));
@@ -573,7 +574,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
         }
     }
 
-    private async void LoadIcon(ModrinthProject project, int generation)
+    private async void LoadIcon(ModrinthProjectItemViewModel project, int generation)
     {
         if (string.IsNullOrWhiteSpace(project.IconUrl) || project.HasIcon) return;
         var bytes = await ModrinthApiService.GetIconAsync(project.IconUrl);
@@ -619,7 +620,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void DeleteOrInstall(ModrinthProject project)
+    private void DeleteOrInstall(ModrinthProjectItemViewModel project)
     {
         if (project == null || project.IsInstalling) return;
         if (project.IsInstalled)
@@ -631,7 +632,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
         _ = InstallLatestAsync(project);
     }
 
-    private async Task InstallLatestAsync(ModrinthProject project)
+    private async Task InstallLatestAsync(ModrinthProjectItemViewModel project)
     {
         if (project == null || project.IsInstalling) return;
         try
@@ -683,7 +684,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     private void CancelDelete() => PendingDelete = null;
 
     [RelayCommand]
-    private void OpenProjectPage(ModrinthProject project)
+    private void OpenProjectPage(ModrinthProjectItemViewModel project)
     {
         SelectedProject = project;
     }
@@ -696,7 +697,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void OpenVersionSelector(ModrinthProject? project)
+    private void OpenVersionSelector(ModrinthProjectItemViewModel? project)
     {
         if (project == null) return;
         SelectedProject = project;
@@ -705,7 +706,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
         IsVersionSelectorOpen = true;
     }
 
-    private async Task LoadFullProjectAsync(ModrinthProject project)
+    private async Task LoadFullProjectAsync(ModrinthProjectItemViewModel project)
     {
         FullProjectBusy = true;
         try
@@ -744,7 +745,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
         _ = InstallSpecificVersionAsync(SelectedProject, version);
     }
 
-    private async Task InstallSpecificVersionAsync(ModrinthProject project, Models.ModrinthProjectVersion version)
+    private async Task InstallSpecificVersionAsync(ModrinthProjectItemViewModel project, Models.ModrinthProjectVersion version)
     {
         if (project == null || project.IsInstalling) return;
         var file = version.Files.FirstOrDefault(f => f.IsPrimary) ?? version.Files.FirstOrDefault();
@@ -783,7 +784,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
         }
     }
 
-    private async Task<Models.InstanceModel?> InstallModpackFromZipAsync(ModrinthProject project, string zipPath, string tempDir, string installedVersion = "")
+    private async Task<Models.InstanceModel?> InstallModpackFromZipAsync(ModrinthProjectItemViewModel project, string zipPath, string tempDir, string installedVersion = "")
     {
         try
         {
@@ -832,7 +833,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
         }
     }
 
-    private async Task<Models.InstanceModel?> InstallModrinthMrpackAsync(ModrinthProject project, string indexPath, string extractDir, string installedVersion = "")
+    private async Task<Models.InstanceModel?> InstallModrinthMrpackAsync(ModrinthProjectItemViewModel project, string indexPath, string extractDir, string installedVersion = "")
     {
         var jsonText = await File.ReadAllTextAsync(indexPath);
         using var doc = System.Text.Json.JsonDocument.Parse(jsonText);
@@ -1002,7 +1003,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
         return inst;
     }
 
-    private async Task<Models.InstanceModel?> InstallCurseforgePackAsync(ModrinthProject project, string manifestPath, string extractDir, string installedVersion = "")
+    private async Task<Models.InstanceModel?> InstallCurseforgePackAsync(ModrinthProjectItemViewModel project, string manifestPath, string extractDir, string installedVersion = "")
     {
         var manifestJson = await File.ReadAllTextAsync(manifestPath);
         using var manifestDoc = System.Text.Json.JsonDocument.Parse(manifestJson);
@@ -1103,7 +1104,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void OpenExternal(ModrinthProject? project)
+    private void OpenExternal(ModrinthProjectItemViewModel? project)
     {
         if (string.IsNullOrWhiteSpace(project?.ProjectUrl)) return;
         try
@@ -1169,7 +1170,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
         DeleteModpack(project);
     }
 
-    private void DeleteModpack(ModrinthProject project)
+    private void DeleteModpack(ModrinthProjectItemViewModel project)
     {
         if (project == null) return;
         try
@@ -1209,7 +1210,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     }
 
     [RelayCommand(AllowConcurrentExecutions = true)]
-    private async Task InstallAsync(ModrinthProject project)
+    private async Task InstallAsync(ModrinthProjectItemViewModel project)
     {
         await InstallLatestAsync(project);
     }

@@ -52,10 +52,13 @@
             <Setter Property="VerticalContentAlignment" Value="Center"/>
         </Style>
         <Style Selector="Button.sideTab:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+        </Style>
+        <Style Selector="Button.sideTab:pointerover PathIcon">
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
         </Style>
         <Style Selector="Button.sideTab.active /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource AccentDimBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource AccentDimBrush}"/>
         </Style>
         <Style Selector="Button.subBtn">
             <Setter Property="Background" Value="{StaticResource FieldBrush}"/>

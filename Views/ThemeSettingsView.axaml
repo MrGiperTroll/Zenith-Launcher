@@ -116,7 +116,7 @@
             <StackPanel Orientation="Horizontal" Spacing="4">
                 <Button Classes="subTabBtn" Classes.active="{Binding IsThemeSubTabSimple}" Command="{Binding SwitchThemeSubTabCommand}" CommandParameter="Simple">
                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                        <PathIcon Data="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 19.4c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.9-1.9C9.22 19.59 10.56 20 12 20c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-5.5 9c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5-.67 1.5-1.5 1.5-1.5-.67-1.5-1.5zm3 4c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5-.67 1.5-1.5 1.5-1.5-.67-1.5-1.5zm1-7c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5-.67 1.5-1.5 1.5-1.5-.67-1.5-1.5zm4 4c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5-.67 1.5-1.5 1.5-1.5-.67-1.5-1.5z" Width="13" Height="13" VerticalAlignment="Center"/>
+                        <PathIcon Data="M12 3a9 9 0 0 0 0 18c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" Width="13" Height="13" VerticalAlignment="Center"/>
                         <TextBlock Text="{l10n:Tr Key=theme_simple}" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
@@ -178,10 +178,13 @@
                     <!-- Presets Chips -->
                     <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="10" Padding="14,12">
                         <StackPanel Spacing="12">
-                            <StackPanel Spacing="2">
-                                <TextBlock Text="{l10n:Tr Key=set_theme}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                <TextBlock Text="{l10n:Tr Key=set_theme_hint}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
-                            </StackPanel>
+                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                <StackPanel Grid.Column="0" Spacing="2">
+                                    <TextBlock Text="{l10n:Tr Key=set_theme}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="{l10n:Tr Key=set_theme_hint}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                                </StackPanel>
+                                <Button Grid.Column="1" Classes="primaryBtn" Command="{Binding RequestApplyThemeCommand}" Content="{l10n:Tr Key=set_apply}" Padding="16,6" VerticalAlignment="Center"/>
+                            </Grid>
 
                             <WrapPanel Orientation="Horizontal">
                                 <ItemsControl ItemsSource="{x:Static services:ZenithTheme.Presets}">
@@ -195,13 +198,15 @@
                                             <Button Command="{Binding $parent[ItemsControl].((vm:MainWindowViewModel)DataContext).ChooseThemeCommand}"
                                                     CommandParameter="{Binding HexColor}"
                                                     Classes="subBtn"
+                                                    Width="120"
+                                                    Height="36"
                                                     CornerRadius="8"
-                                                    Padding="10,6"
+                                                    Padding="8,0"
                                                     Margin="0,0,8,8">
-                                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                                    <Border Width="14" Height="14" CornerRadius="7" Background="{Binding ColorBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" VerticalAlignment="Center"/>
-                                                    <TextBlock Text="{Binding DisplayName}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                                                </StackPanel>
+                                                <Grid ColumnDefinitions="14,*" VerticalAlignment="Center">
+                                                    <Border Grid.Column="0" Width="14" Height="14" CornerRadius="7" Background="{Binding ColorBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding DisplayName}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" Margin="8,0,0,0" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                                </Grid>
                                             </Button>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
@@ -209,8 +214,10 @@
 
                                 <!-- Custom Single Color Harmonizer Button -->
                                 <Button Classes="subBtn"
+                                        Width="120"
+                                        Height="36"
                                         CornerRadius="8"
-                                        Padding="10,6"
+                                        Padding="8,0"
                                         Margin="0,0,8,8"
                                         ToolTip.Tip="Pick custom color and auto-harmonize full palette">
                                     <Button.Flyout>
@@ -218,11 +225,11 @@
                                             <ColorView Color="{Binding CustomThemeHex, Mode=TwoWay, Converter={x:Static vm:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
                                         </Flyout>
                                     </Button.Flyout>
-                                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                        <Border Width="14" Height="14" CornerRadius="7" Background="{Binding CustomThemeHex, Converter={x:Static vm:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" VerticalAlignment="Center"/>
-                                        <TextBlock Text="{l10n:Tr Key=theme_custom_color}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                                        <PathIcon Data="M7 10l5 5 5-5z" Width="10" Height="10" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                                    </StackPanel>
+                                    <Grid ColumnDefinitions="14,*,Auto" VerticalAlignment="Center">
+                                        <Border Grid.Column="0" Width="14" Height="14" CornerRadius="7" Background="{Binding CustomThemeHex, Converter={x:Static vm:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="1" Text="{l10n:Tr Key=theme_custom_color}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" Margin="8,0,4,0" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                        <PathIcon Grid.Column="2" Data="M7 10l5 5 5-5z" Width="10" Height="10" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                    </Grid>
                                 </Button>
                             </WrapPanel>
                         </StackPanel>

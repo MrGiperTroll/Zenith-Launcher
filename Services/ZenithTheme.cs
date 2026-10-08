@@ -131,16 +131,16 @@ public static class ZenithTheme
 
     public static readonly ThemePreset[] Presets =
     {
-        new("blue", "Classic Blue", "Классическая синяя", "#3B82F6"),
-        new("green", "Emerald Green", "Стандартная зелёная", "#10B981"),
-        new("purple", "Vivid Purple", "Фиолетовая", "#8B5CF6"),
-        new("dark_purple", "Deep Purple", "Тёмно-фиолетовая", "#6D28D9"),
-        new("sakura", "Sakura Pink", "Сакуровая", "#EC4899"),
-        new("orange", "Sunset Orange", "Закатная оранжевая", "#F97316"),
-        new("cyan", "Cyber Cyan", "Бирюзовая", "#06B6D4"),
-        new("crimson", "Crimson Red", "Рубиновая", "#EF4444"),
-        new("amber", "Amber Gold", "Янтарная", "#F59E0B"),
-        new("deep_sky", "Deep Sky", "Лазурная", "#0284C7")
+        new("blue", "Blue", "Синий", "#3B82F6"),
+        new("green", "Green", "Зелёный", "#10B981"),
+        new("purple", "Purple", "Фиолетовый", "#8B5CF6"),
+        new("dark_purple", "Dark Purple", "Тёмно-фиолетовый", "#6D28D9"),
+        new("pink", "Pink", "Розовый", "#EC4899"),
+        new("orange", "Orange", "Оранжевый", "#F97316"),
+        new("cyan", "Cyan", "Бирюзовый", "#06B6D4"),
+        new("red", "Red", "Красный", "#EF4444"),
+        new("yellow", "Yellow", "Жёлтый", "#F59E0B"),
+        new("sky", "Sky Blue", "Голубой", "#0284C7")
     };
 }
 

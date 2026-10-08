@@ -221,13 +221,13 @@ public partial class MainWindow : Window
 
     private void OnModpackButtonHover(object? sender, PointerEventArgs e)
     {
-        if (sender is Button { DataContext: Models.ModrinthProject p })
+        if (sender is Button { DataContext: ViewModels.Items.ModrinthProjectItemViewModel p })
             p.IsHovered = true;
     }
 
     private void OnModpackButtonHoverOut(object? sender, PointerEventArgs e)
     {
-        if (sender is Button { DataContext: Models.ModrinthProject p })
+        if (sender is Button { DataContext: ViewModels.Items.ModrinthProjectItemViewModel p })
             p.IsHovered = false;
     }
 
@@ -239,7 +239,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (sender is Control { DataContext: Models.ModrinthProject p } && DataContext is MainWindowViewModel vm)
+        if (sender is Control { DataContext: ViewModels.Items.ModrinthProjectItemViewModel p } && DataContext is MainWindowViewModel vm)
             vm.ModpacksBrowser.OpenProjectPageCommand.Execute(p);
     }
 

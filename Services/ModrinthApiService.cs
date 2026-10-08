@@ -8,17 +8,18 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using CustomMcLauncher.Models;
+using CustomMcLauncher.ViewModels.Items;
 
 namespace CustomMcLauncher.Services;
 
 public sealed class ModrinthSearchPage
 {
-    public List<ModrinthProject> Hits { get; }
+    public List<ModrinthProjectItemViewModel> Hits { get; }
     public int Offset { get; }
     public int Limit { get; }
     public int TotalHits { get; }
 
-    public ModrinthSearchPage(List<ModrinthProject> hits, int offset, int limit, int totalHits)
+    public ModrinthSearchPage(List<ModrinthProjectItemViewModel> hits, int offset, int limit, int totalHits)
     {
         Hits = hits;
         Offset = offset;
@@ -183,7 +184,7 @@ public static class ModrinthApiService
     {
         using var doc = JsonDocument.Parse(json);
         var root = doc.RootElement;
-        var hits = new List<ModrinthProject>();
+        var hits = new List<ModrinthProjectItemViewModel>();
         var totalHits = root.TryGetProperty("total_hits", out var th) ? th.GetInt32() : 0;
         var offset = root.TryGetProperty("offset", out var off) ? off.GetInt32() : 0;
         var limit = root.TryGetProperty("limit", out var lim) ? lim.GetInt32() : 20;
@@ -212,7 +213,7 @@ public static class ModrinthApiService
                 var otherCats = cats.Where(c => c is not "fabric" and not "forge" and not "neoforge" and not "neoforged" and not "quilt" and not "iris" and not "optifine").ToArray();
                 var updatedStr = GetString(hit, "date_modified");
                 DateTime.TryParse(updatedStr, out var updated);
-                hits.Add(new ModrinthProject
+                hits.Add(new ModrinthProjectItemViewModel
                 {
                     ProjectId = GetString(hit, "project_id") ?? "",
                     Slug = GetString(hit, "slug") ?? "",

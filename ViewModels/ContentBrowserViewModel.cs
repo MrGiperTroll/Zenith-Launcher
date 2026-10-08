@@ -14,6 +14,7 @@ using CommunityToolkit.Mvvm.Input;
 using CustomMcLauncher.Common.Utils;
 using CustomMcLauncher.Models;
 using CustomMcLauncher.Services;
+using CustomMcLauncher.ViewModels.Items;
 
 namespace CustomMcLauncher.ViewModels;
 
@@ -31,7 +32,7 @@ public partial class ContentBrowserViewModel : ObservableObject
     private int _totalHits;
     private bool _showInstallFeedback;
 
-    public ObservableCollection<ModrinthProject> Results { get; } = new();
+    public ObservableCollection<ModrinthProjectItemViewModel> Results { get; } = new();
     public ObservableCollection<BrowserTag> AvailableTags { get; } = new();
 
     [ObservableProperty]
@@ -60,7 +61,7 @@ public partial class ContentBrowserViewModel : ObservableObject
     private CancellationTokenSource? _searchCts;
     private int _searchGeneration;
 
-    public Action<ModrinthProject?>? OnProjectSelectedChanged { get; set; }
+    public Action<ModrinthProjectItemViewModel?>? OnProjectSelectedChanged { get; set; }
 
     partial void OnSearchQueryChanged(string value)
     {
@@ -95,15 +96,15 @@ public partial class ContentBrowserViewModel : ObservableObject
     private string _selectedWorld = "";
 
     [ObservableProperty]
-    private ModrinthProject? _pendingDelete;
+    private ModrinthProjectItemViewModel? _pendingDelete;
 
     [ObservableProperty]
-    private ModrinthProject? _selectedProject;
+    private ModrinthProjectItemViewModel? _selectedProject;
 
     public bool IsDetailsOpen => SelectedProject != null;
 
     /// <summary>Read-only surface the details overlay binds against.</summary>
-    public ModrinthProject? DetailsProject => SelectedProject;
+    public ModrinthProjectItemViewModel? DetailsProject => SelectedProject;
 
     // --- Full project data for details page ---
 
@@ -273,7 +274,7 @@ public partial class ContentBrowserViewModel : ObservableObject
 
     private bool _isLoadingByProjectId;
 
-    partial void OnSelectedProjectChanged(ModrinthProject? value)
+    partial void OnSelectedProjectChanged(ModrinthProjectItemViewModel? value)
     {
         OnPropertyChanged(nameof(IsDetailsOpen));
         OnPropertyChanged(nameof(DetailsProject));
@@ -314,7 +315,7 @@ public partial class ContentBrowserViewModel : ObservableObject
     public string DeleteConfirmText =>
         PendingDelete == null ? "" : string.Format(L10n.T("cb_delete_confirm"), PendingDelete.Title);
 
-    partial void OnPendingDeleteChanged(ModrinthProject? value)
+    partial void OnPendingDeleteChanged(ModrinthProjectItemViewModel? value)
     {
         OnPropertyChanged(nameof(IsDeleteConfirmOpen));
         OnPropertyChanged(nameof(DeleteItemName));
@@ -657,7 +658,7 @@ public partial class ContentBrowserViewModel : ObservableObject
         }
     }
 
-    private async void LoadIcon(ModrinthProject project, int generation)
+    private async void LoadIcon(ModrinthProjectItemViewModel project, int generation)
     {
         if (string.IsNullOrWhiteSpace(project.IconUrl) || project.HasIcon) return;
         var bytes = await ModrinthApiService.GetIconAsync(project.IconUrl);
@@ -666,7 +667,7 @@ public partial class ContentBrowserViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void DeleteOrInstall(ModrinthProject project)
+    private void DeleteOrInstall(ModrinthProjectItemViewModel project)
     {
         if (project == null || project.IsInstalling) return;
         if (project.IsInstalled)
@@ -678,7 +679,7 @@ public partial class ContentBrowserViewModel : ObservableObject
         _ = InstallLatestAsync(project);
     }
 
-    private async Task InstallLatestAsync(ModrinthProject project)
+    private async Task InstallLatestAsync(ModrinthProjectItemViewModel project)
     {
         if (project == null || project.IsInstalling) return;
         try
@@ -755,7 +756,7 @@ public partial class ContentBrowserViewModel : ObservableObject
         _ = InstallSpecificVersionAsync(SelectedProject, version);
     }
 
-    private async Task InstallSpecificVersionAsync(ModrinthProject project, Models.ModrinthProjectVersion version)
+    private async Task InstallSpecificVersionAsync(ModrinthProjectItemViewModel project, Models.ModrinthProjectVersion version)
     {
         if (project == null || project.IsInstalling) return;
         try
@@ -819,7 +820,7 @@ public partial class ContentBrowserViewModel : ObservableObject
     }
 
     [RelayCommand(AllowConcurrentExecutions = true)]
-    private async Task InstallAsync(ModrinthProject project)
+    private async Task InstallAsync(ModrinthProjectItemViewModel project)
     {
         if (project == null || project.IsInstalling) return;
 
@@ -957,7 +958,7 @@ public partial class ContentBrowserViewModel : ObservableObject
     private void CancelDelete() => PendingDelete = null;
 
     [RelayCommand]
-    private void OpenProjectPage(ModrinthProject project)
+    private void OpenProjectPage(ModrinthProjectItemViewModel project)
     {
         SelectedProject = project;
     }
@@ -972,7 +973,7 @@ public partial class ContentBrowserViewModel : ObservableObject
             var full = await ModrinthApiService.GetFullProjectAsync(projectId);
             if (full == null) return;
 
-            var project = new ModrinthProject
+            var project = new ModrinthProjectItemViewModel
             {
                 ProjectId = full.Id,
                 Title = full.Title,
@@ -1015,7 +1016,7 @@ public partial class ContentBrowserViewModel : ObservableObject
         }
     }
 
-    private async Task LoadIconAsync(ModrinthProject project)
+    private async Task LoadIconAsync(ModrinthProjectItemViewModel project)
     {
         if (string.IsNullOrWhiteSpace(project.IconUrl) || project.HasIcon) return;
         var bytes = await ModrinthApiService.GetIconAsync(project.IconUrl);
@@ -1030,7 +1031,7 @@ public partial class ContentBrowserViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void OpenExternal(ModrinthProject? project)
+    private void OpenExternal(ModrinthProjectItemViewModel? project)
     {
         if (string.IsNullOrWhiteSpace(project?.ProjectUrl)) return;
         try
@@ -1090,7 +1091,7 @@ public partial class ContentBrowserViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void OpenVersionSelector(ModrinthProject? project)
+    private void OpenVersionSelector(ModrinthProjectItemViewModel? project)
     {
         if (project == null) return;
         SelectedProject = project;
@@ -1099,7 +1100,7 @@ public partial class ContentBrowserViewModel : ObservableObject
         IsVersionSelectorOpen = true;
     }
 
-    private async Task LoadFullProjectAsync(ModrinthProject project)
+    private async Task LoadFullProjectAsync(ModrinthProjectItemViewModel project)
     {
         FullProjectBusy = true;
         try
@@ -1139,7 +1140,7 @@ public partial class ContentBrowserViewModel : ObservableObject
         _ = DeleteAsync(project);
     }
 
-    private async Task DeleteAsync(ModrinthProject project)
+    private async Task DeleteAsync(ModrinthProjectItemViewModel project)
     {
         if (project == null) return;
         try

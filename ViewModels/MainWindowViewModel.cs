@@ -518,6 +518,9 @@ public partial class MainWindowViewModel : ViewModelBase
     private IBrush _previewAccentBrush = new SolidColorBrush(Color.Parse(ZenithTheme.DefaultAccent));
 
     [ObservableProperty]
+    private IBrush _previewAccentHoverBrush = new SolidColorBrush(Color.Parse("#60A5FA"));
+
+    [ObservableProperty]
     private IBrush _previewAccentDimBrush = new SolidColorBrush(Color.FromArgb(45, 59, 130, 246));
 
     [ObservableProperty]
@@ -543,6 +546,11 @@ public partial class MainWindowViewModel : ViewModelBase
             if (Color.TryParse(hex, out var c))
             {
                 PreviewAccentBrush = new SolidColorBrush(c);
+                var hoverColor = Color.FromRgb(
+                    (byte)Math.Clamp(c.R + (255 - c.R) * 0.16f, 0, 255),
+                    (byte)Math.Clamp(c.G + (255 - c.G) * 0.16f, 0, 255),
+                    (byte)Math.Clamp(c.B + (255 - c.B) * 0.16f, 0, 255));
+                PreviewAccentHoverBrush = new SolidColorBrush(hoverColor);
                 PreviewAccentDimBrush = new SolidColorBrush(Color.FromArgb(45, c.R, c.G, c.B));
                 PreviewAccentBorderBrush = new SolidColorBrush(Color.FromArgb(90, c.R, c.G, c.B));
             }
@@ -563,6 +571,18 @@ public partial class MainWindowViewModel : ViewModelBase
         hex = hex.Trim();
         if (!hex.StartsWith("#")) hex = "#" + hex;
         CustomThemeHex = hex;
+        
+        // Auto-harmonize the palette based on the chosen accent color
+        var harmonized = ZenithTheme.GenerateHarmonizedPalette(hex);
+        BgHex = harmonized.BgColor!;
+        SidebarBgHex = harmonized.SidebarBgColor!;
+        SurfaceHex = harmonized.SurfaceColor!;
+        CardHex = harmonized.CardColor!;
+        PanelHex = harmonized.PanelColor!;
+        BorderDarkHex = harmonized.BorderDarkColor!;
+        TextPrimaryHex = harmonized.TextPrimaryColor!;
+        TextSecondaryHex = harmonized.TextSecondaryColor!;
+
         UpdatePreviewBrushes(hex);
     }
 
@@ -574,6 +594,17 @@ public partial class MainWindowViewModel : ViewModelBase
         if (!hex.StartsWith("#")) hex = "#" + hex;
         CurrentAccentHex = hex;
         CustomThemeHex = hex;
+
+        var harmonized = ZenithTheme.GenerateHarmonizedPalette(hex);
+        BgHex = harmonized.BgColor!;
+        SidebarBgHex = harmonized.SidebarBgColor!;
+        SurfaceHex = harmonized.SurfaceColor!;
+        CardHex = harmonized.CardColor!;
+        PanelHex = harmonized.PanelColor!;
+        BorderDarkHex = harmonized.BorderDarkColor!;
+        TextPrimaryHex = harmonized.TextPrimaryColor!;
+        TextSecondaryHex = harmonized.TextSecondaryColor!;
+
         ZenithTheme.Apply(GetLauncherConfigSnapshot());
         SaveLauncherConfig();
     }
@@ -812,7 +843,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isSidebarExpanded;
 
-    public double SidebarWidth => IsSidebarExpanded ? 240 : 64;
+    public double SidebarWidth => IsSidebarExpanded ? 180 : 64;
 
     partial void OnIsSidebarExpandedChanged(bool value)
     {

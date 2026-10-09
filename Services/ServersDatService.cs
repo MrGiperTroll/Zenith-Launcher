@@ -14,6 +14,11 @@ public class ServerEntry
     public bool AcceptTextures { get; set; }
     public bool HideAddress { get; set; }
     public string Motd { get; set; } = "";
+    /// <summary>
+    /// Raw NBT of tags the editor does not manage (future flags, game-written
+    /// data...), carried through verbatim so saving never strips them.
+    /// </summary>
+    public List<byte[]> UnknownTags { get; } = new();
 }
 
 public static class ServerText
@@ -86,31 +91,9 @@ public static class ServersDatService
         if (!File.Exists(path)) return new List<ServerEntry>();
         try
         {
-            using var fs = File.OpenRead(path);
-            using var stream = OpenNbtStream(fs);
-
-            var root = new NbtReader(stream).ReadCompound();
-            if (root == null) return new List<ServerEntry>();
-
-            var servers = new List<ServerEntry>();
-            if (root.TryGetValue("servers", out var list) && list is List<(string Name, object? Payload)> entries)
-            {
-                foreach (var (_, payload) in entries)
-                {
-                    if (payload is not Dictionary<string, object?> comp) continue;
-                    var entry = new ServerEntry
-                    {
-                        Name = ServerText.StripColorCodes(GetString(comp, "name")),
-                        Ip = GetString(comp, "ip"),
-                        IconBytes = GetByteArray(comp, "icon"),
-                        AcceptTextures = GetByte(comp, "acceptTextures") != 0,
-                        HideAddress = GetByte(comp, "hidden") != 0 || GetByte(comp, "hideAddress") != 0,
-                        Motd = ServerText.StripColorCodes(GetString(comp, "motd")).Trim()
-                    };
-                    servers.Add(entry);
-                }
-            }
-            return servers;
+            var fileBytes = File.ReadAllBytes(path);
+            var data = IsGzipMagic(fileBytes) ? DecompressAll(fileBytes) : fileBytes;
+            return ParseServers(data);
         }
         catch { return new List<ServerEntry>(); }
     }
@@ -119,59 +102,221 @@ public static class ServersDatService
     {
         try { if (File.Exists(path)) File.Copy(path, path + ".bak", true); } catch { }
 
-        var list = new List<object?>();
+        // Preserve the file's existing encoding: the modern game writes
+        // servers.dat uncompressed, older ones gzipped. New files default to
+        // uncompressed.
+        bool useGzip = false;
+        try
+        {
+            if (File.Exists(path))
+            {
+                var head = new byte[2];
+                using (var fs = File.OpenRead(path))
+                    if (fs.Read(head, 0, 2) == 2 && head[0] == 0x1F && head[1] == 0x8B)
+                        useGzip = true;
+            }
+        }
+        catch { }
+
+        var out_ = new List<byte>();
+        out_.Add(TagCompound);
+        WriteRawString(out_, "");
+        out_.Add(TagList);
+        WriteRawString(out_, "servers");
+        out_.Add(TagCompound);
+        WriteRawInt32(out_, servers.Count);
         foreach (var s in servers)
         {
-            var d = new Dictionary<string, object?>
-            {
-                ["name"] = s.Name ?? "Server",
-                ["ip"] = s.Ip ?? "",
-                ["acceptTextures"] = (byte)(s.AcceptTextures ? 1 : 0),
-                ["hideAddress"] = (byte)(s.HideAddress ? 1 : 0),
-                ["hidden"] = (byte)(s.HideAddress ? 1 : 0)
-            };
-            if (s.IconBytes is { Length: > 0 }) d["icon"] = s.IconBytes;
-            if (!string.IsNullOrWhiteSpace(s.Motd)) d["motd"] = s.Motd;
-            list.Add(d);
+            WriteRawTagString(out_, "name", string.IsNullOrWhiteSpace(s.Name) ? "Server" : s.Name);
+            WriteRawTagString(out_, "ip", s.Ip ?? "");
+            WriteRawTagByte(out_, "acceptTextures", (byte)(s.AcceptTextures ? 1 : 0));
+            WriteRawTagByte(out_, "hideAddress", (byte)(s.HideAddress ? 1 : 0));
+            WriteRawTagByte(out_, "hidden", (byte)(s.HideAddress ? 1 : 0));
+            if (s.IconBytes is { Length: > 0 })
+                WriteRawTagString(out_, "icon", "data:image/png;base64," + Convert.ToBase64String(s.IconBytes));
+            if (!string.IsNullOrWhiteSpace(s.Motd))
+                WriteRawTagString(out_, "motd", s.Motd);
+            foreach (var raw in s.UnknownTags)
+                out_.AddRange(raw);
+            out_.Add(TagEnd);
         }
+        out_.Add(TagEnd);
 
-        var payload = new Dictionary<string, object?> { ["servers"] = list };
-
-        var builder = new NbtWriter();
-        builder.WriteCompound(payload);
-        var bytes = builder.ToBytes();
-
+        var bytes = out_.ToArray();
         Directory.CreateDirectory(Path.GetDirectoryName(path) ?? "");
         using (var fs = File.Create(path))
-        using (var gz = new GZipStream(fs, CompressionLevel.Optimal))
         {
-            gz.Write(bytes, 0, bytes.Length);
+            if (useGzip)
+            {
+                using var gz = new GZipStream(fs, CompressionLevel.Optimal);
+                gz.Write(bytes, 0, bytes.Length);
+            }
+            else
+            {
+                fs.Write(bytes, 0, bytes.Length);
+            }
         }
     }
 
-    private static string GetString(Dictionary<string, object?> d, string key)
-        => d.TryGetValue(key, out var v) && v is string s ? s : "";
-    private static byte GetByte(Dictionary<string, object?> d, string key)
-        => d.TryGetValue(key, out var v) && v is byte b ? b
-           : (byte)(d.TryGetValue(key, out var vi) && vi is int i ? i : 0);
-    private static byte[] GetByteArray(Dictionary<string, object?> d, string key)
+    private static bool IsGzipMagic(byte[] b) => b.Length >= 2 && b[0] == 0x1F && b[1] == 0x8B;
+
+    private static byte[] DecompressAll(byte[] gzip)
     {
-        if (d.TryGetValue(key, out var v))
+        using var ms = new MemoryStream(gzip);
+        using var gz = new GZipStream(ms, CompressionMode.Decompress);
+        using var outMs = new MemoryStream();
+        gz.CopyTo(outMs);
+        return outMs.ToArray();
+    }
+
+    private static void WriteRawString(List<byte> o, string s)
+    {
+        var b = Encoding.UTF8.GetBytes(s);
+        o.Add((byte)(b.Length >> 8)); o.Add((byte)b.Length);
+        o.AddRange(b);
+    }
+
+    private static void WriteRawInt32(List<byte> o, int v)
+    {
+        o.Add((byte)(v >> 24)); o.Add((byte)(v >> 16)); o.Add((byte)(v >> 8)); o.Add((byte)v);
+    }
+
+    private static void WriteRawTagString(List<byte> o, string name, string value)
+    {
+        o.Add(TagString); WriteRawString(o, name); WriteRawString(o, value);
+    }
+
+    private static void WriteRawTagByte(List<byte> o, string name, byte value)
+    {
+        o.Add(TagByte); WriteRawString(o, name); o.Add(value);
+    }
+
+    /// <summary>Tags managed by the editor; everything else round-trips verbatim.</summary>
+    private static readonly HashSet<string> ManagedTags = new(StringComparer.Ordinal)
+    {
+        "name", "ip", "icon", "acceptTextures", "hidden", "hideAddress", "motd"
+    };
+
+    /// <summary>
+    /// Index-based NBT parser over the (already decompressed) file bytes.
+    /// Unknown tags are sliced out as raw bytes for verbatim passthrough.
+    /// </summary>
+    private static List<ServerEntry> ParseServers(byte[] data)
+    {
+        var servers = new List<ServerEntry>();
+        int pos = 0;
+        int U8() => pos < data.Length ? data[pos++] : throw new EndOfStreamException();
+        int U16() { var a = U8(); var b = U8(); return (a << 8) | b; }
+        int I32() { var a = U8(); var b = U8(); var c = U8(); var d = U8(); return (a << 24) | (b << 16) | (c << 8) | d; }
+        string Str() { var n = U16(); if (pos + n > data.Length) throw new EndOfStreamException(); var s = Encoding.UTF8.GetString(data, pos, n); pos += n; return s; }
+        void SkipPayload(int id)
         {
-            if (v is byte[] b) return b;
-            if (v is string s && s.Length > 22)
+            switch (id)
             {
-                try
+                case 1: U8(); break;
+                case 2: U16(); break;
+                case 3: case 5: I32(); break;
+                case 4: case 6: for (var k = 0; k < 8; k++) U8(); break;
+                case 7: { var n = Math.Max(0, I32()); for (var k = 0; k < n; k++) U8(); break; }
+                case 8: { var n = U16(); for (var k = 0; k < n; k++) U8(); break; }
+                case 9:
                 {
-                    var idx = s.IndexOf("base64,", StringComparison.OrdinalIgnoreCase);
-                    var data = idx >= 0 ? s[(idx + 7)..] : s;
-                    var decoded = Convert.FromBase64String(data);
-                    if (decoded.Length > 0) return decoded;
+                    var et = U8(); var cnt = Math.Max(0, I32());
+                    for (var k = 0; k < cnt; k++) SkipPayload(et);
+                    break;
                 }
-                catch { }
+                case 10:
+                    while (true) { var t = U8(); if (t == 0) break; Str(); SkipPayload(t); }
+                    break;
+                case 11: { var n = Math.Max(0, I32()); for (var k = 0; k < n; k++) I32(); break; }
+                case 12: { var n = Math.Max(0, I32()); for (var k = 0; k < n * 8; k++) U8(); break; }
+                default: throw new InvalidDataException($"Unknown NBT tag {id}");
             }
         }
-        return Array.Empty<byte>();
+
+        if (U8() != TagCompound) return servers;
+        Str(); // root name
+        while (true)
+        {
+            var tag = U8();
+            if (tag == TagEnd) break;
+            var name = Str();
+            if (tag == TagList && name == "servers")
+            {
+                var elemType = U8();
+                var count = Math.Max(0, Math.Min(I32(), 10000));
+                if (elemType != TagCompound) return servers;
+                for (var i = 0; i < count; i++)
+                {
+                    var entry = new ServerEntry();
+                    while (true)
+                    {
+                        var start = pos;
+                        var t = U8();
+                        if (t == TagEnd) break;
+                        var key = Str();
+                        if (t == TagString)
+                        {
+                            var val = Str();
+                            if (!ManagedTags.Contains(key))
+                            {
+                                entry.UnknownTags.Add(SubArray(data, start, pos));
+                            }
+                            else switch (key)
+                            {
+                                case "name": entry.Name = ServerText.StripColorCodes(val); break;
+                                case "ip": entry.Ip = val; break;
+                                case "motd": entry.Motd = ServerText.StripColorCodes(val).Trim(); break;
+                                case "icon": entry.IconBytes = DecodeIcon(val); break;
+                            }
+                        }
+                        else if (t == TagByte)
+                        {
+                            var val = (byte)U8();
+                            if (!ManagedTags.Contains(key))
+                            {
+                                entry.UnknownTags.Add(SubArray(data, start, pos));
+                            }
+                            else if (key == "acceptTextures") entry.AcceptTextures = val != 0;
+                            else if (key == "hidden" || key == "hideAddress") entry.HideAddress = entry.HideAddress || val != 0;
+                        }
+                        else
+                        {
+                            SkipPayload(t);
+                            if (!ManagedTags.Contains(key))
+                                entry.UnknownTags.Add(SubArray(data, start, pos));
+                        }
+                    }
+                    servers.Add(entry);
+                }
+            }
+            else
+            {
+                SkipPayload(tag);
+            }
+        }
+        return servers;
+    }
+
+    private static byte[] SubArray(byte[] data, int start, int end)
+    {
+        var n = Math.Max(0, end - start);
+        var out_ = new byte[n];
+        Buffer.BlockCopy(data, start, out_, 0, n);
+        return out_;
+    }
+
+    private static byte[] DecodeIcon(string val)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(val) || val.Length < 22) return Array.Empty<byte>();
+            var idx = val.IndexOf("base64,", StringComparison.OrdinalIgnoreCase);
+            var data = idx >= 0 ? val[(idx + 7)..] : val;
+            var decoded = Convert.FromBase64String(data);
+            return decoded.Length > 0 ? decoded : Array.Empty<byte>();
+        }
+        catch { return Array.Empty<byte>(); }
     }
 
     private sealed class NbtReader
@@ -275,106 +420,5 @@ public static class ServersDatService
         private long ReadInt64() { ReadN(_buf, 8); long v = 0; for (var i = 0; i < 8; i++) v = (v << 8) | _buf[i]; return v; }
         private float ReadSingle() => BitConverter.Int32BitsToSingle(ReadInt32());
         private double ReadDouble() => BitConverter.Int64BitsToDouble(ReadInt64());
-    }
-
-    private sealed class NbtWriter
-    {
-        private readonly List<byte> _bytes = new();
-        private readonly byte[] _tmp = new byte[8];
-
-        public byte[] ToBytes() => _bytes.ToArray();
-
-        public void WriteCompound(Dictionary<string, object?> root)
-        {
-            _bytes.Add(TagCompound);
-            WriteString("");
-            WriteCompoundPayload(root);
-            _bytes.Add(TagEnd);
-        }
-
-        private void WriteCompoundPayload(Dictionary<string, object?> dict)
-        {
-            foreach (var (name, value) in dict)
-            {
-                WriteTag(name, value);
-            }
-            _bytes.Add(TagEnd);
-        }
-
-        private void WriteTag(string name, object? value)
-        {
-            switch (value)
-            {
-                case byte b: _bytes.Add(TagByte); WriteString(name); _bytes.Add(b); break;
-                case short s: _bytes.Add(TagShort); WriteString(name); WriteInt16(s); break;
-                case int i: _bytes.Add(TagInt); WriteString(name); WriteInt32(i); break;
-                case long l: _bytes.Add(TagLong); WriteString(name); WriteInt64(l); break;
-                case float f: _bytes.Add(TagFloat); WriteString(name); WriteInt32(BitConverter.SingleToInt32Bits(f)); break;
-                case double d: _bytes.Add(TagDouble); WriteString(name); WriteInt64(BitConverter.DoubleToInt64Bits(d)); break;
-                case byte[] ba:
-                    if (ba.Length == 0) break;
-                    _bytes.Add(TagByteArray); WriteString(name); WriteInt32(ba.Length); _bytes.AddRange(ba);
-                    break;
-                case string str:
-                    _bytes.Add(TagString); WriteString(name); WriteString(str);
-                    break;
-                case List<object?> list:
-                    _bytes.Add(TagList); WriteString(name);
-                    _bytes.Add(list.Count > 0 ? InferListType(list[0]) : TagEnd);
-                    WriteInt32(list.Count);
-                    foreach (var item in list) WritePayload(item);
-                    break;
-                case Dictionary<string, object?> sub:
-                    _bytes.Add(TagCompound); WriteString(name); WriteCompoundPayload(sub);
-                    break;
-            }
-        }
-
-        private byte InferListType(object? value) => value switch
-        {
-            byte => TagByte,
-            short => TagShort,
-            int => TagInt,
-            long => TagLong,
-            float => TagFloat,
-            double => TagDouble,
-            byte[] => TagByteArray,
-            string => TagString,
-            List<object?> => TagList,
-            Dictionary<string, object?> => TagCompound,
-            _ => TagEnd
-        };
-
-        private void WritePayload(object? value)
-        {
-            switch (value)
-            {
-                case byte b: _bytes.Add(b); break;
-                case short s: WriteInt16(s); break;
-                case int i: WriteInt32(i); break;
-                case long l: WriteInt64(l); break;
-                case float f: WriteInt32(BitConverter.SingleToInt32Bits(f)); break;
-                case double d: WriteInt64(BitConverter.DoubleToInt64Bits(d)); break;
-                case byte[] ba: WriteInt32(ba.Length); _bytes.AddRange(ba); break;
-                case string str: WriteString(str); break;
-                case List<object?> list:
-                    _bytes.Add(list.Count > 0 ? InferListType(list[0]) : TagEnd);
-                    WriteInt32(list.Count);
-                    foreach (var item in list) WritePayload(item);
-                    break;
-                case Dictionary<string, object?> sub: WriteCompoundPayload(sub); break;
-            }
-        }
-
-        private void WriteString(string s)
-        {
-            var bytes = Encoding.UTF8.GetBytes(s);
-            WriteInt16((short)bytes.Length);
-            _bytes.AddRange(bytes);
-        }
-
-        private void WriteInt16(short v) { _bytes.Add((byte)(v >> 8)); _bytes.Add((byte)v); }
-        private void WriteInt32(int v) { _bytes.Add((byte)(v >> 24)); _bytes.Add((byte)(v >> 16)); _bytes.Add((byte)(v >> 8)); _bytes.Add((byte)v); }
-        private void WriteInt64(long v) { for (var i = 7; i >= 0; i--) _bytes.Add((byte)(v >> (i * 8))); }
     }
 }

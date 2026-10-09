@@ -15,6 +15,7 @@ public sealed class ServerStatusResult
     public int Online { get; set; }
     public int Max { get; set; }
     public byte[]? IconBytes { get; set; }
+    public long LatencyMs { get; set; }
 }
 
 /// <summary>Queries a Minecraft Java server via the Server List Ping / status protocol (handshake + status request).</summary>
@@ -41,6 +42,7 @@ public static class MinecraftServerPinger
         var (host, port) = Parse(hostPort);
         if (string.IsNullOrWhiteSpace(host)) return null;
 
+        var sw = System.Diagnostics.Stopwatch.StartNew();
         try
         {
             using var client = new TcpClient();
@@ -87,7 +89,10 @@ public static class MinecraftServerPinger
                 read += n;
             }
 
-            return ParseJson(Encoding.UTF8.GetString(jsonBytes, 0, jsonLen));
+            var result = ParseJson(Encoding.UTF8.GetString(jsonBytes, 0, jsonLen));
+            if (result != null)
+                result.LatencyMs = sw.ElapsedMilliseconds;
+            return result;
         }
         catch (Exception ex)
         {

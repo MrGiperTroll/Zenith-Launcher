@@ -71,6 +71,26 @@ public static class JavaVersionHelper
     }
 
     /// <summary>
+    /// jvm.cfg is the first file the JVM reads; a home without it is a broken
+    /// (e.g. half-extracted) runtime that dies before main(). Catches
+    /// interrupted JRE downloads that otherwise look runnable.
+    /// </summary>
+    public static bool IsValidJavaHome(string? javaHomeDir)
+    {
+        if (string.IsNullOrWhiteSpace(javaHomeDir) || !Directory.Exists(javaHomeDir))
+            return false;
+        try
+        {
+            var hasExe = File.Exists(Path.Combine(javaHomeDir, "bin", "java.exe"))
+                || File.Exists(Path.Combine(javaHomeDir, "bin", "javaw.exe"))
+                || File.Exists(Path.Combine(javaHomeDir, "bin", "java"));
+            if (!hasExe) return false;
+            return File.Exists(Path.Combine(javaHomeDir, "lib", "jvm.cfg"));
+        }
+        catch { return false; }
+    }
+
+    /// <summary>
     /// Reads bytecode class major version from a JAR file (e.g. server.jar).
     /// Returns 69 for Java 25, 65 for Java 21, 61 for Java 17, 52 for Java 8.
     /// </summary>
@@ -210,6 +230,7 @@ public static class JavaVersionHelper
                 {
                     foreach (var dir in Directory.GetDirectories(javaDir, pattern, SearchOption.TopDirectoryOnly))
                     {
+                        if (!IsValidJavaHome(dir)) continue;
                         var p1 = Path.Combine(dir, "bin", primaryExe);
                         if (File.Exists(p1)) return p1;
                         var p2 = Path.Combine(dir, "bin", secondaryExe);

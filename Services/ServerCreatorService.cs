@@ -73,6 +73,32 @@ public class ServerCreatorService
 
     public static string DefaultServersDirectory => Path.Combine(ZenithPaths.AppDataDir, "servers");
 
+    /// <summary>
+    /// Battle-tested G1GC tuning for Minecraft servers (Aikar's flags, trimmed
+    /// to version-agnostic options). Used as the default JVM flags for created
+    /// servers; a player's custom flags always win.
+    /// </summary>
+    public static readonly string[] ServerGcFlags =
+    {
+        "-XX:+UseG1GC",
+        "-XX:+ParallelRefProcEnabled",
+        "-XX:MaxGCPauseMillis=200",
+        "-XX:+UnlockExperimentalVMOptions",
+        "-XX:+DisableExplicitGC",
+        "-XX:G1NewSizePercent=30",
+        "-XX:G1MaxNewSizePercent=40",
+        "-XX:G1HeapRegionSize=8M",
+        "-XX:G1ReservePercent=20",
+        "-XX:InitiatingHeapOccupancyPercent=15"
+    };
+
+    public static string BuildDefaultServerJvmArgs(int ramMb)
+    {
+        if (ramMb <= 0) ramMb = 4096;
+        var minMb = Math.Max(512, ramMb / 2);
+        return $"-Xms{minMb}M -Xmx{ramMb}M " + string.Join(" ", ServerGcFlags);
+    }
+
     public static IReadOnlyList<ServerSoftwareOption> AvailableSoftware { get; } = new List<ServerSoftwareOption>
     {
         new("vanilla", "Vanilla"),
@@ -539,18 +565,17 @@ public class ServerCreatorService
         }
 
         // 3. run.bat (Windows batch file)
-        var minRamMb = Math.Max(512, ramMb / 2);
         var runBatPath = Path.Combine(targetDir, "run.bat");
         var resolvedJava = JavaVersionHelper.FindOrResolveServerJava(targetDir, version, out _);
         var javaCmd = string.IsNullOrWhiteSpace(resolvedJava) ? "java" : $"\"{resolvedJava}\"";
-        
+
         if (!File.Exists(runBatPath))
         {
             var runBat =
                 "@echo off\r\n" +
                 $"title Minecraft Server - {serverName}\r\n" +
                 $"echo Starting Minecraft Server ({version} - {software})...\r\n" +
-                $"{javaCmd} -Xms{minRamMb}M -Xmx{ramMb}M -jar server.jar nogui\r\n" +
+                $"{javaCmd} {BuildDefaultServerJvmArgs(ramMb)} -jar server.jar nogui\r\n" +
                 "if %ERRORLEVEL% NEQ 0 pause\r\n";
             await File.WriteAllTextAsync(runBatPath, runBat, ct);
         }
@@ -566,7 +591,7 @@ public class ServerCreatorService
             var runSh =
                 "#!/bin/bash\n" +
                 $"echo \"Starting Minecraft Server ({version} - {software})...\"\n" +
-                $"java -Xms{minRamMb}M -Xmx{ramMb}M -jar server.jar nogui\n";
+                $"java {BuildDefaultServerJvmArgs(ramMb)} -jar server.jar nogui\n";
             await File.WriteAllTextAsync(runShPath, runSh, ct);
         }
 
@@ -937,7 +962,7 @@ public class ServerCreatorService
         if (string.IsNullOrWhiteSpace(serverDir) || !Directory.Exists(serverDir)) return;
         try
         {
-            Directory.Delete(serverDir, true);
+            FileRetry.DeleteDirectory(serverDir, true);
         }
         catch (Exception ex)
         {
@@ -1250,7 +1275,7 @@ public class ServerCreatorService
         {
             if (Directory.Exists(t))
             {
-                try { Directory.Delete(t, true); } catch (Exception ex) { LauncherLog.Warn($"Could not delete world dir {t}: {ex.Message}"); }
+                try { FileRetry.DeleteDirectory(t, true); } catch (Exception ex) { LauncherLog.Warn($"Could not delete world dir {t}: {ex.Message}"); }
             }
         }
     }
@@ -1386,14 +1411,13 @@ public class ServerCreatorService
 
                 if (string.IsNullOrWhiteSpace(jvmArgs))
                 {
-                    var minRam = Math.Max(512, ramMb / 2);
-                    jvmArgs = $"-Xms{minRam}M -Xmx{ramMb}M -XX:+UseG1GC";
+                    jvmArgs = BuildDefaultServerJvmArgs(ramMb);
                 }
 
                 var mSoft = System.Text.RegularExpressions.Regex.Match(content, @"Starting Minecraft Server \(([^)]+)\)");
                 if (mSoft.Success)
                 {
-                    software = mSoft.Groups[1].Value;
+                    software = NormalizeSoftwareName(mSoft.Groups[1].Value);
                     return;
                 }
             }
@@ -1579,20 +1603,47 @@ public class ServerCreatorService
     /// ("Starting Minecraft Server (1.21.4 - Paper)"). Returns "" if unknown.
     /// Used for version-gated server.properties validation.
     /// </summary>
-    public static string GetServerVersion(string serverDir)
+    public static string GetServerVersion(string serverDir) => GetServerIdentity(serverDir).Version;
+
+    /// <summary>Version + core id parsed from run.bat ("1.21.4 - paper").</summary>
+    public static (string Version, string Software) GetServerIdentity(string serverDir)
     {
         try
         {
             var runBat = Path.Combine(serverDir, "run.bat");
-            if (!File.Exists(runBat)) return "";
+            if (!File.Exists(runBat)) return ("", "");
             var content = File.ReadAllText(runBat);
             var m = System.Text.RegularExpressions.Regex.Match(content, @"Starting Minecraft Server \(([^)]+)\)");
-            if (!m.Success) return "";
+            if (!m.Success) return ("", "");
             var inner = m.Groups[1].Value;
             var dash = inner.IndexOf(" - ", StringComparison.Ordinal);
             var version = (dash >= 0 ? inner[..dash] : inner).Trim();
-            return ServerPropertiesRules.TryParseRelease(version, out _, out _, out _) ? version : "";
+            var software = dash >= 0 ? inner[(dash + 3)..].Trim() : "";
+            if (!ServerPropertiesRules.TryParseRelease(version, out _, out _, out _))
+                version = "";
+            return (version, software);
         }
-        catch { return ""; }
+        catch { return ("", ""); }
+    }
+
+    public static string NormalizeSoftwareName(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return "Vanilla";
+        var s = raw.Trim();
+        // run.bat stores "1.21.4 - paper": strip a leading version part.
+        var dash = s.IndexOf(" - ", StringComparison.Ordinal);
+        if (dash >= 0) s = s[(dash + 3)..].Trim();
+        return s.ToLowerInvariant() switch
+        {
+            "vanilla" => "Vanilla",
+            "paper" => "Paper",
+            "purpur" => "Purpur",
+            "spigot" => "Spigot",
+            "fabric" => "Fabric",
+            "forge" => "Forge",
+            "neoforge" => "NeoForge",
+            _ when s.Length == 0 => "Vanilla",
+            _ => char.ToUpperInvariant(s[0]) + s[1..].ToLowerInvariant()
+        };
     }
 }

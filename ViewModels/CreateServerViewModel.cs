@@ -100,7 +100,6 @@ public partial class CreateServerViewModel : ObservableObject
     [ObservableProperty] private string _worldStatusMessage = "";
     [ObservableProperty] private string _worldDifficulty = "normal";
     [ObservableProperty] private bool _worldHardcore;
-    [ObservableProperty] private string _worldSeed = "";
     [ObservableProperty] private bool _worldGenerateStructures = true;
     [ObservableProperty] private bool _worldBonusChest;
     [ObservableProperty] private bool _ruleKeepInventory;
@@ -155,7 +154,6 @@ public partial class CreateServerViewModel : ObservableObject
     [ObservableProperty] private bool _propsGenerateStructures = true;
     [ObservableProperty] private bool _propsSpawnAnimals = true;
     [ObservableProperty] private bool _propsSpawnMonsters = true;
-    [ObservableProperty] private bool _propsSpawnNpcs = true;
     [ObservableProperty] private bool _propsAllowNether = true;
     [ObservableProperty] private int _propsEntityBroadcastRangePercentage = 100;
 
@@ -174,6 +172,7 @@ public partial class CreateServerViewModel : ObservableObject
     partial void OnIsServerStoppingChanged(bool value) => OnPropertyChanged(nameof(StopButtonText));
 
     [ObservableProperty] private string _serverSoftwareDisplay = "Vanilla";
+    [ObservableProperty] private string _pluginsTabTitle = "Plugins";
     [ObservableProperty] private string _serverAllocatedRamDisplay = "4096 MB";
     [ObservableProperty] private string _uptimeText = "00:00:00";
     [ObservableProperty] private bool _isEditingServerName;
@@ -213,6 +212,17 @@ public partial class CreateServerViewModel : ObservableObject
         IsEntityBroadcastRangeVisible = ServerPropertiesRules.IsSupported(ServerPropertiesRules.EntityBroadcastRange, v);
     }
 
+    /// <summary>
+    /// "Plugins" by default, "Mods" on modded cores (Forge / NeoForge / Fabric).
+    /// </summary>
+    public void UpdatePluginsTabTitle()
+    {
+        var s = ServerSoftwareDisplay ?? "";
+        bool modded = s.Contains("forge", StringComparison.OrdinalIgnoreCase)
+            || s.Contains("fabric", StringComparison.OrdinalIgnoreCase);
+        PluginsTabTitle = L10n.T(modded ? "cs_tab_mods" : "cs_tab_plugins_simple");
+    }
+
     public ObservableCollection<string> ExistingServers { get; } = new();
     public ObservableCollection<ServerItemEntry> ExistingServersList { get; } = new();
     [ObservableProperty] private ServerItemEntry? _selectedServerItem;
@@ -230,8 +240,46 @@ public partial class CreateServerViewModel : ObservableObject
     [ObservableProperty] private bool _isFilesEmpty;
     [ObservableProperty] private string _fileOperationStatus = "";
 
-    [ObservableProperty] private bool _isRefreshingOnlinePlayers;
-    [ObservableProperty] private string _onlinePlayersCountText = "0 players online";
+    // File table sorting (clickable column headers).
+    [ObservableProperty] private string _fileSortColumn = "Name";
+    [ObservableProperty] private bool _fileSortDescending;
+    public string FileSortNameArrow => FileSortColumn == "Name" ? (FileSortDescending ? "▼" : "▲") : "";
+    public string FileSortDateArrow => FileSortColumn == "Date" ? (FileSortDescending ? "▼" : "▲") : "";
+    public string FileSortSizeArrow => FileSortColumn == "Size" ? (FileSortDescending ? "▼" : "▲") : "";
+
+    [RelayCommand]
+    public void SortFilesBy(string? column)
+    {
+        if (string.IsNullOrWhiteSpace(column)) return;
+        if (string.Equals(FileSortColumn, column, StringComparison.OrdinalIgnoreCase))
+            FileSortDescending = !FileSortDescending;
+        else
+        {
+            FileSortColumn = column;
+            FileSortDescending = false;
+        }
+        OnPropertyChanged(nameof(FileSortNameArrow));
+        OnPropertyChanged(nameof(FileSortDateArrow));
+        OnPropertyChanged(nameof(FileSortSizeArrow));
+        _ = RefreshFilesAsync();
+    }
+
+    private IEnumerable<ServerFileItem> ApplyFileSort(List<ServerFileItem> items)
+    {
+        var ordered = items.OrderByDescending(x => x.IsDirectory);
+        return FileSortColumn switch
+        {
+            "Date" => FileSortDescending
+                ? ordered.ThenByDescending(x => x.ModifiedDisplay).ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+                : ordered.ThenBy(x => x.ModifiedDisplay).ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase),
+            "Size" => FileSortDescending
+                ? ordered.ThenByDescending(x => x.SizeBytes).ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+                : ordered.ThenBy(x => x.SizeBytes).ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase),
+            _ => FileSortDescending
+                ? ordered.ThenByDescending(x => x.Name, StringComparer.OrdinalIgnoreCase)
+                : ordered.ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase),
+        };
+    }
 
     // File listing cancellation (overlapping refreshes) and path isolation root guard.
     private CancellationTokenSource? _filesCts;
@@ -346,6 +394,7 @@ public partial class CreateServerViewModel : ObservableObject
     /// </summary>
     private async Task InitializeAsync()
     {
+        PluginsTabTitle = L10n.T("cs_tab_plugins_simple");
         await RefreshExistingServersAsync();
         if (ExistingServers.Count > 0)
         {
@@ -632,7 +681,6 @@ public partial class CreateServerViewModel : ObservableObject
         if (props.TryGetValue("generate-structures", out var gs) && bool.TryParse(gs, out var bGs)) PropsGenerateStructures = bGs;
         if (props.TryGetValue("spawn-animals", out var sa) && bool.TryParse(sa, out var bSa)) PropsSpawnAnimals = bSa;
         if (props.TryGetValue("spawn-monsters", out var sm) && bool.TryParse(sm, out var bSm)) PropsSpawnMonsters = bSm;
-        if (props.TryGetValue("spawn-npcs", out var sn) && bool.TryParse(sn, out var bSn)) PropsSpawnNpcs = bSn;
         if (props.TryGetValue("allow-nether", out var an) && bool.TryParse(an, out var bAn)) PropsAllowNether = bAn;
         if (props.TryGetValue("entity-broadcast-range-percentage", out var eb) && int.TryParse(eb, out var iEb)) PropsEntityBroadcastRangePercentage = iEb;
 
@@ -672,6 +720,7 @@ public partial class CreateServerViewModel : ObservableObject
         ServerAllocatedRamDisplay = meta.ramDisplay;
         ServerMinecraftVersion = meta.version;
         UpdateVersionGatedVisibility();
+        UpdatePluginsTabTitle();
         // Set RAM before JVM args: the RAM-changed hook rewrites -Xmx inside the
         // args, and the loaded args assignment right after wins regardless.
         ServerRamMb = meta.ramMb;
@@ -738,7 +787,6 @@ public partial class CreateServerViewModel : ObservableObject
         if (string.IsNullOrWhiteSpace(ActiveServerDirectory) || !Directory.Exists(ActiveServerDirectory))
             return;
 
-        IsRefreshingOnlinePlayers = true;
         try
         {
             await Task.Run(() =>
@@ -825,14 +873,10 @@ public partial class CreateServerViewModel : ObservableObject
                     {
                         OnlinePlayers.Add(p);
                     }
-                    OnlinePlayersCountText = $"{OnlinePlayers.Count} player{(OnlinePlayers.Count == 1 ? "" : "s")} online";
                 });
             });
         }
-        finally
-        {
-            IsRefreshingOnlinePlayers = false;
-        }
+        catch (OperationCanceledException) { }
     }
 
     [RelayCommand]
@@ -860,7 +904,6 @@ public partial class CreateServerViewModel : ObservableObject
             ["force-gamemode"] = PropsForceGamemode ? "true" : "false",
             ["spawn-animals"] = PropsSpawnAnimals ? "true" : "false",
             ["spawn-monsters"] = PropsSpawnMonsters ? "true" : "false",
-            ["spawn-npcs"] = PropsSpawnNpcs ? "true" : "false",
             ["allow-nether"] = PropsAllowNether ? "true" : "false",
             ["entity-broadcast-range-percentage"] = PropsEntityBroadcastRangePercentage.ToString(),
             ["require-resource-pack"] = PropsRequireResourcePack ? "true" : "false",
@@ -1518,7 +1561,7 @@ public partial class CreateServerViewModel : ObservableObject
             CanNavigateUp = canUp;
             CurrentBrowseRelativePath = relDisplay;
             ServerFiles.Clear();
-            foreach (var it in items) ServerFiles.Add(it);
+            foreach (var it in ApplyFileSort(items)) ServerFiles.Add(it);
             IsFilesEmpty = ServerFiles.Count == 0;
             FileOperationStatus = "";
         }

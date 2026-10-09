@@ -408,7 +408,7 @@
                             <Button Classes="tabBtn" Classes.active="{Binding IsPropertiesTab}" Command="{Binding SelectTabCommand}" CommandParameter="1" Content="{l10n:Tr Key=cs_tab_properties}"/>
                             <Button Classes="tabBtn" Classes.active="{Binding IsWorldTab}" Command="{Binding SelectTabCommand}" CommandParameter="7" Content="{l10n:Tr Key=cs_tab_world}"/>
                             <Button Classes="tabBtn" Classes.active="{Binding IsFilesTab}" Command="{Binding SelectTabCommand}" CommandParameter="5" Content="{l10n:Tr Key=cs_tab_files}"/>
-                            <Button Classes="tabBtn" Classes.active="{Binding IsPluginsTab}" Command="{Binding SelectTabCommand}" CommandParameter="2" Content="{l10n:Tr Key=cs_tab_plugins}"/>
+                            <Button Classes="tabBtn" Classes.active="{Binding IsPluginsTab}" Command="{Binding SelectTabCommand}" CommandParameter="2" Content="{Binding PluginsTabTitle}"/>
                             <Button Classes="tabBtn" Classes.active="{Binding IsPlayersTab}" Command="{Binding SelectTabCommand}" CommandParameter="4" Content="{l10n:Tr Key=cs_tab_players}"/>
                             <Button Classes="tabBtn" Classes.active="{Binding IsSettingsTab}" Command="{Binding SelectTabCommand}" CommandParameter="3" Content="{l10n:Tr Key=cs_tab_settings}"/>
                         </StackPanel>
@@ -508,7 +508,7 @@
                                 </StackPanel>
                             </Border>
 
-                            <!-- 5. Allocated RAM -->
+                            <!-- 5. Memory -->
                             <Border Grid.Row="1" Grid.Column="1" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="10" Padding="14">
                                 <StackPanel Spacing="4">
                                     <TextBlock Text="{l10n:Tr Key=cs_ram}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
@@ -555,25 +555,25 @@
                                     <Grid ColumnDefinitions="*,110" ColumnSpacing="10">
                                         <StackPanel Spacing="4">
                                             <TextBlock Text="Server Name" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                            <TextBox Classes="darkInput" Text="{Binding PropsServerName, Mode=TwoWay}" Height="30" Padding="8,4" FontSize="11.5"/>
+                                            <TextBox Classes="darkInput" Text="{Binding PropsServerName, Mode=TwoWay}" Height="30" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="1" Spacing="4">
                                             <TextBlock Text="{l10n:Tr Key=cs_prop_port}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                            <TextBox Classes="darkInput" Text="{Binding PropsPort}" Height="30" Padding="8,4" FontSize="11.5"/>
+                                            <TextBox Classes="darkInput" Text="{Binding PropsPort}" Height="30" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
                                         </StackPanel>
                                     </Grid>
 
                                     <!-- Row 2: MOTD / Description -->
                                     <StackPanel Spacing="4">
                                         <TextBlock Text="{l10n:Tr Key=cs_prop_motd}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                        <TextBox Classes="darkInput" Text="{Binding PropsMotd}" Height="30" Padding="8,4" FontSize="11.5"/>
+                                        <TextBox Classes="darkInput" Text="{Binding PropsMotd}" Height="30" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
                                     </StackPanel>
 
                                     <!-- Row 3: Gamemode & Difficulty -->
                                     <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                                         <StackPanel Spacing="4">
                                             <TextBlock Text="{l10n:Tr Key=cs_prop_gamemode}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                            <ComboBox ItemsSource="{Binding GamemodeOptions}" SelectedItem="{Binding PropsGamemode}" HorizontalAlignment="Stretch" Height="30" Padding="8,3" FontSize="11.5"/>
+                                            <ComboBox ItemsSource="{Binding GamemodeOptions}" SelectedItem="{Binding PropsGamemode}" HorizontalAlignment="Stretch" Height="30" Padding="8,3" FontSize="11.5" IsEnabled="{Binding PropsForceGamemode}" ToolTip.Tip="{l10n:Tr Key=cs_prop_force_gamemode}"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="1" Spacing="4">
                                             <TextBlock Text="{l10n:Tr Key=cs_prop_difficulty}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
@@ -585,11 +585,11 @@
                                     <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                                         <StackPanel Spacing="4">
                                             <TextBlock Text="{l10n:Tr Key=cs_prop_max_players}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                            <TextBox Classes="darkInput" Text="{Binding PropsMaxPlayers}" Height="30" Padding="8,4" FontSize="11.5"/>
+                                            <TextBox Classes="darkInput" Text="{Binding PropsMaxPlayers}" Height="30" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="1" Spacing="4">
                                             <TextBlock Text="{l10n:Tr Key=cs_prop_spawn_protection}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                            <TextBox Classes="darkInput" Text="{Binding PropsSpawnProtection}" Height="30" Padding="8,4" FontSize="11.5"/>
+                                            <TextBox Classes="darkInput" Text="{Binding PropsSpawnProtection}" Height="30" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
                                         </StackPanel>
                                     </Grid>
 
@@ -597,30 +597,30 @@
                                     <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                                         <StackPanel Spacing="4">
                                             <TextBlock Text="{l10n:Tr Key=cs_prop_view_distance}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                            <TextBox Classes="darkInput" Text="{Binding PropsViewDistance}" Height="30" Padding="8,4" FontSize="11.5"/>
+                                            <TextBox Classes="darkInput" Text="{Binding PropsViewDistance}" Height="30" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="1" Spacing="4" IsVisible="{Binding IsSimulationDistanceVisible}">
                                             <TextBlock Text="{l10n:Tr Key=cs_prop_sim_distance}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                            <TextBox Classes="darkInput" Text="{Binding PropsSimulationDistance}" Height="30" Padding="8,4" FontSize="11.5"/>
+                                            <TextBox Classes="darkInput" Text="{Binding PropsSimulationDistance}" Height="30" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
                                         </StackPanel>
                                     </Grid>
 
                                     <!-- Row 6: Entity Broadcast Range (removed in 1.21.2+) -->
                                     <StackPanel Spacing="4" IsVisible="{Binding IsEntityBroadcastRangeVisible}">
                                         <TextBlock Text="{l10n:Tr Key=cs_prop_entity_range}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                        <TextBox Classes="darkInput" Text="{Binding PropsEntityBroadcastRangePercentage}" Height="30" Padding="8,4" FontSize="11.5"/>
+                                        <TextBox Classes="darkInput" Text="{Binding PropsEntityBroadcastRangePercentage}" Height="30" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
                                     </StackPanel>
 
                                     <!-- Row 7: Resource Pack URL -->
                                     <StackPanel Spacing="4">
                                         <TextBlock Text="{l10n:Tr Key=cs_prop_resource_pack}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                        <TextBox Classes="darkInput" Text="{Binding PropsResourcePack}" PlaceholderText="https://example.com/pack.zip" Height="30" Padding="8,4" FontSize="11.5"/>
+                                        <TextBox Classes="darkInput" Text="{Binding PropsResourcePack}" PlaceholderText="https://example.com/pack.zip" Height="30" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
                                     </StackPanel>
 
                                     <!-- Row 8: Resource Pack Prompt (1.20.2+) -->
                                     <StackPanel Spacing="4" IsVisible="{Binding IsResourcePackPromptVisible}">
                                         <TextBlock Text="{l10n:Tr Key=cs_prop_resource_pack_prompt}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                        <TextBox Classes="darkInput" Text="{Binding PropsResourcePackPrompt}" PlaceholderText="Custom prompt message shown to players..." Height="30" Padding="8,4" FontSize="11.5"/>
+                                        <TextBox Classes="darkInput" Text="{Binding PropsResourcePackPrompt}" PlaceholderText="Custom prompt message shown to players..." Height="30" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
                                     </StackPanel>
                                 </StackPanel>
 
@@ -683,17 +683,6 @@
                                         </Grid>
                                     </Border>
 
-                                    <!-- Hardcore -->
-                                    <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="7" Padding="10,6">
-                                        <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                            <StackPanel Spacing="1">
-                                                <TextBlock Text="{l10n:Tr Key=cs_prop_hardcore}" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                                <TextBlock Text="Players are locked in spectator mode upon death" FontSize="9.5" Foreground="{StaticResource TextPlaceholderBrush}"/>
-                                            </StackPanel>
-                                            <CheckBox Grid.Column="1" IsChecked="{Binding PropsHardcore}" VerticalAlignment="Center" Margin="6,0,0,0"/>
-                                        </Grid>
-                                    </Border>
-
                                     <!-- Allow Flight -->
                                     <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="7" Padding="10,6">
                                         <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
@@ -749,16 +738,6 @@
                                         </Grid>
                                     </Border>
 
-                                    <!-- Spawn NPCs -->
-                                    <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="7" Padding="10,6">
-                                        <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                            <StackPanel Spacing="1">
-                                                <TextBlock Text="{l10n:Tr Key=cs_prop_spawn_npcs}" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                                <TextBlock Text="Allow villagers and wandering traders to spawn" FontSize="9.5" Foreground="{StaticResource TextPlaceholderBrush}"/>
-                                            </StackPanel>
-                                            <CheckBox Grid.Column="1" IsChecked="{Binding PropsSpawnNpcs}" VerticalAlignment="Center" Margin="6,0,0,0"/>
-                                        </Grid>
-                                    </Border>
                                 </StackPanel>
                             </Grid>
                         </StackPanel>
@@ -877,11 +856,6 @@
                                             <ComboBox ItemsSource="{Binding DifficultyOptions}" SelectedItem="{Binding WorldDifficulty}" HorizontalAlignment="Stretch"/>
                                         </StackPanel>
 
-                                        <StackPanel Spacing="4">
-                                            <TextBlock Text="{l10n:Tr Key=cs_world_seed}" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                            <TextBox Classes="darkInput" Text="{Binding WorldSeed}" PlaceholderText="Leave empty for random seed"/>
-                                        </StackPanel>
-
                                         <!-- Hardcore Toggle Card -->
                                         <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="12,8">
                                             <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
@@ -928,9 +902,11 @@
                     <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="20" IsVisible="{Binding IsPluginsTab}">
                         <StackPanel Spacing="16">
                             <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                <StackPanel Spacing="2">
-                                    <TextBlock Text="{Binding InstalledPlugins.Count, StringFormat='Plugins &amp; Mods ({0})'}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-
+                                <StackPanel Spacing="2" Orientation="Horizontal">
+                                    <TextBlock Text="{Binding PluginsTabTitle}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                    <Border Background="{StaticResource AccentDimBrush}" CornerRadius="4" Padding="6,1" VerticalAlignment="Center" Margin="8,0,0,0">
+                                        <TextBlock Text="{Binding InstalledPlugins.Count}" FontSize="10.5" FontWeight="Bold" Foreground="{StaticResource AccentBrush}"/>
+                                    </Border>
                                 </StackPanel>
 
                                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
@@ -939,8 +915,8 @@
                                 </StackPanel>
                             </Grid>
 
-                            <!-- Empty State -->
-                            <TextBlock Text="No plugins or mods installed yet. Click 'Add JAR...' to install one." FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding InstalledPlugins.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}" Margin="0,16"/>
+                            <!-- Empty State (compact) -->
+                            <TextBlock Text="No plugins or mods installed yet. Click 'Add JAR...' to install one." FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding InstalledPlugins.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}" Margin="0,2"/>
 
                             <!-- Plugins List (Rich Cards) -->
                             <ItemsControl ItemsSource="{Binding InstalledPlugins}" Margin="0,4,0,0">
@@ -1020,7 +996,7 @@
                                                          Minimum="512"
                                                          Maximum="32768"
                                                          TickFrequency="512"
-                                                         Title="{l10n:Tr Key=cs_server_ram}"
+                                                         Title="{l10n:Tr Key=cs_ram}"
                                                          Subtitle="{l10n:Tr Key=cs_hint_ram}"/>
 
                                 <!-- JVM Launch Arguments -->
@@ -1082,52 +1058,44 @@
                         </Border>
                     </StackPanel>
 
-                    <!-- TAB 4: PLAYERS (ONLINE PLAYERS / OPS / WHITELIST / BANS) -->
-                    <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="20" IsVisible="{Binding IsPlayersTab}">
-                        <StackPanel Spacing="16">
+                    <!-- TAB 4: PLAYERS -->
+                    <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="16" IsVisible="{Binding IsPlayersTab}">
+                        <StackPanel Spacing="12">
                             <!-- Sub-Tabs Switcher -->
                             <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="4">
                                 <StackPanel Orientation="Horizontal" Spacing="4">
-                                    <Button Classes="tabBtn" Classes.active="{Binding IsOnlinePlayersSubTab}" Command="{Binding SelectPlayersSubTabCommand}" CommandParameter="0">
-                                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                            <TextBlock Text="{l10n:Tr Key=tab_online_players}" VerticalAlignment="Center"/>
-                                            <Border Background="{StaticResource AccentDimBrush}" CornerRadius="4" Padding="5,1">
-                                                <TextBlock Text="{Binding OnlinePlayers.Count}" FontSize="10" FontWeight="Bold" Foreground="{StaticResource AccentBrush}"/>
-                                            </Border>
-                                        </StackPanel>
-                                    </Button>
-                                    <Button Classes="tabBtn" Classes.active="{Binding IsOpsSubTab}" Command="{Binding SelectPlayersSubTabCommand}" CommandParameter="1" Content="{Binding OpsList.Count, StringFormat='Operators ({0})'}"/>
-                                    <Button Classes="tabBtn" Classes.active="{Binding IsWhitelistSubTab}" Command="{Binding SelectPlayersSubTabCommand}" CommandParameter="2" Content="{Binding WhitelistList.Count, StringFormat='Whitelist ({0})'}"/>
-                                    <Button Classes="tabBtn" Classes.active="{Binding IsBansSubTab}" Command="{Binding SelectPlayersSubTabCommand}" CommandParameter="3" Content="{Binding BansList.Count, StringFormat='Banned Players ({0})'}"/>
+                                    <Button Classes="tabBtn" Classes.active="{Binding IsOnlinePlayersSubTab}" Command="{Binding SelectPlayersSubTabCommand}" CommandParameter="0" Content="{l10n:Tr Key=tab_online_players}"/>
+                                    <Button Classes="tabBtn" Classes.active="{Binding IsOpsSubTab}" Command="{Binding SelectPlayersSubTabCommand}" CommandParameter="1" Content="{l10n:Tr Key=cs_players_ops}"/>
+                                    <Button Classes="tabBtn" Classes.active="{Binding IsWhitelistSubTab}" Command="{Binding SelectPlayersSubTabCommand}" CommandParameter="2" Content="{l10n:Tr Key=cs_players_whitelist}"/>
+                                    <Button Classes="tabBtn" Classes.active="{Binding IsBansSubTab}" Command="{Binding SelectPlayersSubTabCommand}" CommandParameter="3" Content="{l10n:Tr Key=cs_players_bans}"/>
                                 </StackPanel>
                             </Border>
 
                             <!-- Add Player Input Bar (for Ops, Whitelist, Bans) -->
-                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10" IsVisible="{Binding !IsOnlinePlayersSubTab}">
-                                <TextBox Classes="darkInput" Text="{Binding NewPlayerName}" PlaceholderText="Enter player username..."/>
-                                <Button Grid.Column="1" Classes="primaryBtn" Content="Add Player" Command="{Binding AddPlayerCommand}" Padding="20,8" FontSize="12"/>
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" IsVisible="{Binding !IsOnlinePlayersSubTab}">
+                                <TextBox Classes="darkInput" Text="{Binding NewPlayerName}" PlaceholderText="Enter player username..." VerticalContentAlignment="Center"/>
+                                <Button Grid.Column="1" Classes="primaryBtn" Content="Add Player" Command="{Binding AddPlayerCommand}" Padding="14,7" FontSize="12"/>
                             </Grid>
 
                             <!-- Live Online Players SubTab -->
-                            <StackPanel Spacing="10" IsVisible="{Binding IsOnlinePlayersSubTab}">
-                                <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding OnlinePlayersCountText}" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                    <Button Grid.Column="1" Classes="subBtn" Command="{Binding RefreshOnlinePlayersCommand}" Padding="12,5" FontSize="11">
+                            <StackPanel Spacing="8" IsVisible="{Binding IsOnlinePlayersSubTab}">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <Button Classes="subBtn" Command="{Binding RefreshOnlinePlayersCommand}" Padding="12,5" FontSize="11">
                                         <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                                             <PathIcon Data="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" Width="11" Height="11" Foreground="{StaticResource TextSecondaryBrush}"/>
                                             <TextBlock Text="Refresh" VerticalAlignment="Center"/>
                                         </StackPanel>
                                     </Button>
-                                </Grid>
+                                </StackPanel>
 
-                                <TextBlock Text="No players currently online (or server is offline)." FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding OnlinePlayers.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}" Margin="0,8"/>
+                                <TextBlock Text="No players currently online (or server is offline)." FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding OnlinePlayers.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}" Margin="0,4"/>
 
                                 <ItemsControl ItemsSource="{Binding OnlinePlayers}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="x:String">
-                                            <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="14,10" Margin="0,0,0,6">
+                                            <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="10,7" Margin="0,0,0,4">
                                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                                    <TextBlock Text="{Binding}" FontWeight="Bold" FontSize="12.5" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding}" FontWeight="SemiBold" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                                                     <Border Grid.Column="1" Background="{StaticResource AccentDimBrush}" CornerRadius="4" Padding="6,2">
                                                         <TextBlock Text="Online" FontSize="10" FontWeight="Bold" Foreground="{StaticResource AccentBrush}"/>
                                                     </Border>
@@ -1140,15 +1108,15 @@
 
                             <!-- Ops List -->
                             <StackPanel IsVisible="{Binding IsOpsSubTab}">
-                                <TextBlock Text="No operators registered in ops.json." FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding OpsList.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}" Margin="0,8"/>
+                                <TextBlock Text="No operators registered in ops.json." FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding OpsList.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}" Margin="0,4"/>
                                 <ItemsControl ItemsSource="{Binding OpsList}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="services:ServerPlayerEntry">
-                                            <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="14,9" Margin="0,0,0,6">
+                                            <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="10,7" Margin="0,0,0,4">
                                                 <Grid ColumnDefinitions="*,Auto,Auto" VerticalAlignment="Center">
-                                                    <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="12.5" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                                                    <TextBlock Grid.Column="1" Text="{Binding Level, StringFormat='OP Level {0}'}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="16,0"/>
-                                                    <Button Grid.Column="2" Classes="dangerBtn" Content="Remove OP" Command="{Binding $parent[UserControl].((vm:CreateServerViewModel)DataContext).RemovePlayerCommand}" CommandParameter="{Binding}"/>
+                                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding Level, StringFormat='OP Level {0}'}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="12,0"/>
+                                                    <Button Grid.Column="2" Classes="dangerBtn" Content="Remove OP" Command="{Binding $parent[UserControl].((vm:CreateServerViewModel)DataContext).RemovePlayerCommand}" CommandParameter="{Binding}" Padding="10,4" FontSize="11"/>
                                                 </Grid>
                                             </Border>
                                         </DataTemplate>
@@ -1158,14 +1126,14 @@
 
                             <!-- Whitelist List -->
                             <StackPanel IsVisible="{Binding IsWhitelistSubTab}">
-                                <TextBlock Text="No players in whitelist.json." FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding WhitelistList.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}" Margin="0,8"/>
+                                <TextBlock Text="No players in whitelist.json." FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding WhitelistList.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}" Margin="0,4"/>
                                 <ItemsControl ItemsSource="{Binding WhitelistList}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="services:ServerPlayerEntry">
-                                            <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="14,9" Margin="0,0,0,6">
+                                            <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="10,7" Margin="0,0,0,4">
                                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                                    <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="12.5" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                                                    <Button Grid.Column="1" Classes="dangerBtn" Content="Remove" Command="{Binding $parent[UserControl].((vm:CreateServerViewModel)DataContext).RemovePlayerCommand}" CommandParameter="{Binding}"/>
+                                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                                    <Button Grid.Column="1" Classes="dangerBtn" Content="Remove" Command="{Binding $parent[UserControl].((vm:CreateServerViewModel)DataContext).RemovePlayerCommand}" CommandParameter="{Binding}" Padding="10,4" FontSize="11"/>
                                                 </Grid>
                                             </Border>
                                         </DataTemplate>
@@ -1175,15 +1143,15 @@
 
                             <!-- Bans List -->
                             <StackPanel IsVisible="{Binding IsBansSubTab}">
-                                <TextBlock Text="No banned players in banned-players.json." FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding BansList.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}" Margin="0,8"/>
+                                <TextBlock Text="No banned players in banned-players.json." FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding BansList.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}" Margin="0,4"/>
                                 <ItemsControl ItemsSource="{Binding BansList}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="services:ServerPlayerEntry">
-                                            <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="14,9" Margin="0,0,0,6">
+                                            <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="10,7" Margin="0,0,0,4">
                                                 <Grid ColumnDefinitions="*,*,Auto" VerticalAlignment="Center">
-                                                    <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="12.5" Foreground="{StaticResource DangerLightBrush}" VerticalAlignment="Center"/>
-                                                    <TextBlock Grid.Column="1" Text="{Binding Reason}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="16,0" TextTrimming="CharacterEllipsis"/>
-                                                    <Button Grid.Column="2" Classes="dangerBtn" Content="Unban" Command="{Binding $parent[UserControl].((vm:CreateServerViewModel)DataContext).RemovePlayerCommand}" CommandParameter="{Binding}"/>
+                                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="12" Foreground="{StaticResource DangerLightBrush}" VerticalAlignment="Center"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding Reason}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="12,0" TextTrimming="CharacterEllipsis"/>
+                                                    <Button Grid.Column="2" Classes="dangerBtn" Content="Unban" Command="{Binding $parent[UserControl].((vm:CreateServerViewModel)DataContext).RemovePlayerCommand}" CommandParameter="{Binding}" Padding="10,4" FontSize="11"/>
                                                 </Grid>
                                             </Border>
                                         </DataTemplate>
@@ -1306,13 +1274,28 @@
                                 <!-- Status / Error message if any -->
                                 <TextBlock Text="{Binding FileOperationStatus}" FontSize="11.5" Foreground="{StaticResource DangerLightBrush}" IsVisible="{Binding FileOperationStatus, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
 
-                                <!-- Table Header -->
+                                <!-- Table Header (click to sort) -->
                                 <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="8" Padding="14,8">
                                     <Grid ColumnDefinitions="*,140,80,210">
-                                        <TextBlock Text="Name" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"/>
-                                        <TextBlock Grid.Column="1" Text="Date Modified" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"/>
-                                        <TextBlock Grid.Column="2" Text="Size" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"/>
-                                        <TextBlock Grid.Column="3" Text="Actions" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Right"/>
+                                        <Button Classes="tabBtn" Command="{Binding SortFilesByCommand}" CommandParameter="Name" Padding="0" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                                <TextBlock Text="Name" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding FileSortNameArrow}" FontSize="10" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
+                                        <Button Grid.Column="1" Classes="tabBtn" Command="{Binding SortFilesByCommand}" CommandParameter="Date" Padding="0" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                                <TextBlock Text="Date Modified" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding FileSortDateArrow}" FontSize="10" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
+                                        <Button Grid.Column="2" Classes="tabBtn" Command="{Binding SortFilesByCommand}" CommandParameter="Size" Padding="0" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                                <TextBlock Text="Size" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding FileSortSizeArrow}" FontSize="10" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
+                                        <TextBlock Grid.Column="3" Text="Actions" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                     </Grid>
                                 </Border>
 

@@ -179,7 +179,7 @@
                                 </StackPanel>
 
                                 <!-- Unified RAM Allocation Card -->
-                                <controls:RamCardControl Title="{l10n:Tr Key=set_ram}"
+                                <controls:RamCardControl Title="{l10n:Tr Key=cs_ram}"
                                                       Subtitle="{l10n:Tr Key=set_memory_hint}"
                                                       Value="{Binding SelectedRamMb}"
                                                       Maximum="{Binding MaxRamMb}"

@@ -958,9 +958,6 @@ public partial class MainWindowViewModel : ViewModelBase
     private bool _isCreateDialogOpen;
 
     [ObservableProperty]
-    private bool _isAboutOpen;
-
-    [ObservableProperty]
     private bool _isJavaInstallerOpen;
 
     [ObservableProperty]
@@ -1570,15 +1567,15 @@ public partial class MainWindowViewModel : ViewModelBase
 
                     string tabTitle = CreateServerVm.SelectedTab switch
                     {
-                        0 => "Overview",
-                        1 => "server.properties",
-                        2 => "Plugins & Mods",
-                        3 => "Settings",
-                        4 => "Players",
-                        5 => "Files",
-                        6 => "Console",
-                        7 => "World",
-                        _ => "Server"
+                        0 => L10n.T("cs_tab_overview"),
+                        1 => L10n.T("cs_tab_properties"),
+                        2 => CreateServerVm.PluginsTabTitle,
+                        3 => L10n.T("cs_tab_settings"),
+                        4 => L10n.T("cs_tab_players"),
+                        5 => L10n.T("cs_tab_files"),
+                        6 => L10n.T("cs_tab_console"),
+                        7 => L10n.T("cs_tab_world"),
+                        _ => L10n.T("nav_create_server")
                     };
 
                     Breadcrumbs.Add(new BreadcrumbItem
@@ -2925,9 +2922,6 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void OpenAbout() => IsAboutOpen = true;
-
-    [RelayCommand]
     private void OpenAccountsDialog()
     {
         NavigateToAccounts();
@@ -2938,7 +2932,6 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         SaveLauncherConfig();
         IsCreateDialogOpen = false;
-        IsAboutOpen = false;
         IsJavaInstallerOpen = false;
         IsVersionPickerOpen = false;
         IsElyByErrorOpen = false;

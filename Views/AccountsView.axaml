@@ -65,6 +65,23 @@
             <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
         </Style>
+        <Style Selector="Button.delAccBtn">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderSubtleBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="7"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+        </Style>
+        <Style Selector="Button.delAccBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource DangerDimBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource DangerBorderBrush}"/>
+        </Style>
+        <Style Selector="Button.delAccBtn:pointerover PathIcon">
+            <Setter Property="Foreground" Value="{StaticResource DangerLightBrush}"/>
+        </Style>
     </UserControl.Styles>
 
     <Border Background="{StaticResource CardAltBrush}" CornerRadius="12" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" ClipToBounds="True">
@@ -106,15 +123,9 @@
                                                 </StackPanel>
                                             </StackPanel>
                                             <!-- Delete Button -->
-                                            <Button Grid.Column="2" Command="{Binding $parent[UserControl].((pages:AccountsViewModel)DataContext).DeleteAccountCommand}" CommandParameter="{Binding Model}"
-                                                    Background="Transparent" Padding="8" Cursor="Hand" VerticalAlignment="Center" HorizontalAlignment="Right" ToolTip.Tip="{l10n:Tr Key=acc_remove}">
-                                                <PathIcon Data="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" Width="13" Height="13" Foreground="{StaticResource TextMutedBrush}">
-                                                    <PathIcon.Styles>
-                                                        <Style Selector="Button:pointerover PathIcon">
-                                                            <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
-                                                        </Style>
-                                                    </PathIcon.Styles>
-                                                </PathIcon>
+                                            <Button Grid.Column="2" Classes="delAccBtn" Command="{Binding $parent[UserControl].((pages:AccountsViewModel)DataContext).DeleteAccountCommand}" CommandParameter="{Binding Model}"
+                                                    ToolTip.Tip="{l10n:Tr Key=acc_remove}">
+                                                <PathIcon Data="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" Width="13" Height="13" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                                             </Button>
                                         </Grid>
                                     </Button>

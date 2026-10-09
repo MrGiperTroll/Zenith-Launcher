@@ -386,11 +386,14 @@
                 </Grid>
 
                 <!-- Mods -->
-                <Grid IsVisible="{Binding IsModsTab}" RowDefinitions="Auto,*" Margin="14,10">
-                    <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,8">
+                <Grid IsVisible="{Binding IsModsTab}" RowDefinitions="Auto,Auto,*" Margin="14,10">
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,8" Spacing="8">
+                        <Button Classes="subBtn" Content="{l10n:Tr Key=mods_audit_check}" Command="{Binding AuditModsCommand}" Padding="14,7" FontSize="12"/>
                         <Button Classes="primaryBtn" Content="{l10n:Tr Key=btn_browse_mods}" Command="{Binding OpenContentBrowserCommand}" CommandParameter="Mods" Padding="14,7" FontSize="12"/>
                     </StackPanel>
-                    <Border Grid.Row="1" Background="Transparent">
+                    <TextBlock Grid.Row="1" Text="{Binding ModAuditMessage}" FontSize="11.5" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,8"
+                               IsVisible="{Binding ModAuditMessage, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
+                    <Border Grid.Row="2" Background="Transparent">
                         <views:FileListView x:Name="ModView" DataContext="{Binding ModList}"/>
                     </Border>
                 </Grid>

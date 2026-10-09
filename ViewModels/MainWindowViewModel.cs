@@ -2901,6 +2901,39 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    public async Task ImportInstancesAsync()
+    {
+        var topLevel = Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
+            ? desktop.MainWindow
+            : null;
+        if (topLevel?.StorageProvider == null) return;
+
+        var folders = await topLevel.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+        {
+            Title = L10n.T("profile_import"),
+            AllowMultiple = false
+        });
+        if (folders.Count == 0) return;
+
+        var path = folders[0].Path.LocalPath;
+        StatusText = L10n.T("profile_importing");
+        try
+        {
+            var result = await Task.Run(() => InstanceImportService.ImportAsync(_instanceService, path));
+            StatusText = result.Imported > 0
+                ? string.Format(L10n.T("profile_imported"), result.Imported, result.Skipped)
+                : L10n.T("profile_import_none");
+            if (result.Warnings.Count > 0)
+                StatusText += " " + result.Warnings[0];
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Error("Instance import failed", ex);
+            StatusText = ex.Message;
+        }
+    }
+
+    [RelayCommand]
     private void OpenNewInstanceDialog()
     {
         NavigateToCreateProfile();

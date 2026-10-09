@@ -1728,6 +1728,12 @@ public partial class MainWindowViewModel : ViewModelBase
 
         // Re-translate computed UI strings when the language changes.
         L10n.LanguageChanged += () => OnPropertyChanged(nameof(LaunchButtonText));
+        L10n.LanguageChanged += () =>
+        {
+            if (_historyIndex >= 0 && _historyIndex < _navHistory.Count)
+                RebuildBreadcrumbs(_navHistory[_historyIndex]);
+            CreateServerVm?.UpdatePluginsTabTitle();
+        };
 
         // Detect total physical RAM
         try

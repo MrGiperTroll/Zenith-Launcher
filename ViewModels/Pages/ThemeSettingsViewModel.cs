@@ -99,56 +99,6 @@ public partial class ThemeSettingsViewModel : ViewModelBase
         UpdatePreviewBrushes(ZenithTheme.DefaultAccent);
     }
 
-    partial void OnFieldHexChanged(string value)
-    {
-        if (!_isLoadingConfig) ApplyCurrentTheme();
-    }
-
-    partial void OnHoverHexChanged(string value)
-    {
-        if (!_isLoadingConfig) ApplyCurrentTheme();
-    }
-
-    partial void OnSidebarBgHexChanged(string value)
-    {
-        if (!_isLoadingConfig) ApplyCurrentTheme();
-    }
-
-    partial void OnCardHexChanged(string value)
-    {
-        if (!_isLoadingConfig) ApplyCurrentTheme();
-    }
-
-    partial void OnTextPrimaryHexChanged(string value)
-    {
-        if (!_isLoadingConfig) ApplyCurrentTheme();
-    }
-
-    partial void OnTextSecondaryHexChanged(string value)
-    {
-        if (!_isLoadingConfig) ApplyCurrentTheme();
-    }
-
-    partial void OnBorderDarkHexChanged(string value)
-    {
-        if (!_isLoadingConfig) ApplyCurrentTheme();
-    }
-
-    partial void OnBgHexChanged(string value)
-    {
-        if (!_isLoadingConfig) ApplyCurrentTheme();
-    }
-
-    partial void OnSurfaceHexChanged(string value)
-    {
-        if (!_isLoadingConfig) ApplyCurrentTheme();
-    }
-
-    partial void OnPanelHexChanged(string value)
-    {
-        if (!_isLoadingConfig) ApplyCurrentTheme();
-    }
-
     partial void OnCustomThemeHexChanged(string value)
     {
         UpdatePreviewBrushes(value);
@@ -158,6 +108,7 @@ public partial class ThemeSettingsViewModel : ViewModelBase
             _isHarmonizingPalette = true;
             try
             {
+                SimpleAccentHex = value;
                 var harmonized = ZenithTheme.GenerateHarmonizedPalette(value);
                 BgHex = harmonized.BgColor!;
                 SidebarBgHex = harmonized.SidebarBgColor!;
@@ -174,11 +125,6 @@ public partial class ThemeSettingsViewModel : ViewModelBase
             {
                 _isHarmonizingPalette = false;
             }
-            ApplyCurrentTheme();
-        }
-        else if (!_isLoadingConfig && !string.IsNullOrWhiteSpace(value))
-        {
-            ApplyCurrentTheme();
         }
     }
 
@@ -199,7 +145,10 @@ public partial class ThemeSettingsViewModel : ViewModelBase
 
         if (IsThemeSubTabSimple)
         {
-            ApplySimpleSavedTheme();
+            if (string.IsNullOrWhiteSpace(SimpleAccentHex) && !string.IsNullOrWhiteSpace(CustomThemeHex))
+            {
+                SimpleAccentHex = CustomThemeHex;
+            }
         }
     }
 
@@ -269,7 +218,7 @@ public partial class ThemeSettingsViewModel : ViewModelBase
         ZenithTheme.Apply(cfg);
     }
 
-    public void ApplySimpleTheme(string hex)
+    public void SetSimpleThemePreview(string hex)
     {
         _isLoadingConfig = true;
         try
@@ -289,13 +238,17 @@ public partial class ThemeSettingsViewModel : ViewModelBase
             TextPrimaryHex = harmonized.TextPrimaryColor!;
             TextSecondaryHex = harmonized.TextSecondaryColor!;
             UpdatePreviewBrushes(hex);
-
-            ApplyCurrentTheme();
         }
         finally
         {
             _isLoadingConfig = false;
         }
+    }
+
+    public void ApplySimpleTheme(string hex)
+    {
+        SetSimpleThemePreview(hex);
+        ApplyCurrentTheme();
     }
 
     public void ApplyAdvancedSavedTheme()
@@ -334,11 +287,31 @@ public partial class ThemeSettingsViewModel : ViewModelBase
     {
         if (IsThemeSubTabSimple)
         {
-            ApplySimpleSavedTheme();
+            SetSimpleThemePreview(_savedSimpleAccentHex);
         }
         else
         {
-            ApplyAdvancedSavedTheme();
+            _isLoadingConfig = true;
+            try
+            {
+                BgHex = _savedBgHex;
+                SidebarBgHex = _savedSidebarBgHex;
+                SurfaceHex = _savedSurfaceHex;
+                CardHex = _savedCardHex;
+                PanelHex = _savedPanelHex;
+                FieldHex = _savedFieldHex;
+                HoverHex = _savedHoverHex;
+                BorderDarkHex = _savedBorderDarkHex;
+                TextPrimaryHex = _savedTextPrimaryHex;
+                TextSecondaryHex = _savedTextSecondaryHex;
+                CustomThemeHex = _savedCustomThemeHex;
+                CurrentAccentHex = _savedCustomThemeHex;
+                UpdatePreviewBrushes(_savedCustomThemeHex);
+            }
+            finally
+            {
+                _isLoadingConfig = false;
+            }
         }
     }
 
@@ -348,7 +321,7 @@ public partial class ThemeSettingsViewModel : ViewModelBase
         if (string.IsNullOrWhiteSpace(hex)) return;
         hex = hex.Trim();
         if (!hex.StartsWith("#")) hex = "#" + hex;
-        ApplySimpleTheme(hex);
+        SetSimpleThemePreview(hex);
     }
 
     [RelayCommand]

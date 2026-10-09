@@ -243,12 +243,42 @@ public partial class ModpacksBrowserViewModel : ObservableObject
 
     public Models.ModrinthFullProject? VersionSelectorProject => FullProject;
 
+    [ObservableProperty]
+    private bool _isDetailsInstallButtonHovered;
+
+    partial void OnIsDetailsInstallButtonHoveredChanged(bool value)
+    {
+        OnPropertyChanged(nameof(ReinstallText));
+    }
+
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, CancellationTokenSource> _installCts = new();
+
+    public void CancelInstall(ModrinthProjectItemViewModel project)
+    {
+        if (_installCts.TryRemove(project.ProjectId, out var cts))
+        {
+            try
+            {
+                cts.Cancel();
+                cts.Dispose();
+            }
+            catch { }
+        }
+        project.IsInstalling = false;
+        StatusText = "Installation cancelled.";
+        OnPropertyChanged(nameof(ReinstallText));
+    }
+
     /// <summary>Button text: "Install" for new content or different version, "Reinstall" only if the selected version is already installed.</summary>
     public string ReinstallText
     {
         get
         {
             if (_showInstallFeedback) return "Installed";
+            if (SelectedProject is { IsInstalling: true })
+            {
+                return IsDetailsInstallButtonHovered ? L10n.T("btn_cancel") : L10n.T("mi_installing");
+            }
             if (SelectedProject == null || !SelectedProject.IsInstalled) return L10n.T("mi_install");
 
             var instances = _instanceService.GetInstances();
@@ -286,8 +316,28 @@ public partial class ModpacksBrowserViewModel : ObservableObject
         }
     }
 
+    private ModrinthProjectItemViewModel? _prevSelectedProject;
+    private System.ComponentModel.PropertyChangedEventHandler? _selectedProjectPropChanged;
+
     partial void OnSelectedProjectChanged(ModrinthProjectItemViewModel? value)
     {
+        if (_prevSelectedProject != null && _selectedProjectPropChanged != null)
+        {
+            _prevSelectedProject.PropertyChanged -= _selectedProjectPropChanged;
+        }
+        _prevSelectedProject = value;
+        if (value != null)
+        {
+            _selectedProjectPropChanged = (s, e) =>
+            {
+                if (e.PropertyName is nameof(ModrinthProjectItemViewModel.IsInstalling) or nameof(ModrinthProjectItemViewModel.IsInstalled))
+                {
+                    OnPropertyChanged(nameof(ReinstallText));
+                }
+            };
+            value.PropertyChanged += _selectedProjectPropChanged;
+        }
+
         OnPropertyChanged(nameof(IsDetailsOpen));
         OnPropertyChanged(nameof(DetailsProject));
         OnPropertyChanged(nameof(InstallButtonVisible));
@@ -676,7 +726,12 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     [RelayCommand]
     private void DeleteOrInstall(ModrinthProjectItemViewModel project)
     {
-        if (project == null || project.IsInstalling) return;
+        if (project == null) return;
+        if (project.IsInstalling)
+        {
+            CancelInstall(project);
+            return;
+        }
         if (project.IsInstalled)
         {
             PendingDelete = project;
@@ -689,9 +744,12 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     private async Task InstallLatestAsync(ModrinthProjectItemViewModel project)
     {
         if (project == null || project.IsInstalling) return;
+        var cts = new CancellationTokenSource();
+        _installCts[project.ProjectId] = cts;
+        var token = cts.Token;
         try
         {
-            var version = await ModrinthApiService.GetLatestVersionAsync(project.ProjectId, SelectedVersion, Array.Empty<string>());
+            var version = await ModrinthApiService.GetLatestVersionAsync(project.ProjectId, SelectedVersion, Array.Empty<string>(), token);
             if (version == null)
             {
                 StatusText = $"No compatible version found for {project.Title}";
@@ -702,19 +760,21 @@ public partial class ModpacksBrowserViewModel : ObservableObject
             if (string.IsNullOrWhiteSpace(file)) return;
 
             project.IsInstalling = true;
+            OnPropertyChanged(nameof(ReinstallText));
             StatusText = "Installing...";
 
             var tempDir = Path.Combine(Path.GetTempPath(), $"zenith_modpack_{Guid.NewGuid():N}");
             Directory.CreateDirectory(tempDir);
             var zipPath = Path.Combine(tempDir, version.FileName);
-            var data = await ModrinthApiService.DownloadAsync(file);
+            var data = await ModrinthApiService.DownloadAsync(file, token);
+            if (token.IsCancellationRequested) return;
             if (data is not { Length: > 0 })
             {
                 StatusText = "Download failed.";
                 return;
             }
-            await File.WriteAllBytesAsync(zipPath, data);
-            var instance = await InstallModpackFromZipAsync(project, zipPath, tempDir, version.VersionNumber);
+            await File.WriteAllBytesAsync(zipPath, data, token);
+            var instance = await InstallModpackFromZipAsync(project, zipPath, tempDir, version.VersionNumber, token);
             if (instance != null)
             {
                 project.IsInstalled = true;
@@ -723,6 +783,10 @@ public partial class ModpacksBrowserViewModel : ObservableObject
                 _onInstalled?.Invoke();
             }
         }
+        catch (OperationCanceledException)
+        {
+            StatusText = "Installation cancelled.";
+        }
         catch (Exception ex)
         {
             LauncherLog.Error($"Failed to quick-install modpack {project.Title}", ex);
@@ -730,7 +794,12 @@ public partial class ModpacksBrowserViewModel : ObservableObject
         }
         finally
         {
+            if (_installCts.TryRemove(project.ProjectId, out var removedCts))
+            {
+                removedCts.Dispose();
+            }
             project.IsInstalling = false;
+            OnPropertyChanged(nameof(ReinstallText));
         }
     }
 
@@ -804,21 +873,26 @@ public partial class ModpacksBrowserViewModel : ObservableObject
         if (project == null || project.IsInstalling) return;
         var file = version.Files.FirstOrDefault(f => f.IsPrimary) ?? version.Files.FirstOrDefault();
         if (file == null || string.IsNullOrWhiteSpace(file.Url)) return;
+        var cts = new CancellationTokenSource();
+        _installCts[project.ProjectId] = cts;
+        var token = cts.Token;
         try
         {
             project.IsInstalling = true;
+            OnPropertyChanged(nameof(ReinstallText));
             StatusText = "Installing...";
             var tempDir = Path.Combine(Path.GetTempPath(), $"zenith_modpack_{Guid.NewGuid():N}");
             Directory.CreateDirectory(tempDir);
             var zipPath = Path.Combine(tempDir, file.Filename);
-            var data = await ModrinthApiService.DownloadAsync(file.Url);
+            var data = await ModrinthApiService.DownloadAsync(file.Url, token);
+            if (token.IsCancellationRequested) return;
             if (data is not { Length: > 0 })
             {
                 StatusText = "Download failed.";
                 return;
             }
-            await File.WriteAllBytesAsync(zipPath, data);
-            var instance = await InstallModpackFromZipAsync(project, zipPath, tempDir, version.VersionNumber);
+            await File.WriteAllBytesAsync(zipPath, data, token);
+            var instance = await InstallModpackFromZipAsync(project, zipPath, tempDir, version.VersionNumber, token);
             if (instance != null)
             {
                 project.IsInstalled = true;
@@ -827,6 +901,10 @@ public partial class ModpacksBrowserViewModel : ObservableObject
                 _onInstalled?.Invoke();
             }
         }
+        catch (OperationCanceledException)
+        {
+            StatusText = "Installation cancelled.";
+        }
         catch (Exception ex)
         {
             LauncherLog.Error($"Failed to install modpack {project.Title}", ex);
@@ -834,11 +912,16 @@ public partial class ModpacksBrowserViewModel : ObservableObject
         }
         finally
         {
+            if (_installCts.TryRemove(project.ProjectId, out var removedCts))
+            {
+                removedCts.Dispose();
+            }
             project.IsInstalling = false;
+            OnPropertyChanged(nameof(ReinstallText));
         }
     }
 
-    private async Task<Models.InstanceModel?> InstallModpackFromZipAsync(ModrinthProjectItemViewModel project, string zipPath, string tempDir, string installedVersion = "")
+    private async Task<Models.InstanceModel?> InstallModpackFromZipAsync(ModrinthProjectItemViewModel project, string zipPath, string tempDir, string installedVersion = "", CancellationToken token = default)
     {
         try
         {
@@ -863,11 +946,11 @@ public partial class ModpacksBrowserViewModel : ObservableObject
 
             if (File.Exists(modrinthIndexPath))
             {
-                return await InstallModrinthMrpackAsync(project, modrinthIndexPath, extractDir, installedVersion);
+                return await InstallModrinthMrpackAsync(project, modrinthIndexPath, extractDir, installedVersion, token);
             }
             else if (File.Exists(curseforgeManifestPath))
             {
-                return await InstallCurseforgePackAsync(project, curseforgeManifestPath, extractDir, installedVersion);
+                return await InstallCurseforgePackAsync(project, curseforgeManifestPath, extractDir, installedVersion, token);
             }
             else
             {
@@ -887,9 +970,9 @@ public partial class ModpacksBrowserViewModel : ObservableObject
         }
     }
 
-    private async Task<Models.InstanceModel?> InstallModrinthMrpackAsync(ModrinthProjectItemViewModel project, string indexPath, string extractDir, string installedVersion = "")
+    private async Task<Models.InstanceModel?> InstallModrinthMrpackAsync(ModrinthProjectItemViewModel project, string indexPath, string extractDir, string installedVersion = "", CancellationToken token = default)
     {
-        var jsonText = await File.ReadAllTextAsync(indexPath);
+        var jsonText = await File.ReadAllTextAsync(indexPath, token);
         using var doc = System.Text.Json.JsonDocument.Parse(jsonText);
         var root = doc.RootElement;
 
@@ -968,7 +1051,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
                 if (iconBytes is { Length: > 0 })
                 {
                     var iconPath = Path.Combine(inst.Path, "icon.png");
-                    await File.WriteAllBytesAsync(iconPath, iconBytes);
+                    await File.WriteAllBytesAsync(iconPath, iconBytes, token);
                     inst.IconPath = iconPath;
                     await _instanceService.SaveInstanceAsync(inst);
                 }
@@ -1000,9 +1083,10 @@ public partial class ModpacksBrowserViewModel : ObservableObject
 
             var tasks = files.Select(async file =>
             {
-                await sem.WaitAsync();
+                await sem.WaitAsync(token);
                 try
                 {
+                    token.ThrowIfCancellationRequested();
                     // Check env client
                     if (file.TryGetProperty("env", out var env) && env.TryGetProperty("client", out var envClient))
                     {
@@ -1021,22 +1105,28 @@ public partial class ModpacksBrowserViewModel : ObservableObject
 
                     foreach (var dl in downloads.EnumerateArray())
                     {
+                        token.ThrowIfCancellationRequested();
                         var url = dl.GetString();
                         if (string.IsNullOrWhiteSpace(url)) continue;
                         try
                         {
-                            var data = await http.GetByteArrayAsync(url);
+                            var data = await http.GetByteArrayAsync(url, token);
                             if (data.Length > 0)
                             {
-                                await File.WriteAllBytesAsync(destPath, data);
+                                await File.WriteAllBytesAsync(destPath, data, token);
                                 break;
                             }
                         }
+                        catch (OperationCanceledException) { throw; }
                         catch
                         {
                             // Try next fallback URL if available
                         }
                     }
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
                 }
                 catch (Exception ex)
                 {
@@ -1057,7 +1147,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
         return inst;
     }
 
-    private async Task<Models.InstanceModel?> InstallCurseforgePackAsync(ModrinthProjectItemViewModel project, string manifestPath, string extractDir, string installedVersion = "")
+    private async Task<Models.InstanceModel?> InstallCurseforgePackAsync(ModrinthProjectItemViewModel project, string manifestPath, string extractDir, string installedVersion = "", CancellationToken token = default)
     {
         var manifestJson = await File.ReadAllTextAsync(manifestPath);
         using var manifestDoc = System.Text.Json.JsonDocument.Parse(manifestJson);
@@ -1207,6 +1297,12 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     private void MainAction()
     {
         if (SelectedProject == null) return;
+
+        if (SelectedProject.IsInstalling)
+        {
+            CancelInstall(SelectedProject);
+            return;
+        }
 
         // Check if the current action is Reinstall
         bool isReinstall = ReinstallText == L10n.T("mi_reinstall");

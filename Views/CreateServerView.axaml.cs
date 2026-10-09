@@ -72,4 +72,30 @@ public partial class CreateServerView : UserControl
             };
         }
     }
+
+    private void OnConsoleInputKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter)
+        {
+            if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
+            {
+                if (sender is TextBox tb)
+                {
+                    var caret = tb.CaretIndex;
+                    var text = tb.Text ?? "";
+                    tb.Text = text.Insert(caret, "\n");
+                    tb.CaretIndex = caret + 1;
+                    e.Handled = true;
+                }
+            }
+            else
+            {
+                if (DataContext is CreateServerViewModel vm)
+                {
+                    vm.SendConsoleCommand();
+                    e.Handled = true;
+                }
+            }
+        }
+    }
 }

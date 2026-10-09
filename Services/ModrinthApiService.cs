@@ -256,7 +256,7 @@ public static class ModrinthApiService
 
     /// <summary>Finds the newest version of a project that matches the exact game version and loader(s).</summary>
     public static async Task<ModrinthVersionDownload?> GetLatestVersionAsync(
-        string projectId, string gameVersion, IReadOnlyList<string> loaderFacets)
+        string projectId, string gameVersion, IReadOnlyList<string> loaderFacets, CancellationToken token = default)
     {
         var url = $"{ApiBase}/project/{Uri.EscapeDataString(projectId)}/version";
         var queryParts = new List<string>();
@@ -267,7 +267,7 @@ public static class ModrinthApiService
         if (queryParts.Count > 0)
             url += "?" + string.Join("&", queryParts);
 
-        var json = await Http.GetStringAsync(url);
+        var json = await Http.GetStringAsync(url, token);
         using var doc = JsonDocument.Parse(json);
         if (doc.RootElement.ValueKind != JsonValueKind.Array) return null;
 
@@ -334,9 +334,9 @@ public static class ModrinthApiService
         return null;
     }
 
-    public static async Task<byte[]?> DownloadAsync(string url)
+    public static async Task<byte[]?> DownloadAsync(string url, CancellationToken token = default)
     {
-        try { return await Http.GetByteArrayAsync(url); }
+        try { return await Http.GetByteArrayAsync(url, token); }
         catch { return null; }
     }
 

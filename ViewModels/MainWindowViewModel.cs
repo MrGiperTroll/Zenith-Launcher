@@ -1805,7 +1805,6 @@ public partial class MainWindowViewModel : ViewModelBase
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
                 RefreshState();
-                NavigateToProfiles();
                 ModpacksBrowser.UpdateInstalledFlags();
             });
         });
@@ -1999,15 +1998,6 @@ public partial class MainWindowViewModel : ViewModelBase
         ThemeSubTab = tab;
         OnPropertyChanged(nameof(IsThemeSubTabSimple));
         OnPropertyChanged(nameof(IsThemeSubTabAdvanced));
-
-        if (IsThemeSubTabSimple)
-        {
-            ApplySimpleSavedTheme();
-        }
-        else
-        {
-            ApplyAdvancedSavedTheme();
-        }
 
         SaveLauncherConfig();
     }

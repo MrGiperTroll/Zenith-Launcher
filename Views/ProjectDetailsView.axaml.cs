@@ -41,4 +41,28 @@ public partial class ProjectDetailsView : UserControl
             }
         }
     }
+
+    private void OnActionButtonHover(object? sender, Avalonia.Input.PointerEventArgs e)
+    {
+        if (DataContext is ViewModels.ContentBrowserViewModel cbVm)
+        {
+            cbVm.IsDetailsInstallButtonHovered = true;
+        }
+        else if (DataContext is ViewModels.ModpacksBrowserViewModel mpVm)
+        {
+            mpVm.IsDetailsInstallButtonHovered = true;
+        }
+    }
+
+    private void OnActionButtonHoverOut(object? sender, Avalonia.Input.PointerEventArgs e)
+    {
+        if (DataContext is ViewModels.ContentBrowserViewModel cbVm)
+        {
+            cbVm.IsDetailsInstallButtonHovered = false;
+        }
+        else if (DataContext is ViewModels.ModpacksBrowserViewModel mpVm)
+        {
+            mpVm.IsDetailsInstallButtonHovered = false;
+        }
+    }
 }

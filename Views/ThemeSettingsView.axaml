@@ -1,4 +1,4 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:CustomMcLauncher.ViewModels"
               xmlns:pages="using:CustomMcLauncher.ViewModels.Pages"
@@ -55,6 +55,16 @@
             <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+        </Style>
+        <Style Selector="Button.presetBtn.active">
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
+            <Setter Property="Background" Value="{DynamicResource AccentDimBrush}"/>
+        </Style>
+        <Style Selector="Button.presetBtn.active /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource AccentDimBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
         </Style>
         <Style Selector="Button.primaryBtn">
             <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
@@ -215,12 +225,18 @@
                                         <DataTemplate x:DataType="theming:ThemePreset">
                                             <Button Command="{Binding $parent[ItemsControl].((pages:ThemeSettingsViewModel)DataContext).ChooseThemeCommand}"
                                                     CommandParameter="{Binding HexColor}"
-                                                    Classes="subBtn"
+                                                    Classes="subBtn presetBtn"
                                                     Width="120"
                                                     Height="36"
                                                     CornerRadius="8"
                                                     Padding="8,0"
                                                     Margin="0,0,8,8">
+                                                <Classes.active>
+                                                    <MultiBinding Converter="{x:Static converters:StringEqualsConverter.Instance}">
+                                                        <Binding Path="HexColor"/>
+                                                        <Binding Path="$parent[ItemsControl].((pages:ThemeSettingsViewModel)DataContext).SimpleAccentHex"/>
+                                                    </MultiBinding>
+                                                </Classes.active>
                                                 <Grid ColumnDefinitions="14,*" VerticalAlignment="Center">
                                                     <Border Grid.Column="0" Width="14" Height="14" CornerRadius="7" Background="{Binding ColorBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                     <TextBlock Grid.Column="1" Text="{Binding DisplayName}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" Margin="8,0,0,0" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>

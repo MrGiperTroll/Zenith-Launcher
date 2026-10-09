@@ -77,8 +77,8 @@ public partial class MainWindow : Window
         if (e.PropertyName == nameof(MainWindowViewModel.IsModpacksView))
         {
             var pane = _subscribedVm!.IsModpacksView
-                ? this.FindControl<Grid>("ModpacksPane")
-                : this.FindControl<Grid>("ProfilesPane");
+                ? this.FindControl<Control>("ModpacksPane")
+                : this.FindControl<Control>("ProfilesPane");
             if (pane != null)
                 UiFx.FadeInNow(pane, 240, 4);
         }
@@ -86,8 +86,8 @@ public partial class MainWindow : Window
         {
             Control? pane = _subscribedVm!.CurrentPage switch
             {
-                LauncherNavPage.Profiles => this.FindControl<Grid>("ProfilesPane"),
-                LauncherNavPage.Modpacks => this.FindControl<Grid>("ModpacksPane"),
+                LauncherNavPage.Profiles => this.FindControl<Control>("ProfilesPane"),
+                LauncherNavPage.Modpacks => this.FindControl<Control>("ModpacksPane"),
                 LauncherNavPage.EditInstance => this.FindControl<Panel>("EditInstancePane"),
                 LauncherNavPage.ContentBrowser => this.FindControl<Panel>("ContentBrowserPane"),
                 LauncherNavPage.Settings => this.FindControl<Panel>("SettingsPane"),

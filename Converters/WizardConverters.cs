@@ -531,4 +531,26 @@ public class HexToColorConverter : IValueConverter
     }
 }
 
+/// <summary>Compares two string values (or string and parameter) case-insensitively and returns a bool.</summary>
+public class StringEqualsConverter : IMultiValueConverter
+{
+    public static readonly StringEqualsConverter Instance = new();
+
+    public object? Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (values != null && values.Count >= 2)
+        {
+            var str1 = values[0]?.ToString()?.Trim();
+            var str2 = values[1]?.ToString()?.Trim();
+            if (str1 != null && str2 != null)
+            {
+                if (!str1.StartsWith("#")) str1 = "#" + str1;
+                if (!str2.StartsWith("#")) str2 = "#" + str2;
+                return string.Equals(str1, str2, StringComparison.OrdinalIgnoreCase);
+            }
+        }
+        return false;
+    }
+}
+
 

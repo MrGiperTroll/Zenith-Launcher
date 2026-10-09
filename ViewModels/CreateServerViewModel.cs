@@ -9,11 +9,21 @@ using System.Threading.Tasks;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
 using Avalonia.Threading;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform.Storage;
+using System.IO.Compression;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CustomMcLauncher.Services;
 
 namespace CustomMcLauncher.ViewModels;
+
+public partial class ServerItemEntry : ObservableObject
+{
+    [ObservableProperty] private string _name = "";
+    [ObservableProperty] private Bitmap? _iconBitmap;
+    [ObservableProperty] private bool _hasIcon;
+}
 
 public partial class CreateServerViewModel : ObservableObject
 {
@@ -28,8 +38,12 @@ public partial class CreateServerViewModel : ObservableObject
 
     // Creation Wizard Fields
     [ObservableProperty] private string _serverName = "My Local Server";
-    [ObservableProperty] private string _selectedVersion = "1.21.4";
+    [ObservableProperty] private string _selectedVersion = "";
     [ObservableProperty] private ServerSoftwareOption _selectedSoftware;
+    [ObservableProperty] private string _selectedLoaderBuild = "Latest (Auto)";
+    public ObservableCollection<string> AvailableLoaderBuilds { get; } = new();
+    public bool IsLoaderBuildVisible => SelectedSoftware != null && (SelectedSoftware.Id == "forge" || SelectedSoftware.Id == "neoforge" || SelectedSoftware.Id == "fabric");
+
     [ObservableProperty] private int _ramMb = 4096;
     public int RamGb
     {
@@ -51,6 +65,7 @@ public partial class CreateServerViewModel : ObservableObject
     [ObservableProperty] private bool _isCreatingNewServer;
     [ObservableProperty] private bool _hasExistingServers;
     [ObservableProperty] private string? _selectedServerName;
+    [ObservableProperty] private string _propsServerName = "";
     [ObservableProperty] private string _activeServerDirectory = "";
     [ObservableProperty] private int _selectedTab; // 0=Overview, 1=Properties, 2=Plugins, 3=Settings, 4=Players, 5=Files
     [ObservableProperty] private int _playersSubTab; // 0=Online, 1=Ops, 2=Whitelist, 3=Bans
@@ -59,6 +74,44 @@ public partial class CreateServerViewModel : ObservableObject
     [ObservableProperty] private bool _showWorldResetConfirm;
     [ObservableProperty] private string _worldResetStatusMessage = "";
     [ObservableProperty] private bool _showDeleteServerConfirm;
+
+    // Master versions list for software compatibility filtering
+    private readonly List<string> _allMinecraftVersions = new();
+
+    // Server Icon state
+    [ObservableProperty] private bool _hasServerIcon;
+    [ObservableProperty] private Bitmap? _serverIconBitmap;
+
+    // Console & Live Logs state (Tab 6)
+    [ObservableProperty] private string _consoleLogText = "";
+    [ObservableProperty] private string _consoleCommandText = "";
+
+    // Customizable Quick Commands in Console tab
+    public ObservableCollection<string> QuickCommands { get; } = new();
+    [ObservableProperty] private string _newQuickCommandText = "";
+    [ObservableProperty] private bool _isAddingQuickCommand;
+
+    // World Management state (Tab 7)
+    [ObservableProperty] private bool _hasWorldIcon;
+    [ObservableProperty] private Bitmap? _worldIconBitmap;
+
+    // World Management state (Tab 7)
+    [ObservableProperty] private string _worldNameDisplay = "world";
+    [ObservableProperty] private string _worldSizeDisplay = "0 MB";
+    [ObservableProperty] private bool _isWorldSettingsOpen;
+    [ObservableProperty] private string _worldStatusMessage = "";
+    [ObservableProperty] private string _worldDifficulty = "normal";
+    [ObservableProperty] private bool _worldHardcore;
+    [ObservableProperty] private string _worldSeed = "";
+    [ObservableProperty] private bool _worldGenerateStructures = true;
+    [ObservableProperty] private bool _worldBonusChest;
+    [ObservableProperty] private bool _ruleKeepInventory;
+    [ObservableProperty] private bool _ruleMobGriefing = true;
+    [ObservableProperty] private bool _ruleDoDaylightCycle = true;
+    [ObservableProperty] private bool _ruleDoWeatherCycle = true;
+    [ObservableProperty] private bool _ruleDoMobSpawning = true;
+    public ObservableCollection<string> EnabledDatapacks { get; } = new();
+    public ObservableCollection<string> DisabledDatapacks { get; } = new();
 
     // Technical Settings (Tab 3: Settings)
     [ObservableProperty] private string _serverJavaPath = "";
@@ -96,6 +149,10 @@ public partial class CreateServerViewModel : ObservableObject
     [ObservableProperty] private bool _propsHardcore;
     [ObservableProperty] private int _propsMaxPlayers = 20;
     [ObservableProperty] private bool _propsOnlineMode = false;
+    [ObservableProperty] private bool _propsForceGamemode = false;
+    [ObservableProperty] private bool _propsRequireResourcePack = false;
+    [ObservableProperty] private string _propsResourcePack = "";
+    [ObservableProperty] private string _propsResourcePackPrompt = "";
     [ObservableProperty] private string _propsLevelName = "world";
     [ObservableProperty] private string _propsLevelSeed = "";
     [ObservableProperty] private string _propsLevelType = "minecraft:normal";
@@ -147,6 +204,8 @@ public partial class CreateServerViewModel : ObservableObject
     public string[] LevelTypeOptions { get; } = { "minecraft:normal", "minecraft:flat", "minecraft:large_biomes", "minecraft:amplified" };
 
     public ObservableCollection<string> ExistingServers { get; } = new();
+    public ObservableCollection<ServerItemEntry> ExistingServersList { get; } = new();
+    [ObservableProperty] private ServerItemEntry? _selectedServerItem;
     public ObservableCollection<ServerPluginItem> InstalledPlugins { get; } = new();
     public ObservableCollection<ServerPlayerEntry> OpsList { get; } = new();
     public ObservableCollection<ServerPlayerEntry> WhitelistList { get; } = new();
@@ -168,9 +227,10 @@ public partial class CreateServerViewModel : ObservableObject
     public bool IsPropertiesTab => SelectedTab == 1;
     public bool IsPluginsTab => SelectedTab == 2;
     public bool IsSettingsTab => SelectedTab == 3;
-    public bool IsWorldTab => SelectedTab == 3; // Kept for safety
     public bool IsPlayersTab => SelectedTab == 4;
     public bool IsFilesTab => SelectedTab == 5;
+    public bool IsConsoleTab => SelectedTab == 6;
+    public bool IsWorldTab => SelectedTab == 7;
 
     public bool IsOnlinePlayersSubTab => PlayersSubTab == 0;
     public bool IsOpsSubTab => PlayersSubTab == 1;
@@ -183,12 +243,21 @@ public partial class CreateServerViewModel : ObservableObject
         OnPropertyChanged(nameof(IsPropertiesTab));
         OnPropertyChanged(nameof(IsPluginsTab));
         OnPropertyChanged(nameof(IsSettingsTab));
+        OnPropertyChanged(nameof(IsConsoleTab));
         OnPropertyChanged(nameof(IsWorldTab));
         OnPropertyChanged(nameof(IsPlayersTab));
         OnPropertyChanged(nameof(IsFilesTab));
         if (value == 5)
         {
             RefreshFiles();
+        }
+        else if (value == 6)
+        {
+            LoadLatestLog();
+        }
+        else if (value == 7)
+        {
+            RefreshWorldInfo();
         }
         StateChanged?.Invoke();
     }
@@ -242,14 +311,15 @@ public partial class CreateServerViewModel : ObservableObject
 
     public void UpdateAvailableSoftware()
     {
-        var compatible = ServerCreatorService.GetCompatibleSoftware(SelectedVersion);
-        AvailableSoftware.Clear();
-        foreach (var opt in compatible)
+        if (AvailableSoftware.Count == 0)
         {
-            AvailableSoftware.Add(opt);
+            foreach (var opt in ServerCreatorService.AvailableSoftware)
+            {
+                AvailableSoftware.Add(opt);
+            }
         }
 
-        if (SelectedSoftware == null || !AvailableSoftware.Any(s => s.Id == SelectedSoftware.Id))
+        if (SelectedSoftware == null)
         {
             SelectedSoftware = AvailableSoftware.FirstOrDefault() ?? ServerCreatorService.AvailableSoftware[0];
         }
@@ -258,11 +328,38 @@ public partial class CreateServerViewModel : ObservableObject
     public void RefreshExistingServers()
     {
         ExistingServers.Clear();
+        foreach (var entry in ExistingServersList)
+        {
+            entry.IconBitmap?.Dispose();
+        }
+        ExistingServersList.Clear();
+
         foreach (var s in ServerCreatorService.GetExistingServers())
         {
             ExistingServers.Add(s);
+            var iconPath = Path.Combine(ServerCreatorService.DefaultServersDirectory, s, "server-icon.png");
+            Bitmap? bmp = null;
+            if (File.Exists(iconPath))
+            {
+                try
+                {
+                    using var fs = File.OpenRead(iconPath);
+                    bmp = new Bitmap(fs);
+                }
+                catch { }
+            }
+            ExistingServersList.Add(new ServerItemEntry
+            {
+                Name = s,
+                IconBitmap = bmp,
+                HasIcon = bmp != null
+            });
         }
-        HasExistingServers = ExistingServers.Count > 0;
+        HasExistingServers = ExistingServersList.Count > 0;
+        if (SelectedServerName != null)
+        {
+            SelectedServerItem = ExistingServersList.FirstOrDefault(x => x.Name == SelectedServerName);
+        }
     }
 
     [RelayCommand]
@@ -366,14 +463,26 @@ public partial class CreateServerViewModel : ObservableObject
         {
             ActiveServerDirectory = Path.Combine(ServerCreatorService.DefaultServersDirectory, value);
             LoadServerDetails();
+            SelectedServerItem = ExistingServersList.FirstOrDefault(x => x.Name == value);
         }
         StateChanged?.Invoke();
+    }
+
+    partial void OnSelectedServerItemChanged(ServerItemEntry? value)
+    {
+        if (value != null && value.Name != SelectedServerName)
+        {
+            SelectedServerName = value.Name;
+        }
     }
 
     public void LoadServerDetails()
     {
         if (string.IsNullOrWhiteSpace(ActiveServerDirectory) || !Directory.Exists(ActiveServerDirectory))
             return;
+
+        PropsServerName = SelectedServerName ?? "";
+        LoadQuickCommands();
 
         // Load server.properties (all 22 parameters)
         var props = ServerCreatorService.LoadProperties(ActiveServerDirectory);
@@ -391,6 +500,10 @@ public partial class CreateServerViewModel : ObservableObject
         if (props.TryGetValue("hardcore", out var hc) && bool.TryParse(hc, out var bHc)) PropsHardcore = bHc;
         if (props.TryGetValue("max-players", out var mp) && int.TryParse(mp, out var iMp)) PropsMaxPlayers = iMp;
         if (props.TryGetValue("online-mode", out var om) && bool.TryParse(om, out var bOm)) PropsOnlineMode = bOm;
+        if (props.TryGetValue("force-gamemode", out var fg) && bool.TryParse(fg, out var bFg)) PropsForceGamemode = bFg;
+        if (props.TryGetValue("require-resource-pack", out var rrp) && bool.TryParse(rrp, out var bRrp)) PropsRequireResourcePack = bRrp;
+        if (props.TryGetValue("resource-pack", out var rp)) PropsResourcePack = rp;
+        if (props.TryGetValue("resource-pack-prompt", out var rpp)) PropsResourcePackPrompt = rpp;
         if (props.TryGetValue("level-name", out var ln)) PropsLevelName = ln;
         if (props.TryGetValue("level-seed", out var ls)) PropsLevelSeed = ls;
         if (props.TryGetValue("level-type", out var lt)) PropsLevelType = lt;
@@ -439,6 +552,8 @@ public partial class CreateServerViewModel : ObservableObject
         _ = RefreshOnlinePlayersAsync();
 
         CurrentBrowsePath = ActiveServerDirectory;
+        LoadServerIcon();
+        RefreshWorldInfo();
         if (SelectedTab == 5)
         {
             RefreshFiles();
@@ -595,18 +710,22 @@ public partial class CreateServerViewModel : ObservableObject
             ["hardcore"] = PropsHardcore ? "true" : "false",
             ["max-players"] = PropsMaxPlayers.ToString(),
             ["online-mode"] = PropsOnlineMode ? "true" : "false",
-            ["level-name"] = PropsLevelName,
-            ["level-seed"] = PropsLevelSeed,
-            ["level-type"] = PropsLevelType,
-            ["generate-structures"] = PropsGenerateStructures ? "true" : "false",
+            ["force-gamemode"] = PropsForceGamemode ? "true" : "false",
             ["spawn-animals"] = PropsSpawnAnimals ? "true" : "false",
             ["spawn-monsters"] = PropsSpawnMonsters ? "true" : "false",
             ["spawn-npcs"] = PropsSpawnNpcs ? "true" : "false",
             ["allow-nether"] = PropsAllowNether ? "true" : "false",
-            ["entity-broadcast-range-percentage"] = PropsEntityBroadcastRangePercentage.ToString()
+            ["entity-broadcast-range-percentage"] = PropsEntityBroadcastRangePercentage.ToString(),
+            ["require-resource-pack"] = PropsRequireResourcePack ? "true" : "false",
+            ["resource-pack"] = PropsResourcePack ?? "",
+            ["resource-pack-prompt"] = PropsResourcePackPrompt ?? ""
         };
 
         ServerCreatorService.SaveProperties(ActiveServerDirectory, dict);
+        if (!string.IsNullOrWhiteSpace(PropsServerName) && PropsServerName != SelectedServerName)
+        {
+            CommitRenameDirect(PropsServerName);
+        }
         ConfigStatusMessage = L10n.T("cs_save_props") + "!";
         RefreshNetworkEndpoints();
     }
@@ -818,18 +937,8 @@ public partial class CreateServerViewModel : ObservableObject
     [RelayCommand]
     public void OpenLogs()
     {
-        if (string.IsNullOrWhiteSpace(ActiveServerDirectory)) return;
-        var logFile = Path.Combine(ActiveServerDirectory, "logs", "latest.log");
-        if (File.Exists(logFile))
-        {
-            try
-            {
-                Process.Start(new ProcessStartInfo { FileName = logFile, UseShellExecute = true });
-                return;
-            }
-            catch { }
-        }
-        OpenServerFolder();
+        SelectedTab = 6;
+        LoadLatestLog();
     }
 
     [RelayCommand]
@@ -862,15 +971,12 @@ public partial class CreateServerViewModel : ObservableObject
                 _host.ShowBetas,
                 _host.ShowAlphas);
 
-            AvailableVersions.Clear();
-            foreach (var v in versions)
-                AvailableVersions.Add(v);
+            _allMinecraftVersions.Clear();
+            _allMinecraftVersions.AddRange(versions);
 
-            if (AvailableVersions.Count > 0)
-            {
-                SelectedVersion = AvailableVersions[0];
-            }
-            UpdateAvailableSoftware();
+            PopulateInitialSoftware();
+            await UpdateAvailableVersionsForSelectedSoftwareAsync();
+            await UpdateLoaderBuildsAsync();
             StatusText = "";
         }
         catch (Exception ex)
@@ -887,7 +993,7 @@ public partial class CreateServerViewModel : ObservableObject
     partial void OnServerNameChanged(string value) => OnPropertyChanged(nameof(CanCreate));
     partial void OnSelectedVersionChanged(string value)
     {
-        UpdateAvailableSoftware();
+        _ = UpdateLoaderBuildsAsync();
         OnPropertyChanged(nameof(CanCreate));
     }
     partial void OnIsBusyChanged(bool value) => OnPropertyChanged(nameof(CanCreate));
@@ -919,7 +1025,8 @@ public partial class CreateServerViewModel : ObservableObject
                 AgreeEula,
                 OnlineMode,
                 progress,
-                _cts.Token);
+                _cts.Token,
+                SelectedLoaderBuild);
 
             CreatedServerDirectory = targetDir;
             IsCreated = true;
@@ -1005,7 +1112,9 @@ public partial class CreateServerViewModel : ObservableObject
                         WorkingDirectory = dir,
                         UseShellExecute = false,
                         RedirectStandardInput = true,
-                        CreateNoWindow = false
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true
                     },
                     EnableRaisingEvents = true
                 };
@@ -1025,11 +1134,22 @@ public partial class CreateServerViewModel : ObservableObject
                     });
                 };
 
+                p.OutputDataReceived += (s, e) =>
+                {
+                    if (e.Data != null) AppendConsoleLog(e.Data);
+                };
+                p.ErrorDataReceived += (s, e) =>
+                {
+                    if (e.Data != null) AppendConsoleLog(e.Data);
+                };
+
                 if (p.Start())
                 {
                     _serverProcess = p;
                     _serverStdin = p.StandardInput;
                     _serverStdin.AutoFlush = true;
+                    p.BeginOutputReadLine();
+                    p.BeginErrorReadLine();
                     _serverStartTime = DateTime.Now;
                     IsServerRunning = true;
                     IsServerStopping = false;
@@ -1742,9 +1862,519 @@ public partial class CreateServerViewModel : ObservableObject
         _cts?.Cancel();
         _host.GoBack();
     }
+
+    private void PopulateInitialSoftware()
+    {
+        AvailableSoftware.Clear();
+        foreach (var opt in ServerCreatorService.AvailableSoftware)
+            AvailableSoftware.Add(opt);
+
+        if (SelectedSoftware == null)
+            SelectedSoftware = AvailableSoftware.FirstOrDefault() ?? ServerCreatorService.AvailableSoftware[0];
+    }
+
+    partial void OnSelectedSoftwareChanged(ServerSoftwareOption value)
+    {
+        _ = UpdateAvailableVersionsForSelectedSoftwareAsync();
+        _ = UpdateLoaderBuildsAsync();
+        OnPropertyChanged(nameof(IsLoaderBuildVisible));
+        OnPropertyChanged(nameof(CanCreate));
+    }
+
+    public async Task UpdateAvailableVersionsForSelectedSoftwareAsync()
+    {
+        if (SelectedSoftware == null) return;
+
+        // 1. Fast instant display using compatibility heuristic so UI doesn't stutter
+        var compat = _allMinecraftVersions.Where(v => ServerCreatorService.IsSoftwareCompatibleWithVersion(SelectedSoftware.Id, v)).ToList();
+        if (AvailableVersions.Count == 0 || !AvailableVersions.SequenceEqual(compat))
+        {
+            AvailableVersions.Clear();
+            foreach (var v in compat)
+                AvailableVersions.Add(v);
+
+            if (AvailableVersions.Count > 0 && (string.IsNullOrEmpty(SelectedVersion) || !AvailableVersions.Contains(SelectedVersion)))
+            {
+                SelectedVersion = AvailableVersions[0];
+            }
+        }
+
+        // 2. Query real official API/manifest for this core (Paper v3, Purpur, Fabric Meta, NeoForge, Forge, etc.)
+        try
+        {
+            var realVersions = await _serverService.GetVersionsForSoftwareAsync(
+                SelectedSoftware.Id,
+                _host.ShowReleases,
+                _host.ShowSnapshots,
+                _host.ShowBetas,
+                _host.ShowAlphas);
+
+            if (realVersions.Count > 0 && !AvailableVersions.SequenceEqual(realVersions))
+            {
+                AvailableVersions.Clear();
+                foreach (var v in realVersions)
+                    AvailableVersions.Add(v);
+
+                if (AvailableVersions.Count > 0 && (string.IsNullOrEmpty(SelectedVersion) || !AvailableVersions.Contains(SelectedVersion)))
+                {
+                    SelectedVersion = AvailableVersions[0];
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Warn($"Failed to fetch exact versions for {SelectedSoftware.Id}: {ex.Message}");
+        }
+        finally
+        {
+            OnPropertyChanged(nameof(CanCreate));
+        }
+    }
+
+    public async Task UpdateLoaderBuildsAsync()
+    {
+        AvailableLoaderBuilds.Clear();
+        if (!IsLoaderBuildVisible || string.IsNullOrWhiteSpace(SelectedVersion))
+        {
+            SelectedLoaderBuild = "Latest (Auto)";
+            return;
+        }
+
+        AvailableLoaderBuilds.Add("Latest (Auto)");
+        try
+        {
+            var modLoaderService = new ModLoaderService();
+            var loaderType = SelectedSoftware.Id switch
+            {
+                "forge" => "Forge",
+                "neoforge" => "NeoForge",
+                "fabric" => "Fabric",
+                _ => ""
+            };
+            if (!string.IsNullOrEmpty(loaderType))
+            {
+                var builds = await modLoaderService.GetLoaderBuildsAsync(SelectedVersion, loaderType);
+                foreach (var b in builds.Where(b => !string.IsNullOrWhiteSpace(b) && b != "Latest (Auto)"))
+                {
+                    AvailableLoaderBuilds.Add(b);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Warn($"Failed to load loader builds: {ex.Message}");
+        }
+        SelectedLoaderBuild = AvailableLoaderBuilds.FirstOrDefault() ?? "Latest (Auto)";
+    }
+
+    // --- Server Icon ---
+    [RelayCommand]
+    public async Task ChangeServerIconAsync()
+    {
+        if (string.IsNullOrWhiteSpace(ActiveServerDirectory) || !Directory.Exists(ActiveServerDirectory)) return;
+        var topLevel = Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop ? desktop.MainWindow : null;
+        if (topLevel?.StorageProvider == null) return;
+
+        var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "Select Server Icon (PNG / JPEG)",
+            AllowMultiple = false,
+            FileTypeFilter = new[]
+            {
+                new FilePickerFileType("Images")
+                {
+                    Patterns = new[] { "*.png", "*.jpg", "*.jpeg", "*.bmp", "*.webp" }
+                }
+            }
+        });
+
+        if (files.Count > 0)
+        {
+            try
+            {
+                var srcPath = files[0].Path.LocalPath;
+                var destPath = Path.Combine(ActiveServerDirectory, "server-icon.png");
+
+                // Minecraft server strictly requires 64x64 PNG format (avoids Bad PNG Signature error)
+                using (var srcBmp = new Bitmap(srcPath))
+                using (var scaled = srcBmp.CreateScaledBitmap(new Avalonia.PixelSize(64, 64), BitmapInterpolationMode.HighQuality))
+                {
+#pragma warning disable CS0618
+                    scaled.Save(destPath);
+#pragma warning restore CS0618
+                }
+
+                LoadServerIcon();
+
+                var item = ExistingServersList.FirstOrDefault(s => s.Name.Equals(SelectedServerName, StringComparison.OrdinalIgnoreCase));
+                if (item != null)
+                {
+                    item.IconBitmap?.Dispose();
+                    using var stream = File.OpenRead(destPath);
+                    item.IconBitmap = new Bitmap(stream);
+                    item.HasIcon = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                LauncherLog.Error("Failed to update server icon", ex);
+            }
+        }
+    }
+
+    public void LoadServerIcon()
+    {
+        ServerIconBitmap?.Dispose();
+        ServerIconBitmap = null;
+        HasServerIcon = false;
+
+        if (string.IsNullOrWhiteSpace(ActiveServerDirectory)) return;
+        var iconPath = Path.Combine(ActiveServerDirectory, "server-icon.png");
+        if (File.Exists(iconPath))
+        {
+            try
+            {
+                using var stream = File.OpenRead(iconPath);
+                ServerIconBitmap = new Bitmap(stream);
+                HasServerIcon = true;
+            }
+            catch { }
+        }
+    }
+
+    // --- Console Commands & Log Streaming ---
+    [RelayCommand]
+    public void SendConsoleCommand()
+    {
+        if (string.IsNullOrWhiteSpace(ConsoleCommandText)) return;
+        var cmd = ConsoleCommandText.Trim();
+        ConsoleCommandText = "";
+
+        AppendConsoleLog($"> {cmd}");
+
+        if (_serverStdin != null && IsServerRunning)
+        {
+            try
+            {
+                _serverStdin.WriteLine(cmd);
+                _serverStdin.Flush();
+            }
+            catch (Exception ex)
+            {
+                AppendConsoleLog($"[Error: {ex.Message}]");
+            }
+        }
+        else
+        {
+            AppendConsoleLog("[Server is offline. Start the server to execute commands.]");
+        }
+    }
+
+    [RelayCommand]
+    public void ClearConsole()
+    {
+        ConsoleLogText = "";
+    }
+
+    public void AppendConsoleLog(string line)
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (string.IsNullOrEmpty(ConsoleLogText))
+                ConsoleLogText = line;
+            else
+            {
+                if (ConsoleLogText.Length > 200000)
+                    ConsoleLogText = ConsoleLogText.Substring(ConsoleLogText.Length - 100000);
+                ConsoleLogText += "\n" + line;
+            }
+        });
+    }
+
+    public void LoadLatestLog()
+    {
+        if (string.IsNullOrWhiteSpace(ActiveServerDirectory)) return;
+        var logFile = Path.Combine(ActiveServerDirectory, "logs", "latest.log");
+        if (File.Exists(logFile))
+        {
+            try
+            {
+                using var fs = new FileStream(logFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                using var sr = new StreamReader(fs);
+                var text = sr.ReadToEnd();
+                if (text.Length > 150000)
+                    text = text.Substring(text.Length - 150000);
+                ConsoleLogText = text.Replace("\r\n", "\n");
+            }
+            catch (Exception ex)
+            {
+                LauncherLog.Warn($"Failed to read latest.log: {ex.Message}");
+            }
+        }
+        else if (!IsServerRunning)
+        {
+            ConsoleLogText = "No log file found yet. Start the server to generate logs and view the live console.";
+        }
+    }
+
+    private void LoadQuickCommands()
+    {
+        QuickCommands.Clear();
+        var defaultCommands = new[] { "help", "list", "save-all", "stop" };
+        if (!string.IsNullOrWhiteSpace(ActiveServerDirectory) && Directory.Exists(ActiveServerDirectory))
+        {
+            var path = Path.Combine(ActiveServerDirectory, "quick-commands.json");
+            if (File.Exists(path))
+            {
+                try
+                {
+                    var list = System.Text.Json.JsonSerializer.Deserialize<List<string>>(File.ReadAllText(path));
+                    if (list != null && list.Count > 0)
+                    {
+                        foreach (var c in list) QuickCommands.Add(c);
+                        return;
+                    }
+                }
+                catch { }
+            }
+        }
+        foreach (var c in defaultCommands) QuickCommands.Add(c);
+    }
+
+    private void SaveQuickCommands()
+    {
+        if (string.IsNullOrWhiteSpace(ActiveServerDirectory) || !Directory.Exists(ActiveServerDirectory)) return;
+        try
+        {
+            var path = Path.Combine(ActiveServerDirectory, "quick-commands.json");
+            var json = System.Text.Json.JsonSerializer.Serialize(QuickCommands.ToList());
+            File.WriteAllText(path, json);
+        }
+        catch { }
+    }
+
+    [RelayCommand]
+    public void ExecuteQuickCommand(string? cmd)
+    {
+        if (string.IsNullOrWhiteSpace(cmd)) return;
+        ConsoleCommandText = cmd;
+        SendConsoleCommand();
+    }
+
+    [RelayCommand]
+    public void AddQuickCommand()
+    {
+        if (!string.IsNullOrWhiteSpace(NewQuickCommandText))
+        {
+            var cmd = NewQuickCommandText.Trim();
+            if (!QuickCommands.Contains(cmd))
+            {
+                QuickCommands.Add(cmd);
+                SaveQuickCommands();
+            }
+            NewQuickCommandText = "";
+            IsAddingQuickCommand = false;
+        }
+    }
+
+    [RelayCommand]
+    public void RemoveQuickCommand(string? cmd)
+    {
+        if (!string.IsNullOrWhiteSpace(cmd))
+        {
+            QuickCommands.Remove(cmd);
+            SaveQuickCommands();
+        }
+    }
+
+    [RelayCommand]
+    public void ToggleAddQuickCommand()
+    {
+        IsAddingQuickCommand = !IsAddingQuickCommand;
+    }
+
+    // --- World Management ---
+    public void RefreshWorldInfo()
+    {
+        if (string.IsNullOrWhiteSpace(ActiveServerDirectory) || !Directory.Exists(ActiveServerDirectory)) return;
+
+        WorldNameDisplay = !string.IsNullOrWhiteSpace(PropsLevelName) ? PropsLevelName : "world";
+        WorldDifficulty = PropsDifficulty;
+        WorldHardcore = PropsHardcore;
+        WorldSeed = PropsLevelSeed;
+        WorldGenerateStructures = PropsGenerateStructures;
+
+        WorldIconBitmap?.Dispose();
+        WorldIconBitmap = null;
+        HasWorldIcon = false;
+
+        var worldDir = Path.Combine(ActiveServerDirectory, WorldNameDisplay);
+        if (Directory.Exists(worldDir))
+        {
+            var iconPath = Path.Combine(worldDir, "icon.png");
+            if (File.Exists(iconPath))
+            {
+                try
+                {
+                    using var fs = File.OpenRead(iconPath);
+                    WorldIconBitmap = new Bitmap(fs);
+                    HasWorldIcon = true;
+                }
+                catch { }
+            }
+
+            try
+            {
+                long totalBytes = Directory.GetFiles(worldDir, "*", SearchOption.AllDirectories).Sum(f => new FileInfo(f).Length);
+                if (totalBytes > 1024 * 1024 * 1024)
+                    WorldSizeDisplay = $"{(totalBytes / (1024.0 * 1024 * 1024)):F2} GB";
+                else
+                    WorldSizeDisplay = $"{(totalBytes / (1024.0 * 1024)):F1} MB";
+            }
+            catch
+            {
+                WorldSizeDisplay = "Unknown";
+            }
+
+            EnabledDatapacks.Clear();
+            DisabledDatapacks.Clear();
+            var dpDir = Path.Combine(worldDir, "datapacks");
+            if (Directory.Exists(dpDir))
+            {
+                foreach (var file in Directory.GetFiles(dpDir, "*.zip"))
+                {
+                    if (file.EndsWith(".disabled", StringComparison.OrdinalIgnoreCase))
+                        DisabledDatapacks.Add(Path.GetFileName(file));
+                    else
+                        EnabledDatapacks.Add(Path.GetFileName(file));
+                }
+                foreach (var dir in Directory.GetDirectories(dpDir))
+                {
+                    if (dir.EndsWith(".disabled", StringComparison.OrdinalIgnoreCase))
+                        DisabledDatapacks.Add(Path.GetFileName(dir));
+                    else
+                        EnabledDatapacks.Add(Path.GetFileName(dir));
+                }
+            }
+        }
+        else
+        {
+            WorldSizeDisplay = "Not generated yet";
+        }
+    }
+
+    [RelayCommand]
+    public async Task DownloadWorldAsync()
+    {
+        if (string.IsNullOrWhiteSpace(ActiveServerDirectory)) return;
+        var worldDir = Path.Combine(ActiveServerDirectory, WorldNameDisplay);
+        if (!Directory.Exists(worldDir))
+        {
+            WorldStatusMessage = "World folder does not exist yet.";
+            return;
+        }
+
+        var topLevel = Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop ? desktop.MainWindow : null;
+        if (topLevel?.StorageProvider == null) return;
+
+        var file = await topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = "Save World Backup",
+            DefaultExtension = "zip",
+            SuggestedFileName = $"{WorldNameDisplay}-backup-{DateTime.Now:yyyyMMdd-HHmmss}.zip"
+        });
+
+        if (file != null)
+        {
+            try
+            {
+                WorldStatusMessage = "Compressing world...";
+                var destZip = file.Path.LocalPath;
+                if (File.Exists(destZip)) File.Delete(destZip);
+                await Task.Run(() => ZipFile.CreateFromDirectory(worldDir, destZip));
+                WorldStatusMessage = $"World saved to {Path.GetFileName(destZip)}!";
+            }
+            catch (Exception ex)
+            {
+                WorldStatusMessage = $"Failed to export world: {ex.Message}";
+            }
+        }
+    }
+
+    [RelayCommand]
+    public async Task UploadWorldAsync()
+    {
+        if (string.IsNullOrWhiteSpace(ActiveServerDirectory)) return;
+        if (IsServerRunning)
+        {
+            WorldStatusMessage = "Please stop the server before uploading a new world.";
+            return;
+        }
+
+        var topLevel = Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop ? desktop.MainWindow : null;
+        if (topLevel?.StorageProvider == null) return;
+
+        var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "Select World ZIP Archive",
+            AllowMultiple = false,
+            FileTypeFilter = new[]
+            {
+                new FilePickerFileType("ZIP Archive") { Patterns = new[] { "*.zip" } }
+            }
+        });
+
+        if (files.Count > 0)
+        {
+            try
+            {
+                WorldStatusMessage = "Importing world...";
+                var srcZip = files[0].Path.LocalPath;
+                var worldDir = Path.Combine(ActiveServerDirectory, WorldNameDisplay);
+                if (Directory.Exists(worldDir))
+                {
+                    Directory.Delete(worldDir, recursive: true);
+                }
+                Directory.CreateDirectory(worldDir);
+                await Task.Run(() => ZipFile.ExtractToDirectory(srcZip, worldDir, overwriteFiles: true));
+                RefreshWorldInfo();
+                WorldStatusMessage = "World uploaded successfully!";
+            }
+            catch (Exception ex)
+            {
+                WorldStatusMessage = $"Failed to upload world: {ex.Message}";
+            }
+        }
+    }
+
+    [RelayCommand]
+    public void ToggleWorldSettings()
+    {
+        IsWorldSettingsOpen = !IsWorldSettingsOpen;
+    }
+
+    [RelayCommand]
+    public void SaveWorldSettings()
+    {
+        PropsDifficulty = WorldDifficulty;
+        PropsHardcore = WorldHardcore;
+        PropsLevelSeed = WorldSeed;
+        PropsGenerateStructures = WorldGenerateStructures;
+
+        if (!string.IsNullOrWhiteSpace(ActiveServerDirectory) && Directory.Exists(ActiveServerDirectory))
+        {
+            var dict = new Dictionary<string, string>
+            {
+                ["difficulty"] = PropsDifficulty,
+                ["hardcore"] = PropsHardcore ? "true" : "false",
+                ["level-seed"] = PropsLevelSeed,
+                ["generate-structures"] = PropsGenerateStructures ? "true" : "false"
+            };
+            ServerCreatorService.SaveProperties(ActiveServerDirectory, dict);
+        }
+
+        WorldStatusMessage = "World settings saved successfully!";
+        IsWorldSettingsOpen = false;
+    }
+
 }
-
-
-
-
-

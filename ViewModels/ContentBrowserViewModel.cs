@@ -263,19 +263,73 @@ public partial class ContentBrowserViewModel : ObservableObject
 
     public Models.ModrinthFullProject? VersionSelectorProject => FullProject;
 
+    [ObservableProperty]
+    private bool _isDetailsInstallButtonHovered;
+
+    partial void OnIsDetailsInstallButtonHoveredChanged(bool value)
+    {
+        OnPropertyChanged(nameof(ReinstallText));
+    }
+
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, CancellationTokenSource> _installCts = new();
+
+    public void CancelInstall(ModrinthProjectItemViewModel project)
+    {
+        if (_installCts.TryRemove(project.ProjectId, out var cts))
+        {
+            try
+            {
+                cts.Cancel();
+                cts.Dispose();
+            }
+            catch { }
+        }
+        project.IsInstalling = false;
+        StatusText = "Installation cancelled.";
+        OnPropertyChanged(nameof(ReinstallText));
+    }
+
     /// <summary>Button text: "Install" for new content, "Reinstall" for already-installed same version, "Install" for different version.</summary>
-    public string ReinstallText => _showInstallFeedback
-        ? "Installed"
-        : SelectedProject is { IsInstalled: true }
-            && (SelectedVersionForDetails == null
-                || string.Equals(SelectedVersionForDetails.VersionNumber, SelectedProject.InstalledVersion, StringComparison.OrdinalIgnoreCase))
-            ? L10n.T("mi_reinstall")
-            : L10n.T("mi_install");
+    public string ReinstallText
+    {
+        get
+        {
+            if (_showInstallFeedback) return "Installed";
+            if (SelectedProject is { IsInstalling: true })
+            {
+                return IsDetailsInstallButtonHovered ? L10n.T("btn_cancel") : L10n.T("mi_installing");
+            }
+            return SelectedProject is { IsInstalled: true }
+                && (SelectedVersionForDetails == null
+                    || string.Equals(SelectedVersionForDetails.VersionNumber, SelectedProject.InstalledVersion, StringComparison.OrdinalIgnoreCase))
+                ? L10n.T("mi_reinstall")
+                : L10n.T("mi_install");
+        }
+    }
 
     private bool _isLoadingByProjectId;
+    private ModrinthProjectItemViewModel? _prevSelectedProject;
+    private System.ComponentModel.PropertyChangedEventHandler? _selectedProjectPropChanged;
 
     partial void OnSelectedProjectChanged(ModrinthProjectItemViewModel? value)
     {
+        if (_prevSelectedProject != null && _selectedProjectPropChanged != null)
+        {
+            _prevSelectedProject.PropertyChanged -= _selectedProjectPropChanged;
+        }
+        _prevSelectedProject = value;
+        if (value != null)
+        {
+            _selectedProjectPropChanged = (s, e) =>
+            {
+                if (e.PropertyName is nameof(ModrinthProjectItemViewModel.IsInstalling) or nameof(ModrinthProjectItemViewModel.IsInstalled))
+                {
+                    OnPropertyChanged(nameof(ReinstallText));
+                }
+            };
+            value.PropertyChanged += _selectedProjectPropChanged;
+        }
+
         OnPropertyChanged(nameof(IsDetailsOpen));
         OnPropertyChanged(nameof(DetailsProject));
         OnPropertyChanged(nameof(InstallButtonVisible));
@@ -307,6 +361,8 @@ public partial class ContentBrowserViewModel : ObservableObject
             });
         });
     }
+
+    public bool IsReinstallConfirmOpen => false;
 
     public bool IsDeleteConfirmOpen => PendingDelete != null;
 
@@ -669,7 +725,12 @@ public partial class ContentBrowserViewModel : ObservableObject
     [RelayCommand]
     private void DeleteOrInstall(ModrinthProjectItemViewModel project)
     {
-        if (project == null || project.IsInstalling) return;
+        if (project == null) return;
+        if (project.IsInstalling)
+        {
+            CancelInstall(project);
+            return;
+        }
         if (project.IsInstalled)
         {
             PendingDelete = project;
@@ -682,10 +743,13 @@ public partial class ContentBrowserViewModel : ObservableObject
     private async Task InstallLatestAsync(ModrinthProjectItemViewModel project)
     {
         if (project == null || project.IsInstalling) return;
+        var cts = new CancellationTokenSource();
+        _installCts[project.ProjectId] = cts;
+        var token = cts.Token;
         try
         {
             var loaders = SelectedContentType == ContentType.Mod ? MapLoaders(_loaderType) : Array.Empty<string>();
-            var version = await ModrinthApiService.GetLatestVersionAsync(project.ProjectId, _gameVersion, loaders);
+            var version = await ModrinthApiService.GetLatestVersionAsync(project.ProjectId, _gameVersion, loaders, token);
             if (version == null)
             {
                 StatusText = string.Format(L10n.T("cb_download_failed"), project.Title);
@@ -696,9 +760,11 @@ public partial class ContentBrowserViewModel : ObservableObject
             if (string.IsNullOrWhiteSpace(version.FileUrl)) return;
 
             project.IsInstalling = true;
+            OnPropertyChanged(nameof(ReinstallText));
             StatusText = string.Format(L10n.T("mi_installing"));
 
-            var data = await ModrinthApiService.DownloadAsync(version.FileUrl);
+            var data = await ModrinthApiService.DownloadAsync(version.FileUrl, token);
+            if (token.IsCancellationRequested) return;
             if (data is not { Length: > 0 })
             {
                 StatusText = string.Format(L10n.T("cb_download_failed"), version.FileName);
@@ -707,7 +773,7 @@ public partial class ContentBrowserViewModel : ObservableObject
 
             var dest = Path.Combine(targetFolder, SanitizeFileName(version.FileName));
             Directory.CreateDirectory(targetFolder);
-            await File.WriteAllBytesAsync(dest, data);
+            await File.WriteAllBytesAsync(dest, data, token);
 
             if ((SelectedContentType == ContentType.Shader || SelectedContentType == ContentType.DataPack) && !string.IsNullOrWhiteSpace(project.IconUrl))
             {
@@ -719,9 +785,9 @@ public partial class ContentBrowserViewModel : ObservableObject
                         var cacheDir = Path.Combine(ZenithPaths.AppDataDir, "cache", "icons");
                         Directory.CreateDirectory(cacheDir);
                         var cacheFile = Path.Combine(cacheDir, Path.GetFileNameWithoutExtension(dest) + ".png");
-                        await File.WriteAllBytesAsync(cacheFile, iconBytes);
+                        await File.WriteAllBytesAsync(cacheFile, iconBytes, token);
                         var cacheById = Path.Combine(cacheDir, $"{project.ProjectId}.png");
-                        await File.WriteAllBytesAsync(cacheById, iconBytes);
+                        await File.WriteAllBytesAsync(cacheById, iconBytes, token);
                     }
                 }
                 catch { }
@@ -737,6 +803,10 @@ public partial class ContentBrowserViewModel : ObservableObject
             _reportStatus?.Invoke(StatusText);
             FlashInstalledFeedback();
         }
+        catch (OperationCanceledException)
+        {
+            StatusText = "Installation cancelled.";
+        }
         catch (Exception ex)
         {
             LauncherLog.Error($"Content quick-install failed for {project.Title}", ex);
@@ -744,7 +814,12 @@ public partial class ContentBrowserViewModel : ObservableObject
         }
         finally
         {
+            if (_installCts.TryRemove(project.ProjectId, out var removedCts))
+            {
+                removedCts.Dispose();
+            }
             project.IsInstalling = false;
+            OnPropertyChanged(nameof(ReinstallText));
         }
     }
 
@@ -759,6 +834,9 @@ public partial class ContentBrowserViewModel : ObservableObject
     private async Task InstallSpecificVersionAsync(ModrinthProjectItemViewModel project, Models.ModrinthProjectVersion version)
     {
         if (project == null || project.IsInstalling) return;
+        var cts = new CancellationTokenSource();
+        _installCts[project.ProjectId] = cts;
+        var token = cts.Token;
         try
         {
             var targetFolder = SelectedContentType.InstallFolder(_instancePath, SelectedWorld);
@@ -766,9 +844,11 @@ public partial class ContentBrowserViewModel : ObservableObject
             if (file == null || string.IsNullOrWhiteSpace(file.Url)) return;
 
             project.IsInstalling = true;
+            OnPropertyChanged(nameof(ReinstallText));
             StatusText = string.Format(L10n.T("mi_installing"));
 
-            var data = await ModrinthApiService.DownloadAsync(file.Url);
+            var data = await ModrinthApiService.DownloadAsync(file.Url, token);
+            if (token.IsCancellationRequested) return;
             if (data is not { Length: > 0 })
             {
                 StatusText = string.Format(L10n.T("cb_download_failed"), file.Filename);
@@ -777,7 +857,7 @@ public partial class ContentBrowserViewModel : ObservableObject
 
             var dest = Path.Combine(targetFolder, SanitizeFileName(file.Filename));
             Directory.CreateDirectory(targetFolder);
-            await File.WriteAllBytesAsync(dest, data);
+            await File.WriteAllBytesAsync(dest, data, token);
 
             // Cache icon
             if ((SelectedContentType == ContentType.Shader || SelectedContentType == ContentType.DataPack) && !string.IsNullOrWhiteSpace(project.IconUrl))
@@ -790,9 +870,9 @@ public partial class ContentBrowserViewModel : ObservableObject
                         var cacheDir = Path.Combine(ZenithPaths.AppDataDir, "cache", "icons");
                         Directory.CreateDirectory(cacheDir);
                         var cacheFile = Path.Combine(cacheDir, Path.GetFileNameWithoutExtension(dest) + ".png");
-                        await File.WriteAllBytesAsync(cacheFile, iconBytes);
+                        await File.WriteAllBytesAsync(cacheFile, iconBytes, token);
                         var cacheById = Path.Combine(cacheDir, $"{project.ProjectId}.png");
-                        await File.WriteAllBytesAsync(cacheById, iconBytes);
+                        await File.WriteAllBytesAsync(cacheById, iconBytes, token);
                     }
                 }
                 catch { }
@@ -808,6 +888,10 @@ public partial class ContentBrowserViewModel : ObservableObject
             _reportStatus?.Invoke(StatusText);
             FlashInstalledFeedback();
         }
+        catch (OperationCanceledException)
+        {
+            StatusText = "Installation cancelled.";
+        }
         catch (Exception ex)
         {
             LauncherLog.Error($"Content install failed for {project.Title}", ex);
@@ -815,7 +899,12 @@ public partial class ContentBrowserViewModel : ObservableObject
         }
         finally
         {
+            if (_installCts.TryRemove(project.ProjectId, out var removedCts))
+            {
+                removedCts.Dispose();
+            }
             project.IsInstalling = false;
+            OnPropertyChanged(nameof(ReinstallText));
         }
     }
 
@@ -830,13 +919,17 @@ public partial class ContentBrowserViewModel : ObservableObject
             return;
         }
 
+        var cts = new CancellationTokenSource();
+        _installCts[project.ProjectId] = cts;
+        var token = cts.Token;
         project.IsInstalling = true;
+        OnPropertyChanged(nameof(ReinstallText));
         Services.DiscordPresenceService.SetInstallingContent(project.Title);
         StatusText = string.Format(L10n.T("cb_resolving_for"), project.Title);
         try
         {
             var loaders = SelectedContentType == ContentType.Mod ? MapLoaders(_loaderType) : Array.Empty<string>();
-            var version = await ModrinthApiService.GetLatestVersionAsync(project.ProjectId, _gameVersion, loaders);
+            var version = await ModrinthApiService.GetLatestVersionAsync(project.ProjectId, _gameVersion, loaders, token);
 
             if (version == null)
             {
@@ -856,14 +949,15 @@ public partial class ContentBrowserViewModel : ObservableObject
             }
 
             StatusText = string.Format(L10n.T("mp_downloading"), version.FileName);
-            var data = await ModrinthApiService.DownloadAsync(version.FileUrl);
+            var data = await ModrinthApiService.DownloadAsync(version.FileUrl, token);
+            if (token.IsCancellationRequested) return;
             if (data is not { Length: > 0 })
             {
                 StatusText = string.Format(L10n.T("cb_download_failed"), version.FileName);
                 return;
             }
 
-            await File.WriteAllBytesAsync(dest, data);
+            await File.WriteAllBytesAsync(dest, data, token);
 
             // Cache preview strictly in %APPDATA%\.zenith\cache\icons\ by project ID (and file name for Enrich lookup)
             if ((SelectedContentType == ContentType.Shader || SelectedContentType == ContentType.DataPack) && !string.IsNullOrWhiteSpace(project.IconUrl))
@@ -876,9 +970,9 @@ public partial class ContentBrowserViewModel : ObservableObject
                         var cacheDir = Path.Combine(ZenithPaths.AppDataDir, "cache", "icons");
                         Directory.CreateDirectory(cacheDir);
                         var cacheFile = Path.Combine(cacheDir, Path.GetFileNameWithoutExtension(dest) + ".png");
-                        await File.WriteAllBytesAsync(cacheFile, iconBytes);
+                        await File.WriteAllBytesAsync(cacheFile, iconBytes, token);
                         var cacheById = Path.Combine(cacheDir, $"{project.ProjectId}.png");
-                        await File.WriteAllBytesAsync(cacheById, iconBytes);
+                        await File.WriteAllBytesAsync(cacheById, iconBytes, token);
                     }
                 }
                 catch { }
@@ -900,6 +994,7 @@ public partial class ContentBrowserViewModel : ObservableObject
                     StatusText = string.Format(L10n.T("cb_installing_deps"), required.Count);
                     foreach (var dep in required)
                     {
+                        token.ThrowIfCancellationRequested();
                         await InstallDependencyAsync(dep, targetFolder);
                     }
                     StatusText = string.Format(L10n.T("cb_installed_deps"), project.Title, required.Count);
@@ -911,6 +1006,10 @@ public partial class ContentBrowserViewModel : ObservableObject
             _reportStatus?.Invoke(StatusText);
             FlashInstalledFeedback();
         }
+        catch (OperationCanceledException)
+        {
+            StatusText = "Installation cancelled.";
+        }
         catch (Exception ex)
         {
             LauncherLog.Error($"Content install failed for {project.Title}", ex);
@@ -918,7 +1017,12 @@ public partial class ContentBrowserViewModel : ObservableObject
         }
         finally
         {
+            if (_installCts.TryRemove(project.ProjectId, out var removedCts))
+            {
+                removedCts.Dispose();
+            }
             project.IsInstalling = false;
+            OnPropertyChanged(nameof(ReinstallText));
         }
     }
 
@@ -1080,10 +1184,21 @@ public partial class ContentBrowserViewModel : ObservableObject
     private void MainAction()
     {
         if (SelectedProject == null) return;
+        if (SelectedProject.IsInstalling)
+        {
+            CancelInstall(SelectedProject);
+            return;
+        }
         // If a specific version is selected in the Versions tab, install that
         if (SelectedVersionForDetails != null)
         {
             InstallSelectedVersion(SelectedVersionForDetails);
+            return;
+        }
+        // If not installed yet, install latest directly
+        if (!SelectedProject.IsInstalled)
+        {
+            _ = InstallLatestAsync(SelectedProject);
             return;
         }
         // Otherwise reinstall: open version selector to pick a version

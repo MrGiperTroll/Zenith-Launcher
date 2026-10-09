@@ -131,7 +131,11 @@ public partial class ModrinthProjectItemViewModel : ViewModelBase
     }
 
     public string InstallButtonText =>
-        IsInstalling ? L10n.T("mi_installing") : IsInstalled ? (IsHovered ? L10n.T("mi_delete") : L10n.T("mi_installed")) : L10n.T("mi_install");
+        IsInstalling
+            ? (IsHovered ? L10n.T("btn_cancel") : L10n.T("mi_installing"))
+            : IsInstalled
+                ? (IsHovered ? L10n.T("mi_delete") : L10n.T("mi_installed"))
+                : L10n.T("mi_install");
 
     partial void OnIsInstallingChanged(bool value) => OnPropertyChanged(nameof(InstallButtonText));
     partial void OnIsInstalledChanged(bool value) => OnPropertyChanged(nameof(InstallButtonText));

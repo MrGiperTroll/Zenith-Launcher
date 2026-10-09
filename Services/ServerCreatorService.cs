@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -134,6 +135,35 @@ public class ServerCreatorService
         return list;
     }
 
+    public static bool IsSoftwareCompatibleWithVersion(string softwareId, string mcVersion)
+    {
+        if (string.IsNullOrWhiteSpace(softwareId) || softwareId.Equals("vanilla", StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (string.IsNullOrWhiteSpace(mcVersion)) return true;
+
+        var v = ParseVersionParts(mcVersion);
+        bool isSnapshotOrTest = mcVersion.Contains("w") || mcVersion.Contains("pre") || mcVersion.Contains("rc") || mcVersion.Contains("Snapshot");
+
+        switch (softwareId.ToLowerInvariant())
+        {
+            case "spigot":
+                return v.Minor >= 8 || v.Major > 1;
+            case "paper":
+                return (v.Minor > 8 || (v.Minor == 8 && v.Patch >= 8) || v.Major > 1) && !isSnapshotOrTest;
+            case "purpur":
+                return (v.Minor >= 14 || v.Major > 1) && !isSnapshotOrTest;
+            case "fabric":
+                return (v.Minor >= 14 || v.Major > 1 || (isSnapshotOrTest && (mcVersion.StartsWith("19w") || mcVersion.StartsWith("2"))));
+            case "forge":
+                return v.Minor >= 1 && !isSnapshotOrTest;
+            case "neoforge":
+                return !isSnapshotOrTest && ((v.Minor == 20 && v.Patch >= 2) || v.Minor > 20 || v.Major > 1);
+            default:
+                return true;
+        }
+    }
+
     private static (int Major, int Minor, int Patch) ParseVersionParts(string version)
     {
         var parts = version.Split('.');
@@ -184,6 +214,248 @@ public class ServerCreatorService
         return new List<string> { "1.21.4", "1.21.1", "1.20.4", "1.20.1", "1.19.4", "1.18.2", "1.16.5", "1.12.2" };
     }
 
+    private static readonly ConcurrentDictionary<string, List<string>> _softwareVersionsCache = new(StringComparer.OrdinalIgnoreCase);
+
+    public async Task<List<string>> GetVersionsForSoftwareAsync(
+        string softwareId,
+        bool showReleases,
+        bool showSnapshots,
+        bool showBetas,
+        bool showAlphas,
+        CancellationToken ct = default)
+    {
+        var cacheKey = $"{softwareId}_{showReleases}_{showSnapshots}_{showBetas}_{showAlphas}";
+        if (_softwareVersionsCache.TryGetValue(cacheKey, out var cached) && cached.Count > 0)
+        {
+            return cached;
+        }
+
+        var mojangVersions = await GetServerVersionsAsync(true, true, true, true, ct);
+        var mojangOrder = mojangVersions.Select((v, idx) => (v, idx)).ToDictionary(x => x.v, x => x.idx, StringComparer.OrdinalIgnoreCase);
+
+        List<string> result = new();
+
+        switch (softwareId.ToLowerInvariant())
+        {
+            case "vanilla":
+                result = await GetServerVersionsAsync(showReleases, showSnapshots, showBetas, showAlphas, ct);
+                break;
+
+            case "paper":
+                result = await FetchPaperVersionsAsync(mojangOrder, showReleases, showSnapshots, ct);
+                break;
+
+            case "purpur":
+                result = await FetchPurpurVersionsAsync(mojangOrder, showReleases, showSnapshots, ct);
+                break;
+
+            case "fabric":
+                result = await FetchFabricVersionsAsync(mojangOrder, showReleases, showSnapshots, ct);
+                break;
+
+            case "forge":
+                result = await FetchForgeVersionsAsync(mojangOrder, showReleases, showSnapshots, ct);
+                break;
+
+            case "neoforge":
+                result = await FetchNeoForgeVersionsAsync(mojangOrder, showReleases, showSnapshots, ct);
+                break;
+
+            case "spigot":
+                result = await FetchSpigotVersionsAsync(mojangOrder, showReleases, showSnapshots, ct);
+                break;
+
+            default:
+                result = mojangVersions.Where(v => IsSoftwareCompatibleWithVersion(softwareId, v)).ToList();
+                break;
+        }
+
+        if (result.Count == 0)
+        {
+            result = mojangVersions.Where(v => IsSoftwareCompatibleWithVersion(softwareId, v)).ToList();
+        }
+
+        _softwareVersionsCache[cacheKey] = result;
+        return result;
+    }
+
+    private async Task<List<string>> FetchPaperVersionsAsync(Dictionary<string, int> mojangOrder, bool showReleases, bool showSnapshots, CancellationToken ct)
+    {
+        try
+        {
+            var json = await Http.GetStringAsync("https://fill.papermc.io/v3/projects/paper", ct);
+            using var doc = JsonDocument.Parse(json);
+            var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            if (doc.RootElement.TryGetProperty("versions", out var versObj) && versObj.ValueKind == JsonValueKind.Object)
+            {
+                foreach (var prop in versObj.EnumerateObject())
+                {
+                    if (prop.Value.ValueKind == JsonValueKind.Array)
+                    {
+                        foreach (var el in prop.Value.EnumerateArray())
+                        {
+                            var s = el.GetString();
+                            if (!string.IsNullOrWhiteSpace(s))
+                            {
+                                bool isSnap = s.Contains("-rc") || s.Contains("-pre") || s.Contains("w");
+                                if (isSnap && !showSnapshots) continue;
+                                if (!isSnap && !showReleases) continue;
+                                set.Add(s);
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (set.Count > 0)
+            {
+                return set.OrderBy(v => mojangOrder.TryGetValue(v, out var idx) ? idx : int.MaxValue).ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Warn($"Failed to fetch Paper versions from v3 API: {ex.Message}");
+        }
+
+        return new();
+    }
+
+    private async Task<List<string>> FetchPurpurVersionsAsync(Dictionary<string, int> mojangOrder, bool showReleases, bool showSnapshots, CancellationToken ct)
+    {
+        try
+        {
+            var json = await Http.GetStringAsync("https://api.purpurmc.org/v2/purpur", ct);
+            using var doc = JsonDocument.Parse(json);
+            var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            if (doc.RootElement.TryGetProperty("versions", out var arr) && arr.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var el in arr.EnumerateArray())
+                {
+                    var s = el.GetString();
+                    if (!string.IsNullOrWhiteSpace(s))
+                    {
+                        bool isSnap = s.Contains("-rc") || s.Contains("-pre") || s.Contains("w");
+                        if (isSnap && !showSnapshots) continue;
+                        if (!isSnap && !showReleases) continue;
+                        set.Add(s);
+                    }
+                }
+            }
+
+            if (set.Count > 0)
+            {
+                return set.OrderBy(v => mojangOrder.TryGetValue(v, out var idx) ? idx : int.MaxValue).ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Warn($"Failed to fetch Purpur versions: {ex.Message}");
+        }
+
+        return new();
+    }
+
+    private async Task<List<string>> FetchFabricVersionsAsync(Dictionary<string, int> mojangOrder, bool showReleases, bool showSnapshots, CancellationToken ct)
+    {
+        try
+        {
+            var json = await Http.GetStringAsync("https://meta.fabricmc.net/v2/versions/game", ct);
+            using var doc = JsonDocument.Parse(json);
+            var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            if (doc.RootElement.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var el in doc.RootElement.EnumerateArray())
+                {
+                    var v = el.TryGetProperty("version", out var vProp) ? vProp.GetString() : null;
+                    bool stable = el.TryGetProperty("stable", out var sProp) && sProp.GetBoolean();
+                    if (!string.IsNullOrWhiteSpace(v))
+                    {
+                        if (!stable && !showSnapshots) continue;
+                        if (stable && !showReleases) continue;
+                        set.Add(v);
+                    }
+                }
+            }
+
+            if (set.Count > 0)
+            {
+                return set.OrderBy(v => mojangOrder.TryGetValue(v, out var idx) ? idx : int.MaxValue).ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Warn($"Failed to fetch Fabric versions: {ex.Message}");
+        }
+
+        return new();
+    }
+
+    private async Task<List<string>> FetchNeoForgeVersionsAsync(Dictionary<string, int> mojangOrder, bool showReleases, bool showSnapshots, CancellationToken ct)
+    {
+        try
+        {
+            var modLoaderService = new ModLoaderService();
+            await modLoaderService.InitializeDatabaseAsync();
+            var set = modLoaderService.GetCachedSupportedVersions("NeoForge");
+            if (set != null && set.Count > 0)
+            {
+                return set
+                    .Where(v => showSnapshots || (!v.Contains("w") && !v.Contains("pre") && !v.Contains("rc")))
+                    .OrderBy(v => mojangOrder.TryGetValue(v, out var idx) ? idx : int.MaxValue)
+                    .ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Warn($"Failed to fetch NeoForge versions: {ex.Message}");
+        }
+
+        return new();
+    }
+
+    private async Task<List<string>> FetchForgeVersionsAsync(Dictionary<string, int> mojangOrder, bool showReleases, bool showSnapshots, CancellationToken ct)
+    {
+        try
+        {
+            var modLoaderService = new ModLoaderService();
+            await modLoaderService.InitializeDatabaseAsync();
+            var set = modLoaderService.GetCachedSupportedVersions("Forge");
+            if (set != null && set.Count > 0)
+            {
+                return set
+                    .Where(v => showSnapshots || (!v.Contains("w") && !v.Contains("pre") && !v.Contains("rc")))
+                    .OrderBy(v => mojangOrder.TryGetValue(v, out var idx) ? idx : int.MaxValue)
+                    .ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Warn($"Failed to fetch Forge versions: {ex.Message}");
+        }
+
+        return new();
+    }
+
+    private async Task<List<string>> FetchSpigotVersionsAsync(Dictionary<string, int> mojangOrder, bool showReleases, bool showSnapshots, CancellationToken ct)
+    {
+        var list = mojangOrder.Keys
+            .Where(v =>
+            {
+                var p = ParseVersionParts(v);
+                bool isSnap = v.Contains("w") || v.Contains("pre") || v.Contains("rc");
+                if (isSnap && !showSnapshots) return false;
+                if (!isSnap && !showReleases) return false;
+                return p.Minor >= 8 || p.Major > 1;
+            })
+            .OrderBy(v => mojangOrder.TryGetValue(v, out var idx) ? idx : int.MaxValue)
+            .ToList();
+        return await Task.FromResult(list);
+    }
+
+
     public async Task<string> CreateServerAsync(
         string serverName,
         string version,
@@ -193,7 +465,8 @@ public class ServerCreatorService
         bool agreeEula,
         bool onlineMode,
         IProgress<(string Status, double Percent)>? progress = null,
-        CancellationToken ct = default)
+        CancellationToken ct = default,
+        string? loaderBuild = null)
     {
         // Safe conversion if caller accidentally passed GB <= 64
         if (ramMb <= 64 && ramMb > 0) ramMb *= 1024;
@@ -221,13 +494,13 @@ public class ServerCreatorService
                 await DownloadSpigotServerAsync(version, serverJarPath, progress, ct);
                 break;
             case "fabric":
-                await DownloadFabricServerAsync(version, serverJarPath, progress, ct);
+                await DownloadFabricServerAsync(version, serverJarPath, progress, ct, loaderBuild);
                 break;
             case "forge":
-                await DownloadForgeServerAsync(version, serverJarPath, progress, ct);
+                await DownloadForgeServerAsync(version, serverJarPath, progress, ct, loaderBuild);
                 break;
             case "neoforge":
-                await DownloadNeoForgeServerAsync(version, serverJarPath, progress, ct);
+                await DownloadNeoForgeServerAsync(version, serverJarPath, progress, ct, loaderBuild);
                 break;
             case "vanilla":
             default:
@@ -347,6 +620,53 @@ public class ServerCreatorService
         progress?.Report(($"Checking Paper builds for {version}...", 20));
         try
         {
+            var buildsUrlV3 = $"https://fill.papermc.io/v3/projects/paper/versions/{version}/builds";
+            var buildsJsonV3 = await Http.GetStringAsync(buildsUrlV3, ct);
+            using var docV3 = JsonDocument.Parse(buildsJsonV3);
+
+            if (docV3.RootElement.ValueKind == JsonValueKind.Array && docV3.RootElement.GetArrayLength() > 0)
+            {
+                var latestBuild = docV3.RootElement[0];
+                int buildId = latestBuild.TryGetProperty("id", out var idProp) ? idProp.GetInt32() : 0;
+                string? downloadUrl = null;
+
+                if (latestBuild.TryGetProperty("downloads", out var downloads) && downloads.ValueKind == JsonValueKind.Object)
+                {
+                    if (downloads.TryGetProperty("server:default", out var srvDefault) && srvDefault.TryGetProperty("url", out var u1))
+                    {
+                        downloadUrl = u1.GetString();
+                    }
+                    else if (downloads.TryGetProperty("server:mojang", out var srvMojang) && srvMojang.TryGetProperty("url", out var u2))
+                    {
+                        downloadUrl = u2.GetString();
+                    }
+                    else
+                    {
+                        foreach (var prop in downloads.EnumerateObject())
+                        {
+                            if (prop.Value.TryGetProperty("url", out var anyUrl))
+                            {
+                                downloadUrl = anyUrl.GetString();
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (!string.IsNullOrWhiteSpace(downloadUrl))
+                {
+                    await DownloadFileWithProgressAsync(downloadUrl, targetJar, $"Downloading Paper {version} (build #{buildId})...", progress, 30, 85, ct);
+                    return;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Warn($"Paper v3 fetch notice for {version} ({ex.Message}), trying legacy fallback...");
+        }
+
+        try
+        {
             var buildsUrl = $"https://api.papermc.io/v2/projects/paper/versions/{version}/builds";
             var buildsJson = await Http.GetStringAsync(buildsUrl, ct);
             using var doc = JsonDocument.Parse(buildsJson);
@@ -376,15 +696,23 @@ public class ServerCreatorService
         await DownloadVanillaServerAsync(version, targetJar, progress, ct);
     }
 
-    private async Task DownloadFabricServerAsync(string version, string targetJar, IProgress<(string Status, double Percent)>? progress, CancellationToken ct)
+    private async Task DownloadFabricServerAsync(string version, string targetJar, IProgress<(string Status, double Percent)>? progress, CancellationToken ct, string? loaderBuild = null)
     {
         progress?.Report(($"Checking Fabric loader for {version}...", 20));
         try
         {
-            var loadersUrl = "https://meta.fabricmc.net/v2/versions/loader";
-            var loadersJson = await Http.GetStringAsync(loadersUrl, ct);
-            using var doc = JsonDocument.Parse(loadersJson);
-            var latestLoader = doc.RootElement.EnumerateArray().FirstOrDefault().GetProperty("version").GetString() ?? "0.16.10";
+            string latestLoader = "0.16.10";
+            if (!string.IsNullOrWhiteSpace(loaderBuild) && loaderBuild != "Latest (Auto)")
+            {
+                latestLoader = loaderBuild.Trim();
+            }
+            else
+            {
+                var loadersUrl = "https://meta.fabricmc.net/v2/versions/loader";
+                var loadersJson = await Http.GetStringAsync(loadersUrl, ct);
+                using var doc = JsonDocument.Parse(loadersJson);
+                latestLoader = doc.RootElement.EnumerateArray().FirstOrDefault().GetProperty("version").GetString() ?? "0.16.10";
+            }
 
             var installerUrl = "https://meta.fabricmc.net/v2/versions/installer";
             var installerJson = await Http.GetStringAsync(installerUrl, ct);
@@ -392,7 +720,7 @@ public class ServerCreatorService
             var latestInstaller = instDoc.RootElement.EnumerateArray().FirstOrDefault().GetProperty("version").GetString() ?? "1.0.1";
 
             var serverDownloadUrl = $"https://meta.fabricmc.net/v2/versions/loader/{version}/{latestLoader}/{latestInstaller}/server/jar";
-            await DownloadFileWithProgressAsync(serverDownloadUrl, targetJar, $"Downloading Fabric {version} server...", progress, 30, 85, ct);
+            await DownloadFileWithProgressAsync(serverDownloadUrl, targetJar, $"Downloading Fabric {version} server ({latestLoader})...", progress, 30, 85, ct);
             return;
         }
         catch (Exception ex)
@@ -437,14 +765,23 @@ public class ServerCreatorService
         await DownloadPaperServerAsync(version, targetJar, progress, ct);
     }
 
-    private async Task DownloadForgeServerAsync(string version, string targetJar, IProgress<(string Status, double Percent)>? progress, CancellationToken ct)
+    private async Task DownloadForgeServerAsync(string version, string targetJar, IProgress<(string Status, double Percent)>? progress, CancellationToken ct, string? loaderBuild = null)
     {
         progress?.Report(($"Resolving Forge server for {version}...", 20));
         try
         {
-            var modLoaderService = new ModLoaderService();
-            var builds = await modLoaderService.GetLoaderBuildsAsync(version, "Forge");
-            var forgeVer = builds.FirstOrDefault(b => !string.IsNullOrWhiteSpace(b) && b != "Latest (Auto)");
+            string? forgeVer = null;
+            if (!string.IsNullOrWhiteSpace(loaderBuild) && loaderBuild != "Latest (Auto)")
+            {
+                forgeVer = loaderBuild.Trim();
+            }
+            else
+            {
+                var modLoaderService = new ModLoaderService();
+                var builds = await modLoaderService.GetLoaderBuildsAsync(version, "Forge");
+                forgeVer = builds.FirstOrDefault(b => !string.IsNullOrWhiteSpace(b) && b != "Latest (Auto)");
+            }
+
             if (!string.IsNullOrEmpty(forgeVer))
             {
                 var url = $"https://maven.minecraftforge.net/net/minecraftforge/forge/{version}-{forgeVer}/forge-{version}-{forgeVer}-installer.jar";
@@ -461,14 +798,23 @@ public class ServerCreatorService
         await DownloadVanillaServerAsync(version, targetJar, progress, ct);
     }
 
-    private async Task DownloadNeoForgeServerAsync(string version, string targetJar, IProgress<(string Status, double Percent)>? progress, CancellationToken ct)
+    private async Task DownloadNeoForgeServerAsync(string version, string targetJar, IProgress<(string Status, double Percent)>? progress, CancellationToken ct, string? loaderBuild = null)
     {
         progress?.Report(($"Resolving NeoForge server for {version}...", 20));
         try
         {
-            var modLoaderService = new ModLoaderService();
-            var builds = await modLoaderService.GetLoaderBuildsAsync(version, "NeoForge");
-            var neoVer = builds.FirstOrDefault(b => !string.IsNullOrWhiteSpace(b) && b != "Latest (Auto)");
+            string? neoVer = null;
+            if (!string.IsNullOrWhiteSpace(loaderBuild) && loaderBuild != "Latest (Auto)")
+            {
+                neoVer = loaderBuild.Trim();
+            }
+            else
+            {
+                var modLoaderService = new ModLoaderService();
+                var builds = await modLoaderService.GetLoaderBuildsAsync(version, "NeoForge");
+                neoVer = builds.FirstOrDefault(b => !string.IsNullOrWhiteSpace(b) && b != "Latest (Auto)");
+            }
+
             if (!string.IsNullOrEmpty(neoVer))
             {
                 var url = $"https://maven.neoforged.net/releases/net/neoforged/neoforge/{neoVer}/neoforge-{neoVer}-installer.jar";
@@ -932,17 +1278,40 @@ public class ServerCreatorService
                     javaPath = !string.IsNullOrEmpty(mJava.Groups[1].Value) ? mJava.Groups[1].Value : mJava.Groups[2].Value;
                 }
 
-                // JVM args: flags between -Xmx and -jar
+                // JVM args: capture full flags from java command line
                 var jarIdx = content.IndexOf("-jar", StringComparison.OrdinalIgnoreCase);
-                var xmxMatch = System.Text.RegularExpressions.Regex.Match(content, @"-Xmx\d+[gGmM]");
-                if (jarIdx > 0 && xmxMatch.Success && xmxMatch.Index < jarIdx)
+                if (jarIdx > 0)
                 {
-                    var start = xmxMatch.Index + xmxMatch.Length;
-                    var between = content.Substring(start, jarIdx - start).Trim();
-                    if (!string.IsNullOrWhiteSpace(between))
+                    int flagsStart = -1;
+                    if (mJava.Success)
                     {
-                        jvmArgs = between;
+                        flagsStart = mJava.Index + mJava.Length;
                     }
+                    else
+                    {
+                        var javaKeyword = content.IndexOf("java", StringComparison.OrdinalIgnoreCase);
+                        if (javaKeyword >= 0 && javaKeyword < jarIdx)
+                        {
+                            flagsStart = javaKeyword + 4;
+                            if (content.Length > flagsStart && content.Substring(flagsStart).StartsWith(".exe", StringComparison.OrdinalIgnoreCase))
+                                flagsStart += 4;
+                        }
+                    }
+
+                    if (flagsStart >= 0 && flagsStart < jarIdx)
+                    {
+                        var rawArgs = content.Substring(flagsStart, jarIdx - flagsStart).Trim();
+                        if (!string.IsNullOrWhiteSpace(rawArgs))
+                        {
+                            jvmArgs = rawArgs;
+                        }
+                    }
+                }
+
+                if (string.IsNullOrWhiteSpace(jvmArgs))
+                {
+                    var minRam = Math.Max(512, ramMb / 2);
+                    jvmArgs = $"-Xms{minRam}M -Xmx{ramMb}M -XX:+UseG1GC";
                 }
 
                 var mSoft = System.Text.RegularExpressions.Regex.Match(content, @"Starting Minecraft Server \(([^)]+)\)");

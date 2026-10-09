@@ -58,20 +58,46 @@
             <Setter Property="Width" Value="114"/>
             <Setter Property="Height" Value="30"/>
             <Setter Property="Padding" Value="0"/>
+            <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.2" Easing="CubicEaseOut"/>
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.2" Easing="CubicEaseOut"/>
+                    <BrushTransition Property="Foreground" Duration="0:0:0.15" Easing="CubicEaseOut"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.installedBtn /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.2" Easing="CubicEaseOut"/>
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.2" Easing="CubicEaseOut"/>
+                </Transitions>
+            </Setter>
         </Style>
         <Style Selector="Button.installedBtn.installed">
             <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource AccentBrushHover}"/>
             <Setter Property="BorderBrush" Value="{StaticResource AccentBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
         </Style>
         <Style Selector="Button.installedBtn.installed:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource DangerTranslucentBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
+            <Setter Property="Background" Value="{StaticResource DangerBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
         </Style>
-        <Style Selector="Button.installedBtn.installed:pointerover">
-            <Setter Property="BorderBrush" Value="{StaticResource DangerBrush}"/>
+        <Style Selector="Button.installedBtn.installing">
+            <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource AccentBrushHover}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+        <Style Selector="Button.installedBtn.installing:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource DangerBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
         </Style>
         <Style Selector="Button.dialogBtn">
             <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
@@ -217,8 +243,8 @@
                                                 <TextBlock Text="{Binding DownloadsLabel}" FontSize="10" Foreground="{StaticResource TextCaptionBrush}" HorizontalAlignment="Right"/>
                                                 <TextBlock Text="{Binding FormattedDate}" FontSize="10" Foreground="{StaticResource TextPlaceholderBrush}" HorizontalAlignment="Right"/>
                                             </StackPanel>
-                                            <Button Grid.Row="1" Classes="subBtn installedBtn" Classes.installed="{Binding IsInstalled}" Width="114" Height="30" HorizontalAlignment="Right" VerticalAlignment="Bottom" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                                    Content="{Binding InstallButtonText}" IsEnabled="{Binding !IsInstalling}"
+                                            <Button Grid.Row="1" Classes="subBtn installedBtn" Classes.installed="{Binding IsInstalled}" Classes.installing="{Binding IsInstalling}" Width="114" Height="30" HorizontalAlignment="Right" VerticalAlignment="Bottom" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                                    Content="{Binding InstallButtonText}"
                                                     PointerEntered="OnInstalledButtonHover" PointerExited="OnInstalledButtonHoverOut"
                                                     Tapped="OnInstallButtonTapped"
                                                     Command="{Binding $parent[views:ContentBrowserView].((vm:ContentBrowserViewModel)DataContext).DeleteOrInstallCommand}" CommandParameter="{Binding}"/>

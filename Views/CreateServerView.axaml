@@ -868,19 +868,11 @@
                                         </Border>
 
                                         <CheckBox Content="{l10n:Tr Key=cs_world_structures}" IsChecked="{Binding WorldGenerateStructures}"/>
-                                        <CheckBox Content="{l10n:Tr Key=cs_world_bonus_chest}" IsChecked="{Binding WorldBonusChest}"/>
                                     </StackPanel>
 
-                                    <!-- Right Column: Game Rules & Datapacks -->
+                                    <!-- Right Column: Datapacks -->
                                     <StackPanel Grid.Column="1" Spacing="10">
-                                        <TextBlock Text="World Game Rules" FontSize="12.5" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/>
-                                        <CheckBox Content="Keep Inventory on Death (keepInventory)" IsChecked="{Binding RuleKeepInventory}"/>
-                                        <CheckBox Content="Mob Griefing Allowed (mobGriefing)" IsChecked="{Binding RuleMobGriefing}"/>
-                                        <CheckBox Content="Daylight Cycle (doDaylightCycle)" IsChecked="{Binding RuleDoDaylightCycle}"/>
-                                        <CheckBox Content="Weather Cycle (doWeatherCycle)" IsChecked="{Binding RuleDoWeatherCycle}"/>
-                                        <CheckBox Content="Natural Mob Spawning (doMobSpawning)" IsChecked="{Binding RuleDoMobSpawning}"/>
-
-                                        <TextBlock Text="Active Datapacks" FontSize="12.5" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}" Margin="0,6,0,0"/>
+                                        <TextBlock Text="Active Datapacks" FontSize="12.5" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/>
                                         <TextBlock Text="No custom datapacks detected in /datapacks" FontSize="11" Foreground="{StaticResource TextMutedBrush}"
                                                    IsVisible="{Binding EnabledDatapacks.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}"/>
                                         <ItemsControl ItemsSource="{Binding EnabledDatapacks}">
@@ -888,6 +880,18 @@
                                                 <DataTemplate>
                                                     <Border Background="{StaticResource FieldBrush}" BorderThickness="1" BorderBrush="{StaticResource BorderCardSoftBrush}" CornerRadius="4" Padding="6,3" Margin="0,2">
                                                         <TextBlock Text="{Binding}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+
+                                        <TextBlock Text="Disabled Datapacks" FontSize="12.5" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" Margin="0,6,0,0"
+                                                   IsVisible="{Binding DisabledDatapacks.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsNonZero}}"/>
+                                        <ItemsControl ItemsSource="{Binding DisabledDatapacks}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Background="{StaticResource FieldBrush}" BorderThickness="1" BorderBrush="{StaticResource BorderCardSoftBrush}" CornerRadius="4" Padding="6,3" Margin="0,2" Opacity="0.6">
+                                                        <TextBlock Text="{Binding}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
                                                     </Border>
                                                 </DataTemplate>
                                             </ItemsControl.ItemTemplate>

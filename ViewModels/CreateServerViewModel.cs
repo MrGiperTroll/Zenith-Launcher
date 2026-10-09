@@ -46,7 +46,7 @@ public partial class CreateServerViewModel : ObservableObject
 
     [ObservableProperty] private int _ramMb = 4096;
     [ObservableProperty] private int _serverPort = 25565;
-    [ObservableProperty] private bool _agreeEula = true;
+    [ObservableProperty] private bool _agreeEula;
     [ObservableProperty] private bool _onlineMode = false; // Default: unchecked
 
     [ObservableProperty] private bool _isBusy;
@@ -101,12 +101,6 @@ public partial class CreateServerViewModel : ObservableObject
     [ObservableProperty] private string _worldDifficulty = "normal";
     [ObservableProperty] private bool _worldHardcore;
     [ObservableProperty] private bool _worldGenerateStructures = true;
-    [ObservableProperty] private bool _worldBonusChest;
-    [ObservableProperty] private bool _ruleKeepInventory;
-    [ObservableProperty] private bool _ruleMobGriefing = true;
-    [ObservableProperty] private bool _ruleDoDaylightCycle = true;
-    [ObservableProperty] private bool _ruleDoWeatherCycle = true;
-    [ObservableProperty] private bool _ruleDoMobSpawning = true;
     public ObservableCollection<string> EnabledDatapacks { get; } = new();
     public ObservableCollection<string> DisabledDatapacks { get; } = new();
 
@@ -175,8 +169,6 @@ public partial class CreateServerViewModel : ObservableObject
     [ObservableProperty] private string _pluginsTabTitle = "Plugins";
     [ObservableProperty] private string _serverAllocatedRamDisplay = "4096 MB";
     [ObservableProperty] private string _uptimeText = "00:00:00";
-    [ObservableProperty] private bool _isEditingServerName;
-    [ObservableProperty] private string _editingServerNameText = "";
     [ObservableProperty] private string _serverIpDisplay = "localhost:25565";
     [ObservableProperty] private bool _isIpCopied;
     public bool CanEditServer => !IsServerRunning;
@@ -511,15 +503,6 @@ public partial class CreateServerViewModel : ObservableObject
         });
     }
 
-    [RelayCommand]
-    public void SelectServer(string serverName)
-    {
-        SelectedServerName = serverName;
-        IsCreatingNewServer = false;
-        IsDashboardMode = true;
-        StateChanged?.Invoke();
-    }
-
     private string GenerateUniqueServerName()
     {
         const string baseName = "Server";
@@ -571,6 +554,12 @@ public partial class CreateServerViewModel : ObservableObject
     public async Task ConfirmDeleteServer()
     {
         if (string.IsNullOrWhiteSpace(ActiveServerDirectory)) return;
+        if (IsServerRunning)
+        {
+            ShowDeleteServerConfirm = false;
+            WorldResetStatusMessage = L10n.T("cs_delete_running");
+            return;
+        }
 
         try
         {
@@ -885,6 +874,12 @@ public partial class CreateServerViewModel : ObservableObject
         if (string.IsNullOrWhiteSpace(ActiveServerDirectory) || !Directory.Exists(ActiveServerDirectory))
             return;
 
+        if (!int.TryParse(PropsPort, out var portNum) || portNum < 1 || portNum > 65535)
+        {
+            ConfigStatusMessage = L10n.T("cs_invalid_port");
+            return;
+        }
+
         var dict = new Dictionary<string, string>
         {
             ["server-port"] = PropsPort,
@@ -918,52 +913,6 @@ public partial class CreateServerViewModel : ObservableObject
         }
         ConfigStatusMessage = L10n.T("cs_save_props") + "!";
         RefreshNetworkEndpoints();
-    }
-
-    [RelayCommand]
-    public void StartRenameServer()
-    {
-        if (IsServerRunning) return;
-        EditingServerNameText = SelectedServerName ?? "";
-        IsEditingServerName = true;
-    }
-
-    [RelayCommand]
-    public async Task CommitRenameServer()
-    {
-        if (!IsEditingServerName) return;
-        if (IsServerRunning)
-        {
-            IsEditingServerName = false;
-            return;
-        }
-
-        var newName = EditingServerNameText.Trim();
-        if (string.IsNullOrWhiteSpace(newName) || newName == SelectedServerName)
-        {
-            IsEditingServerName = false;
-            return;
-        }
-
-        if (ServerCreatorService.RenameServer(SelectedServerName!, newName, out var err))
-        {
-            FlushConsoleBuffer();
-            if (!string.IsNullOrWhiteSpace(SelectedServerName) && _consoleBuffers.TryGetValue(SelectedServerName, out var movedBuf))
-            {
-                _consoleBuffers.Remove(SelectedServerName);
-                _consoleBuffers[newName] = movedBuf;
-            }
-            _consoleOwner = newName;
-            SelectedServerName = newName;
-            ActiveServerDirectory = Path.Combine(ServerCreatorService.DefaultServersDirectory, newName);
-            await RefreshExistingServersAsync();
-            ConfigStatusMessage = "Server renamed successfully.";
-        }
-        else
-        {
-            ConfigStatusMessage = err ?? "Failed to rename server.";
-        }
-        IsEditingServerName = false;
     }
 
     public async Task CommitRenameDirectAsync(string newName)
@@ -1021,12 +970,6 @@ public partial class CreateServerViewModel : ObservableObject
             ConfigStatusMessage = err ?? "Failed to rename server.";
             return false;
         }
-    }
-
-    [RelayCommand]
-    public void CancelRenameServer()
-    {
-        IsEditingServerName = false;
     }
 
     /// <summary>
@@ -1197,24 +1140,6 @@ public partial class CreateServerViewModel : ObservableObject
             ConsoleUpdated?.Invoke();
     }
 
-    [RelayCommand]
-    public void SwitchToWizard()
-    {
-        IsDashboardMode = false;
-        IsCreated = false;
-    }
-
-    [RelayCommand]
-    public void SwitchToDashboard()
-    {
-        if (ExistingServers.Count > 0)
-        {
-            if (string.IsNullOrWhiteSpace(SelectedServerName))
-                SelectedServerName = ExistingServers[0];
-            IsDashboardMode = true;
-        }
-    }
-
     private async Task LoadVersionsAsync()
     {
         IsBusy = true;
@@ -1258,6 +1183,11 @@ public partial class CreateServerViewModel : ObservableObject
     public async Task CreateServerAsync()
     {
         if (!CanCreate) return;
+        if (ServerPort < 1 || ServerPort > 65535)
+        {
+            StatusText = L10n.T("cs_invalid_port");
+            return;
+        }
         IsBusy = true;
         IsCreated = false;
         ProgressPercent = 0;
@@ -1342,7 +1272,11 @@ public partial class CreateServerViewModel : ObservableObject
 
         try
         {
-            var javaPath = JavaVersionHelper.FindOrResolveServerJava(dir, SelectedVersion, out int reqMajor);
+            // Resolve Java for THIS server's game version, not the wizard selection.
+            var versionForJava = !string.IsNullOrWhiteSpace(ServerMinecraftVersion)
+                ? ServerMinecraftVersion
+                : SelectedVersion;
+            var javaPath = JavaVersionHelper.FindOrResolveServerJava(dir, versionForJava, out int reqMajor);
             if (string.IsNullOrWhiteSpace(javaPath))
             {
                 MissingJavaMajor = reqMajor;
@@ -1646,7 +1580,9 @@ public partial class CreateServerViewModel : ObservableObject
                     }
                     EditingFileName = Path.GetFileName(item.FullPath);
                     EditingFileFullPath = item.FullPath;
-                    EditingFileContent = await File.ReadAllTextAsync(item.FullPath);
+                    var (text, enc) = await ReadTextPreservingEncodingAsync(item.FullPath);
+                    EditingFileContent = text;
+                    _editingFileEncoding = enc;
                     FileEditorStatusMessage = "";
                     IsFileEditorOpen = true;
                 }
@@ -1670,7 +1606,7 @@ public partial class CreateServerViewModel : ObservableObject
         try
         {
             IsFileEditorSaving = true;
-            await File.WriteAllTextAsync(EditingFileFullPath, EditingFileContent ?? "");
+            await WriteTextPreservingEncodingAsync(EditingFileFullPath, EditingFileContent ?? "", _editingFileEncoding);
             FileEditorStatusMessage = L10n.T("cs_editor_saved");
             await RefreshFilesAsync();
         }
@@ -1693,7 +1629,26 @@ public partial class CreateServerViewModel : ObservableObject
         EditingFileFullPath = "";
         EditingFileContent = "";
         FileEditorStatusMessage = "";
+        _editingFileEncoding = null;
     }
+
+    private System.Text.Encoding? _editingFileEncoding;
+
+    /// <summary>Reads text while remembering BOM/encoding so save doesn't rewrite bytes.</summary>
+    private static async Task<(string Text, System.Text.Encoding? Encoding)> ReadTextPreservingEncodingAsync(string path)
+    {
+        var bytes = await File.ReadAllBytesAsync(path);
+        if (bytes.Length >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF)
+            return (System.Text.Encoding.UTF8.GetString(bytes, 3, bytes.Length - 3), new System.Text.UTF8Encoding(true));
+        if (bytes.Length >= 2 && bytes[0] == 0xFF && bytes[1] == 0xFE)
+            return (System.Text.Encoding.Unicode.GetString(bytes, 2, bytes.Length - 2), System.Text.Encoding.Unicode);
+        if (bytes.Length >= 2 && bytes[0] == 0xFE && bytes[1] == 0xFF)
+            return (System.Text.Encoding.BigEndianUnicode.GetString(bytes, 2, bytes.Length - 2), System.Text.Encoding.BigEndianUnicode);
+        return (System.Text.Encoding.UTF8.GetString(bytes), null);
+    }
+
+    private static Task WriteTextPreservingEncodingAsync(string path, string content, System.Text.Encoding? enc) =>
+        File.WriteAllTextAsync(path, content, enc ?? new System.Text.UTF8Encoding(false));
 
         [ObservableProperty] private bool _isRenamingFile;
     [ObservableProperty] private string _renamingFileNewName = "";
@@ -2305,6 +2260,17 @@ public partial class CreateServerViewModel : ObservableObject
                 var srcPath = files[0].Path.LocalPath;
                 var destPath = Path.Combine(ActiveServerDirectory, "server-icon.png");
 
+                // Guard against huge images stalling the UI decoder.
+                try
+                {
+                    if (new FileInfo(srcPath).Length > 8 * 1024 * 1024)
+                    {
+                        LauncherLog.Warn("Server icon too large, skipped.");
+                        return;
+                    }
+                }
+                catch { }
+
                 // Minecraft server strictly requires 64x64 PNG format (avoids Bad PNG Signature error)
                 using (var srcBmp = new Bitmap(srcPath))
                 using (var scaled = srcBmp.CreateScaledBitmap(new Avalonia.PixelSize(64, 64), BitmapInterpolationMode.HighQuality))
@@ -2564,8 +2530,13 @@ public partial class CreateServerViewModel : ObservableObject
     public async Task DownloadWorldAsync()
     {
         if (string.IsNullOrWhiteSpace(ActiveServerDirectory)) return;
+        if (IsServerRunning)
+        {
+            WorldStatusMessage = "Please stop the server before backing up the world.";
+            return;
+        }
         var worldDir = Path.Combine(ActiveServerDirectory, WorldNameDisplay);
-        if (!Directory.Exists(worldDir))
+        if (!IsInActiveServer(worldDir) || !Directory.Exists(worldDir))
         {
             WorldStatusMessage = "World folder does not exist yet.";
             return;
@@ -2628,6 +2599,17 @@ public partial class CreateServerViewModel : ObservableObject
                 WorldStatusMessage = "Importing world...";
                 var srcZip = files[0].Path.LocalPath;
                 var worldDir = Path.Combine(ActiveServerDirectory, WorldNameDisplay);
+                if (!IsInActiveServer(worldDir))
+                {
+                    WorldStatusMessage = "Invalid world location.";
+                    return;
+                }
+                var looksLikeWorld = await Task.Run(() => ZipLooksLikeWorld(srcZip));
+                if (!looksLikeWorld)
+                {
+                    WorldStatusMessage = L10n.T("cs_bad_world_zip");
+                    return;
+                }
                 if (Directory.Exists(worldDir))
                 {
                     Directory.Delete(worldDir, recursive: true);
@@ -2648,6 +2630,26 @@ public partial class CreateServerViewModel : ObservableObject
     public void ToggleWorldSettings()
     {
         IsWorldSettingsOpen = !IsWorldSettingsOpen;
+    }
+
+    /// <summary>True if the zip contains level.dat at the root or one folder deep.</summary>
+    private static bool ZipLooksLikeWorld(string zipPath)
+    {
+        try
+        {
+            using var zip = ZipFile.OpenRead(zipPath);
+            foreach (var entry in zip.Entries)
+            {
+                var name = entry.FullName.Replace('\\', '/').Trim('/');
+                if (name.Equals("level.dat", StringComparison.OrdinalIgnoreCase))
+                    return true;
+                var parts = name.Split('/');
+                if (parts.Length == 2 && parts[1].Equals("level.dat", StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+            return false;
+        }
+        catch { return false; }
     }
 
     [RelayCommand]

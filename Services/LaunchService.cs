@@ -950,6 +950,11 @@ public class LaunchService : ILaunchService
                 .OrderByDescending(d => d).FirstOrDefault();
             if (extracted == null) extracted = runtimeDir;
 
+            // Refuse half-extracted runtimes: without lib/jvm.cfg java.exe dies
+            // before main() with a cryptic error. Fail loudly instead.
+            if (!JavaVersionHelper.IsValidJavaHome(extracted))
+                throw new Exception($"Downloaded Java {major} is incomplete (missing lib/jvm.cfg). Delete '{extracted}' and try again.");
+
             var javaw = Path.Combine(extracted, "bin", "javaw.exe");
             if (File.Exists(javaw)) return javaw;
             var javaExe = Path.Combine(extracted, "bin", "java.exe");

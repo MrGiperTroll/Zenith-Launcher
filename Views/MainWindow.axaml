@@ -26,7 +26,7 @@
     </Window.Resources>
 
     <Window.Styles>
-        <!-- РўРѕРЅРєРёР№ СЃРєСЂРѕР»Р»Р±Р°СЂ -->
+        <!-- Тонкий скроллбар -->
         <Style Selector="ScrollBar">
             <Setter Property="AllowAutoHide" Value="False"/>
         </Style>
@@ -49,7 +49,7 @@
             <Setter Property="IsVisible" Value="False"/>
         </Style>
 
-        <!-- РџРѕР»Рµ Р·Р°РіРѕР»РѕРІРєР° Р±РµР· СЃРёРЅРёС… СЂР°РјРѕРє Рё С„РѕРЅР° РїСЂРё С„РѕРєСѓСЃРµ -->
+        <!-- Поле заголовка без синих рамок и фона при фокусе -->
         <Style Selector="TextBox.titleInput">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
@@ -149,7 +149,7 @@
             <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
         </Style>
 
-        <!-- Instance card border (no Button wrapper вЂ” Border handles click + drag) -->
+        <!-- Instance card border (no Button wrapper — Border handles click + drag) -->
         <Style Selector="Border.instanceCard">
             <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
             <Setter Property="Transitions">
@@ -633,13 +633,13 @@
                             <StackPanel Spacing="12">
                                 <Grid ColumnDefinitions="*,Auto">
                                     <TextBlock Text="{l10n:Tr Key=mw_instance_details}" FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                                    <Button Grid.Column="1" Content="вњ•" Command="{Binding CloseRightSidebarCommand}" Background="Transparent" Foreground="{StaticResource TextPlaceholderBrush}" Padding="6,2" Cursor="Hand"/>
+                                    <Button Grid.Column="1" Content="✕" Command="{Binding CloseRightSidebarCommand}" Background="Transparent" Foreground="{StaticResource TextPlaceholderBrush}" Padding="6,2" Cursor="Hand"/>
                                 </Grid>
 
-                                <!-- Profile Preview Box (Р‘РµР· РѕР±РІРѕРґРєРё С„РѕРєСѓСЃР°, РёРјСЏ РѕРїСѓС‰РµРЅРѕ Р±Р»РёР¶Рµ Рє РІРµСЂСЃРёРё) -->
+                                <!-- Profile Preview Box (Без обводки фокуса, имя опущено ближе к версии) -->
                                 <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="16,14">
                                     <StackPanel HorizontalAlignment="Center" Spacing="0">
-                                        <!-- РРєРѕРЅРєР° РїСЂРѕС„РёР»СЏ -->
+                                        <!-- Иконка профиля -->
                                         <Button Classes="iconChangeBtn" Command="{Binding ChangeInstanceIconCommand}" CommandParameter="{Binding SelectedInstance}"
                                                 Background="Transparent" BorderThickness="0" Padding="0" Margin="0,0,0,16" Cursor="Hand"
                                                 ToolTip.Tip="{l10n:Tr Key=icon_change_tip}"
@@ -662,7 +662,7 @@
                                             </Border>
                                         </Button>
 
-<!-- РРјСЏ РїСЂРѕС„РёР»СЏ: РєРѕРјРїР°РєС‚РЅС‹Р№ РѕРґРЅРѕСЃС‚СЂРѕС‡РЅС‹Р№ Р±РµР№РґР¶ -->
+<!-- Имя профиля: компактный однострочный бейдж -->
                                         <Border Background="{StaticResource ChipBrush}" CornerRadius="4" Padding="8,0" Margin="0,4,0,4" HorizontalAlignment="Center" Height="22">
                                             <TextBox Classes="titleInput" Text="{Binding SelectedInstance.Name, Mode=TwoWay}"
                                                      FontWeight="Bold" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}"
@@ -672,14 +672,14 @@
                                                      LostFocus="OnInstanceNameLostFocus"/>
                                         </Border>
 
-                                        <!-- Р’РµСЂСЃРёСЏ РїСЂРѕС„РёР»СЏ -->
+                                        <!-- Версия профиля -->
                                         <Border Background="{StaticResource ChipBrush}" CornerRadius="4" Padding="6,2" HorizontalAlignment="Center">
                                             <TextBlock Text="{Binding SelectedInstanceDetails}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" FontWeight="SemiBold" HorizontalAlignment="Center"/>
                                         </Border>
                                     </StackPanel>
                                 </Border>
 
-                                <!-- РљРЅРѕРїРєРё РґРµР№СЃС‚РІРёР№ -->
+                                <!-- Кнопки действий -->
                                 <StackPanel Spacing="8">
                                     <Button Classes="primaryBtn" Command="{Binding LaunchOrCancelCommand}" IsEnabled="{Binding CanLaunch}"
                                             HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Height="42">
@@ -792,7 +792,7 @@
                                     <TextBox.InnerRightContent>
                                         <Button Command="{Binding ModpacksBrowser.ClearSearchCommand}"
                                                 IsVisible="{Binding ModpacksBrowser.SearchQuery, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}"
-                                                Background="Transparent" BorderThickness="0" Padding="8,0" Cursor="Hand" Content="вњ•"
+                                                Background="Transparent" BorderThickness="0" Padding="8,0" Cursor="Hand" Content="✕"
                                                 Foreground="{StaticResource TextPlaceholderBrush}"/>
                                     </TextBox.InnerRightContent>
                                 </TextBox>
@@ -958,7 +958,7 @@
                         <Grid ColumnDefinitions="*,Auto">
                             <ComboBox ItemsSource="{Binding AvailableVersions}" SelectedItem="{Binding SelectedVersion}" HorizontalAlignment="Stretch"
                                       PlaceholderText="{l10n:Tr Key=none_select_version}"/>
-                            <Button Grid.Column="1" Content="вњ•" Command="{Binding ClearVersionCommand}" Background="Transparent" Foreground="{StaticResource TextPlaceholderBrush}" Padding="6,0" Cursor="Hand" FontSize="12" Margin="4,0,0,0"/>
+                            <Button Grid.Column="1" Content="✕" Command="{Binding ClearVersionCommand}" Background="Transparent" Foreground="{StaticResource TextPlaceholderBrush}" Padding="6,0" Cursor="Hand" FontSize="12" Margin="4,0,0,0"/>
                         </Grid>
                     </StackPanel>
 
@@ -969,7 +969,7 @@
                                       HorizontalAlignment="Stretch" IsVisible="{Binding IsLoaderTypesVisible}"/>
                             <ComboBox Grid.Column="0" ItemsSource="{Binding AvailableLoaderBuilds}" SelectedItem="{Binding SelectedLoaderBuild}"
                                       HorizontalAlignment="Stretch" IsVisible="{Binding IsLoaderBuildsVisible}"/>
-                            <Button Grid.Column="1" Content="в‡„" Command="{Binding ToggleLoaderBuildsCommand}"
+                            <Button Grid.Column="1" Content="⇄" Command="{Binding ToggleLoaderBuildsCommand}"
                                     Width="32" Height="32" Padding="0" Margin="6,0,0,0"
                                     Background="{StaticResource FieldBrush}" Foreground="{StaticResource TextMutedBrush}"
                                     BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"
@@ -1011,7 +1011,7 @@
                     <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,10">
                         <TextBlock Text="{l10n:Tr Key=mw_console_title}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                         <Button Grid.Column="1" Classes="primaryBtn" Content="{l10n:Tr Key=btn_copy_logs}" Command="{Binding CopyConsoleLogsCommand}" Margin="0,0,8,0" Padding="12,5" FontSize="11"/>
-                        <Button Grid.Column="2" Content="вњ•" Command="{Binding CloseConsoleDialogCommand}" Background="Transparent" Foreground="{StaticResource TextPlaceholderBrush}" Padding="4" Cursor="Hand"/>
+                        <Button Grid.Column="2" Content="✕" Command="{Binding CloseConsoleDialogCommand}" Background="Transparent" Foreground="{StaticResource TextPlaceholderBrush}" Padding="4" Cursor="Hand"/>
                     </Grid>
 
                     <Border Grid.Row="1" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource PanelBrush}" BorderThickness="1" CornerRadius="6" Padding="10">
@@ -1114,7 +1114,7 @@
                             <TextBlock Text="{l10n:Tr Key=java_installer_hint}" FontSize="11"
                                        Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"/>
                         </StackPanel>
-                        <Button Grid.Column="1" Content="вњ•" Command="{Binding CloseJavaInstallerCommand}" Classes="subBtn"
+                        <Button Grid.Column="1" Content="✕" Command="{Binding CloseJavaInstallerCommand}" Classes="subBtn"
                                 Width="28" Height="28" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                 VerticalAlignment="Top" Margin="8,0,0,0"/>
                     </Grid>

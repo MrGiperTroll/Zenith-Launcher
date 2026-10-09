@@ -23,6 +23,7 @@ public partial class ServerItemEntry : ObservableObject
     [ObservableProperty] private string _name = "";
     [ObservableProperty] private Bitmap? _iconBitmap;
     [ObservableProperty] private bool _hasIcon;
+    [ObservableProperty] private string _subtitle = "Local Server";
 }
 
 public partial class CreateServerViewModel : ObservableObject
@@ -32,6 +33,7 @@ public partial class CreateServerViewModel : ObservableObject
     private CancellationTokenSource? _cts;
     private Process? _serverProcess;
     private StreamWriter? _serverStdin;
+    private bool _restartRequested;
     private CancellationTokenSource? _stopTimeoutCts;
     private DateTime _serverStartTime;
     private readonly DispatcherTimer _uptimeTimer;
@@ -303,13 +305,43 @@ public partial class CreateServerViewModel : ObservableObject
 
     private bool IsInActiveServer(string? path) => IsPathInsideRoot(ActiveServerDirectory, path);
 
+    private static readonly HashSet<string> ReservedFileNames = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "con", "prn", "aux", "nul",
+        "com1", "com2", "com3", "com4", "com5", "com6", "com7", "com8", "com9",
+        "lpt1", "lpt2", "lpt3", "lpt4", "lpt5", "lpt6", "lpt7", "lpt8", "lpt9"
+    };
+
     private static bool IsSafeFileName(string? name)
     {
         if (string.IsNullOrWhiteSpace(name)) return false;
         var t = name.Trim();
-        return t.Length > 0 && t != "." && t != ".." && !t.StartsWith("..", StringComparison.Ordinal)
-            && t.IndexOfAny(Path.GetInvalidFileNameChars()) < 0
-            && !t.Contains('/') && !t.Contains('\\');
+        if (t.Length == 0 || t.Length > 255) return false;
+        if (t == "." || t == ".." || t.StartsWith("..", StringComparison.Ordinal)) return false;
+        if (t.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) return false;
+        if (t.Contains('/') || t.Contains('\\')) return false;
+        // Windows silently mangles these: "file " == "file", "con.txt" is a device.
+        if (t.EndsWith('.') || t.EndsWith(' ')) return false;
+        var stem = t.Split('.')[0];
+        if (ReservedFileNames.Contains(stem)) return false;
+        return true;
+    }
+
+    /// <summary>A jar truncated by a dropped download still opens; only reading
+    /// its directory tells a broken mod/plugin from a working one.</summary>
+    private static bool IsReadableJar(string path)
+    {
+        try
+        {
+            using var zip = ZipFile.OpenRead(path);
+            if (zip.Entries.Count == 0) return false;
+            foreach (var entry in zip.Entries)
+            {
+                using var _ = entry.Open();
+            }
+            return true;
+        }
+        catch { return false; }
     }
 
     public bool IsOverviewTab => SelectedTab == 0;
@@ -456,23 +488,32 @@ public partial class CreateServerViewModel : ObservableObject
 
     public async Task RefreshExistingServersAsync()
     {
-        List<(string Name, byte[]? IconBytes)> snapshot;
+        List<(string Name, byte[]? IconBytes, string Subtitle)> snapshot;
         try
         {
             snapshot = await Task.Run(() =>
             {
-                var result = new List<(string, byte[]?)>();
+                var result = new List<(string, byte[]?, string)>();
                 foreach (var s in ServerCreatorService.GetExistingServers())
                 {
                     byte[]? bytes = null;
+                    var dir = Path.Combine(ServerCreatorService.DefaultServersDirectory, s);
                     try
                     {
-                        var iconPath = Path.Combine(ServerCreatorService.DefaultServersDirectory, s, "server-icon.png");
+                        var iconPath = Path.Combine(dir, "server-icon.png");
                         if (File.Exists(iconPath))
                             bytes = File.ReadAllBytes(iconPath);
                     }
                     catch { }
-                    result.Add((s, bytes));
+                    var subtitle = "Local Server";
+                    try
+                    {
+                        var (version, software) = ServerCreatorService.GetServerIdentity(dir);
+                        var soft = ServerCreatorService.NormalizeSoftwareName(software);
+                        subtitle = string.IsNullOrWhiteSpace(version) ? soft : $"{soft} {version}";
+                    }
+                    catch { }
+                    result.Add((s, bytes, subtitle));
                 }
                 return result;
             });
@@ -486,7 +527,7 @@ public partial class CreateServerViewModel : ObservableObject
             ExistingServers.Clear();
             ExistingServersList.Clear();
 
-            foreach (var (name, bytes) in snapshot)
+            foreach (var (name, bytes, subtitle) in snapshot)
             {
                 ExistingServers.Add(name);
                 Bitmap? bmp = null;
@@ -503,7 +544,8 @@ public partial class CreateServerViewModel : ObservableObject
                 {
                     Name = name,
                     IconBitmap = bmp,
-                    HasIcon = bmp != null
+                    HasIcon = bmp != null,
+                    Subtitle = subtitle
                 });
             }
             HasExistingServers = ExistingServersList.Count > 0;
@@ -1111,6 +1153,18 @@ public partial class CreateServerViewModel : ObservableObject
     }
 
     [RelayCommand]
+    public void RestartServer()
+    {
+        if (!IsServerRunning || _serverProcess == null || _serverProcess.HasExited)
+        {
+            RunServer();
+            return;
+        }
+        _restartRequested = true;
+        _ = StopServerAsync();
+    }
+
+    [RelayCommand]
     public void ForceStopServer()
     {
         try
@@ -1130,6 +1184,7 @@ public partial class CreateServerViewModel : ObservableObject
             IsServerStopping = false;
             IsForceStopAvailable = false;
             _runningServerName = null;
+            _restartRequested = false;
             try { _stopTimeoutCts?.Cancel(); _stopTimeoutCts?.Dispose(); } catch { }
             _stopTimeoutCts = null;
             _uptimeTimer.Stop();
@@ -1328,6 +1383,8 @@ public partial class CreateServerViewModel : ObservableObject
                         IsServerStopping = false;
                         IsForceStopAvailable = false;
                         _runningServerName = null;
+                        var restart = _restartRequested;
+                        _restartRequested = false;
                         try { _stopTimeoutCts?.Cancel(); _stopTimeoutCts?.Dispose(); } catch { }
                         _stopTimeoutCts = null;
                         _uptimeTimer.Stop();
@@ -1337,6 +1394,8 @@ public partial class CreateServerViewModel : ObservableObject
                         _serverProcess = null;
                         _serverStdin = null;
                         try { proc?.Dispose(); } catch { }
+                        if (restart)
+                            RunServer();
                     });
                 };
 
@@ -1697,9 +1756,9 @@ public partial class CreateServerViewModel : ObservableObject
                 return;
             }
             if (_renamingFileItem.IsDirectory)
-                Directory.Move(_renamingFileItem.FullPath, newPath);
+                FileRetry.MoveDirectory(_renamingFileItem.FullPath, newPath);
             else
-                File.Move(_renamingFileItem.FullPath, newPath);
+                FileRetry.MoveFile(_renamingFileItem.FullPath, newPath);
 
             CancelRenameFile();
             await RefreshFilesAsync();
@@ -1760,11 +1819,11 @@ public partial class CreateServerViewModel : ObservableObject
             if (string.Equals(rootFull, targetFull, StringComparison.OrdinalIgnoreCase)) return;
             if (item.IsDirectory && Directory.Exists(item.FullPath))
             {
-                await Task.Run(() => Directory.Delete(item.FullPath, true));
+                await Task.Run(() => FileRetry.DeleteDirectory(item.FullPath, true));
             }
             else if (File.Exists(item.FullPath))
             {
-                File.Delete(item.FullPath);
+                FileRetry.DeleteFile(item.FullPath);
             }
             await RefreshFilesAsync();
         }
@@ -1905,6 +1964,14 @@ public partial class CreateServerViewModel : ObservableObject
                 var localPath = file.Path.LocalPath;
                 var destPath = Path.Combine(targetFolder, Path.GetFileName(localPath));
                 File.Copy(localPath, destPath, true);
+                // A jar cut short by a dropped download still copies fine and
+                // then crashes the server — reject it at the door instead.
+                if (!IsReadableJar(destPath))
+                {
+                    try { File.Delete(destPath); } catch { }
+                    FileOperationStatus = L10n.T("cs_bad_jar");
+                    LauncherLog.Warn($"Rejected broken jar {file.Name}");
+                }
             }
             catch (Exception ex)
             {
@@ -2465,6 +2532,10 @@ public partial class CreateServerViewModel : ObservableObject
             return;
         }
 
+        // Real world data wins over server.properties: level.dat holds what the
+        // world actually runs with (mode, difficulty, hardcore).
+        await Task.Run(() => ApplyLevelDatInfo(worldDir));
+
         // Heavy disk work (recursive size + datapack scan) off the UI thread.
         // The world icon is the real icon.png from the world save folder.
         var snapshot = await Task.Run(() =>
@@ -2536,6 +2607,49 @@ public partial class CreateServerViewModel : ObservableObject
     }
 
     public void RefreshWorldInfo() => _ = RefreshWorldInfoAsync();
+
+    /// <summary>
+    /// Reads the world's real settings from level.dat (Data compound).
+    /// Runs on a background thread; falls back to server.properties silently.
+    /// </summary>
+    private void ApplyLevelDatInfo(string worldDir)
+    {
+        try
+        {
+            var levelDat = Path.Combine(worldDir, "level.dat");
+            if (!File.Exists(levelDat)) return;
+            var root = ServersDatService.ReadNbtFile(levelDat);
+            if (root == null || !root.TryGetValue("Data", out var dataObj) ||
+                dataObj is not Dictionary<string, object?> data)
+                return;
+
+            if (data.TryGetValue("Difficulty", out var diff))
+            {
+                var diffName = diff switch
+                {
+                    byte b => b,
+                    int i => i,
+                    short s => (int)s,
+                    _ => -1
+                } switch
+                {
+                    0 => "peaceful",
+                    1 => "easy",
+                    2 => "normal",
+                    3 => "hard",
+                    _ => null
+                };
+                if (diffName != null)
+                    Dispatcher.UIThread.Post(() => WorldDifficulty = diffName);
+            }
+            if (data.TryGetValue("hardcore", out var hc))
+            {
+                bool isHc = hc is byte hb ? hb != 0 : hc is int hi && hi != 0;
+                Dispatcher.UIThread.Post(() => WorldHardcore = isHc);
+            }
+        }
+        catch { }
+    }
 
     [RelayCommand]
     public async Task DownloadWorldAsync()
@@ -2621,12 +2735,58 @@ public partial class CreateServerViewModel : ObservableObject
                     WorldStatusMessage = L10n.T("cs_bad_world_zip");
                     return;
                 }
-                if (Directory.Exists(worldDir))
+                // Extract into a staging folder first: a corrupt archive must
+                // not leave a half-replaced world behind. Declared sizes are
+                // capped so a zip bomb cannot fill the disk (archive ceiling).
+                var stagingDir = worldDir + ".tmp-import";
+                try
                 {
-                    Directory.Delete(worldDir, recursive: true);
+                    if (Directory.Exists(stagingDir))
+                        FileRetry.DeleteDirectory(stagingDir, true);
+                    Directory.CreateDirectory(stagingDir);
+                    await Task.Run(() => ExtractZipCapped(srcZip, stagingDir, 32L * 1024 * 1024 * 1024));
+                    // Flatten a single top-level folder (world zips often wrap it).
+                    var entries = Directory.GetFileSystemEntries(stagingDir);
+                    if (entries.Length == 1 && Directory.Exists(entries[0]) &&
+                        File.Exists(Path.Combine(entries[0], "level.dat")))
+                    {
+                        var single = entries[0];
+                        var flattened = worldDir + ".tmp-flat";
+                        if (Directory.Exists(flattened))
+                            FileRetry.DeleteDirectory(flattened, true);
+                        Directory.CreateDirectory(flattened);
+                        foreach (var e in Directory.GetFileSystemEntries(single))
+                        {
+                            var dest = Path.Combine(flattened, Path.GetFileName(e));
+                            if (Directory.Exists(e))
+                                Directory.Move(e, dest);
+                            else
+                                File.Move(e, dest, true);
+                        }
+                        FileRetry.DeleteDirectory(stagingDir, true);
+                        stagingDir = flattened;
+                    }
+                    if (!File.Exists(Path.Combine(stagingDir, "level.dat")))
+                    {
+                        WorldStatusMessage = L10n.T("cs_bad_world_zip");
+                        return;
+                    }
+                    if (Directory.Exists(worldDir))
+                        FileRetry.DeleteDirectory(worldDir, true);
+                    FileRetry.MoveDirectory(stagingDir, worldDir);
                 }
-                Directory.CreateDirectory(worldDir);
-                await Task.Run(() => ZipFile.ExtractToDirectory(srcZip, worldDir, overwriteFiles: true));
+                finally
+                {
+                    try
+                    {
+                        if (Directory.Exists(stagingDir) && !string.Equals(stagingDir, worldDir, StringComparison.OrdinalIgnoreCase))
+                            FileRetry.DeleteDirectory(stagingDir, true);
+                        var flat = worldDir + ".tmp-flat";
+                        if (Directory.Exists(flat))
+                            FileRetry.DeleteDirectory(flat, true);
+                    }
+                    catch { }
+                }
                 await RefreshWorldInfoAsync();
                 WorldStatusMessage = "World uploaded successfully!";
             }
@@ -2641,6 +2801,45 @@ public partial class CreateServerViewModel : ObservableObject
     public void ToggleWorldSettings()
     {
         IsWorldSettingsOpen = !IsWorldSettingsOpen;
+    }
+
+    /// <summary>
+    /// Extracts a zip with a declared-size ceiling and per-entry caps, so a
+    /// zip bomb cannot fill the disk. Throws on violation or corruption.
+    /// </summary>
+    private static void ExtractZipCapped(string zipPath, string destDir, long ceilingBytes)
+    {
+        using var zip = ZipFile.OpenRead(zipPath);
+        long declared = 0;
+        foreach (var entry in zip.Entries)
+        {
+            if (string.IsNullOrEmpty(entry.Name)) continue; // directory
+            declared = checked(declared + entry.Length);
+            if (declared > ceilingBytes)
+                throw new InvalidDataException("Archive unpacks to more than the allowed limit.");
+        }
+        foreach (var entry in zip.Entries)
+        {
+            if (string.IsNullOrEmpty(entry.Name)) continue;
+            var rel = entry.FullName.Replace('/', Path.DirectorySeparatorChar);
+            var outPath = Path.GetFullPath(Path.Combine(destDir, rel));
+            if (!outPath.StartsWith(Path.GetFullPath(destDir) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(outPath, Path.GetFullPath(destDir), StringComparison.OrdinalIgnoreCase))
+                throw new InvalidDataException($"Unsafe archive entry: {entry.FullName}");
+            Directory.CreateDirectory(Path.GetDirectoryName(outPath)!);
+            using var src = entry.Open();
+            using var dst = File.Create(outPath);
+            var remaining = entry.Length;
+            var buf = new byte[81920];
+            int read;
+            while ((read = src.Read(buf, 0, (int)Math.Min(buf.Length, remaining))) > 0)
+            {
+                dst.Write(buf, 0, read);
+                remaining -= read;
+            }
+            if (remaining != 0)
+                throw new InvalidDataException($"Truncated archive entry: {entry.FullName}");
+        }
     }
 
     /// <summary>True if the zip contains level.dat at the root or one folder deep.</summary>

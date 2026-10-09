@@ -667,7 +667,9 @@ public partial class EditInstanceViewModel : ViewModelBase
                 if (!string.IsNullOrWhiteSpace(title)) entry.Title = title;
                 if (lines.Length > 1) entry.Description = string.Join('\n', lines.Skip(1));
                 if (result.Online > 0 || result.Max > 0)
-                    entry.Meta = $"{result.Online}/{result.Max} online";
+                    entry.Meta = result.LatencyMs > 0
+                        ? $"{result.Online}/{result.Max} online • {result.LatencyMs} ms"
+                        : $"{result.Online}/{result.Max} online";
                 if (!entry.HasPreview && result.IconBytes is { Length: > 0 })
                     entry.SetPreview(result.IconBytes, 64);
             }

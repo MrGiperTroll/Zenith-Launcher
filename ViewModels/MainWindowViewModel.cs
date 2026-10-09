@@ -1172,7 +1172,10 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     public void NavigateToCreateServer()
     {
-        CreateServerVm = new CreateServerViewModel(_instanceService, this);
+        // Reuse the existing VM so per-server console buffers, selection and
+        // loaded details survive tab switches (recreating it froze the UI with
+        // sync disk scans and dropped console history every time).
+        CreateServerVm ??= new CreateServerViewModel(_instanceService, this);
         PushHistory(new HistoryEntry
         {
             Page = LauncherNavPage.CreateServer,
@@ -1570,8 +1573,11 @@ public partial class MainWindowViewModel : ViewModelBase
                         0 => "Overview",
                         1 => "server.properties",
                         2 => "Plugins & Mods",
-                        3 => "World",
+                        3 => "Settings",
                         4 => "Players",
+                        5 => "Files",
+                        6 => "Console",
+                        7 => "World",
                         _ => "Server"
                     };
 

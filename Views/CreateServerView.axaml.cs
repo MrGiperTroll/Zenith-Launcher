@@ -1,14 +1,20 @@
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Threading;
 using CustomMcLauncher.ViewModels;
 
 namespace CustomMcLauncher.Views;
 
 public partial class CreateServerView : UserControl
 {
+    private CreateServerViewModel? _subscribedVm;
+
     public CreateServerView()
     {
         InitializeComponent();
+
+        DataContextChanged += (_, _) => ResubscribeConsole();
+        ResubscribeConsole();
 
         var nameInput = this.FindControl<TextBox>("ServerNameInput");
 
@@ -71,6 +77,25 @@ public partial class CreateServerView : UserControl
                 }
             };
         }
+    }
+
+    private void ResubscribeConsole()
+    {
+        if (_subscribedVm != null)
+            _subscribedVm.ConsoleUpdated -= OnConsoleUpdated;
+        _subscribedVm = DataContext as CreateServerViewModel;
+        if (_subscribedVm != null)
+            _subscribedVm.ConsoleUpdated += OnConsoleUpdated;
+    }
+
+    private void OnConsoleUpdated()
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            var box = this.FindControl<TextBox>("ConsoleBox");
+            if (box != null)
+                box.CaretIndex = box.Text?.Length ?? 0;
+        }, DispatcherPriority.Background);
     }
 
     private void OnConsoleInputKeyDown(object? sender, KeyEventArgs e)

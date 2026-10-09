@@ -22,7 +22,7 @@ public partial class RamCardControl : UserControl
         AvaloniaProperty.Register<RamCardControl, int>(nameof(Minimum), 512);
 
     public static readonly StyledProperty<int> MaximumProperty =
-        AvaloniaProperty.Register<RamCardControl, int>(nameof(Maximum), 16384);
+        AvaloniaProperty.Register<RamCardControl, int>(nameof(Maximum), 32768);
 
     public static readonly StyledProperty<int> TickFrequencyProperty =
         AvaloniaProperty.Register<RamCardControl, int>(nameof(TickFrequency), 512);

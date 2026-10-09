@@ -1464,7 +1464,10 @@ public class ServerCreatorService
                 text = System.Text.RegularExpressions.Regex.Replace(text, @"-Xmx\d+[gGmM]", $"-Xmx{mb}M");
             }
 
-            // 4. Update custom JVM arguments if specified
+            // 4. Update custom JVM arguments if specified.
+            // RAM flags inside custom args are stripped first: canonical -Xms/-Xmx
+            // (step 3) are the single source of truth, otherwise run.bat ends up
+            // with duplicate -Xmx flags and the stale one wins.
             if (customJvmArgs != null)
             {
                 var jarIndex = text.IndexOf("-jar", StringComparison.OrdinalIgnoreCase);
@@ -1475,7 +1478,8 @@ public class ServerCreatorService
                     {
                         var before = text[..(xmxMatch.Index + xmxMatch.Length)];
                         var after = text[jarIndex..];
-                        var jvmPart = string.IsNullOrWhiteSpace(customJvmArgs) ? " " : $" {customJvmArgs.Trim()} ";
+                        var cleanCustom = ServerPropertiesRules.StripRamFlags(customJvmArgs);
+                        var jvmPart = string.IsNullOrWhiteSpace(cleanCustom) ? " " : $" {cleanCustom} ";
                         text = before + jvmPart + after;
                     }
                 }
@@ -1492,5 +1496,27 @@ public class ServerCreatorService
     public static void EnsureRunBatJava(string serverDir, string javaExePath)
     {
         SanitizeAndConfigureRunBat(serverDir, javaExePath: javaExePath);
+    }
+
+    /// <summary>
+    /// Reads the game version written into run.bat at creation time
+    /// ("Starting Minecraft Server (1.21.4 - Paper)"). Returns "" if unknown.
+    /// Used for version-gated server.properties validation.
+    /// </summary>
+    public static string GetServerVersion(string serverDir)
+    {
+        try
+        {
+            var runBat = Path.Combine(serverDir, "run.bat");
+            if (!File.Exists(runBat)) return "";
+            var content = File.ReadAllText(runBat);
+            var m = System.Text.RegularExpressions.Regex.Match(content, @"Starting Minecraft Server \(([^)]+)\)");
+            if (!m.Success) return "";
+            var inner = m.Groups[1].Value;
+            var dash = inner.IndexOf(" - ", StringComparison.Ordinal);
+            var version = (dash >= 0 ? inner[..dash] : inner).Trim();
+            return ServerPropertiesRules.TryParseRelease(version, out _, out _, out _) ? version : "";
+        }
+        catch { return ""; }
     }
 }

@@ -302,7 +302,7 @@
                 <!-- CASE B: ACTIVE SERVER DASHBOARD -->
                 <StackPanel Spacing="16" IsVisible="{Binding !IsCreatingNewServer}">
                     <!-- Server Header Bar (No duplicate server icon, clean start button without (cmd)) -->
-                    <!-- Server Header Bar (Inline rename, live IP badge with network flyout, quick action) -->
+                    <!-- Server Header Bar (Inline rename, address selector) -->
                     <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="18,14">
                         <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                             <!-- Left: Server Name with inline editing + IP badge with selector flyout -->
@@ -414,7 +414,7 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- TAB 0: OVERVIEW (Rich live data & quick actions) -->
+                    <!-- TAB 0: OVERVIEW -->
                     <StackPanel Spacing="16" IsVisible="{Binding IsOverviewTab}">
                         <!-- Hero Status Banner -->
                         <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
@@ -474,7 +474,7 @@
                                 <StackPanel Spacing="4">
                                     <TextBlock Text="{l10n:Tr Key=cs_uptime}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
                                     <TextBlock Text="{Binding UptimeText}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentBrush}"/>
-                                    <TextBlock Text="Server process runtime" FontSize="10.5" Foreground="{StaticResource TextMutedBrush}"/>
+                                    <TextBlock Text="{l10n:Tr Key=cs_hint_runtime}" FontSize="10.5" Foreground="{StaticResource TextMutedBrush}"/>
                                 </StackPanel>
                             </Border>
 
@@ -486,7 +486,7 @@
                                         <TextBlock Text="{Binding OnlinePlayers.Count}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
                                         <TextBlock Text="{Binding PropsMaxPlayers, StringFormat='/ {0}'}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"/>
                                     </StackPanel>
-                                    <TextBlock Text="Active connections" FontSize="10.5" Foreground="{StaticResource TextMutedBrush}"/>
+                                    <TextBlock Text="{l10n:Tr Key=cs_hint_connections}" FontSize="10.5" Foreground="{StaticResource TextMutedBrush}"/>
                                 </StackPanel>
                             </Border>
 
@@ -504,7 +504,7 @@
                                 <StackPanel Spacing="4">
                                     <TextBlock Text="{l10n:Tr Key=cs_type}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
                                     <TextBlock Text="{Binding ServerSoftwareDisplay}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
-                                    <TextBlock Text="Core build" FontSize="10.5" Foreground="{StaticResource TextMutedBrush}"/>
+                                    <TextBlock Text="{l10n:Tr Key=cs_hint_core}" FontSize="10.5" Foreground="{StaticResource TextMutedBrush}"/>
                                 </StackPanel>
                             </Border>
 
@@ -513,7 +513,7 @@
                                 <StackPanel Spacing="4">
                                     <TextBlock Text="{l10n:Tr Key=cs_ram}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
                                     <TextBlock Text="{Binding ServerAllocatedRamDisplay}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentBrush}"/>
-                                    <TextBlock Text="Configured in run.bat" FontSize="10.5" Foreground="{StaticResource TextMutedBrush}"/>
+                                    <TextBlock Text="{l10n:Tr Key=cs_hint_ram}" FontSize="10.5" Foreground="{StaticResource TextMutedBrush}"/>
                                 </StackPanel>
                             </Border>
 
@@ -599,14 +599,14 @@
                                             <TextBlock Text="{l10n:Tr Key=cs_prop_view_distance}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
                                             <TextBox Classes="darkInput" Text="{Binding PropsViewDistance}" Height="30" Padding="8,4" FontSize="11.5"/>
                                         </StackPanel>
-                                        <StackPanel Grid.Column="1" Spacing="4">
+                                        <StackPanel Grid.Column="1" Spacing="4" IsVisible="{Binding IsSimulationDistanceVisible}">
                                             <TextBlock Text="{l10n:Tr Key=cs_prop_sim_distance}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
                                             <TextBox Classes="darkInput" Text="{Binding PropsSimulationDistance}" Height="30" Padding="8,4" FontSize="11.5"/>
                                         </StackPanel>
                                     </Grid>
 
-                                    <!-- Row 6: Entity Broadcast Range -->
-                                    <StackPanel Spacing="4">
+                                    <!-- Row 6: Entity Broadcast Range (removed in 1.21.2+) -->
+                                    <StackPanel Spacing="4" IsVisible="{Binding IsEntityBroadcastRangeVisible}">
                                         <TextBlock Text="{l10n:Tr Key=cs_prop_entity_range}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
                                         <TextBox Classes="darkInput" Text="{Binding PropsEntityBroadcastRangePercentage}" Height="30" Padding="8,4" FontSize="11.5"/>
                                     </StackPanel>
@@ -617,8 +617,8 @@
                                         <TextBox Classes="darkInput" Text="{Binding PropsResourcePack}" PlaceholderText="https://example.com/pack.zip" Height="30" Padding="8,4" FontSize="11.5"/>
                                     </StackPanel>
 
-                                    <!-- Row 8: Resource Pack Prompt -->
-                                    <StackPanel Spacing="4">
+                                    <!-- Row 8: Resource Pack Prompt (1.20.2+) -->
+                                    <StackPanel Spacing="4" IsVisible="{Binding IsResourcePackPromptVisible}">
                                         <TextBlock Text="{l10n:Tr Key=cs_prop_resource_pack_prompt}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
                                         <TextBox Classes="darkInput" Text="{Binding PropsResourcePackPrompt}" PlaceholderText="Custom prompt message shown to players..." Height="30" Padding="8,4" FontSize="11.5"/>
                                     </StackPanel>
@@ -661,8 +661,8 @@
                                         </Grid>
                                     </Border>
 
-                                    <!-- Require Resource Pack -->
-                                    <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="7" Padding="10,6">
+                                    <!-- Require Resource Pack (1.17+) -->
+                                    <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="7" Padding="10,6" IsVisible="{Binding IsRequireResourcePackVisible}">
                                         <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                             <StackPanel Spacing="1">
                                                 <TextBlock Text="{l10n:Tr Key=cs_prop_require_resource_pack}" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
@@ -764,13 +764,13 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- TAB 6: CONSOLE & LIVE LOGS -->
+                    <!-- TAB 6: CONSOLE -->
                     <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="20" IsVisible="{Binding IsConsoleTab}">
                         <StackPanel Spacing="14">
                             <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                 <StackPanel Spacing="2">
-                                    <TextBlock Text="Live Console &amp; Logs" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                    <TextBlock Text="Direct standard I/O stream and command console for your server." FontSize="11.5" Foreground="{StaticResource TextMutedBrush}"/>
+                                    <TextBlock Text="{l10n:Tr Key=cs_tab_console}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="{l10n:Tr Key=cs_console_sub}" FontSize="11.5" Foreground="{StaticResource TextMutedBrush}"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
                                     <Button Classes="subBtn" Command="{Binding ClearConsoleCommand}" Padding="12,6" FontSize="11">
@@ -779,9 +779,10 @@
                                 </StackPanel>
                             </Grid>
 
-                            <!-- Console Output Box (Scrollable & Selectable) -->
+                            <!-- Console Output Box (Scrollable & Selectable, auto-scrolls to newest lines) -->
                             <Border Background="#0C0C0E" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Height="380">
-                                <TextBox Classes="darkInput"
+                                <TextBox x:Name="ConsoleBox"
+                                         Classes="darkInput"
                                          Text="{Binding ConsoleLogText}"
                                          IsReadOnly="True"
                                          BorderThickness="0"
@@ -804,62 +805,6 @@
                                     <TextBlock Text="Send" FontWeight="Bold"/>
                                 </Button>
                             </Grid>
-
-                            <!-- Dedicated Quick Commands Panel -->
-                            <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="12,10">
-                                <StackPanel Spacing="8">
-                                    <!-- Header Row -->
-                                    <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                            <PathIcon Data="M13 2.05v3.03c3.39.49 6 3.39 6 6.92 0 .9-.18 1.75-.48 2.54l2.6 1.53c.56-1.24.88-2.62.88-4.07 0-5.18-3.95-9.45-9-9.95zM12 19c-3.87 0-7-3.13-7-7 0-3.53 2.61-6.43 6-6.92V2.05c-5.06.5-9 4.76-9 9.95 0 5.52 4.47 10 9.99 10 3.31 0 6.24-1.61 8.04-4.09l-2.45-1.44C16.27 18.06 14.28 19 12 19z"
-                                                      Width="12" Height="12" Foreground="{DynamicResource AccentBrush}"/>
-                                            <TextBlock Text="{l10n:Tr Key=cs_quick_commands}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                        </StackPanel>
-
-                                        <!-- Add Command Button (Header level) -->
-                                        <Button Grid.Column="1" Classes="subBtn" Command="{Binding ToggleAddQuickCommandCommand}" IsVisible="{Binding !IsAddingQuickCommand}" Padding="8,3" FontSize="11">
-                                            <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                                                <TextBlock Text="+" FontWeight="Bold" FontSize="11"/>
-                                                <TextBlock Text="{l10n:Tr Key=cs_add_quick_cmd}" FontSize="11"/>
-                                            </StackPanel>
-                                        </Button>
-                                    </Grid>
-
-                                    <!-- Compact Inline Add Command Form -->
-                                    <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="6" Padding="8,6" IsVisible="{Binding IsAddingQuickCommand}">
-                                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6" VerticalAlignment="Center">
-                                            <TextBox Classes="darkInput" Text="{Binding NewQuickCommandText}" PlaceholderText="Enter command (e.g. /weather clear, op Player)..." Height="28" Padding="8,3" FontSize="11.5"/>
-                                            <Button Grid.Column="1" Classes="primaryBtn" Command="{Binding AddQuickCommandCommand}" Content="{l10n:Tr Key=cs_editor_save}" Height="28" Padding="12,0" FontSize="11" VerticalContentAlignment="Center"/>
-                                            <Button Grid.Column="2" Classes="subBtn" Command="{Binding ToggleAddQuickCommandCommand}" Content="{l10n:Tr Key=btn_cancel}" Height="28" Padding="10,0" FontSize="11" VerticalContentAlignment="Center"/>
-                                        </Grid>
-                                    </Border>
-
-                                    <!-- Command Chips -->
-                                    <WrapPanel Orientation="Horizontal">
-                                        <ItemsControl ItemsSource="{Binding QuickCommands}">
-                                            <ItemsControl.ItemsPanel>
-                                                <ItemsPanelTemplate>
-                                                    <WrapPanel Orientation="Horizontal"/>
-                                                </ItemsPanelTemplate>
-                                            </ItemsControl.ItemsPanel>
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate>
-                                                    <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="6" Margin="0,0,6,6" Padding="8,3">
-                                                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                                            <Button Classes="tabBtn" Command="{Binding $parent[UserControl].((vm:CreateServerViewModel)DataContext).ExecuteQuickCommandCommand}" CommandParameter="{Binding}" Padding="2,0" Cursor="Hand" ToolTip.Tip="Run in console">
-                                                                <TextBlock Text="{Binding}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="SemiBold"/>
-                                                            </Button>
-                                                            <Button Classes="tabBtn" Command="{Binding $parent[UserControl].((vm:CreateServerViewModel)DataContext).RemoveQuickCommandCommand}" CommandParameter="{Binding}" Padding="2,0" Cursor="Hand" ToolTip.Tip="Remove">
-                                                                <TextBlock Text="✕" FontSize="9" Foreground="{StaticResource TextMutedBrush}"/>
-                                                            </Button>
-                                                        </StackPanel>
-                                                    </Border>
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-                                    </WrapPanel>
-                                </StackPanel>
-                            </Border>
                         </StackPanel>
                     </Border>
 
@@ -1049,7 +994,7 @@
                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                     <StackPanel Spacing="2">
                                         <TextBlock Text="{l10n:Tr Key=cs_settings_title}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                        <TextBlock Text="Technical configuration and launch environment for this server." FontSize="11.5" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{l10n:Tr Key=cs_hint_ram}" FontSize="11.5" Foreground="{StaticResource TextMutedBrush}"/>
                                     </StackPanel>
                                     <Button Grid.Column="1" Classes="primaryBtn" Command="{Binding SaveServerSettingsCommand}" Padding="18,7" FontSize="12">
                                         <TextBlock Text="{l10n:Tr Key=cs_save_settings}" FontWeight="Bold"/>
@@ -1070,34 +1015,13 @@
                                     </Grid>
                                 </StackPanel>
 
-                                <!-- RAM Allocation (Compact Row with Counter and Slider) -->
-                                <StackPanel Spacing="4">
-                                    <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                            <TextBlock Text="{l10n:Tr Key=cs_server_ram}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                                            <TextBlock Text="(-Xmx)" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
-                                        </StackPanel>
-
-                                        <!-- Compact Counter Row -->
-                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                                            <Button Command="{Binding StepServerRamDownCommand}" Classes="subBtn" Width="24" Height="24" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" ToolTip.Tip="Decrease RAM">
-                                                <PathIcon Data="M5 11h14v2H5z" Width="8" Height="8" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                            </Button>
-                                            <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="5" Height="24" Padding="8,0" VerticalAlignment="Center">
-                                                <StackPanel Orientation="Horizontal" Spacing="0" VerticalAlignment="Center" HorizontalAlignment="Center">
-                                                    <TextBox Classes="badgeInput" Text="{Binding ServerRamMb, Mode=TwoWay}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" TextAlignment="Right" VerticalAlignment="Center" BorderThickness="0" Background="Transparent" Padding="0" MinWidth="32"/>
-                                                    <TextBlock Text="MB" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="5,0,0,0" IsHitTestVisible="False"/>
-                                                </StackPanel>
-                                            </Border>
-                                            <Button Command="{Binding StepServerRamUpCommand}" Classes="subBtn" Width="24" Height="24" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" ToolTip.Tip="Increase RAM">
-                                                <PathIcon Data="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" Width="8" Height="8" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                            </Button>
-                                        </StackPanel>
-                                    </Grid>
-
-                                    <!-- Compact Slider -->
-                                    <Slider Minimum="512" Maximum="32768" Value="{Binding ServerRamMb, Mode=TwoWay}" TickFrequency="512" IsSnapToTickEnabled="True" MinHeight="20" Height="22" Margin="0,2,0,2"/>
-                                </StackPanel>
+                                <!-- RAM Allocation (compact shared control, synced with launch flags) -->
+                                <controls:RamCardControl Value="{Binding ServerRamMb}"
+                                                         Minimum="512"
+                                                         Maximum="32768"
+                                                         TickFrequency="512"
+                                                         Title="{l10n:Tr Key=cs_server_ram}"
+                                                         Subtitle="{l10n:Tr Key=cs_hint_ram}"/>
 
                                 <!-- JVM Launch Arguments -->
                                 <StackPanel Spacing="4">

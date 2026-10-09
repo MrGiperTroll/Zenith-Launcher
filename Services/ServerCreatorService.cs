@@ -610,9 +610,85 @@ public class ServerCreatorService
         }
 
         if (string.IsNullOrWhiteSpace(downloadUrl))
-            throw new InvalidOperationException($"Mojang does not provide an official server download for version {version}.");
+        {
+            // Very old builds (e.g. 1.0) have no official server file in the
+            // Mojang manifest. Fall back to community archives instead of failing.
+            await DownloadLegacyServerAsync(version, targetJar, progress, ct);
+            return;
+        }
 
         await DownloadFileWithProgressAsync(downloadUrl, targetJar, $"Downloading Vanilla {version} server.jar...", progress, 40, 85, ct);
+    }
+
+    /// <summary>
+    /// Last-resort download for versions Mojang no longer ships (pre-1.2 era).
+    /// Searches well-known community archives for a preserved server.jar and
+    /// validates the file before accepting it.
+    /// </summary>
+    private async Task DownloadLegacyServerAsync(string version, string targetJar, IProgress<(string Status, double Percent)>? progress, CancellationToken ct)
+    {
+        var tried = new List<string> { "Mojang manifest (no server file)" };
+        var candidates = new List<string>();
+
+        // 1. mcversions.net keeps download pages (often own mirrors) for old builds.
+        try
+        {
+            progress?.Report(($"Searching archives for {version} server.jar...", 30));
+            var pageUrl = $"https://mcversions.net/download/{Uri.EscapeDataString(version)}";
+            tried.Add(pageUrl);
+            var html = await Http.GetStringAsync(pageUrl, ct);
+            foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(html, @"href\s*=\s*[""']([^""']+\.jar(?:\?[^""']*)?)[""']", System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+            {
+                var href = System.Net.WebUtility.HtmlDecode(m.Groups[1].Value);
+                if (!href.Contains("server", StringComparison.OrdinalIgnoreCase)) continue;
+                var absolute = href.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+                    ? href
+                    : new Uri(new Uri("https://mcversions.net/"), href).ToString();
+                if (!candidates.Contains(absolute))
+                    candidates.Add(absolute);
+            }
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Warn($"Archive index lookup failed for {version}: {ex.Message}");
+        }
+
+        foreach (var url in candidates)
+        {
+            try
+            {
+                await DownloadFileWithProgressAsync(url, targetJar, $"Downloading archived {version} server.jar...", progress, 35, 85, ct);
+                if (IsValidServerJar(targetJar))
+                    return;
+                tried.Add($"{url} (invalid jar)");
+                try { File.Delete(targetJar); } catch { }
+            }
+            catch (Exception ex)
+            {
+                tried.Add($"{url} ({ex.Message})");
+            }
+        }
+
+        throw new InvalidOperationException(
+            $"Mojang does not provide an official server download for version {version}, " +
+            $"and no working copy was found in community archives. Tried: {string.Join("; ", tried)}");
+    }
+
+    private static bool IsValidServerJar(string path)
+    {
+        try
+        {
+            if (!File.Exists(path)) return false;
+            if (new FileInfo(path).Length < 100 * 1024) return false;
+            using var zip = ZipFile.OpenRead(path);
+            foreach (var entry in zip.Entries)
+            {
+                if (entry.FullName.EndsWith(".class", StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+            return false;
+        }
+        catch { return false; }
     }
 
     private async Task DownloadPaperServerAsync(string version, string targetJar, IProgress<(string Status, double Percent)>? progress, CancellationToken ct)

@@ -167,6 +167,8 @@ public partial class CreateServerViewModel : ObservableObject
 
     [ObservableProperty] private string _serverSoftwareDisplay = "Vanilla";
     [ObservableProperty] private string _pluginsTabTitle = "Plugins";
+    [ObservableProperty] private bool _isPluginsTabVisible = true;
+    public bool IsPluginsPanelVisible => IsPluginsTab && IsPluginsTabVisible;
     [ObservableProperty] private string _serverAllocatedRamDisplay = "4096 MB";
     [ObservableProperty] private string _uptimeText = "00:00:00";
     [ObservableProperty] private string _serverIpDisplay = "localhost:25565";
@@ -206,13 +208,19 @@ public partial class CreateServerViewModel : ObservableObject
 
     /// <summary>
     /// "Plugins" by default, "Mods" on modded cores (Forge / NeoForge / Fabric).
+    /// Hidden entirely on Vanilla, which supports neither.
     /// </summary>
     public void UpdatePluginsTabTitle()
     {
         var s = ServerSoftwareDisplay ?? "";
         bool modded = s.Contains("forge", StringComparison.OrdinalIgnoreCase)
             || s.Contains("fabric", StringComparison.OrdinalIgnoreCase);
+        bool vanilla = s.Contains("vanilla", StringComparison.OrdinalIgnoreCase);
         PluginsTabTitle = L10n.T(modded ? "cs_tab_mods" : "cs_tab_plugins_simple");
+        IsPluginsTabVisible = !vanilla;
+        OnPropertyChanged(nameof(IsPluginsPanelVisible));
+        if (!IsPluginsTabVisible && SelectedTab == 2)
+            SelectedTab = 0;
     }
 
     public ObservableCollection<string> ExistingServers { get; } = new();
@@ -235,9 +243,11 @@ public partial class CreateServerViewModel : ObservableObject
     // File table sorting (clickable column headers).
     [ObservableProperty] private string _fileSortColumn = "Name";
     [ObservableProperty] private bool _fileSortDescending;
-    public string FileSortNameArrow => FileSortColumn == "Name" ? (FileSortDescending ? "▼" : "▲") : "";
-    public string FileSortDateArrow => FileSortColumn == "Date" ? (FileSortDescending ? "▼" : "▲") : "";
-    public string FileSortSizeArrow => FileSortColumn == "Size" ? (FileSortDescending ? "▼" : "▲") : "";
+    private const string SortChevronUp = "M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z";
+    private const string SortChevronDown = "M7 10l5 5 5-5z";
+    public string? FileSortNameIcon => FileSortColumn != "Name" ? null : (FileSortDescending ? SortChevronDown : SortChevronUp);
+    public string? FileSortDateIcon => FileSortColumn != "Date" ? null : (FileSortDescending ? SortChevronDown : SortChevronUp);
+    public string? FileSortSizeIcon => FileSortColumn != "Size" ? null : (FileSortDescending ? SortChevronDown : SortChevronUp);
 
     [RelayCommand]
     public void SortFilesBy(string? column)
@@ -250,9 +260,9 @@ public partial class CreateServerViewModel : ObservableObject
             FileSortColumn = column;
             FileSortDescending = false;
         }
-        OnPropertyChanged(nameof(FileSortNameArrow));
-        OnPropertyChanged(nameof(FileSortDateArrow));
-        OnPropertyChanged(nameof(FileSortSizeArrow));
+        OnPropertyChanged(nameof(FileSortNameIcon));
+        OnPropertyChanged(nameof(FileSortDateIcon));
+        OnPropertyChanged(nameof(FileSortSizeIcon));
         _ = RefreshFilesAsync();
     }
 
@@ -321,6 +331,7 @@ public partial class CreateServerViewModel : ObservableObject
         OnPropertyChanged(nameof(IsOverviewTab));
         OnPropertyChanged(nameof(IsPropertiesTab));
         OnPropertyChanged(nameof(IsPluginsTab));
+        OnPropertyChanged(nameof(IsPluginsPanelVisible));
         OnPropertyChanged(nameof(IsSettingsTab));
         OnPropertyChanged(nameof(IsConsoleTab));
         OnPropertyChanged(nameof(IsWorldTab));

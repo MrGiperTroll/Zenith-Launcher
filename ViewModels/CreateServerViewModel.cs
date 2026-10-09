@@ -45,11 +45,6 @@ public partial class CreateServerViewModel : ObservableObject
     public bool IsLoaderBuildVisible => SelectedSoftware != null && (SelectedSoftware.Id == "forge" || SelectedSoftware.Id == "neoforge" || SelectedSoftware.Id == "fabric");
 
     [ObservableProperty] private int _ramMb = 4096;
-    public int RamGb
-    {
-        get => Math.Max(1, RamMb / 1024);
-        set => RamMb = value * 1024;
-    }
     [ObservableProperty] private int _serverPort = 25565;
     [ObservableProperty] private bool _agreeEula = true;
     [ObservableProperty] private bool _onlineMode = false; // Default: unchecked
@@ -82,14 +77,17 @@ public partial class CreateServerViewModel : ObservableObject
     [ObservableProperty] private bool _hasServerIcon;
     [ObservableProperty] private Bitmap? _serverIconBitmap;
 
-    // Console & Live Logs state (Tab 6)
+    // Console state (Tab 6). Each server owns an isolated buffer, see _consoleBuffers.
     [ObservableProperty] private string _consoleLogText = "";
     [ObservableProperty] private string _consoleCommandText = "";
 
-    // Customizable Quick Commands in Console tab
-    public ObservableCollection<string> QuickCommands { get; } = new();
-    [ObservableProperty] private string _newQuickCommandText = "";
-    [ObservableProperty] private bool _isAddingQuickCommand;
+    /// <summary>Per-server console buffers keyed by server name (case-insensitive).</summary>
+    private readonly Dictionary<string, string> _consoleBuffers = new(StringComparer.OrdinalIgnoreCase);
+    private string? _consoleOwner;
+    private string? _runningServerName;
+
+    /// <summary>Raised after the visible console text changes so the view can auto-scroll.</summary>
+    public event Action? ConsoleUpdated;
 
     // World Management state (Tab 7)
     [ObservableProperty] private bool _hasWorldIcon;
@@ -154,8 +152,6 @@ public partial class CreateServerViewModel : ObservableObject
     [ObservableProperty] private string _propsResourcePack = "";
     [ObservableProperty] private string _propsResourcePackPrompt = "";
     [ObservableProperty] private string _propsLevelName = "world";
-    [ObservableProperty] private string _propsLevelSeed = "";
-    [ObservableProperty] private string _propsLevelType = "minecraft:normal";
     [ObservableProperty] private bool _propsGenerateStructures = true;
     [ObservableProperty] private bool _propsSpawnAnimals = true;
     [ObservableProperty] private bool _propsSpawnMonsters = true;
@@ -197,11 +193,25 @@ public partial class CreateServerViewModel : ObservableObject
 
     public ObservableCollection<string> AvailableVersions { get; } = new();
     public ObservableCollection<ServerSoftwareOption> AvailableSoftware { get; } = new();
-    public int[] RamOptions { get; } = { 512, 1024, 2048, 3072, 4096, 6144, 8192, 12288, 16384, 24576, 32768 };
 
     public string[] GamemodeOptions { get; } = { "survival", "creative", "adventure", "spectator" };
     public string[] DifficultyOptions { get; } = { "peaceful", "easy", "normal", "hard" };
-    public string[] LevelTypeOptions { get; } = { "minecraft:normal", "minecraft:flat", "minecraft:large_biomes", "minecraft:amplified" };
+
+    // Version-gated server.properties visibility (dynamic per game version).
+    [ObservableProperty] private string _serverMinecraftVersion = "";
+    [ObservableProperty] private bool _isSimulationDistanceVisible = true;
+    [ObservableProperty] private bool _isRequireResourcePackVisible = true;
+    [ObservableProperty] private bool _isResourcePackPromptVisible = true;
+    [ObservableProperty] private bool _isEntityBroadcastRangeVisible = true;
+
+    public void UpdateVersionGatedVisibility()
+    {
+        var v = ServerMinecraftVersion;
+        IsSimulationDistanceVisible = ServerPropertiesRules.IsSupported(ServerPropertiesRules.SimulationDistance, v);
+        IsRequireResourcePackVisible = ServerPropertiesRules.IsSupported(ServerPropertiesRules.RequireResourcePack, v);
+        IsResourcePackPromptVisible = ServerPropertiesRules.IsResourcePackPromptSupported(v);
+        IsEntityBroadcastRangeVisible = ServerPropertiesRules.IsSupported(ServerPropertiesRules.EntityBroadcastRange, v);
+    }
 
     public ObservableCollection<string> ExistingServers { get; } = new();
     public ObservableCollection<ServerItemEntry> ExistingServersList { get; } = new();
@@ -222,6 +232,35 @@ public partial class CreateServerViewModel : ObservableObject
 
     [ObservableProperty] private bool _isRefreshingOnlinePlayers;
     [ObservableProperty] private string _onlinePlayersCountText = "0 players online";
+
+    // File listing cancellation (overlapping refreshes) and path isolation root guard.
+    private CancellationTokenSource? _filesCts;
+
+    /// <summary>Chroot guard: true only if path resolves inside the server folder.</summary>
+    public static bool IsPathInsideRoot(string root, string? path)
+    {
+        if (string.IsNullOrWhiteSpace(root) || string.IsNullOrWhiteSpace(path)) return false;
+        try
+        {
+            var r = Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            var p = Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            if (p.Equals(r, StringComparison.OrdinalIgnoreCase)) return true;
+            var rel = Path.GetRelativePath(r, p);
+            return !rel.StartsWith("..", StringComparison.Ordinal) && !Path.IsPathRooted(rel);
+        }
+        catch { return false; }
+    }
+
+    private bool IsInActiveServer(string? path) => IsPathInsideRoot(ActiveServerDirectory, path);
+
+    private static bool IsSafeFileName(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return false;
+        var t = name.Trim();
+        return t.Length > 0 && t != "." && t != ".." && !t.StartsWith("..", StringComparison.Ordinal)
+            && t.IndexOfAny(Path.GetInvalidFileNameChars()) < 0
+            && !t.Contains('/') && !t.Contains('\\');
+    }
 
     public bool IsOverviewTab => SelectedTab == 0;
     public bool IsPropertiesTab => SelectedTab == 1;
@@ -249,15 +288,18 @@ public partial class CreateServerViewModel : ObservableObject
         OnPropertyChanged(nameof(IsFilesTab));
         if (value == 5)
         {
-            RefreshFiles();
+            _ = RefreshFilesAsync();
         }
         else if (value == 6)
         {
-            LoadLatestLog();
+            if (string.IsNullOrEmpty(ConsoleLogText))
+                _ = LoadLatestLogAsync();
+            else
+                ConsoleUpdated?.Invoke();
         }
         else if (value == 7)
         {
-            RefreshWorldInfo();
+            _ = RefreshWorldInfoAsync();
         }
         StateChanged?.Invoke();
     }
@@ -285,19 +327,30 @@ public partial class CreateServerViewModel : ObservableObject
         UpdateAvailableSoftware();
         _selectedSoftware = AvailableSoftware.FirstOrDefault() ?? ServerCreatorService.AvailableSoftware[0];
         _uptimeTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
-        _uptimeTimer.Tick += (s, e) =>
-        {
-            if (IsServerRunning)
-            {
-                var span = DateTime.Now - _serverStartTime;
-                UptimeText = span.ToString(@"hh\:mm\:ss");
-            }
-        };
+        _uptimeTimer.Tick += OnUptimeTick;
+        _ = InitializeAsync();
+    }
 
-        RefreshExistingServers();
+    private void OnUptimeTick(object? sender, EventArgs e)
+    {
+        if (IsServerRunning)
+        {
+            var span = DateTime.Now - _serverStartTime;
+            UptimeText = span.ToString(@"hh\:mm\:ss");
+        }
+    }
+
+    /// <summary>
+    /// Async startup: heavy disk/network work runs off the UI thread so opening
+    /// the Servers tab never freezes the interface.
+    /// </summary>
+    private async Task InitializeAsync()
+    {
+        await RefreshExistingServersAsync();
         if (ExistingServers.Count > 0)
         {
-            SelectedServerName = ExistingServers[0];
+            if (string.IsNullOrWhiteSpace(SelectedServerName))
+                SelectedServerName = ExistingServers[0];
             IsDashboardMode = true;
             IsCreatingNewServer = false;
         }
@@ -306,7 +359,31 @@ public partial class CreateServerViewModel : ObservableObject
             IsDashboardMode = false;
             IsCreatingNewServer = true;
         }
-        _ = LoadVersionsAsync();
+        await LoadVersionsAsync();
+    }
+
+    /// <summary>Stops timers and releases bitmaps/process handles held by this VM.</summary>
+    public void Teardown()
+    {
+        try { _uptimeTimer.Stop(); } catch { }
+        _uptimeTimer.Tick -= OnUptimeTick;
+        try
+        {
+            _resetCountdownTimer?.Stop();
+            if (_resetCountdownTimer != null)
+                _resetCountdownTimer.Tick -= OnResetCountdownTick;
+        }
+        catch { }
+        try { _stopTimeoutCts?.Cancel(); _stopTimeoutCts?.Dispose(); } catch { }
+        try { _filesCts?.Cancel(); _filesCts?.Dispose(); } catch { }
+        try
+        {
+            foreach (var entry in ExistingServersList)
+                entry.IconBitmap?.Dispose();
+            ServerIconBitmap?.Dispose();
+            WorldIconBitmap?.Dispose();
+        }
+        catch { }
     }
 
     public void UpdateAvailableSoftware()
@@ -325,41 +402,64 @@ public partial class CreateServerViewModel : ObservableObject
         }
     }
 
-    public void RefreshExistingServers()
+    public async Task RefreshExistingServersAsync()
     {
-        ExistingServers.Clear();
-        foreach (var entry in ExistingServersList)
+        List<(string Name, byte[]? IconBytes)> snapshot;
+        try
         {
-            entry.IconBitmap?.Dispose();
-        }
-        ExistingServersList.Clear();
-
-        foreach (var s in ServerCreatorService.GetExistingServers())
-        {
-            ExistingServers.Add(s);
-            var iconPath = Path.Combine(ServerCreatorService.DefaultServersDirectory, s, "server-icon.png");
-            Bitmap? bmp = null;
-            if (File.Exists(iconPath))
+            snapshot = await Task.Run(() =>
             {
-                try
+                var result = new List<(string, byte[]?)>();
+                foreach (var s in ServerCreatorService.GetExistingServers())
                 {
-                    using var fs = File.OpenRead(iconPath);
-                    bmp = new Bitmap(fs);
+                    byte[]? bytes = null;
+                    try
+                    {
+                        var iconPath = Path.Combine(ServerCreatorService.DefaultServersDirectory, s, "server-icon.png");
+                        if (File.Exists(iconPath))
+                            bytes = File.ReadAllBytes(iconPath);
+                    }
+                    catch { }
+                    result.Add((s, bytes));
                 }
-                catch { }
-            }
-            ExistingServersList.Add(new ServerItemEntry
-            {
-                Name = s,
-                IconBitmap = bmp,
-                HasIcon = bmp != null
+                return result;
             });
         }
-        HasExistingServers = ExistingServersList.Count > 0;
-        if (SelectedServerName != null)
+        catch { return; }
+
+        await Dispatcher.UIThread.InvokeAsync(() =>
         {
-            SelectedServerItem = ExistingServersList.FirstOrDefault(x => x.Name == SelectedServerName);
-        }
+            foreach (var entry in ExistingServersList)
+                entry.IconBitmap?.Dispose();
+            ExistingServers.Clear();
+            ExistingServersList.Clear();
+
+            foreach (var (name, bytes) in snapshot)
+            {
+                ExistingServers.Add(name);
+                Bitmap? bmp = null;
+                if (bytes != null)
+                {
+                    try
+                    {
+                        using var ms = new MemoryStream(bytes);
+                        bmp = new Bitmap(ms);
+                    }
+                    catch { }
+                }
+                ExistingServersList.Add(new ServerItemEntry
+                {
+                    Name = name,
+                    IconBitmap = bmp,
+                    HasIcon = bmp != null
+                });
+            }
+            HasExistingServers = ExistingServersList.Count > 0;
+            if (SelectedServerName != null)
+            {
+                SelectedServerItem = ExistingServersList.FirstOrDefault(x => x.Name == SelectedServerName);
+            }
+        });
     }
 
     [RelayCommand]
@@ -407,15 +507,6 @@ public partial class CreateServerViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public void SetRam(string gb)
-    {
-        if (int.TryParse(gb, out var val) && val > 0)
-        {
-            RamGb = val;
-        }
-    }
-
-    [RelayCommand]
     public void RequestDeleteServer()
     {
         ShowDeleteServerConfirm = true;
@@ -428,15 +519,22 @@ public partial class CreateServerViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public void ConfirmDeleteServer()
+    public async Task ConfirmDeleteServer()
     {
         if (string.IsNullOrWhiteSpace(ActiveServerDirectory)) return;
 
         try
         {
-            ServerCreatorService.DeleteServer(ActiveServerDirectory);
+            var deletedName = SelectedServerName;
+            if (deletedName != null)
+            {
+                _consoleBuffers.Remove(deletedName);
+                if (string.Equals(_consoleOwner, deletedName, StringComparison.OrdinalIgnoreCase))
+                    _consoleOwner = null;
+            }
+            await Task.Run(() => ServerCreatorService.DeleteServer(ActiveServerDirectory));
             ShowDeleteServerConfirm = false;
-            RefreshExistingServers();
+            await RefreshExistingServersAsync();
             if (ExistingServers.Count > 0)
             {
                 SelectedServerName = ExistingServers[0];
@@ -462,7 +560,7 @@ public partial class CreateServerViewModel : ObservableObject
         if (!string.IsNullOrWhiteSpace(value))
         {
             ActiveServerDirectory = Path.Combine(ServerCreatorService.DefaultServersDirectory, value);
-            LoadServerDetails();
+            _ = LoadServerDetailsAsync();
             SelectedServerItem = ExistingServersList.FirstOrDefault(x => x.Name == value);
         }
         StateChanged?.Invoke();
@@ -474,18 +572,44 @@ public partial class CreateServerViewModel : ObservableObject
         {
             SelectedServerName = value.Name;
         }
+        // Clicking another server while the creation form is open leaves the
+        // form: without this the click only changes the name behind the form
+        // and navigation looks blocked.
+        if (value != null && IsCreatingNewServer)
+        {
+            IsCreatingNewServer = false;
+            IsDashboardMode = true;
+            StateChanged?.Invoke();
+        }
     }
 
-    public void LoadServerDetails()
+    /// <summary>Flushes the visible console into its owner's buffer.</summary>
+    private void FlushConsoleBuffer()
     {
-        if (string.IsNullOrWhiteSpace(ActiveServerDirectory) || !Directory.Exists(ActiveServerDirectory))
+        if (!string.IsNullOrWhiteSpace(_consoleOwner))
+            _consoleBuffers[_consoleOwner] = ConsoleLogText ?? "";
+    }
+
+    public async Task LoadServerDetailsAsync()
+    {
+        var dir = ActiveServerDirectory;
+        var name = SelectedServerName;
+        if (string.IsNullOrWhiteSpace(dir) || !Directory.Exists(dir))
             return;
 
-        PropsServerName = SelectedServerName ?? "";
-        LoadQuickCommands();
+        // Switch isolated console: stash the outgoing buffer, restore the incoming one.
+        FlushConsoleBuffer();
+        _consoleOwner = name;
+        if (!string.IsNullOrWhiteSpace(name) && _consoleBuffers.TryGetValue(name, out var buffered))
+            ConsoleLogText = buffered;
+        else
+            ConsoleLogText = "";
 
-        // Load server.properties (all 22 parameters)
-        var props = ServerCreatorService.LoadProperties(ActiveServerDirectory);
+        PropsServerName = name ?? "";
+
+        // server.properties (world-name / world-type / world-seed are intentionally
+        // not part of this editor).
+        var props = await Task.Run(() => ServerCreatorService.LoadProperties(dir));
         if (props.TryGetValue("server-port", out var port)) PropsPort = port;
         if (props.TryGetValue("motd", out var motd)) PropsMotd = motd;
         if (props.TryGetValue("gamemode", out var gm)) PropsGamemode = gm.ToLowerInvariant();
@@ -505,8 +629,6 @@ public partial class CreateServerViewModel : ObservableObject
         if (props.TryGetValue("resource-pack", out var rp)) PropsResourcePack = rp;
         if (props.TryGetValue("resource-pack-prompt", out var rpp)) PropsResourcePackPrompt = rpp;
         if (props.TryGetValue("level-name", out var ln)) PropsLevelName = ln;
-        if (props.TryGetValue("level-seed", out var ls)) PropsLevelSeed = ls;
-        if (props.TryGetValue("level-type", out var lt)) PropsLevelType = lt;
         if (props.TryGetValue("generate-structures", out var gs) && bool.TryParse(gs, out var bGs)) PropsGenerateStructures = bGs;
         if (props.TryGetValue("spawn-animals", out var sa) && bool.TryParse(sa, out var bSa)) PropsSpawnAnimals = bSa;
         if (props.TryGetValue("spawn-monsters", out var sm) && bool.TryParse(sm, out var bSm)) PropsSpawnMonsters = bSm;
@@ -514,49 +636,66 @@ public partial class CreateServerViewModel : ObservableObject
         if (props.TryGetValue("allow-nether", out var an) && bool.TryParse(an, out var bAn)) PropsAllowNether = bAn;
         if (props.TryGetValue("entity-broadcast-range-percentage", out var eb) && int.TryParse(eb, out var iEb)) PropsEntityBroadcastRangePercentage = iEb;
 
-        // Load plugins / mods
+        // Plugins / mods (zip inspection is slow -> background).
+        var plugins = await Task.Run(() => ServerCreatorService.GetInstalledPluginsOrMods(dir));
         InstalledPlugins.Clear();
-        foreach (var p in ServerCreatorService.GetInstalledPluginsOrMods(ActiveServerDirectory))
+        foreach (var p in plugins)
         {
             InstalledPlugins.Add(p);
         }
 
         // Load player lists
         OpsList.Clear();
-        foreach (var op in ServerCreatorService.LoadPlayerList(ActiveServerDirectory, "ops.json"))
+        foreach (var op in ServerCreatorService.LoadPlayerList(dir, "ops.json"))
         {
             OpsList.Add(op);
         }
 
         WhitelistList.Clear();
-        foreach (var w in ServerCreatorService.LoadPlayerList(ActiveServerDirectory, "whitelist.json"))
+        foreach (var w in ServerCreatorService.LoadPlayerList(dir, "whitelist.json"))
         {
             WhitelistList.Add(w);
         }
 
         BansList.Clear();
-        foreach (var b in ServerCreatorService.LoadPlayerList(ActiveServerDirectory, "banned-players.json"))
+        foreach (var b in ServerCreatorService.LoadPlayerList(dir, "banned-players.json"))
         {
             BansList.Add(b);
         }
 
-        ServerCreatorService.GetServerMetadata(ActiveServerDirectory, out var soft, out var ramDisplay, out var ramMb, out var javaPath, out var jvmArgs);
-        ServerSoftwareDisplay = soft;
-        ServerAllocatedRamDisplay = ramDisplay;
-        ServerRamMb = ramMb;
-        ServerJavaPath = javaPath;
-        ServerJvmArgs = jvmArgs;
+        var meta = await Task.Run(() =>
+        {
+            ServerCreatorService.GetServerMetadata(dir, out var soft, out var ramDisplay, out var ramMb, out var javaPath, out var jvmArgs);
+            return (soft, ramDisplay, ramMb, javaPath, jvmArgs, version: ServerCreatorService.GetServerVersion(dir));
+        });
+        ServerSoftwareDisplay = meta.soft;
+        ServerAllocatedRamDisplay = meta.ramDisplay;
+        ServerMinecraftVersion = meta.version;
+        UpdateVersionGatedVisibility();
+        // Set RAM before JVM args: the RAM-changed hook rewrites -Xmx inside the
+        // args, and the loaded args assignment right after wins regardless.
+        ServerRamMb = meta.ramMb;
+        ServerJavaPath = meta.javaPath;
+        ServerJvmArgs = ServerPropertiesRules.StripRamFlags(meta.jvmArgs);
+        ServerJvmArgs = ServerPropertiesRules.WithRamFlags(ServerJvmArgs, ServerRamMb);
         ServerSettingsStatusMessage = "";
-        RefreshNetworkEndpoints();
+        await RefreshNetworkEndpointsAsync();
 
         _ = RefreshOnlinePlayersAsync();
 
-        CurrentBrowsePath = ActiveServerDirectory;
-        LoadServerIcon();
-        RefreshWorldInfo();
+        if (IsPathInsideRoot(dir, CurrentBrowsePath) && Directory.Exists(CurrentBrowsePath))
+        {
+            // stay where the user was inside this server
+        }
+        else
+        {
+            CurrentBrowsePath = dir;
+        }
+        _ = LoadServerIconAsync();
+        _ = RefreshWorldInfoAsync();
         if (SelectedTab == 5)
         {
-            RefreshFiles();
+            _ = RefreshFilesAsync();
         }
 
         ConfigStatusMessage = "";
@@ -564,7 +703,15 @@ public partial class CreateServerViewModel : ObservableObject
         ShowWorldResetConfirm = false;
         IsResetCountdownActive = false;
         CanConfirmResetWorld = false;
-        _resetCountdownTimer?.Stop();
+        try
+        {
+            if (_resetCountdownTimer != null)
+            {
+                _resetCountdownTimer.Stop();
+                _resetCountdownTimer.Tick -= OnResetCountdownTick;
+            }
+        }
+        catch { }
     }
 
     [RelayCommand]
@@ -739,7 +886,7 @@ public partial class CreateServerViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public void CommitRenameServer()
+    public async Task CommitRenameServer()
     {
         if (!IsEditingServerName) return;
         if (IsServerRunning)
@@ -757,9 +904,16 @@ public partial class CreateServerViewModel : ObservableObject
 
         if (ServerCreatorService.RenameServer(SelectedServerName!, newName, out var err))
         {
+            FlushConsoleBuffer();
+            if (!string.IsNullOrWhiteSpace(SelectedServerName) && _consoleBuffers.TryGetValue(SelectedServerName, out var movedBuf))
+            {
+                _consoleBuffers.Remove(SelectedServerName);
+                _consoleBuffers[newName] = movedBuf;
+            }
+            _consoleOwner = newName;
             SelectedServerName = newName;
             ActiveServerDirectory = Path.Combine(ServerCreatorService.DefaultServersDirectory, newName);
-            RefreshExistingServers();
+            await RefreshExistingServersAsync();
             ConfigStatusMessage = "Server renamed successfully.";
         }
         else
@@ -769,8 +923,36 @@ public partial class CreateServerViewModel : ObservableObject
         IsEditingServerName = false;
     }
 
+    public async Task CommitRenameDirectAsync(string newName)
+    {
+        if (IsServerRunning) return;
+        newName = newName?.Trim() ?? "";
+        if (string.IsNullOrWhiteSpace(newName) || newName == SelectedServerName)
+            return;
+
+        if (ServerCreatorService.RenameServer(SelectedServerName!, newName, out var err))
+        {
+            FlushConsoleBuffer();
+            if (!string.IsNullOrWhiteSpace(SelectedServerName) && _consoleBuffers.TryGetValue(SelectedServerName, out var movedBuf))
+            {
+                _consoleBuffers.Remove(SelectedServerName);
+                _consoleBuffers[newName] = movedBuf;
+            }
+            _consoleOwner = newName;
+            SelectedServerName = newName;
+            ActiveServerDirectory = Path.Combine(ServerCreatorService.DefaultServersDirectory, newName);
+            await RefreshExistingServersAsync();
+            ConfigStatusMessage = "Server renamed successfully.";
+        }
+        else
+        {
+            ConfigStatusMessage = err ?? "Failed to rename server.";
+        }
+    }
+
     public bool CommitRenameDirect(string newName)
     {
+        // Sync wrapper for code-behind (header textbox): renames now, refreshes async.
         if (IsServerRunning) return false;
         newName = newName?.Trim() ?? "";
         if (string.IsNullOrWhiteSpace(newName) || newName == SelectedServerName)
@@ -778,9 +960,16 @@ public partial class CreateServerViewModel : ObservableObject
 
         if (ServerCreatorService.RenameServer(SelectedServerName!, newName, out var err))
         {
+            FlushConsoleBuffer();
+            if (!string.IsNullOrWhiteSpace(SelectedServerName) && _consoleBuffers.TryGetValue(SelectedServerName, out var movedBuf))
+            {
+                _consoleBuffers.Remove(SelectedServerName);
+                _consoleBuffers[newName] = movedBuf;
+            }
+            _consoleOwner = newName;
             SelectedServerName = newName;
             ActiveServerDirectory = Path.Combine(ServerCreatorService.DefaultServersDirectory, newName);
-            RefreshExistingServers();
+            _ = RefreshExistingServersAsync();
             ConfigStatusMessage = "Server renamed successfully.";
             return true;
         }
@@ -797,11 +986,20 @@ public partial class CreateServerViewModel : ObservableObject
         IsEditingServerName = false;
     }
 
-    [RelayCommand]
-    public void StepServerRamDown() => ServerRamMb = Math.Max(512, ServerRamMb - 512);
-
-    [RelayCommand]
-    public void StepServerRamUp() => ServerRamMb = Math.Min(32768, ServerRamMb + 512);
+    /// <summary>
+    /// Keeps the launch-arguments flags in sync when the RAM slider moves,
+    /// so the -Xmx value in the textbox never goes stale.
+    /// </summary>
+    partial void OnServerRamMbChanged(int value)
+    {
+        try
+        {
+            var synced = ServerPropertiesRules.WithRamFlags(ServerJvmArgs, value);
+            if (synced != ServerJvmArgs)
+                ServerJvmArgs = synced;
+        }
+        catch { }
+    }
 
     [RelayCommand]
     public async Task CopyIpAsync() => await CopyAddressAsync(ServerIpDisplay);
@@ -835,17 +1033,24 @@ public partial class CreateServerViewModel : ObservableObject
         catch { }
     }
 
-    public void RefreshNetworkEndpoints()
+    public async Task RefreshNetworkEndpointsAsync()
     {
-        NetworkEndpoints.Clear();
         var port = int.TryParse(PropsPort, out var p) ? p : 25565;
-        var list = ServerCreatorService.GetLocalNetworkEndpoints(port);
+        List<ServerNetworkEndpoint> list;
+        try
+        {
+            list = await Task.Run(() => ServerCreatorService.GetLocalNetworkEndpoints(port));
+        }
+        catch { return; }
+        NetworkEndpoints.Clear();
         foreach (var ep in list)
         {
             NetworkEndpoints.Add(ep);
         }
         ServerIpDisplay = $"localhost:{port}";
     }
+
+    public void RefreshNetworkEndpoints() => _ = RefreshNetworkEndpointsAsync();
 
     [RelayCommand]
     public async Task StopServerAsync()
@@ -889,6 +1094,7 @@ public partial class CreateServerViewModel : ObservableObject
         }
 
         _stopTimeoutCts?.Cancel();
+        try { _stopTimeoutCts?.Dispose(); } catch { }
         _stopTimeoutCts = new CancellationTokenSource();
         var ct = _stopTimeoutCts.Token;
 
@@ -926,9 +1132,13 @@ public partial class CreateServerViewModel : ObservableObject
             IsServerRunning = false;
             IsServerStopping = false;
             IsForceStopAvailable = false;
-            _stopTimeoutCts?.Cancel();
+            _runningServerName = null;
+            try { _stopTimeoutCts?.Cancel(); _stopTimeoutCts?.Dispose(); } catch { }
+            _stopTimeoutCts = null;
             _uptimeTimer.Stop();
             UptimeText = "00:00:00";
+            try { _serverStdin?.Dispose(); } catch { }
+            try { _serverProcess?.Dispose(); } catch { }
             _serverProcess = null;
             _serverStdin = null;
         }
@@ -938,7 +1148,10 @@ public partial class CreateServerViewModel : ObservableObject
     public void OpenLogs()
     {
         SelectedTab = 6;
-        LoadLatestLog();
+        if (string.IsNullOrEmpty(ConsoleLogText))
+            _ = LoadLatestLogAsync();
+        else
+            ConsoleUpdated?.Invoke();
     }
 
     [RelayCommand]
@@ -1032,7 +1245,7 @@ public partial class CreateServerViewModel : ObservableObject
             IsCreated = true;
             StatusText = L10n.T("cs_created_success");
 
-            RefreshExistingServers();
+            await RefreshExistingServersAsync();
             SelectedServerName = Path.GetFileName(targetDir);
             IsCreatingNewServer = false;
             IsDashboardMode = true;
@@ -1126,11 +1339,16 @@ public partial class CreateServerViewModel : ObservableObject
                         IsServerRunning = false;
                         IsServerStopping = false;
                         IsForceStopAvailable = false;
-                        _stopTimeoutCts?.Cancel();
+                        _runningServerName = null;
+                        try { _stopTimeoutCts?.Cancel(); _stopTimeoutCts?.Dispose(); } catch { }
+                        _stopTimeoutCts = null;
                         _uptimeTimer.Stop();
                         UptimeText = "00:00:00";
+                        try { _serverStdin?.Dispose(); } catch { }
+                        var proc = _serverProcess;
                         _serverProcess = null;
                         _serverStdin = null;
+                        try { proc?.Dispose(); } catch { }
                     });
                 };
 
@@ -1151,6 +1369,12 @@ public partial class CreateServerViewModel : ObservableObject
                     p.BeginOutputReadLine();
                     p.BeginErrorReadLine();
                     _serverStartTime = DateTime.Now;
+                    _runningServerName = SelectedServerName;
+                    FlushConsoleBuffer();
+                    if (!string.IsNullOrWhiteSpace(_runningServerName))
+                        _consoleBuffers[_runningServerName] = ConsoleLogText ?? "";
+                    _consoleOwner = _runningServerName;
+                    AppendConsoleLog("=== Server started ===");
                     IsServerRunning = true;
                     IsServerStopping = false;
                     IsForceStopAvailable = false;
@@ -1183,8 +1407,13 @@ public partial class CreateServerViewModel : ObservableObject
     // ==========================================
 
     [RelayCommand]
-    public void RefreshFiles()
+    public async Task RefreshFilesAsync()
     {
+        _filesCts?.Cancel();
+        try { _filesCts?.Dispose(); } catch { }
+        _filesCts = new CancellationTokenSource();
+        var ct = _filesCts.Token;
+
         if (string.IsNullOrWhiteSpace(ActiveServerDirectory) || !Directory.Exists(ActiveServerDirectory))
         {
             ServerFiles.Clear();
@@ -1192,102 +1421,117 @@ public partial class CreateServerViewModel : ObservableObject
             return;
         }
 
+        // Chroot: never browse outside the server folder (resolves ".." and symlinks).
         if (string.IsNullOrWhiteSpace(CurrentBrowsePath) || !Directory.Exists(CurrentBrowsePath) ||
-            !CurrentBrowsePath.StartsWith(ActiveServerDirectory, StringComparison.OrdinalIgnoreCase))
+            !IsInActiveServer(CurrentBrowsePath))
         {
             CurrentBrowsePath = ActiveServerDirectory;
         }
 
         try
         {
+            var browsePath = CurrentBrowsePath;
             var activeFull = Path.GetFullPath(ActiveServerDirectory).TrimEnd('\\', '/');
-            var currFull = Path.GetFullPath(CurrentBrowsePath).TrimEnd('\\', '/');
-            CanNavigateUp = !string.Equals(activeFull, currFull, StringComparison.OrdinalIgnoreCase);
-
+            var currFull = Path.GetFullPath(browsePath).TrimEnd('\\', '/');
+            var canUp = !string.Equals(activeFull, currFull, StringComparison.OrdinalIgnoreCase);
             var rel = Path.GetRelativePath(activeFull, currFull);
-            CurrentBrowseRelativePath = string.IsNullOrWhiteSpace(rel) || rel == "." ? "/" : "/" + rel.Replace('\\', '/');
+            var relDisplay = string.IsNullOrWhiteSpace(rel) || rel == "." ? "/" : "/" + rel.Replace('\\', '/');
 
-            var items = new List<ServerFileItem>();
-
-            var dirs = Directory.GetDirectories(CurrentBrowsePath);
-            Array.Sort(dirs, StringComparer.OrdinalIgnoreCase);
-            foreach (var d in dirs)
+            var items = await Task.Run(() =>
             {
-                var dirInfo = new DirectoryInfo(d);
-                items.Add(new ServerFileItem
-                {
-                    Name = dirInfo.Name,
-                    FullPath = d,
-                    IsDirectory = true,
-                    SizeBytes = 0,
-                    SizeDisplay = "--",
-                    ModifiedDisplay = dirInfo.LastWriteTime.ToString("yyyy-MM-dd HH:mm"),
-                    IconKind = "folder",
-                    IconData = "M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z",
-                    IconColor = "#60A5FA"
-                });
-            }
+                ct.ThrowIfCancellationRequested();
+                var result = new List<ServerFileItem>();
 
-            var files = Directory.GetFiles(CurrentBrowsePath);
-            Array.Sort(files, StringComparer.OrdinalIgnoreCase);
-            foreach (var f in files)
-            {
-                var fi = new FileInfo(f);
-                var ext = fi.Extension.ToLowerInvariant();
-                string iconData;
-                string iconColor;
-                string iconKind;
-
-                if (ext is ".properties" or ".yml" or ".yaml" or ".json" or ".toml" or ".txt")
+                var dirs = Directory.GetDirectories(browsePath);
+                Array.Sort(dirs, StringComparer.OrdinalIgnoreCase);
+                foreach (var d in dirs)
                 {
-                    iconKind = "config";
-                    iconData = "M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z";
-                    iconColor = "#FBBF24";
-                }
-                else if (ext is ".jar" or ".bat" or ".sh" or ".cmd")
-                {
-                    iconKind = "package";
-                    iconData = "M12 2l-8 4.5v9L12 20l8-4.5v-9L12 2zm0 2.2l5.7 3.2L12 10.6 6.3 7.4 12 4.2z";
-                    iconColor = "#34D399";
-                }
-                else if (ext is ".log" or ".gz")
-                {
-                    iconKind = "log";
-                    iconData = "M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10H7v-2h10v2zm0-4H7V7h10v2z";
-                    iconColor = "#A78BFA";
-                }
-                else
-                {
-                    iconKind = "file";
-                    iconData = "M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z";
-                    iconColor = "#9CA3AF";
+                    ct.ThrowIfCancellationRequested();
+                    var dirInfo = new DirectoryInfo(d);
+                    result.Add(new ServerFileItem
+                    {
+                        Name = dirInfo.Name,
+                        FullPath = d,
+                        IsDirectory = true,
+                        SizeBytes = 0,
+                        SizeDisplay = "--",
+                        ModifiedDisplay = dirInfo.LastWriteTime.ToString("yyyy-MM-dd HH:mm"),
+                        IconKind = "folder",
+                        IconData = "M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z",
+                        IconColor = "#60A5FA"
+                    });
                 }
 
-                items.Add(new ServerFileItem
+                var files = Directory.GetFiles(browsePath);
+                Array.Sort(files, StringComparer.OrdinalIgnoreCase);
+                foreach (var f in files)
                 {
-                    Name = fi.Name,
-                    FullPath = f,
-                    IsDirectory = false,
-                    SizeBytes = fi.Length,
-                    SizeDisplay = FormatFileSize(fi.Length),
-                    ModifiedDisplay = fi.LastWriteTime.ToString("yyyy-MM-dd HH:mm"),
-                    IconKind = iconKind,
-                    IconData = iconData,
-                    IconColor = iconColor
-                });
-            }
+                    ct.ThrowIfCancellationRequested();
+                    var fi = new FileInfo(f);
+                    var ext = fi.Extension.ToLowerInvariant();
+                    string iconData;
+                    string iconColor;
+                    string iconKind;
 
+                    if (ext is ".properties" or ".yml" or ".yaml" or ".json" or ".toml" or ".txt")
+                    {
+                        iconKind = "config";
+                        iconData = "M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z";
+                        iconColor = "#FBBF24";
+                    }
+                    else if (ext is ".jar" or ".bat" or ".sh" or ".cmd")
+                    {
+                        iconKind = "package";
+                        iconData = "M12 2l-8 4.5v9L12 20l8-4.5v-9L12 2zm0 2.2l5.7 3.2L12 10.6 6.3 7.4 12 4.2z";
+                        iconColor = "#34D399";
+                    }
+                    else if (ext is ".log" or ".gz")
+                    {
+                        iconKind = "log";
+                        iconData = "M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10H7v-2h10v2zm0-4H7V7h10v2z";
+                        iconColor = "#A78BFA";
+                    }
+                    else
+                    {
+                        iconKind = "file";
+                        iconData = "M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z";
+                        iconColor = "#9CA3AF";
+                    }
+
+                    result.Add(new ServerFileItem
+                    {
+                        Name = fi.Name,
+                        FullPath = f,
+                        IsDirectory = false,
+                        SizeBytes = fi.Length,
+                        SizeDisplay = FormatFileSize(fi.Length),
+                        ModifiedDisplay = fi.LastWriteTime.ToString("yyyy-MM-dd HH:mm"),
+                        IconKind = iconKind,
+                        IconData = iconData,
+                        IconColor = iconColor
+                    });
+                }
+                return result;
+            }, ct);
+
+            if (ct.IsCancellationRequested) return;
+            CanNavigateUp = canUp;
+            CurrentBrowseRelativePath = relDisplay;
             ServerFiles.Clear();
             foreach (var it in items) ServerFiles.Add(it);
             IsFilesEmpty = ServerFiles.Count == 0;
             FileOperationStatus = "";
         }
+        catch (OperationCanceledException) { }
         catch (Exception ex)
         {
+            if (ct.IsCancellationRequested) return;
             LauncherLog.Error("Failed to refresh server files", ex);
             FileOperationStatus = ex.Message;
         }
     }
+
+    public void RefreshFiles() => _ = RefreshFilesAsync();
 
     private static string FormatFileSize(long bytes)
     {
@@ -1305,13 +1549,29 @@ public partial class CreateServerViewModel : ObservableObject
     };
 
     [RelayCommand]
+    public void NavigateUpDirectory()
+    {
+        if (!CanNavigateUp) return;
+        try
+        {
+            var parent = Directory.GetParent(CurrentBrowsePath)?.FullName;
+            if (parent != null && IsInActiveServer(parent))
+            {
+                CurrentBrowsePath = parent;
+                _ = RefreshFilesAsync();
+            }
+        }
+        catch { }
+    }
+
+    [RelayCommand]
     public async Task NavigateIntoFileItem(ServerFileItem? item)
     {
-        if (item == null) return;
+        if (item == null || !IsInActiveServer(item.FullPath)) return;
         if (item.IsDirectory)
         {
             CurrentBrowsePath = item.FullPath;
-            RefreshFiles();
+            await RefreshFilesAsync();
         }
         else
         {
@@ -1320,37 +1580,27 @@ public partial class CreateServerViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public void NavigateUpDirectory()
-    {
-        if (!CanNavigateUp) return;
-        try
-        {
-            var parent = Directory.GetParent(CurrentBrowsePath)?.FullName;
-            if (parent != null && parent.StartsWith(ActiveServerDirectory, StringComparison.OrdinalIgnoreCase))
-            {
-                CurrentBrowsePath = parent;
-                RefreshFiles();
-            }
-        }
-        catch { }
-    }
-
-    [RelayCommand]
     public async Task OpenFileItem(ServerFileItem? item)
     {
-        if (item == null) return;
+        if (item == null || !IsInActiveServer(item.FullPath)) return;
         try
         {
             if (item.IsDirectory)
             {
                 CurrentBrowsePath = item.FullPath;
-                RefreshFiles();
+                await RefreshFilesAsync();
             }
             else if (File.Exists(item.FullPath))
             {
                 var ext = Path.GetExtension(item.FullPath);
                 if (TextExtensions.Contains(ext))
                 {
+                    var info = new FileInfo(item.FullPath);
+                    if (info.Length > 2 * 1024 * 1024)
+                    {
+                        FileOperationStatus = L10n.T("cs_file_too_large");
+                        return;
+                    }
                     EditingFileName = Path.GetFileName(item.FullPath);
                     EditingFileFullPath = item.FullPath;
                     EditingFileContent = await File.ReadAllTextAsync(item.FullPath);
@@ -1373,13 +1623,13 @@ public partial class CreateServerViewModel : ObservableObject
     [RelayCommand]
     public async Task SaveEditedFileAsync()
     {
-        if (string.IsNullOrWhiteSpace(EditingFileFullPath)) return;
+        if (string.IsNullOrWhiteSpace(EditingFileFullPath) || !IsInActiveServer(EditingFileFullPath)) return;
         try
         {
             IsFileEditorSaving = true;
             await File.WriteAllTextAsync(EditingFileFullPath, EditingFileContent ?? "");
             FileEditorStatusMessage = L10n.T("cs_editor_saved");
-            RefreshFiles();
+            await RefreshFilesAsync();
         }
         catch (Exception ex)
         {
@@ -1423,12 +1673,14 @@ public partial class CreateServerViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public void ConfirmRenameFile()
+    public async Task ConfirmRenameFile()
     {
-        if (_renamingFileItem == null || string.IsNullOrWhiteSpace(RenamingFileNewName)) return;
+        if (_renamingFileItem == null || !IsSafeFileName(RenamingFileNewName)) return;
+        if (!IsInActiveServer(_renamingFileItem.FullPath)) return;
         try
         {
             var newPath = Path.Combine(CurrentBrowsePath, RenamingFileNewName.Trim());
+            if (!IsInActiveServer(newPath)) return;
             if (newPath == _renamingFileItem.FullPath) { CancelRenameFile(); return; }
             if (File.Exists(newPath) || Directory.Exists(newPath))
             {
@@ -1439,9 +1691,9 @@ public partial class CreateServerViewModel : ObservableObject
                 Directory.Move(_renamingFileItem.FullPath, newPath);
             else
                 File.Move(_renamingFileItem.FullPath, newPath);
-            
+
             CancelRenameFile();
-            RefreshFiles();
+            await RefreshFilesAsync();
         }
         catch (Exception ex)
         {
@@ -1450,9 +1702,9 @@ public partial class CreateServerViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public void CreateNewFolder()
+    public async Task CreateNewFolder()
     {
-        if (string.IsNullOrWhiteSpace(CurrentBrowsePath)) return;
+        if (string.IsNullOrWhiteSpace(CurrentBrowsePath) || !IsInActiveServer(CurrentBrowsePath)) return;
         try {
             string baseName = "New Folder";
             string name = baseName;
@@ -1461,16 +1713,16 @@ public partial class CreateServerViewModel : ObservableObject
                 name = $"{baseName} ({counter++})";
             }
             var di = Directory.CreateDirectory(Path.Combine(CurrentBrowsePath, name));
-            RefreshFiles();
+            await RefreshFilesAsync();
             var item = ServerFiles.FirstOrDefault(f => f.Name == name);
             if (item != null) StartRenameFile(item);
         } catch { }
     }
 
     [RelayCommand]
-    public void CreateNewFile()
+    public async Task CreateNewFile()
     {
-        if (string.IsNullOrWhiteSpace(CurrentBrowsePath)) return;
+        if (string.IsNullOrWhiteSpace(CurrentBrowsePath) || !IsInActiveServer(CurrentBrowsePath)) return;
         try {
             string baseName = "new_file";
             string ext = ".txt";
@@ -1480,7 +1732,7 @@ public partial class CreateServerViewModel : ObservableObject
                 name = $"{baseName}_{counter++}{ext}";
             }
             File.WriteAllText(Path.Combine(CurrentBrowsePath, name), "");
-            RefreshFiles();
+            await RefreshFilesAsync();
             var item = ServerFiles.FirstOrDefault(f => f.Name == name);
             if (item != null) StartRenameFile(item);
         } catch { }
@@ -1488,20 +1740,24 @@ public partial class CreateServerViewModel : ObservableObject
 
 
     [RelayCommand]
-    public void DeleteFileItem(ServerFileItem? item)
+    public async Task DeleteFileItem(ServerFileItem? item)
     {
-        if (item == null) return;
+        if (item == null || !IsInActiveServer(item.FullPath)) return;
+        // Never allow deleting the server root itself.
         try
         {
+            var rootFull = Path.GetFullPath(ActiveServerDirectory).TrimEnd('\\', '/');
+            var targetFull = Path.GetFullPath(item.FullPath).TrimEnd('\\', '/');
+            if (string.Equals(rootFull, targetFull, StringComparison.OrdinalIgnoreCase)) return;
             if (item.IsDirectory && Directory.Exists(item.FullPath))
             {
-                Directory.Delete(item.FullPath, true);
+                await Task.Run(() => Directory.Delete(item.FullPath, true));
             }
             else if (File.Exists(item.FullPath))
             {
                 File.Delete(item.FullPath);
             }
-            RefreshFiles();
+            await RefreshFilesAsync();
         }
         catch (Exception ex)
         {
@@ -1515,6 +1771,7 @@ public partial class CreateServerViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(CurrentBrowsePath) || !Directory.Exists(CurrentBrowsePath))
             return;
+        if (!IsInActiveServer(CurrentBrowsePath)) return;
 
         var topLevel = Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop
             ? desktop.MainWindow
@@ -1537,10 +1794,11 @@ public partial class CreateServerViewModel : ObservableObject
                 if (!string.IsNullOrEmpty(local) && File.Exists(local))
                 {
                     var dest = Path.Combine(CurrentBrowsePath, Path.GetFileName(local));
+                    if (!IsInActiveServer(dest)) continue;
                     File.Copy(local, dest, true);
                 }
             }
-            RefreshFiles();
+            await RefreshFilesAsync();
         }
         catch (Exception ex)
         {
@@ -1733,24 +1991,32 @@ public partial class CreateServerViewModel : ObservableObject
         ResetButtonText = string.Format(L10n.T("cs_reset_world_sure"), 5);
         WorldResetStatusMessage = "";
 
-        _resetCountdownTimer?.Stop();
-        _resetCountdownTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
-        _resetCountdownTimer.Tick += (s, e) =>
+        if (_resetCountdownTimer == null)
         {
-            ResetCountdownSeconds--;
-            if (ResetCountdownSeconds > 0)
-            {
-                ResetButtonText = string.Format(L10n.T("cs_reset_world_sure"), ResetCountdownSeconds);
-            }
-            else
-            {
-                _resetCountdownTimer?.Stop();
-                IsResetCountdownActive = false;
-                CanConfirmResetWorld = true;
-                ResetButtonText = L10n.T("cs_reset_world_confirm");
-            }
-        };
+            _resetCountdownTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+            _resetCountdownTimer.Tick += OnResetCountdownTick;
+        }
+        else
+        {
+            _resetCountdownTimer.Stop();
+        }
         _resetCountdownTimer.Start();
+    }
+
+    private void OnResetCountdownTick(object? sender, EventArgs e)
+    {
+        ResetCountdownSeconds--;
+        if (ResetCountdownSeconds > 0)
+        {
+            ResetButtonText = string.Format(L10n.T("cs_reset_world_sure"), ResetCountdownSeconds);
+        }
+        else
+        {
+            _resetCountdownTimer?.Stop();
+            IsResetCountdownActive = false;
+            CanConfirmResetWorld = true;
+            ResetButtonText = L10n.T("cs_reset_world_confirm");
+        }
     }
 
     [RelayCommand]
@@ -1808,23 +2074,24 @@ public partial class CreateServerViewModel : ObservableObject
         var trimmed = NewPlayerName.Trim();
         NewPlayerName = "";
 
+        // PlayersSubTab: 0=Online (read-only), 1=Ops, 2=Whitelist, 3=Bans.
         switch (PlayersSubTab)
         {
-            case 0:
+            case 1:
                 if (!OpsList.Any(p => p.Name.Equals(trimmed, StringComparison.OrdinalIgnoreCase)))
                 {
                     OpsList.Add(new ServerPlayerEntry { Name = trimmed, Level = 4 });
                     ServerCreatorService.SavePlayerList(ActiveServerDirectory, "ops.json", OpsList);
                 }
                 break;
-            case 1:
+            case 2:
                 if (!WhitelistList.Any(p => p.Name.Equals(trimmed, StringComparison.OrdinalIgnoreCase)))
                 {
                     WhitelistList.Add(new ServerPlayerEntry { Name = trimmed });
                     ServerCreatorService.SavePlayerList(ActiveServerDirectory, "whitelist.json", WhitelistList);
                 }
                 break;
-            case 2:
+            case 3:
                 if (!BansList.Any(p => p.Name.Equals(trimmed, StringComparison.OrdinalIgnoreCase)))
                 {
                     BansList.Add(new ServerPlayerEntry { Name = trimmed, Reason = "Banned by operator." });
@@ -1841,15 +2108,15 @@ public partial class CreateServerViewModel : ObservableObject
 
         switch (PlayersSubTab)
         {
-            case 0:
+            case 1:
                 OpsList.Remove(entry);
                 ServerCreatorService.SavePlayerList(ActiveServerDirectory, "ops.json", OpsList);
                 break;
-            case 1:
+            case 2:
                 WhitelistList.Remove(entry);
                 ServerCreatorService.SavePlayerList(ActiveServerDirectory, "whitelist.json", WhitelistList);
                 break;
-            case 2:
+            case 3:
                 BansList.Remove(entry);
                 ServerCreatorService.SavePlayerList(ActiveServerDirectory, "banned-players.json", BansList);
                 break;
@@ -2022,27 +2289,36 @@ public partial class CreateServerViewModel : ObservableObject
         }
     }
 
-    public void LoadServerIcon()
+    public async Task LoadServerIconAsync()
     {
+        var dir = ActiveServerDirectory;
+        if (string.IsNullOrWhiteSpace(dir)) return;
+        byte[]? bytes = null;
+        try
+        {
+            var iconPath = Path.Combine(dir, "server-icon.png");
+            if (File.Exists(iconPath))
+                bytes = await Task.Run(() => File.ReadAllBytes(iconPath));
+        }
+        catch { }
         ServerIconBitmap?.Dispose();
         ServerIconBitmap = null;
         HasServerIcon = false;
-
-        if (string.IsNullOrWhiteSpace(ActiveServerDirectory)) return;
-        var iconPath = Path.Combine(ActiveServerDirectory, "server-icon.png");
-        if (File.Exists(iconPath))
+        if (bytes != null)
         {
             try
             {
-                using var stream = File.OpenRead(iconPath);
-                ServerIconBitmap = new Bitmap(stream);
+                using var ms = new MemoryStream(bytes);
+                ServerIconBitmap = new Bitmap(ms);
                 HasServerIcon = true;
             }
             catch { }
         }
     }
 
-    // --- Console Commands & Log Streaming ---
+    public void LoadServerIcon() => _ = LoadServerIconAsync();
+
+    // --- Console Commands & Log Streaming (isolated per server) ---
     [RelayCommand]
     public void SendConsoleCommand()
     {
@@ -2074,10 +2350,26 @@ public partial class CreateServerViewModel : ObservableObject
     public void ClearConsole()
     {
         ConsoleLogText = "";
+        if (!string.IsNullOrWhiteSpace(_consoleOwner))
+            _consoleBuffers[_consoleOwner] = "";
     }
 
     public void AppendConsoleLog(string line)
     {
+        // Route live process output to the running server's buffer when the
+        // user is looking at a different server.
+        if (IsServerRunning && !string.IsNullOrWhiteSpace(_runningServerName) &&
+            !string.Equals(_runningServerName, SelectedServerName, StringComparison.OrdinalIgnoreCase))
+        {
+            var key = _runningServerName;
+            _consoleBuffers.TryGetValue(key, out var existing);
+            var next = string.IsNullOrEmpty(existing) ? line : existing + "\n" + line;
+            if (next.Length > 200000)
+                next = next.Substring(next.Length - 100000);
+            _consoleBuffers[key] = next;
+            return;
+        }
+
         Dispatcher.UIThread.Post(() =>
         {
             if (string.IsNullOrEmpty(ConsoleLogText))
@@ -2088,23 +2380,33 @@ public partial class CreateServerViewModel : ObservableObject
                     ConsoleLogText = ConsoleLogText.Substring(ConsoleLogText.Length - 100000);
                 ConsoleLogText += "\n" + line;
             }
+            if (!string.IsNullOrWhiteSpace(_consoleOwner))
+                _consoleBuffers[_consoleOwner] = ConsoleLogText;
+            ConsoleUpdated?.Invoke();
         });
     }
 
-    public void LoadLatestLog()
+    public async Task LoadLatestLogAsync()
     {
-        if (string.IsNullOrWhiteSpace(ActiveServerDirectory)) return;
-        var logFile = Path.Combine(ActiveServerDirectory, "logs", "latest.log");
+        var dir = ActiveServerDirectory;
+        if (string.IsNullOrWhiteSpace(dir)) return;
+        var logFile = Path.Combine(dir, "logs", "latest.log");
         if (File.Exists(logFile))
         {
             try
             {
-                using var fs = new FileStream(logFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                using var sr = new StreamReader(fs);
-                var text = sr.ReadToEnd();
+                string text;
+                using (var fs = new FileStream(logFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (var sr = new StreamReader(fs))
+                {
+                    text = await sr.ReadToEndAsync();
+                }
                 if (text.Length > 150000)
                     text = text.Substring(text.Length - 150000);
                 ConsoleLogText = text.Replace("\r\n", "\n");
+                if (!string.IsNullOrWhiteSpace(_consoleOwner))
+                    _consoleBuffers[_consoleOwner] = ConsoleLogText;
+                ConsoleUpdated?.Invoke();
             }
             catch (Exception ex)
             {
@@ -2113,155 +2415,107 @@ public partial class CreateServerViewModel : ObservableObject
         }
         else if (!IsServerRunning)
         {
-            ConsoleLogText = "No log file found yet. Start the server to generate logs and view the live console.";
+            ConsoleLogText = L10n.T("cs_console_empty");
+            ConsoleUpdated?.Invoke();
         }
     }
 
-    private void LoadQuickCommands()
-    {
-        QuickCommands.Clear();
-        var defaultCommands = new[] { "help", "list", "save-all", "stop" };
-        if (!string.IsNullOrWhiteSpace(ActiveServerDirectory) && Directory.Exists(ActiveServerDirectory))
-        {
-            var path = Path.Combine(ActiveServerDirectory, "quick-commands.json");
-            if (File.Exists(path))
-            {
-                try
-                {
-                    var list = System.Text.Json.JsonSerializer.Deserialize<List<string>>(File.ReadAllText(path));
-                    if (list != null && list.Count > 0)
-                    {
-                        foreach (var c in list) QuickCommands.Add(c);
-                        return;
-                    }
-                }
-                catch { }
-            }
-        }
-        foreach (var c in defaultCommands) QuickCommands.Add(c);
-    }
-
-    private void SaveQuickCommands()
-    {
-        if (string.IsNullOrWhiteSpace(ActiveServerDirectory) || !Directory.Exists(ActiveServerDirectory)) return;
-        try
-        {
-            var path = Path.Combine(ActiveServerDirectory, "quick-commands.json");
-            var json = System.Text.Json.JsonSerializer.Serialize(QuickCommands.ToList());
-            File.WriteAllText(path, json);
-        }
-        catch { }
-    }
-
-    [RelayCommand]
-    public void ExecuteQuickCommand(string? cmd)
-    {
-        if (string.IsNullOrWhiteSpace(cmd)) return;
-        ConsoleCommandText = cmd;
-        SendConsoleCommand();
-    }
-
-    [RelayCommand]
-    public void AddQuickCommand()
-    {
-        if (!string.IsNullOrWhiteSpace(NewQuickCommandText))
-        {
-            var cmd = NewQuickCommandText.Trim();
-            if (!QuickCommands.Contains(cmd))
-            {
-                QuickCommands.Add(cmd);
-                SaveQuickCommands();
-            }
-            NewQuickCommandText = "";
-            IsAddingQuickCommand = false;
-        }
-    }
-
-    [RelayCommand]
-    public void RemoveQuickCommand(string? cmd)
-    {
-        if (!string.IsNullOrWhiteSpace(cmd))
-        {
-            QuickCommands.Remove(cmd);
-            SaveQuickCommands();
-        }
-    }
-
-    [RelayCommand]
-    public void ToggleAddQuickCommand()
-    {
-        IsAddingQuickCommand = !IsAddingQuickCommand;
-    }
+    public void LoadLatestLog() => _ = LoadLatestLogAsync();
 
     // --- World Management ---
-    public void RefreshWorldInfo()
+    public async Task RefreshWorldInfoAsync()
     {
-        if (string.IsNullOrWhiteSpace(ActiveServerDirectory) || !Directory.Exists(ActiveServerDirectory)) return;
+        var dir = ActiveServerDirectory;
+        if (string.IsNullOrWhiteSpace(dir) || !Directory.Exists(dir)) return;
 
         WorldNameDisplay = !string.IsNullOrWhiteSpace(PropsLevelName) ? PropsLevelName : "world";
         WorldDifficulty = PropsDifficulty;
         WorldHardcore = PropsHardcore;
-        WorldSeed = PropsLevelSeed;
         WorldGenerateStructures = PropsGenerateStructures;
+
+        var worldDir = Path.Combine(dir, WorldNameDisplay);
+        if (!Directory.Exists(worldDir))
+        {
+            WorldIconBitmap?.Dispose();
+            WorldIconBitmap = null;
+            HasWorldIcon = false;
+            WorldSizeDisplay = "Not generated yet";
+            EnabledDatapacks.Clear();
+            DisabledDatapacks.Clear();
+            return;
+        }
+
+        // Heavy disk work (recursive size + datapack scan) off the UI thread.
+        // The world icon is the real icon.png from the world save folder.
+        var snapshot = await Task.Run(() =>
+        {
+            byte[]? iconBytes = null;
+            try
+            {
+                var iconPath = Path.Combine(worldDir, "icon.png");
+                if (File.Exists(iconPath))
+                    iconBytes = File.ReadAllBytes(iconPath);
+            }
+            catch { }
+
+            string sizeDisplay;
+            try
+            {
+                long totalBytes = Directory.GetFiles(worldDir, "*", SearchOption.AllDirectories).Sum(f => new FileInfo(f).Length);
+                sizeDisplay = totalBytes > 1024L * 1024 * 1024
+                    ? $"{(totalBytes / (1024.0 * 1024 * 1024)):F2} GB"
+                    : $"{(totalBytes / (1024.0 * 1024)):F1} MB";
+            }
+            catch { sizeDisplay = "Unknown"; }
+
+            var enabled = new List<string>();
+            var disabled = new List<string>();
+            try
+            {
+                var dpDir = Path.Combine(worldDir, "datapacks");
+                if (Directory.Exists(dpDir))
+                {
+                    foreach (var file in Directory.GetFiles(dpDir, "*.zip"))
+                    {
+                        if (file.EndsWith(".disabled", StringComparison.OrdinalIgnoreCase))
+                            disabled.Add(Path.GetFileName(file));
+                        else
+                            enabled.Add(Path.GetFileName(file));
+                    }
+                    foreach (var d in Directory.GetDirectories(dpDir))
+                    {
+                        if (d.EndsWith(".disabled", StringComparison.OrdinalIgnoreCase))
+                            disabled.Add(Path.GetFileName(d));
+                        else
+                            enabled.Add(Path.GetFileName(d));
+                    }
+                }
+            }
+            catch { }
+            return (iconBytes, sizeDisplay, enabled, disabled);
+        });
 
         WorldIconBitmap?.Dispose();
         WorldIconBitmap = null;
         HasWorldIcon = false;
-
-        var worldDir = Path.Combine(ActiveServerDirectory, WorldNameDisplay);
-        if (Directory.Exists(worldDir))
+        if (snapshot.iconBytes != null)
         {
-            var iconPath = Path.Combine(worldDir, "icon.png");
-            if (File.Exists(iconPath))
-            {
-                try
-                {
-                    using var fs = File.OpenRead(iconPath);
-                    WorldIconBitmap = new Bitmap(fs);
-                    HasWorldIcon = true;
-                }
-                catch { }
-            }
-
             try
             {
-                long totalBytes = Directory.GetFiles(worldDir, "*", SearchOption.AllDirectories).Sum(f => new FileInfo(f).Length);
-                if (totalBytes > 1024 * 1024 * 1024)
-                    WorldSizeDisplay = $"{(totalBytes / (1024.0 * 1024 * 1024)):F2} GB";
-                else
-                    WorldSizeDisplay = $"{(totalBytes / (1024.0 * 1024)):F1} MB";
+                using var ms = new MemoryStream(snapshot.iconBytes);
+                WorldIconBitmap = new Bitmap(ms);
+                HasWorldIcon = true;
             }
-            catch
-            {
-                WorldSizeDisplay = "Unknown";
-            }
-
-            EnabledDatapacks.Clear();
-            DisabledDatapacks.Clear();
-            var dpDir = Path.Combine(worldDir, "datapacks");
-            if (Directory.Exists(dpDir))
-            {
-                foreach (var file in Directory.GetFiles(dpDir, "*.zip"))
-                {
-                    if (file.EndsWith(".disabled", StringComparison.OrdinalIgnoreCase))
-                        DisabledDatapacks.Add(Path.GetFileName(file));
-                    else
-                        EnabledDatapacks.Add(Path.GetFileName(file));
-                }
-                foreach (var dir in Directory.GetDirectories(dpDir))
-                {
-                    if (dir.EndsWith(".disabled", StringComparison.OrdinalIgnoreCase))
-                        DisabledDatapacks.Add(Path.GetFileName(dir));
-                    else
-                        EnabledDatapacks.Add(Path.GetFileName(dir));
-                }
-            }
+            catch { }
         }
-        else
-        {
-            WorldSizeDisplay = "Not generated yet";
-        }
+        WorldSizeDisplay = snapshot.sizeDisplay;
+        EnabledDatapacks.Clear();
+        DisabledDatapacks.Clear();
+        foreach (var e in snapshot.enabled) EnabledDatapacks.Add(e);
+        foreach (var d in snapshot.disabled) DisabledDatapacks.Add(d);
     }
+
+    public void RefreshWorldInfo() => _ = RefreshWorldInfoAsync();
 
     [RelayCommand]
     public async Task DownloadWorldAsync()
@@ -2337,7 +2591,7 @@ public partial class CreateServerViewModel : ObservableObject
                 }
                 Directory.CreateDirectory(worldDir);
                 await Task.Run(() => ZipFile.ExtractToDirectory(srcZip, worldDir, overwriteFiles: true));
-                RefreshWorldInfo();
+                await RefreshWorldInfoAsync();
                 WorldStatusMessage = "World uploaded successfully!";
             }
             catch (Exception ex)
@@ -2356,9 +2610,10 @@ public partial class CreateServerViewModel : ObservableObject
     [RelayCommand]
     public void SaveWorldSettings()
     {
+        // world-name / world-type / world-seed are not edited here by design:
+        // only live world rules are persisted.
         PropsDifficulty = WorldDifficulty;
         PropsHardcore = WorldHardcore;
-        PropsLevelSeed = WorldSeed;
         PropsGenerateStructures = WorldGenerateStructures;
 
         if (!string.IsNullOrWhiteSpace(ActiveServerDirectory) && Directory.Exists(ActiveServerDirectory))
@@ -2367,7 +2622,6 @@ public partial class CreateServerViewModel : ObservableObject
             {
                 ["difficulty"] = PropsDifficulty,
                 ["hardcore"] = PropsHardcore ? "true" : "false",
-                ["level-seed"] = PropsLevelSeed,
                 ["generate-structures"] = PropsGenerateStructures ? "true" : "false"
             };
             ServerCreatorService.SaveProperties(ActiveServerDirectory, dict);

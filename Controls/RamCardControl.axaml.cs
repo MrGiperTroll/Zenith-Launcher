@@ -10,7 +10,7 @@ namespace CustomMcLauncher.Controls;
 public partial class RamCardControl : UserControl
 {
     public static readonly StyledProperty<string> TitleProperty =
-        AvaloniaProperty.Register<RamCardControl, string>(nameof(Title), "Allocated RAM");
+        AvaloniaProperty.Register<RamCardControl, string>(nameof(Title), "Memory (RAM)");
 
     public static readonly StyledProperty<string> SubtitleProperty =
         AvaloniaProperty.Register<RamCardControl, string>(nameof(Subtitle), "");

@@ -1,4 +1,4 @@
-<Window xmlns="https://github.com/avaloniaui"
+﻿<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:CustomMcLauncher.Controls"
         xmlns:vm="using:CustomMcLauncher.ViewModels"
@@ -26,7 +26,7 @@
     </Window.Resources>
 
     <Window.Styles>
-        <!-- Тонкий скроллбар -->
+        <!-- РўРѕРЅРєРёР№ СЃРєСЂРѕР»Р»Р±Р°СЂ -->
         <Style Selector="ScrollBar">
             <Setter Property="AllowAutoHide" Value="False"/>
         </Style>
@@ -49,7 +49,7 @@
             <Setter Property="IsVisible" Value="False"/>
         </Style>
 
-        <!-- Поле заголовка без синих рамок и фона при фокусе -->
+        <!-- РџРѕР»Рµ Р·Р°РіРѕР»РѕРІРєР° Р±РµР· СЃРёРЅРёС… СЂР°РјРѕРє Рё С„РѕРЅР° РїСЂРё С„РѕРєСѓСЃРµ -->
         <Style Selector="TextBox.titleInput">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
@@ -149,7 +149,7 @@
             <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
         </Style>
 
-        <!-- Instance card border (no Button wrapper — Border handles click + drag) -->
+        <!-- Instance card border (no Button wrapper вЂ” Border handles click + drag) -->
         <Style Selector="Border.instanceCard">
             <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
             <Setter Property="Transitions">
@@ -520,9 +520,6 @@
                     </StackPanel>
 
                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <Button Command="{Binding OpenAboutCommand}" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderSoftBrush}" BorderThickness="1" CornerRadius="16" Width="32" Height="32" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" ToolTip.Tip="{l10n:Tr Key=nav_about}" Cursor="Hand">
-                            <PathIcon Data="M11 9H13V7H11M12 20C7.59 20 4 16.41 4 12S7.59 4 12 4 20 7.59 20 12 16.41 20 12 20M12 2C6.48 2 2 6.48 2 12S6.48 22 12 22 22 17.52 22 12 17.52 2 12 2M11 17H13V11H11V17Z" Width="14" Height="14" Foreground="{StaticResource TextSecondaryBrush}"/>
-                        </Button>
                         <Button Command="{Binding OpenAccountsDialogCommand}" Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderSoftBrush}" BorderThickness="1" CornerRadius="18" Padding="10,4" Cursor="Hand">
                             <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                 <Border Width="18" Height="18" Background="{StaticResource IconChipBrush}" CornerRadius="9" ClipToBounds="True">
@@ -636,13 +633,13 @@
                             <StackPanel Spacing="12">
                                 <Grid ColumnDefinitions="*,Auto">
                                     <TextBlock Text="{l10n:Tr Key=mw_instance_details}" FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                                    <Button Grid.Column="1" Content="✕" Command="{Binding CloseRightSidebarCommand}" Background="Transparent" Foreground="{StaticResource TextPlaceholderBrush}" Padding="6,2" Cursor="Hand"/>
+                                    <Button Grid.Column="1" Content="вњ•" Command="{Binding CloseRightSidebarCommand}" Background="Transparent" Foreground="{StaticResource TextPlaceholderBrush}" Padding="6,2" Cursor="Hand"/>
                                 </Grid>
 
-                                <!-- Profile Preview Box (Без обводки фокуса, имя опущено ближе к версии) -->
+                                <!-- Profile Preview Box (Р‘РµР· РѕР±РІРѕРґРєРё С„РѕРєСѓСЃР°, РёРјСЏ РѕРїСѓС‰РµРЅРѕ Р±Р»РёР¶Рµ Рє РІРµСЂСЃРёРё) -->
                                 <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="16,14">
                                     <StackPanel HorizontalAlignment="Center" Spacing="0">
-                                        <!-- Иконка профиля -->
+                                        <!-- РРєРѕРЅРєР° РїСЂРѕС„РёР»СЏ -->
                                         <Button Classes="iconChangeBtn" Command="{Binding ChangeInstanceIconCommand}" CommandParameter="{Binding SelectedInstance}"
                                                 Background="Transparent" BorderThickness="0" Padding="0" Margin="0,0,0,16" Cursor="Hand"
                                                 ToolTip.Tip="{l10n:Tr Key=icon_change_tip}"
@@ -665,7 +662,7 @@
                                             </Border>
                                         </Button>
 
-<!-- Имя профиля: компактный однострочный бейдж -->
+<!-- РРјСЏ РїСЂРѕС„РёР»СЏ: РєРѕРјРїР°РєС‚РЅС‹Р№ РѕРґРЅРѕСЃС‚СЂРѕС‡РЅС‹Р№ Р±РµР№РґР¶ -->
                                         <Border Background="{StaticResource ChipBrush}" CornerRadius="4" Padding="8,0" Margin="0,4,0,4" HorizontalAlignment="Center" Height="22">
                                             <TextBox Classes="titleInput" Text="{Binding SelectedInstance.Name, Mode=TwoWay}"
                                                      FontWeight="Bold" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}"
@@ -675,14 +672,14 @@
                                                      LostFocus="OnInstanceNameLostFocus"/>
                                         </Border>
 
-                                        <!-- Версия профиля -->
+                                        <!-- Р’РµСЂСЃРёСЏ РїСЂРѕС„РёР»СЏ -->
                                         <Border Background="{StaticResource ChipBrush}" CornerRadius="4" Padding="6,2" HorizontalAlignment="Center">
                                             <TextBlock Text="{Binding SelectedInstanceDetails}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" FontWeight="SemiBold" HorizontalAlignment="Center"/>
                                         </Border>
                                     </StackPanel>
                                 </Border>
 
-                                <!-- Кнопки действий -->
+                                <!-- РљРЅРѕРїРєРё РґРµР№СЃС‚РІРёР№ -->
                                 <StackPanel Spacing="8">
                                     <Button Classes="primaryBtn" Command="{Binding LaunchOrCancelCommand}" IsEnabled="{Binding CanLaunch}"
                                             HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Height="42">
@@ -795,7 +792,7 @@
                                     <TextBox.InnerRightContent>
                                         <Button Command="{Binding ModpacksBrowser.ClearSearchCommand}"
                                                 IsVisible="{Binding ModpacksBrowser.SearchQuery, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}"
-                                                Background="Transparent" BorderThickness="0" Padding="8,0" Cursor="Hand" Content="✕"
+                                                Background="Transparent" BorderThickness="0" Padding="8,0" Cursor="Hand" Content="вњ•"
                                                 Foreground="{StaticResource TextPlaceholderBrush}"/>
                                     </TextBox.InnerRightContent>
                                 </TextBox>
@@ -961,7 +958,7 @@
                         <Grid ColumnDefinitions="*,Auto">
                             <ComboBox ItemsSource="{Binding AvailableVersions}" SelectedItem="{Binding SelectedVersion}" HorizontalAlignment="Stretch"
                                       PlaceholderText="{l10n:Tr Key=none_select_version}"/>
-                            <Button Grid.Column="1" Content="✕" Command="{Binding ClearVersionCommand}" Background="Transparent" Foreground="{StaticResource TextPlaceholderBrush}" Padding="6,0" Cursor="Hand" FontSize="12" Margin="4,0,0,0"/>
+                            <Button Grid.Column="1" Content="вњ•" Command="{Binding ClearVersionCommand}" Background="Transparent" Foreground="{StaticResource TextPlaceholderBrush}" Padding="6,0" Cursor="Hand" FontSize="12" Margin="4,0,0,0"/>
                         </Grid>
                     </StackPanel>
 
@@ -972,7 +969,7 @@
                                       HorizontalAlignment="Stretch" IsVisible="{Binding IsLoaderTypesVisible}"/>
                             <ComboBox Grid.Column="0" ItemsSource="{Binding AvailableLoaderBuilds}" SelectedItem="{Binding SelectedLoaderBuild}"
                                       HorizontalAlignment="Stretch" IsVisible="{Binding IsLoaderBuildsVisible}"/>
-                            <Button Grid.Column="1" Content="⇄" Command="{Binding ToggleLoaderBuildsCommand}"
+                            <Button Grid.Column="1" Content="в‡„" Command="{Binding ToggleLoaderBuildsCommand}"
                                     Width="32" Height="32" Padding="0" Margin="6,0,0,0"
                                     Background="{StaticResource FieldBrush}" Foreground="{StaticResource TextMutedBrush}"
                                     BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"
@@ -1014,7 +1011,7 @@
                     <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,10">
                         <TextBlock Text="{l10n:Tr Key=mw_console_title}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                         <Button Grid.Column="1" Classes="primaryBtn" Content="{l10n:Tr Key=btn_copy_logs}" Command="{Binding CopyConsoleLogsCommand}" Margin="0,0,8,0" Padding="12,5" FontSize="11"/>
-                        <Button Grid.Column="2" Content="✕" Command="{Binding CloseConsoleDialogCommand}" Background="Transparent" Foreground="{StaticResource TextPlaceholderBrush}" Padding="4" Cursor="Hand"/>
+                        <Button Grid.Column="2" Content="вњ•" Command="{Binding CloseConsoleDialogCommand}" Background="Transparent" Foreground="{StaticResource TextPlaceholderBrush}" Padding="4" Cursor="Hand"/>
                     </Grid>
 
                     <Border Grid.Row="1" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource PanelBrush}" BorderThickness="1" CornerRadius="6" Padding="10">
@@ -1102,93 +1099,6 @@
                 </StackPanel>
             </Border>
         </Border>
-    <!-- About modal -->
-        <Border Background="{StaticResource OverlayBrush}" IsVisible="{Binding IsAboutOpen}" ZIndex="1000"
-                HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.RowSpan="3" Grid.ColumnSpan="3">
-            <Border x:Name="AboutModalCard" Background="{StaticResource SurfaceBrush}" CornerRadius="16" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1"
-                    Width="480" HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 18 46 0 #55000000">
-                <StackPanel Margin="30,26,30,24">
-                    <StackPanel Spacing="0" HorizontalAlignment="Center">
-                        <Border Width="76" Height="76" CornerRadius="18" Background="{StaticResource CardBrush}"
-                                BorderBrush="{StaticResource BorderInputBrush}" BorderThickness="1"
-                                HorizontalAlignment="Center" ClipToBounds="True">
-                            <Path Data="{StaticResource ZenithLogoGeometry}" Fill="{DynamicResource AccentBrush}"
-                                  Stretch="Uniform" Width="44" Height="44" Margin="0,3.5,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <TextBlock Text="{Binding LauncherName}" FontSize="22" FontWeight="Bold" HorizontalAlignment="Center"
-                                   Foreground="{StaticResource TextPrimaryBrush}" Margin="0,10,0,0"/>
-                        <TextBlock Text="{Binding VersionLabel, Converter={x:Static converters:L10nFormatConverter.Instance}, ConverterParameter=about_version}" FontSize="12" HorizontalAlignment="Center"
-                                   Foreground="{StaticResource TextMutedBrush}"/>
-                    </StackPanel>
-
-                    <TextBlock Text="{l10n:Tr Key=app_tagline}"
-                               FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="17"
-                               TextAlignment="Center" Margin="0,10,0,0"/>
-
-                    <!-- Tech Stack Chips -->
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="6" Margin="0,10,0,0">
-                        <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="5" Padding="8,3">
-                            <TextBlock Text=".NET 10" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"/>
-                        </Border>
-                        <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="5" Padding="8,3">
-                            <TextBlock Text="Avalonia 11" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                        </Border>
-                        <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="5" Padding="8,3">
-                            <TextBlock Text="C# 14" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                        </Border>
-                    </StackPanel>
-
-                    <!-- Core Features Highlight -->
-                    <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="14,10" Margin="0,12,0,0">
-                        <StackPanel Spacing="6">
-                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" VerticalAlignment="Center">
-                                <PathIcon Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" Width="10" Height="10" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
-                                <TextBlock Grid.Column="1" Text="Fully isolated instances with independent mods, configs, and Java" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                            </Grid>
-                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" VerticalAlignment="Center">
-                                <PathIcon Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" Width="10" Height="10" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
-                                <TextBlock Grid.Column="1" Text="Native Modrinth integration with one-click modpack install" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                            </Grid>
-                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" VerticalAlignment="Center">
-                                <PathIcon Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" Width="10" Height="10" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
-                                <TextBlock Grid.Column="1" Text="Built-in Java 8 / 17 / 21 auto-installer and GPU-composited UI" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                            </Grid>
-                        </StackPanel>
-                    </Border>
-
-                    <Border Height="1" Background="{StaticResource BorderStrongBrush}" Margin="0,14,0,12"/>
-
-                    <TextBlock Text="{l10n:Tr Key=useful_links}" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource TextCaptionBrush}"
-                               Margin="0,0,0,6"/>
-                    <UniformGrid Columns="3" Margin="0,0,0,14">
-                        <Border Tag="https://fabricmc.net" Tapped="OnLinkTapped" Background="{StaticResource FieldBrush}" CornerRadius="6"
-                                Padding="8,6" Margin="0,0,4,0" Cursor="Hand">
-                            <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
-                                <PathIcon Data="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7zM19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7z" Width="11" Height="11" Foreground="{DynamicResource AccentBrush}"/>
-                                <TextBlock Text="Fabric" FontSize="11.5" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Border>
-                        <Border Tag="https://modrinth.com" Tapped="OnLinkTapped" Background="{StaticResource FieldBrush}" CornerRadius="6"
-                                Padding="8,6" Margin="2,0,2,0" Cursor="Hand">
-                            <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
-                                <PathIcon Data="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7zM19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7z" Width="11" Height="11" Foreground="{DynamicResource AccentBrush}"/>
-                                <TextBlock Text="Modrinth" FontSize="11.5" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Border>
-                        <Border Tag="https://www.minecraft.net" Tapped="OnLinkTapped" Background="{StaticResource FieldBrush}" CornerRadius="6"
-                                Padding="8,6" Margin="4,0,0,0" Cursor="Hand">
-                            <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
-                                <PathIcon Data="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7zM19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7z" Width="11" Height="11" Foreground="{DynamicResource AccentBrush}"/>
-                                <TextBlock Text="Minecraft" FontSize="11.5" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Border>
-                    </UniformGrid>
-
-                    <Button Classes="primaryBtn" Content="{l10n:Tr Key=close}" Command="{Binding CloseDialogsCommand}"
-                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Height="34"/>
-                </StackPanel>
-            </Border>
-        </Border>
 
     <!-- Java Runtime Installer In-App Modal -->
         <Border Background="{StaticResource OverlayBrush}" IsVisible="{Binding IsJavaInstallerOpen}" ZIndex="1000"
@@ -1204,7 +1114,7 @@
                             <TextBlock Text="{l10n:Tr Key=java_installer_hint}" FontSize="11"
                                        Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"/>
                         </StackPanel>
-                        <Button Grid.Column="1" Content="✕" Command="{Binding CloseJavaInstallerCommand}" Classes="subBtn"
+                        <Button Grid.Column="1" Content="вњ•" Command="{Binding CloseJavaInstallerCommand}" Classes="subBtn"
                                 Width="28" Height="28" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                 VerticalAlignment="Top" Margin="8,0,0,0"/>
                     </Grid>

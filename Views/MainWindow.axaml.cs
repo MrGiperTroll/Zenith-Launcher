@@ -104,15 +104,6 @@ public partial class MainWindow : Window
         {
             AnimateSidebar(_subscribedVm!.IsRightSidebarOpen);
         }
-        else if (e.PropertyName == nameof(MainWindowViewModel.IsAboutOpen))
-        {
-            if (_subscribedVm!.IsAboutOpen)
-            {
-                var card = this.FindControl<Border>("AboutModalCard");
-                if (card != null)
-                    UiFx.FadeInNow(card, 240, 6);
-            }
-        }
         else if (e.PropertyName == nameof(MainWindowViewModel.IsJavaInstallerOpen))
         {
             if (_subscribedVm!.IsJavaInstallerOpen)

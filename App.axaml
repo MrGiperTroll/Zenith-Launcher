@@ -65,6 +65,20 @@
         <SolidColorBrush x:Key="WarningBrightBrush" Color="#FCD34D"/>
         <SolidColorBrush x:Key="WarningBorderBrush" Color="#3A3320"/>
         <SolidColorBrush x:Key="WarningSoftBrush" Color="#2D2612"/>
+        <SolidColorBrush x:Key="WarningBgBrush" Color="#221A12"/>
+
+        <!-- Success -->
+        <SolidColorBrush x:Key="SuccessBrush" Color="#34D399"/>
+        <SolidColorBrush x:Key="SuccessBgBrush" Color="#12211A"/>
+
+        <!-- Inputs -->
+        <SolidColorBrush x:Key="InputBrush" Color="#121724"/>
+
+        <!-- Logo gradient (harmonized at runtime by ZenithTheme; fallback here) -->
+        <LinearGradientBrush x:Key="SubtleEmeraldBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+            <GradientStop Offset="0" Color="#34D399"/>
+            <GradientStop Offset="1" Color="#10B981"/>
+        </LinearGradientBrush>
 
         <!-- Text -->
         <SolidColorBrush x:Key="TextPrimaryBrush" Color="#FFFFFF"/>

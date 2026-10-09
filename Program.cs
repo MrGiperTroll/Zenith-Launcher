@@ -49,6 +49,7 @@ class Program
         catch (Exception ex)
         {
             AppendLog(logFile, $"[STARTUP EXCEPTION] {ex}\n");
+            return 1;
         }
         finally
         {

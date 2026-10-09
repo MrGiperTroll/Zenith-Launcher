@@ -433,7 +433,7 @@
                                             Background="Transparent" BorderThickness="0" Padding="0" Cursor="Hand"
                                             ToolTip.Tip="{l10n:Tr Key=icon_change_tip}">
                                         <Border Width="50" Height="50" CornerRadius="12" ClipToBounds="True"
-                                                Background="{StaticResource IconChipBrush}" BorderBrush="{StaticResource BorderSubtleBrush}" BorderThickness="1">
+                                                Background="{StaticResource IconChipBrush}" BorderBrush="{StaticResource BorderSoftBrush}" BorderThickness="1">
                                             <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
                                                 <Image IsVisible="{Binding HasServerIcon}"
                                                        Source="{Binding ServerIconBitmap}"
@@ -809,7 +809,7 @@
                         <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
                             <StackPanel Spacing="16">
                                 <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
-                                    <Border Width="48" Height="48" CornerRadius="10" Background="{StaticResource IconChipBrush}" BorderBrush="{StaticResource BorderSubtleBrush}" BorderThickness="1" VerticalAlignment="Center" ClipToBounds="True">
+                                    <Border Width="48" Height="48" CornerRadius="10" Background="{StaticResource IconChipBrush}" BorderBrush="{StaticResource BorderSoftBrush}" BorderThickness="1" VerticalAlignment="Center" ClipToBounds="True">
                                         <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
                                             <Image IsVisible="{Binding HasWorldIcon}"
                                                    Source="{Binding WorldIconBitmap}"
@@ -940,7 +940,7 @@
                                         <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="10,7" Margin="0,0,0,5">
                                             <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" VerticalAlignment="Center">
                                                 <!-- Icon -->
-                                                <Border Grid.Column="0" Width="30" Height="30" CornerRadius="7" Background="{StaticResource IconChipBrush}" BorderBrush="{StaticResource BorderSubtleBrush}" BorderThickness="1" VerticalAlignment="Center">
+                                                <Border Grid.Column="0" Width="30" Height="30" CornerRadius="7" Background="{StaticResource IconChipBrush}" BorderBrush="{StaticResource BorderSoftBrush}" BorderThickness="1" VerticalAlignment="Center">
                                                     <PathIcon Data="M20.5 11H19V7c0-1.1-.9-2-2-2h-4V3.5C13 2.12 11.88 1 10.5 1S8 2.12 8 3.5V5H4c-1.1 0-1.99.9-1.99 2v3.8H3.5c1.49 0 2.7 1.21 2.7 2.7s-1.21 2.7-2.7 2.7H2V20c0 1.1.9 2 2 2h3.8v-1.5c0-1.49 1.21-2.7 2.7-2.7 1.49 0 2.7 1.21 2.7 2.7V22H17c1.1 0 2-.9 2-2v-4h1.5c1.38 0 2.5-1.12 2.5-2.5s-1.12-2.5-2.5-2.5z"
                                                               Width="14" Height="14" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                                                 </Border>
@@ -955,7 +955,7 @@
                                                         <Border Background="{StaticResource RowHoverBrush}" CornerRadius="4" Padding="5,1" VerticalAlignment="Center">
                                                             <TextBlock Text="{Binding Size}" FontSize="10" Foreground="{StaticResource TextMutedBrush}"/>
                                                         </Border>
-                                                        <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="4" Padding="5,1" VerticalAlignment="Center">
+                                                        <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderSoftBrush}" BorderThickness="1" CornerRadius="4" Padding="5,1" VerticalAlignment="Center">
                                                             <TextBlock Text="{Binding StatusText}" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
                                                         </Border>
                                                     </StackPanel>
@@ -1187,7 +1187,7 @@
                                 <!-- Top Bar: File Name, Path, Save & Close -->
                                 <Grid Grid.Row="0" ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                     <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                                        <Border Width="32" Height="32" CornerRadius="6" Background="{StaticResource IconChipBrush}" BorderBrush="{StaticResource BorderSubtleBrush}" BorderThickness="1" VerticalAlignment="Center">
+                                        <Border Width="32" Height="32" CornerRadius="6" Background="{StaticResource IconChipBrush}" BorderBrush="{StaticResource BorderSoftBrush}" BorderThickness="1" VerticalAlignment="Center">
                                             <PathIcon Data="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"
                                                       Width="15" Height="15" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center"/>
                                         </Border>
@@ -1242,7 +1242,7 @@
                                         </Button>
 
                                         <!-- Breadcrumb location -->
-                                        <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="6" Padding="10,5">
+                                        <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderSoftBrush}" BorderThickness="1" CornerRadius="6" Padding="10,5">
                                             <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                                                 <PathIcon Data="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="13" Height="13" Foreground="{StaticResource AccentBrush}"/>
                                                 <TextBlock Text="{Binding CurrentBrowseRelativePath}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
@@ -1293,7 +1293,7 @@
                                 <TextBlock Text="{Binding FileOperationStatus}" FontSize="11.5" Foreground="{StaticResource DangerLightBrush}" IsVisible="{Binding FileOperationStatus, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
 
                                 <!-- Table Header (click to sort) -->
-                                <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="8" Padding="14,8">
+                                <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="14,8">
                                     <Grid ColumnDefinitions="*,140,80,210">
                                         <Button Classes="tabBtn" Command="{Binding SortFilesByCommand}" CommandParameter="Name" Padding="0" HorizontalAlignment="Left" VerticalAlignment="Center">
                                             <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
@@ -1318,7 +1318,7 @@
                                 </Border>
 
                                 <!-- Empty folder message -->
-                                <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="8" Padding="30" IsVisible="{Binding IsFilesEmpty}">
+                                <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="30" IsVisible="{Binding IsFilesEmpty}">
                                     <StackPanel Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
                                         <PathIcon Data="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="28" Height="28" Foreground="{StaticResource TextDisabledBrush}" HorizontalAlignment="Center"/>
                                         <TextBlock Text="{l10n:Tr Key=cs_file_empty}" FontSize="12.5" Foreground="{StaticResource TextPlaceholderBrush}" HorizontalAlignment="Center"/>

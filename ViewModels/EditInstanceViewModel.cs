@@ -510,6 +510,27 @@ public partial class EditInstanceViewModel : ViewModelBase
     public FileListViewModel ScreenshotList { get; }
     public ObservableCollection<InstanceFileEntry> Servers { get; } = new();
 
+    [ObservableProperty]
+    private string _modAuditMessage = "";
+
+    /// <summary>Scans mods/ for duplicate mod ids (the classic no-start cause).</summary>
+    [RelayCommand]
+    public async Task AuditModsAsync()
+    {
+        ModAuditMessage = "";
+        var dir = Path.Combine(Instance.Path, "mods");
+        var conflicts = await Task.Run(() => Services.ModConflictAudit.AnalyzeDirectory(dir));
+        if (conflicts.Count == 0)
+        {
+            ModAuditMessage = Services.L10n.T("mods_audit_ok");
+            return;
+        }
+        var lines = conflicts.Select(c =>
+            $"• {c.ModId}: {string.Join(", ", c.Files)} — {c.Hint}");
+        ModAuditMessage = string.Format(Services.L10n.T("mods_audit_found"), conflicts.Count)
+            + "\n" + string.Join("\n", lines);
+    }
+
     // Data Packs (per-world)
     public ObservableCollection<string> AvailableWorlds { get; } = new();
     public ObservableCollection<InstanceFileEntry> DataPacks { get; } = new();

@@ -229,6 +229,35 @@ public partial class CreateServerViewModel : ObservableObject
     public ObservableCollection<ServerItemEntry> ExistingServersList { get; } = new();
     [ObservableProperty] private ServerItemEntry? _selectedServerItem;
     public ObservableCollection<ServerPluginItem> InstalledPlugins { get; } = new();
+
+    [ObservableProperty]
+    private string _pluginAuditMessage = "";
+
+    /// <summary>Scans plugins/ or mods/ for duplicate ids.</summary>
+    [RelayCommand]
+    public async Task AuditPluginsAsync()
+    {
+        PluginAuditMessage = "";
+        if (string.IsNullOrWhiteSpace(ActiveServerDirectory) || !Directory.Exists(ActiveServerDirectory))
+            return;
+        var dir = await Task.Run(() =>
+        {
+            var mods = Path.Combine(ActiveServerDirectory, "mods");
+            var plugins = Path.Combine(ActiveServerDirectory, "plugins");
+            if (Directory.Exists(mods)) return mods;
+            return plugins;
+        });
+        var conflicts = await Task.Run(() => ModConflictAudit.AnalyzeDirectory(dir));
+        if (conflicts.Count == 0)
+        {
+            PluginAuditMessage = L10n.T("mods_audit_ok");
+            return;
+        }
+        var lines = conflicts.Select(c =>
+            $"• {c.ModId}: {string.Join(", ", c.Files)} — {c.Hint}");
+        PluginAuditMessage = string.Format(L10n.T("mods_audit_found"), conflicts.Count)
+            + "\n" + string.Join("\n", lines);
+    }
     public ObservableCollection<ServerPlayerEntry> OpsList { get; } = new();
     public ObservableCollection<ServerPlayerEntry> WhitelistList { get; } = new();
     public ObservableCollection<ServerPlayerEntry> BansList { get; } = new();

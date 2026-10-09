@@ -925,10 +925,14 @@
                                 <TextBlock Text="{Binding PluginsTabTitle}" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
 
                                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                                    <Button Classes="subBtn" Content="{l10n:Tr Key=mods_audit_check}" Command="{Binding AuditPluginsCommand}" Padding="12,5" FontSize="11.5"/>
                                     <Button Classes="primaryBtn" Content="Add JAR..." Command="{Binding AddPluginJarCommand}" Padding="12,5" FontSize="11.5"/>
                                     <Button Classes="subBtn" Content="{l10n:Tr Key=cs_open_folder}" Command="{Binding OpenPluginsFolderCommand}" Padding="12,5" FontSize="11.5"/>
                                 </StackPanel>
                             </Grid>
+
+                            <TextBlock Text="{Binding PluginAuditMessage}" FontSize="11.5" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap"
+                                       IsVisible="{Binding PluginAuditMessage, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
 
                             <!-- Empty State (single line) -->
                             <TextBlock Text="No plugins or mods installed yet. Click 'Add JAR...' to install one." FontSize="11.5" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding InstalledPlugins.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}" Margin="0,2"/>

@@ -230,7 +230,7 @@
                                     <TextBlock Classes="sectionTitle" Text="{l10n:Tr set_jvmargs}"/>
                                 </StackPanel>
                                 <TextBlock Text="{l10n:Tr set_jvmargs_hint}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
-                                <TextBox Classes="darkInput" Text="{Binding JvmArgs}" PlaceholderText="{l10n:Tr Key=ph_custom_jvm}" Padding="8,6" FontSize="11" AcceptsReturn="True" Height="54" TextWrapping="Wrap"/>
+                                <TextBox Classes="darkInput" Text="{Binding JvmArgs}" PlaceholderText="{l10n:Tr Key=ph_custom_jvm}" Padding="8,6" FontSize="12" AcceptsReturn="True" Height="44" TextWrapping="Wrap"/>
                             </StackPanel>
                         </Border>
 

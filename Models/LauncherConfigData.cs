@@ -37,6 +37,9 @@ public class LauncherConfigData
     public string Language { get; set; } = "";
 
     public string SelectedParticle { get; set; } = "None";
+    public int ParticleCount { get; set; } = 50;
+    public double ParticleScale { get; set; } = 1.0;
+    public double ParticleSpeed { get; set; } = 1.0;
     public double LauncherScale { get; set; } = 1.0;
     public bool IsSidebarExpanded { get; set; } = false;
 

@@ -371,6 +371,7 @@ public class ParticleDisplayConverter : IValueConverter
             "Snowflakes" => L10n.T("particle_snow"),
             "Leaves" => L10n.T("particle_leaves"),
             "Sakura" => L10n.T("particle_sakura"),
+            "Custom" => L10n.T("particle_custom"),
             _ => s
         };
     }

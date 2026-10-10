@@ -22,10 +22,53 @@ public class ParticleSystemControl : Control
     private List<Particle> _particles = new();
     private Random _rand = new();
 
+    public static readonly StyledProperty<int> ParticleCountProperty =
+        AvaloniaProperty.Register<ParticleSystemControl, int>(nameof(ParticleCount), 50);
+
+    public int ParticleCount
+    {
+        get => GetValue(ParticleCountProperty);
+        set => SetValue(ParticleCountProperty, value);
+    }
+
+    public static readonly StyledProperty<double> ParticleScaleProperty =
+        AvaloniaProperty.Register<ParticleSystemControl, double>(nameof(ParticleScale), 1.0);
+
+    public double ParticleScale
+    {
+        get => GetValue(ParticleScaleProperty);
+        set => SetValue(ParticleScaleProperty, value);
+    }
+
+    public static readonly StyledProperty<double> ParticleSpeedProperty =
+        AvaloniaProperty.Register<ParticleSystemControl, double>(nameof(ParticleSpeed), 1.0);
+
+    public double ParticleSpeed
+    {
+        get => GetValue(ParticleSpeedProperty);
+        set => SetValue(ParticleSpeedProperty, value);
+    }
+
     private static readonly SolidColorBrush SnowBrush = new(Colors.White, 0.45);
     private static readonly SolidColorBrush LeavesBrush = new(Color.Parse("#88E28743"));
     private static readonly SolidColorBrush SakuraBrush = new(Color.Parse("#99FFB7C5"));
     private static readonly SolidColorBrush DefaultBrush = new(Colors.White, 0.4);
+
+    private static IBrush CustomBrush
+    {
+        get
+        {
+            try
+            {
+                if (Application.Current?.TryGetResource("AccentBrush", null, out var v) == true && v is IBrush b)
+                    return new SolidColorBrush(ToHalfAlpha(((ISolidColorBrush)b).Color));
+            }
+            catch { }
+            return DefaultBrush;
+        }
+    }
+
+    private static Color ToHalfAlpha(Color c) => Color.FromArgb(0x80, c.R, c.G, c.B);
 
     private class Particle
     {
@@ -90,17 +133,20 @@ public class ParticleSystemControl : Control
         if (Bounds.Width <= 0 || Bounds.Height <= 0) return;
 
         // Spawn
-        if (_particles.Count < 50 && _rand.NextDouble() < 0.2)
+        int maxParticles = Math.Max(10, Math.Min(150, ParticleCount));
+        if (_particles.Count < maxParticles && _rand.NextDouble() < 0.2)
         {
+            double scale = Math.Max(0.3, Math.Min(2.5, ParticleScale));
+            double speed = Math.Max(0.2, Math.Min(3.0, ParticleSpeed));
             _particles.Add(new Particle
             {
                 X = _rand.NextDouble() * Bounds.Width,
                 Y = -20,
-                Vx = (_rand.NextDouble() - 0.5) * 2,
-                Vy = _rand.NextDouble() * 2 + 1,
-                Size = _rand.NextDouble() * 5 + 3,
+                Vx = (_rand.NextDouble() - 0.5) * 2 * speed,
+                Vy = (_rand.NextDouble() * 2 + 1) * speed,
+                Size = (_rand.NextDouble() * 5 + 3) * scale,
                 Rotation = _rand.NextDouble() * 360,
-                RotationSpeed = (_rand.NextDouble() - 0.5) * 5
+                RotationSpeed = (_rand.NextDouble() - 0.5) * 5 * speed
             });
         }
 
@@ -124,6 +170,10 @@ public class ParticleSystemControl : Control
             {
                 p.Vx = Math.Sin(p.Y / 22.0) * 1.5 + 0.4; // Gentle breeze wiggle
             }
+            else if (ParticleType == "Custom")
+            {
+                p.Vx += (_rand.NextDouble() - 0.5) * 0.15; // Soft drift
+            }
 
             if (p.Y > Bounds.Height + 20 || p.X < -20 || p.X > Bounds.Width + 20)
             {
@@ -143,6 +193,7 @@ public class ParticleSystemControl : Control
             "Snowflakes" => SnowBrush,
             "Leaves" => LeavesBrush,
             "Sakura" => SakuraBrush,
+            "Custom" => CustomBrush,
             _ => DefaultBrush
         };
 

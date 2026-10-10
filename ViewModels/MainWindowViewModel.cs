@@ -347,9 +347,17 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty] private string _selectedParticle = "None";
 
-    public string[] ParticleOptions { get; } = new[] { "None", "Snowflakes", "Leaves", "Sakura" };
+    public string[] ParticleOptions { get; } = new[] { "None", "Snowflakes", "Leaves", "Sakura", "Custom" };
 
     partial void OnSelectedParticleChanged(string value) => SaveLauncherConfig();
+
+    [ObservableProperty] private int _particleCount = 50;
+    [ObservableProperty] private double _particleScale = 1.0;
+    [ObservableProperty] private double _particleSpeed = 1.0;
+
+    partial void OnParticleCountChanged(int value) => SaveLauncherConfig();
+    partial void OnParticleScaleChanged(double value) => SaveLauncherConfig();
+    partial void OnParticleSpeedChanged(double value) => SaveLauncherConfig();
 
     partial void OnLauncherScaleChanged(double value) => SaveLauncherConfig();
 
@@ -1948,6 +1956,9 @@ public partial class MainWindowViewModel : ViewModelBase
                 DiscordRpcEnabled = DiscordRpcEnabled,
                 LauncherScale = LauncherScale,
                 SelectedParticle = SelectedParticle,
+                ParticleCount = ParticleCount,
+                ParticleScale = ParticleScale,
+                ParticleSpeed = ParticleSpeed,
                 Language = SelectedLanguage,
                 ThemeSubTab = ThemeSubTab,
                 SimpleAccentColor = _savedSimpleAccentHex,
@@ -2137,6 +2148,9 @@ public partial class MainWindowViewModel : ViewModelBase
                     DiscordRpcEnabled = cfg.DiscordRpcEnabled;
                     if (cfg.LauncherScale > 0.4 && cfg.LauncherScale < 3.0) LauncherScale = cfg.LauncherScale;
                     if (!string.IsNullOrEmpty(cfg.SelectedParticle)) SelectedParticle = cfg.SelectedParticle;
+                    if (cfg.ParticleCount >= 10 && cfg.ParticleCount <= 150) ParticleCount = cfg.ParticleCount;
+                    if (cfg.ParticleScale >= 0.3 && cfg.ParticleScale <= 2.5) ParticleScale = cfg.ParticleScale;
+                    if (cfg.ParticleSpeed >= 0.2 && cfg.ParticleSpeed <= 3.0) ParticleSpeed = cfg.ParticleSpeed;
                     IsSidebarExpanded = cfg.IsSidebarExpanded;
                     LauncherSettingsVm?.LoadFromConfig(cfg);
                     ThemeSettingsVm?.LoadFromConfig(cfg);

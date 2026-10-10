@@ -30,24 +30,16 @@
             <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
         </Style>
-        <Style Selector="TextBox.darkInput">
-            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="10,8"/>
-        </Style>
     </Window.Styles>
 
     <Grid RowDefinitions="Auto,*,Auto" Margin="16">
         <StackPanel Grid.Row="0" Spacing="8" Margin="0,0,0,12">
-            <TextBlock Text="{l10n:Tr Key=icon_title}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-            <TextBlock Text="{l10n:Tr Key=icon_subtitle}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+            <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=icon_title}"/>
+            <TextBlock Classes="sectionHint" Text="{l10n:Tr Key=icon_subtitle}"/>
             <TextBox Classes="darkInput" Text="{Binding SearchQuery}" PlaceholderText="{l10n:Tr Key=icon_search}" FontSize="11"/>
         </StackPanel>
 
-        <Border Grid.Row="1" Background="{StaticResource SurfaceBrush}" CornerRadius="10" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" Padding="8">
+        <Border Grid.Row="1" Background="Transparent" Padding="8">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel Spacing="12">
                     <ItemsControl ItemsSource="{Binding FilteredIcons}">

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 
 namespace CustomMcLauncher.Controls;
@@ -49,26 +50,41 @@ public class ParticleSystemControl : Control
         set => SetValue(ParticleSpeedProperty, value);
     }
 
+    public static readonly StyledProperty<string> ParticleColorHexProperty =
+        AvaloniaProperty.Register<ParticleSystemControl, string>(nameof(ParticleColorHex), "");
+
+    public string ParticleColorHex
+    {
+        get => GetValue(ParticleColorHexProperty);
+        set => SetValue(ParticleColorHexProperty, value);
+    }
+
+    public static readonly StyledProperty<double> ParticleAngleDegProperty =
+        AvaloniaProperty.Register<ParticleSystemControl, double>(nameof(ParticleAngleDeg), 90.0);
+
+    public double ParticleAngleDeg
+    {
+        get => GetValue(ParticleAngleDegProperty);
+        set => SetValue(ParticleAngleDegProperty, value);
+    }
+
+    public static readonly StyledProperty<string> ParticleTexturePathProperty =
+        AvaloniaProperty.Register<ParticleSystemControl, string>(nameof(ParticleTexturePath), "");
+
+    public string ParticleTexturePath
+    {
+        get => GetValue(ParticleTexturePathProperty);
+        set => SetValue(ParticleTexturePathProperty, value);
+    }
+
+    private Bitmap? _customTexture;
+    private string _customBrushKey = "";
+    private IBrush _customBrush = DefaultBrush;
+
     private static readonly SolidColorBrush SnowBrush = new(Colors.White, 0.45);
     private static readonly SolidColorBrush LeavesBrush = new(Color.Parse("#88E28743"));
     private static readonly SolidColorBrush SakuraBrush = new(Color.Parse("#99FFB7C5"));
     private static readonly SolidColorBrush DefaultBrush = new(Colors.White, 0.4);
-
-    private static IBrush CustomBrush
-    {
-        get
-        {
-            try
-            {
-                if (Application.Current?.TryGetResource("AccentBrush", null, out var v) == true && v is IBrush b)
-                    return new SolidColorBrush(ToHalfAlpha(((ISolidColorBrush)b).Color));
-            }
-            catch { }
-            return DefaultBrush;
-        }
-    }
-
-    private static Color ToHalfAlpha(Color c) => Color.FromArgb(0x80, c.R, c.G, c.B);
 
     private class Particle
     {
@@ -78,6 +94,18 @@ public class ParticleSystemControl : Control
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
+        if (change.Property == ParticleTexturePathProperty)
+        {
+            ReloadCustomTexture();
+            InvalidateVisual();
+            return;
+        }
+        if (change.Property == ParticleColorHexProperty)
+        {
+            _customBrushKey = "";
+            InvalidateVisual();
+            return;
+        }
         if (change.Property == ParticleTypeProperty)
         {
             _particles.Clear();
@@ -118,6 +146,40 @@ public class ParticleSystemControl : Control
 
     private void OnTimerTick(object? sender, EventArgs e) => UpdateParticles();
 
+    private void ReloadCustomTexture()
+    {
+        try { _customTexture?.Dispose(); } catch { }
+        _customTexture = null;
+        var path = ParticleTexturePath;
+        if (string.IsNullOrWhiteSpace(path) || !System.IO.File.Exists(path)) return;
+        try
+        {
+            using var fs = System.IO.File.OpenRead(path);
+            _customTexture = Bitmap.DecodeToWidth(fs, 48);
+        }
+        catch { _customTexture = null; }
+    }
+
+    private IBrush ResolveCustomBrush()
+    {
+        string key = ParticleColorHex ?? "";
+        if (_customBrushKey != key)
+        {
+            _customBrushKey = key;
+            IBrush resolved = DefaultBrush;
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(key) && Color.TryParse(key.StartsWith("#") ? key : "#" + key, out var c))
+                    resolved = new SolidColorBrush(Color.FromArgb(0xCC, c.R, c.G, c.B));
+                else if (Application.Current?.TryGetResource("AccentBrush", null, out var v) == true && v is ISolidColorBrush sb)
+                    resolved = new SolidColorBrush(Color.FromArgb(0xCC, sb.Color.R, sb.Color.G, sb.Color.B));
+            }
+            catch { }
+            _customBrush = resolved;
+        }
+        return _customBrush;
+    }
+
     private void StopTimer()
     {
         if (_timer != null)
@@ -138,12 +200,26 @@ public class ParticleSystemControl : Control
         {
             double scale = Math.Max(0.3, Math.Min(2.5, ParticleScale));
             double speed = Math.Max(0.2, Math.Min(3.0, ParticleSpeed));
+            double vx = (_rand.NextDouble() - 0.5) * 2 * speed;
+            double vy = (_rand.NextDouble() * 2 + 1) * speed;
+            double sx = _rand.NextDouble() * Bounds.Width;
+            double sy = -20;
+            if (ParticleType == "Custom")
+            {
+                // Ambient field: drift along the chosen angle across the whole area.
+                double ang = (ParticleAngleDeg % 360.0) * Math.PI / 180.0;
+                double sp = (_rand.NextDouble() * 2 + 1) * speed;
+                vx = Math.Cos(ang) * sp;
+                vy = Math.Sin(ang) * sp;
+                sx = _rand.NextDouble() * Bounds.Width;
+                sy = _rand.NextDouble() * Math.Max(1.0, Bounds.Height);
+            }
             _particles.Add(new Particle
             {
-                X = _rand.NextDouble() * Bounds.Width,
-                Y = -20,
-                Vx = (_rand.NextDouble() - 0.5) * 2 * speed,
-                Vy = (_rand.NextDouble() * 2 + 1) * speed,
+                X = sx,
+                Y = sy,
+                Vx = vx,
+                Vy = vy,
                 Size = (_rand.NextDouble() * 5 + 3) * scale,
                 Rotation = _rand.NextDouble() * 360,
                 RotationSpeed = (_rand.NextDouble() - 0.5) * 5 * speed
@@ -193,7 +269,7 @@ public class ParticleSystemControl : Control
             "Snowflakes" => SnowBrush,
             "Leaves" => LeavesBrush,
             "Sakura" => SakuraBrush,
-            "Custom" => CustomBrush,
+            "Custom" => ResolveCustomBrush(),
             _ => DefaultBrush
         };
 
@@ -203,7 +279,11 @@ public class ParticleSystemControl : Control
                                             Matrix.CreateRotation(p.Rotation * Math.PI / 180.0) *
                                             Matrix.CreateTranslation(p.X, p.Y)))
             {
-                context.DrawRectangle(brush, null, new Rect(0, 0, p.Size, p.Size));
+                var tex = _customTexture;
+                if (ParticleType == "Custom" && tex != null)
+                    context.DrawImage(tex, new Rect(0, 0, tex.Size.Width, tex.Size.Height), new Rect(0, 0, p.Size, p.Size));
+                else
+                    context.DrawRectangle(brush, null, new Rect(0, 0, p.Size, p.Size));
             }
         }
     }

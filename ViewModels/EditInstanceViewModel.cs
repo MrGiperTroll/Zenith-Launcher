@@ -18,7 +18,7 @@ using CustomMcLauncher.ViewModels.Common;
 
 namespace CustomMcLauncher.ViewModels;
 
-public partial class EditInstanceViewModel : ViewModelBase
+public partial class EditInstanceViewModel : ViewModelBase, IDisposable
 {
     private readonly MainWindowViewModel _host;
     private readonly IInstanceService _instanceService;
@@ -79,7 +79,7 @@ public partial class EditInstanceViewModel : ViewModelBase
         HasShaderSupport = HasShaderSupportFor(instance.LoaderType);
 
         _logTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(1000) };
-        _logTimer.Tick += (_, _) => RefreshLogs();
+        _logTimer.Tick += OnLogTimerTick;
         if (SelectedTab == "Logs")
         {
             _logTimer.Start();
@@ -87,37 +87,56 @@ public partial class EditInstanceViewModel : ViewModelBase
         }
 
         // Mirror launch/download progress from the host (the actual launch runs on MainWindow's service)
-        _host.PropertyChanged += (_, e) =>
-        {
-            switch (e.PropertyName)
-            {
-                case nameof(MainWindowViewModel.LaunchProgress):
-                    OnPropertyChanged(nameof(LaunchProgress));
-                    OnPropertyChanged(nameof(IsDownloading));
-                    break;
-                case nameof(MainWindowViewModel.CurrentDownloadFile):
-                    OnPropertyChanged(nameof(CurrentDownloadFile));
-                    OnPropertyChanged(nameof(DownloadStatus));
-                    break;
-                case nameof(MainWindowViewModel.IsLaunching):
-                    OnPropertyChanged(nameof(IsLaunching));
-                    OnPropertyChanged(nameof(IsDownloading));
-                    break;
-            }
-        };
+        _host.PropertyChanged += OnHostPropertyChanged;
 
         // Notify IsRunning / CanLaunch when the underlying Instance model changes.
-        instance.PropertyChanged += (_, e) =>
-        {
-            if (e.PropertyName == nameof(InstanceModel.IsRunning) || e.PropertyName == nameof(InstanceModel.IsLaunching))
-            {
-                OnPropertyChanged(nameof(IsRunning));
-                OnPropertyChanged(nameof(CanLaunch));
-                OnPropertyChanged(nameof(CanEdit));
-            }
-        };
+        Instance.PropertyChanged += OnInstancePropertyChanged;
 
         Instance.RefreshTimeDisplays();
+    }
+
+    private void OnLogTimerTick(object? sender, EventArgs e) => RefreshLogs();
+
+    private void OnHostPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        switch (e.PropertyName)
+        {
+            case nameof(MainWindowViewModel.LaunchProgress):
+                OnPropertyChanged(nameof(LaunchProgress));
+                OnPropertyChanged(nameof(IsDownloading));
+                break;
+            case nameof(MainWindowViewModel.CurrentDownloadFile):
+                OnPropertyChanged(nameof(CurrentDownloadFile));
+                OnPropertyChanged(nameof(DownloadStatus));
+                break;
+            case nameof(MainWindowViewModel.IsLaunching):
+                OnPropertyChanged(nameof(IsLaunching));
+                OnPropertyChanged(nameof(IsDownloading));
+                break;
+        }
+    }
+
+    private void OnInstancePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(InstanceModel.IsRunning) || e.PropertyName == nameof(InstanceModel.IsLaunching))
+        {
+            OnPropertyChanged(nameof(IsRunning));
+            OnPropertyChanged(nameof(CanLaunch));
+            OnPropertyChanged(nameof(CanEdit));
+        }
+    }
+
+    private bool _disposed;
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+        _logTimer.Tick -= OnLogTimerTick;
+        _logTimer.Stop();
+        _host.PropertyChanged -= OnHostPropertyChanged;
+        Instance.PropertyChanged -= OnInstancePropertyChanged;
+        GC.SuppressFinalize(this);
     }
 
     public void RefreshAllContent() => RefreshFileLists();
@@ -1018,7 +1037,7 @@ public partial class EditInstanceViewModel : ViewModelBase
     private async Task CloseAsync()
     {
         SaveSettings();
-        _logTimer.Stop();
+        Dispose();
         _host.CloseEditInstanceWindow(this);
         await Task.CompletedTask;
     }

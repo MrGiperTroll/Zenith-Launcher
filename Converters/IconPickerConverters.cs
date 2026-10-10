@@ -13,7 +13,14 @@ public class IconPathToBitmapConverter : IValueConverter
     {
         if (value is string path && !string.IsNullOrWhiteSpace(path) && System.IO.File.Exists(path))
         {
-            try { return new Bitmap(path); } catch { return null; }
+            try
+            {
+                var info = new System.IO.FileInfo(path);
+                if (info.Length > 8 * 1024 * 1024) return null;
+                using var fs = System.IO.File.OpenRead(path);
+                return Bitmap.DecodeToWidth(fs, 96);
+            }
+            catch { return null; }
         }
         return null;
     }
@@ -58,7 +65,7 @@ public class BytesToBitmapConverter : IValueConverter
             try
             {
                 using var ms = new System.IO.MemoryStream(bytes);
-                return new Bitmap(ms);
+                return Bitmap.DecodeToWidth(ms, 128);
             }
             catch
             {

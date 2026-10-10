@@ -18,7 +18,7 @@ using CustomMcLauncher.ViewModels.Items;
 
 namespace CustomMcLauncher.ViewModels;
 
-public partial class ContentBrowserViewModel : ObservableObject
+public partial class ContentBrowserViewModel : ObservableObject, IDisposable
 {
     private const int PageSize = 20;
 
@@ -34,6 +34,19 @@ public partial class ContentBrowserViewModel : ObservableObject
 
     public ObservableCollection<ModrinthProjectItemViewModel> Results { get; } = new();
     public ObservableCollection<BrowserTag> AvailableTags { get; } = new();
+
+    private bool _disposed;
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+        try { _searchCts?.Cancel(); } catch { }
+        try { _searchCts?.Dispose(); } catch { }
+        foreach (var r in Results) { try { r.Icon?.Dispose(); } catch { } }
+        Results.Clear();
+        GC.SuppressFinalize(this);
+    }
 
     [ObservableProperty]
     private ContentType _selectedContentType = ContentType.Mod;

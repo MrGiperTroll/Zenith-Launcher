@@ -1330,6 +1330,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         // Break event roots (timers, host/instance subscriptions) so GC can reclaim the page.
         try { (entry.EditInstanceVm as IDisposable)?.Dispose(); } catch { }
+        try { (entry.ContentBrowserVm as IDisposable)?.Dispose(); } catch { }
     }
 
     private void PushHistory(HistoryEntry entry)
@@ -1443,6 +1444,10 @@ public partial class MainWindowViewModel : ViewModelBase
                     Services.DiscordPresenceService.SetEditingInstance(entry.EditInstanceVm.Instance.Name);
                 break;
         }
+
+        // Nudge the GC after a page switch so released pages/bitmaps are
+        // reclaimed promptly instead of accumulating (non-blocking).
+        try { GC.Collect(2, GCCollectionMode.Optimized, false); } catch { }
     }
 
     private void RebuildBreadcrumbs(HistoryEntry entry)

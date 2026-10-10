@@ -149,12 +149,27 @@
             <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
         </Style>
+        <!-- Catalog cards: single-level surface, accent border on hover -->
+        <Style Selector="Border.catalogCard">
+            <Setter Property="Background" Value="{StaticResource CardBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.15" Easing="CubicEaseOut"/>
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.15" Easing="CubicEaseOut"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Border.catalogCard:pointerover">
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+        </Style>
     </UserControl.Styles>
 
     <Panel>
     <Grid RowDefinitions="Auto,*" Margin="14">
         <!-- Header -->
-        <Border Grid.Row="0" Background="Transparent" Padding="2" Margin="0,0,0,10"
+        <Border Grid.Row="0" Background="Transparent" Padding="2" Margin="0,0,0,16"
                 IsVisible="{Binding !IsDetailsOpen}">
             <Grid ColumnDefinitions="180,*,150,Auto" ColumnSpacing="10" VerticalAlignment="Center">
                 <ComboBox Grid.Column="0" Classes="zenCombo" ItemsSource="{Binding AvailableContentTypes}" SelectedItem="{Binding SelectedContentType}" VerticalAlignment="Center">
@@ -205,7 +220,7 @@
                         </ListBox.ItemContainerTheme>
                         <ListBox.ItemTemplate>
                             <DataTemplate x:DataType="items:ModrinthProjectItemViewModel">
-                                <Border Margin="4" CornerRadius="10" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" Padding="0" ClipToBounds="True" Tapped="OnCardTapped" Cursor="Hand">
+                                <Border Classes="catalogCard" Margin="4" CornerRadius="10" Padding="0" ClipToBounds="True" Tapped="OnCardTapped" Cursor="Hand">
                                     <Grid ColumnDefinitions="64,*,140" Height="88">
                                         <!-- Icon -->
                                         <Border Width="56" Height="56" CornerRadius="10" Background="{StaticResource IconChipBrush}" ClipToBounds="True" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="8,0,0,0">
@@ -248,7 +263,7 @@
             <StackPanel Grid.Column="1" Spacing="12">
                 <Border Classes="zenSection">
                     <StackPanel Spacing="8">
-                        <TextBlock Text="{l10n:Tr Key=cb_instance}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextCaptionBrush}" LetterSpacing="1"/>
+                        <TextBlock Classes="caption" Text="{l10n:Tr Key=cb_instance}" FontWeight="Bold" LetterSpacing="1"/>
                         <StackPanel Spacing="4">
                                 <TextBlock Text="{Binding InstanceName}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" TextWrapping="Wrap"/>
                                 <TextBlock Text="{Binding InstanceVersion}" FontSize="11" Foreground="{StaticResource AccentBrush}"/>
@@ -265,7 +280,7 @@
 
                 <Border Classes="zenSection">
                     <StackPanel Spacing="6">
-                        <TextBlock Text="{l10n:Tr Key=cb_categories}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextCaptionBrush}" LetterSpacing="1"/>
+                        <TextBlock Classes="caption" Text="{l10n:Tr Key=cb_categories}" FontWeight="Bold" LetterSpacing="1"/>
                         <ItemsControl ItemsSource="{Binding AvailableTags}">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
@@ -285,7 +300,7 @@
 
                 <Border Classes="zenSection">
                     <StackPanel Spacing="6">
-                        <TextBlock Text="{l10n:Tr Key=cb_quick_info}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextCaptionBrush}" LetterSpacing="1"/>
+                        <TextBlock Classes="caption" Text="{l10n:Tr Key=cb_quick_info}" FontWeight="Bold" LetterSpacing="1"/>
                         <TextBlock FontSize="11" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap">
                             <Run Text="{l10n:Tr Key=cb_type}" FontWeight="SemiBold"/><Run Text=" "/><Run Text="{Binding SelectedContentType, Converter={x:Static converters:ContentBrowserConverters.ContentTypeDisplay}}"/>
                             <LineBreak/><Run Text="{l10n:Tr Key=cb_sort}" FontWeight="SemiBold"/><Run Text=" "/><Run Text="{Binding SelectedSortDisplay, Converter={x:Static converters:SortDisplayConverter.Instance}}"/>

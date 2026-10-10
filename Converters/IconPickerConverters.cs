@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Concurrent;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
@@ -9,16 +11,27 @@ namespace CustomMcLauncher.Converters;
 public class IconPathToBitmapConverter : IValueConverter
 {
     public static readonly IconPathToBitmapConverter Instance = new();
+
+    // Path -> decoded bitmap. Bounded; bitmaps die with the cache entry,
+    // re-evaluation reuses instead of decoding again.
+    private static readonly ConcurrentDictionary<string, (Bitmap Bmp, DateTime WriteUtc)> _cache = new();
+
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value is string path && !string.IsNullOrWhiteSpace(path) && System.IO.File.Exists(path))
         {
             try
             {
+                var writeUtc = System.IO.File.GetLastWriteTimeUtc(path);
+                if (_cache.TryGetValue(path, out var hit) && hit.WriteUtc == writeUtc)
+                    return hit.Bmp;
                 var info = new System.IO.FileInfo(path);
                 if (info.Length > 8 * 1024 * 1024) return null;
+                if (_cache.Count >= 200) _cache.Clear();
                 using var fs = System.IO.File.OpenRead(path);
-                return Bitmap.DecodeToWidth(fs, 96);
+                var bmp = Bitmap.DecodeToWidth(fs, 96);
+                _cache[path] = (bmp, writeUtc);
+                return bmp;
             }
             catch { return null; }
         }
@@ -58,14 +71,22 @@ public class IsNotNullConverter : IValueConverter
 public class BytesToBitmapConverter : IValueConverter
 {
     public static readonly BytesToBitmapConverter Instance = new();
+
+    // Bitmap lives exactly as long as its source bytes: re-evaluation reuses it.
+    private static readonly ConditionalWeakTable<byte[], Bitmap> _cache = new();
+
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value is byte[] bytes && bytes.Length > 0)
         {
             try
             {
+                if (_cache.TryGetValue(bytes, out var hit))
+                    return hit;
                 using var ms = new System.IO.MemoryStream(bytes);
-                return Bitmap.DecodeToWidth(ms, 128);
+                var bmp = Bitmap.DecodeToWidth(ms, 128);
+                _cache.Add(bytes, bmp);
+                return bmp;
             }
             catch
             {

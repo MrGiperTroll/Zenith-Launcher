@@ -1314,6 +1314,12 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
+    private static void DisposeHistoryEntry(HistoryEntry entry)
+    {
+        // Break event roots (timers, host/instance subscriptions) so GC can reclaim the page.
+        try { (entry.EditInstanceVm as IDisposable)?.Dispose(); } catch { }
+    }
+
     private void PushHistory(HistoryEntry entry)
     {
         if (CurrentPage == LauncherNavPage.Settings && IsSettingsTabTheme && entry.Page != LauncherNavPage.Settings && HasUnsavedThemeChanges())
@@ -1325,14 +1331,18 @@ public partial class MainWindowViewModel : ViewModelBase
 
         if (_historyIndex >= 0 && _historyIndex < _navHistory.Count - 1)
         {
+            var dropped = _navHistory.Skip(_historyIndex + 1).ToList();
             _navHistory.RemoveRange(_historyIndex + 1, _navHistory.Count - (_historyIndex + 1));
+            foreach (var d in dropped) DisposeHistoryEntry(d);
         }
 
         _navHistory.Add(entry);
 
         while (_navHistory.Count > 20)
         {
+            var evicted = _navHistory[0];
             _navHistory.RemoveAt(0);
+            DisposeHistoryEntry(evicted);
         }
         _historyIndex = _navHistory.Count - 1;
         ApplyHistoryEntry(entry);

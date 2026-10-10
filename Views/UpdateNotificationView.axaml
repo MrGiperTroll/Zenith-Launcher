@@ -1,0 +1,57 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="CustomMcLauncher.Views.UpdateNotificationView"
+             x:DataType="vms:UpdateNotificationViewModel"
+             xmlns:vms="clr-namespace:CustomMcLauncher.Views">
+
+    <UserControl.Styles>
+        <Style Selector="Button.primaryBtn">
+            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="18,9"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Button.secondaryBtn">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="18,9"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="14" Width="340">
+        <!-- Title -->
+        <TextBlock Grid.Row="0" Classes="sectionTitle"
+                   Text="{Binding TitleText}"/>
+
+        <!-- Status -->
+        <TextBlock Grid.Row="1" Classes="sectionHint"
+                   Text="{Binding StatusText}"
+                   IsVisible="{Binding StatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="2"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Spacing="8">
+            <Button Classes="secondaryBtn"
+                    Content="{Binding DismissText}"
+                    Command="{Binding DismissCommand}"
+                    IsEnabled="{Binding !IsDownloading}"/>
+            <Button Classes="primaryBtn"
+                    Content="{Binding UpdateButtonText}"
+                    Command="{Binding UpdateCommand}"
+                    IsEnabled="{Binding !IsDownloading}"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

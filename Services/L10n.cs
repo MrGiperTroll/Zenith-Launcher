@@ -740,6 +740,10 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
         ["update_downloading"] = "Downloading update...",
         ["update_installing"] = "Installing update...",
         ["update_failed"] = "Download failed. Try again or download from GitHub.",
+        ["update_btn"] = "Update",
+        ["update_checking"] = "Checking for updates...",
+        ["update_uptodate"] = "You're up to date.",
+        ["update_browser"] = "Opening the release page in your browser...",
     };
 
     // ------------------------------------------------------------------ RU

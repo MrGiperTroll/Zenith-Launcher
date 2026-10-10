@@ -1892,16 +1892,7 @@ public partial class MainWindowViewModel : ViewModelBase
             var result = await service.CheckForUpdatesAsync();
             if (result is { IsNewerThanCurrent: true })
             {
-                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-                {
-                    if (Avalonia.Application.Current?.ApplicationLifetime
-                        is not Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime { MainWindow: { } main })
-                        return;
-                    var window = new UpdateNotificationWindow();
-                    var vm = new UpdateNotificationViewModel(result, () => window.Close());
-                    window.DataContext = vm;
-                    window.ShowDialog(main);
-                });
+                Avalonia.Threading.Dispatcher.UIThread.Post(() => OpenUpdate(result));
             }
         }
         catch (OperationCanceledException) { }
@@ -1909,6 +1900,61 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             LauncherLog.Error("Background update check failed.", ex);
         }
+    }
+
+    [ObservableProperty]
+    private Views.UpdateNotificationViewModel? _updateVm;
+
+    [ObservableProperty]
+    private bool _isUpdateOpen;
+
+    [ObservableProperty]
+    private bool _isUpdateAvailable;
+
+    [ObservableProperty]
+    private bool _isUpdateChecking;
+
+    [RelayCommand]
+    private void CloseUpdate()
+    {
+        IsUpdateOpen = false;
+        IsUpdateAvailable = false;
+    }
+
+    [RelayCommand]
+    private async Task CheckForUpdatesNowAsync()
+    {
+        if (IsUpdateChecking) return;
+        IsUpdateChecking = true;
+        StatusText = L10n.T("update_checking");
+        try
+        {
+            var result = await new GitHubUpdateService().CheckForUpdatesAsync();
+            if (result?.IsNewerThanCurrent == true)
+                OpenUpdate(result);
+            else
+                StatusText = L10n.T("update_uptodate");
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Error("Manual update check failed.", ex);
+            StatusText = L10n.T("update_failed");
+        }
+        finally
+        {
+            IsUpdateChecking = false;
+        }
+    }
+
+    private void OpenUpdate(UpdateCheckResult result)
+    {
+        UpdateVm = new Views.UpdateNotificationViewModel(result, () =>
+        {
+            IsUpdateOpen = false;
+            IsUpdateAvailable = false;
+        });
+        IsUpdateAvailable = true;
+        IsUpdateOpen = true;
     }
 
     private async Task InitializeModLoadersAsync()

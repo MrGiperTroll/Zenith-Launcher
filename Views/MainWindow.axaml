@@ -363,6 +363,46 @@
             <Setter Property="Opacity" Value="0.3"/>
         </Style>
 
+        <!-- Update Button: circle with down-arrow, stretches into a pill on hover -->
+        <Style Selector="Button.updateBtn">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Width" Value="34"/>
+            <Setter Property="Height" Value="34"/>
+            <Setter Property="CornerRadius" Value="17"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="ClipToBounds" Value="True"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Width" Duration="0:0:0.24" Easing="0.16, 1, 0.3, 1"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.updateBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+        <Style Selector="Button.updateBtn:pointerover">
+            <Setter Property="Width" Value="118"/>
+        </Style>
+        <Style Selector="Button.updateBtn PathIcon.mark">
+            <Setter Property="Opacity" Value="1"/>
+        </Style>
+        <Style Selector="Button.updateBtn:pointerover PathIcon.mark">
+            <Setter Property="Opacity" Value="0"/>
+        </Style>
+        <Style Selector="Button.updateBtn StackPanel.row">
+            <Setter Property="Opacity" Value="0"/>
+        </Style>
+        <Style Selector="Button.updateBtn:pointerover StackPanel.row">
+            <Setter Property="Opacity" Value="1"/>
+        </Style>
+        <Style Selector="Button.updateBtn:pointerover PathIcon">
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+
         <!-- Breadcrumb Item Buttons -->
         <Style Selector="Button.breadcrumbBtn">
             <Setter Property="Background" Value="Transparent"/>
@@ -486,6 +526,16 @@
                     </StackPanel>
 
                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <Button Classes="updateBtn" Command="{Binding CheckForUpdatesNowCommand}" ToolTip.Tip="{l10n:Tr Key=update_btn}">
+                            <Panel>
+                                <PathIcon Classes="mark" Data="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z" Width="15" Height="15" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <StackPanel Classes="row" Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <PathIcon Data="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z" Width="13" Height="13" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{l10n:Tr Key=update_btn}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                    <Ellipse Width="7" Height="7" Fill="{DynamicResource AccentBrush}" VerticalAlignment="Center" IsVisible="{Binding IsUpdateAvailable}"/>
+                                </StackPanel>
+                            </Panel>
+                        </Button>
                         <Button Command="{Binding OpenAccountsDialogCommand}" Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderSoftBrush}" BorderThickness="1" CornerRadius="18" Padding="10,4" Cursor="Hand">
                             <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                 <Border Width="18" Height="18" Background="{StaticResource IconChipBrush}" CornerRadius="9" ClipToBounds="True">
@@ -1213,6 +1263,14 @@
             <Border Background="{StaticResource SurfaceBrush}" CornerRadius="16" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1"
                     HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 18 46 0 #55000000" Padding="6,4">
                 <views:CrashReportView DataContext="{Binding CrashReportVm}"/>
+            </Border>
+        </Border>
+    <!-- Update In-App Modal (soft fade-in via code-behind) -->
+        <Border x:Name="UpdateOverlay" Background="{StaticResource OverlayBrush}" IsVisible="{Binding IsUpdateOpen}" ZIndex="2000"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.RowSpan="3" Grid.ColumnSpan="3">
+            <Border Background="{StaticResource SurfaceBrush}" CornerRadius="16" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1"
+                    HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 18 46 0 #55000000" Padding="24,20">
+                <views:UpdateNotificationView DataContext="{Binding UpdateVm}"/>
             </Border>
         </Border>
         <!-- DragOverlayPanel: topmost layer for drag ghost rendering -->

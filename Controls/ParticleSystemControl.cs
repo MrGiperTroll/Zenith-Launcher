@@ -22,6 +22,11 @@ public class ParticleSystemControl : Control
     private List<Particle> _particles = new();
     private Random _rand = new();
 
+    private static readonly SolidColorBrush SnowBrush = new(Colors.White, 0.45);
+    private static readonly SolidColorBrush LeavesBrush = new(Color.Parse("#88E28743"));
+    private static readonly SolidColorBrush SakuraBrush = new(Color.Parse("#99FFB7C5"));
+    private static readonly SolidColorBrush DefaultBrush = new(Colors.White, 0.4);
+
     private class Particle
     {
         public double X, Y, Vx, Vy, Size, Rotation, RotationSpeed;
@@ -35,19 +40,48 @@ public class ParticleSystemControl : Control
             _particles.Clear();
             if (ParticleType == "None")
             {
-                _timer?.Stop();
-                _timer = null;
+                StopTimer();
             }
             else
             {
                 if (_timer == null)
                 {
                     _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(16) };
-                    _timer.Tick += (s, e) => UpdateParticles();
+                    _timer.Tick += OnTimerTick;
                     _timer.Start();
                 }
             }
             InvalidateVisual();
+        }
+    }
+
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnDetachedFromVisualTree(e);
+        StopTimer();
+        _particles.Clear();
+    }
+
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        if (ParticleType != "None" && _timer == null && IsVisible)
+        {
+            _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(16) };
+            _timer.Tick += OnTimerTick;
+            _timer.Start();
+        }
+    }
+
+    private void OnTimerTick(object? sender, EventArgs e) => UpdateParticles();
+
+    private void StopTimer()
+    {
+        if (_timer != null)
+        {
+            _timer.Tick -= OnTimerTick;
+            _timer.Stop();
+            _timer = null;
         }
     }
 
@@ -106,10 +140,10 @@ public class ParticleSystemControl : Control
 
         var brush = ParticleType switch
         {
-            "Snowflakes" => new SolidColorBrush(Colors.White, 0.45),
-            "Leaves" => new SolidColorBrush(Color.Parse("#88E28743")),
-            "Sakura" => new SolidColorBrush(Color.Parse("#99FFB7C5")), // Soft pastel sakura petal
-            _ => new SolidColorBrush(Colors.White, 0.4)
+            "Snowflakes" => SnowBrush,
+            "Leaves" => LeavesBrush,
+            "Sakura" => SakuraBrush,
+            _ => DefaultBrush
         };
 
         foreach (var p in _particles)

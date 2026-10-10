@@ -359,8 +359,9 @@ public static class ModrinthApiService
                 var diskBytes = await File.ReadAllBytesAsync(diskPath).ConfigureAwait(false);
                 if (diskBytes.Length > 0)
                 {
-                    if (IconMemoryCache.Count < 600)
-                        IconMemoryCache.TryAdd(url, diskBytes);
+                    if (IconMemoryCache.Count >= 600)
+                        IconMemoryCache.Clear();
+                    IconMemoryCache.TryAdd(url, diskBytes);
                     return diskBytes;
                 }
             }
@@ -373,8 +374,9 @@ public static class ModrinthApiService
             var bytes = await Http.GetByteArrayAsync(url).ConfigureAwait(false);
             if (bytes != null && bytes.Length > 0)
             {
-                if (IconMemoryCache.Count < 600)
-                    IconMemoryCache.TryAdd(url, bytes);
+                if (IconMemoryCache.Count >= 600)
+                    IconMemoryCache.Clear();
+                IconMemoryCache.TryAdd(url, bytes);
 
                 _ = Task.Run(() =>
                 {

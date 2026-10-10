@@ -355,10 +355,16 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private int _particleCount = 50;
     [ObservableProperty] private double _particleScale = 1.0;
     [ObservableProperty] private double _particleSpeed = 1.0;
+    [ObservableProperty] private string _particleColorHex = "";
+    [ObservableProperty] private double _particleAngleDeg = 90.0;
+    [ObservableProperty] private string _particleTexturePath = "";
 
     partial void OnParticleCountChanged(int value) => SaveLauncherConfig();
     partial void OnParticleScaleChanged(double value) => SaveLauncherConfig();
     partial void OnParticleSpeedChanged(double value) => SaveLauncherConfig();
+    partial void OnParticleColorHexChanged(string value) => SaveLauncherConfig();
+    partial void OnParticleAngleDegChanged(double value) => SaveLauncherConfig();
+    partial void OnParticleTexturePathChanged(string value) => SaveLauncherConfig();
 
     partial void OnLauncherScaleChanged(double value) => SaveLauncherConfig();
 
@@ -1976,6 +1982,9 @@ public partial class MainWindowViewModel : ViewModelBase
                 ParticleCount = ParticleCount,
                 ParticleScale = ParticleScale,
                 ParticleSpeed = ParticleSpeed,
+                ParticleColorHex = ParticleColorHex,
+                ParticleAngleDeg = ParticleAngleDeg,
+                ParticleTexturePath = ParticleTexturePath,
                 Language = SelectedLanguage,
                 ThemeSubTab = ThemeSubTab,
                 SimpleAccentColor = _savedSimpleAccentHex,
@@ -2168,6 +2177,9 @@ public partial class MainWindowViewModel : ViewModelBase
                     if (cfg.ParticleCount >= 10 && cfg.ParticleCount <= 150) ParticleCount = cfg.ParticleCount;
                     if (cfg.ParticleScale >= 0.3 && cfg.ParticleScale <= 2.5) ParticleScale = cfg.ParticleScale;
                     if (cfg.ParticleSpeed >= 0.2 && cfg.ParticleSpeed <= 3.0) ParticleSpeed = cfg.ParticleSpeed;
+                    ParticleColorHex = cfg.ParticleColorHex ?? "";
+                    if (cfg.ParticleAngleDeg >= 0 && cfg.ParticleAngleDeg <= 360) ParticleAngleDeg = cfg.ParticleAngleDeg;
+                    ParticleTexturePath = cfg.ParticleTexturePath ?? "";
                     IsSidebarExpanded = cfg.IsSidebarExpanded;
                     LauncherSettingsVm?.LoadFromConfig(cfg);
                     ThemeSettingsVm?.LoadFromConfig(cfg);

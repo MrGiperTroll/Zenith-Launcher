@@ -3,6 +3,7 @@
              xmlns:vm="using:CustomMcLauncher.ViewModels"
               xmlns:pages="using:CustomMcLauncher.ViewModels.Pages"
         xmlns:converters="using:CustomMcLauncher.Converters"
+             xmlns:conv="using:Avalonia.Data.Converters"
              xmlns:controls="using:CustomMcLauncher.Controls"
              xmlns:l10n="using:CustomMcLauncher.Extensions"
              xmlns:theming="using:CustomMcLauncher.UI.Theming"
@@ -187,25 +188,6 @@
                             </Grid>
 
                             <WrapPanel Orientation="Horizontal">
-                                <!-- Custom Single Color Harmonizer Button -->
-                                <Button Classes="subBtn"
-                                        Width="120"
-                                        Height="36"
-                                        CornerRadius="8"
-                                        Padding="8,0"
-                                        Margin="0,0,8,8"
-                                        ToolTip.Tip="Pick custom color and auto-harmonize full palette">
-                                    <Button.Flyout>
-                                        <Flyout Placement="BottomEdgeAlignedLeft">
-                                            <ColorView Color="{Binding CustomThemeHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
-                                        </Flyout>
-                                    </Button.Flyout>
-                                    <Grid ColumnDefinitions="14,*,Auto" VerticalAlignment="Center">
-                                        <Border Grid.Column="0" Width="14" Height="14" CornerRadius="7" Background="{Binding CustomThemeHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        <TextBlock Grid.Column="1" Text="{l10n:Tr Key=theme_custom_color}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" Margin="8,0,4,0" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
-                                        <PathIcon Grid.Column="2" Data="M7 10l5 5 5-5z" Width="10" Height="10" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                                    </Grid>
-                                </Button>
                                 <ItemsControl ItemsSource="{x:Static theming:ZenithTheme.Presets}">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
@@ -237,6 +219,26 @@
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
 
+                                <!-- Custom Single Color Harmonizer Button -->
+                                <Button Classes="subBtn"
+                                        Width="120"
+                                        Height="36"
+                                        CornerRadius="8"
+                                        Padding="8,0"
+                                        Margin="0,0,8,8"
+                                        ToolTip.Tip="Pick custom color and auto-harmonize full palette">
+                                    <Button.Flyout>
+                                        <Flyout Placement="BottomEdgeAlignedLeft">
+                                            <ColorView Color="{Binding CustomThemeHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
+                                        </Flyout>
+                                    </Button.Flyout>
+                                    <Grid ColumnDefinitions="14,*,Auto" VerticalAlignment="Center">
+                                        <Border Grid.Column="0" Width="14" Height="14" CornerRadius="7" Background="{Binding CustomThemeHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="1" Text="{l10n:Tr Key=theme_custom_color}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" Margin="8,0,4,0" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                        <PathIcon Grid.Column="2" Data="M7 10l5 5 5-5z" Width="10" Height="10" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Button>
+
                             </WrapPanel>
                         </StackPanel>
                     </Border>
@@ -257,21 +259,48 @@
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
                             </Grid>
-                            <StackPanel Spacing="8" IsVisible="{Binding IsCustomParticle}">
-                                <Grid ColumnDefinitions="120,*,44" VerticalAlignment="Center">
+                            <StackPanel Spacing="6" IsVisible="{Binding IsCustomParticle}">
+                                <Grid ColumnDefinitions="90,*,40" VerticalAlignment="Center">
                                     <TextBlock Classes="rowHint" Text="{l10n:Tr Key=theme_custom_count}" VerticalAlignment="Center"/>
                                     <Slider Grid.Column="1" Minimum="10" Maximum="150" Value="{Binding ParticleCount}" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Column="2" Text="{Binding ParticleCount}" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" VerticalAlignment="Center" TextAlignment="Right"/>
                                 </Grid>
-                                <Grid ColumnDefinitions="120,*,44" VerticalAlignment="Center">
+                                <Grid ColumnDefinitions="90,*,40" VerticalAlignment="Center">
                                     <TextBlock Classes="rowHint" Text="{l10n:Tr Key=theme_custom_size}" VerticalAlignment="Center"/>
                                     <Slider Grid.Column="1" Minimum="0.3" Maximum="2.5" TickFrequency="0.1" IsSnapToTickEnabled="True" Value="{Binding ParticleScale}" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Column="2" Text="{Binding ParticleScale, StringFormat='{}{0:0.0}x'}" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" VerticalAlignment="Center" TextAlignment="Right"/>
                                 </Grid>
-                                <Grid ColumnDefinitions="120,*,44" VerticalAlignment="Center">
+                                <Grid ColumnDefinitions="90,*,40" VerticalAlignment="Center">
                                     <TextBlock Classes="rowHint" Text="{l10n:Tr Key=theme_custom_speed}" VerticalAlignment="Center"/>
                                     <Slider Grid.Column="1" Minimum="0.2" Maximum="3.0" TickFrequency="0.1" IsSnapToTickEnabled="True" Value="{Binding ParticleSpeed}" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Column="2" Text="{Binding ParticleSpeed, StringFormat='{}{0:0.0}x'}" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" VerticalAlignment="Center" TextAlignment="Right"/>
+                                </Grid>
+                                <Grid ColumnDefinitions="90,*,40" VerticalAlignment="Center">
+                                    <TextBlock Classes="rowHint" Text="{l10n:Tr Key=theme_custom_angle}" VerticalAlignment="Center"/>
+                                    <Slider Grid.Column="1" Minimum="0" Maximum="360" TickFrequency="5" IsSnapToTickEnabled="True" Value="{Binding ParticleAngleDeg}" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding ParticleAngleDeg, StringFormat='{}{0:0}°'}" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" VerticalAlignment="Center" TextAlignment="Right"/>
+                                </Grid>
+                                <Grid ColumnDefinitions="90,*,Auto" VerticalAlignment="Center">
+                                    <TextBlock Classes="rowHint" Text="{l10n:Tr Key=theme_custom_tint}" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding ParticleColorHex, Mode=TwoWay}" PlaceholderText="Accent" FontSize="11" Padding="8,5" VerticalAlignment="Center"/>
+                                    <Button Grid.Column="2" Classes="subBtn" Width="30" Height="30" Padding="0" Margin="8,0,0,0" VerticalAlignment="Center">
+                                        <Button.Flyout>
+                                            <Flyout Placement="BottomEdgeAlignedRight">
+                                                <ColorView Color="{Binding ParticleColorHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
+                                            </Flyout>
+                                        </Button.Flyout>
+                                        <Border Width="16" Height="16" CornerRadius="4" Background="{Binding ParticleColorHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
+                                    </Button>
+                                </Grid>
+                                <Grid ColumnDefinitions="90,*,Auto" VerticalAlignment="Center">
+                                    <TextBlock Classes="rowHint" Text="{l10n:Tr Key=theme_custom_texture}" VerticalAlignment="Center"/>
+                                    <Border Grid.Column="1" Width="28" Height="28" CornerRadius="6" Background="{StaticResource FieldBrush}" ClipToBounds="True" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                        <Image Source="{Binding ParticleTexturePath, Converter={x:Static converters:IconPathToBitmapConverter.Instance}}" Stretch="UniformToFill" Width="28" Height="28"/>
+                                    </Border>
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                        <Button Classes="subBtn" Content="..." Command="{Binding PickParticleTextureCommand}" Padding="10,5" FontSize="11" ToolTip.Tip="{l10n:Tr Key=theme_custom_texture}"/>
+                                        <Button Classes="subBtn" Content="✕" Command="{Binding ClearParticleTextureCommand}" Padding="10,5" FontSize="11" IsVisible="{Binding ParticleTexturePath, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}"/>
+                                    </StackPanel>
                                 </Grid>
                             </StackPanel>
                         </StackPanel>
@@ -296,21 +325,48 @@
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
                             </Grid>
-                            <StackPanel Spacing="8" IsVisible="{Binding IsCustomParticle}">
-                                <Grid ColumnDefinitions="120,*,44" VerticalAlignment="Center">
+                            <StackPanel Spacing="6" IsVisible="{Binding IsCustomParticle}">
+                                <Grid ColumnDefinitions="90,*,40" VerticalAlignment="Center">
                                     <TextBlock Classes="rowHint" Text="{l10n:Tr Key=theme_custom_count}" VerticalAlignment="Center"/>
                                     <Slider Grid.Column="1" Minimum="10" Maximum="150" Value="{Binding ParticleCount}" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Column="2" Text="{Binding ParticleCount}" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" VerticalAlignment="Center" TextAlignment="Right"/>
                                 </Grid>
-                                <Grid ColumnDefinitions="120,*,44" VerticalAlignment="Center">
+                                <Grid ColumnDefinitions="90,*,40" VerticalAlignment="Center">
                                     <TextBlock Classes="rowHint" Text="{l10n:Tr Key=theme_custom_size}" VerticalAlignment="Center"/>
                                     <Slider Grid.Column="1" Minimum="0.3" Maximum="2.5" TickFrequency="0.1" IsSnapToTickEnabled="True" Value="{Binding ParticleScale}" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Column="2" Text="{Binding ParticleScale, StringFormat='{}{0:0.0}x'}" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" VerticalAlignment="Center" TextAlignment="Right"/>
                                 </Grid>
-                                <Grid ColumnDefinitions="120,*,44" VerticalAlignment="Center">
+                                <Grid ColumnDefinitions="90,*,40" VerticalAlignment="Center">
                                     <TextBlock Classes="rowHint" Text="{l10n:Tr Key=theme_custom_speed}" VerticalAlignment="Center"/>
                                     <Slider Grid.Column="1" Minimum="0.2" Maximum="3.0" TickFrequency="0.1" IsSnapToTickEnabled="True" Value="{Binding ParticleSpeed}" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Column="2" Text="{Binding ParticleSpeed, StringFormat='{}{0:0.0}x'}" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" VerticalAlignment="Center" TextAlignment="Right"/>
+                                </Grid>
+                                <Grid ColumnDefinitions="90,*,40" VerticalAlignment="Center">
+                                    <TextBlock Classes="rowHint" Text="{l10n:Tr Key=theme_custom_angle}" VerticalAlignment="Center"/>
+                                    <Slider Grid.Column="1" Minimum="0" Maximum="360" TickFrequency="5" IsSnapToTickEnabled="True" Value="{Binding ParticleAngleDeg}" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding ParticleAngleDeg, StringFormat='{}{0:0}°'}" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" VerticalAlignment="Center" TextAlignment="Right"/>
+                                </Grid>
+                                <Grid ColumnDefinitions="90,*,Auto" VerticalAlignment="Center">
+                                    <TextBlock Classes="rowHint" Text="{l10n:Tr Key=theme_custom_tint}" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding ParticleColorHex, Mode=TwoWay}" PlaceholderText="Accent" FontSize="11" Padding="8,5" VerticalAlignment="Center"/>
+                                    <Button Grid.Column="2" Classes="subBtn" Width="30" Height="30" Padding="0" Margin="8,0,0,0" VerticalAlignment="Center">
+                                        <Button.Flyout>
+                                            <Flyout Placement="BottomEdgeAlignedRight">
+                                                <ColorView Color="{Binding ParticleColorHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
+                                            </Flyout>
+                                        </Button.Flyout>
+                                        <Border Width="16" Height="16" CornerRadius="4" Background="{Binding ParticleColorHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
+                                    </Button>
+                                </Grid>
+                                <Grid ColumnDefinitions="90,*,Auto" VerticalAlignment="Center">
+                                    <TextBlock Classes="rowHint" Text="{l10n:Tr Key=theme_custom_texture}" VerticalAlignment="Center"/>
+                                    <Border Grid.Column="1" Width="28" Height="28" CornerRadius="6" Background="{StaticResource FieldBrush}" ClipToBounds="True" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                        <Image Source="{Binding ParticleTexturePath, Converter={x:Static converters:IconPathToBitmapConverter.Instance}}" Stretch="UniformToFill" Width="28" Height="28"/>
+                                    </Border>
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                        <Button Classes="subBtn" Content="..." Command="{Binding PickParticleTextureCommand}" Padding="10,5" FontSize="11" ToolTip.Tip="{l10n:Tr Key=theme_custom_texture}"/>
+                                        <Button Classes="subBtn" Content="✕" Command="{Binding ClearParticleTextureCommand}" Padding="10,5" FontSize="11" IsVisible="{Binding ParticleTexturePath, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}"/>
+                                    </StackPanel>
                                 </Grid>
                             </StackPanel>
                         </StackPanel>

@@ -3,6 +3,8 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Avalonia.Media;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -140,6 +142,9 @@ public partial class ThemeSettingsViewModel : ViewModelBase
     [ObservableProperty] private int _particleCount = 50;
     [ObservableProperty] private double _particleScale = 1.0;
     [ObservableProperty] private double _particleSpeed = 1.0;
+    [ObservableProperty] private string _particleColorHex = "";
+    [ObservableProperty] private double _particleAngleDeg = 90.0;
+    [ObservableProperty] private string _particleTexturePath = "";
 
     partial void OnParticleCountChanged(int value)
     {
@@ -155,6 +160,41 @@ public partial class ThemeSettingsViewModel : ViewModelBase
     {
         if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
     }
+
+    partial void OnParticleColorHexChanged(string value)
+    {
+        if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
+    }
+
+    partial void OnParticleAngleDegChanged(double value)
+    {
+        if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
+    }
+
+    partial void OnParticleTexturePathChanged(string value)
+    {
+        if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
+    }
+
+    [RelayCommand]
+    private async Task PickParticleTextureAsync()
+    {
+        var topLevel = Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
+            ? desktop.MainWindow
+            : null;
+        if (topLevel?.StorageProvider == null) return;
+        var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "Pick particle texture",
+            AllowMultiple = false,
+            FileTypeFilter = new[] { new FilePickerFileType("Images") { Patterns = new[] { "*.png", "*.jpg", "*.jpeg" } } }
+        });
+        if (files.Count == 0) return;
+        ParticleTexturePath = files[0].Path.LocalPath;
+    }
+
+    [RelayCommand]
+    private void ClearParticleTexture() => ParticleTexturePath = "";
 
     [RelayCommand]
     public void SwitchThemeSubTab(string tab)
@@ -505,6 +545,9 @@ public partial class ThemeSettingsViewModel : ViewModelBase
             if (cfg.ParticleCount >= 10 && cfg.ParticleCount <= 150) ParticleCount = cfg.ParticleCount;
             if (cfg.ParticleScale >= 0.3 && cfg.ParticleScale <= 2.5) ParticleScale = cfg.ParticleScale;
             if (cfg.ParticleSpeed >= 0.2 && cfg.ParticleSpeed <= 3.0) ParticleSpeed = cfg.ParticleSpeed;
+            ParticleColorHex = cfg.ParticleColorHex ?? "";
+            if (cfg.ParticleAngleDeg >= 0 && cfg.ParticleAngleDeg <= 360) ParticleAngleDeg = cfg.ParticleAngleDeg;
+            ParticleTexturePath = cfg.ParticleTexturePath ?? "";
 
             if (IsThemeSubTabSimple)
             {
@@ -542,5 +585,8 @@ public partial class ThemeSettingsViewModel : ViewModelBase
         cfg.ParticleCount = ParticleCount;
         cfg.ParticleScale = ParticleScale;
         cfg.ParticleSpeed = ParticleSpeed;
+        cfg.ParticleColorHex = ParticleColorHex;
+        cfg.ParticleAngleDeg = ParticleAngleDeg;
+        cfg.ParticleTexturePath = ParticleTexturePath;
     }
 }

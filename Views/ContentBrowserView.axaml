@@ -12,22 +12,6 @@
         Background="{StaticResource BgBrush}">
 
     <UserControl.Styles>
-        <Style Selector="ComboBox">
-            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="10,6"/>
-        </Style>
-        <Style Selector="TextBox.darkInput">
-            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="10,8"/>
-        </Style>
         <Style Selector="Button.primaryBtn">
             <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
@@ -170,10 +154,10 @@
     <Panel>
     <Grid RowDefinitions="Auto,*" Margin="14">
         <!-- Header -->
-        <Border Grid.Row="0" Background="{StaticResource SurfaceBrush}" CornerRadius="10" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" Padding="10" Margin="0,0,0,10"
+        <Border Grid.Row="0" Background="Transparent" Padding="2" Margin="0,0,0,10"
                 IsVisible="{Binding !IsDetailsOpen}">
             <Grid ColumnDefinitions="180,*,150,Auto" ColumnSpacing="10" VerticalAlignment="Center">
-                <ComboBox Grid.Column="0" ItemsSource="{Binding AvailableContentTypes}" SelectedItem="{Binding SelectedContentType}" VerticalAlignment="Center">
+                <ComboBox Grid.Column="0" Classes="zenCombo" ItemsSource="{Binding AvailableContentTypes}" SelectedItem="{Binding SelectedContentType}" VerticalAlignment="Center">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding Converter={x:Static converters:ContentBrowserConverters.ContentTypeDisplay}}"/>
@@ -191,7 +175,7 @@
                                 Foreground="{StaticResource TextPlaceholderBrush}"/>
                     </TextBox.InnerRightContent>
                 </TextBox>
-                <ComboBox Grid.Column="2" ItemsSource="{Binding SortOptions}" SelectedItem="{Binding SelectedSortDisplay}" VerticalAlignment="Center" FontSize="11">
+                <ComboBox Grid.Column="2" Classes="zenCombo" ItemsSource="{Binding SortOptions}" SelectedItem="{Binding SelectedSortDisplay}" VerticalAlignment="Center" FontSize="11">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding Converter={x:Static converters:SortDisplayConverter.Instance}}" FontSize="11"/>
@@ -207,7 +191,7 @@
         <!-- Main catalog (hidden when details page is open) -->
         <Grid Grid.Row="1" ColumnDefinitions="*,300" ColumnSpacing="12" IsVisible="{Binding !IsDetailsOpen}">
             <!-- Left: results -->
-            <Border Background="{StaticResource ContentSurfaceBrush}" BorderBrush="{StaticResource PanelBrush}" BorderThickness="1" CornerRadius="10" Padding="0">
+            <Border Background="Transparent" Padding="0">
                 <Grid RowDefinitions="*,Auto">
                     <ListBox x:Name="ResultsList" ItemsSource="{Binding Results}" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                         <ListBox.ItemContainerTheme>
@@ -262,26 +246,24 @@
 
             <!-- Right: filters -->
             <StackPanel Grid.Column="1" Spacing="12">
-                <Border Background="{StaticResource SurfaceBrush}" CornerRadius="10" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" Padding="12">
+                <Border Classes="zenSection">
                     <StackPanel Spacing="8">
                         <TextBlock Text="{l10n:Tr Key=cb_instance}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextCaptionBrush}" LetterSpacing="1"/>
-                        <Border Background="{StaticResource FieldBrush}" CornerRadius="8" Padding="10">
-                            <StackPanel Spacing="4">
+                        <StackPanel Spacing="4">
                                 <TextBlock Text="{Binding InstanceName}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" TextWrapping="Wrap"/>
                                 <TextBlock Text="{Binding InstanceVersion}" FontSize="11" Foreground="{StaticResource AccentBrush}"/>
                                 <TextBlock Text="{Binding InstanceLoader}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
                                 <TextBlock Text="{Binding InstancePath}" FontSize="9" Foreground="{StaticResource TextPlaceholderBrush}" TextWrapping="Wrap" TextTrimming="CharacterEllipsis"/>
                                 <TextBlock Text="{Binding FilterLabel}" FontSize="10" Foreground="{StaticResource TextCaptionBrush}" Margin="0,4,0,0" TextWrapping="Wrap"/>
-                            </StackPanel>
-                        </Border>
+                        </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsDataPackSelected}">
                             <TextBlock Text="{l10n:Tr Key=lbl_world}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                            <ComboBox ItemsSource="{Binding AvailableWorlds}" SelectedItem="{Binding SelectedWorld}" PlaceholderText="{l10n:Tr Key=w_select_world}" FontSize="11" MinWidth="150"/>
+                            <ComboBox Classes="zenCombo" ItemsSource="{Binding AvailableWorlds}" SelectedItem="{Binding SelectedWorld}" PlaceholderText="{l10n:Tr Key=w_select_world}" FontSize="11" MinWidth="150"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>
 
-                <Border Background="{StaticResource SurfaceBrush}" CornerRadius="10" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" Padding="12">
+                <Border Classes="zenSection">
                     <StackPanel Spacing="6">
                         <TextBlock Text="{l10n:Tr Key=cb_categories}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextCaptionBrush}" LetterSpacing="1"/>
                         <ItemsControl ItemsSource="{Binding AvailableTags}">
@@ -301,7 +283,7 @@
                     </StackPanel>
                 </Border>
 
-                <Border Background="{StaticResource SurfaceBrush}" CornerRadius="10" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" Padding="12">
+                <Border Classes="zenSection">
                     <StackPanel Spacing="6">
                         <TextBlock Text="{l10n:Tr Key=cb_quick_info}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextCaptionBrush}" LetterSpacing="1"/>
                         <TextBlock FontSize="11" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap">
@@ -334,8 +316,7 @@
     </Border>
 
     <!-- Full-page project details (replaces catalog when open) -->
-    <Border IsVisible="{Binding IsDetailsOpen}" Background="{StaticResource BgBrush}" Margin="14" CornerRadius="10"
-            BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1">
+    <Border IsVisible="{Binding IsDetailsOpen}" Background="Transparent" Margin="14">
         <views:ProjectDetailsView DataContext="{Binding}"/>
     </Border>
     </Panel>

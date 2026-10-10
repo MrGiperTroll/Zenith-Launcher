@@ -246,7 +246,8 @@ public static class ZenithTheme
         new("cyan", "Cyan", "Бирюзовый", "#06B6D4"),
         new("red", "Red", "Красный", "#EF4444"),
         new("yellow", "Yellow", "Жёлтый", "#F59E0B"),
-        new("sky", "Sky Blue", "Голубой", "#0284C7")
+        new("sky", "Sky Blue", "Голубой", "#0284C7"),
+        new("custom", "Custom", "Свой", "", true)
     };
 }
 
@@ -257,14 +258,18 @@ public class ThemePreset
     public string NameRu { get; }
     public string HexColor { get; }
     public IBrush ColorBrush { get; }
+    public bool IsCustomPicker { get; }
     public string DisplayName => L10n.CurrentLanguage == "ru" ? NameRu : NameEn;
 
-    public ThemePreset(string id, string nameEn, string nameRu, string hexColor)
+    public ThemePreset(string id, string nameEn, string nameRu, string hexColor, bool isCustomPicker = false)
     {
         Id = id;
         NameEn = nameEn;
         NameRu = nameRu;
         HexColor = hexColor;
-        ColorBrush = new SolidColorBrush(Color.Parse(hexColor));
+        IsCustomPicker = isCustomPicker;
+        ColorBrush = isCustomPicker
+            ? Brushes.Transparent
+            : new SolidColorBrush(Color.Parse(hexColor));
     }
 }

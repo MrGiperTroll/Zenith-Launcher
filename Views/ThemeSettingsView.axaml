@@ -187,8 +187,7 @@
                                 <Button Grid.Column="1" Classes="primaryBtn" Classes.applyHighlight="{Binding IsApplyButtonHighlighted}" Command="{Binding RequestApplyThemeCommand}" Content="{l10n:Tr Key=set_apply}" Padding="16,6" VerticalAlignment="Center"/>
                             </Grid>
 
-                            <WrapPanel Orientation="Horizontal">
-                                <ItemsControl ItemsSource="{x:Static theming:ZenithTheme.Presets}" HorizontalAlignment="Left">
+                            <ItemsControl ItemsSource="{x:Static theming:ZenithTheme.Presets}" HorizontalAlignment="Left">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
                                             <WrapPanel Orientation="Horizontal"/>
@@ -196,50 +195,51 @@
                                     </ItemsControl.ItemsPanel>
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="theming:ThemePreset">
-                                            <Button Command="{Binding $parent[ItemsControl].((pages:ThemeSettingsViewModel)DataContext).ChooseThemeCommand}"
-                                                    CommandParameter="{Binding HexColor}"
-                                                    Classes="subBtn presetBtn"
-                                                    Width="120"
-                                                    Height="36"
-                                                    CornerRadius="8"
-                                                    Padding="8,0"
-                                                    Margin="0,0,8,8">
-                                                <Classes.active>
-                                                    <MultiBinding Converter="{x:Static converters:StringEqualsConverter.Instance}">
-                                                        <Binding Path="HexColor"/>
-                                                        <Binding Path="$parent[ItemsControl].((pages:ThemeSettingsViewModel)DataContext).SimpleAccentHex"/>
-                                                    </MultiBinding>
-                                                </Classes.active>
-                                                <Grid ColumnDefinitions="14,*" VerticalAlignment="Center">
-                                                    <Border Grid.Column="0" Width="14" Height="14" CornerRadius="7" Background="{Binding ColorBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                    <TextBlock Grid.Column="1" Text="{Binding DisplayName}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" Margin="8,0,0,0" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
-                                                </Grid>
-                                            </Button>
+                                            <Panel>
+                                                <Button Command="{Binding $parent[ItemsControl].((pages:ThemeSettingsViewModel)DataContext).ChooseThemeCommand}"
+                                                        CommandParameter="{Binding HexColor}"
+                                                        IsVisible="{Binding IsCustomPicker, Converter={x:Static conv:BoolConverters.Not}}"
+                                                        Classes="subBtn presetBtn"
+                                                        Width="120"
+                                                        Height="36"
+                                                        CornerRadius="8"
+                                                        Padding="8,0"
+                                                        Margin="0,0,8,8">
+                                                    <Classes.active>
+                                                        <MultiBinding Converter="{x:Static converters:StringEqualsConverter.Instance}">
+                                                            <Binding Path="HexColor"/>
+                                                            <Binding Path="$parent[ItemsControl].((pages:ThemeSettingsViewModel)DataContext).SimpleAccentHex"/>
+                                                        </MultiBinding>
+                                                    </Classes.active>
+                                                    <Grid ColumnDefinitions="14,*" VerticalAlignment="Center">
+                                                        <Border Grid.Column="0" Width="14" Height="14" CornerRadius="7" Background="{Binding ColorBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="1" Text="{Binding DisplayName}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" Margin="8,0,0,0" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                                    </Grid>
+                                                </Button>
+                                                <!-- Custom picker: ordinary last item of the same list -->
+                                                <Button Classes="subBtn"
+                                                        IsVisible="{Binding IsCustomPicker}"
+                                                        Width="120"
+                                                        Height="36"
+                                                        CornerRadius="8"
+                                                        Padding="8,0"
+                                                        Margin="0,0,8,8"
+                                                        ToolTip.Tip="Pick custom color and auto-harmonize full palette">
+                                                    <Button.Flyout>
+                                                        <Flyout Placement="BottomEdgeAlignedLeft">
+                                                            <ColorView Color="{Binding $parent[ItemsControl].((pages:ThemeSettingsViewModel)DataContext).CustomThemeHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
+                                                        </Flyout>
+                                                    </Button.Flyout>
+                                                    <Grid ColumnDefinitions="14,*,Auto" VerticalAlignment="Center">
+                                                        <Border Grid.Column="0" Width="14" Height="14" CornerRadius="7" Background="{Binding $parent[ItemsControl].((pages:ThemeSettingsViewModel)DataContext).CustomThemeHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="1" Text="{l10n:Tr Key=theme_custom_color}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" Margin="8,0,4,0" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                                        <PathIcon Grid.Column="2" Data="M7 10l5 5 5-5z" Width="10" Height="10" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                                    </Grid>
+                                                </Button>
+                                            </Panel>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
-
-                                <!-- Custom Single Color Harmonizer Button -->
-                                <Button Classes="subBtn"
-                                        Width="120"
-                                        Height="36"
-                                        CornerRadius="8"
-                                        Padding="8,0"
-                                        Margin="0,0,8,8"
-                                        ToolTip.Tip="Pick custom color and auto-harmonize full palette">
-                                    <Button.Flyout>
-                                        <Flyout Placement="BottomEdgeAlignedLeft">
-                                            <ColorView Color="{Binding CustomThemeHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
-                                        </Flyout>
-                                    </Button.Flyout>
-                                    <Grid ColumnDefinitions="14,*,Auto" VerticalAlignment="Center">
-                                        <Border Grid.Column="0" Width="14" Height="14" CornerRadius="7" Background="{Binding CustomThemeHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        <TextBlock Grid.Column="1" Text="{l10n:Tr Key=theme_custom_color}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" Margin="8,0,4,0" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
-                                        <PathIcon Grid.Column="2" Data="M7 10l5 5 5-5z" Width="10" Height="10" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                                    </Grid>
-                                </Button>
-
-                            </WrapPanel>
                         </StackPanel>
                     </Border>
 

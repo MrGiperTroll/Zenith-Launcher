@@ -424,7 +424,6 @@
                                     <StackPanel VerticalAlignment="Center" Spacing="4">
                                         <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                             <Ellipse Width="8" Height="8" Fill="{StaticResource SuccessBrush}" IsVisible="{Binding IsServerRunning}" VerticalAlignment="Center"/>
-                                            <Ellipse Width="8" Height="8" Fill="{StaticResource TextFaintBrush}" IsVisible="{Binding !IsServerRunning}" VerticalAlignment="Center"/>
                                             <TextBlock Classes="heroName" Text="{Binding SelectedServerName}"/>
                                             <!-- Status Badge (Shown when online) -->
                                             <Border Background="{StaticResource SuccessBgBrush}" BorderBrush="{StaticResource SuccessBrush}" BorderThickness="1" CornerRadius="4" Padding="7,2" IsVisible="{Binding IsServerRunning}">

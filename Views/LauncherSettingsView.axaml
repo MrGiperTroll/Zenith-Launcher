@@ -120,7 +120,7 @@
                         <TextBlock Text="{l10n:Tr set_game}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,4"/>
 
                         <!-- Compact Memory Configuration (Min / Max RAM) -->
-                        <Border Classes="zenSection" IsVisible="{Binding IsSearchMemoryVisible}">
+                        <Border Classes="zenCard" IsVisible="{Binding IsSearchMemoryVisible}">
                             <StackPanel Spacing="10">
                                 <TextBlock Classes="sectionTitle" Text="{l10n:Tr set_memory}"/>
 
@@ -169,7 +169,7 @@
                         </Border>
 
                         <!-- Resolution & Fullscreen -->
-                        <Border Classes="zenSection" IsVisible="{Binding IsSearchResolutionVisible}">
+                        <Border Classes="zenCard" IsVisible="{Binding IsSearchResolutionVisible}">
                             <StackPanel Spacing="10">
                                 <TextBlock Classes="sectionTitle" Text="{l10n:Tr set_resolution}"/>
                                 <Grid ColumnDefinitions="Auto,60,14,60,14,Auto,Auto" VerticalAlignment="Center">
@@ -188,7 +188,7 @@
                         </Border>
 
                         <!-- Java Runtime -->
-                        <Border Classes="zenSection" IsVisible="{Binding IsSearchJavaVisible}">
+                        <Border Classes="zenCard" IsVisible="{Binding IsSearchJavaVisible}">
                             <StackPanel Spacing="10">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <TextBlock Classes="sectionTitle" Text="{l10n:Tr set_java}"/>
@@ -224,7 +224,7 @@
                         </Border>
 
                         <!-- JVM Arguments -->
-                        <Border Classes="zenSection" IsVisible="{Binding IsSearchJvmArgsVisible}">
+                        <Border Classes="zenCard" IsVisible="{Binding IsSearchJvmArgsVisible}">
                             <StackPanel Spacing="8">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <TextBlock Classes="sectionTitle" Text="{l10n:Tr set_jvmargs}"/>
@@ -235,7 +235,7 @@
                         </Border>
 
                         <!-- Launcher Behavior on Game Start -->
-                        <Border Classes="zenSection">
+                        <Border Classes="zenCard">
                             <StackPanel Spacing="8">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <TextBlock Classes="sectionTitle" Text="{l10n:Tr set_launch_behavior}"/>
@@ -257,7 +257,7 @@
                         <TextBlock Text="{l10n:Tr set_general}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,4"/>
 
                         <!-- Directory Strategy Card -->
-                        <Border Classes="zenSection" IsVisible="{Binding IsSearchDirectoryVisible}">
+                        <Border Classes="zenCard" IsVisible="{Binding IsSearchDirectoryVisible}">
                             <StackPanel Spacing="8">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <TextBlock Classes="sectionTitle" Text="{l10n:Tr set_dirstrategy}"/>
@@ -274,7 +274,7 @@
                         </Border>
 
                         <!-- Version Filters Card -->
-                        <Border Classes="zenSection" IsVisible="{Binding IsSearchVersionFiltersVisible}">
+                        <Border Classes="zenCard" IsVisible="{Binding IsSearchVersionFiltersVisible}">
                             <StackPanel Spacing="8">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <TextBlock Classes="sectionTitle" Text="{l10n:Tr set_versionfilters}"/>
@@ -290,7 +290,7 @@
                         </Border>
 
                         <!-- Language Card -->
-                        <Border Classes="zenSection" IsVisible="{Binding IsSearchLanguageVisible}">
+                        <Border Classes="zenCard" IsVisible="{Binding IsSearchLanguageVisible}">
                             <StackPanel Spacing="8">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <TextBlock Classes="sectionTitle" Text="{l10n:Tr set_language}"/>
@@ -307,7 +307,7 @@
                         <TextBlock Text="Launcher Settings" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,4"/>
 
                         <!-- Discord Rich Presence Card -->
-                        <Border Classes="zenSection" IsVisible="{Binding IsSearchDiscordVisible}">
+                        <Border Classes="zenCard" IsVisible="{Binding IsSearchDiscordVisible}">
                             <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                 <StackPanel Grid.Column="0" Spacing="4" VerticalAlignment="Center">
                                     <TextBlock Classes="sectionTitle" Text="{l10n:Tr set_discord}"/>
@@ -318,7 +318,7 @@
                         </Border>
 
                         <!-- Edit Theme Card -->
-                        <Border Classes="zenSection" IsVisible="{Binding IsSearchAppearanceVisible}">
+                        <Border Classes="zenCard" IsVisible="{Binding IsSearchAppearanceVisible}">
                             <StackPanel Spacing="6">
                                 <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=theme_edit}"/>
                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
@@ -329,7 +329,7 @@
                         </Border>
 
                         <!-- Launcher Scale -->
-                        <Border Classes="zenSection">
+                        <Border Classes="zenCard">
                             <StackPanel Spacing="6">
                                 <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=settings_scale}"/>
                                 <Grid ColumnDefinitions="*,Auto">

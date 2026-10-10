@@ -1219,8 +1219,19 @@
                     </Grid>
                     <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Padding="14">
                         <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalAlignment="Center">
+                            <!-- Official Prism Launcher mark (CC BY-SA 4.0, github.com/PrismLauncher/PrismLauncher) -->
                             <Border Width="40" Height="40" Background="{StaticResource IconChipBrush}" CornerRadius="10" VerticalAlignment="Center">
-                                <PathIcon Data="m6.3498 2.9393c-0.34105 0-2.7827 1.4099-2.9532 1.7052l2.9532 5.1157 2.9538-5.1157c-0.17052-0.29535-2.6127-1.7052-2.9538-1.7052z" Width="20" Height="20" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Panel Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <Path Data="m6.35 0.52917c-0.58208 0 -4.75 2.4063-5.041 2.9104l5.041 2.9104v-5.8208z" Fill="#99cd61" Stretch="Uniform"/>
+                                    <Path Data="m6.35 0.52917-2.5208 4.3656 2.5208 1.4552 2.5203-1.4552 0.10955-3.0996c-1.1511-0.66459-2.3388-1.2661-2.6298-1.2661z" Fill="#df6277" Stretch="Uniform"/>
+                                    <Path Data="m8.9798 1.7952-2.6298 4.5548 2.5203 1.4552 2.5208-4.3656c-0.14552-0.25205-1.2601-0.97975-2.4112-1.6443z" Fill="#fb9168" Stretch="Uniform"/>
+                                    <Path Data="m11.391 3.4396-5.041 2.9104 2.5203 1.4552 2.7389-1.4552c0-1.3292-0.072554-2.6584-0.21808-2.9104z" Fill="#f3db6c" Stretch="Uniform"/>
+                                    <Path Data="m6.35 6.35v2.9104h5.041c0.14552-0.25205 0.21807-1.5812 0.21808-2.9104h-5.2591z" Fill="#7ab392" Stretch="Uniform"/>
+                                    <Path Data="m6.35 6.35v2.9104l2.6298 1.6443c1.1511-0.66459 2.2657-1.3923 2.4112-1.6443l-5.041-2.9104z" Fill="#4b7cbc" Stretch="Uniform"/>
+                                    <Path Data="m6.35 6.35-2.5208 1.4552 2.5208 4.3656c0.29104 0 1.4787-0.60148 2.6298-1.2661l-2.6298-4.5548z" Fill="#6f488c" Stretch="Uniform"/>
+                                    <Path Data="m3.8292 4.8948-2.5203 4.3656c0.29104 0.5041 4.459 2.9104 5.041 2.9104v-5.8208l-2.5208-1.4552z" Fill="#4d3f33" Stretch="Uniform"/>
+                                    <Path Data="m1.309 3.4396c-0.29104 0.5041-0.29104 5.3167 0 5.8208l5.041-2.9104v-2.9104h-5.041z" Fill="#7a573b" Stretch="Uniform"/>
+                                </Panel>
                             </Border>
                             <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
                                 <TextBlock Classes="rowTitle" Text="{l10n:Tr Key=imp_prism_t}"/>
@@ -1232,7 +1243,7 @@
                     <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Padding="14">
                         <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalAlignment="Center">
                             <Border Width="40" Height="40" Background="#009CFF" CornerRadius="10" VerticalAlignment="Center">
-                                <TextBlock Text="M" FontSize="20" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Path Data="M7 17V7l5 4 5-4v10" Stroke="#FFFFFF" StrokeThickness="2.5" StrokeLineCap="Round" StrokeLineJoin="Round" Stretch="Uniform" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
                             <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
                                 <TextBlock Classes="rowTitle" Text="{l10n:Tr Key=imp_mmc_t}"/>
@@ -1276,7 +1287,7 @@
         <Canvas x:Name="DragOverlayPanel" IsHitTestVisible="False" ClipToBounds="False" ZIndex="9999"/>
     </Grid>
     </LayoutTransformControl>
-    <controls:ParticleSystemControl ParticleType="{Binding SelectedParticle}" ParticleCount="{Binding ParticleCount}" ParticleScale="{Binding ParticleScale}" ParticleSpeed="{Binding ParticleSpeed}" IsHitTestVisible="False"/>
+    <controls:ParticleSystemControl ParticleType="{Binding SelectedParticle}" ParticleCount="{Binding ParticleCount}" ParticleScale="{Binding ParticleScale}" ParticleSpeed="{Binding ParticleSpeed}" ParticleColorHex="{Binding ParticleColorHex}" ParticleAngleDeg="{Binding ParticleAngleDeg}" ParticleTexturePath="{Binding ParticleTexturePath}" IsHitTestVisible="False"/>
     </Panel>
 </Window>
 

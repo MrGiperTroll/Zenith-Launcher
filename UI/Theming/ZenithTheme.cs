@@ -114,11 +114,16 @@ public static class ZenithTheme
         // CheckBox dynamic overrides (follow surfaces + accent)
         SetBrushColor(r, "CheckBoxCheckBackgroundFillUnchecked", field);
         SetBrushColor(r, "CheckBoxCheckBackgroundStrokeUnchecked", Lighten(borderDark, 0.20f));
+        SetBrushColor(r, "CheckBoxCheckBackgroundFillUncheckedPointerOver", field);
         SetBrushColor(r, "CheckBoxCheckBackgroundStrokeUncheckedPointerOver", accent);
+        SetBrushColor(r, "CheckBoxCheckBackgroundFillUncheckedPressed", field);
+        SetBrushColor(r, "CheckBoxCheckBackgroundStrokeUncheckedPressed", accent);
         SetBrushColor(r, "CheckBoxCheckBackgroundFillChecked", accent);
         SetBrushColor(r, "CheckBoxCheckBackgroundFillCheckedPointerOver", hover);
+        SetBrushColor(r, "CheckBoxCheckBackgroundFillCheckedPressed", accent);
         SetBrushColor(r, "CheckBoxCheckGlyphForegroundChecked", Colors.White);
         SetBrushColor(r, "CheckBoxCheckGlyphForegroundCheckedPointerOver", Colors.White);
+        SetBrushColor(r, "CheckBoxCheckGlyphForegroundCheckedPressed", Colors.White);
 
         // ToggleSwitch dynamic overrides (follow surfaces + accent, white knobs)
         SetBrushColor(r, "ToggleSwitchFillOff", field);

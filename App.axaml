@@ -116,11 +116,16 @@
         <SolidColorBrush x:Key="SliderTrackValueFillPressed" Color="#1D4ED8"/>
         <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillUnchecked" Color="#121724"/>
         <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeUnchecked" Color="#2A3754"/>
+        <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillUncheckedPointerOver" Color="#121724"/>
         <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeUncheckedPointerOver" Color="#3B82F6"/>
+        <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillUncheckedPressed" Color="#121724"/>
+        <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeUncheckedPressed" Color="#3B82F6"/>
         <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillChecked" Color="#3B82F6"/>
         <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedPointerOver" Color="#60A5FA"/>
+        <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedPressed" Color="#3B82F6"/>
         <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundChecked" Color="#FFFFFF"/>
         <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPointerOver" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPressed" Color="#FFFFFF"/>
         <SolidColorBrush x:Key="ToggleSwitchFillOff" Color="#121724"/>
         <SolidColorBrush x:Key="ToggleSwitchStrokeOff" Color="#2A3754"/>
         <SolidColorBrush x:Key="ToggleSwitchFillOffPointerOver" Color="#121724"/>
@@ -693,6 +698,7 @@
 
         <!-- Modern CheckBox: colors via theme resources (CheckBoxCheckBackground*,
              harmonized in ZenithTheme.Apply); box roundness via control CornerRadius.
+             Hover/press transitions live on this style (template carries no transitions).
              PART_Border neutralized: it spans the whole row and its theme
              pointerover/pressed backgrounds flash over dark rows. -->
         <Style Selector="CheckBox">
@@ -704,21 +710,20 @@
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="CornerRadius" Value="6"/>
         </Style>
-        <!-- Kill Fluent full-row flash: PART_Border spans the whole CheckBox row,
-             its theme pointerover/pressed backgrounds flash light over our dark rows -->
-        <Style Selector="CheckBox:pointerover /template/ Border#PART_Border">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderBrush" Value="Transparent"/>
-        </Style>
-        <Style Selector="CheckBox:pressed /template/ Border#PART_Border">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderBrush" Value="Transparent"/>
-        </Style>
         <Style Selector="CheckBox:pressed">
             <Setter Property="Opacity" Value="0.85"/>
         </Style>
         <Style Selector="CheckBox:disabled">
             <Setter Property="Opacity" Value="0.45"/>
+        </Style>
+        <!-- Smooth hover: Transitions is not template-set, so this wins -->
+        <Style Selector="CheckBox /template/ Border#NormalRectangle">
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.18" Easing="0.16, 1, 0.3, 1"/>
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.18" Easing="0.16, 1, 0.3, 1"/>
+                </Transitions>
+            </Setter>
         </Style>
 
         <!-- Modern ToggleSwitch: colors via theme resources (ToggleSwitchFill*,

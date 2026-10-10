@@ -128,14 +128,14 @@
                 <Border Grid.Row="0" Padding="24,20" Background="Transparent">
                     <Grid VerticalAlignment="Stretch">
                         <!-- Step 1: Information & Out-of-the-box Settings -->
-                        <Grid IsVisible="{Binding IsStep1}" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="16" Margin="4,2">
-                            <!-- Top: Icon + Name -->
-                            <Grid Grid.Row="0" ColumnDefinitions="Auto,*" ColumnSpacing="16">
-                            <StackPanel Grid.Column="0" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <Border Width="96" Height="96" Classes="iconCard" BorderThickness="1" CornerRadius="16" ClipToBounds="True" HorizontalAlignment="Center">
+                        <Grid IsVisible="{Binding IsStep1}" ColumnDefinitions="180,*" ColumnSpacing="28" Margin="4,2">
+                            <!-- Left: Icon Card & Actions (Harmoniously Centered) -->
+                            <StackPanel Grid.Column="0" Spacing="12" HorizontalAlignment="Center">
+                                <TextBlock Text="{l10n:Tr Key=cp_panel_info}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
+                                <Border Width="112" Height="112" Classes="iconCard" BorderThickness="1" CornerRadius="16" ClipToBounds="True" HorizontalAlignment="Center">
                                     <Panel>
-                                        <Image Source="{Binding IconPreview}" Stretch="UniformToFill" Width="94" Height="94" IsVisible="{Binding IconPreview, Converter={x:Static conv:ObjectConverters.IsNotNull}}"/>
-                                        <Path Data="{StaticResource ZenithLogoGeometry}" Fill="{StaticResource AccentBrush}" Stretch="Uniform" Width="48" Height="48" Margin="0,3,0,0" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding IconPreview, Converter={x:Static conv:ObjectConverters.IsNull}}"/>
+                                        <Image Source="{Binding IconPreview}" Stretch="UniformToFill" Width="110" Height="110" IsVisible="{Binding IconPreview, Converter={x:Static conv:ObjectConverters.IsNotNull}}"/>
+                                        <Path Data="{StaticResource ZenithLogoGeometry}" Fill="{StaticResource AccentBrush}" Stretch="Uniform" Width="56" Height="56" Margin="0,3.5,0,0" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding IconPreview, Converter={x:Static conv:ObjectConverters.IsNull}}"/>
                                     </Panel>
                                 </Border>
                                 <Grid ColumnDefinitions="*,*" ColumnSpacing="8" Width="140" HorizontalAlignment="Center">
@@ -143,62 +143,68 @@
                                     <Button Grid.Column="1" Content="{l10n:Tr Key=btn_reset}" Command="{Binding ResetIconCommand}" Classes="subBtn" Padding="8,7" FontSize="11" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
                                 </Grid>
                             </StackPanel>
-                            <!-- Profile Name -->
-                            <StackPanel Grid.Column="1" Spacing="5" VerticalAlignment="Center">
-                                <TextBlock Classes="rowTitle" Text="{l10n:Tr Key=cp_name_label}"/>
-                                <Border BorderThickness="1" CornerRadius="10" Background="Transparent"
-                                        BorderBrush="{Binding CanNextStep1, Converter={x:Static converters:BoolToErrorBrushConverter.InstanceInverted}}">
-                                    <TextBox Classes="darkInput" Text="{Binding ProfileName}" PlaceholderText="{l10n:Tr Key=ph_profile_name}" FontSize="13" Padding="12,10" BorderThickness="0"/>
-                                </Border>
-                                <Grid ColumnDefinitions="*,Auto">
-                                    <TextBlock Grid.Column="0" Classes="rowHint" Text="{l10n:Tr Key=cp_name_hint2}"/>
-                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
-                                        <TextBlock Text="{l10n:Tr Key=cp_duplicate}" FontSize="11" Foreground="{StaticResource DangerBrush}" IsVisible="{Binding IsNameDuplicate}"/>
-                                        <TextBlock Text="Invalid characters in name" FontSize="11" Foreground="{StaticResource DangerBrush}" IsVisible="{Binding IsNameInvalid}"/>
-                                    </StackPanel>
-                                </Grid>
-                            </StackPanel>
-                            </Grid>
 
-                            <!-- Unified RAM Allocation Card -->
-                            <controls:RamCardControl Grid.Row="1" Title="{l10n:Tr Key=cs_ram}"
+                            <!-- Right: Name, RAM, Resolution, Java Mode -->
+                            <StackPanel Grid.Column="1" Spacing="14">
+                                <!-- Profile Name -->
+                                <StackPanel Spacing="5">
+                                    <TextBlock Text="{l10n:Tr Key=cp_name_label}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <Border BorderThickness="1" CornerRadius="10" Background="Transparent" 
+                                            BorderBrush="{Binding CanNextStep1, Converter={x:Static converters:BoolToErrorBrushConverter.InstanceInverted}}">
+                                        <TextBox Classes="darkInput" Text="{Binding ProfileName}" PlaceholderText="{l10n:Tr Key=ph_profile_name}" FontSize="13" Padding="12,10" BorderThickness="0"/>
+                                    </Border>
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Grid.Column="0" Text="{l10n:Tr Key=cp_name_hint2}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"/>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                                            <TextBlock Text="{l10n:Tr Key=cp_duplicate}" FontSize="11" Foreground="{StaticResource DangerBrush}" IsVisible="{Binding IsNameDuplicate}"/>
+                                            <TextBlock Text="Invalid characters in name" FontSize="11" Foreground="{StaticResource DangerBrush}" IsVisible="{Binding IsNameInvalid}"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+
+                                <!-- Unified RAM Allocation Card -->
+                                <controls:RamCardControl Title="{l10n:Tr Key=cs_ram}"
                                                       Subtitle="{l10n:Tr Key=set_memory_hint}"
                                                       Value="{Binding SelectedRamMb}"
                                                       Maximum="{Binding MaxRamMb}"
                                                       Minimum="512"
                                                       TickFrequency="512"/>
 
-                                <!-- Resolution | Java mode -->
-                                <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="16">
-                                    <Border Grid.Column="0" Classes="zenSection">
-                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" VerticalAlignment="Center">
-                                            <StackPanel Grid.Column="0" Spacing="5">
-                                                <TextBlock Classes="rowTitle" Text="{l10n:Tr Key=set_resolution}"/>
-                                                <ComboBox Classes="zenCombo" ItemsSource="{Binding ResolutionOptions}" SelectedItem="{Binding SelectedResolution}" HorizontalAlignment="Stretch" FontSize="11"/>
+                                <!-- Window Resolution & Fullscreen -->
+                                <Border Classes="zenSection">
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16" VerticalAlignment="Center">
+                                        <StackPanel Grid.Column="0" Spacing="5">
+                                            <TextBlock Classes="rowTitle" Text="{l10n:Tr Key=set_resolution}"/>
+                                            <ComboBox Classes="zenCombo" ItemsSource="{Binding ResolutionOptions}" SelectedItem="{Binding SelectedResolution}" HorizontalAlignment="Stretch" FontSize="11"/>
+                                        </StackPanel>
+                                        <ToggleSwitch Grid.Column="1" IsChecked="{Binding IsFullscreen}" VerticalAlignment="Bottom" Margin="0,0,0,4" ToolTip.Tip="{l10n:Tr Key=set_fullscreen}"/>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Java Runtime Selector -->
+                                <Border Classes="zenSection">
+                                    <StackPanel Spacing="8">
+                                        <Grid ColumnDefinitions="*,180" ColumnSpacing="12" VerticalAlignment="Center">
+                                            <StackPanel Grid.Column="0" Spacing="2">
+                                                <TextBlock Classes="rowTitle" Text="{l10n:Tr Key=set_java}"/>
+                                                <TextBlock Text="{l10n:Tr Key=set_java_mode_desc}" FontSize="10.5" Foreground="{StaticResource TextMutedBrush}"/>
                                             </StackPanel>
-                                            <ToggleSwitch Grid.Column="1" IsChecked="{Binding IsFullscreen}" VerticalAlignment="Bottom" Margin="0,0,0,4" ToolTip.Tip="{l10n:Tr Key=set_fullscreen}"/>
-                                        </Grid>
-                                    </Border>
-                                    <Border Grid.Column="1" Classes="zenSection">
-                                        <StackPanel Spacing="5">
-                                            <TextBlock Classes="rowTitle" Text="{l10n:Tr Key=set_java}"/>
-                                            <TextBlock Text="{l10n:Tr Key=set_java_mode_desc}" FontSize="10.5" Foreground="{StaticResource TextMutedBrush}"/>
-                                            <ComboBox Classes="zenCombo" ItemsSource="{Binding JavaOptions}" SelectedItem="{Binding SelectedJavaOption}" HorizontalAlignment="Stretch" FontSize="11">
+                                            <ComboBox Grid.Column="1" Classes="zenCombo" ItemsSource="{Binding JavaOptions}" SelectedItem="{Binding SelectedJavaOption}" HorizontalAlignment="Stretch" FontSize="11">
                                                 <ComboBox.ItemTemplate>
                                                     <DataTemplate x:DataType="vm:JavaModeOption">
                                                         <TextBlock Text="{Binding DisplayName}" FontSize="11"/>
                                                     </DataTemplate>
                                                 </ComboBox.ItemTemplate>
                                             </ComboBox>
-                                        </StackPanel>
-                                    </Border>
-                                </Grid>
-
-                                <!-- Java path full width -->
-                                <Grid Grid.Row="3" ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                                    <TextBox Classes="darkInput" Text="{Binding EffectiveJavaPath}" PlaceholderText="C:\Path\To\javaw.exe" FontSize="11" Padding="10,6"/>
-                                    <Button Grid.Column="1" Content="{l10n:Tr Key=set_java_browse}" Command="{Binding PickCustomJavaCommand}" Classes="subBtn" Padding="14,6" FontSize="11"/>
-                                </Grid>
+                                        </Grid>
+                                        <!-- Always-Visible Editable Java Path Row + Browse Button -->
+                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                            <TextBox Classes="darkInput" Text="{Binding EffectiveJavaPath}" PlaceholderText="C:\Path\To\javaw.exe" FontSize="11" Padding="10,6"/>
+                                            <Button Grid.Column="1" Content="{l10n:Tr Key=set_java_browse}" Command="{Binding PickCustomJavaCommand}" Classes="subBtn" Padding="14,6" FontSize="11"/>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
                         </Grid>
 
                         <!-- Step 2: Game Version (Stretched to bottom) -->

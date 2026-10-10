@@ -989,6 +989,12 @@ public partial class MainWindowViewModel : ViewModelBase
     private bool _isJavaInstallerOpen;
 
     [ObservableProperty]
+    private bool _isCrashReportOpen;
+
+    [ObservableProperty]
+    private Dialogs.CrashReportViewModel? _crashReportVm;
+
+    [ObservableProperty]
     private bool _isImportPickerOpen;
 
     [ObservableProperty]
@@ -1825,8 +1831,12 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             Dispatcher.UIThread.Post(() =>
             {
-                try { new Views.CrashReportWindow(analysis).Show(); }
-                catch (Exception wex) { LauncherLog.Error("Failed to show crash report window", wex); }
+                try
+                {
+                    CrashReportVm = new Dialogs.CrashReportViewModel(analysis);
+                    IsCrashReportOpen = true;
+                }
+                catch (Exception wex) { LauncherLog.Error("Failed to show crash report", wex); }
             });
         };
 
@@ -3015,6 +3025,13 @@ public partial class MainWindowViewModel : ViewModelBase
     private void OpenSettingsDialog()
     {
         NavigateToSettings();
+    }
+
+    [RelayCommand]
+    private void CloseCrashReport()
+    {
+        IsCrashReportOpen = false;
+        CrashReportVm = null;
     }
 
     [RelayCommand]

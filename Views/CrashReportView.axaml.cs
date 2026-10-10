@@ -13,32 +13,32 @@ using CustomMcLauncher.ViewModels.Dialogs;
 
 namespace CustomMcLauncher.Views;
 
-public partial class CrashReportWindow : Window
+public partial class CrashReportView : UserControl
 {
-    private readonly CrashReportViewModel _vm;
-
-    public CrashReportWindow(CrashAnalysis analysis)
+    public CrashReportView()
     {
         InitializeComponent();
-        _vm = new CrashReportViewModel(analysis);
-        DataContext = _vm;
     }
+
+    private CrashReportViewModel? Vm => DataContext as CrashReportViewModel;
 
     private async void OnCopyClick(object? sender, RoutedEventArgs e)
     {
+        var vm = Vm;
+        if (vm == null) return;
         try
         {
             var sb = new StringBuilder();
-            sb.AppendLine($"{_vm.Title} (exit {_vm.Analysis.ExitCode})");
-            sb.AppendLine(_vm.HumanSummary);
+            sb.AppendLine($"{vm.Title} (exit {vm.Analysis.ExitCode})");
+            sb.AppendLine(vm.HumanSummary);
             sb.AppendLine();
-            foreach (var line in _vm.Evidence) sb.AppendLine(line);
+            foreach (var line in vm.Evidence) sb.AppendLine(line);
 
-            // Avalonia 12 clipboard API (SetTextAsync was removed).
             var transfer = new DataTransfer();
             transfer.Add(DataTransferItem.CreateText(sb.ToString()));
-            if (Clipboard != null)
-                await Clipboard.SetDataAsync(transfer);
+            var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
+            if (clipboard != null)
+                await clipboard.SetDataAsync(transfer);
         }
         catch { }
     }
@@ -47,14 +47,13 @@ public partial class CrashReportWindow : Window
     {
         try
         {
-            if (!File.Exists(_vm.Analysis.LogPath)) return;
-            Process.Start(new ProcessStartInfo("explorer.exe", $"/select,\"{_vm.Analysis.LogPath}\"")
+            var vm = Vm;
+            if (vm == null || !File.Exists(vm.Analysis.LogPath)) return;
+            Process.Start(new ProcessStartInfo("explorer.exe", $"/select,\"{vm.Analysis.LogPath}\"")
             {
                 UseShellExecute = true,
             });
         }
         catch { }
     }
-
-    private void OnCloseClick(object? sender, RoutedEventArgs e) => Close();
 }

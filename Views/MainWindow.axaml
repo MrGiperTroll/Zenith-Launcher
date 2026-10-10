@@ -1207,6 +1207,14 @@
                 </StackPanel>
             </Border>
         </Border>
+    <!-- Crash Report In-App Modal (soft fade-in via code-behind) -->
+        <Border x:Name="CrashOverlay" Background="{StaticResource OverlayBrush}" IsVisible="{Binding IsCrashReportOpen}" ZIndex="2000"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.RowSpan="3" Grid.ColumnSpan="3">
+            <Border Background="{StaticResource SurfaceBrush}" CornerRadius="16" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1"
+                    HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 18 46 0 #55000000" Padding="6,4">
+                <views:CrashReportView DataContext="{Binding CrashReportVm}"/>
+            </Border>
+        </Border>
         <!-- DragOverlayPanel: topmost layer for drag ghost rendering -->
         <Canvas x:Name="DragOverlayPanel" IsHitTestVisible="False" ClipToBounds="False" ZIndex="9999"/>
     </Grid>

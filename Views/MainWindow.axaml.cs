@@ -100,6 +100,12 @@ public partial class MainWindow : Window
             if (pane != null)
                 UiFx.FadeInNow(pane, 240, 4);
         }
+        else if (e.PropertyName == nameof(MainWindowViewModel.IsCrashReportOpen) && _subscribedVm!.IsCrashReportOpen)
+        {
+            var overlay = this.FindControl<Control>("CrashOverlay");
+            if (overlay != null)
+                UiFx.FadeInNow(overlay, 240, 4);
+        }
         else if (e.PropertyName == nameof(MainWindowViewModel.IsRightSidebarOpen))
         {
             AnimateSidebar(_subscribedVm!.IsRightSidebarOpen);

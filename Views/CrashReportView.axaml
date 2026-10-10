@@ -1,20 +1,13 @@
-<Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        x:Class="CustomMcLauncher.Views.CrashReportWindow"
-        xmlns:self="using:CustomMcLauncher.Views"
-        xmlns:dialogs="using:CustomMcLauncher.ViewModels.Dialogs"
-        x:DataType="dialogs:CrashReportViewModel"
-        xmlns:vm="using:CustomMcLauncher.ViewModels"
-        xmlns:converters="using:CustomMcLauncher.Converters"
-        Title="{l10n:Tr crash_window_title}"
-        xmlns:l10n="using:CustomMcLauncher.Extensions"
-        Width="620" Height="480"
-        MinWidth="520" MinHeight="380"
-        WindowStartupLocation="CenterOwner"
-        Background="{StaticResource BgBrush}"
-        CanResize="True">
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="CustomMcLauncher.Views.CrashReportView"
+             xmlns:dialogs="using:CustomMcLauncher.ViewModels.Dialogs"
+             x:DataType="dialogs:CrashReportViewModel"
+             xmlns:vm="using:CustomMcLauncher.ViewModels"
+             xmlns:converters="using:CustomMcLauncher.Converters"
+             xmlns:l10n="using:CustomMcLauncher.Extensions">
 
-    <Window.Styles>
+    <UserControl.Styles>
         <Style Selector="Button.subBtn">
             <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
@@ -36,9 +29,9 @@
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="8"/>
         </Style>
-    </Window.Styles>
+    </UserControl.Styles>
 
-    <Grid RowDefinitions="Auto,*,Auto" Margin="18,16">
+    <Grid RowDefinitions="Auto,*,Auto" Margin="18,16" Width="560" MaxHeight="440">
         <!-- Header -->
         <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12" Margin="2,0,0,14">
             <Border Width="42" Height="42" CornerRadius="12"
@@ -68,25 +61,22 @@
                     </StackPanel>
                 </Border>
 
-                <!-- Broken mod requirements (Fabric dependency tree) -->
                 <StackPanel Spacing="5"
                             IsVisible="{Binding Requirements.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsNonZero}}">
                     <TextBlock Classes="rowTitle" Text="{l10n:Tr crash_mods_check}"/>
-                    <Border Background="Transparent" CornerRadius="8" Padding="12,10">
-                        <ItemsControl ItemsSource="{Binding Requirements}" FontSize="11.5">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,2"
-                                               Foreground="{StaticResource TextSoftBrush}"/>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </Border>
+                    <ItemsControl ItemsSource="{Binding Requirements}" FontSize="11.5">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,2"
+                                           Foreground="{StaticResource TextSoftBrush}"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                 </StackPanel>
 
                 <StackPanel Spacing="5">
                     <TextBlock Classes="rowTitle" Text="{l10n:Tr crash_details}"/>
-                    <ListBox Classes="crashList" ItemsSource="{Binding Evidence}" MaxHeight="190"
+                    <ListBox Classes="crashList" ItemsSource="{Binding Evidence}" MaxHeight="150"
                              SelectionMode="Single" FontSize="11"
                              ScrollViewer.HorizontalScrollBarVisibility="Auto">
                         <ListBox.ItemTemplate>
@@ -105,8 +95,8 @@
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,14,0,0">
             <Button Classes="subBtn" Content="{l10n:Tr copy}" Click="OnCopyClick"/>
             <Button Classes="subBtn" Content="{l10n:Tr crash_openlog}" Click="OnOpenLogClick"/>
-            <Button Classes="subBtn" Content="{l10n:Tr close}" Click="OnCloseClick"/>
+            <Button Classes="subBtn" Content="{l10n:Tr close}"
+                    Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).CloseCrashReportCommand}"/>
         </StackPanel>
     </Grid>
-</Window>
-
+</UserControl>

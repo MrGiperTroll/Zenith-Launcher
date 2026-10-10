@@ -101,25 +101,6 @@
             <Setter Property="Background" Value="{StaticResource AccentDimBrush}"/>
         </Style>
 
-        <Style Selector="TextBox.darkInput">
-            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="10,8"/>
-        </Style>
-        <Style Selector="ComboBox">
-            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="10,6"/>
-        </Style>
-        <Style Selector="CheckBox">
-            <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
-        </Style>
     </UserControl.Styles>
 
     <Grid RowDefinitions="Auto,*,Auto">
@@ -243,9 +224,9 @@
                 <!-- Overview / Dashboard -->
                 <ScrollViewer IsVisible="{Binding IsOverviewTab}" VerticalScrollBarVisibility="Auto">
                     <StackPanel Spacing="16" Margin="24,20,24,24">
-                        <TextBlock Text="{l10n:Tr Key=tab_overview}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <TextBlock Classes="pageTitle" Text="{l10n:Tr Key=tab_overview}"/>
                         <!-- Instance Hero Card -->
-                        <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="10" Padding="20">
+                        <Border Classes="zenSection">
                             <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
                                 <!-- Instance Icon -->
                                 <Border Width="64" Height="64" CornerRadius="12" ClipToBounds="True" Background="{StaticResource ChipBrush}" BorderBrush="{StaticResource BorderIconBrush}" BorderThickness="1">
@@ -280,7 +261,7 @@
                           LostFocus="OnInstanceNameLostFocus"
                                              ToolTip.Tip="Double-click to rename"/>
                                     <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="4" Padding="8,3">
+                                        <Border Background="{StaticResource ChipBrush}" CornerRadius="4" Padding="8,3">
                                             <TextBlock Text="{Binding Instance.DisplayVersion}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
                                         </Border>
                                         <Border Background="{DynamicResource AccentDimBrush}" BorderBrush="{DynamicResource AccentBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="8,3" IsVisible="{Binding Instance.LoaderType, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}">
@@ -302,7 +283,7 @@
                         <!-- Statistics Section: directly underneath hero card without redundant header -->
                         <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
                             <!-- Playtime -->
-                            <Border Grid.Column="0" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="10" Padding="16,12">
+                            <Border Grid.Column="0" Background="Transparent" Padding="12,8">
                                 <StackPanel Spacing="4">
                                     <TextBlock Text="{l10n:Tr Key=stat_playtime}" FontSize="11" Foreground="{StaticResource TextCaptionBrush}" FontWeight="SemiBold"/>
                                     <TextBlock Text="{Binding Instance.PlaytimeDisplay}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/>
@@ -310,7 +291,7 @@
                             </Border>
 
                             <!-- Last Played -->
-                            <Border Grid.Column="1" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="10" Padding="16,12">
+                            <Border Grid.Column="1" Background="Transparent" Padding="12,8">
                                 <StackPanel Spacing="4">
                                     <TextBlock Text="{l10n:Tr Key=stat_last_played}" FontSize="11" Foreground="{StaticResource TextCaptionBrush}" FontWeight="SemiBold"/>
                                     <TextBlock Text="{Binding Instance.LastPlayedDisplay}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
@@ -318,7 +299,7 @@
                             </Border>
 
                             <!-- Created At -->
-                            <Border Grid.Column="2" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="10" Padding="16,12">
+                            <Border Grid.Column="2" Background="Transparent" Padding="12,8">
                                 <StackPanel Spacing="4">
                                     <TextBlock Text="{l10n:Tr Key=stat_created}" FontSize="11" Foreground="{StaticResource TextCaptionBrush}" FontWeight="SemiBold"/>
                                     <TextBlock Text="{Binding Instance.CreatedAtDisplay}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
@@ -393,9 +374,7 @@
                     </StackPanel>
                     <TextBlock Grid.Row="1" Text="{Binding ModAuditMessage}" FontSize="11.5" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,8"
                                IsVisible="{Binding ModAuditMessage, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
-                    <Border Grid.Row="2" Background="Transparent">
-                        <views:FileListView x:Name="ModView" DataContext="{Binding ModList}"/>
-                    </Border>
+                    <views:FileListView Grid.Row="2" x:Name="ModView" DataContext="{Binding ModList}"/>
                 </Grid>
 
                 <!-- Resource Packs -->
@@ -403,9 +382,7 @@
                     <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,8">
                         <Button Classes="primaryBtn" Content="{l10n:Tr Key=btn_browse_packs}" Command="{Binding OpenContentBrowserCommand}" CommandParameter="Resource Packs" Padding="14,7" FontSize="12"/>
                     </StackPanel>
-                    <Border Grid.Row="1" Background="Transparent">
-                        <views:FileListView x:Name="ResourceView" DataContext="{Binding ResourcePackList}"/>
-                    </Border>
+                    <views:FileListView Grid.Row="1" x:Name="ResourceView" DataContext="{Binding ResourcePackList}"/>
                 </Grid>
 
                 <!-- Shader Packs -->
@@ -413,9 +390,7 @@
                     <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,8">
                         <Button Classes="primaryBtn" Content="{l10n:Tr Key=btn_browse_shaders}" Command="{Binding OpenContentBrowserCommand}" CommandParameter="Shader Packs" Padding="14,7" FontSize="12"/>
                     </StackPanel>
-                    <Border Grid.Row="1" Background="Transparent">
-                        <views:FileListView x:Name="ShaderView" DataContext="{Binding ShaderList}"/>
-                    </Border>
+                    <views:FileListView Grid.Row="1" x:Name="ShaderView" DataContext="{Binding ShaderList}"/>
                 </Grid>
 
                 <!-- Data Packs -->
@@ -430,12 +405,12 @@
                         </Grid>
                         <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8" VerticalAlignment="Center">
                             <TextBlock Text="{l10n:Tr Key=lbl_world}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                            <ComboBox Grid.Column="1" ItemsSource="{Binding AvailableWorlds}" SelectedItem="{Binding SelectedWorld}" PlaceholderText="{l10n:Tr Key=w_select_world}" FontSize="11" Padding="10,6" MinWidth="200" VerticalAlignment="Center"/>
+                            <ComboBox Grid.Column="1" Classes="zenCombo" ItemsSource="{Binding AvailableWorlds}" SelectedItem="{Binding SelectedWorld}" PlaceholderText="{l10n:Tr Key=w_select_world}" FontSize="11" Padding="10,6" MinWidth="200" VerticalAlignment="Center"/>
                             <Button Grid.Column="2" Classes="subBtn" Content="{l10n:Tr Key=btn_open_folder}" Command="{Binding OpenDataPackFolderCommand}" Padding="12,6" FontSize="11" VerticalAlignment="Center" IsEnabled="{Binding SelectedWorld, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
                         </Grid>
                         <TextBlock Text="{l10n:Tr Key=w_no_worlds}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding AvailableWorlds.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}"/>
                     </StackPanel>
-                    <Border Grid.Row="1" BorderBrush="{StaticResource PanelBrush}" BorderThickness="1" CornerRadius="8" Background="{StaticResource ContentSurfaceBrush}">
+                    <Border Grid.Row="1" Background="Transparent" Padding="4">
                         <Grid>
                             <ListBox ItemsSource="{Binding DataPacks}" Background="Transparent" BorderThickness="0" Padding="6">
                                 <ListBox.Styles>
@@ -490,7 +465,7 @@
                         <TextBlock Text="{l10n:Tr Key=tab_servers}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
                         <TextBlock Text="{Binding Servers.Count, StringFormat='{}{0} server(s) in servers.dat'}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
                     </StackPanel>
-                    <Border Grid.Row="1" BorderBrush="{StaticResource PanelBrush}" BorderThickness="1" CornerRadius="8" Background="{StaticResource ContentSurfaceBrush}">
+                    <Border Grid.Row="1" Background="Transparent" Padding="4">
                         <Grid>
                             <ListBox ItemsSource="{Binding Servers}" Background="Transparent" BorderThickness="0" Padding="6">
                                 <ListBox.Styles>
@@ -558,10 +533,10 @@
                                               TickFrequency="512"/>
 
                         <!-- Resolution & Display Card -->
-                        <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="10" Padding="18,14">
+                        <Border Classes="zenSection">
                             <StackPanel Spacing="10">
                                 <Grid ColumnDefinitions="*,Auto">
-                                    <TextBlock Text="{l10n:Tr Key=set_resolution}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                    <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=set_resolution}" VerticalAlignment="Center"/>
                                     <Button Grid.Column="1" Classes="resetBtn" Content="{l10n:Tr Key=btn_reset}" Command="{Binding ResetWindowCommand}" IsVisible="{Binding CanResetWindow}" FontSize="11" Padding="10,4" VerticalAlignment="Center"/>
                                 </Grid>
                                 <TextBlock Text="{l10n:Tr Key=ei_inherited_generic}" FontSize="10" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding IsWindowInherited}"/>
@@ -577,15 +552,15 @@
                         </Border>
 
                         <!-- Java Runtime Card -->
-                        <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="10" Padding="18,14">
+                        <Border Classes="zenSection">
                             <StackPanel Spacing="10">
                                 <Grid ColumnDefinitions="*,Auto">
-                                    <TextBlock Text="{l10n:Tr Key=set_java}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                    <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=set_java}" VerticalAlignment="Center"/>
                                     <Button Grid.Column="1" Classes="resetBtn" Content="{l10n:Tr Key=btn_reset}" Command="{Binding ResetJavaCommand}" IsVisible="{Binding CanResetJava}" FontSize="11" Padding="10,4" VerticalAlignment="Center"/>
                                 </Grid>
                                 <TextBlock Text="{Binding JavaDisplayPath}" FontSize="11" Foreground="{DynamicResource AccentBrush}"/>
                                 <TextBlock Text="{l10n:Tr Key=ei_inherited_generic}" FontSize="10" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding IsJavaInherited}"/>
-                                <ComboBox ItemsSource="{Binding JavaModes}" SelectedItem="{Binding SelectedJavaMode}" HorizontalAlignment="Stretch">
+                                <ComboBox Classes="zenCombo" ItemsSource="{Binding JavaModes}" SelectedItem="{Binding SelectedJavaMode}" HorizontalAlignment="Stretch">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
                                             <TextBlock Text="{Binding Converter={x:Static converters:JavaModeDisplayConverter.Instance}}"/>
@@ -600,10 +575,10 @@
                         </Border>
 
                         <!-- JVM Arguments Card -->
-                        <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="10" Padding="18,14">
+                        <Border Classes="zenSection">
                             <StackPanel Spacing="10">
                                 <Grid ColumnDefinitions="*,Auto">
-                                    <TextBlock Text="{l10n:Tr Key=set_jvmargs}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                    <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=set_jvmargs}" VerticalAlignment="Center"/>
                                     <Button Grid.Column="1" Classes="resetBtn" Content="{l10n:Tr Key=btn_reset}" Command="{Binding ResetJvmArgsCommand}" IsVisible="{Binding CanResetJvmArgs}" FontSize="11" Padding="10,4" VerticalAlignment="Center"/>
                                 </Grid>
                                 <TextBlock Text="{l10n:Tr Key=ei_jvm_hint}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>

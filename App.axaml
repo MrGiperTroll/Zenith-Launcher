@@ -458,19 +458,23 @@
             <Setter Property="Background" Value="#5C6C8E"/>
         </Style>
 
-        <!-- Slider: Active/Decreased portion filled with dynamic accent -->
-        <Style Selector="Slider:horizontal /template/ RepeatButton#PART_DecreaseButton">
+        <!-- Slider: filled portion = accent, unfilled track = subtle, thumb = white with accent ring -->
+        <Style Selector="Slider /template/ RepeatButton#PART_DecreaseButton">
             <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
         </Style>
-        <Style Selector="Slider:horizontal /template/ Thumb#PART_Thumb">
-            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+        <Style Selector="Slider /template/ RepeatButton#PART_IncreaseButton">
+            <Setter Property="Background" Value="{StaticResource BorderStrongBrush}"/>
+        </Style>
+        <Style Selector="Slider /template/ Thumb">
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="BorderThickness" Value="2"/>
+        </Style>
+        <Style Selector="Slider:pointerover /template/ RepeatButton#PART_DecreaseButton">
+            <Setter Property="Background" Value="{DynamicResource AccentBrushHover}"/>
+        </Style>
+        <Style Selector="Slider:pointerover /template/ Thumb">
             <Setter Property="BorderBrush" Value="{DynamicResource AccentBrushHover}"/>
-        </Style>
-        <Style Selector="Slider:horizontal:pointerover /template/ RepeatButton#PART_DecreaseButton">
-            <Setter Property="Background" Value="{DynamicResource AccentBrushHover}"/>
-        </Style>
-        <Style Selector="Slider:horizontal:pointerover /template/ Thumb#PART_Thumb">
-            <Setter Property="Background" Value="{DynamicResource AccentBrushHover}"/>
         </Style>
 
         <!-- Universal TextBox Selection Highlight: vibrant AccentBrush with white text -->
@@ -601,6 +605,138 @@
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="0"/>
             <Setter Property="Margin" Value="0"/>
+        </Style>
+
+        <!-- ============ ZENITH DESIGN SYSTEM v2 (XMCL/Millida: flat, no boxes-in-boxes) ============ -->
+        <!-- Typography: page / section / hint — единый ритм вместо разрозненных TextBlock -->
+        <Style Selector="TextBlock.pageTitle">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        </Style>
+        <Style Selector="TextBlock.sectionTitle">
+            <Setter Property="FontSize" Value="13.5"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        </Style>
+        <Style Selector="TextBlock.sectionHint">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+        <Style Selector="TextBlock.rowTitle">
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        </Style>
+        <Style Selector="TextBlock.rowHint">
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+
+        <!-- Flat section: прозрачная, без рамки. Единственный уровень «карты» — только для диалогов. -->
+        <Style Selector="Border.zenSection">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+        <Style Selector="Border.zenDivider">
+            <Setter Property="Background" Value="{StaticResource BorderDarkBrush}"/>
+            <Setter Property="Height" Value="1"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="Margin" Value="0,2"/>
+        </Style>
+        <!-- Плоская строка настройки: прозрачная, hover-подсветка, без микро-рамки -->
+        <Style Selector="Border.zenRow">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="10,9"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.15" Easing="0.16, 1, 0.3, 1"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Border.zenRow:pointerover">
+            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+        </Style>
+
+        <!-- Modern CheckBox: real Fluent parts are Border#NormalRectangle + Path#CheckGlyph -->
+        <Style Selector="CheckBox">
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="Padding" Value="8,0,0,0"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="CheckBox /template/ Border#NormalRectangle">
+            <Setter Property="Width" Value="18"/>
+            <Setter Property="Height" Value="18"/>
+            <Setter Property="CornerRadius" Value="5"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
+            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+        </Style>
+        <Style Selector="CheckBox:pointerover /template/ Border#NormalRectangle">
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+        <Style Selector="CheckBox:checked /template/ Border#NormalRectangle">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+        <Style Selector="CheckBox:checked /template/ Path#CheckGlyph">
+            <Setter Property="Fill" Value="{DynamicResource OnAccentBrush}"/>
+        </Style>
+        <Style Selector="CheckBox:pressed /template/ Border#NormalRectangle">
+            <Setter Property="Opacity" Value="0.85"/>
+        </Style>
+        <Style Selector="CheckBox:disabled">
+            <Setter Property="Opacity" Value="0.45"/>
+        </Style>
+
+        <!-- Modern ToggleSwitch: real Fluent parts are Border#OuterBorder (off track),
+             Border#SwitchKnobBounds (on track), Ellipse#SwitchKnobOn/Off (knobs) -->
+        <Style Selector="ToggleSwitch">
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="OffContent" Value=""/>
+            <Setter Property="OnContent" Value=""/>
+        </Style>
+        <Style Selector="ToggleSwitch /template/ Border#OuterBorder">
+            <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
+            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+        </Style>
+        <Style Selector="ToggleSwitch:pointerover /template/ Border#OuterBorder">
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+        <Style Selector="ToggleSwitch:checked /template/ Border#SwitchKnobBounds">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+        <Style Selector="ToggleSwitch /template/ Ellipse#SwitchKnobOn">
+            <Setter Property="Fill" Value="#FFFFFF"/>
+        </Style>
+        <Style Selector="ToggleSwitch /template/ Ellipse#SwitchKnobOff">
+            <Setter Property="Fill" Value="#FFFFFF"/>
+        </Style>
+
+        <!-- (Slider styling lives in the dedicated Slider block above; template parts:
+             RepeatButton#PART_DecreaseButton / #PART_IncreaseButton, Thumb) -->
+
+        <!-- Unified ComboBox base (убирает дубли из каждого View) -->
+        <Style Selector="ComboBox.zenCombo">
+            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="MinHeight" Value="34"/>
         </Style>
     </Application.Styles>
 </Application>

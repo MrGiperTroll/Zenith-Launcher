@@ -112,7 +112,7 @@
         <Grid RowDefinitions="Auto,Auto,*">
 
         <!-- ========== HEADER (compact) ========== -->
-        <Border Grid.Row="0" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}"
+        <Border Grid.Row="0" Background="Transparent" BorderBrush="{StaticResource BorderDarkBrush}"
                 BorderThickness="0,0,0,1" Padding="16,12">
             <Grid ColumnDefinitions="56,*,Auto" ColumnSpacing="12">
                 <Border Grid.Column="0" Width="56" Height="56" CornerRadius="12"
@@ -154,7 +154,7 @@
         </Border>
 
         <!-- ========== TABS ========== -->
-        <Border Grid.Row="1" Background="{StaticResource BgBrush}" BorderBrush="{StaticResource BorderStrongBrush}"
+        <Border Grid.Row="1" Background="Transparent" BorderBrush="{StaticResource BorderDarkBrush}"
                 BorderThickness="0,0,0,1" Padding="24,0">
             <StackPanel Orientation="Horizontal" Spacing="4">
                 <ToggleButton Classes="tabBtn" IsChecked="{Binding IsDescriptionTab}"
@@ -173,8 +173,7 @@
         <Grid Grid.Row="2" ColumnDefinitions="*,260" ColumnSpacing="16" Margin="24,12,24,12">
 
             <!-- Left: tabbed content -->
-            <Border Grid.Column="0" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}"
-                    BorderThickness="1" CornerRadius="12" Padding="20,20,12,20">
+            <Border Grid.Column="0" Background="Transparent" Padding="20,20,12,20">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel>
                         <!-- Description tab -->
@@ -254,7 +253,7 @@
             <StackPanel Grid.Column="1" Spacing="10">
 
                 <!-- Compatibility (clickable versions + max height + scroll) -->
-                <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="12">
+                <Border Classes="zenSection">
                     <StackPanel Spacing="6">
                         <Grid ColumnDefinitions="*,Auto">
                             <TextBlock Text="{l10n:Tr Key=cb_compatibility}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
@@ -311,7 +310,7 @@
                 </Border>
 
                 <!-- Links -->
-                <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="12"
+                <Border Classes="zenSection"
                         IsVisible="{Binding FullProject, Converter={x:Static converters:EditInstanceWindowConverters.IsNotNull}}">
                     <StackPanel Spacing="5">
                         <TextBlock Text="{l10n:Tr Key=cb_links}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,2"/>
@@ -347,7 +346,7 @@
                 </Border>
 
                 <!-- Creators -->
-                <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="12"
+                <Border Classes="zenSection"
                         IsVisible="{Binding FullProject.TeamMembers.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsNotZero}}">
                     <StackPanel Spacing="6">
                         <TextBlock Text="{l10n:Tr Key=cb_creators}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
@@ -373,7 +372,7 @@
                 </Border>
 
                 <!-- Details -->
-                <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="12"
+                <Border Classes="zenSection"
                         IsVisible="{Binding FullProject, Converter={x:Static converters:EditInstanceWindowConverters.IsNotNull}}">
                     <StackPanel Spacing="5">
                         <TextBlock Text="{l10n:Tr Key=cb_details}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,2"/>
@@ -396,7 +395,7 @@
                 </Border>
 
                 <!-- Tags -->
-                <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="12"
+                <Border Classes="zenSection"
                         IsVisible="{Binding DetailsProject.TagsLabel, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}">
                     <StackPanel Spacing="6">
                         <TextBlock Text="{l10n:Tr Key=cb_tags}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>

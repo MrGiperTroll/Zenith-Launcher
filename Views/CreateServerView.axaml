@@ -10,29 +10,6 @@
              x:DataType="vm:CreateServerViewModel">
 
     <UserControl.Styles>
-        <Style Selector="TextBox.darkInput">
-            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="10,8"/>
-            <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="SelectionForegroundBrush" Value="{DynamicResource OnAccentBrush}"/>
-        </Style>
-        <Style Selector="ComboBox">
-            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="10,6"/>
-        </Style>
-        <Style Selector="CheckBox">
-            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
-            <Setter Property="FontSize" Value="12"/>
-        </Style>
-
         <!-- Button Brightening Hover Styles -->
         <Style Selector="Button.primaryBtn">
             <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
@@ -213,7 +190,7 @@
                 <!-- CASE A: CREATING NEW SERVER -->
                 <StackPanel Spacing="16" IsVisible="{Binding IsCreatingNewServer}">
                     <!-- Header -->
-                    <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="18,16">
+                    <Border Classes="zenSection">
                         <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                             <StackPanel VerticalAlignment="Center" Spacing="2">
                                 <TextBlock Text="{l10n:Tr Key=cs_title}" FontSize="17" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
@@ -225,7 +202,7 @@
                     </Border>
 
                     <!-- Creation Form -->
-                    <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
+                    <Border Classes="zenSection">
                         <StackPanel Spacing="16">
                             <!-- Server Name -->
                             <StackPanel Spacing="6">
@@ -237,12 +214,12 @@
                             <Grid ColumnDefinitions="*,*" ColumnSpacing="16">
                                 <StackPanel Grid.Column="0" Spacing="6">
                                     <TextBlock Text="{l10n:Tr Key=cs_version}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                    <ComboBox ItemsSource="{Binding AvailableVersions}" SelectedItem="{Binding SelectedVersion}" HorizontalAlignment="Stretch" IsEnabled="{Binding !IsBusy}"/>
+                                    <ComboBox Classes="zenCombo" ItemsSource="{Binding AvailableVersions}" SelectedItem="{Binding SelectedVersion}" HorizontalAlignment="Stretch" IsEnabled="{Binding !IsBusy}"/>
                                 </StackPanel>
 
                                 <StackPanel Grid.Column="1" Spacing="6">
                                     <TextBlock Text="{l10n:Tr Key=cs_type}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                    <ComboBox ItemsSource="{Binding AvailableSoftware}" SelectedItem="{Binding SelectedSoftware}" HorizontalAlignment="Stretch" IsEnabled="{Binding !IsBusy}">
+                                    <ComboBox Classes="zenCombo" ItemsSource="{Binding AvailableSoftware}" SelectedItem="{Binding SelectedSoftware}" HorizontalAlignment="Stretch" IsEnabled="{Binding !IsBusy}">
                                         <ComboBox.ItemTemplate>
                                             <DataTemplate x:DataType="services:ServerSoftwareOption">
                                                 <TextBlock Text="{Binding DisplayName}" FontSize="12.5"/>
@@ -255,7 +232,7 @@
                             <!-- Loader Build / Version for Forge / NeoForge / Fabric -->
                             <StackPanel Spacing="6" IsVisible="{Binding IsLoaderBuildVisible}">
                                 <TextBlock Text="Loader Version / Build" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                <ComboBox ItemsSource="{Binding AvailableLoaderBuilds}" SelectedItem="{Binding SelectedLoaderBuild}" HorizontalAlignment="Stretch" IsEnabled="{Binding !IsBusy}"/>
+                                <ComboBox Classes="zenCombo" ItemsSource="{Binding AvailableLoaderBuilds}" SelectedItem="{Binding SelectedLoaderBuild}" HorizontalAlignment="Stretch" IsEnabled="{Binding !IsBusy}"/>
                             </StackPanel>
 
                             <!-- RAM Allocation & Port Grid -->
@@ -303,7 +280,7 @@
                 <StackPanel Spacing="16" IsVisible="{Binding !IsCreatingNewServer}">
                     <!-- Server Header Bar (No duplicate server icon, clean start button without (cmd)) -->
                     <!-- Server Header Bar (Inline rename, address selector) -->
-                    <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="18,14">
+                    <Border Classes="zenSection">
                         <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                             <!-- Left: Server Name with inline editing + IP badge with selector flyout -->
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="12">
@@ -408,7 +385,7 @@
                     </Border>
 
                     <!-- Tabs Navigation Bar (scrolls on narrow windows) -->
-                    <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="10" Padding="5">
+                    <Border Background="Transparent" Padding="5">
                         <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
                         <StackPanel Orientation="Horizontal" Spacing="4">
                             <Button Classes="tabBtn" Classes.active="{Binding IsOverviewTab}" Command="{Binding SelectTabCommand}" CommandParameter="0" Content="{l10n:Tr Key=cs_tab_overview}"/>
@@ -426,7 +403,7 @@
                     <!-- TAB 0: OVERVIEW -->
                     <StackPanel Spacing="16" IsVisible="{Binding IsOverviewTab}">
                         <!-- Hero Status Banner -->
-                        <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
+                        <Border Classes="zenSection">
                             <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
                                 <StackPanel Orientation="Horizontal" Spacing="14" VerticalAlignment="Center">
                                     <Button Classes="iconChangeBtn" Command="{Binding ChangeServerIconCommand}"
@@ -545,7 +522,7 @@
                     </StackPanel>
 
                     <!-- TAB 1: SERVER.PROPERTIES (Clean 2-column grid, no overlapping) -->
-                    <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="18,14" IsVisible="{Binding IsPropertiesTab}">
+                    <Border Classes="zenSection" IsVisible="{Binding IsPropertiesTab}">
                         <StackPanel Spacing="14">
                             <!-- Card Header Bar: Title + Save Button -->
                             <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
@@ -589,11 +566,11 @@
                                     <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                                         <StackPanel Spacing="4">
                                             <TextBlock Text="{l10n:Tr Key=cs_prop_gamemode}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                            <ComboBox ItemsSource="{Binding GamemodeOptions}" SelectedItem="{Binding PropsGamemode}" HorizontalAlignment="Stretch" Height="30" Padding="8,3" FontSize="11.5" IsEnabled="{Binding PropsForceGamemode}" ToolTip.Tip="{l10n:Tr Key=cs_prop_force_gamemode}"/>
+                                            <ComboBox Classes="zenCombo" ItemsSource="{Binding GamemodeOptions}" SelectedItem="{Binding PropsGamemode}" HorizontalAlignment="Stretch" Height="30" Padding="8,3" FontSize="11.5" IsEnabled="{Binding PropsForceGamemode}" ToolTip.Tip="{l10n:Tr Key=cs_prop_force_gamemode}"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="1" Spacing="4">
                                             <TextBlock Text="{l10n:Tr Key=cs_prop_difficulty}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                            <ComboBox ItemsSource="{Binding DifficultyOptions}" SelectedItem="{Binding PropsDifficulty}" HorizontalAlignment="Stretch" Height="30" Padding="8,3" FontSize="11.5"/>
+                                            <ComboBox Classes="zenCombo" ItemsSource="{Binding DifficultyOptions}" SelectedItem="{Binding PropsDifficulty}" HorizontalAlignment="Stretch" Height="30" Padding="8,3" FontSize="11.5"/>
                                         </StackPanel>
                                     </Grid>
 
@@ -869,7 +846,7 @@
                                     <StackPanel Grid.Column="0" Spacing="12">
                                         <StackPanel Spacing="4">
                                             <TextBlock Text="{l10n:Tr Key=cs_world_difficulty}" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                            <ComboBox ItemsSource="{Binding DifficultyOptions}" SelectedItem="{Binding WorldDifficulty}" HorizontalAlignment="Stretch"/>
+                                            <ComboBox Classes="zenCombo" ItemsSource="{Binding DifficultyOptions}" SelectedItem="{Binding WorldDifficulty}" HorizontalAlignment="Stretch"/>
                                         </StackPanel>
 
                                         <!-- Hardcore Toggle Card -->

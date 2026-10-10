@@ -1885,6 +1885,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
         NavigateToProfiles();
         _ = CheckForUpdatesBackgroundAsync();
+
+        // Final guarantee: re-apply the saved theme after all startup loading,
+        // so no intermediate default state can stick.
+        try { ZenithTheme.Apply(GetLauncherConfigSnapshot()); } catch { }
     }
 
     private async Task CheckForUpdatesBackgroundAsync()

@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 
 namespace CustomMcLauncher.Views;
 
-public partial class UpdateNotificationWindow : Window
+public partial class UpdateNotificationView : UserControl
 {
-    public UpdateNotificationWindow()
+    public UpdateNotificationView()
     {
         InitializeComponent();
     }
@@ -40,6 +40,23 @@ public partial class UpdateNotificationViewModel : ObservableObject
     [RelayCommand]
     private async Task UpdateAsync()
     {
+        if (IsDownloading) return;
+
+        // Non-installer asset (e.g. a web fallback URL): open it instead of downloading junk.
+        if (!_update.DownloadUrl.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+        {
+            try
+            {
+                StatusText = L10n.T("update_browser");
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(_update.DownloadUrl) { UseShellExecute = true });
+            }
+            catch (Exception)
+            {
+                StatusText = L10n.T("update_failed");
+            }
+            return;
+        }
+
         IsDownloading = true;
         StatusText = L10n.T("update_downloading");
         UpdateButtonText = "...";

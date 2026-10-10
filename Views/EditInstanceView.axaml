@@ -586,7 +586,7 @@
                                 </Grid>
                                 <TextBlock Text="{l10n:Tr Key=ei_jvm_hint}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
                                 <TextBlock Text="{l10n:Tr Key=ei_inherited_generic}" FontSize="10" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding IsJvmArgsInherited}"/>
-                                <TextBox Classes="darkInput" Text="{Binding JvmArgs}" PlaceholderText="-XX:+UseG1GC ..." Padding="8,6" FontSize="11" AcceptsReturn="True" Height="60" TextWrapping="Wrap"/>
+                                <TextBox Classes="darkInput" Text="{Binding JvmArgs}" PlaceholderText="-XX:+UseG1GC ..." Padding="8,6" FontSize="12" AcceptsReturn="True" Height="48" TextWrapping="Wrap"/>
                                 <Border Background="{StaticResource DangerBgBrush}" BorderBrush="{StaticResource DangerBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,6,0,0" IsVisible="{Binding HasJvmArgsWarning}">
                                     <Grid ColumnDefinitions="*,Auto">
                                         <StackPanel Spacing="4">

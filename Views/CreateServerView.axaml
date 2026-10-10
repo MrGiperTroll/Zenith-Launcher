@@ -134,11 +134,11 @@
         <!-- ========================================================= -->
         <!-- MASTER: LEFT SERVER LIST                                  -->
         <!-- ========================================================= -->
-        <Border Grid.Column="0" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="14">
+        <Border Grid.Column="0" Background="Transparent" Padding="14">
             <Grid RowDefinitions="Auto,*,Auto">
                 <!-- Header with "+ New Server" Button -->
                 <Grid Grid.Row="0" ColumnDefinitions="*,Auto" VerticalAlignment="Center" Margin="0,0,0,12">
-                    <TextBlock Text="Servers" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Classes="sectionTitle" Text="Servers" VerticalAlignment="Center"/>
                     <Button Grid.Column="1" Classes="primaryBtn" Command="{Binding StartCreateNewServerCommand}" Padding="10,6" FontSize="11">
                         <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
                             <PathIcon Data="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" Width="12" Height="12" Foreground="{StaticResource OnAccentBrush}"/>
@@ -170,7 +170,7 @@
                                             </Panel>
                                         </Border>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
-                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding Name}" Classes="rowTitle" TextTrimming="CharacterEllipsis"/>
                                             <TextBlock Text="{Binding Subtitle}" FontSize="10" Foreground="{StaticResource TextMutedBrush}"/>
                                         </StackPanel>
                                     </Grid>
@@ -739,12 +739,12 @@
                     </Border>
 
                     <!-- TAB 6: CONSOLE -->
-                    <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="20" IsVisible="{Binding IsConsoleTab}">
+                    <Border Classes="zenSection" IsVisible="{Binding IsConsoleTab}">
                         <StackPanel Spacing="14">
                             <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                 <StackPanel Spacing="2">
-                                    <TextBlock Text="{l10n:Tr Key=cs_tab_console}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                    <TextBlock Text="{l10n:Tr Key=cs_console_sub}" FontSize="11.5" Foreground="{StaticResource TextMutedBrush}"/>
+                                    <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=cs_tab_console}"/>
+                                    <TextBlock Classes="sectionHint" Text="{l10n:Tr Key=cs_console_sub}"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
                                     <Button Classes="subBtn" Command="{Binding ClearConsoleCommand}" Padding="12,6" FontSize="11">
@@ -785,7 +785,7 @@
                     <!-- TAB 7: WORLD MANAGEMENT -->
                     <StackPanel Spacing="16" IsVisible="{Binding IsWorldTab}">
                         <!-- World Summary Card -->
-                        <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
+                        <Border Classes="zenSection">
                             <StackPanel Spacing="16">
                                 <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
                                     <Border Width="48" Height="48" CornerRadius="10" Background="{StaticResource IconChipBrush}" BorderBrush="{StaticResource BorderSoftBrush}" BorderThickness="1" VerticalAlignment="Center" ClipToBounds="True">
@@ -799,11 +799,11 @@
                                         </Panel>
                                     </Border>
                                     <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center" Spacing="4">
-                                        <TextBlock Text="{Binding WorldNameDisplay, StringFormat='World: {0}'}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                        <TextBlock Classes="heroName" Text="{Binding WorldNameDisplay, StringFormat='World: {0}'}"/>
                                         <StackPanel Orientation="Horizontal" Spacing="12">
-                                            <TextBlock Text="{Binding WorldSizeDisplay, StringFormat='Size: {0}'}" FontSize="11.5" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <TextBlock Classes="rowHint" Text="{Binding WorldSizeDisplay, StringFormat='Size: {0}'}"/>
                                             <TextBlock Text="•" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
-                                            <TextBlock Text="{Binding WorldDifficulty, StringFormat='Difficulty: {0}'}" FontSize="11.5" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <TextBlock Classes="rowHint" Text="{Binding WorldDifficulty, StringFormat='Difficulty: {0}'}"/>
                                         </StackPanel>
                                     </StackPanel>
 
@@ -833,11 +833,11 @@
                         </Border>
 
                         <!-- World Settings In-Place Configuration (Collapsible) -->
-                        <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="20"
+                        <Border Classes="zenSection"
                                 IsVisible="{Binding IsWorldSettingsOpen}">
                             <StackPanel Spacing="16">
                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                    <TextBlock Text="World Configuration" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Classes="sectionTitle" Text="World Configuration"/>
                                     <Button Grid.Column="1" Classes="primaryBtn" Command="{Binding SaveWorldSettingsCommand}" Padding="16,6" FontSize="12">
                                         <TextBlock Text="Save World Settings" FontWeight="Bold"/>
                                     </Button>
@@ -847,15 +847,15 @@
                                     <!-- Left Column: Core Generation & Difficulty -->
                                     <StackPanel Grid.Column="0" Spacing="12">
                                         <StackPanel Spacing="4">
-                                            <TextBlock Text="{l10n:Tr Key=cs_world_difficulty}" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <TextBlock Classes="rowTitle" Text="{l10n:Tr Key=cs_world_difficulty}"/>
                                             <ComboBox Classes="zenCombo" ItemsSource="{Binding DifficultyOptions}" SelectedItem="{Binding WorldDifficulty}" HorizontalAlignment="Stretch"/>
                                         </StackPanel>
 
                                         <!-- Hardcore Toggle Card -->
-                                        <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="12,8">
+                                        <Border Classes="zenRow">
                                             <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                                 <StackPanel Spacing="1">
-                                                    <TextBlock Text="{l10n:Tr Key=cs_world_hardcore}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                                    <TextBlock Classes="rowTitle" Text="{l10n:Tr Key=cs_world_hardcore}"/>
                                                     <TextBlock Text="Permanent death and maximum difficulty" FontSize="10.5" Foreground="{StaticResource TextPlaceholderBrush}"/>
                                                 </StackPanel>
                                                 <CheckBox Grid.Column="1" IsChecked="{Binding WorldHardcore}" VerticalAlignment="Center" Margin="8,0,0,0"/>
@@ -873,7 +873,7 @@
                                         <ItemsControl ItemsSource="{Binding EnabledDatapacks}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
-                                                    <Border Background="{StaticResource FieldBrush}" BorderThickness="1" BorderBrush="{StaticResource BorderCardSoftBrush}" CornerRadius="4" Padding="6,3" Margin="0,2">
+                                                    <Border Background="{StaticResource ChipBrush}" CornerRadius="4" Padding="6,3" Margin="0,2">
                                                         <TextBlock Text="{Binding}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
                                                     </Border>
                                                 </DataTemplate>
@@ -885,7 +885,7 @@
                                         <ItemsControl ItemsSource="{Binding DisabledDatapacks}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
-                                                    <Border Background="{StaticResource FieldBrush}" BorderThickness="1" BorderBrush="{StaticResource BorderCardSoftBrush}" CornerRadius="4" Padding="6,3" Margin="0,2" Opacity="0.6">
+                                                    <Border Background="{StaticResource ChipBrush}" CornerRadius="4" Padding="6,3" Margin="0,2" Opacity="0.6">
                                                         <TextBlock Text="{Binding}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
                                                     </Border>
                                                 </DataTemplate>
@@ -898,10 +898,10 @@
                     </StackPanel>
 
                     <!-- TAB 2: PLUGINS / MODS (compact rows) -->
-                    <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="16" IsVisible="{Binding IsPluginsPanelVisible}">
+                    <Border Classes="zenSection" IsVisible="{Binding IsPluginsPanelVisible}">
                         <StackPanel Spacing="10">
                             <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                <TextBlock Text="{Binding PluginsTabTitle}" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Classes="sectionTitle" Text="{Binding PluginsTabTitle}" VerticalAlignment="Center"/>
 
                                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
                                     <Button Classes="subBtn" Content="{l10n:Tr Key=mods_audit_check}" Command="{Binding AuditPluginsCommand}" Padding="12,5" FontSize="11.5"/>
@@ -920,7 +920,7 @@
                             <ItemsControl ItemsSource="{Binding InstalledPlugins}" Margin="0,2,0,0">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate x:DataType="services:ServerPluginItem">
-                                        <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="10,7" Margin="0,0,0,5">
+                                        <Border Background="Transparent" Padding="10,4" Margin="0,0,0,5">
                                             <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" VerticalAlignment="Center">
                                                 <!-- Icon -->
                                                 <Border Grid.Column="0" Width="30" Height="30" CornerRadius="7" Background="{StaticResource IconChipBrush}" BorderBrush="{StaticResource BorderSoftBrush}" BorderThickness="1" VerticalAlignment="Center">
@@ -931,14 +931,14 @@
                                                 <!-- Name, Version, Description, Size -->
                                                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
                                                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" MaxWidth="340"/>
+                                                        <TextBlock Text="{Binding Name}" Classes="rowTitle" TextTrimming="CharacterEllipsis" MaxWidth="340"/>
                                                         <Border Background="{StaticResource AccentDimBrush}" CornerRadius="4" Padding="5,1" VerticalAlignment="Center" IsVisible="{Binding Version, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}">
                                                             <TextBlock Text="{Binding Version}" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}"/>
                                                         </Border>
                                                         <Border Background="{StaticResource RowHoverBrush}" CornerRadius="4" Padding="5,1" VerticalAlignment="Center">
                                                             <TextBlock Text="{Binding Size}" FontSize="10" Foreground="{StaticResource TextMutedBrush}"/>
                                                         </Border>
-                                                        <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderSoftBrush}" BorderThickness="1" CornerRadius="4" Padding="5,1" VerticalAlignment="Center">
+                                                        <Border Background="{StaticResource ChipBrush}" BorderThickness="0" CornerRadius="4" Padding="5,1" VerticalAlignment="Center">
                                                             <TextBlock Text="{Binding StatusText}" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
                                                         </Border>
                                                     </StackPanel>
@@ -963,12 +963,12 @@
                     <!-- TAB 3: SETTINGS (Technical Configuration & Danger Zone) -->
                     <StackPanel Spacing="16" IsVisible="{Binding IsSettingsTab}">
                         <!-- Technical Configuration Card -->
-                        <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
+                        <Border Classes="zenSection">
                             <StackPanel Spacing="16">
                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                     <StackPanel Spacing="2">
-                                        <TextBlock Text="{l10n:Tr Key=cs_settings_title}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                        <TextBlock Text="{l10n:Tr Key=cs_hint_ram}" FontSize="11.5" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=cs_settings_title}"/>
+                                        <TextBlock Classes="sectionHint" Text="{l10n:Tr Key=cs_hint_ram}"/>
                                     </StackPanel>
                                     <Button Grid.Column="1" Classes="primaryBtn" Command="{Binding SaveServerSettingsCommand}" Padding="18,7" FontSize="12">
                                         <TextBlock Text="{l10n:Tr Key=cs_save_settings}" FontWeight="Bold"/>
@@ -982,7 +982,7 @@
 
                                 <!-- Java Executable Path -->
                                 <StackPanel Spacing="6">
-                                    <TextBlock Text="{l10n:Tr Key=cs_java_path}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <TextBlock Classes="rowTitle" Text="{l10n:Tr Key=cs_java_path}"/>
                                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                                         <TextBox Classes="darkInput" Text="{Binding ServerJavaPath}" PlaceholderText="C:\Program Files\Java\jdk-25\bin\java.exe (or auto-resolved)"/>
                                         <Button Grid.Column="1" Classes="subBtn" Command="{Binding BrowseServerJavaCommand}" Content="{l10n:Tr Key=cs_java_browse}" Padding="14,8"/>
@@ -999,14 +999,14 @@
 
                                 <!-- JVM Launch Arguments -->
                                 <StackPanel Spacing="4">
-                                    <TextBlock Text="{l10n:Tr Key=cs_jvm_args}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <TextBlock Classes="rowTitle" Text="{l10n:Tr Key=cs_jvm_args}"/>
                                     <TextBox Classes="darkInput" Text="{Binding ServerJvmArgs}" PlaceholderText="-XX:+UseG1GC -XX:+ParallelRefProcEnabled ..."/>
                                 </StackPanel>
                             </StackPanel>
                         </Border>
 
                         <!-- Danger Zone Card (Compact) -->
-                        <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="10" Padding="14,10">
+                        <Border Classes="zenSection">
                             <StackPanel Spacing="8">
                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                     <StackPanel Spacing="1">
@@ -1057,10 +1057,10 @@
                     </StackPanel>
 
                     <!-- TAB 4: PLAYERS -->
-                    <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="14" IsVisible="{Binding IsPlayersTab}">
+                    <Border Classes="zenSection" IsVisible="{Binding IsPlayersTab}">
                         <StackPanel Spacing="10">
                             <!-- Sub-Tabs Switcher -->
-                            <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="3">
+                            <Border Background="{StaticResource FieldBrush}" CornerRadius="8" Padding="3">
                                 <StackPanel Orientation="Horizontal" Spacing="2">
                                     <Button Classes="tabBtn" Classes.active="{Binding IsOnlinePlayersSubTab}" Command="{Binding SelectPlayersSubTabCommand}" CommandParameter="0" Content="{l10n:Tr Key=tab_online_players}" Padding="10,5" FontSize="11.5"/>
                                     <Button Classes="tabBtn" Classes.active="{Binding IsOpsSubTab}" Command="{Binding SelectPlayersSubTabCommand}" CommandParameter="1" Content="{l10n:Tr Key=cs_players_ops}" Padding="10,5" FontSize="11.5"/>
@@ -1094,9 +1094,9 @@
                                 <ItemsControl ItemsSource="{Binding OnlinePlayers}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="x:String">
-                                            <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="10,7" Margin="0,0,0,4">
+                                            <Border Background="Transparent" Padding="10,4" Margin="0,0,0,4">
                                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                                    <TextBlock Text="{Binding}" FontWeight="SemiBold" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding}" Classes="rowTitle" VerticalAlignment="Center"/>
                                                     <Border Grid.Column="1" Background="{StaticResource AccentDimBrush}" CornerRadius="4" Padding="6,2">
                                                         <TextBlock Text="Online" FontSize="10" FontWeight="Bold" Foreground="{StaticResource AccentBrush}"/>
                                                     </Border>
@@ -1113,9 +1113,9 @@
                                 <ItemsControl ItemsSource="{Binding OpsList}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="services:ServerPlayerEntry">
-                                            <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="10,7" Margin="0,0,0,4">
+                                            <Border Background="Transparent" Padding="10,4" Margin="0,0,0,4">
                                                 <Grid ColumnDefinitions="*,Auto,Auto" VerticalAlignment="Center">
-                                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding Name}" Classes="rowTitle" VerticalAlignment="Center"/>
                                                     <TextBlock Grid.Column="1" Text="{Binding Level, StringFormat='OP Level {0}'}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="12,0"/>
                                                     <Button Grid.Column="2" Classes="dangerBtn" Content="Remove OP" Command="{Binding $parent[UserControl].((vm:CreateServerViewModel)DataContext).RemovePlayerCommand}" CommandParameter="{Binding}" Padding="10,4" FontSize="11"/>
                                                 </Grid>
@@ -1131,9 +1131,9 @@
                                 <ItemsControl ItemsSource="{Binding WhitelistList}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="services:ServerPlayerEntry">
-                                            <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="10,7" Margin="0,0,0,4">
+                                            <Border Background="Transparent" Padding="10,4" Margin="0,0,0,4">
                                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding Name}" Classes="rowTitle" VerticalAlignment="Center"/>
                                                     <Button Grid.Column="1" Classes="dangerBtn" Content="Remove" Command="{Binding $parent[UserControl].((vm:CreateServerViewModel)DataContext).RemovePlayerCommand}" CommandParameter="{Binding}" Padding="10,4" FontSize="11"/>
                                                 </Grid>
                                             </Border>
@@ -1148,7 +1148,7 @@
                                 <ItemsControl ItemsSource="{Binding BansList}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="services:ServerPlayerEntry">
-                                            <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="10,7" Margin="0,0,0,4">
+                                            <Border Background="Transparent" Padding="10,4" Margin="0,0,0,4">
                                                 <Grid ColumnDefinitions="*,*,Auto" VerticalAlignment="Center">
                                                     <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="12" Foreground="{StaticResource DangerLightBrush}" VerticalAlignment="Center"/>
                                                     <TextBlock Grid.Column="1" Text="{Binding Reason}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="12,0" TextTrimming="CharacterEllipsis"/>
@@ -1165,7 +1165,7 @@
                     <!-- TAB 5: FILE MANAGER & IN-APP EDITOR -->
                     <StackPanel Spacing="16" IsVisible="{Binding IsFilesTab}">
                         <!-- In-App File Editor Overlay Panel -->
-                        <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="20" IsVisible="{Binding IsFileEditorOpen}">
+                        <Border Classes="zenSection" IsVisible="{Binding IsFileEditorOpen}">
                             <Grid RowDefinitions="Auto,*,Auto" RowSpacing="14">
                                 <!-- Top Bar: File Name, Path, Save & Close -->
                                 <Grid Grid.Row="0" ColumnDefinitions="*,Auto" VerticalAlignment="Center">
@@ -1175,7 +1175,7 @@
                                                       Width="15" Height="15" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center"/>
                                         </Border>
                                         <StackPanel VerticalAlignment="Center" Spacing="1">
-                                            <TextBlock Text="{Binding EditingFileName}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                            <TextBlock Classes="sectionTitle" Text="{Binding EditingFileName}"/>
                                             <TextBlock Text="{Binding EditingFileFullPath}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" TextTrimming="CharacterEllipsis" MaxWidth="400"/>
                                         </StackPanel>
                                     </StackPanel>
@@ -1211,7 +1211,7 @@
                         </Border>
 
                         <!-- File Manager Explorer Table -->
-                        <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="20" IsVisible="{Binding !IsFileEditorOpen}">
+                        <Border Classes="zenSection" IsVisible="{Binding !IsFileEditorOpen}">
                             <StackPanel Spacing="14">
                                 <!-- Files Header & Toolbar -->
                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
@@ -1225,7 +1225,7 @@
                                         </Button>
 
                                         <!-- Breadcrumb location -->
-                                        <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderSoftBrush}" BorderThickness="1" CornerRadius="6" Padding="10,5">
+                                        <Border Background="{StaticResource ChipBrush}" BorderThickness="0" CornerRadius="6" Padding="10,5">
                                             <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                                                 <PathIcon Data="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="13" Height="13" Foreground="{StaticResource AccentBrush}"/>
                                                 <TextBlock Text="{Binding CurrentBrowseRelativePath}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
@@ -1276,7 +1276,7 @@
                                 <TextBlock Text="{Binding FileOperationStatus}" FontSize="11.5" Foreground="{StaticResource DangerLightBrush}" IsVisible="{Binding FileOperationStatus, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
 
                                 <!-- Table Header (click to sort) -->
-                                <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="14,8">
+                                <Border Background="Transparent" Padding="14,8">
                                     <Grid ColumnDefinitions="*,140,80,210">
                                         <Button Classes="tabBtn" Command="{Binding SortFilesByCommand}" CommandParameter="Name" Padding="0" HorizontalAlignment="Left" VerticalAlignment="Center">
                                             <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
@@ -1301,7 +1301,7 @@
                                 </Border>
 
                                 <!-- Empty folder message -->
-                                <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="30" IsVisible="{Binding IsFilesEmpty}">
+                                <Border Background="Transparent" Padding="30" IsVisible="{Binding IsFilesEmpty}">
                                     <StackPanel Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
                                         <PathIcon Data="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="28" Height="28" Foreground="{StaticResource TextDisabledBrush}" HorizontalAlignment="Center"/>
                                         <TextBlock Text="{l10n:Tr Key=cs_file_empty}" FontSize="12.5" Foreground="{StaticResource TextPlaceholderBrush}" HorizontalAlignment="Center"/>
@@ -1312,7 +1312,7 @@
                                 <ItemsControl ItemsSource="{Binding ServerFiles}" IsVisible="{Binding !IsFilesEmpty}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="services:ServerFileItem">
-                                            <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="12,8" Margin="0,0,0,4">
+                                            <Border Background="Transparent" Padding="12,8" Margin="0,0,0,4">
                                                 <Grid ColumnDefinitions="*,140,80,210" VerticalAlignment="Center">
                                                     <!-- Icon + Name -->
                                                     <Button Classes="tabBtn" Command="{Binding $parent[UserControl].((vm:CreateServerViewModel)DataContext).NavigateIntoFileItemCommand}" CommandParameter="{Binding}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="2,0">

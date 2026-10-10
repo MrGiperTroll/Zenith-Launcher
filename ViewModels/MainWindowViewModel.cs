@@ -212,6 +212,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private InstanceModel? _selectedInstance;
 
     private string? _preRenameName;
+    private InstanceModel? _prevSelectedInstance;
 
     partial void OnSelectedInstanceChanged(InstanceModel? value)
     {
@@ -219,8 +220,14 @@ public partial class MainWindowViewModel : ViewModelBase
         IsLaunching = value != null && _launchingInstanceIds.Contains(value.Id);
         UpdateJavaDisplay();
         _preRenameName = value?.Name;
-        if (value != null)
-            value.PropertyChanged += OnInstancePropertyChanged;
+        if (!ReferenceEquals(_prevSelectedInstance, value))
+        {
+            if (_prevSelectedInstance != null)
+                _prevSelectedInstance.PropertyChanged -= OnInstancePropertyChanged;
+            _prevSelectedInstance = value;
+            if (value != null)
+                value.PropertyChanged += OnInstancePropertyChanged;
+        }
     }
 
     private void OnInstancePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)

@@ -57,17 +57,20 @@
         </Style>
         <Style Selector="Button.delAccBtn">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderSoftBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="7"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="32"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="HorizontalAlignment" Value="Right"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
         </Style>
         <Style Selector="Button.delAccBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource DangerDimBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource DangerBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
         </Style>
         <Style Selector="Button.delAccBtn:pointerover PathIcon">
             <Setter Property="Foreground" Value="{StaticResource DangerLightBrush}"/>
@@ -138,7 +141,6 @@
                                             <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
                                                 <TextBlock Classes="rowTitle" Text="{Binding Username}"/>
                                                 <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                                    <Ellipse Width="8" Height="8" Fill="{StaticResource SuccessBrush}" VerticalAlignment="Center" IsVisible="{Binding IsActive}"/>
                                                     <Border Background="{StaticResource ChipBrush}" CornerRadius="6" Padding="6,2">
                                                         <TextBlock Text="{Binding TypeDisplay}" FontSize="9.5" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                                     </Border>
@@ -185,7 +187,7 @@
                         <Button Classes="methodBtn" Command="{Binding LoginElyByCommand}">
                             <Grid ColumnDefinitions="Auto,*" VerticalAlignment="Center">
                                 <Border Width="34" Height="34" Background="{StaticResource IconChipBrush}" CornerRadius="8" Margin="0,0,10,0" VerticalAlignment="Center">
-                                    <PathIcon Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" Width="15" Height="15" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                                    <TextBlock Text="E" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
                                 <StackPanel Grid.Column="1" Orientation="Vertical" Spacing="2" VerticalAlignment="Center">
                                     <TextBlock Classes="rowTitle" Text="Ely.by"/>

@@ -968,6 +968,9 @@ public partial class MainWindowViewModel : ViewModelBase
     private bool _isJavaInstallerOpen;
 
     [ObservableProperty]
+    private bool _isImportPickerOpen;
+
+    [ObservableProperty]
     private LauncherNavPage _currentPage = LauncherNavPage.Profiles;
 
     [ObservableProperty]
@@ -2911,6 +2914,16 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     public async Task ImportInstancesAsync()
     {
+        IsImportPickerOpen = true;
+        await Task.CompletedTask;
+    }
+
+    [RelayCommand]
+    private void CloseImportPicker() => IsImportPickerOpen = false;
+
+    [RelayCommand]
+    private async Task PickImportFolderAsync(string? kind)
+    {
         var topLevel = Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
             ? desktop.MainWindow
             : null;
@@ -2924,6 +2937,14 @@ public partial class MainWindowViewModel : ViewModelBase
         if (folders.Count == 0) return;
 
         var path = folders[0].Path.LocalPath;
+        var detected = InstanceImportService.Detect(path);
+        if (detected == ImportSourceKind.None)
+        {
+            StatusText = L10n.T("imp_not_recognized");
+            return;
+        }
+
+        IsImportPickerOpen = false;
         StatusText = L10n.T("profile_importing");
         try
         {

@@ -1154,6 +1154,51 @@
                 </Grid>
             </Border>
         </Border>
+    <!-- Import Picker In-App Modal -->
+        <Border Background="{StaticResource OverlayBrush}" IsVisible="{Binding IsImportPickerOpen}" ZIndex="1000"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.RowSpan="3" Grid.ColumnSpan="3">
+            <Border Background="{StaticResource SurfaceBrush}" CornerRadius="14" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1"
+                    Width="460" HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 18 46 0 #55000000" Padding="24,20,24,18">
+                <StackPanel Spacing="14">
+                    <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                        <StackPanel Spacing="2">
+                            <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=imp_title}"/>
+                            <TextBlock Classes="sectionHint" Text="{l10n:Tr Key=imp_hint}"/>
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="✕" Command="{Binding CloseImportPickerCommand}" Classes="subBtn"
+                                Width="28" Height="28" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                VerticalAlignment="Top" Margin="8,0,0,0"/>
+                    </Grid>
+                    <Border Classes="zenRow">
+                        <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                            <StackPanel Spacing="2" VerticalAlignment="Center">
+                                <TextBlock Classes="rowTitle" Text="{l10n:Tr Key=imp_prism_t}"/>
+                                <TextBlock Classes="rowHint" Text="{l10n:Tr Key=imp_prism_d}"/>
+                            </StackPanel>
+                            <Button Grid.Column="1" Classes="subBtn" Content="{l10n:Tr Key=imp_choose}" Command="{Binding PickImportFolderCommand}" CommandParameter="Prism" Margin="12,0,0,0"/>
+                        </Grid>
+                    </Border>
+                    <Border Classes="zenRow">
+                        <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                            <StackPanel Spacing="2" VerticalAlignment="Center">
+                                <TextBlock Classes="rowTitle" Text="{l10n:Tr Key=imp_mmc_t}"/>
+                                <TextBlock Classes="rowHint" Text="{l10n:Tr Key=imp_mmc_d}"/>
+                            </StackPanel>
+                            <Button Grid.Column="1" Classes="subBtn" Content="{l10n:Tr Key=imp_choose}" Command="{Binding PickImportFolderCommand}" CommandParameter="MultiMC" Margin="12,0,0,0"/>
+                        </Grid>
+                    </Border>
+                    <Border Classes="zenRow">
+                        <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                            <StackPanel Spacing="2" VerticalAlignment="Center">
+                                <TextBlock Classes="rowTitle" Text="{l10n:Tr Key=imp_single_t}"/>
+                                <TextBlock Classes="rowHint" Text="{l10n:Tr Key=imp_single_d}"/>
+                            </StackPanel>
+                            <Button Grid.Column="1" Classes="subBtn" Content="{l10n:Tr Key=imp_choose}" Command="{Binding PickImportFolderCommand}" CommandParameter="Single" Margin="12,0,0,0"/>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+            </Border>
+        </Border>
         <!-- DragOverlayPanel: topmost layer for drag ghost rendering -->
         <Canvas x:Name="DragOverlayPanel" IsHitTestVisible="False" ClipToBounds="False" ZIndex="9999"/>
     </Grid>

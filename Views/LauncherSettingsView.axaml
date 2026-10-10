@@ -180,7 +180,10 @@
                                     <TextBlock Grid.Column="4" Text="H" FontSize="12" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
                                     <CheckBox Grid.Column="5" IsChecked="{Binding IsLockAspectRatio}" Content="{l10n:Tr Key=lock_ratio}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="10,0,0,0"/>
                                 </Grid>
-                                <CheckBox Content="{l10n:Tr set_fullscreen}" IsChecked="{Binding IsFullscreen}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" FontWeight="SemiBold" Margin="0,2,0,0"/>
+                                <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                    <TextBlock Classes="rowTitle" Text="{l10n:Tr set_fullscreen}" VerticalAlignment="Center"/>
+                                    <ToggleSwitch Grid.Column="1" IsChecked="{Binding IsFullscreen}" VerticalAlignment="Center"/>
+                                </Grid>
                             </StackPanel>
                         </Border>
 

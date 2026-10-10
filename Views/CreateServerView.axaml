@@ -148,7 +148,7 @@
                 </Grid>
 
                 <!-- Server List Items -->
-                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Hidden">
                     <StackPanel Spacing="4">
                         <TextBlock Text="No servers created yet. Click '+ New' to create one."
                                    FontSize="11" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"
@@ -185,7 +185,7 @@
         <!-- ========================================================= -->
         <!-- DETAIL: RIGHT CONTENT PANEL                               -->
         <!-- ========================================================= -->
-        <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled">
             <Panel>
                 <!-- CASE A: CREATING NEW SERVER -->
                 <StackPanel Spacing="16" IsVisible="{Binding IsCreatingNewServer}">

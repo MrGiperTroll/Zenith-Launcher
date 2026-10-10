@@ -227,30 +227,29 @@
                         <TextBlock Classes="pageTitle" Text="{l10n:Tr Key=tab_overview}"/>
                         <!-- Instance Hero Card -->
                         <Border Classes="zenSection">
-                            <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
+                            <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8" VerticalAlignment="Center">
                                 <!-- Instance Icon -->
-                                <Border Width="64" Height="64" CornerRadius="12" ClipToBounds="True" Background="{StaticResource ChipBrush}" BorderBrush="{StaticResource BorderIconBrush}" BorderThickness="1">
+                                <Border Width="72" Height="72" CornerRadius="16" ClipToBounds="True" Background="{StaticResource ChipBrush}" BorderBrush="{StaticResource BorderIconBrush}" BorderThickness="1">
                                     <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
                                         <Path IsVisible="{Binding !Instance.HasCustomIcon}"
                                               Data="{StaticResource ZenithLogoGeometry}"
                                               Fill="{DynamicResource AccentBrush}"
                                               Stretch="Uniform"
-                                              Width="38" Height="38"
+                                              Width="42" Height="42"
                                               Margin="0,3.5,0,0"
                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         <Image IsVisible="{Binding Instance.HasCustomIcon}"
                                                Source="{Binding Instance.IconPath, Converter={x:Static converters:IconPathToBitmapConverter.Instance}}"
                                                Stretch="UniformToFill"
-                                               Width="64" Height="64"
+                                               Width="72" Height="72"
                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Panel>
                                 </Border>
 
                                 <!-- Instance Details -->
                                 <StackPanel Grid.Column="1" Margin="16,0,16,0" VerticalAlignment="Center" Spacing="6">
-                                    <TextBox Classes="titleInput"
+                                    <TextBox Classes="titleInput heroName"
                                              Text="{Binding Instance.Name, Mode=TwoWay}"
-                                             FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"
                                              VerticalAlignment="Center" VerticalContentAlignment="Center"
                                              HorizontalAlignment="Left"
                                              Padding="0" Margin="0"
@@ -261,17 +260,18 @@
                           LostFocus="OnInstanceNameLostFocus"
                                              ToolTip.Tip="Double-click to rename"/>
                                     <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <Border Background="{StaticResource ChipBrush}" CornerRadius="4" Padding="8,3">
+                                        <Border Background="{StaticResource ChipBrush}" CornerRadius="6" Padding="8,4">
                                             <TextBlock Text="{Binding Instance.DisplayVersion}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
                                         </Border>
-                                        <Border Background="{DynamicResource AccentDimBrush}" BorderBrush="{DynamicResource AccentBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="8,3" IsVisible="{Binding Instance.LoaderType, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}">
+                                        <Border Background="{DynamicResource AccentDimBrush}" BorderBrush="{DynamicResource AccentBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="8,4" IsVisible="{Binding Instance.LoaderType, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}">
                                             <TextBlock Text="{Binding Instance.LoaderType}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/>
                                         </Border>
                                     </StackPanel>
                                 </StackPanel>
 
                                 <!-- Single Clean Open Folder Button next to instance details -->
-                                <Button Grid.Column="2" Classes="subBtn" Command="{Binding OpenInstanceFolderCommand}" Padding="16,9" VerticalAlignment="Center" ToolTip.Tip="{l10n:Tr Key=btn_open_folder}">
+                                <Button Grid.Column="2" Classes="primaryBtn" Command="{Binding LaunchCommand}" IsEnabled="{Binding CanLaunch}" Content="{l10n:Tr Key=btn_launch}" Padding="18,9" VerticalAlignment="Center"/>
+                                <Button Grid.Column="3" Classes="subBtn" Command="{Binding OpenInstanceFolderCommand}" Padding="16,9" VerticalAlignment="Center" ToolTip.Tip="{l10n:Tr Key=btn_open_folder}">
                                     <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                         <PathIcon Data="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="14" Height="14" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
                                         <TextBlock Text="{l10n:Tr Key=btn_open_folder}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
@@ -283,26 +283,26 @@
                         <!-- Statistics Section: directly underneath hero card without redundant header -->
                         <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
                             <!-- Playtime -->
-                            <Border Grid.Column="0" Background="Transparent" Padding="12,8">
+                            <Border Grid.Column="0" Background="Transparent" Padding="16,12">
                                 <StackPanel Spacing="4">
-                                    <TextBlock Text="{l10n:Tr Key=stat_playtime}" FontSize="11" Foreground="{StaticResource TextCaptionBrush}" FontWeight="SemiBold"/>
+                                    <TextBlock Classes="caption" Text="{l10n:Tr Key=stat_playtime}" FontWeight="SemiBold"/>
                                     <TextBlock Text="{Binding Instance.PlaytimeDisplay}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/>
                                 </StackPanel>
                             </Border>
 
                             <!-- Last Played -->
-                            <Border Grid.Column="1" Background="Transparent" Padding="12,8">
+                            <Border Grid.Column="1" Background="Transparent" Padding="16,12">
                                 <StackPanel Spacing="4">
-                                    <TextBlock Text="{l10n:Tr Key=stat_last_played}" FontSize="11" Foreground="{StaticResource TextCaptionBrush}" FontWeight="SemiBold"/>
-                                    <TextBlock Text="{Binding Instance.LastPlayedDisplay}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Classes="caption" Text="{l10n:Tr Key=stat_last_played}" FontWeight="SemiBold"/>
+                                    <TextBlock Classes="rowTitle" Text="{Binding Instance.LastPlayedDisplay}"/>
                                 </StackPanel>
                             </Border>
 
                             <!-- Created At -->
-                            <Border Grid.Column="2" Background="Transparent" Padding="12,8">
+                            <Border Grid.Column="2" Background="Transparent" Padding="16,12">
                                 <StackPanel Spacing="4">
-                                    <TextBlock Text="{l10n:Tr Key=stat_created}" FontSize="11" Foreground="{StaticResource TextCaptionBrush}" FontWeight="SemiBold"/>
-                                    <TextBlock Text="{Binding Instance.CreatedAtDisplay}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Classes="caption" Text="{l10n:Tr Key=stat_created}" FontWeight="SemiBold"/>
+                                    <TextBlock Classes="rowTitle" Text="{Binding Instance.CreatedAtDisplay}"/>
                                 </StackPanel>
                             </Border>
                         </Grid>
@@ -314,7 +314,7 @@
                     <!-- Top Toolbar -->
                     <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Margin="2,0,2,12" VerticalAlignment="Center">
                         <!-- Left: Title -->
-                        <TextBlock Grid.Column="0" Text="{l10n:Tr Key=tab_logs}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="0" Classes="sectionTitle" Text="{l10n:Tr Key=tab_logs}" VerticalAlignment="Center"/>
 
                         <!-- Middle: Log view options -->
                         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="14" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -398,7 +398,7 @@
                     <StackPanel Grid.Row="0" Spacing="10" Margin="0,0,0,8">
                         <Grid ColumnDefinitions="*,Auto">
                             <StackPanel Spacing="2" VerticalAlignment="Center">
-                                <TextBlock Text="{l10n:Tr Key=tab_datapacks}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=tab_datapacks}"/>
                                 <TextBlock Text="{Binding DataPacks.Count, StringFormat='{}{0} datapack(s) in selected world'}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
                             </StackPanel>
                             <Button Grid.Column="1" Classes="primaryBtn" Content="{l10n:Tr Key=btn_browse_datapacks}" Command="{Binding OpenContentBrowserCommand}" CommandParameter="Data Packs" Padding="14,7" FontSize="12" VerticalAlignment="Center" IsEnabled="{Binding AvailableWorlds.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsNonZero}}"/>
@@ -462,7 +462,7 @@
                 <!-- Servers -->
                 <Grid IsVisible="{Binding IsServersTab}" RowDefinitions="Auto,*,Auto" Margin="14,10">
                     <StackPanel Grid.Row="0" Spacing="2" Margin="0,0,0,8">
-                        <TextBlock Text="{l10n:Tr Key=tab_servers}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=tab_servers}"/>
                         <TextBlock Text="{Binding Servers.Count, StringFormat='{}{0} server(s) in servers.dat'}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
                     </StackPanel>
                     <Border Grid.Row="1" Background="Transparent" Padding="4">
@@ -524,7 +524,7 @@
                 <!-- Settings (Clean utilitarian controls) -->
                 <ScrollViewer IsVisible="{Binding IsSettingsTab}" VerticalScrollBarVisibility="Auto">
                     <StackPanel Spacing="16" Margin="24,16,24,24">
-                        <TextBlock Text="{l10n:Tr Key=tab_settings}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <TextBlock Classes="pageTitle" Text="{l10n:Tr Key=tab_settings}"/>
                         <controls:RamCardControl Title="{l10n:Tr Key=set_memory}"
                                               Subtitle="{l10n:Tr Key=set_memory_hint}"
                                               Value="{Binding RamMb}"

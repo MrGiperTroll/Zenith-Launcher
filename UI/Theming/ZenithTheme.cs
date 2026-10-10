@@ -100,13 +100,39 @@ public static class ZenithTheme
         SetBrushColor(r, "TextControlBackgroundPointerOver", surface);
         SetBrushColor(r, "TextControlBorderBrushPointerOver", Blend(accent, borderDark, 0.55f));
 
-        // Slider dynamic brush overrides
-        SetBrushColor(r, "SliderTrackFill", accent);
-        SetBrushColor(r, "SliderTrackFillPointerOver", hover);
-        SetBrushColor(r, "SliderTrackFillPressed", pressed);
-        SetBrushColor(r, "SliderThumbBackground", accent);
-        SetBrushColor(r, "SliderThumbBackgroundPointerOver", hover);
-        SetBrushColor(r, "SliderThumbBackgroundPressed", pressed);
+        // Slider dynamic brush overrides (filled = accent, unfilled = subtle, thumb = white)
+        SetBrushColor(r, "SliderTrackFill", Lighten(borderDark, 0.10f));
+        SetBrushColor(r, "SliderTrackFillPointerOver", Lighten(borderDark, 0.18f));
+        SetBrushColor(r, "SliderTrackFillPressed", Lighten(borderDark, 0.10f));
+        SetBrushColor(r, "SliderTrackValueFill", accent);
+        SetBrushColor(r, "SliderTrackValueFillPointerOver", hover);
+        SetBrushColor(r, "SliderTrackValueFillPressed", pressed);
+        SetBrushColor(r, "SliderThumbBackground", Colors.White);
+        SetBrushColor(r, "SliderThumbBackgroundPointerOver", Colors.White);
+        SetBrushColor(r, "SliderThumbBackgroundPressed", Colors.White);
+
+        // CheckBox dynamic overrides (follow surfaces + accent)
+        SetBrushColor(r, "CheckBoxCheckBackgroundFillUnchecked", field);
+        SetBrushColor(r, "CheckBoxCheckBackgroundStrokeUnchecked", Lighten(borderDark, 0.20f));
+        SetBrushColor(r, "CheckBoxCheckBackgroundStrokeUncheckedPointerOver", accent);
+        SetBrushColor(r, "CheckBoxCheckBackgroundFillChecked", accent);
+        SetBrushColor(r, "CheckBoxCheckBackgroundFillCheckedPointerOver", hover);
+        SetBrushColor(r, "CheckBoxCheckGlyphForegroundChecked", Colors.White);
+        SetBrushColor(r, "CheckBoxCheckGlyphForegroundCheckedPointerOver", Colors.White);
+
+        // ToggleSwitch dynamic overrides (follow surfaces + accent, white knobs)
+        SetBrushColor(r, "ToggleSwitchFillOff", field);
+        SetBrushColor(r, "ToggleSwitchStrokeOff", Lighten(borderDark, 0.20f));
+        SetBrushColor(r, "ToggleSwitchFillOffPointerOver", field);
+        SetBrushColor(r, "ToggleSwitchStrokeOffPointerOver", accent);
+        SetBrushColor(r, "ToggleSwitchFillOn", accent);
+        SetBrushColor(r, "ToggleSwitchStrokeOn", accent);
+        SetBrushColor(r, "ToggleSwitchFillOnPointerOver", hover);
+        SetBrushColor(r, "ToggleSwitchStrokeOnPointerOver", hover);
+        SetBrushColor(r, "ToggleSwitchKnobFillOff", Colors.White);
+        SetBrushColor(r, "ToggleSwitchKnobFillOffPointerOver", Colors.White);
+        SetBrushColor(r, "ToggleSwitchKnobFillOn", Colors.White);
+        SetBrushColor(r, "ToggleSwitchKnobFillOnPointerOver", Colors.White);
 
         // Gradients
         r["AccentGradientStart"] = hover;

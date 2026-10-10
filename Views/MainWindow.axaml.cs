@@ -517,6 +517,16 @@ public partial class MainWindow : Window
         if (dragOverlay != null && _ghostRect != null)
         {
             dragOverlay.Children.Remove(_ghostRect);
+            try
+            {
+                if (_ghostRect.Fill is Avalonia.Media.ImageBrush ib)
+                {
+                    (ib.Source as Avalonia.Media.Imaging.Bitmap)?.Dispose();
+                    ib.Source = null;
+                }
+                _ghostRect.Fill = null;
+            }
+            catch { }
         }
         _ghostRect = null;
 

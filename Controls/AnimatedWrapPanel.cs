@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
@@ -57,6 +58,13 @@ public class AnimatedWrapPanel : Panel
         double currentX = 0;
         double currentY = 0;
         double maxRowHeight = 0;
+
+        // Prune entries for removed cards so the map cannot grow unbounded.
+        if (_previousBounds.Count > Children.Count)
+        {
+            foreach (var key in _previousBounds.Keys.Where(k => !Children.Contains(k)).ToList())
+                _previousBounds.Remove(key);
+        }
 
         foreach (var child in Children)
         {

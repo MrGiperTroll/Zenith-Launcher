@@ -113,7 +113,7 @@
 
         <!-- ========== HEADER (compact) ========== -->
         <Border Grid.Row="0" Background="Transparent" BorderBrush="{StaticResource BorderDarkBrush}"
-                BorderThickness="0,0,0,1" Padding="16,12">
+                BorderThickness="0,0,0,1" Padding="24,16">
             <Grid ColumnDefinitions="56,*,Auto" ColumnSpacing="12">
                 <Border Grid.Column="0" Width="56" Height="56" CornerRadius="12"
                         Background="{StaticResource IconChipBrush}" ClipToBounds="True" VerticalAlignment="Center">
@@ -124,8 +124,8 @@
                     </Panel>
                 </Border>
                 <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding DetailsProject.Title}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" TextWrapping="Wrap"/>
-                    <TextBlock Text="{Binding DetailsProject.Description}" FontSize="11.5" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" MaxLines="2"/>
+                    <TextBlock Classes="pageTitle" Text="{Binding DetailsProject.Title}" TextWrapping="Wrap"/>
+                    <TextBlock Classes="sectionHint" Text="{Binding DetailsProject.Description}" TextWrapping="Wrap" MaxLines="2"/>
                         <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,3,0,0">
                             <StackPanel Orientation="Horizontal" Spacing="4">
                                 <TextBlock Text="&#x2193;" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
@@ -178,7 +178,7 @@
                     <StackPanel>
                         <!-- Description tab -->
                         <StackPanel IsVisible="{Binding IsDescriptionTab}" Spacing="10">
-                            <TextBlock Text="{Binding DetailsProject.Title}" FontSize="17" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <TextBlock Classes="sectionTitle" Text="{Binding DetailsProject.Title}"/>
                             <TextBlock Text="{Binding DetailsProject.Description}" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="20"/>
                             <TextBlock Text="{Binding CleanBody}" FontSize="12.5" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="20"
                                        IsVisible="{Binding CleanBody, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
@@ -186,7 +186,7 @@
 
                         <!-- Changelog tab -->
                         <StackPanel IsVisible="{Binding IsChangelogTab}" Spacing="10">
-                            <TextBlock Text="{l10n:Tr Key=cb_changelog}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=cb_changelog}"/>
                             <TextBlock Text="{Binding CleanBody}" FontSize="12.5" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="20"
                                        IsVisible="{Binding CleanBody, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
                             <TextBlock Text="{l10n:Tr Key=cb_no_changelog}" FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}"
@@ -196,7 +196,7 @@
                         <!-- Versions tab -->
                         <StackPanel IsVisible="{Binding IsVersionsTab}" Spacing="6">
                             <Grid ColumnDefinitions="*,Auto">
-                                <TextBlock Text="{l10n:Tr Key=cb_versions}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=cb_versions}" VerticalAlignment="Center"/>
                                 <CheckBox Grid.Column="1" Content="{l10n:Tr Key=cb_show_all_versions}" IsChecked="{Binding ShowAllVersions}"
                                           Foreground="{StaticResource TextSecondaryBrush}" FontSize="11"/>
                             </Grid>
@@ -256,7 +256,7 @@
                 <Border Classes="zenSection">
                     <StackPanel Spacing="6">
                         <Grid ColumnDefinitions="*,Auto">
-                            <TextBlock Text="{l10n:Tr Key=cb_compatibility}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Classes="rowTitle" Text="{l10n:Tr Key=cb_compatibility}" VerticalAlignment="Center"/>
                             <Button Grid.Column="1" Content="&#x2715;" FontSize="10" Padding="6,2" CornerRadius="6"
                                     Background="{StaticResource FieldBrush}" Foreground="{StaticResource TextMutedBrush}"
                                     BorderThickness="0" Cursor="Hand" VerticalAlignment="Center"
@@ -313,7 +313,7 @@
                 <Border Classes="zenSection"
                         IsVisible="{Binding FullProject, Converter={x:Static converters:EditInstanceWindowConverters.IsNotNull}}">
                     <StackPanel Spacing="5">
-                        <TextBlock Text="{l10n:Tr Key=cb_links}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,2"/>
+                        <TextBlock Classes="rowTitle" Text="{l10n:Tr Key=cb_links}" Margin="0,0,0,2"/>
                         <Button Classes="sourceBtn" IsVisible="{Binding FullProject.SourceUrl, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"
                                 Command="{Binding OpenLinkCommand}" CommandParameter="source" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
                             <StackPanel Orientation="Horizontal" Spacing="6">
@@ -349,7 +349,7 @@
                 <Border Classes="zenSection"
                         IsVisible="{Binding FullProject.TeamMembers.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsNotZero}}">
                     <StackPanel Spacing="6">
-                        <TextBlock Text="{l10n:Tr Key=cb_creators}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <TextBlock Classes="rowTitle" Text="{l10n:Tr Key=cb_creators}"/>
                         <ItemsControl ItemsSource="{Binding FullProject.TeamMembers}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="models:ModrinthTeamMember">
@@ -375,7 +375,7 @@
                 <Border Classes="zenSection"
                         IsVisible="{Binding FullProject, Converter={x:Static converters:EditInstanceWindowConverters.IsNotNull}}">
                     <StackPanel Spacing="5">
-                        <TextBlock Text="{l10n:Tr Key=cb_details}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,2"/>
+                        <TextBlock Classes="rowTitle" Text="{l10n:Tr Key=cb_details}" Margin="0,0,0,2"/>
                         <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding FullProject.LicenseName, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}">
                             <TextBlock Text="&#x2630;" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
                             <TextBlock Text="{l10n:Tr Key=cb_licensed}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
@@ -398,7 +398,7 @@
                 <Border Classes="zenSection"
                         IsVisible="{Binding DetailsProject.TagsLabel, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}">
                     <StackPanel Spacing="6">
-                        <TextBlock Text="{l10n:Tr Key=cb_tags}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <TextBlock Classes="rowTitle" Text="{l10n:Tr Key=cb_tags}"/>
                         <WrapPanel>
                             <ItemsControl ItemsSource="{Binding DetailsProject.Categories}">
                                 <ItemsControl.ItemTemplate>

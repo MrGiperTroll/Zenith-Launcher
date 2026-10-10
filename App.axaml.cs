@@ -11,28 +11,6 @@ using CustomMcLauncher.Services;
 
 namespace CustomMcLauncher;
 
-public static class ExperimentalMode
-{
-    /// <summary>
-    /// Separate experimental shell: enabled via --experimental flag or by
-    /// running a copy of the exe named *Experimental*. Classic UI untouched.
-    /// </summary>
-    public static bool IsEnabled(string[] args)
-    {
-        if (args.Any(a => a.Equals("--experimental", StringComparison.OrdinalIgnoreCase) ||
-                          a.Equals("--exp", StringComparison.OrdinalIgnoreCase)))
-            return true;
-        try
-        {
-            var exe = Environment.GetCommandLineArgs().FirstOrDefault() ?? "";
-            if (exe.Contains("experimental", StringComparison.OrdinalIgnoreCase))
-                return true;
-        }
-        catch { }
-        return false;
-    }
-}
-
 public partial class App : Application
 {
     public override void Initialize()
@@ -90,15 +68,10 @@ public partial class App : Application
                     return;
                 }
 
-                desktop.MainWindow = ExperimentalMode.IsEnabled(args)
-                    ? new Views.Experimental.ExperimentalMainWindow
-                    {
-                        DataContext = new ExperimentalShellViewModel(vm)
-                    }
-                    : new MainWindow
-                    {
-                        DataContext = vm,
-                    };
+                desktop.MainWindow = new MainWindow
+                {
+                    DataContext = vm,
+                };
 
                 // Handle command-line launch for desktop shortcuts
                 if (wantsDirectLaunch)

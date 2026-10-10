@@ -1157,13 +1157,12 @@
     <!-- Import Picker In-App Modal -->
         <Border Background="{StaticResource OverlayBrush}" IsVisible="{Binding IsImportPickerOpen}" ZIndex="1000"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.RowSpan="3" Grid.ColumnSpan="3">
-            <Border Background="{StaticResource SurfaceBrush}" CornerRadius="14" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1"
+            <Border Background="{StaticResource BgBrush}" CornerRadius="14" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1"
                     Width="460" HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 18 46 0 #55000000" Padding="24,20,24,18">
                 <StackPanel Spacing="14">
                     <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                        <StackPanel Spacing="2">
-                            <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=imp_title}"/>
-                            <TextBlock Classes="sectionHint" Text="{l10n:Tr Key=imp_hint}"/>
+                        <StackPanel Spacing="4" VerticalAlignment="Center">
+                            <TextBlock Text="{l10n:Tr Key=imp_title}" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
                         </StackPanel>
                         <Button Grid.Column="1" Content="✕" Command="{Binding CloseImportPickerCommand}" Classes="subBtn"
                                 Width="28" Height="28" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
@@ -1172,7 +1171,7 @@
                     <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Padding="14">
                         <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalAlignment="Center">
                             <Border Width="40" Height="40" Background="{StaticResource IconChipBrush}" CornerRadius="10" VerticalAlignment="Center">
-                                <PathIcon Data="M12 3L22 21H2L12 3Z" Width="20" Height="20" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <PathIcon Data="m6.3498 2.9393c-0.34105 0-2.7827 1.4099-2.9532 1.7052l2.9532 5.1157 2.9538-5.1157c-0.17052-0.29535-2.6127-1.7052-2.9538-1.7052z" Width="20" Height="20" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
                             <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
                                 <TextBlock Classes="rowTitle" Text="{l10n:Tr Key=imp_prism_t}"/>
@@ -1183,8 +1182,8 @@
                     </Border>
                     <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Padding="14">
                         <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalAlignment="Center">
-                            <Border Width="40" Height="40" Background="{StaticResource IconChipBrush}" CornerRadius="10" VerticalAlignment="Center">
-                                <PathIcon Data="M3 3h8v8H3zM13 3h8v8h-8zM3 13h8v8H3zM13 13h8v8h-8z" Width="18" Height="18" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <Border Width="40" Height="40" Background="#009CFF" CornerRadius="10" VerticalAlignment="Center">
+                                <TextBlock Text="M" FontSize="20" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
                             <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
                                 <TextBlock Classes="rowTitle" Text="{l10n:Tr Key=imp_mmc_t}"/>

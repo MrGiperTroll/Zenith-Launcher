@@ -38,8 +38,8 @@
             <Setter Property="Background" Value="{StaticResource CardBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="10"/>
-            <Setter Property="Padding" Value="12,9"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="12,10"/>
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
@@ -71,6 +71,37 @@
         </Style>
         <Style Selector="Button.delAccBtn:pointerover PathIcon">
             <Setter Property="Foreground" Value="{StaticResource DangerLightBrush}"/>
+        </Style>
+
+        <!-- Primary / secondary (offline form buttons) -->
+        <Style Selector="Button.primaryBtn">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Button.primaryBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource AccentBrushHover}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
+        </Style>
+        <Style Selector="Button.subBtn">
+            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderEditorBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Button.subBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
         </Style>
     </UserControl.Styles>
 
@@ -105,9 +136,10 @@
                                             </Border>
                                             <!-- Name + badges -->
                                             <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding Username}" FontSize="13.5" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                                <TextBlock Classes="rowTitle" Text="{Binding Username}"/>
                                                 <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                                    <Border Background="{StaticResource ChipBrush}" CornerRadius="4" Padding="6,1.5">
+                                                    <Ellipse Width="8" Height="8" Fill="{StaticResource SuccessBrush}" VerticalAlignment="Center" IsVisible="{Binding IsActive}"/>
+                                                    <Border Background="{StaticResource ChipBrush}" CornerRadius="6" Padding="6,2">
                                                         <TextBlock Text="{Binding TypeDisplay}" FontSize="9.5" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                                     </Border>
                                                 </StackPanel>
@@ -135,7 +167,7 @@
                 <Panel>
                     <!-- Method buttons -->
                     <StackPanel IsVisible="{Binding !IsOfflinePanelOpen}" Spacing="10">
-                        <TextBlock Text="{l10n:Tr Key=acc_add_header}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}" LetterSpacing="1.2"
+                        <TextBlock Classes="caption" Text="{l10n:Tr Key=acc_add_header}" Foreground="{DynamicResource AccentBrush}" FontWeight="Bold" LetterSpacing="1.2"
                                    Margin="2,0,0,4"/>
 
                         <Button Classes="methodBtn" Command="{Binding LoginMicrosoftCommand}">
@@ -144,8 +176,8 @@
                                     <PathIcon Data="M3 3h8v8H3zm10 0h8v8h-8zM3 13h8v8H3zm10 0h8v8h-8z" Width="14" Height="14" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
                                 </Border>
                                 <StackPanel Grid.Column="1" Orientation="Vertical" Spacing="2" VerticalAlignment="Center">
-                                    <TextBlock Text="Microsoft" FontSize="13" FontWeight="Bold"/>
-                                    <TextBlock Text="{l10n:Tr Key=acc_ms_hint}" FontSize="10" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"/>
+                                    <TextBlock Classes="rowTitle" Text="Microsoft"/>
+                                    <TextBlock Classes="rowHint" Text="{l10n:Tr Key=acc_ms_hint}"/>
                                 </StackPanel>
                             </Grid>
                         </Button>
@@ -156,8 +188,8 @@
                                     <PathIcon Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" Width="15" Height="15" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
                                 </Border>
                                 <StackPanel Grid.Column="1" Orientation="Vertical" Spacing="2" VerticalAlignment="Center">
-                                    <TextBlock Text="Ely.by" FontSize="13" FontWeight="Bold"/>
-                                    <TextBlock Text="{l10n:Tr Key=acc_ely_hint}" FontSize="10" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"/>
+                                    <TextBlock Classes="rowTitle" Text="Ely.by"/>
+                                    <TextBlock Classes="rowHint" Text="{l10n:Tr Key=acc_ely_hint}"/>
                                 </StackPanel>
                             </Grid>
                         </Button>
@@ -168,8 +200,8 @@
                                     <PathIcon Data="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" Width="15" Height="15" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
                                 </Border>
                                 <StackPanel Grid.Column="1" Orientation="Vertical" Spacing="2" VerticalAlignment="Center">
-                                    <TextBlock Text="{l10n:Tr Key=acc_type_offline}" FontSize="13" FontWeight="Bold"/>
-                                    <TextBlock Text="{l10n:Tr Key=acc_offline_hint}" FontSize="10" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"/>
+                                    <TextBlock Classes="rowTitle" Text="{l10n:Tr Key=acc_type_offline}"/>
+                                    <TextBlock Classes="rowHint" Text="{l10n:Tr Key=acc_offline_hint}"/>
                                 </StackPanel>
                             </Grid>
                         </Button>
@@ -186,10 +218,10 @@
 
                     <!-- Offline nickname form -->
                     <StackPanel IsVisible="{Binding IsOfflinePanelOpen}" Spacing="12">
-                        <TextBlock Text="{l10n:Tr Key=acc_offline_badge}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}" LetterSpacing="1.2" Margin="2,0,0,0"/>
+                        <TextBlock Classes="caption" Text="{l10n:Tr Key=acc_offline_badge}" Foreground="{DynamicResource AccentBrush}" FontWeight="Bold" LetterSpacing="1.2" Margin="2,0,0,0"/>
 
                         <StackPanel Spacing="6">
-                            <TextBlock Text="{l10n:Tr Key=acc_nickname}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                            <TextBlock Classes="rowHint" Text="{l10n:Tr Key=acc_nickname}"/>
                             <TextBox Classes="darkInput" Text="{Binding NewOfflineUsername}" PlaceholderText="{l10n:Tr Key=placeholder_player}"/>
                         </StackPanel>
 

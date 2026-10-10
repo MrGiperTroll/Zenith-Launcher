@@ -117,7 +117,7 @@ public class ParticleSystemControl : Control
             {
                 if (_timer == null)
                 {
-                    _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(16) };
+                    _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(33) };
                     _timer.Tick += OnTimerTick;
                     _timer.Start();
                 }
@@ -138,13 +138,17 @@ public class ParticleSystemControl : Control
         base.OnAttachedToVisualTree(e);
         if (ParticleType != "None" && _timer == null && IsVisible)
         {
-            _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(16) };
+            _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(33) };
             _timer.Tick += OnTimerTick;
             _timer.Start();
         }
     }
 
-    private void OnTimerTick(object? sender, EventArgs e) => UpdateParticles();
+    private void OnTimerTick(object? sender, EventArgs e)
+    {
+        if (!IsVisible) return;
+        UpdateParticles();
+    }
 
     private void ReloadCustomTexture()
     {
@@ -194,12 +198,14 @@ public class ParticleSystemControl : Control
     {
         if (Bounds.Width <= 0 || Bounds.Height <= 0) return;
 
-        // Spawn
-        int maxParticles = Math.Max(10, Math.Min(150, ParticleCount));
+        // Spawn (custom tuning applies ONLY to the Custom type;
+        // presets always use reference values so custom settings never leak into them)
+        bool isCustom = ParticleType == "Custom";
+        int maxParticles = isCustom ? Math.Max(10, Math.Min(150, ParticleCount)) : 50;
         if (_particles.Count < maxParticles && _rand.NextDouble() < 0.2)
         {
-            double scale = Math.Max(0.3, Math.Min(2.5, ParticleScale));
-            double speed = Math.Max(0.2, Math.Min(3.0, ParticleSpeed));
+            double scale = isCustom ? Math.Max(0.3, Math.Min(2.5, ParticleScale)) : 1.0;
+            double speed = isCustom ? Math.Max(0.2, Math.Min(3.0, ParticleSpeed)) : 1.0;
             double vx = (_rand.NextDouble() - 0.5) * 2 * speed;
             double vy = (_rand.NextDouble() * 2 + 1) * speed;
             double sx = _rand.NextDouble() * Bounds.Width;

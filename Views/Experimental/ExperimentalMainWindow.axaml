@@ -5,11 +5,16 @@
         xmlns:views="using:CustomMcLauncher.Views"
         xmlns:exp="using:CustomMcLauncher.Views.Experimental"
         xmlns:l10n="using:CustomMcLauncher.Extensions"
+        xmlns:converters="using:CustomMcLauncher.Converters"
         x:Class="CustomMcLauncher.Views.Experimental.ExperimentalMainWindow"
         x:DataType="vm:ExperimentalShellViewModel"
         Title="Zenith Launcher — Experimental"
         Width="1180" Height="760" MinWidth="1000" MinHeight="640"
         Background="{StaticResource BgBrush}">
+
+    <Window.Resources>
+        <converters:BoolToBorderBrushConverter x:Key="BoolToBorderBrushConverter"/>
+    </Window.Resources>
 
     <Window.Styles>
         <Style Selector="Button.navBtn">
@@ -44,7 +49,9 @@
             <Grid RowDefinitions="Auto,*,Auto">
                 <StackPanel Grid.Row="0" Spacing="10">
                     <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                        <Path Data="{StaticResource ZenithLogoGeometry}" Fill="{StaticResource AccentBrush}" Stretch="Uniform" Width="22" Height="22" VerticalAlignment="Center"/>
+                        <Border Width="24" Height="24" CornerRadius="6" Background="{StaticResource AccentDimBrush}" VerticalAlignment="Center">
+                            <TextBlock Text="Z" FontSize="13" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
                         <TextBlock Text="Zenith" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                     </StackPanel>
                     <Border Background="{StaticResource AccentDimBrush}" CornerRadius="4" Padding="6,2" HorizontalAlignment="Left">

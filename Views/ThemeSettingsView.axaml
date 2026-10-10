@@ -11,34 +11,6 @@
              x:DataType="pages:ThemeSettingsViewModel">
     
     <UserControl.Styles>
-        <Style Selector="TextBox.darkInput">
-            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="10,8"/>
-            <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="SelectionForegroundBrush" Value="{DynamicResource OnAccentBrush}"/>
-            <Setter Property="CaretBrush" Value="{DynamicResource AccentBrush}"/>
-        </Style>
-        <Style Selector="TextBox.darkInput:pointerover /template/ Border#PART_BorderElement">
-            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource BorderHoverBrush}"/>
-        </Style>
-        <Style Selector="TextBox.darkInput:focus /template/ Border#PART_BorderElement">
-            <Setter Property="Background" Value="{DynamicResource FieldBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-        </Style>
-        <Style Selector="ComboBox">
-            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="10,6"/>
-        </Style>
         <Style Selector="Button.subBtn">
             <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
@@ -140,7 +112,7 @@
         </Border>
 
         <!-- Subtabs Switcher -->
-        <Border Grid.Row="1" Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="8" Padding="3" HorizontalAlignment="Left" Margin="0,0,0,16">
+        <Border Grid.Row="1" Background="{StaticResource FieldBrush}" CornerRadius="8" Padding="3" HorizontalAlignment="Left" Margin="0,0,0,16">
             <StackPanel Orientation="Horizontal" Spacing="4">
                 <Button Classes="subTabBtn" Classes.active="{Binding IsThemeSubTabSimple}" Command="{Binding SwitchThemeSubTabCommand}" CommandParameter="Simple">
                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
@@ -162,12 +134,12 @@
             <StackPanel Spacing="20">
                 
                 <!-- PREVIEW CARD (Common to both subtabs) -->
-                <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="10" Padding="14,12">
+                <Border Classes="zenSection">
                     <StackPanel Spacing="10">
                         <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                             <StackPanel Spacing="2" VerticalAlignment="Center">
-                                <TextBlock Text="{l10n:Tr Key=theme_preview}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                <TextBlock Text="Interactive sample of theme accent colors and active background particles" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                                <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=theme_preview}"/>
+                                <TextBlock Classes="sectionHint" Text="Interactive sample of theme accent colors and active background particles"/>
                             </StackPanel>
                         </Grid>
 
@@ -204,12 +176,12 @@
                 <!-- SUBTAB 1: SIMPLE (PRESETS) -->
                 <StackPanel Spacing="16" IsVisible="{Binding IsThemeSubTabSimple}">
                     <!-- Presets Chips -->
-                    <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="10" Padding="14,12">
+                    <Border Classes="zenSection">
                         <StackPanel Spacing="12">
                             <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                 <StackPanel Grid.Column="0" Spacing="2">
-                                    <TextBlock Text="{l10n:Tr Key=set_theme}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                    <TextBlock Text="{l10n:Tr Key=set_theme_hint}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                                    <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=set_theme}"/>
+                                    <TextBlock Classes="sectionHint" Text="{l10n:Tr Key=set_theme_hint}"/>
                                 </StackPanel>
                                 <Button Grid.Column="1" Classes="primaryBtn" Classes.applyHighlight="{Binding IsApplyButtonHighlighted}" Command="{Binding RequestApplyThemeCommand}" Content="{l10n:Tr Key=set_apply}" Padding="16,6" VerticalAlignment="Center"/>
                             </Grid>
@@ -270,13 +242,13 @@
                     </Border>
 
                     <!-- Particles for Simple tab -->
-                    <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="10" Padding="14,12">
+                    <Border Classes="zenSection">
                         <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                             <StackPanel Grid.Column="0" Spacing="4" VerticalAlignment="Center">
-                                <TextBlock Text="{l10n:Tr Key=theme_particles}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                <TextBlock Text="{l10n:Tr Key=theme_particles_hint}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                                <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=theme_particles}"/>
+                                <TextBlock Classes="sectionHint" Text="{l10n:Tr Key=theme_particles_hint}"/>
                             </StackPanel>
-                            <ComboBox Grid.Column="1" ItemsSource="{Binding ParticleOptions}" SelectedItem="{Binding SelectedParticle}" Width="190" VerticalAlignment="Center">
+                            <ComboBox Grid.Column="1" Classes="zenCombo" ItemsSource="{Binding ParticleOptions}" SelectedItem="{Binding SelectedParticle}" Width="190" VerticalAlignment="Center">
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
                                         <TextBlock Text="{Binding Converter={x:Static converters:ParticleDisplayConverter.Instance}}"/>
@@ -290,13 +262,13 @@
                 <!-- SUBTAB 2: ADVANCED CUSTOMIZATION -->
                 <StackPanel Spacing="16" IsVisible="{Binding IsThemeSubTabAdvanced}">
                     <!-- Particles for Advanced tab -->
-                    <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="10" Padding="14,12">
+                    <Border Classes="zenSection">
                         <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                             <StackPanel Grid.Column="0" Spacing="4" VerticalAlignment="Center">
-                                <TextBlock Text="{l10n:Tr Key=theme_particles}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                <TextBlock Text="{l10n:Tr Key=theme_particles_hint}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                                <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=theme_particles}"/>
+                                <TextBlock Classes="sectionHint" Text="{l10n:Tr Key=theme_particles_hint}"/>
                             </StackPanel>
-                            <ComboBox Grid.Column="1" ItemsSource="{Binding ParticleOptions}" SelectedItem="{Binding SelectedParticle}" Width="190" VerticalAlignment="Center">
+                            <ComboBox Grid.Column="1" Classes="zenCombo" ItemsSource="{Binding ParticleOptions}" SelectedItem="{Binding SelectedParticle}" Width="190" VerticalAlignment="Center">
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
                                         <TextBlock Text="{Binding Converter={x:Static converters:ParticleDisplayConverter.Instance}}"/>
@@ -307,15 +279,14 @@
                     </Border>
 
                     <!-- Hex Palette Editor -->
-                    <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="10" Padding="14,12">
+                    <Border Classes="zenSection">
                         <StackPanel Spacing="14">
                             <StackPanel Spacing="2">
-                                <TextBlock Text="Advanced Palette (HEX)" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                <TextBlock Text="Enter HEX codes or click swatches to pick custom colors." FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                                <TextBlock Classes="sectionTitle" Text="Advanced Palette (HEX)"/>
+                                <TextBlock Classes="sectionHint" Text="Enter HEX codes or click swatches to pick custom colors."/>
                             </StackPanel>
 
-                            <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="8" Padding="14">
-                                <StackPanel Spacing="12">
+                            <StackPanel Spacing="12">
                                     <!-- Accent Color -->
                                     <Grid ColumnDefinitions="160,*,Auto" VerticalAlignment="Center">
                                         <TextBlock Text="Accent Color" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
@@ -462,7 +433,6 @@
 
                                     <Button Classes="primaryBtn" Classes.applyHighlight="{Binding IsApplyButtonHighlighted}" Command="{Binding RequestApplyThemeCommand}" Content="{l10n:Tr Key=set_apply}" HorizontalAlignment="Right" Padding="18,6" Margin="0,4,0,0"/>
                                 </StackPanel>
-                            </Border>
                         </StackPanel>
                     </Border>
                 </StackPanel>

@@ -41,14 +41,17 @@
     <Grid RowDefinitions="Auto,*,Auto" Margin="18,16">
         <!-- Header -->
         <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12" Margin="2,0,0,14">
-            <Border Width="42" Height="42" CornerRadius="11" Background="{StaticResource DangerBgDeepBrush}"
+            <Border Width="42" Height="42" CornerRadius="12"
+                    Background="{StaticResource DangerBgDeepBrush}"
                     BorderBrush="{StaticResource DangerBorderBrush}" BorderThickness="1">
                 <TextBlock Text="!" FontSize="22" FontWeight="Bold" Foreground="{StaticResource DangerLightBrush}"
                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
-            <StackPanel VerticalAlignment="Center" Spacing="2">
-                <TextBlock Text="{Binding Title}" FontSize="17" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                <TextBlock Text="{Binding ExitCodeLine}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+            <StackPanel VerticalAlignment="Center" Spacing="4">
+                <TextBlock Classes="pageTitle" Text="{Binding Title}"/>
+                <Border Background="{StaticResource ChipBrush}" CornerRadius="6" Padding="8,3" HorizontalAlignment="Left">
+                    <TextBlock Text="{Binding ExitCodeLine}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                </Border>
             </StackPanel>
         </StackPanel>
 
@@ -56,19 +59,19 @@
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <StackPanel Spacing="12">
                 <Border Classes="zenSection">
-                    <StackPanel Spacing="4">
-                        <TextBlock Text="{Binding LikelyCauseLabel}" FontSize="10" FontWeight="Bold"
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="{Binding LikelyCauseLabel}" FontSize="11" FontWeight="Bold"
                                    Foreground="{StaticResource WarningBrush}" Margin="0,0,0,2"/>
+                        <TextBlock Classes="rowTitle" Text="{l10n:Tr crash_what}"/>
                         <TextBlock Text="{Binding HumanSummary}" FontSize="13" TextWrapping="Wrap"
-                                   Foreground="{StaticResource TextSecondaryBrush}" LineHeight="19"/>
+                                   Foreground="{StaticResource TextSecondaryBrush}" LineHeight="20"/>
                     </StackPanel>
                 </Border>
 
                 <!-- Broken mod requirements (Fabric dependency tree) -->
                 <StackPanel Spacing="5"
                             IsVisible="{Binding Requirements.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsNonZero}}">
-                    <TextBlock Text="{l10n:Tr crash_req_header}" FontSize="11" FontWeight="SemiBold"
-                               Foreground="{StaticResource WarningBrush}"/>
+                    <TextBlock Classes="rowTitle" Text="{l10n:Tr crash_mods_check}"/>
                     <Border Background="Transparent" CornerRadius="8" Padding="12,10">
                         <ItemsControl ItemsSource="{Binding Requirements}" FontSize="11.5">
                             <ItemsControl.ItemTemplate>
@@ -82,8 +85,7 @@
                 </StackPanel>
 
                 <StackPanel Spacing="5">
-                    <TextBlock Text="{l10n:Tr crash_evidence_header}" FontSize="11" FontWeight="SemiBold"
-                               Foreground="{StaticResource TextMutedBrush}"/>
+                    <TextBlock Classes="rowTitle" Text="{l10n:Tr crash_details}"/>
                     <ListBox Classes="crashList" ItemsSource="{Binding Evidence}" MaxHeight="190"
                              SelectionMode="Single" FontSize="11"
                              ScrollViewer.HorizontalScrollBarVisibility="Auto">

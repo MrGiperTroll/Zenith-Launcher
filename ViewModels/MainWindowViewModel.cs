@@ -1691,6 +1691,7 @@ public partial class MainWindowViewModel : ViewModelBase
             VersionFiltersChanged = () => FilterVersions(),
             LanguageChanged = lang => SelectedLanguage = lang,
             DiscordRpcChanged = enabled => DiscordRpcEnabled = enabled,
+            ScaleChanged = scale => LauncherScale = scale,
             OpenJavaInstallerRequested = () => OpenJavaInstaller(),
             GetRecommendedJavaDisplay = () =>
             {

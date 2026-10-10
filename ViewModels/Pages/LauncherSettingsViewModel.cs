@@ -23,6 +23,7 @@ public partial class LauncherSettingsViewModel : ViewModelBase
     public Action? VersionFiltersChanged { get; set; }
     public Action<string>? LanguageChanged { get; set; }
     public Action<bool>? DiscordRpcChanged { get; set; }
+    public Action<double>? ScaleChanged { get; set; }
     public Action? OpenJavaInstallerRequested { get; set; }
     public Func<string>? GetRecommendedJavaDisplay { get; set; }
     public Func<string>? GetWindowTitle { get; set; }
@@ -371,7 +372,11 @@ public partial class LauncherSettingsViewModel : ViewModelBase
 
     partial void OnLauncherScaleChanged(double value)
     {
-        if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
+        if (!_isLoadingConfig)
+        {
+            ScaleChanged?.Invoke(value);
+            SaveConfigRequested?.Invoke();
+        }
     }
 
     // --- Modals (forwarded from ThemeSettingsVm) ---

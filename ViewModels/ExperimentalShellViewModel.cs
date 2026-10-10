@@ -1,6 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Avalonia.Controls;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -118,6 +119,35 @@ public partial class ExperimentalShellViewModel : ObservableObject
             Content = new Views.EditInstanceView { DataContext = vm }
         };
         win.Show();
+    }
+
+    [RelayCommand]
+    public void CreateInstance()
+    {
+        Core.NavigateToCreateProfile();
+        var vm = Core.CreateProfileVm;
+        if (vm == null) return;
+        var win = new Window
+        {
+            Title = "New Instance",
+            Width = 560,
+            Height = 660,
+            MinWidth = 480,
+            MinHeight = 560,
+            WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner,
+            Content = new Views.CreateProfileView { DataContext = vm }
+        };
+        void Close()
+        {
+            try { win.Close(); } catch { }
+        }
+        vm.RequestClose += Close;
+        vm.ProfileCreated += _ => Close();
+        win.Closed += (_, _) =>
+        {
+            try { vm.RequestClose -= Close; } catch { }
+        };
+        try { win.Show(); } catch { Close(); }
     }
 
     [RelayCommand]

@@ -22,12 +22,11 @@
             <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="10,8"/>
-            <Setter Property="HorizontalAlignment" Value="Stretch"/>
-            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Padding" Value="12,7"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
         <Style Selector="Button.navBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
@@ -43,177 +42,143 @@
         </Style>
     </Window.Styles>
 
-    <Grid ColumnDefinitions="208,*">
-        <!-- ============ Sidebar ============ -->
-        <Border Grid.Column="0" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,1,0" Padding="14,16,14,14">
-            <Grid RowDefinitions="Auto,*,Auto">
-                <StackPanel Grid.Row="0" Spacing="10">
-                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                        <Border Width="24" Height="24" CornerRadius="6" Background="{StaticResource AccentDimBrush}" VerticalAlignment="Center">
-                            <TextBlock Text="Z" FontSize="13" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <TextBlock Text="Zenith" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                    </StackPanel>
-                    <Border Background="{StaticResource AccentDimBrush}" CornerRadius="4" Padding="6,2" HorizontalAlignment="Left">
+    <Grid RowDefinitions="Auto,*,Auto">
+        <!-- ============ Top navigation ============ -->
+        <Border Grid.Row="0" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,0,1" Padding="16,10">
+            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="16" VerticalAlignment="Center">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <Path Data="{StaticResource ZenithLogoGeometry}" Fill="{StaticResource AccentBrush}" Stretch="Uniform" Width="24" Height="24" VerticalAlignment="Center"/>
+                    <TextBlock Text="Zenith" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                    <Border Background="{StaticResource AccentDimBrush}" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
                         <TextBlock Text="{l10n:Tr Key=exp_experimental}" FontSize="10" FontWeight="Bold" Foreground="{StaticResource AccentBrush}"/>
                     </Border>
                 </StackPanel>
 
-                <StackPanel Grid.Row="1" Spacing="2" Margin="0,18,0,0">
-                    <Button Classes="navBtn" Classes.active="{Binding IsLibrary}" Command="{Binding SelectSectionCommand}" CommandParameter="Library">
-                        <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                            <PathIcon Data="M3 3h8v8H3zm10 0h8v8h-8zM3 13h8v8H3zm10 0h8v8h-8z" Width="15" Height="15"/>
-                            <TextBlock Text="{l10n:Tr Key=exp_library}" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-                    <Button Classes="navBtn" Classes.active="{Binding IsDiscover}" Command="{Binding SelectSectionCommand}" CommandParameter="Discover">
-                        <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                            <PathIcon Data="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" Width="15" Height="15"/>
-                            <TextBlock Text="{l10n:Tr Key=exp_discover}" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-                    <Button Classes="navBtn" Classes.active="{Binding IsServers}" Command="{Binding SelectSectionCommand}" CommandParameter="Servers">
-                        <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                            <PathIcon Data="M20 13H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1v-6c0-.55-.45-1-1-1zM7 19c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM20 3H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1zM7 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" Width="15" Height="15"/>
-                            <TextBlock Text="{l10n:Tr Key=exp_servers}" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-                    <Button Classes="navBtn" Classes.active="{Binding IsAccounts}" Command="{Binding SelectSectionCommand}" CommandParameter="Accounts">
-                        <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                            <PathIcon Data="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" Width="15" Height="15"/>
-                            <TextBlock Text="{l10n:Tr Key=exp_accounts}" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-                    <Button Classes="navBtn" Classes.active="{Binding IsSettings}" Command="{Binding SelectSectionCommand}" CommandParameter="Settings">
-                        <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                            <PathIcon Data="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" Width="15" Height="15"/>
-                            <TextBlock Text="{l10n:Tr Key=exp_settings}" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-                </StackPanel>
+                <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="2">
+                        <Button Classes="navBtn" Classes.active="{Binding IsLibrary}" Command="{Binding SelectSectionCommand}" CommandParameter="Library" Content="{l10n:Tr Key=exp_library}"/>
+                        <Button Classes="navBtn" Classes.active="{Binding IsDiscover}" Command="{Binding SelectSectionCommand}" CommandParameter="Discover" Content="{l10n:Tr Key=exp_discover}"/>
+                        <Button Classes="navBtn" Classes.active="{Binding IsServers}" Command="{Binding SelectSectionCommand}" CommandParameter="Servers" Content="{l10n:Tr Key=exp_servers}"/>
+                        <Button Classes="navBtn" Classes.active="{Binding IsAccounts}" Command="{Binding SelectSectionCommand}" CommandParameter="Accounts" Content="{l10n:Tr Key=exp_accounts}"/>
+                        <Button Classes="navBtn" Classes.active="{Binding IsSettings}" Command="{Binding SelectSectionCommand}" CommandParameter="Settings" Content="{l10n:Tr Key=exp_settings}"/>
+                    </StackPanel>
+                </ScrollViewer>
 
-                <StackPanel Grid.Row="2" Spacing="6">
-                    <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="10,8">
-                        <StackPanel Spacing="1">
-                            <TextBlock Text="{Binding Core.ActiveAccountName}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
-                            <TextBlock Text="{Binding Core.ActiveAccountType}" FontSize="10" Foreground="{StaticResource TextMutedBrush}"/>
-                        </StackPanel>
-                    </Border>
-                    <TextBlock Text="{Binding Core.VersionLabel, StringFormat='v{0}'}" FontSize="10" Foreground="{StaticResource TextDisabledBrush}"/>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <TextBox Classes="darkInput" Width="200" Text="{Binding LibrarySearch}" FontSize="12" VerticalAlignment="Center" IsVisible="{Binding IsLibrary}">
+                        <TextBox.InnerLeftContent>
+                            <PathIcon Data="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" Width="13" Height="13" Foreground="{StaticResource TextMutedBrush}" Margin="8,0,0,0"/>
+                        </TextBox.InnerLeftContent>
+                    </TextBox>
+                    <StackPanel Spacing="0" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Core.ActiveAccountName}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Right" MaxWidth="140" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="{Binding Core.ActiveAccountType}" FontSize="10" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Right"/>
+                    </StackPanel>
+                    <Button Classes="primaryBtn" Command="{Binding Core.LaunchOrCancelCommand}" IsEnabled="{Binding Core.CanLaunch}" Height="36" MinWidth="140" HorizontalContentAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding IsLibrary}">
+                        <TextBlock Text="{Binding Core.LaunchButtonText}" FontSize="13" FontWeight="Bold"/>
+                    </Button>
                 </StackPanel>
             </Grid>
         </Border>
 
-        <!-- ============ Main ============ -->
-        <Grid Grid.Column="1" RowDefinitions="Auto,*,Auto">
-            <!-- Topbar -->
-            <Border Grid.Row="0" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,0,1" Padding="18,12">
-                <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                    <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                        <TextBlock Text="{l10n:Tr Key=exp_library}" FontSize="17" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" IsVisible="{Binding IsLibrary}"/>
-                        <TextBlock Text="{l10n:Tr Key=exp_discover}" FontSize="17" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" IsVisible="{Binding IsDiscover}"/>
-                        <TextBlock Text="{l10n:Tr Key=exp_servers}" FontSize="17" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" IsVisible="{Binding IsServers}"/>
-                        <TextBlock Text="{l10n:Tr Key=exp_accounts}" FontSize="17" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" IsVisible="{Binding IsAccounts}"/>
-                        <TextBlock Text="{l10n:Tr Key=exp_settings}" FontSize="17" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" IsVisible="{Binding IsSettings}"/>
-                        <TextBox Classes="darkInput" Width="240" Text="{Binding LibrarySearch}" FontSize="12" VerticalAlignment="Center" IsVisible="{Binding IsLibrary}">
-                            <TextBox.InnerLeftContent>
-                                <PathIcon Data="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" Width="13" Height="13" Foreground="{StaticResource TextMutedBrush}" Margin="8,0,0,0"/>
-                            </TextBox.InnerLeftContent>
-                        </TextBox>
-                    </StackPanel>
-                    <Button Grid.Column="1" Classes="primaryBtn" Command="{Binding Core.LaunchOrCancelCommand}" IsEnabled="{Binding Core.CanLaunch}" Height="36" MinWidth="150" HorizontalContentAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding IsLibrary}">
-                        <TextBlock Text="{Binding Core.LaunchButtonText}" FontSize="13" FontWeight="Bold"/>
-                    </Button>
-                </Grid>
-            </Border>
-
-            <!-- Content -->
-            <Panel Grid.Row="1" Margin="18,14,18,14">
-                <!-- Library -->
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" IsVisible="{Binding IsLibrary}">
-                    <StackPanel Spacing="0">
-                        <StackPanel Spacing="4" HorizontalAlignment="Center" Margin="0,40" IsVisible="{Binding !Core.HasInstances}">
-                            <TextBlock Text="{l10n:Tr Key=exp_empty_title}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
-                            <TextBlock Text="{l10n:Tr Key=exp_empty_hint}" FontSize="12" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="340"/>
-                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" Margin="0,8,0,0">
-                                <Button Classes="primaryBtn" Content="{l10n:Tr Key=mw_create_btn}" Command="{Binding Core.OpenNewInstanceDialogCommand}" Padding="14,7" FontSize="12"/>
-                                <Button Classes="subBtn" Content="{l10n:Tr Key=profile_import}" Command="{Binding Core.ImportInstancesCommand}" Padding="14,7" FontSize="12"/>
-                            </StackPanel>
+        <!-- ============ Content ============ -->
+        <Panel Grid.Row="1" Margin="18,14,18,14">
+            <!-- Library -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" IsVisible="{Binding IsLibrary}">
+                <StackPanel Spacing="0">
+                    <Grid ColumnDefinitions="*,Auto" Margin="2,2,2,12" VerticalAlignment="Center">
+                        <StackPanel Spacing="2" VerticalAlignment="Center">
+                            <TextBlock Text="{l10n:Tr Key=exp_library}" FontSize="17" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
                         </StackPanel>
-                        <WrapPanel Orientation="Horizontal" IsVisible="{Binding Core.HasInstances}">
-                            <ItemsControl ItemsSource="{Binding FilteredInstances}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <WrapPanel Orientation="Horizontal"/>
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate x:DataType="models:InstanceModel">
-                                        <Border Width="232" Padding="12" Margin="0,0,12,12" CornerRadius="10" Cursor="Hand" PointerPressed="OnCardPressed"
-                                                Background="{StaticResource CardBrush}" BorderThickness="1.5"
-                                                BorderBrush="{Binding IsSelected, Converter={StaticResource BoolToBorderBrushConverter}}">
-                                            <StackPanel Spacing="8">
-                                                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                                                    <Border Width="44" Height="44" CornerRadius="8" Background="{StaticResource IconChipBrush}" VerticalAlignment="Center">
-                                                        <PathIcon Data="M3 3h8v8H3zm10 0h8v8h-8zM3 13h8v8H3zm10 0h8v8h-8z" Width="20" Height="20" Foreground="{StaticResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                    </Border>
-                                                    <StackPanel VerticalAlignment="Center" Spacing="2" MaxWidth="150">
-                                                        <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
-                                                        <TextBlock Text="{Binding DisplayVersion}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" TextTrimming="CharacterEllipsis"/>
-                                                    </StackPanel>
-                                                </StackPanel>
-                                                <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                                        <Border Width="7" Height="7" CornerRadius="4" Background="{StaticResource AccentBrush}" VerticalAlignment="Center" IsVisible="{Binding IsRunning}"/>
-                                                        <TextBlock Text="{Binding PlaytimeDisplay}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
-                                                    </StackPanel>
-                                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                                        <Button Classes="subBtn" Content="{l10n:Tr Key=exp_manage}" Padding="10,4" FontSize="11"
-                                                                Command="{Binding $parent[Window].((vm:ExperimentalShellViewModel)DataContext).ManageInstanceCommand}" CommandParameter="{Binding}"/>
-                                                        <Button Classes="primaryBtn" Content="{l10n:Tr Key=exp_play}" Padding="12,4" FontSize="11" FontWeight="Bold"
-                                                                Command="{Binding $parent[Window].((vm:ExperimentalShellViewModel)DataContext).PlayInstanceCommand}" CommandParameter="{Binding}"/>
-                                                    </StackPanel>
-                                                </Grid>
-                                            </StackPanel>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </WrapPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <Button Classes="subBtn" Content="{l10n:Tr Key=profile_import}" Command="{Binding Core.ImportInstancesCommand}" Padding="14,7" FontSize="12"/>
+                            <Button Classes="primaryBtn" Content="{l10n:Tr Key=mw_create_btn}" Command="{Binding CreateInstanceCommand}" Padding="14,7" FontSize="12"/>
+                        </StackPanel>
+                    </Grid>
+                    <StackPanel Spacing="4" HorizontalAlignment="Center" Margin="0,40" IsVisible="{Binding !Core.HasInstances}">
+                        <TextBlock Text="{l10n:Tr Key=exp_empty_title}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{l10n:Tr Key=exp_empty_hint}" FontSize="12" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="340"/>
+                        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" Margin="0,8,0,0">
+                            <Button Classes="primaryBtn" Content="{l10n:Tr Key=mw_create_btn}" Command="{Binding CreateInstanceCommand}" Padding="14,7" FontSize="12"/>
+                            <Button Classes="subBtn" Content="{l10n:Tr Key=profile_import}" Command="{Binding Core.ImportInstancesCommand}" Padding="14,7" FontSize="12"/>
+                        </StackPanel>
                     </StackPanel>
-                </ScrollViewer>
+                    <WrapPanel Orientation="Horizontal" IsVisible="{Binding Core.HasInstances}">
+                        <ItemsControl ItemsSource="{Binding FilteredInstances}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="models:InstanceModel">
+                                    <Border Width="232" Padding="12" Margin="0,0,12,12" CornerRadius="10" Cursor="Hand" PointerPressed="OnCardPressed"
+                                            Background="{StaticResource CardBrush}" BorderThickness="1.5"
+                                            BorderBrush="{Binding IsSelected, Converter={StaticResource BoolToBorderBrushConverter}}">
+                                        <StackPanel Spacing="8">
+                                            <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                                <Border Width="44" Height="44" CornerRadius="8" Background="{StaticResource IconChipBrush}" VerticalAlignment="Center" ClipToBounds="True">
+                                                    <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                        <Image Source="{Binding IconPath, Converter={x:Static converters:IconPathToBitmapConverter.Instance}}" Stretch="UniformToFill" Width="44" Height="44" IsVisible="{Binding HasCustomIcon}"/>
+                                                        <PathIcon Data="M3 3h8v8H3zm10 0h8v8h-8zM3 13h8v8H3zm10 0h8v8h-8z" Width="20" Height="20" Foreground="{StaticResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding !HasCustomIcon}"/>
+                                                    </Panel>
+                                                </Border>
+                                                <StackPanel VerticalAlignment="Center" Spacing="2" MaxWidth="150">
+                                                    <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                                    <TextBlock Text="{Binding DisplayVersion}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" TextTrimming="CharacterEllipsis"/>
+                                                </StackPanel>
+                                            </StackPanel>
+                                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                                    <Border Width="7" Height="7" CornerRadius="4" Background="{StaticResource AccentBrush}" VerticalAlignment="Center" IsVisible="{Binding IsRunning}"/>
+                                                    <TextBlock Text="{Binding PlaytimeDisplay}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                                    <Button Classes="subBtn" Content="{l10n:Tr Key=exp_manage}" Padding="10,4" FontSize="11"
+                                                            Command="{Binding $parent[Window].((vm:ExperimentalShellViewModel)DataContext).ManageInstanceCommand}" CommandParameter="{Binding}"/>
+                                                    <Button Classes="primaryBtn" Content="{l10n:Tr Key=exp_play}" Padding="12,4" FontSize="11" FontWeight="Bold"
+                                                            Command="{Binding $parent[Window].((vm:ExperimentalShellViewModel)DataContext).PlayInstanceCommand}" CommandParameter="{Binding}"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </WrapPanel>
+                </StackPanel>
+            </ScrollViewer>
 
-                <!-- Discover -->
-                <Panel IsVisible="{Binding IsDiscover}">
-                    <exp:ExperimentalDiscoverView DataContext="{Binding Core.ModpacksBrowser}"/>
-                </Panel>
-
-                <!-- Servers -->
-                <Panel IsVisible="{Binding IsServers}">
-                    <views:CreateServerView DataContext="{Binding Core.CreateServerVm}"/>
-                </Panel>
-
-                <!-- Accounts -->
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" IsVisible="{Binding IsAccounts}">
-                    <views:AccountsView DataContext="{Binding Core.AccountsVm}"/>
-                </ScrollViewer>
-
-                <!-- Settings -->
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" IsVisible="{Binding IsSettings}">
-                    <views:LauncherSettingsView DataContext="{Binding Core.LauncherSettingsVm}"/>
-                </ScrollViewer>
+            <!-- Discover -->
+            <Panel IsVisible="{Binding IsDiscover}">
+                <exp:ExperimentalDiscoverView DataContext="{Binding Core.ModpacksBrowser}"/>
             </Panel>
 
-            <!-- Statusbar -->
-            <Border Grid.Row="2" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,1,0,0" Padding="18,8">
-                <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                    <StackPanel Spacing="2" VerticalAlignment="Center">
-                        <TextBlock Text="{Binding Core.StatusText}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" TextTrimming="CharacterEllipsis"/>
-                        <ProgressBar IsVisible="{Binding Core.IsLaunching}" Value="{Binding Core.LaunchProgress}" Height="4" Foreground="{StaticResource AccentBrush}"/>
-                    </StackPanel>
-                    <TextBlock Grid.Column="1" Text="{Binding Core.VersionLabel, StringFormat='v{0}'}" FontSize="10" Foreground="{StaticResource TextDisabledBrush}" VerticalAlignment="Center" Margin="12,0,0,0"/>
-                </Grid>
-            </Border>
-        </Grid>
+            <!-- Servers -->
+            <Panel IsVisible="{Binding IsServers}">
+                <views:CreateServerView DataContext="{Binding Core.CreateServerVm}"/>
+            </Panel>
+
+            <!-- Accounts -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" IsVisible="{Binding IsAccounts}">
+                <views:AccountsView DataContext="{Binding Core.AccountsVm}"/>
+            </ScrollViewer>
+
+            <!-- Settings -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" IsVisible="{Binding IsSettings}">
+                <views:LauncherSettingsView DataContext="{Binding Core.LauncherSettingsVm}"/>
+            </ScrollViewer>
+        </Panel>
+
+        <!-- ============ Statusbar ============ -->
+        <Border Grid.Row="2" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,1,0,0" Padding="18,8">
+            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                <StackPanel Spacing="2" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Core.StatusText}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" TextTrimming="CharacterEllipsis"/>
+                    <ProgressBar IsVisible="{Binding Core.IsLaunching}" Value="{Binding Core.LaunchProgress}" Height="4" Foreground="{StaticResource AccentBrush}"/>
+                </StackPanel>
+                <TextBlock Grid.Column="1" Text="{Binding Core.VersionLabel, StringFormat='v{0}'}" FontSize="10" Foreground="{StaticResource TextDisabledBrush}" VerticalAlignment="Center" Margin="12,0,0,0"/>
+            </Grid>
+        </Border>
     </Grid>
 </Window>

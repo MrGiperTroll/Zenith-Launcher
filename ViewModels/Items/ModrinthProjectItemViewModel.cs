@@ -152,7 +152,9 @@ public partial class ModrinthProjectItemViewModel : ViewModelBase
                 var bmp = Bitmap.DecodeToWidth(ms, 96, BitmapInterpolationMode.MediumQuality);
                 Dispatcher.UIThread.Post(() =>
                 {
+                    var old = Icon;
                     Icon = bmp;
+                    try { old?.Dispose(); } catch { }
                     OnPropertyChanged(nameof(HasIcon));
                 });
             }

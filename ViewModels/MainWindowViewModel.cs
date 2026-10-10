@@ -217,6 +217,7 @@ public partial class MainWindowViewModel : ViewModelBase
     partial void OnSelectedInstanceChanged(InstanceModel? value)
     {
         OnPropertyChanged(nameof(CanLaunch));
+        OnPropertyChanged(nameof(CanLaunchOrCancel));
         IsLaunching = value != null && _launchingInstanceIds.Contains(value.Id);
         UpdateJavaDisplay();
         _preRenameName = value?.Name;
@@ -937,7 +938,13 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isLaunching;
 
-    partial void OnIsLaunchingChanged(bool value) => OnPropertyChanged(nameof(LaunchButtonText));
+    partial void OnIsLaunchingChanged(bool value)
+    {
+        OnPropertyChanged(nameof(LaunchButtonText));
+        OnPropertyChanged(nameof(CanLaunchOrCancel));
+    }
+
+    public bool CanLaunchOrCancel => CanLaunch || IsLaunching;
 
     public string LaunchButtonText => IsLaunching ? L10n.T("cancel") : L10n.T("btn_launch_game");
 
@@ -3069,7 +3076,6 @@ public partial class MainWindowViewModel : ViewModelBase
     private async Task LaunchGameAsync()
     {
         var instance = SelectedInstance ?? _instanceService.GetSelectedInstance();
-        var account = _accountService.GetActiveAccount() ?? await _accountService.AddOfflineAccountAsync(ActiveAccountName);
 
         if (instance == null) return;
         if (instance.IsRunning || _launchingInstanceIds.Contains(instance.Id)) return;
@@ -3078,15 +3084,19 @@ public partial class MainWindowViewModel : ViewModelBase
             instance.MinRamMb = MinRamMb;
         instance.MaxMemoryMb = instance.RamMb ?? RamMb;
 
+        // Mark launching BEFORE any awaits so Cancel is clickable from second one.
         _launchingInstanceIds.Add(instance.Id);
         instance.IsLaunching = true;
         if (ReferenceEquals(SelectedInstance, instance))
             IsLaunching = true;
+        OnPropertyChanged(nameof(CanLaunch));
+        OnPropertyChanged(nameof(CanLaunchOrCancel));
         LaunchProgress = 0;
         Services.DiscordPresenceService.SetLaunchingGame(instance.Name);
 
         try
         {
+            var account = _accountService.GetActiveAccount() ?? await _accountService.AddOfflineAccountAsync(ActiveAccountName);
             if (SelectedJavaMode == "Custom" && (string.IsNullOrWhiteSpace(CustomJavaPath) || !File.Exists(CustomJavaPath)))
             {
                 StatusText = L10n.T("mw_status_java_invalid");

@@ -1066,6 +1066,10 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
         ["imp_single_d"] = "Одна папка инстанса (instance.cfg + mmc-pack.json).",
         ["imp_choose"] = "Выбрать папку",
         ["imp_not_recognized"] = "Эта папка не похожа на инстанс.",
+        ["update_btn"] = "Обновить",
+        ["update_checking"] = "Проверка обновлений...",
+        ["update_uptodate"] = "У тебя последняя версия.",
+        ["update_browser"] = "Открываю страницу релиза в браузере...",
         ["mods_audit_check"] = "Проверить",
         ["mods_audit_ok"] = "Конфликтов не найдено.",
         ["mods_audit_found"] = "Конфликты ({0}):",
@@ -1351,6 +1355,10 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
         ["update_downloading"] = "Загрузка обновления...",
         ["update_installing"] = "Установка обновления...",
         ["update_failed"] = "Ошибка загрузки. Попробуйте снова или скачайте с GitHub.",
+        ["update_btn"] = "Оновити",
+        ["update_checking"] = "Перевірка оновлень...",
+        ["update_uptodate"] = "У тебе остання версія.",
+        ["update_browser"] = "Відкриваю сторінку релізу в браузері...",
     };
 
     // ------------------------------------------------------------------ UK
@@ -1917,6 +1925,10 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
         ["update_downloading"] = "Завантаження оновлення...",
         ["update_installing"] = "Встановлення оновлення...",
         ["update_failed"] = "Помилка завантаження. Спробуйте ще або завантажте з GitHub.",
+        ["update_btn"] = "Güncelle",
+        ["update_checking"] = "Güncellemeler denetleniyor...",
+        ["update_uptodate"] = "Güncelsin.",
+        ["update_browser"] = "Sürüm sayfası tarayıcıda açılıyor...",
     };
 
     // ------------------------------------------------------------------ TR
@@ -2460,6 +2472,10 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
         ["update_downloading"] = "Güncelleme indiriliyor...",
         ["update_installing"] = "Güncelleme kuruluyor...",
         ["update_failed"] = "İndirme başarısız. Tekrar deneyin veya GitHub'dan indirin.",
+        ["update_btn"] = "Aktualisieren",
+        ["update_checking"] = "Suche nach Updates...",
+        ["update_uptodate"] = "Du bist auf dem neuesten Stand.",
+        ["update_browser"] = "Die Release-Seite wird im Browser geöffnet...",
     };
 
     // ------------------------------------------------------------------ DE
@@ -3546,6 +3562,10 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
         ["update_downloading"] = "Téléchargement de la mise à jour...",
         ["update_installing"] = "Installation de la mise à jour...",
         ["update_failed"] = "Échec du téléchargement. Réessayez ou téléchargez depuis GitHub.",
+        ["update_btn"] = "Mettre à jour",
+        ["update_checking"] = "Recherche de mises à jour...",
+        ["update_uptodate"] = "Tu es à jour.",
+        ["update_browser"] = "Ouverture de la page de version dans le navigateur...",
     };
 }
 

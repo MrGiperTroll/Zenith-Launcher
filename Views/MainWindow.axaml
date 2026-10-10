@@ -526,13 +526,12 @@
                     </StackPanel>
 
                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <Button Classes="updateBtn" Command="{Binding CheckForUpdatesNowCommand}" ToolTip.Tip="{l10n:Tr Key=update_btn}">
+                        <Button Classes="updateBtn" Command="{Binding CheckForUpdatesNowCommand}" ToolTip.Tip="{l10n:Tr Key=update_btn}" IsVisible="{Binding IsUpdateAvailable}">
                             <Panel>
                                 <PathIcon Classes="mark" Data="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z" Width="15" Height="15" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 <StackPanel Classes="row" Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                    <PathIcon Data="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z" Width="13" Height="13" VerticalAlignment="Center"/>
                                     <TextBlock Text="{l10n:Tr Key=update_btn}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                                    <Ellipse Width="7" Height="7" Fill="{DynamicResource AccentBrush}" VerticalAlignment="Center" IsVisible="{Binding IsUpdateAvailable}"/>
+                                    <PathIcon Data="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z" Width="13" Height="13" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Panel>
                         </Button>

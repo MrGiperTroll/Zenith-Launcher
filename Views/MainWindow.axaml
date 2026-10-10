@@ -650,7 +650,7 @@
 
                                 <!-- Кнопки действий -->
                                 <StackPanel Spacing="8">
-                                    <Button Classes="primaryBtn" Command="{Binding LaunchOrCancelCommand}" IsEnabled="{Binding CanLaunch}"
+                                    <Button Classes="primaryBtn" Command="{Binding LaunchOrCancelCommand}" IsEnabled="{Binding CanLaunchOrCancel}"
                                             HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Height="42">
                                         <TextBlock Text="{Binding LaunchButtonText}" FontSize="14" FontWeight="Bold"/>
                                     </Button>
@@ -896,7 +896,7 @@
                         </StackPanel>
 
 <Border Grid.Column="1" Padding="16,0,16,0" VerticalAlignment="Center">
-                            <Button Classes="primaryBtn" Command="{Binding LaunchOrCancelCommand}" IsEnabled="{Binding CanLaunch}" Height="42" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" VerticalAlignment="Center">
+                            <Button Classes="primaryBtn" Command="{Binding LaunchOrCancelCommand}" IsEnabled="{Binding CanLaunchOrCancel}" Height="42" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" VerticalAlignment="Center">
                                 <TextBlock Text="{Binding LaunchButtonText}" FontSize="14" FontWeight="Bold"/>
                             </Button>
                         </Border>

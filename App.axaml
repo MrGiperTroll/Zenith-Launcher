@@ -481,6 +481,7 @@
         <Style Selector="TextBox">
             <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}"/>
             <Setter Property="SelectionForegroundBrush" Value="{DynamicResource OnAccentBrush}"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled"/>
             <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
         </Style>
@@ -500,6 +501,7 @@
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}"/>
             <Setter Property="SelectionForegroundBrush" Value="{DynamicResource OnAccentBrush}"/>
             <Setter Property="CaretBrush" Value="{DynamicResource AccentBrush}"/>

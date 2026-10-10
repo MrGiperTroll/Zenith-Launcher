@@ -27,38 +27,13 @@
             <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
         </Style>
-        <Style Selector="Button.verBtn">
-            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="6"/>
-            <Setter Property="Padding" Value="8,5"/>
-            <Setter Property="MinHeight" Value="34"/>
-            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
-        <Style Selector="Button.verBtn:pointerover">
-            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
-        </Style>
-        <Style Selector="Button.verBtn:pressed">
-            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
-        </Style>
-        <Style Selector="Button.verBtn:disabled">
-            <Setter Property="Opacity" Value="0.45"/>
-        </Style>
     </Window.Styles>
 
     <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" Margin="12,10,12,8">
         <!-- Header: title + subtitle only -->
         <StackPanel Grid.Row="0" Spacing="2" Margin="2,0,2,10">
-            <TextBlock Text="{l10n:Tr Key=java_installer_title}" FontSize="14" FontWeight="Bold"
-                       Foreground="{StaticResource TextPrimaryBrush}"/>
-            <TextBlock Text="{l10n:Tr Key=java_installer_hint}" FontSize="10"
-                       Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"/>
+            <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=java_installer_title}"/>
+            <TextBlock Classes="sectionHint" Text="{l10n:Tr Key=java_installer_hint}"/>
         </StackPanel>
 
         <!-- Version tiles -->

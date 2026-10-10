@@ -139,7 +139,7 @@
                         <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                             <StackPanel Spacing="2" VerticalAlignment="Center">
                                 <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=theme_preview}"/>
-                                <TextBlock Classes="sectionHint" Text="Interactive sample of theme accent colors and active background particles"/>
+                                <TextBlock Classes="sectionHint" Text="{l10n:Tr Key=theme_preview_hint}"/>
                             </StackPanel>
                         </Grid>
 
@@ -147,7 +147,7 @@
                         <Border Background="{Binding BgHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{Binding BorderDarkHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderThickness="1" CornerRadius="8" Height="90" ClipToBounds="True">
                             <Panel>
                                 <!-- Simulated particle animation layer -->
-                                <controls:ParticleSystemControl ParticleType="{Binding SelectedParticle}" IsHitTestVisible="False"/>
+                                <controls:ParticleSystemControl ParticleType="{Binding SelectedParticle}" ParticleCount="{Binding ParticleCount}" ParticleScale="{Binding ParticleScale}" ParticleSpeed="{Binding ParticleSpeed}" IsHitTestVisible="False"/>
 
                                 <!-- Sample UI elements displaying active theme styles -->
                                 <Grid ColumnDefinitions="Auto,*,Auto" Margin="14" VerticalAlignment="Center">
@@ -187,6 +187,25 @@
                             </Grid>
 
                             <WrapPanel Orientation="Horizontal">
+                                <!-- Custom Single Color Harmonizer Button -->
+                                <Button Classes="subBtn"
+                                        Width="120"
+                                        Height="36"
+                                        CornerRadius="8"
+                                        Padding="8,0"
+                                        Margin="0,0,8,8"
+                                        ToolTip.Tip="Pick custom color and auto-harmonize full palette">
+                                    <Button.Flyout>
+                                        <Flyout Placement="BottomEdgeAlignedLeft">
+                                            <ColorView Color="{Binding CustomThemeHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
+                                        </Flyout>
+                                    </Button.Flyout>
+                                    <Grid ColumnDefinitions="14,*,Auto" VerticalAlignment="Center">
+                                        <Border Grid.Column="0" Width="14" Height="14" CornerRadius="7" Background="{Binding CustomThemeHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="1" Text="{l10n:Tr Key=theme_custom_color}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" Margin="8,0,4,0" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                        <PathIcon Grid.Column="2" Data="M7 10l5 5 5-5z" Width="10" Height="10" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Button>
                                 <ItemsControl ItemsSource="{x:Static theming:ZenithTheme.Presets}">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
@@ -218,44 +237,44 @@
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
 
-                                <!-- Custom Single Color Harmonizer Button -->
-                                <Button Classes="subBtn"
-                                        Width="120"
-                                        Height="36"
-                                        CornerRadius="8"
-                                        Padding="8,0"
-                                        Margin="0,0,8,8"
-                                        ToolTip.Tip="Pick custom color and auto-harmonize full palette">
-                                    <Button.Flyout>
-                                        <Flyout Placement="BottomEdgeAlignedLeft">
-                                            <ColorView Color="{Binding CustomThemeHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
-                                        </Flyout>
-                                    </Button.Flyout>
-                                    <Grid ColumnDefinitions="14,*,Auto" VerticalAlignment="Center">
-                                        <Border Grid.Column="0" Width="14" Height="14" CornerRadius="7" Background="{Binding CustomThemeHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        <TextBlock Grid.Column="1" Text="{l10n:Tr Key=theme_custom_color}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" Margin="8,0,4,0" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
-                                        <PathIcon Grid.Column="2" Data="M7 10l5 5 5-5z" Width="10" Height="10" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                                    </Grid>
-                                </Button>
                             </WrapPanel>
                         </StackPanel>
                     </Border>
 
                     <!-- Particles for Simple tab -->
                     <Border Classes="zenSection">
-                        <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                            <StackPanel Grid.Column="0" Spacing="4" VerticalAlignment="Center">
-                                <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=theme_particles}"/>
-                                <TextBlock Classes="sectionHint" Text="{l10n:Tr Key=theme_particles_hint}"/>
+                        <StackPanel Spacing="10">
+                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                <StackPanel Grid.Column="0" Spacing="4" VerticalAlignment="Center">
+                                    <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=theme_particles}"/>
+                                    <TextBlock Classes="sectionHint" Text="{l10n:Tr Key=theme_particles_hint}"/>
+                                </StackPanel>
+                                <ComboBox Grid.Column="1" Classes="zenCombo" ItemsSource="{Binding ParticleOptions}" SelectedItem="{Binding SelectedParticle}" Width="190" VerticalAlignment="Center">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Converter={x:Static converters:ParticleDisplayConverter.Instance}}"/>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </Grid>
+                            <StackPanel Spacing="8" IsVisible="{Binding IsCustomParticle}">
+                                <Grid ColumnDefinitions="120,*,44" VerticalAlignment="Center">
+                                    <TextBlock Classes="rowHint" Text="{l10n:Tr Key=theme_custom_count}" VerticalAlignment="Center"/>
+                                    <Slider Grid.Column="1" Minimum="10" Maximum="150" Value="{Binding ParticleCount}" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding ParticleCount}" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" VerticalAlignment="Center" TextAlignment="Right"/>
+                                </Grid>
+                                <Grid ColumnDefinitions="120,*,44" VerticalAlignment="Center">
+                                    <TextBlock Classes="rowHint" Text="{l10n:Tr Key=theme_custom_size}" VerticalAlignment="Center"/>
+                                    <Slider Grid.Column="1" Minimum="0.3" Maximum="2.5" TickFrequency="0.1" IsSnapToTickEnabled="True" Value="{Binding ParticleScale}" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding ParticleScale, StringFormat='{}{0:0.0}x'}" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" VerticalAlignment="Center" TextAlignment="Right"/>
+                                </Grid>
+                                <Grid ColumnDefinitions="120,*,44" VerticalAlignment="Center">
+                                    <TextBlock Classes="rowHint" Text="{l10n:Tr Key=theme_custom_speed}" VerticalAlignment="Center"/>
+                                    <Slider Grid.Column="1" Minimum="0.2" Maximum="3.0" TickFrequency="0.1" IsSnapToTickEnabled="True" Value="{Binding ParticleSpeed}" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding ParticleSpeed, StringFormat='{}{0:0.0}x'}" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" VerticalAlignment="Center" TextAlignment="Right"/>
+                                </Grid>
                             </StackPanel>
-                            <ComboBox Grid.Column="1" Classes="zenCombo" ItemsSource="{Binding ParticleOptions}" SelectedItem="{Binding SelectedParticle}" Width="190" VerticalAlignment="Center">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding Converter={x:Static converters:ParticleDisplayConverter.Instance}}"/>
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
-                        </Grid>
+                        </StackPanel>
                     </Border>
                 </StackPanel>
 
@@ -263,19 +282,38 @@
                 <StackPanel Spacing="16" IsVisible="{Binding IsThemeSubTabAdvanced}">
                     <!-- Particles for Advanced tab -->
                     <Border Classes="zenSection">
-                        <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                            <StackPanel Grid.Column="0" Spacing="4" VerticalAlignment="Center">
-                                <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=theme_particles}"/>
-                                <TextBlock Classes="sectionHint" Text="{l10n:Tr Key=theme_particles_hint}"/>
+                        <StackPanel Spacing="10">
+                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                <StackPanel Grid.Column="0" Spacing="4" VerticalAlignment="Center">
+                                    <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=theme_particles}"/>
+                                    <TextBlock Classes="sectionHint" Text="{l10n:Tr Key=theme_particles_hint}"/>
+                                </StackPanel>
+                                <ComboBox Grid.Column="1" Classes="zenCombo" ItemsSource="{Binding ParticleOptions}" SelectedItem="{Binding SelectedParticle}" Width="190" VerticalAlignment="Center">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Converter={x:Static converters:ParticleDisplayConverter.Instance}}"/>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </Grid>
+                            <StackPanel Spacing="8" IsVisible="{Binding IsCustomParticle}">
+                                <Grid ColumnDefinitions="120,*,44" VerticalAlignment="Center">
+                                    <TextBlock Classes="rowHint" Text="{l10n:Tr Key=theme_custom_count}" VerticalAlignment="Center"/>
+                                    <Slider Grid.Column="1" Minimum="10" Maximum="150" Value="{Binding ParticleCount}" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding ParticleCount}" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" VerticalAlignment="Center" TextAlignment="Right"/>
+                                </Grid>
+                                <Grid ColumnDefinitions="120,*,44" VerticalAlignment="Center">
+                                    <TextBlock Classes="rowHint" Text="{l10n:Tr Key=theme_custom_size}" VerticalAlignment="Center"/>
+                                    <Slider Grid.Column="1" Minimum="0.3" Maximum="2.5" TickFrequency="0.1" IsSnapToTickEnabled="True" Value="{Binding ParticleScale}" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding ParticleScale, StringFormat='{}{0:0.0}x'}" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" VerticalAlignment="Center" TextAlignment="Right"/>
+                                </Grid>
+                                <Grid ColumnDefinitions="120,*,44" VerticalAlignment="Center">
+                                    <TextBlock Classes="rowHint" Text="{l10n:Tr Key=theme_custom_speed}" VerticalAlignment="Center"/>
+                                    <Slider Grid.Column="1" Minimum="0.2" Maximum="3.0" TickFrequency="0.1" IsSnapToTickEnabled="True" Value="{Binding ParticleSpeed}" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding ParticleSpeed, StringFormat='{}{0:0.0}x'}" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" VerticalAlignment="Center" TextAlignment="Right"/>
+                                </Grid>
                             </StackPanel>
-                            <ComboBox Grid.Column="1" Classes="zenCombo" ItemsSource="{Binding ParticleOptions}" SelectedItem="{Binding SelectedParticle}" Width="190" VerticalAlignment="Center">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding Converter={x:Static converters:ParticleDisplayConverter.Instance}}"/>
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
-                        </Grid>
+                        </StackPanel>
                     </Border>
 
                     <!-- Hex Palette Editor -->

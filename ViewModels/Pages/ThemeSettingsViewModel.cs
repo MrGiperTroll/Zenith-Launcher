@@ -78,7 +78,7 @@ public partial class ThemeSettingsViewModel : ViewModelBase
     [ObservableProperty]
     private string _selectedParticle = "None";
 
-    public string[] ParticleOptions { get; } = { "None", "Snowflakes", "Leaves", "Sakura" };
+    public string[] ParticleOptions { get; } = { "None", "Snowflakes", "Leaves", "Sakura", "Custom" };
 
     // Saved Baselines
     private string _savedSimpleAccentHex = ZenithTheme.DefaultAccent;
@@ -130,8 +130,30 @@ public partial class ThemeSettingsViewModel : ViewModelBase
 
     partial void OnSelectedParticleChanged(string value)
     {
+        OnPropertyChanged(nameof(IsCustomParticle));
         if (!_isLoadingConfig)
             SaveConfigRequested?.Invoke();
+    }
+
+    public bool IsCustomParticle => SelectedParticle == "Custom";
+
+    [ObservableProperty] private int _particleCount = 50;
+    [ObservableProperty] private double _particleScale = 1.0;
+    [ObservableProperty] private double _particleSpeed = 1.0;
+
+    partial void OnParticleCountChanged(int value)
+    {
+        if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
+    }
+
+    partial void OnParticleScaleChanged(double value)
+    {
+        if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
+    }
+
+    partial void OnParticleSpeedChanged(double value)
+    {
+        if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
     }
 
     [RelayCommand]
@@ -480,6 +502,9 @@ public partial class ThemeSettingsViewModel : ViewModelBase
 
             if (!string.IsNullOrEmpty(cfg.SelectedParticle))
                 SelectedParticle = cfg.SelectedParticle;
+            if (cfg.ParticleCount >= 10 && cfg.ParticleCount <= 150) ParticleCount = cfg.ParticleCount;
+            if (cfg.ParticleScale >= 0.3 && cfg.ParticleScale <= 2.5) ParticleScale = cfg.ParticleScale;
+            if (cfg.ParticleSpeed >= 0.2 && cfg.ParticleSpeed <= 3.0) ParticleSpeed = cfg.ParticleSpeed;
 
             if (IsThemeSubTabSimple)
             {
@@ -514,5 +539,8 @@ public partial class ThemeSettingsViewModel : ViewModelBase
         cfg.BorderDarkColor = BorderDarkHex;
         cfg.ThemeSubTab = ThemeSubTab;
         cfg.SelectedParticle = SelectedParticle;
+        cfg.ParticleCount = ParticleCount;
+        cfg.ParticleScale = ParticleScale;
+        cfg.ParticleSpeed = ParticleSpeed;
     }
 }

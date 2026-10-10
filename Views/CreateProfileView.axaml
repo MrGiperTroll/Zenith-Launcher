@@ -92,13 +92,13 @@
         </Style>
     </UserControl.Styles>
 
-    <Border Background="{StaticResource CardAltBrush}" CornerRadius="10" ClipToBounds="True">
+    <Border Background="{StaticResource CardAltBrush}" CornerRadius="12" ClipToBounds="True">
         <Grid ColumnDefinitions="200,*">
             <!-- Left Vertical Stepper -->
             <Border Grid.Column="0" Background="{StaticResource SurfaceBrush}" Padding="20,24" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,1,0">
                 <StackPanel Spacing="0">
-                    <TextBlock Text="{l10n:Tr Key=cp_title}" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,4"/>
-                    <TextBlock Text="{Binding StepTitle}" FontSize="11" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,20"/>
+                    <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=cp_title}" Margin="0,0,0,4"/>
+                    <TextBlock Classes="caption" Text="{Binding StepTitle}" Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,20"/>
                     <!-- Step 1 (Clickable squircle) -->
                     <Button Classes="stepLinkBtn" Command="{Binding GoToStepCommand}" CommandParameter="1"
                             HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
@@ -106,7 +106,7 @@
                             <Border Width="28" Height="28" CornerRadius="7" VerticalAlignment="Top" Background="{Binding IsStep1, Converter={x:Static converters:StepToBrushConverter.Instance}}" BorderBrush="{Binding IsStep1, Converter={x:Static converters:StepToBrushConverter.Instance}}" BorderThickness="1">
                                 <TextBlock Text="1" FontSize="12" FontWeight="Bold" Foreground="{Binding IsStep1, Converter={x:Static converters:StepToForegroundConverter.Instance}}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
-                            <TextBlock Grid.Column="1" Text="{l10n:Tr Key=cp_step_info}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsStep1, Converter={x:Static converters:StepToTextBrushConverter.Instance}}"/>
+                            <TextBlock Grid.Column="1" Classes="rowTitle" Text="{l10n:Tr Key=cp_step_info}" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsStep1, Converter={x:Static converters:StepToTextBrushConverter.Instance}}"/>
                         </Grid>
                     </Button>
                     <Border Height="18" Width="1" Background="{StaticResource BorderStrongBrush}" Margin="14,0,0,4" HorizontalAlignment="Left"/>
@@ -117,7 +117,7 @@
                             <Border Width="28" Height="28" CornerRadius="7" VerticalAlignment="Top" Background="{Binding IsStep2, Converter={x:Static converters:StepToBrushConverter.Instance}}" BorderBrush="{Binding IsStep2, Converter={x:Static converters:StepToBrushConverter.Instance}}" BorderThickness="1">
                                 <TextBlock Text="2" FontSize="12" FontWeight="Bold" Foreground="{Binding IsStep2, Converter={x:Static converters:StepToForegroundConverter.Instance}}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
-                            <TextBlock Grid.Column="1" Text="{l10n:Tr Key=cp_step_version}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsStep2, Converter={x:Static converters:StepToTextBrushConverter.Instance}}"/>
+                            <TextBlock Grid.Column="1" Classes="rowTitle" Text="{l10n:Tr Key=cp_step_version}" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsStep2, Converter={x:Static converters:StepToTextBrushConverter.Instance}}"/>
                         </Grid>
                     </Button>
                 </StackPanel>
@@ -131,7 +131,7 @@
                         <Grid IsVisible="{Binding IsStep1}" ColumnDefinitions="180,*" ColumnSpacing="28" Margin="4,2">
                             <!-- Left: Icon Card & Actions (Harmoniously Centered) -->
                             <StackPanel Grid.Column="0" Spacing="12" HorizontalAlignment="Center">
-                                <TextBlock Text="{l10n:Tr Key=cp_panel_info}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
+                                <TextBlock Text="{l10n:Tr Key=cp_panel_info}" Classes="sectionTitle" HorizontalAlignment="Center"/>
                                 <Border Width="112" Height="112" Classes="iconCard" BorderThickness="1" CornerRadius="16" ClipToBounds="True" HorizontalAlignment="Center">
                                     <Panel>
                                         <Image Source="{Binding IconPreview}" Stretch="UniformToFill" Width="110" Height="110" IsVisible="{Binding IconPreview, Converter={x:Static conv:ObjectConverters.IsNotNull}}"/>
@@ -148,13 +148,13 @@
                             <StackPanel Grid.Column="1" Spacing="14">
                                 <!-- Profile Name -->
                                 <StackPanel Spacing="5">
-                                    <TextBlock Text="{l10n:Tr Key=cp_name_label}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <TextBlock Classes="rowTitle" Text="{l10n:Tr Key=cp_name_label}"/>
                                     <Border BorderThickness="1" CornerRadius="10" Background="Transparent" 
                                             BorderBrush="{Binding CanNextStep1, Converter={x:Static converters:BoolToErrorBrushConverter.InstanceInverted}}">
                                         <TextBox Classes="darkInput" Text="{Binding ProfileName}" PlaceholderText="{l10n:Tr Key=ph_profile_name}" FontSize="13" Padding="12,10" BorderThickness="0"/>
                                     </Border>
                                     <Grid ColumnDefinitions="*,Auto">
-                                        <TextBlock Grid.Column="0" Text="{l10n:Tr Key=cp_name_hint2}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"/>
+                                        <TextBlock Grid.Column="0" Classes="rowHint" Text="{l10n:Tr Key=cp_name_hint2}"/>
                                         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
                                             <TextBlock Text="{l10n:Tr Key=cp_duplicate}" FontSize="11" Foreground="{StaticResource DangerBrush}" IsVisible="{Binding IsNameDuplicate}"/>
                                             <TextBlock Text="Invalid characters in name" FontSize="11" Foreground="{StaticResource DangerBrush}" IsVisible="{Binding IsNameInvalid}"/>
@@ -209,7 +209,7 @@
 
                         <!-- Step 2: Game Version (Stretched to bottom) -->
                         <Grid IsVisible="{Binding IsStep2}" RowDefinitions="Auto,Auto,Auto,*" VerticalAlignment="Stretch" MinHeight="420">
-                            <TextBlock Grid.Row="0" Text="{l10n:Tr Key=cp_panel_version}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,10"/>
+                            <TextBlock Grid.Row="0" Classes="sectionTitle" Text="{l10n:Tr Key=cp_panel_version}" Margin="0,0,0,10"/>
                             <!-- Loader / loader-version / search filter panel in a single row -->
                             <Border Grid.Row="1" Background="Transparent" Padding="8">
                                 <Grid ColumnDefinitions="140,Auto,*,Auto" ColumnSpacing="8" VerticalAlignment="Center">

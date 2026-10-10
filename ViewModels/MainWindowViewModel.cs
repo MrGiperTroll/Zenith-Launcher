@@ -1741,6 +1741,9 @@ public partial class MainWindowViewModel : ViewModelBase
     public LauncherSettingsViewModel LauncherSettingsVm { get; }
     public AccountsViewModel AccountsVm { get; }
 
+    public Avalonia.Media.Imaging.Bitmap? PrismImportIcon { get; } = ImportIconService.GetPrismIcon();
+    public Avalonia.Media.Imaging.Bitmap? MultiMCImportIcon { get; } = ImportIconService.GetMultiMCIcon();
+
     public MainWindowViewModel()
     {
         ThemeSettingsVm = new ThemeSettingsViewModel

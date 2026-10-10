@@ -27,13 +27,13 @@
         <Border Grid.Row="0" Padding="0,0,0,8">
             <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="6">
                 <StackPanel Spacing="2" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding Title, Converter={x:Static converters:FileListTitleConverter.Instance}}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                    <TextBlock Text="{Binding CountLabel}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                    <TextBlock Classes="sectionTitle" Text="{Binding Title, Converter={x:Static converters:FileListTitleConverter.Instance}}"/>
+                    <TextBlock Classes="rowHint" Text="{Binding CountLabel}"/>
                 </StackPanel>
                 <TextBox Grid.Column="1" x:Name="SearchBox" Classes="darkInput" Text="{Binding SearchQuery}"
                          PlaceholderText="{l10n:Tr Key=ph_search}" Width="160" FontSize="11" Padding="8,5"
                          VerticalAlignment="Center"/>
-                <ComboBox Grid.Column="2" ItemsSource="{Binding SortOptions}" SelectedItem="{Binding SelectedSortOption}"
+                <ComboBox Grid.Column="2" Classes="zenCombo" ItemsSource="{Binding SortOptions}" SelectedItem="{Binding SelectedSortOption}"
                           FontSize="11" Padding="8,4" Width="118" VerticalAlignment="Center">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
@@ -52,7 +52,7 @@
             </Grid>
         </Border>
 
-        <Border Grid.Row="1" BorderBrush="{StaticResource PanelBrush}" BorderThickness="1" CornerRadius="8" Background="{StaticResource ContentSurfaceBrush}">
+        <Border Grid.Row="1" Background="Transparent" Padding="4">
             <Grid>
                 <!-- Standard card list (mods / packs / worlds / generic) -->
                 <ListBox ItemsSource="{Binding Entries}" Background="Transparent" BorderThickness="0" Padding="6"

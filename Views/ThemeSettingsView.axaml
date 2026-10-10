@@ -148,7 +148,7 @@
                         <Border Background="{Binding BgHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{Binding BorderDarkHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderThickness="1" CornerRadius="8" Height="90" ClipToBounds="True">
                             <Panel>
                                 <!-- Simulated particle animation layer -->
-                                <controls:ParticleSystemControl ParticleType="{Binding SelectedParticle}" ParticleCount="{Binding ParticleCount}" ParticleScale="{Binding ParticleScale}" ParticleSpeed="{Binding ParticleSpeed}" IsHitTestVisible="False"/>
+                                <controls:ParticleSystemControl ParticleType="{Binding SelectedParticle}" ParticleCount="{Binding ParticleCount}" ParticleScale="{Binding ParticleScale}" ParticleSpeed="{Binding ParticleSpeed}" ParticleColorHex="{Binding ParticleColorHex}" ParticleAngleDeg="{Binding ParticleAngleDeg}" ParticleTexturePath="{Binding ParticleTexturePath}" IsHitTestVisible="False"/>
 
                                 <!-- Sample UI elements displaying active theme styles -->
                                 <Grid ColumnDefinitions="Auto,*,Auto" Margin="14" VerticalAlignment="Center">
@@ -188,7 +188,7 @@
                             </Grid>
 
                             <WrapPanel Orientation="Horizontal">
-                                <ItemsControl ItemsSource="{x:Static theming:ZenithTheme.Presets}">
+                                <ItemsControl ItemsSource="{x:Static theming:ZenithTheme.Presets}" HorizontalAlignment="Left">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
                                             <WrapPanel Orientation="Horizontal"/>
@@ -294,12 +294,13 @@
                                 </Grid>
                                 <Grid ColumnDefinitions="90,*,Auto" VerticalAlignment="Center">
                                     <TextBlock Classes="rowHint" Text="{l10n:Tr Key=theme_custom_texture}" VerticalAlignment="Center"/>
-                                    <Border Grid.Column="1" Width="28" Height="28" CornerRadius="6" Background="{StaticResource FieldBrush}" ClipToBounds="True" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                        <Image Source="{Binding ParticleTexturePath, Converter={x:Static converters:IconPathToBitmapConverter.Instance}}" Stretch="UniformToFill" Width="28" Height="28"/>
-                                    </Border>
+                                    <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding ParticleTexturePath, Mode=OneWay}" IsReadOnly="True" FontSize="11" Padding="8,5" VerticalAlignment="Center"/>
                                     <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                        <Button Classes="subBtn" Content="..." Command="{Binding PickParticleTextureCommand}" Padding="10,5" FontSize="11" ToolTip.Tip="{l10n:Tr Key=theme_custom_texture}"/>
-                                        <Button Classes="subBtn" Content="✕" Command="{Binding ClearParticleTextureCommand}" Padding="10,5" FontSize="11" IsVisible="{Binding ParticleTexturePath, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}"/>
+                                        <Border Width="28" Height="28" CornerRadius="6" Background="{StaticResource FieldBrush}" ClipToBounds="True" VerticalAlignment="Center">
+                                            <Image Source="{Binding ParticleTexturePath, Converter={x:Static converters:IconPathToBitmapConverter.Instance}}" Stretch="UniformToFill" Width="28" Height="28"/>
+                                        </Border>
+                                        <Button Classes="subBtn" Content="{l10n:Tr Key=set_java_browse}" Command="{Binding PickParticleTextureCommand}" Padding="10,5" FontSize="11" VerticalAlignment="Center"/>
+                                        <Button Classes="subBtn" Content="✕" Command="{Binding ClearParticleTextureCommand}" Padding="10,5" FontSize="11" VerticalAlignment="Center" IsVisible="{Binding ParticleTexturePath, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}"/>
                                     </StackPanel>
                                 </Grid>
                             </StackPanel>
@@ -360,12 +361,13 @@
                                 </Grid>
                                 <Grid ColumnDefinitions="90,*,Auto" VerticalAlignment="Center">
                                     <TextBlock Classes="rowHint" Text="{l10n:Tr Key=theme_custom_texture}" VerticalAlignment="Center"/>
-                                    <Border Grid.Column="1" Width="28" Height="28" CornerRadius="6" Background="{StaticResource FieldBrush}" ClipToBounds="True" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                        <Image Source="{Binding ParticleTexturePath, Converter={x:Static converters:IconPathToBitmapConverter.Instance}}" Stretch="UniformToFill" Width="28" Height="28"/>
-                                    </Border>
+                                    <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding ParticleTexturePath, Mode=OneWay}" IsReadOnly="True" FontSize="11" Padding="8,5" VerticalAlignment="Center"/>
                                     <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                        <Button Classes="subBtn" Content="..." Command="{Binding PickParticleTextureCommand}" Padding="10,5" FontSize="11" ToolTip.Tip="{l10n:Tr Key=theme_custom_texture}"/>
-                                        <Button Classes="subBtn" Content="✕" Command="{Binding ClearParticleTextureCommand}" Padding="10,5" FontSize="11" IsVisible="{Binding ParticleTexturePath, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}"/>
+                                        <Border Width="28" Height="28" CornerRadius="6" Background="{StaticResource FieldBrush}" ClipToBounds="True" VerticalAlignment="Center">
+                                            <Image Source="{Binding ParticleTexturePath, Converter={x:Static converters:IconPathToBitmapConverter.Instance}}" Stretch="UniformToFill" Width="28" Height="28"/>
+                                        </Border>
+                                        <Button Classes="subBtn" Content="{l10n:Tr Key=set_java_browse}" Command="{Binding PickParticleTextureCommand}" Padding="10,5" FontSize="11" VerticalAlignment="Center"/>
+                                        <Button Classes="subBtn" Content="✕" Command="{Binding ClearParticleTextureCommand}" Padding="10,5" FontSize="11" VerticalAlignment="Center" IsVisible="{Binding ParticleTexturePath, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}"/>
                                     </StackPanel>
                                 </Grid>
                             </StackPanel>

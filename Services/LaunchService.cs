@@ -197,10 +197,27 @@ public class LaunchService : ILaunchService
         }
     }
 
+    private static void FlushLogQueue(string path)
+    {
+        if (_logQueues.TryRemove(path, out var queue))
+        {
+            var lines = new List<string>();
+            while (queue.TryDequeue(out var line)) lines.Add(line);
+            if (lines.Count == 0) return;
+            lock (LogWriteGate)
+            {
+                try { File.AppendAllText(path, string.Concat(lines)); }
+                catch { /* transient file lock is non-fatal */ }
+            }
+        }
+    }
+
     private static void SafeAppendLog(string path, string text)
     {
         var queue = _logQueues.GetOrAdd(path, _ => new ConcurrentQueue<string>());
         queue.Enqueue(text);
+        // Bound flood bursts: drop oldest beyond cap instead of growing forever.
+        while (queue.Count > 5000 && queue.TryDequeue(out _)) { }
     }
 
     private static void SafeWriteLog(string path, string text)
@@ -617,6 +634,8 @@ public class LaunchService : ILaunchService
                 SafeAppendLog(logFilePath, $"[DEBUG] Process exited with code {exitCode}\n");
             }
             catch { }
+
+            FlushLogQueue(logFilePath);
 
             GameExited?.Invoke(instance, exitCode);
 

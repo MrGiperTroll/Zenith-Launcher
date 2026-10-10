@@ -1758,6 +1758,10 @@ public partial class MainWindowViewModel : ViewModelBase
         // fires and the UI stays on DetectSystemCode() (the OS language).
         Services.L10n.ApplyDisplay(SelectedLanguage);
 
+        // Recompute language-dependent display strings AFTER the final language
+        // is applied — LoadFromConfig above may have rendered them in the OS language.
+        LauncherSettingsVm.UpdateJavaDisplay();
+
         _accountService = new AccountService();
         AccountsVm = new AccountsViewModel(_accountService);
         AccountsVm.AccountStateChanged += () =>

@@ -275,7 +275,7 @@ public partial class CreateServerViewModel : ObservableObject
     [ObservableProperty] private string _fileSortColumn = "Name";
     [ObservableProperty] private bool _fileSortDescending;
     private const string SortChevronUp = "M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z";
-    private const string SortChevronDown = "M7 10l5 5 5-5z";
+    private const string SortChevronDown = "M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z";
     public string? FileSortNameIcon => FileSortColumn != "Name" ? null : (FileSortDescending ? SortChevronDown : SortChevronUp);
     public string? FileSortDateIcon => FileSortColumn != "Date" ? null : (FileSortDescending ? SortChevronDown : SortChevronUp);
     public string? FileSortSizeIcon => FileSortColumn != "Size" ? null : (FileSortDescending ? SortChevronDown : SortChevronUp);

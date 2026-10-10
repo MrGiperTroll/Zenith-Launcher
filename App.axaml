@@ -106,9 +106,33 @@
         <SolidColorBrush x:Key="SliderTrackFill" Color="#3B82F6"/>
         <SolidColorBrush x:Key="SliderTrackFillPointerOver" Color="#60A5FA"/>
         <SolidColorBrush x:Key="SliderTrackFillPressed" Color="#1D4ED8"/>
-        <SolidColorBrush x:Key="SliderThumbBackground" Color="#3B82F6"/>
-        <SolidColorBrush x:Key="SliderThumbBackgroundPointerOver" Color="#60A5FA"/>
-        <SolidColorBrush x:Key="SliderThumbBackgroundPressed" Color="#1D4ED8"/>
+        <SolidColorBrush x:Key="SliderThumbBackground" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="SliderThumbBackgroundPointerOver" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="SliderThumbBackgroundPressed" Color="#FFFFFF"/>
+        <!-- Zenith control theming: Fluent template parts carry local values, so custom
+             colors go through theme resource overrides (harmonized in ZenithTheme.Apply) -->
+        <SolidColorBrush x:Key="SliderTrackValueFill" Color="#3B82F6"/>
+        <SolidColorBrush x:Key="SliderTrackValueFillPointerOver" Color="#60A5FA"/>
+        <SolidColorBrush x:Key="SliderTrackValueFillPressed" Color="#1D4ED8"/>
+        <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillUnchecked" Color="#121724"/>
+        <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeUnchecked" Color="#2A3754"/>
+        <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeUncheckedPointerOver" Color="#3B82F6"/>
+        <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillChecked" Color="#3B82F6"/>
+        <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedPointerOver" Color="#60A5FA"/>
+        <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundChecked" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPointerOver" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="ToggleSwitchFillOff" Color="#121724"/>
+        <SolidColorBrush x:Key="ToggleSwitchStrokeOff" Color="#2A3754"/>
+        <SolidColorBrush x:Key="ToggleSwitchFillOffPointerOver" Color="#121724"/>
+        <SolidColorBrush x:Key="ToggleSwitchStrokeOffPointerOver" Color="#3B82F6"/>
+        <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="#3B82F6"/>
+        <SolidColorBrush x:Key="ToggleSwitchStrokeOn" Color="#3B82F6"/>
+        <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="#60A5FA"/>
+        <SolidColorBrush x:Key="ToggleSwitchStrokeOnPointerOver" Color="#60A5FA"/>
+        <SolidColorBrush x:Key="ToggleSwitchKnobFillOff" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="ToggleSwitchKnobFillOffPointerOver" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="ToggleSwitchKnobFillOn" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="ToggleSwitchKnobFillOnPointerOver" Color="#FFFFFF"/>
         <!-- Text Selection Highlight Overrides -->
         <Color x:Key="TextControlSelectionHighlightColor">#3B82F6</Color>
         <SolidColorBrush x:Key="TextControlSelectionHighlightBrush" Color="#3B82F6"/>
@@ -458,24 +482,8 @@
             <Setter Property="Background" Value="#5C6C8E"/>
         </Style>
 
-        <!-- Slider: filled portion = accent, unfilled track = subtle, thumb = white with accent ring -->
-        <Style Selector="Slider /template/ RepeatButton#PART_DecreaseButton">
-            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
-        </Style>
-        <Style Selector="Slider /template/ RepeatButton#PART_IncreaseButton">
-            <Setter Property="Background" Value="{StaticResource BorderStrongBrush}"/>
-        </Style>
-        <Style Selector="Slider /template/ Thumb">
-            <Setter Property="Background" Value="#FFFFFF"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="BorderThickness" Value="2"/>
-        </Style>
-        <Style Selector="Slider:pointerover /template/ RepeatButton#PART_DecreaseButton">
-            <Setter Property="Background" Value="{DynamicResource AccentBrushHover}"/>
-        </Style>
-        <Style Selector="Slider:pointerover /template/ Thumb">
-            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrushHover}"/>
-        </Style>
+        <!-- Slider colors are driven by theme resources (see ZenithTheme.Apply):
+             SliderTrackValueFill / SliderTrackFill / SliderThumbBackground -->
 
         <!-- Universal TextBox Selection Highlight: vibrant AccentBrush with white text -->
         <Style Selector="TextBox">
@@ -683,7 +691,10 @@
             <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
         </Style>
 
-        <!-- Modern CheckBox: real Fluent parts are Border#NormalRectangle + Path#CheckGlyph -->
+        <!-- Modern CheckBox: colors via theme resources (CheckBoxCheckBackground*,
+             harmonized in ZenithTheme.Apply); box roundness via control CornerRadius.
+             PART_Border neutralized: it spans the whole row and its theme
+             pointerover/pressed backgrounds flash over dark rows. -->
         <Style Selector="CheckBox">
             <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
             <Setter Property="FontSize" Value="12.5"/>
@@ -691,17 +702,7 @@
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Background" Value="Transparent"/>
-        </Style>
-        <Style Selector="CheckBox /template/ Border#NormalRectangle">
-            <Setter Property="Width" Value="20"/>
-            <Setter Property="Height" Value="20"/>
             <Setter Property="CornerRadius" Value="6"/>
-            <Setter Property="BorderThickness" Value="1.5"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
-            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
-        </Style>
-        <Style Selector="CheckBox:pointerover /template/ Border#NormalRectangle">
-            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
         </Style>
         <!-- Kill Fluent full-row flash: PART_Border spans the whole CheckBox row,
              its theme pointerover/pressed backgrounds flash light over our dark rows -->
@@ -713,45 +714,21 @@
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderBrush" Value="Transparent"/>
         </Style>
-        <Style Selector="CheckBox:checked /template/ Border#NormalRectangle">
-            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
-        </Style>
-        <Style Selector="CheckBox:checked /template/ Path#CheckGlyph">
-            <Setter Property="Fill" Value="{DynamicResource OnAccentBrush}"/>
-        </Style>
-        <Style Selector="CheckBox:pressed /template/ Border#NormalRectangle">
+        <Style Selector="CheckBox:pressed">
             <Setter Property="Opacity" Value="0.85"/>
         </Style>
         <Style Selector="CheckBox:disabled">
             <Setter Property="Opacity" Value="0.45"/>
         </Style>
 
-        <!-- Modern ToggleSwitch: real Fluent parts are Border#OuterBorder (off track),
-             Border#SwitchKnobBounds (on track), Ellipse#SwitchKnobOn/Off (knobs) -->
+        <!-- Modern ToggleSwitch: colors via theme resources (ToggleSwitchFill*,
+             ToggleSwitchStroke*, ToggleSwitchKnobFill*), harmonized in ZenithTheme.Apply -->
         <Style Selector="ToggleSwitch">
             <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
             <Setter Property="FontSize" Value="12.5"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="OffContent" Value=""/>
             <Setter Property="OnContent" Value=""/>
-        </Style>
-        <Style Selector="ToggleSwitch /template/ Border#OuterBorder">
-            <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
-            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
-        </Style>
-        <Style Selector="ToggleSwitch:pointerover /template/ Border#OuterBorder">
-            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
-        </Style>
-        <Style Selector="ToggleSwitch:checked /template/ Border#SwitchKnobBounds">
-            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
-        </Style>
-        <Style Selector="ToggleSwitch /template/ Ellipse#SwitchKnobOn">
-            <Setter Property="Fill" Value="#FFFFFF"/>
-        </Style>
-        <Style Selector="ToggleSwitch /template/ Ellipse#SwitchKnobOff">
-            <Setter Property="Fill" Value="#FFFFFF"/>
         </Style>
 
         <!-- (Slider styling lives in the dedicated Slider block above; template parts:

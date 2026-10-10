@@ -12,32 +12,6 @@
              Background="{StaticResource BgBrush}">
 
     <UserControl.Styles>
-        <Style Selector="TextBox.darkInput">
-            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="10,8"/>
-            <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="SelectionForegroundBrush" Value="{DynamicResource OnAccentBrush}"/>
-        </Style>
-        <Style Selector="ComboBox">
-            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="10,6"/>
-        </Style>
-        <Style Selector="CheckBox">
-            <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
-            <Setter Property="Background" Value="Transparent"/>
-        </Style>
-        <Style Selector="CheckBox:checked">
-            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
-            <Setter Property="Background" Value="Transparent"/>
-        </Style>
         <Style Selector="Button.sideTab">
             <Setter Property="Background" Value="{StaticResource RowHoverBrushTransparent}"/>
             <Setter Property="BorderThickness" Value="0"/>
@@ -146,9 +120,9 @@
                         <TextBlock Text="{l10n:Tr set_game}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,4"/>
 
                         <!-- Compact Memory Configuration (Min / Max RAM) -->
-                        <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="12,10" IsVisible="{Binding IsSearchMemoryVisible}">
+                        <Border Classes="zenSection" IsVisible="{Binding IsSearchMemoryVisible}">
                             <StackPanel Spacing="10">
-                                <TextBlock Text="{l10n:Tr set_memory}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                <TextBlock Classes="sectionTitle" Text="{l10n:Tr set_memory}"/>
 
                                 <!-- Min RAM Row -->
                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
@@ -195,9 +169,9 @@
                         </Border>
 
                         <!-- Resolution & Fullscreen -->
-                        <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="12,10" IsVisible="{Binding IsSearchResolutionVisible}">
+                        <Border Classes="zenSection" IsVisible="{Binding IsSearchResolutionVisible}">
                             <StackPanel Spacing="10">
-                                <TextBlock Text="{l10n:Tr set_resolution}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                <TextBlock Classes="sectionTitle" Text="{l10n:Tr set_resolution}"/>
                                 <Grid ColumnDefinitions="Auto,60,14,60,14,Auto,Auto" VerticalAlignment="Center">
                                     <TextBlock Text="W" FontSize="12" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,4,0"/>
                                     <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding GameWidth}" FontSize="12" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="26"/>
@@ -211,15 +185,15 @@
                         </Border>
 
                         <!-- Java Runtime -->
-                        <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="12,10" IsVisible="{Binding IsSearchJavaVisible}">
+                        <Border Classes="zenSection" IsVisible="{Binding IsSearchJavaVisible}">
                             <StackPanel Spacing="10">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <TextBlock Text="{l10n:Tr set_java}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Classes="sectionTitle" Text="{l10n:Tr set_java}"/>
                                 </StackPanel>
                                 <TextBlock Text="{l10n:Tr set_java_hint}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
                                 <CheckBox Content="{l10n:Tr set_autojava}" IsChecked="{Binding AutoManageJava}" Margin="0,0,0,0" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12"/>
                                 <Grid ColumnDefinitions="190,Auto,*,Auto" ColumnSpacing="8" VerticalAlignment="Center">
-                                    <ComboBox Grid.Column="0" MinHeight="30" ItemsSource="{Binding JavaModes}" SelectedItem="{Binding SelectedJavaMode}"
+                                    <ComboBox Grid.Column="0" Classes="zenCombo" ItemsSource="{Binding JavaModes}" SelectedItem="{Binding SelectedJavaMode}"
                                               VerticalAlignment="Center" VerticalContentAlignment="Center" HorizontalAlignment="Stretch">
                                         <ComboBox.ItemTemplate>
                                             <DataTemplate>
@@ -247,10 +221,10 @@
                         </Border>
 
                         <!-- JVM Arguments -->
-                        <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="12,10" IsVisible="{Binding IsSearchJvmArgsVisible}">
+                        <Border Classes="zenSection" IsVisible="{Binding IsSearchJvmArgsVisible}">
                             <StackPanel Spacing="8">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <TextBlock Text="{l10n:Tr set_jvmargs}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Classes="sectionTitle" Text="{l10n:Tr set_jvmargs}"/>
                                 </StackPanel>
                                 <TextBlock Text="{l10n:Tr set_jvmargs_hint}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
                                 <TextBox Classes="darkInput" Text="{Binding JvmArgs}" PlaceholderText="{l10n:Tr Key=ph_custom_jvm}" Padding="8,6" FontSize="11" AcceptsReturn="True" Height="54" TextWrapping="Wrap"/>
@@ -258,13 +232,13 @@
                         </Border>
 
                         <!-- Launcher Behavior on Game Start -->
-                        <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="12,10">
+                        <Border Classes="zenSection">
                             <StackPanel Spacing="8">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <TextBlock Text="{l10n:Tr set_launch_behavior}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Classes="sectionTitle" Text="{l10n:Tr set_launch_behavior}"/>
                                 </StackPanel>
                                 <TextBlock Text="{l10n:Tr set_launch_behavior_hint}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
-                                <ComboBox ItemsSource="{Binding LaunchBehaviors}" SelectedItem="{Binding SelectedLaunchBehavior}" HorizontalAlignment="Stretch">
+                                <ComboBox Classes="zenCombo" ItemsSource="{Binding LaunchBehaviors}" SelectedItem="{Binding SelectedLaunchBehavior}" HorizontalAlignment="Stretch">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
                                             <TextBlock Text="{Binding Converter={x:Static converters:LaunchBehaviorDisplayConverter.Instance}}"/>
@@ -280,13 +254,13 @@
                         <TextBlock Text="{l10n:Tr set_general}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,4"/>
 
                         <!-- Directory Strategy Card -->
-                        <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="10" Padding="12,10" IsVisible="{Binding IsSearchDirectoryVisible}">
+                        <Border Classes="zenSection" IsVisible="{Binding IsSearchDirectoryVisible}">
                             <StackPanel Spacing="8">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <TextBlock Text="{l10n:Tr set_dirstrategy}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Classes="sectionTitle" Text="{l10n:Tr set_dirstrategy}"/>
                                 </StackPanel>
                                 <TextBlock Text="{l10n:Tr set_dirstrategy_hint}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
-                                <ComboBox ItemsSource="{Binding DirectoryModes}" SelectedItem="{Binding SelectedDirectoryMode}" HorizontalAlignment="Stretch">
+                                <ComboBox Classes="zenCombo" ItemsSource="{Binding DirectoryModes}" SelectedItem="{Binding SelectedDirectoryMode}" HorizontalAlignment="Stretch">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
                                             <TextBlock Text="{Binding Converter={x:Static converters:DirectoryModeDisplayConverter.Instance}}"/>
@@ -297,10 +271,10 @@
                         </Border>
 
                         <!-- Version Filters Card -->
-                        <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="10" Padding="12,10" IsVisible="{Binding IsSearchVersionFiltersVisible}">
+                        <Border Classes="zenSection" IsVisible="{Binding IsSearchVersionFiltersVisible}">
                             <StackPanel Spacing="8">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <TextBlock Text="{l10n:Tr set_versionfilters}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Classes="sectionTitle" Text="{l10n:Tr set_versionfilters}"/>
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal" Spacing="20" VerticalAlignment="Center">
                                     <CheckBox Content="{l10n:Tr vf_releases}" IsChecked="{Binding ShowReleases}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12"/>
@@ -313,13 +287,13 @@
                         </Border>
 
                         <!-- Language Card -->
-                        <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="10" Padding="12,10" IsVisible="{Binding IsSearchLanguageVisible}">
+                        <Border Classes="zenSection" IsVisible="{Binding IsSearchLanguageVisible}">
                             <StackPanel Spacing="8">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <TextBlock Text="{l10n:Tr set_language}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Classes="sectionTitle" Text="{l10n:Tr set_language}"/>
                                 </StackPanel>
                                 <TextBlock Text="{l10n:Tr set_language_hint}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
-                                <ComboBox ItemsSource="{Binding LanguageOptions}" SelectedItem="{Binding SelectedLanguage}" HorizontalAlignment="Stretch"/>
+                                <ComboBox Classes="zenCombo" ItemsSource="{Binding LanguageOptions}" SelectedItem="{Binding SelectedLanguage}" HorizontalAlignment="Stretch"/>
                             </StackPanel>
                         </Border>
 
@@ -330,20 +304,20 @@
                         <TextBlock Text="Launcher Settings" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,4"/>
 
                         <!-- Discord Rich Presence Card -->
-                        <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="10" Padding="12,10" IsVisible="{Binding IsSearchDiscordVisible}">
+                        <Border Classes="zenSection" IsVisible="{Binding IsSearchDiscordVisible}">
                             <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                 <StackPanel Grid.Column="0" Spacing="4" VerticalAlignment="Center">
-                                    <TextBlock Text="{l10n:Tr set_discord}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Classes="sectionTitle" Text="{l10n:Tr set_discord}"/>
                                     <TextBlock Text="{l10n:Tr set_discord_hint}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}" TextWrapping="Wrap"/>
                                 </StackPanel>
-                                <CheckBox Grid.Column="1" IsChecked="{Binding DiscordRpcEnabled}" VerticalAlignment="Center" Margin="16,0,0,0"/>
+                                <ToggleSwitch Grid.Column="1" IsChecked="{Binding DiscordRpcEnabled}" VerticalAlignment="Center" Margin="16,0,0,0"/>
                             </Grid>
                         </Border>
 
                         <!-- Edit Theme Card -->
-                        <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="10" Padding="12,10" IsVisible="{Binding IsSearchAppearanceVisible}">
+                        <Border Classes="zenSection" IsVisible="{Binding IsSearchAppearanceVisible}">
                             <StackPanel Spacing="6">
-                                <TextBlock Text="{l10n:Tr Key=theme_edit}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=theme_edit}"/>
                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                     <TextBlock Grid.Column="0" Text="{l10n:Tr Key=theme_edit_desc}" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center"/>
                                     <Button Grid.Column="1" Classes="primaryBtn" Content="{l10n:Tr Key=theme_customize}" Command="{Binding OpenThemeEditorCommand}" Padding="16,8"/>
@@ -352,9 +326,9 @@
                         </Border>
 
                         <!-- Launcher Scale -->
-                        <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="10" Padding="12,10">
+                        <Border Classes="zenSection">
                             <StackPanel Spacing="6">
-                                <TextBlock Text="{l10n:Tr Key=settings_scale}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=settings_scale}"/>
                                 <Grid ColumnDefinitions="*,Auto">
                                     <Slider Minimum="0.5" Maximum="2.0" Value="{Binding LauncherScale}" TickFrequency="0.05" IsSnapToTickEnabled="True" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Column="1" Text="{Binding LauncherScale, StringFormat='{}{0:P0}'}" Margin="12,0,0,0" VerticalAlignment="Center" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" Width="40" TextAlignment="Right"/>

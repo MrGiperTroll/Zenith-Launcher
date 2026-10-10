@@ -39,17 +39,12 @@
     <Border Padding="24,20" Background="{StaticResource BgBrush}">
         <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="14">
             <!-- Title -->
-            <TextBlock Grid.Row="0"
-                       Text="{Binding TitleText}"
-                       FontSize="16" FontWeight="SemiBold"
-                       Foreground="{StaticResource TextPrimaryBrush}"/>
+            <TextBlock Grid.Row="0" Classes="sectionTitle"
+                       Text="{Binding TitleText}"/>
 
             <!-- Status -->
-            <TextBlock Grid.Row="1"
+            <TextBlock Grid.Row="1" Classes="sectionHint"
                        Text="{Binding StatusText}"
-                       FontSize="12.5"
-                       TextWrapping="Wrap"
-                       Foreground="{StaticResource TextSecondaryBrush}"
                        IsVisible="{Binding StatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
 
             <!-- Buttons -->

@@ -143,8 +143,16 @@ public partial class RamCardControl : UserControl
 
     private void UpdateBadgeText()
     {
-        if (NumberText != null) NumberText.Text = Value.ToString();
-        if (UnitText != null) UnitText.Text = "MB";
+        if (IsGbMode && Value % 1024 == 0)
+        {
+            if (NumberText != null) NumberText.Text = (Value / 1024).ToString();
+            if (UnitText != null) UnitText.Text = "GB";
+        }
+        else
+        {
+            if (NumberText != null) NumberText.Text = Value.ToString();
+            if (UnitText != null) UnitText.Text = "MB";
+        }
     }
 
     private void OnBadgeDoubleTapped(object? sender, TappedEventArgs e)

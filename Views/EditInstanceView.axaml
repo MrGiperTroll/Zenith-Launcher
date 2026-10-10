@@ -547,7 +547,10 @@
                                     <TextBox Grid.Column="3" Classes="darkInput" Text="{Binding GameHeight}" FontSize="12" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="26"/>
                                     <TextBlock Grid.Column="4" Text="H" FontSize="12" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
                                 </Grid>
-                                <CheckBox Content="{l10n:Tr Key=set_fullscreen}" IsChecked="{Binding IsFullscreen}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" FontWeight="Bold" VerticalAlignment="Center" Margin="0,2,0,0"/>
+                                <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                    <TextBlock Classes="rowTitle" Text="{l10n:Tr Key=set_fullscreen}" VerticalAlignment="Center"/>
+                                    <ToggleSwitch Grid.Column="1" IsChecked="{Binding IsFullscreen}" VerticalAlignment="Center"/>
+                                </Grid>
                             </StackPanel>
                         </Border>
 
@@ -558,7 +561,7 @@
                                     <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=set_java}" VerticalAlignment="Center"/>
                                     <Button Grid.Column="1" Classes="resetBtn" Content="{l10n:Tr Key=btn_reset}" Command="{Binding ResetJavaCommand}" IsVisible="{Binding CanResetJava}" FontSize="11" Padding="10,4" VerticalAlignment="Center"/>
                                 </Grid>
-                                <TextBlock Text="{Binding JavaDisplayPath}" FontSize="11" Foreground="{DynamicResource AccentBrush}"/>
+                                <TextBox Classes="darkInput" Text="{Binding JavaDisplayPath, Mode=OneWay}" IsReadOnly="True" FontSize="11" Padding="8,5" ToolTip.Tip="{l10n:Tr Key=custom_java_hint}"/>
                                 <TextBlock Text="{l10n:Tr Key=ei_inherited_generic}" FontSize="10" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding IsJavaInherited}"/>
                                 <ComboBox Classes="zenCombo" ItemsSource="{Binding JavaModes}" SelectedItem="{Binding SelectedJavaMode}" HorizontalAlignment="Stretch">
                                     <ComboBox.ItemTemplate>

@@ -685,9 +685,9 @@
             <Setter Property="Background" Value="Transparent"/>
         </Style>
         <Style Selector="CheckBox /template/ Border#NormalRectangle">
-            <Setter Property="Width" Value="18"/>
-            <Setter Property="Height" Value="18"/>
-            <Setter Property="CornerRadius" Value="5"/>
+            <Setter Property="Width" Value="20"/>
+            <Setter Property="Height" Value="20"/>
+            <Setter Property="CornerRadius" Value="6"/>
             <Setter Property="BorderThickness" Value="1.5"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
             <Setter Property="Background" Value="{StaticResource FieldBrush}"/>

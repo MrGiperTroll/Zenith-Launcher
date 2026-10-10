@@ -1326,6 +1326,8 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
+    private DateTime _lastForcedGc = DateTime.MinValue;
+
     private static void DisposeHistoryEntry(HistoryEntry entry)
     {
         // Break event roots (timers, host/instance subscriptions) so GC can reclaim the page.
@@ -1377,6 +1379,19 @@ public partial class MainWindowViewModel : ViewModelBase
         if (CurrentPage == LauncherNavPage.ServerManager && entry.Page != LauncherNavPage.ServerManager)
         {
             CurrentEditInstanceVm?.RefreshServers();
+        }
+
+        // Force-reclaim LOH (image/log buffers) when leaving heavy pages.
+        // Polite background collects are skipped by the runtime while LOH grows,
+        // so do a throttled blocking Gen2 here instead of on every navigation.
+        if ((CurrentPage == LauncherNavPage.CreateServer
+                || CurrentPage == LauncherNavPage.ContentBrowser
+                || CurrentPage == LauncherNavPage.EditInstance)
+            && entry.Page != CurrentPage
+            && (DateTime.UtcNow - _lastForcedGc).TotalSeconds > 30)
+        {
+            _lastForcedGc = DateTime.UtcNow;
+            try { GC.Collect(2, GCCollectionMode.Forced, true); } catch { }
         }
 
         CurrentPage = entry.Page;
@@ -1444,10 +1459,6 @@ public partial class MainWindowViewModel : ViewModelBase
                     Services.DiscordPresenceService.SetEditingInstance(entry.EditInstanceVm.Instance.Name);
                 break;
         }
-
-        // Nudge the GC after a page switch so released pages/bitmaps are
-        // reclaimed promptly instead of accumulating (non-blocking).
-        try { GC.Collect(2, GCCollectionMode.Optimized, false); } catch { }
     }
 
     private void RebuildBreadcrumbs(HistoryEntry entry)

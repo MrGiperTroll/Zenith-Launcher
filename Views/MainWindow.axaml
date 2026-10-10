@@ -339,40 +339,6 @@
             <Setter Property="Background" Value="{StaticResource PanelBrush}"/>
         </Style>
 
-        <!-- Inputs & Pickers -->
-        <Style Selector="TextBox.darkInput">
-            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="10,8"/>
-        </Style>
-        <Style Selector="ComboBox">
-            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="10,6"/>
-        </Style>
-        <!-- Soften checkbox and radio button borders -->
-        <Style Selector="CheckBox">
-            <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
-            <Setter Property="Background" Value="Transparent"/>
-        </Style>
-        <Style Selector="CheckBox:checked">
-            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
-            <Setter Property="Background" Value="Transparent"/>
-        </Style>
-        <Style Selector="RadioButton">
-            <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
-            <Setter Property="Background" Value="Transparent"/>
-        </Style>
-        <Style Selector="RadioButton:checked">
-            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
-        </Style>
-
         <!-- Navigation Buttons (<, >) -->
         <Style Selector="Button.navBtn">
             <Setter Property="Background" Value="Transparent"/>
@@ -799,28 +765,28 @@
                                                 Foreground="{StaticResource TextPlaceholderBrush}"/>
                                     </TextBox.InnerRightContent>
                                 </TextBox>
-                                <ComboBox MinWidth="112" Margin="0,0,8,8" ItemsSource="{Binding ModpacksBrowser.AvailableVersions}" SelectedItem="{Binding ModpacksBrowser.SelectedVersion}" FontSize="11" VerticalAlignment="Center">
+                                <ComboBox Classes="zenCombo" MinWidth="112" Margin="0,0,8,8" ItemsSource="{Binding ModpacksBrowser.AvailableVersions}" SelectedItem="{Binding ModpacksBrowser.SelectedVersion}" FontSize="11" VerticalAlignment="Center">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
                                             <TextBlock Text="{Binding Converter={x:Static converters:BlankTextConverter.Instance}, ConverterParameter=mp_all_versions}" FontSize="11"/>
                                         </DataTemplate>
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
-                                <ComboBox MinWidth="118" Margin="0,0,8,8" ItemsSource="{Binding ModpacksBrowser.AvailableCategories}" SelectedItem="{Binding ModpacksBrowser.SelectedCategory}" FontSize="11" VerticalAlignment="Center">
+                                <ComboBox Classes="zenCombo" MinWidth="118" Margin="0,0,8,8" ItemsSource="{Binding ModpacksBrowser.AvailableCategories}" SelectedItem="{Binding ModpacksBrowser.SelectedCategory}" FontSize="11" VerticalAlignment="Center">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
                                             <TextBlock Text="{Binding Converter={x:Static converters:CategoryDisplayConverter.Instance}}" FontSize="11"/>
                                         </DataTemplate>
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
-                                <ComboBox MinWidth="108" Margin="0,0,8,8" ItemsSource="{Binding ModpacksBrowser.AvailableLoaders}" SelectedItem="{Binding ModpacksBrowser.SelectedLoader}" FontSize="11" VerticalAlignment="Center">
+                                <ComboBox Classes="zenCombo" MinWidth="108" Margin="0,0,8,8" ItemsSource="{Binding ModpacksBrowser.AvailableLoaders}" SelectedItem="{Binding ModpacksBrowser.SelectedLoader}" FontSize="11" VerticalAlignment="Center">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
                                             <TextBlock Text="{Binding Converter={x:Static converters:LoaderDisplayConverter.Instance}}" FontSize="11"/>
                                         </DataTemplate>
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
-                                <ComboBox MinWidth="132" Margin="0,0,8,8" ItemsSource="{Binding ModpacksBrowser.AvailableSortOptions}" SelectedItem="{Binding ModpacksBrowser.SelectedSort}" FontSize="11" VerticalAlignment="Center">
+                                <ComboBox Classes="zenCombo" MinWidth="132" Margin="0,0,8,8" ItemsSource="{Binding ModpacksBrowser.AvailableSortOptions}" SelectedItem="{Binding ModpacksBrowser.SelectedSort}" FontSize="11" VerticalAlignment="Center">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
                                             <TextBlock Text="{Binding Converter={x:Static converters:SortDisplayConverter.Instance}}" FontSize="11"/>
@@ -959,7 +925,7 @@
 <StackPanel Spacing="4">
                         <TextBlock Text="{l10n:Tr Key=cp_step_version}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
                         <Grid ColumnDefinitions="*,Auto">
-                            <ComboBox ItemsSource="{Binding AvailableVersions}" SelectedItem="{Binding SelectedVersion}" HorizontalAlignment="Stretch"
+                            <ComboBox Classes="zenCombo" ItemsSource="{Binding AvailableVersions}" SelectedItem="{Binding SelectedVersion}" HorizontalAlignment="Stretch"
                                       PlaceholderText="{l10n:Tr Key=none_select_version}"/>
                             <Button Grid.Column="1" Content="✕" Command="{Binding ClearVersionCommand}" Background="Transparent" Foreground="{StaticResource TextPlaceholderBrush}" Padding="6,0" Cursor="Hand" FontSize="12" Margin="4,0,0,0"/>
                         </Grid>
@@ -968,9 +934,9 @@
                     <StackPanel Spacing="4">
                         <TextBlock Text="{l10n:Tr Key=set_loader}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
                         <Grid ColumnDefinitions="*,Auto">
-                            <ComboBox Grid.Column="0" ItemsSource="{Binding AvailableLoaders}" SelectedItem="{Binding SelectedLoader}"
+                            <ComboBox Grid.Column="0" Classes="zenCombo" ItemsSource="{Binding AvailableLoaders}" SelectedItem="{Binding SelectedLoader}"
                                       HorizontalAlignment="Stretch" IsVisible="{Binding IsLoaderTypesVisible}"/>
-                            <ComboBox Grid.Column="0" ItemsSource="{Binding AvailableLoaderBuilds}" SelectedItem="{Binding SelectedLoaderBuild}"
+                            <ComboBox Grid.Column="0" Classes="zenCombo" ItemsSource="{Binding AvailableLoaderBuilds}" SelectedItem="{Binding SelectedLoaderBuild}"
                                       HorizontalAlignment="Stretch" IsVisible="{Binding IsLoaderBuildsVisible}"/>
                             <Button Grid.Column="1" Content="⇄" Command="{Binding ToggleLoaderBuildsCommand}"
                                     Width="32" Height="32" Padding="0" Margin="6,0,0,0"
@@ -1017,7 +983,7 @@
                         <Button Grid.Column="2" Content="✕" Command="{Binding CloseConsoleDialogCommand}" Background="Transparent" Foreground="{StaticResource TextPlaceholderBrush}" Padding="4" Cursor="Hand"/>
                     </Grid>
 
-                    <Border Grid.Row="1" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource PanelBrush}" BorderThickness="1" CornerRadius="6" Padding="10">
+                    <Border Grid.Row="1" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1" CornerRadius="6" Padding="10">
                         <TextBox Text="{Binding ConsoleLogs}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap" ScrollViewer.HorizontalScrollBarVisibility="Auto" Background="Transparent" Foreground="{StaticResource TextSoftBrush}" FontFamily="Consolas, Cascadia Code, Courier New" FontSize="11" BorderThickness="0"/>
                     </Border>
 

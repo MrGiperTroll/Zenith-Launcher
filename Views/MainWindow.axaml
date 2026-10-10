@@ -510,7 +510,7 @@
                 <Grid Grid.Row="1" Margin="24,0,0,0">
                     <!-- Profiles View -->
                     <Grid IsVisible="{Binding IsProfilesView}" ColumnDefinitions="*,Auto" x:Name="ProfilesPane" Classes="viewPane">
-                        <ScrollViewer Grid.Column="0" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Padding="0,0,16,16">
+                        <ScrollViewer Grid.Column="0" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Hidden" Padding="0,0,16,16">
                             <StackPanel Spacing="14">
                                 <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" Margin="0,2,0,2">
                                     <TextBlock Classes="pageTitle" Text="{l10n:Tr Key=mw_profiles_title}" VerticalAlignment="Center"/>

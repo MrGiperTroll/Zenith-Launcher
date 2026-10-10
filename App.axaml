@@ -653,6 +653,14 @@
             <Setter Property="Padding" Value="0"/>
             <Setter Property="Margin" Value="0,0,0,8"/>
         </Style>
+        <!-- Isolated mini-card for settings groups: single-level surface, no nesting inside -->
+        <Style Selector="Border.zenCard">
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="14,12"/>
+        </Style>
         <Style Selector="Border.zenDivider">
             <Setter Property="Background" Value="{StaticResource BorderDarkBrush}"/>
             <Setter Property="Height" Value="1"/>

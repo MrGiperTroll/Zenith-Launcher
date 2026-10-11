@@ -1,13 +1,17 @@
 ; ============================================
 ; Zenith Launcher — Inno Setup Installer Script
 ; ============================================
-; Requires: Inno Setup 6.5.4+ (built-in dark mode)
-; Compile:  iscc installer.iss
-; Output:   Output\ZenithLauncher_Setup_v1.0.0.exe
+; Requires: Inno Setup 6.7+ (built-in dark wizard via WizardStyle=dark)
+; Compile:  powershell -ExecutionPolicy Bypass -File build-installer.ps1
+;           (reads <Version> from CustomMcLauncher.csproj automatically;
+;            override: build-installer.ps1 -Version 1.2.3)
+; Output:   Output\ZenithLauncher_Setup_v<version>.exe
 ; ============================================
 
+#ifndef MyAppVersion
+  #define MyAppVersion "1.0.4"
+#endif
 #define MyAppName      "Zenith Launcher"
-#define MyAppVersion   "1.0.3"
 #define MyAppPublisher "Zenith Launcher Team"
 #define MyAppURL       "https://github.com/MrGiperTroll/Zenith-Launcher"
 #define MyAppExeName   "Zenith Launcher.exe"
@@ -36,7 +40,7 @@ DisableProgramGroupPage=yes
 DisableDirPage=no
 UninstallDisplayIcon={app}\{#MyAppExeName}
 UninstallDisplayName={#MyAppName}
-VersionInfoVersion=1.0.0.0
+VersionInfoVersion={#MyAppVersion}.0
 VersionInfoCompany={#MyAppPublisher}
 VersionInfoDescription={#MyAppName} Setup
 VersionInfoProductName={#MyAppName}
@@ -44,7 +48,7 @@ VersionInfoProductVersion={#MyAppVersion}
 SetupIconFile=Assets\app.ico
 CloseApplications=force
 CloseApplicationsFilter=Zenith Launcher.exe
-RestartApplications=no
+RestartApplications=yes
 
 [Languages]
 Name: "english";    MessagesFile: "compiler:Default.isl"
@@ -59,7 +63,10 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "startmenuicon"; Description: "Create Start Menu shortcut"; GroupDescription: "{cm:AdditionalIcons}"; Flags: checkedonce
 
 [Files]
-Source: "publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+; Staged by build-installer.ps1 (self-contained single-file publish + Assets).
+; User data lives in %APPDATA%\.zenith (outside {app}) so reinstalls/upgrades
+; never touch settings, instances or accounts.
+Source: "publish\setup-stage\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"

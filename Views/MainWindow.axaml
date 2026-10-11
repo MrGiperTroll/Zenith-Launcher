@@ -363,22 +363,22 @@
             <Setter Property="Opacity" Value="0.3"/>
         </Style>
 
-        <!-- Update Button: circle arrow flanked by side lines; label unfolds left, arrow stays pinned -->
+        <!-- Update Button: circle arrow flanked by side lines; pill auto-fits label, arrow stays pinned -->
         <Style Selector="Button.updateBtn">
-            <Setter Property="Background" Value="{StaticResource IconChipBrush}"/>
+            <Setter Property="Background" Value="{StaticResource CardAltBrush}"/>
             <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Width" Value="36"/>
             <Setter Property="Height" Value="36"/>
+            <Setter Property="MaxWidth" Value="36"/>
             <Setter Property="CornerRadius" Value="18"/>
             <Setter Property="Padding" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="ClipToBounds" Value="True"/>
-            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Right"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="Transitions">
                 <Transitions>
-                    <DoubleTransition Property="Width" Duration="0:0:0.22" Easing="0.05, 0.7, 0.1, 1"/>
+                    <DoubleTransition Property="MaxWidth" Duration="0:0:0.25" Easing="0.05, 0.7, 0.1, 1"/>
                 </Transitions>
             </Setter>
         </Style>
@@ -387,20 +387,17 @@
             <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
         </Style>
         <Style Selector="Button.updateBtn:pointerover">
-            <Setter Property="Width" Value="124"/>
+            <Setter Property="MaxWidth" Value="150"/>
         </Style>
         <Style Selector="Button.updateBtn Border.uplabel">
-            <Setter Property="MaxWidth" Value="0"/>
             <Setter Property="Opacity" Value="0"/>
             <Setter Property="Transitions">
                 <Transitions>
-                    <DoubleTransition Property="MaxWidth" Duration="0:0:0.22" Easing="0.05, 0.7, 0.1, 1"/>
                     <DoubleTransition Property="Opacity" Duration="0:0:0.15"/>
                 </Transitions>
             </Setter>
         </Style>
         <Style Selector="Button.updateBtn:pointerover Border.uplabel">
-            <Setter Property="MaxWidth" Value="88"/>
             <Setter Property="Opacity" Value="1"/>
         </Style>
         <Style Selector="Button.updateBtn:pointerover PathIcon">
@@ -529,8 +526,8 @@
                         </ItemsControl>
                     </StackPanel>
 
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="8,0,0,0" IsVisible="{Binding IsUpdateAvailable}">
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="2" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" IsVisible="{Binding IsUpdateAvailable}">
                         <Border Width="16" Height="1" Background="{StaticResource BorderSoftBrush}" Opacity="0.7" VerticalAlignment="Center"/>
                         <Button Classes="updateBtn" Command="{Binding CheckForUpdatesNowCommand}" ToolTip.Tip="{l10n:Tr Key=update_btn}">
                             <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">

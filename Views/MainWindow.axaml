@@ -368,9 +368,9 @@
             <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}"/>
             <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Height" Value="36"/>
-            <Setter Property="MaxWidth" Value="36"/>
-            <Setter Property="CornerRadius" Value="18"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="MaxWidth" Value="32"/>
+            <Setter Property="CornerRadius" Value="16"/>
             <Setter Property="Padding" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="ClipToBounds" Value="True"/>
@@ -387,18 +387,7 @@
             <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
         </Style>
         <Style Selector="Button.updateBtn:pointerover">
-            <Setter Property="MaxWidth" Value="126"/>
-        </Style>
-        <Style Selector="Button.updateBtn Border.uplabel">
-            <Setter Property="Opacity" Value="0"/>
-            <Setter Property="Transitions">
-                <Transitions>
-                    <DoubleTransition Property="Opacity" Duration="0:0:0.2"/>
-                </Transitions>
-            </Setter>
-        </Style>
-        <Style Selector="Button.updateBtn:pointerover Border.uplabel">
-            <Setter Property="Opacity" Value="1"/>
+            <Setter Property="MaxWidth" Value="132"/>
         </Style>
 
         <!-- Breadcrumb Item Buttons -->
@@ -524,17 +513,17 @@
                     </StackPanel>
 
                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="0" HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" IsVisible="{Binding IsUpdateAvailable}">
-                        <Border Width="16" Height="1" Background="{StaticResource BorderSoftBrush}" Opacity="0.7" VerticalAlignment="Center"/>
+                    <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center" IsVisible="{Binding IsUpdateAvailable}">
+                        <Border Width="12" Height="1" Background="{StaticResource BorderSoftBrush}" Opacity="0.7" VerticalAlignment="Center"/>
                         <Button Classes="updateBtn" Command="{Binding CheckForUpdatesNowCommand}" ToolTip.Tip="{l10n:Tr Key=update_btn}">
-                            <Grid ColumnDefinitions="*,Auto" MinWidth="36" VerticalAlignment="Center">
-                                <Border Grid.Column="0" Classes="uplabel" ClipToBounds="True" VerticalAlignment="Center" Padding="10,0,6,0">
+                            <Grid ColumnDefinitions="*,Auto" MinWidth="32" VerticalAlignment="Center">
+                                <Border Grid.Column="0" ClipToBounds="True" VerticalAlignment="Center" Padding="10,0,6,0">
                                     <TextBlock Text="{l10n:Tr Key=update_btn}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Right" TextTrimming="CharacterEllipsis"/>
                                 </Border>
-                                <PathIcon Grid.Column="1" Data="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z" Width="15" Height="15" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <PathIcon Grid.Column="1" Data="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z" Width="14" Height="14" VerticalAlignment="Center" Margin="0,0,9,0"/>
                             </Grid>
                         </Button>
-                        <Border Width="16" Height="1" Background="{StaticResource BorderSoftBrush}" Opacity="0.7" VerticalAlignment="Center"/>
+                        <Border Width="12" Height="1" Background="{StaticResource BorderSoftBrush}" Opacity="0.7" VerticalAlignment="Center"/>
                     </StackPanel>
                         <Button Command="{Binding OpenAccountsDialogCommand}" Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderSoftBrush}" BorderThickness="1" CornerRadius="18" Padding="10,4" Cursor="Hand">
                             <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">

@@ -2,12 +2,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="CustomMcLauncher.Views.UpdateNotificationView"
              x:DataType="vms:UpdateNotificationViewModel"
-             xmlns:vms="clr-namespace:CustomMcLauncher.Views">
+             xmlns:vms="clr-namespace:CustomMcLauncher.Views"
+             xmlns:l10n="using:CustomMcLauncher.Extensions">
 
     <UserControl.Styles>
         <Style Selector="Button.primaryBtn">
-            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Padding" Value="18,9"/>
@@ -15,6 +16,9 @@
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Button.primaryBtn:disabled /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Opacity" Value="0.65"/>
         </Style>
         <Style Selector="Button.secondaryBtn">
             <Setter Property="Background" Value="Transparent"/>
@@ -27,20 +31,68 @@
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
         </Style>
+        <Style Selector="Button.iconBtn">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Width" Value="28"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Button.iconBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+        </Style>
+        <Style Selector="ProgressBar.upbar">
+            <Setter Property="MinHeight" Value="6"/>
+            <Setter Property="CornerRadius" Value="3"/>
+            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+        </Style>
     </UserControl.Styles>
 
-    <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="14" Width="340">
-        <!-- Title -->
-        <TextBlock Grid.Row="0" Classes="sectionTitle"
-                   Text="{Binding TitleText}"/>
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="12" Width="400">
+        <!-- Header: logo, title, version flow, close -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalAlignment="Center">
+            <Border Grid.Column="0" Width="40" Height="40" CornerRadius="10" Background="{DynamicResource AccentSoftBrush}" VerticalAlignment="Center">
+                <Path Data="{StaticResource ZenithLogoGeometry}" Fill="{DynamicResource AccentBrush}" Stretch="Uniform" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                <TextBlock Classes="sectionTitle" Text="{Binding TitleText}"/>
+                <TextBlock FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center">
+                    <Run Text="{Binding CurrentVersionText}"/><Run Text="  →  "/><Run Text="{Binding NewVersionText}"/>
+                </TextBlock>
+            </StackPanel>
+            <Button Grid.Column="2" Classes="iconBtn" Content="✕" Command="{Binding DismissCommand}" VerticalAlignment="Top"/>
+        </Grid>
+
+        <!-- Release notes -->
+        <StackPanel Grid.Row="1" Spacing="6" IsVisible="{Binding ReleaseNotesShort, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <TextBlock Text="{l10n:Tr Key=update_whatsnew}" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" Opacity="0.8"/>
+            <Border Background="{StaticResource FieldBrush}" CornerRadius="8" Padding="10,8">
+                <ScrollViewer MaxHeight="110" VerticalScrollBarVisibility="Auto">
+                    <TextBlock Text="{Binding ReleaseNotesShort}" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                </ScrollViewer>
+            </Border>
+        </StackPanel>
+
+        <!-- Download progress -->
+        <StackPanel Grid.Row="2" Spacing="6" IsVisible="{Binding ShowProgress}">
+            <ProgressBar Classes="upbar" Minimum="0" Maximum="100" Value="{Binding DownloadPercent}"/>
+            <TextBlock Text="{Binding DownloadLine}" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Right"/>
+        </StackPanel>
 
         <!-- Status -->
-        <TextBlock Grid.Row="1" Classes="sectionHint"
+        <TextBlock Grid.Row="3" Classes="sectionHint"
                    Text="{Binding StatusText}"
                    IsVisible="{Binding StatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
 
         <!-- Buttons -->
-        <StackPanel Grid.Row="2"
+        <StackPanel Grid.Row="4"
                     Orientation="Horizontal"
                     HorizontalAlignment="Right"
                     Spacing="8">

@@ -18,6 +18,12 @@ public sealed record UpdateCheckResult(
     string ReleaseNotes,
     bool IsNewerThanCurrent);
 
+/// <summary>Download progress snapshot (percent is 0-100).</summary>
+public sealed record DownloadProgress(
+    double Percent,
+    long DownloadedBytes,
+    long TotalBytes);
+
 /// <summary>
 /// Update pipeline contract. The download/apply stage is intentionally
 /// reserved: the launcher ships without an installer yet, so nothing calls
@@ -30,7 +36,7 @@ public interface IUpdateService
     Task<UpdateCheckResult?> CheckForUpdatesAsync(CancellationToken ct = default);
 
     /// <summary>Reserved for the future auto-update flow (not activated).</summary>
-    Task<bool> DownloadAndApplyAsync(UpdateCheckResult update, CancellationToken ct = default);
+    Task<bool> DownloadAndApplyAsync(UpdateCheckResult update, CancellationToken ct = default, IProgress<DownloadProgress>? progress = null);
 }
 
 /// <summary>
@@ -102,7 +108,7 @@ public sealed class GitHubUpdateService : IUpdateService
         }
     }
 
-    public async Task<bool> DownloadAndApplyAsync(UpdateCheckResult update, CancellationToken ct = default)
+    public async Task<bool> DownloadAndApplyAsync(UpdateCheckResult update, CancellationToken ct = default, IProgress<DownloadProgress>? progress = null)
     {
         try
         {
@@ -115,8 +121,21 @@ public sealed class GitHubUpdateService : IUpdateService
             using (var response = await dlHttp.GetAsync(update.DownloadUrl, HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false))
             {
                 response.EnsureSuccessStatusCode();
+                var total = response.Content.Headers.ContentLength ?? -1L;
                 await using var fs = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None);
-                await response.Content.CopyToAsync(fs, ct).ConfigureAwait(false);
+                await using var stream = await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
+                var buffer = new byte[81920];
+                long downloaded = 0;
+                int read;
+                while ((read = await stream.ReadAsync(buffer.AsMemory(0, buffer.Length), ct).ConfigureAwait(false)) > 0)
+                {
+                    await fs.WriteAsync(buffer.AsMemory(0, read), ct).ConfigureAwait(false);
+                    downloaded += read;
+                    if (progress != null && total > 0)
+                        progress.Report(new DownloadProgress(100.0 * downloaded / total, downloaded, total));
+                }
+                if (progress != null)
+                    progress.Report(new DownloadProgress(100, downloaded, total > 0 ? total : downloaded));
             }
 
             LauncherLog.Info($"Update downloaded to {tempPath}. Starting silent install...");

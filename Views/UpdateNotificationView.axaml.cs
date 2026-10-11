@@ -84,18 +84,24 @@ public partial class UpdateNotificationViewModel : ObservableObject
         }
         static string Text(System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<string>> s, string code)
             => s.TryGetValue(code, out var l) ? string.Join("\n", l).Trim() : "";
+        var plain = Text(sections, "");
         var hit = Text(sections, langCode);
-        if (!string.IsNullOrWhiteSpace(hit)) return hit;
-        hit = Text(sections, "en");
-        if (!string.IsNullOrWhiteSpace(hit)) return hit;
-        hit = Text(sections, "");
-        if (!string.IsNullOrWhiteSpace(hit)) return hit;
-        foreach (var kv in sections)
+        string source = "lang";
+        if (string.IsNullOrWhiteSpace(hit)) { hit = Text(sections, "en"); source = "en"; }
+        if (string.IsNullOrWhiteSpace(hit)) { hit = plain; source = "plain"; }
+        if (string.IsNullOrWhiteSpace(hit))
         {
-            var any = string.Join("\n", kv.Value).Trim();
-            if (!string.IsNullOrWhiteSpace(any)) return any;
+            foreach (var kv in sections)
+            {
+                var any = string.Join("\n", kv.Value).Trim();
+                if (!string.IsNullOrWhiteSpace(any)) { hit = any; break; }
+            }
+            source = "any";
         }
-        return "";
+        // Lines before the first header (e.g. a Full Changelog link) are shown always.
+        if (source != "plain" && !string.IsNullOrWhiteSpace(plain))
+            hit = (hit + "\n\n" + plain).Trim();
+        return hit;
     }
 
     private static string ShortenNotes(string notes)

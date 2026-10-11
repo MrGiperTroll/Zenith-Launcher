@@ -365,8 +365,8 @@
 
         <!-- Update Button: circle arrow flanked by side lines; pill auto-fits label, arrow stays pinned -->
         <Style Selector="Button.updateBtn">
-            <Setter Property="Background" Value="{StaticResource CardAltBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Height" Value="36"/>
             <Setter Property="MaxWidth" Value="36"/>
@@ -383,7 +383,7 @@
             </Setter>
         </Style>
         <Style Selector="Button.updateBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}"/>
             <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
         </Style>
         <Style Selector="Button.updateBtn:pointerover">
@@ -399,9 +399,6 @@
         </Style>
         <Style Selector="Button.updateBtn:pointerover Border.uplabel">
             <Setter Property="Opacity" Value="1"/>
-        </Style>
-        <Style Selector="Button.updateBtn:pointerover PathIcon">
-            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
         </Style>
 
         <!-- Breadcrumb Item Buttons -->
@@ -526,7 +523,7 @@
                         </ItemsControl>
                     </StackPanel>
 
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="2" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="0" HorizontalAlignment="Right" VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" IsVisible="{Binding IsUpdateAvailable}">
                         <Border Width="16" Height="1" Background="{StaticResource BorderSoftBrush}" Opacity="0.7" VerticalAlignment="Center"/>
                         <Button Classes="updateBtn" Command="{Binding CheckForUpdatesNowCommand}" ToolTip.Tip="{l10n:Tr Key=update_btn}">

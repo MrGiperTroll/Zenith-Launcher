@@ -366,7 +366,7 @@
         <!-- Update Button: circle arrow flanked by side lines; pill auto-fits label, arrow stays pinned -->
         <Style Selector="Button.updateBtn">
             <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Height" Value="36"/>
             <Setter Property="MaxWidth" Value="36"/>
@@ -378,22 +378,22 @@
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="Transitions">
                 <Transitions>
-                    <DoubleTransition Property="MaxWidth" Duration="0:0:0.25" Easing="0.05, 0.7, 0.1, 1"/>
+                    <DoubleTransition Property="MaxWidth" Duration="0:0:0.3" Easing="0.33, 0, 0.67, 1"/>
                 </Transitions>
             </Setter>
         </Style>
         <Style Selector="Button.updateBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
         </Style>
         <Style Selector="Button.updateBtn:pointerover">
-            <Setter Property="MaxWidth" Value="150"/>
+            <Setter Property="MaxWidth" Value="126"/>
         </Style>
         <Style Selector="Button.updateBtn Border.uplabel">
             <Setter Property="Opacity" Value="0"/>
             <Setter Property="Transitions">
                 <Transitions>
-                    <DoubleTransition Property="Opacity" Duration="0:0:0.15"/>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.2"/>
                 </Transitions>
             </Setter>
         </Style>
@@ -527,8 +527,8 @@
                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" IsVisible="{Binding IsUpdateAvailable}">
                         <Border Width="16" Height="1" Background="{StaticResource BorderSoftBrush}" Opacity="0.7" VerticalAlignment="Center"/>
                         <Button Classes="updateBtn" Command="{Binding CheckForUpdatesNowCommand}" ToolTip.Tip="{l10n:Tr Key=update_btn}">
-                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                <Border Grid.Column="0" Classes="uplabel" ClipToBounds="True" VerticalAlignment="Center" Padding="0,0,6,0">
+                            <Grid ColumnDefinitions="*,Auto" MinWidth="36" VerticalAlignment="Center">
+                                <Border Grid.Column="0" Classes="uplabel" ClipToBounds="True" VerticalAlignment="Center" Padding="10,0,6,0">
                                     <TextBlock Text="{l10n:Tr Key=update_btn}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Right" TextTrimming="CharacterEllipsis"/>
                                 </Border>
                                 <PathIcon Grid.Column="1" Data="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z" Width="15" Height="15" VerticalAlignment="Center" Margin="0,0,10,0"/>

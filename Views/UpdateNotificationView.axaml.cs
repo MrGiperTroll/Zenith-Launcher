@@ -44,7 +44,58 @@ public partial class UpdateNotificationViewModel : ObservableObject
         var current = System.Reflection.Assembly.GetEntryAssembly()?.GetName().Version?.ToString(3) ?? "0.0.0";
         CurrentVersionText = "v" + current.TrimStart('v', 'V');
         NewVersionText = "v" + update.Version.Trim().TrimStart('v', 'V');
-        ReleaseNotesShort = ShortenNotes(update.ReleaseNotes);
+        ReleaseNotesShort = ShortenNotes(SelectLocalizedNotes(update.ReleaseNotes, L10n.CurrentLanguage));
+    }
+
+    /// <summary>
+    /// Picks the release-notes section matching the current UI language.
+    /// Release body convention (written once on the GitHub release page):
+    /// <code>
+    /// ## en
+    /// English notes…
+    /// ## ru
+    /// Русские заметки…
+    /// </code>
+    /// Falls back to English, then to plain (header-less) text, then to anything.
+    /// </summary>
+    public static string SelectLocalizedNotes(string body, string langCode)
+    {
+        if (string.IsNullOrWhiteSpace(body)) return "";
+        var sections = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<string>>(System.StringComparer.OrdinalIgnoreCase);
+        string? current = null;
+        foreach (var rawLine in body.Split('\n'))
+        {
+            var line = rawLine.TrimEnd('\r');
+            var t = line.Trim();
+            if (t.StartsWith("#"))
+            {
+                var code = t.TrimStart('#').Trim().Split(new[] { ' ', '\t' }, 2)[0].ToLowerInvariant();
+                if (code is "en" or "ru" or "uk" or "tr" or "de" or "fr")
+                {
+                    current = code;
+                    if (!sections.ContainsKey(code)) sections[code] = new System.Collections.Generic.List<string>();
+                    continue;
+                }
+                if (current == null) continue;
+            }
+            var bucket = current ?? "";
+            if (!sections.TryGetValue(bucket, out var list)) { list = new System.Collections.Generic.List<string>(); sections[bucket] = list; }
+            list.Add(line);
+        }
+        static string Text(System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<string>> s, string code)
+            => s.TryGetValue(code, out var l) ? string.Join("\n", l).Trim() : "";
+        var hit = Text(sections, langCode);
+        if (!string.IsNullOrWhiteSpace(hit)) return hit;
+        hit = Text(sections, "en");
+        if (!string.IsNullOrWhiteSpace(hit)) return hit;
+        hit = Text(sections, "");
+        if (!string.IsNullOrWhiteSpace(hit)) return hit;
+        foreach (var kv in sections)
+        {
+            var any = string.Join("\n", kv.Value).Trim();
+            if (!string.IsNullOrWhiteSpace(any)) return any;
+        }
+        return "";
     }
 
     private static string ShortenNotes(string notes)

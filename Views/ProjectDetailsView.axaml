@@ -41,6 +41,19 @@
         </Style>
 
         <!-- Rounded Filter Dropdowns -->
+        <Style Selector="Expander:pointerover">
+            <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
+        </Style>
+        <Style Selector="Expander:pointerover /template/ Border#Root">
+            <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
+            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+        </Style>
+        <Style Selector="Expander:expanded:pointerover">
+            <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
+        </Style>
+        <Style Selector="Expander:expanded:pointerover /template/ Border#Root">
+            <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
+        </Style>
         <Style Selector="ComboBox.roundedFilterCombo">
             <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>

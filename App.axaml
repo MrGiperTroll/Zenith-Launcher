@@ -51,6 +51,13 @@
         <SolidColorBrush x:Key="BorderIconBrush" Color="#2E3139"/>
         <SolidColorBrush x:Key="BorderSoftBrush" Color="#26282E"/>
 
+        <!-- Expander Theme Brushes (Neutral Gray, No Black Border on PointerOver) -->
+        <SolidColorBrush x:Key="ExpanderBorderBrush" Color="#2E3139"/>
+        <SolidColorBrush x:Key="ExpanderBorderBrushPointerOver" Color="#2E3139"/>
+        <SolidColorBrush x:Key="ExpanderBorderBrushPressed" Color="#2E3139"/>
+        <SolidColorBrush x:Key="ExpanderHeaderBorderBrushPointerOver" Color="Transparent"/>
+        <SolidColorBrush x:Key="ExpanderHeaderBorderBrushPressed" Color="Transparent"/>
+
         <!-- Danger / Warning -->
         <SolidColorBrush x:Key="DangerBrush" Color="#EF4444"/>
         <SolidColorBrush x:Key="DangerLightBrush" Color="#F87171"/>
@@ -739,7 +746,35 @@
             <Setter Property="RenderTransform" Value="none"/>
         </Style>
 
-        <!-- Expander Modern Fluent Styling (No black header) -->
+        <!-- Expander Modern Fluent Styling (No black header or black hover border) -->
+        <Style Selector="Expander">
+            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+        </Style>
+        <Style Selector="Expander:pointerover">
+            <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
+        </Style>
+        <Style Selector="Expander:pointerover /template/ Border#Root">
+            <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
+            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+        </Style>
+        <Style Selector="Expander:pointerover /template/ Border">
+            <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
+        </Style>
+        <Style Selector="Expander:expanded">
+            <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
+        </Style>
+        <Style Selector="Expander:expanded:pointerover">
+            <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
+        </Style>
+        <Style Selector="Expander:expanded:pointerover /template/ Border#Root">
+            <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
+        </Style>
+        <Style Selector="Expander:expanded:pointerover /template/ Border">
+            <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
+        </Style>
         <Style Selector="Expander">
             <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>

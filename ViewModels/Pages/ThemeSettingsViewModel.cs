@@ -43,7 +43,7 @@ public partial class ThemeSettingsViewModel : ViewModelBase
     [ObservableProperty] private string _cardHex = "#0D111A";
     [ObservableProperty] private string _textPrimaryHex = "#FFFFFF";
     [ObservableProperty] private string _textSecondaryHex = "#C5CBD6";
-    [ObservableProperty] private string _borderDarkHex = "#121622";
+    [ObservableProperty] private string _borderDarkHex = "#16181C";
 
     [ObservableProperty]
     private IBrush _previewAccentBrush = new SolidColorBrush(Color.Parse(ZenithTheme.DefaultAccent));
@@ -91,7 +91,7 @@ public partial class ThemeSettingsViewModel : ViewModelBase
     private string _savedPanelHex = "#121722";
     private string _savedFieldHex = "#121724";
     private string _savedHoverHex = "#1B2338";
-    private string _savedBorderDarkHex = "#121622";
+    private string _savedBorderDarkHex = "#16181C";
     private string _savedTextPrimaryHex = "#FFFFFF";
     private string _savedTextSecondaryHex = "#C5CBD6";
     private string _savedCustomThemeHex = ZenithTheme.DefaultAccent;

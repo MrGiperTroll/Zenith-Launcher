@@ -56,9 +56,37 @@ public partial class MainWindow : Window
         }
     }
 
-    private void OnTopBarDoubleTapped(object? sender, TappedEventArgs e)
+        private void OnMinimizeButtonClick(object? sender, RoutedEventArgs e)
+    {
+        WindowState = WindowState.Minimized;
+    }
+
+    private void OnMaximizeButtonClick(object? sender, RoutedEventArgs e)
     {
         WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+        UpdateMaximizeIcon();
+    }
+
+    private void OnCloseButtonClick(object? sender, RoutedEventArgs e)
+    {
+        Close();
+    }
+
+    private void UpdateMaximizeIcon()
+    {
+        var icon = this.FindControl<PathIcon>("MaximizeButtonIcon");
+        if (icon != null)
+        {
+            icon.Data = WindowState == WindowState.Maximized
+                ? StreamGeometry.Parse("M4 8H8V4H20V16H16V20H4V8ZM6 10V18H14V10H6ZM16 14H18V6H10V8H16V14Z")
+                : StreamGeometry.Parse("M4 4h16v16H4V4zm2 2v12h12V6H6z");
+        }
+    }
+
+private void OnTopBarDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+        UpdateMaximizeIcon();
     }
 
     private static void OptimizeMemory()

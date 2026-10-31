@@ -125,7 +125,7 @@
         <!-- Main: Sidebar + Content -->
         <Grid Grid.Row="1" ColumnDefinitions="210,*">
             <!-- Sidebar -->
-            <Border Grid.Column="0" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,1,0" Padding="10">
+            <Border Grid.Column="0" Background="{StaticResource SidebarBgBrush}" Padding="10">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Spacing="2">
                         <TextBlock Text="{l10n:Tr Key=ei_menu}" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextCaptionBrush}" LetterSpacing="1" Margin="10,6,10,8" HorizontalAlignment="Left"/>
@@ -607,7 +607,7 @@
         </Grid>
 
         <!-- Bottom control bar -->
-        <Border Grid.Row="2" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,1,0,0" Padding="16,10">
+        <Border Grid.Row="2" Background="{StaticResource SidebarBgBrush}" Padding="16,10">
             <StackPanel Spacing="8">
                 <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding IsDownloading}">
                     <ProgressBar Value="{Binding LaunchProgress}" Height="4" Foreground="{StaticResource AccentBrush}"

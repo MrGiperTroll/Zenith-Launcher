@@ -112,8 +112,7 @@
         <Grid RowDefinitions="Auto,Auto,*">
 
         <!-- ========== HEADER (compact) ========== -->
-        <Border Grid.Row="0" Background="Transparent" BorderBrush="{StaticResource BorderDarkBrush}"
-                BorderThickness="0,0,0,1" Padding="24,16">
+        <Border Grid.Row="0" Background="Transparent" Padding="24,16">
             <Grid ColumnDefinitions="56,*,Auto" ColumnSpacing="12">
                 <Border Grid.Column="0" Width="56" Height="56" CornerRadius="12"
                         Background="{StaticResource IconChipBrush}" ClipToBounds="True" VerticalAlignment="Center">
@@ -154,8 +153,7 @@
         </Border>
 
         <!-- ========== TABS ========== -->
-        <Border Grid.Row="1" Background="Transparent" BorderBrush="{StaticResource BorderDarkBrush}"
-                BorderThickness="0,0,0,1" Padding="24,0">
+        <Border Grid.Row="1" Background="Transparent" Padding="24,0">
             <StackPanel Orientation="Horizontal" Spacing="4">
                 <ToggleButton Classes="tabBtn" IsChecked="{Binding IsDescriptionTab}"
                               Content="{l10n:Tr Key=cb_description}"

@@ -42,17 +42,27 @@
             <Setter Property="Padding" Value="10,8"/>
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.15"/>
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.15"/>
+                </Transitions>
+            </Setter>
         </Style>
         <Style Selector="Button.accRowBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource PanelBrush}"/>
+            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
         </Style>
         <Style Selector="Button.accRowBtn.active">
-            <Setter Property="Background" Value="{StaticResource AccentDimBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource AccentBorderBrush}"/>
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
+        </Style>
+        <Style Selector="Button.accRowBtn.active /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
         </Style>
         <Style Selector="Button.accRowBtn.active:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
+            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
         </Style>
         <Style Selector="Button.delAccBtn">
@@ -128,20 +138,29 @@
                                             Command="{Binding $parent[UserControl].((pages:AccountsViewModel)DataContext).SwitchAccountCommand}"
                                             CommandParameter="{Binding Model}">
                                         <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
-                                            <!-- Skin head avatar -->
-                                            <Border Grid.Column="0" Width="36" Height="36" Background="{StaticResource IconChipBrush}" CornerRadius="6" ClipToBounds="True" Margin="0,0,10,0">
-                                                <Panel>
-                                                    <Image Source="{Binding HeadImage}" Stretch="UniformToFill" IsVisible="{Binding HasHead}" Width="36" Height="36"/>
-                                                    <TextBlock Text="{Binding Initial}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"
-                                                               HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding !HasHead}"/>
-                                                </Panel>
-                                            </Border>
+                                            <!-- Skin head avatar with status dot -->
+                                            <Panel Grid.Column="0" Margin="0,0,10,0" VerticalAlignment="Center">
+                                                <Border Width="36" Height="36" Background="{StaticResource IconChipBrush}" CornerRadius="6" ClipToBounds="True">
+                                                    <Panel>
+                                                        <Image Source="{Binding HeadImage}" Stretch="UniformToFill" IsVisible="{Binding HasHead}" Width="36" Height="36"/>
+                                                        <TextBlock Text="{Binding Initial}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"
+                                                                   HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding !HasHead}"/>
+                                                    </Panel>
+                                                </Border>
+                                                <!-- Online Status Dot for active account -->
+                                                <Border Width="10" Height="10" Background="{StaticResource BgBrush}" CornerRadius="5" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-2,-2" IsVisible="{Binding IsActive}">
+                                                    <Ellipse Width="6" Height="6" Fill="#10B981" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                            </Panel>
                                             <!-- Name + badges -->
-                                            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                                                <TextBlock Classes="rowTitle" Text="{Binding Username}"/>
+                                            <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+                                                <TextBlock Classes="rowTitle" Text="{Binding Username}" FontSize="12.5"/>
                                                 <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                                                     <Border Background="{StaticResource ChipBrush}" CornerRadius="4" Padding="5,1.5">
                                                         <TextBlock Text="{Binding TypeDisplay}" FontSize="9.5" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                    </Border>
+                                                    <Border Background="{DynamicResource AccentDimBrush}" BorderBrush="{DynamicResource AccentBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="5,1" IsVisible="{Binding IsActive}">
+                                                        <TextBlock Text="Active" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
                                                     </Border>
                                                 </StackPanel>
                                             </StackPanel>

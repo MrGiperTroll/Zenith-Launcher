@@ -544,25 +544,27 @@
                             <TextBlock Text="Zenith" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
                             <Button.Flyout>
                                 <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="Standard">
-                                    <Border Background="{StaticResource CardBrush}"
-                                            BorderBrush="{StaticResource BorderCardSoftBrush}"
-                                            BorderThickness="1"
-                                            CornerRadius="8"
-                                            Padding="4"
-                                            MinWidth="170">
-                                        <StackPanel Spacing="2">
-                                            <TextBlock Text="{Binding VersionLabel, StringFormat='Version {0}'}"
-                                                       Foreground="{StaticResource TextMutedBrush}"
-                                                       FontSize="11.5"
-                                                       FontWeight="SemiBold"
-                                                       Padding="10,6"
-                                                       IsHitTestVisible="False"/>
-                                            <Border Height="1" Background="{StaticResource BorderDarkBrush}" Margin="4,2"/>
-                                            <Button Classes="menuItemBtn" Command="{Binding CheckForUpdatesNowCommand}">
-                                                <TextBlock Text="Check for Updates" FontSize="12" VerticalAlignment="Center"/>
-                                            </Button>
-                                        </StackPanel>
-                                    </Border>
+                                    <Flyout.FlyoutPresenterTheme>
+                                        <ControlTheme TargetType="FlyoutPresenter" BasedOn="{StaticResource {x:Type FlyoutPresenter}}">
+                                            <Setter Property="Padding" Value="4"/>
+                                            <Setter Property="Background" Value="{StaticResource CardBrush}"/>
+                                            <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
+                                            <Setter Property="BorderThickness" Value="1"/>
+                                            <Setter Property="CornerRadius" Value="8"/>
+                                        </ControlTheme>
+                                    </Flyout.FlyoutPresenterTheme>
+                                    <StackPanel Spacing="2" MinWidth="170">
+                                        <TextBlock Text="{Binding VersionLabel, StringFormat='Version {0}'}"
+                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   FontSize="11.5"
+                                                   FontWeight="SemiBold"
+                                                   Padding="10,6"
+                                                   IsHitTestVisible="False"/>
+                                        <Border Height="1" Background="{StaticResource BorderDarkBrush}" Margin="4,2"/>
+                                        <Button Classes="menuItemBtn" Command="{Binding CheckForUpdatesNowCommand}">
+                                            <TextBlock Text="Check for Updates" FontSize="12" VerticalAlignment="Center"/>
+                                        </Button>
+                                    </StackPanel>
                                 </Flyout>
                             </Button.Flyout>
                         </Button>

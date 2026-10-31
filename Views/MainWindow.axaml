@@ -10,15 +10,15 @@
         xmlns:l10n="using:CustomMcLauncher.Extensions"
         x:Class="CustomMcLauncher.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Title="{Binding WindowTitle}"
+        Title=""
         Width="1280" Height="780"
         MinWidth="1080" MinHeight="680"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource BgBrush}"
         TransparencyLevelHint="None"
         TransparencyBackgroundFallback="{DynamicResource BgBrush}"
-        WindowDecorations="BorderOnly"
-        
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaTitleBarHeightHint="32"
         Opacity="1">
 
 <Window.Resources>
@@ -411,6 +411,32 @@
             <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
             <Setter Property="FontWeight" Value="Bold"/>
         </Style>
+
+        <!-- Header Account and Update Buttons -->
+        <Style Selector="Button.headerAccountBtn">
+            <Setter Property="Background" Value="{StaticResource CardBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="8,5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.headerAccountBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource CardAltBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
+        </Style>
+        <Style Selector="Button.headerUpdateBtn">
+            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderEditorBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.headerUpdateBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
+        </Style>
         <!-- Top Menu Bar Buttons -->
         <Style Selector="Button.menuBarBtn">
             <Setter Property="Background" Value="Transparent"/>
@@ -472,7 +498,7 @@
             <Grid RowDefinitions="32,*">
                 <!-- Top Window Title / Menu Bar (Row 0) -->
                 <Grid Grid.Row="0" Height="32" Background="{StaticResource SidebarBgBrush}"
-                      ColumnDefinitions="Auto,*,Auto"
+                      ColumnDefinitions="Auto,*,140"
                       PointerPressed="OnTopBarPointerPressed"
                       DoubleTapped="OnTopBarDoubleTapped">
                     <!-- Left: Zenith Brand Menu -->
@@ -486,7 +512,7 @@
                                             BorderThickness="1"
                                             CornerRadius="8"
                                             Padding="4"
-                                            MinWidth="160">
+                                            MinWidth="170">
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="{Binding VersionLabel, StringFormat='Version {0}'}"
                                                        Foreground="{StaticResource TextMutedBrush}"
@@ -496,7 +522,7 @@
                                                        IsHitTestVisible="False"/>
                                             <Border Height="1" Background="{StaticResource BorderDarkBrush}" Margin="4,2"/>
                                             <Button Classes="menuItemBtn" Command="{Binding CheckForUpdatesNowCommand}">
-                                                <TextBlock Text="{l10n:Tr Key=update_btn}" FontSize="12" VerticalAlignment="Center"/>
+                                                <TextBlock Text="Check for Updates" FontSize="12" VerticalAlignment="Center"/>
                                             </Button>
                                         </StackPanel>
                                     </Border>
@@ -508,18 +534,8 @@
                     <!-- Middle: Drag area (empty) -->
                     <Panel Grid.Column="1" Background="Transparent"/>
 
-                    <!-- Right: Window Caption Controls -->
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="0" VerticalAlignment="Stretch">
-                        <Button Classes="captionBtn" Click="OnMinimizeButtonClick" ToolTip.Tip="Minimize">
-                            <PathIcon Data="M19 13H5v-2h14v2z" Width="10" Height="10"/>
-                        </Button>
-                        <Button Classes="captionBtn" Click="OnMaximizeButtonClick" ToolTip.Tip="Maximize">
-                            <PathIcon x:Name="MaximizeButtonIcon" Data="M4 4h16v16H4V4zm2 2v12h12V6H6z" Width="10" Height="10"/>
-                        </Button>
-                        <Button Classes="captionBtn captionCloseBtn" Click="OnCloseButtonClick" ToolTip.Tip="Close">
-                            <PathIcon Data="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" Width="10" Height="10"/>
-                        </Button>
-                    </StackPanel>
+                    <!-- Right: Clear area reserved for native Windows DWM caption buttons -->
+                    <Border Grid.Column="2" Background="Transparent" IsHitTestVisible="False"/>
                 </Grid>
 
                 <!-- Main Application Body (Row 1) -->
@@ -583,7 +599,7 @@
             <!-- Main Workspace -->
             <Grid Grid.Column="1" RowDefinitions="44,*,Auto">
                 <!-- Top Header -->
-                <Grid Grid.Row="0" Margin="0,0,24,0" VerticalAlignment="Center" ColumnDefinitions="*,Auto">
+                <Grid Grid.Row="0" Margin="0,0,10,0" VerticalAlignment="Center" ColumnDefinitions="*,Auto">
                     <!-- Left: Navigation (Back, Forward, Breadcrumbs) -->
                     <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="24,0,0,0">
                         <Button Classes="navBtn" Command="{Binding GoBackCommand}" ToolTip.Tip="{l10n:Tr Key=nav_back}">
@@ -592,8 +608,6 @@
                         <Button Classes="navBtn" Command="{Binding GoForwardCommand}" ToolTip.Tip="{l10n:Tr Key=nav_forward}">
                             <PathIcon Data="M8.59 16.59L13.17 12L8.59 7.41L10 6L16 12L10 18L8.59 16.59Z" Width="14" Height="14"/>
                         </Button>
-
-                        
 
                         <!-- Breadcrumbs -->
                         <ItemsControl ItemsSource="{Binding Breadcrumbs}">
@@ -617,34 +631,31 @@
                         </ItemsControl>
                     </StackPanel>
 
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="0" HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <StackPanel Orientation="Horizontal" Spacing="3" VerticalAlignment="Center" IsVisible="{Binding IsUpdateAvailable}">
-                        <Border Width="8" Height="1" Background="{StaticResource BorderSoftBrush}" Opacity="0.7" VerticalAlignment="Center"/>
-                        <Button Classes="updateBtn" Command="{Binding CheckForUpdatesNowCommand}" ToolTip.Tip="{l10n:Tr Key=update_btn}">
-                            <Grid ColumnDefinitions="*,Auto" MinWidth="29" VerticalAlignment="Center">
-                                <Border Grid.Column="0" ClipToBounds="True" VerticalAlignment="Center" Height="20" Padding="10,0,6,0">
-                                    <TextBlock Text="{l10n:Tr Key=update_btn}" FontSize="12" FontWeight="SemiBold" TextWrapping="NoWrap" VerticalAlignment="Center" HorizontalAlignment="Right" TextTrimming="CharacterEllipsis"/>
-                                </Border>
-                                <PathIcon Grid.Column="1" Data="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z" Width="13" Height="13" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                            </Grid>
+                    <!-- Right: Check for Updates (Always) + Redesigned Account Card -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <Button Classes="headerUpdateBtn" Command="{Binding CheckForUpdatesNowCommand}" ToolTip.Tip="Check for Updates">
+                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                <PathIcon Data="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z" Width="12" Height="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                <TextBlock Text="Check for Updates" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
                         </Button>
-                        <Border Width="8" Height="1" Background="{StaticResource BorderSoftBrush}" Opacity="0.7" VerticalAlignment="Center"/>
-                    </StackPanel>
-                        <Button Command="{Binding OpenAccountsDialogCommand}" Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderSoftBrush}" BorderThickness="1" CornerRadius="18" Padding="10,4" Cursor="Hand">
+
+                        <Button Command="{Binding OpenAccountsDialogCommand}" Classes="headerAccountBtn">
                             <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                <Border Width="18" Height="18" Background="{StaticResource IconChipBrush}" CornerRadius="9" ClipToBounds="True">
+                                <Border Width="20" Height="20" Background="{StaticResource IconChipBrush}" CornerRadius="5" ClipToBounds="True">
                                     <Panel>
                                         <Image Source="{Binding ActiveAccountRow.HeadImage}" Stretch="UniformToFill" IsVisible="{Binding ActiveAccountRow.HasHead}"/>
                                         <PathIcon Data="M12 4A4 4 0 0 1 16 8A4 4 0 0 1 12 12A4 4 0 0 1 8 8A4 4 0 0 1 12 4ZM4 20C4 16.69 7.58 14 12 14C16.42 14 20 16.69 20 20V21H4V20Z"
-                                                  Width="12" Height="12" Foreground="{StaticResource TextSecondaryBrush}"
+                                                  Width="11" Height="11" Foreground="{StaticResource TextSecondaryBrush}"
                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
                                                   IsVisible="{Binding !ActiveAccountRow.HasHead}"/>
                                     </Panel>
                                 </Border>
-                                <TextBlock Text="{Binding ActiveAccountName}" FontWeight="Bold" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                                <Border Background="{StaticResource AccentSoftBrush}" CornerRadius="4" Padding="5,1" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding ActiveAccountName}" FontWeight="SemiBold" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                <Border Background="{StaticResource AccentDimBrush}" BorderBrush="{StaticResource AccentBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="5,1.5" VerticalAlignment="Center">
                                     <TextBlock Text="{Binding ActiveAccountType}" FontSize="10" Foreground="{StaticResource AccentBrush}" FontWeight="Bold" VerticalAlignment="Center"/>
                                 </Border>
+                                <PathIcon Data="M7 10l5 5 5-5z" Width="8" Height="8" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="2,0,0,0"/>
                             </StackPanel>
                         </Button>
                     </StackPanel>

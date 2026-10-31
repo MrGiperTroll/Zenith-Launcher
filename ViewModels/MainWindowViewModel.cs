@@ -1203,19 +1203,41 @@ public partial class MainWindowViewModel : ViewModelBase
         });
     }
 
+    [ObservableProperty]
+    private bool _isServerUnderDevDialogOpen;
+
+    public bool HasExistingServers
+    {
+        get
+        {
+            try
+            {
+                var dir = ServerCreatorService.DefaultServersDirectory;
+                return Directory.Exists(dir) && Directory.GetDirectories(dir).Length > 0;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+    }
+
     [RelayCommand]
     public void NavigateToCreateServer()
     {
-        // Reuse the existing VM so per-server console buffers, selection and
-        // loaded details survive tab switches (recreating it froze the UI with
-        // sync disk scans and dropped console history every time).
-        CreateServerVm ??= new CreateServerViewModel(_instanceService, this);
-        PushHistory(new HistoryEntry
+        IsServerUnderDevDialogOpen = true;
+    }
+
+    [RelayCommand]
+    public void OpenServersDirectory()
+    {
+        try
         {
-            Page = LauncherNavPage.CreateServer,
-            Title = L10n.T("nav_create_server"),
-            CreateServerVm = CreateServerVm
-        });
+            var dir = ServerCreatorService.DefaultServersDirectory;
+            Directory.CreateDirectory(dir);
+            Process.Start(new ProcessStartInfo { FileName = dir, UseShellExecute = true, Verb = "open" });
+        }
+        catch { }
     }
 
     private void NavigateBackToInstance(HistoryEntry entry, string? tab = null)
@@ -3139,6 +3161,7 @@ public partial class MainWindowViewModel : ViewModelBase
         IsDeleteConfirmOpen = false;
         IsRestartConfirmOpen = false;
         IsCloneDialogOpen = false;
+        IsServerUnderDevDialogOpen = false;
         PendingDeleteInstance = null;
         FilterVersions();
     }

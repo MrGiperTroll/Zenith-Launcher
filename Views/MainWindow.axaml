@@ -17,6 +17,8 @@
         Background="{DynamicResource BgBrush}"
         TransparencyLevelHint="None"
         TransparencyBackgroundFallback="{DynamicResource BgBrush}"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaTitleBarHeightHint="-1"
         Opacity="1">
 
 <Window.Resources>
@@ -478,7 +480,10 @@
             <!-- Main Workspace -->
             <Grid Grid.Column="1" RowDefinitions="52,*,Auto">
                 <!-- Top Header -->
-                <Grid Grid.Row="0" Margin="0,0,24,0" VerticalAlignment="Center" ColumnDefinitions="*,Auto">
+                <Grid Grid.Row="0" Margin="0,0,140,0" VerticalAlignment="Stretch" ColumnDefinitions="Auto,*,Auto"
+                      Background="Transparent"
+                      PointerPressed="OnTopBarPointerPressed"
+                      DoubleTapped="OnTopBarDoubleTapped">
                     <!-- Left: Navigation (Back, Forward, Breadcrumbs) -->
                     <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="24,0,0,0">
                         <Button Classes="navBtn" Command="{Binding GoBackCommand}" ToolTip.Tip="{l10n:Tr Key=nav_back}">
@@ -512,7 +517,18 @@
                         </ItemsControl>
                     </StackPanel>
 
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="0" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <!-- Center: Window Title in top bar -->
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding WindowTitle}"
+                               FontSize="12"
+                               FontWeight="SemiBold"
+                               Foreground="{StaticResource TextMutedBrush}"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               IsHitTestVisible="False"
+                               Opacity="0.7"/>
+
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="0" HorizontalAlignment="Right" VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal" Spacing="3" VerticalAlignment="Center" IsVisible="{Binding IsUpdateAvailable}">
                         <Border Width="8" Height="1" Background="{StaticResource BorderSoftBrush}" Opacity="0.7" VerticalAlignment="Center"/>
                         <Button Classes="updateBtn" Command="{Binding CheckForUpdatesNowCommand}" ToolTip.Tip="{l10n:Tr Key=update_btn}">

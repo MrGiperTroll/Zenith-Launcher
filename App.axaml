@@ -20,36 +20,36 @@
 
         <Geometry x:Key="ZenithLogoGeometry">M558.344 400.366C571.623 396.064 583.658 391.147 596.643 386.115L637.625 370.625C666.622 359.837 696.309 350.113 724.897 338.366C711.898 350.999 699.747 364.104 687.038 376.719L556.158 505.636C528.781 532.184 499.524 557.819 471.784 584.055L472.073 585.667C476.856 583.156 484.671 580.042 489.84 577.808L518.249 565.513C554.358 550.211 585.042 537.696 622.348 525.143C627.132 534.236 632.665 542.719 638.059 551.443C646.7 565.735 655.599 579.868 664.753 593.837C684.178 624.592 703.87 655.179 723.825 685.593C671.712 673.401 619.504 661.62 567.205 650.251C523.932 640.119 480.502 630.67 436.931 621.909L303.856 685C318.881 668.775 337.163 651.35 352.875 635.346C390.704 596.217 429.114 557.655 468.092 519.67L513.838 474.463C528.25 459.985 544.85 442.908 560.302 429.712C517.215 444.062 474.236 458.735 431.37 473.73C410.21 481.268 388.993 488.646 367.72 495.861C348.57 502.154 326.751 508.351 307.223 514.086C305.97 514.433 305.093 514.578 303.819 514.805L303.707 514.31L306.212 512.571L391.909 457.609C402.704 450.675 415.614 441.623 426.327 435.161C417.499 427.886 408.138 420.933 399.024 413.993C375.58 396.139 352.079 378.374 328.775 360.334C319.433 353.102 309.717 346.407 300.549 338.932C348.224 351.261 396.066 362.933 444.063 373.946L526.132 392.828C536.8 395.328 547.762 397.627 558.344 400.366Z</Geometry>
 
-        <!-- Surfaces -->
-        <SolidColorBrush x:Key="BgBrush" Color="#080A0F"/>
-        <SolidColorBrush x:Key="SidebarBgBrush" Color="#06080D"/>
-        <SolidColorBrush x:Key="SurfaceBrush" Color="#0A0D15"/>
-        <SolidColorBrush x:Key="ContentSurfaceBrush" Color="#080B12"/>
-        <SolidColorBrush x:Key="CardBrush" Color="#0D111A"/>
-        <SolidColorBrush x:Key="CardAltBrush" Color="#0E121B"/>
-        <SolidColorBrush x:Key="PanelBrush" Color="#151C2C"/>
-        <SolidColorBrush x:Key="PanelBrushTransparent" Color="#00151C2C"/>
-        <SolidColorBrush x:Key="RowHoverBrushTransparent" Color="#001B2338"/>
-        <SolidColorBrush x:Key="ChipBrush" Color="#141A28"/>
-        <SolidColorBrush x:Key="IconChipBrush" Color="#101623"/>
-        <SolidColorBrush x:Key="FieldBrush" Color="#121724"/>
-        <SolidColorBrush x:Key="RowHoverBrush" Color="#1B2338"/>
-        <SolidColorBrush x:Key="TabActiveBrush" Color="#131826"/>
-        <SolidColorBrush x:Key="TabActiveBrushTransparent" Color="#00131826"/>
-        <SolidColorBrush x:Key="TabHoverBrush" Color="#101725"/>
-        <SolidColorBrush x:Key="TabPressedBrush" Color="#1B2435"/>
-        <SolidColorBrush x:Key="InputFocusBrush" Color="#0F131E"/>
-        <SolidColorBrush x:Key="LogSidebarBrush" Color="#0B0E16"/>
+        <!-- Surfaces (Qoder Neutral Graphite/Charcoal Palette) -->
+        <SolidColorBrush x:Key="BgBrush" Color="#131416"/>
+        <SolidColorBrush x:Key="SidebarBgBrush" Color="#101113"/>
+        <SolidColorBrush x:Key="SurfaceBrush" Color="#18191C"/>
+        <SolidColorBrush x:Key="ContentSurfaceBrush" Color="#141518"/>
+        <SolidColorBrush x:Key="CardBrush" Color="#18191C"/>
+        <SolidColorBrush x:Key="CardAltBrush" Color="#1E2024"/>
+        <SolidColorBrush x:Key="PanelBrush" Color="#181A1E"/>
+        <SolidColorBrush x:Key="PanelBrushTransparent" Color="#00181A1E"/>
+        <SolidColorBrush x:Key="RowHoverBrushTransparent" Color="#00222429"/>
+        <SolidColorBrush x:Key="ChipBrush" Color="#1F2126"/>
+        <SolidColorBrush x:Key="IconChipBrush" Color="#1B1C20"/>
+        <SolidColorBrush x:Key="FieldBrush" Color="#1B1C20"/>
+        <SolidColorBrush x:Key="RowHoverBrush" Color="#222429"/>
+        <SolidColorBrush x:Key="TabActiveBrush" Color="#22252B"/>
+        <SolidColorBrush x:Key="TabActiveBrushTransparent" Color="#0022252B"/>
+        <SolidColorBrush x:Key="TabHoverBrush" Color="#1E2025"/>
+        <SolidColorBrush x:Key="TabPressedBrush" Color="#282B33"/>
+        <SolidColorBrush x:Key="InputFocusBrush" Color="#1E2024"/>
+        <SolidColorBrush x:Key="LogSidebarBrush" Color="#121315"/>
 
-        <!-- Borders -->
-        <SolidColorBrush x:Key="BorderDarkBrush" Color="#222834"/>
-        <SolidColorBrush x:Key="BorderCardSoftBrush" Color="#283040"/>
-        <SolidColorBrush x:Key="BorderInputBrush" Color="#2B3445"/>
-        <SolidColorBrush x:Key="BorderStrongBrush" Color="#323C50"/>
-        <SolidColorBrush x:Key="BorderHoverBrush" Color="#3F4C66"/>
-        <SolidColorBrush x:Key="BorderEditorBrush" Color="#323C50"/>
-        <SolidColorBrush x:Key="BorderIconBrush" Color="#283040"/>
-        <SolidColorBrush x:Key="BorderSoftBrush" Color="#242C3A"/>
+        <!-- Borders (Clean, 100% Neutral, No Cold Tint) -->
+        <SolidColorBrush x:Key="BorderDarkBrush" Color="#202227"/>
+        <SolidColorBrush x:Key="BorderCardSoftBrush" Color="#26282E"/>
+        <SolidColorBrush x:Key="BorderInputBrush" Color="#282A30"/>
+        <SolidColorBrush x:Key="BorderStrongBrush" Color="#2E3038"/>
+        <SolidColorBrush x:Key="BorderHoverBrush" Color="#3A3D46"/>
+        <SolidColorBrush x:Key="BorderEditorBrush" Color="#282A30"/>
+        <SolidColorBrush x:Key="BorderIconBrush" Color="#26282E"/>
+        <SolidColorBrush x:Key="BorderSoftBrush" Color="#222428"/>
 
         <!-- Danger / Warning -->
         <SolidColorBrush x:Key="DangerBrush" Color="#EF4444"/>
@@ -80,17 +80,17 @@
             <GradientStop Offset="1" Color="#10B981"/>
         </LinearGradientBrush>
 
-        <!-- Text -->
+        <!-- Text (Neutral Grey Hierarchy) -->
         <SolidColorBrush x:Key="TextPrimaryBrush" Color="#FFFFFF"/>
-        <SolidColorBrush x:Key="TextSecondaryBrush" Color="#C5CBD6"/>
-        <SolidColorBrush x:Key="TextSoftBrush" Color="#A6ACCD"/>
-        <SolidColorBrush x:Key="TextLabelBrush" Color="#9AA7BD"/>
-        <SolidColorBrush x:Key="TextMutedBrush" Color="#78859E"/>
-        <SolidColorBrush x:Key="TextSubtleBrush" Color="#6E7B91"/>
-        <SolidColorBrush x:Key="TextFaintBrush" Color="#5E6C84"/>
-        <SolidColorBrush x:Key="TextPlaceholderBrush" Color="#5A667E"/>
-        <SolidColorBrush x:Key="TextCaptionBrush" Color="#3A4556"/>
-        <SolidColorBrush x:Key="TextDisabledBrush" Color="#525E75"/>
+        <SolidColorBrush x:Key="TextSecondaryBrush" Color="#8E929B"/>
+        <SolidColorBrush x:Key="TextSoftBrush" Color="#A0A5B0"/>
+        <SolidColorBrush x:Key="TextLabelBrush" Color="#8E929B"/>
+        <SolidColorBrush x:Key="TextMutedBrush" Color="#636773"/>
+        <SolidColorBrush x:Key="TextSubtleBrush" Color="#555963"/>
+        <SolidColorBrush x:Key="TextFaintBrush" Color="#444750"/>
+        <SolidColorBrush x:Key="TextPlaceholderBrush" Color="#50545E"/>
+        <SolidColorBrush x:Key="TextCaptionBrush" Color="#383B44"/>
+        <SolidColorBrush x:Key="TextDisabledBrush" Color="#40434B"/>
 
         <!-- Overlays -->
         <SolidColorBrush x:Key="OverlayBrush" Color="#C8000000"/>

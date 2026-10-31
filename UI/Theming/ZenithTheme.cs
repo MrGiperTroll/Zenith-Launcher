@@ -22,16 +22,16 @@ public static class ZenithTheme
         var hover = Lighten(accent, 0.16f);
         var pressed = Darken(accent, 0.2f);
 
-        var bg = TryParse(cfg.BgColor) ? Color.Parse(cfg.BgColor) : Color.Parse("#080A0F");
-        var sidebarBg = TryParse(cfg.SidebarBgColor) ? Color.Parse(cfg.SidebarBgColor) : Color.Parse("#06080D");
-        var surface = TryParse(cfg.SurfaceColor) ? Color.Parse(cfg.SurfaceColor) : Color.Parse("#0A0D15");
-        var card = TryParse(cfg.CardColor) ? Color.Parse(cfg.CardColor) : Color.Parse("#0D111A");
-        var panel = TryParse(cfg.PanelColor) ? Color.Parse(cfg.PanelColor) : Color.Parse("#151C2C");
-        var borderDark = TryParse(cfg.BorderDarkColor) && cfg.BorderDarkColor != "#121622" && cfg.BorderDarkColor != "#182743" && cfg.BorderDarkColor != "#16181C" ? Color.Parse(cfg.BorderDarkColor) : Color.Parse("#222834");
-        var field = TryParse(cfg.FieldColor) ? Color.Parse(cfg.FieldColor) : Blend(panel, card, 0.5f);
-        var hoverTint = TryParse(cfg.HoverColor) ? Color.Parse(cfg.HoverColor) : Blend(accent, card, 0.22f);
+        var bg = TryParse(cfg.BgColor) && cfg.BgColor != "#080A0F" && cfg.BgColor != "#140F0F" ? Color.Parse(cfg.BgColor) : Color.Parse("#131416");
+        var sidebarBg = TryParse(cfg.SidebarBgColor) && cfg.SidebarBgColor != "#06080D" && cfg.SidebarBgColor != "#0F0C0D" ? Color.Parse(cfg.SidebarBgColor) : Color.Parse("#101113");
+        var surface = TryParse(cfg.SurfaceColor) && cfg.SurfaceColor != "#0A0D15" && cfg.SurfaceColor != "#0D111A" && cfg.SurfaceColor != "#1F1819" ? Color.Parse(cfg.SurfaceColor) : Color.Parse("#18191C");
+        var card = TryParse(cfg.CardColor) && cfg.CardColor != "#0D111A" && cfg.CardColor != "#221919" ? Color.Parse(cfg.CardColor) : Color.Parse("#18191C");
+        var panel = TryParse(cfg.PanelColor) && cfg.PanelColor != "#151C2C" && cfg.PanelColor != "#121722" && cfg.PanelColor != "#2D2220" ? Color.Parse(cfg.PanelColor) : Color.Parse("#181A1E");
+        var borderDark = TryParse(cfg.BorderDarkColor) && cfg.BorderDarkColor != "#121622" && cfg.BorderDarkColor != "#182743" && cfg.BorderDarkColor != "#16181C" && cfg.BorderDarkColor != "#222834" ? Color.Parse(cfg.BorderDarkColor) : Color.Parse("#202227");
+        var field = TryParse(cfg.FieldColor) && cfg.FieldColor != "#121724" && cfg.FieldColor != "#292022" ? Color.Parse(cfg.FieldColor) : Color.Parse("#1B1C20");
+        var hoverTint = TryParse(cfg.HoverColor) && cfg.HoverColor != "#1B2338" && cfg.HoverColor != "#473331" ? Color.Parse(cfg.HoverColor) : Color.Parse("#222429");
         var textPrimary = TryParse(cfg.TextPrimaryColor) ? Color.Parse(cfg.TextPrimaryColor) : Colors.White;
-        var textSecondary = TryParse(cfg.TextSecondaryColor) ? Color.Parse(cfg.TextSecondaryColor) : Color.Parse("#C5CBD6");
+        var textSecondary = TryParse(cfg.TextSecondaryColor) && cfg.TextSecondaryColor != "#C5CBD6" ? Color.Parse(cfg.TextSecondaryColor) : Color.Parse("#8E929B");
 
         // Surfaces
         SetBrushColor(r, "BgBrush", bg);
@@ -57,15 +57,15 @@ public static class ZenithTheme
         SetBrushColor(r, "TabHoverBrush", Blend(accent, sidebarBg, 0.14f));
         SetBrushColor(r, "TabPressedBrush", Blend(pressed, sidebarBg, 0.28f));
 
-        // Borders
+        // Borders (Neutral Qoder style)
         SetBrushColor(r, "BorderDarkBrush", borderDark);
-        SetBrushColor(r, "BorderStrongBrush", Lighten(borderDark, 0.12f));
-        SetBrushColor(r, "BorderCardSoftBrush", Lighten(borderDark, 0.07f));
-        SetBrushColor(r, "BorderInputBrush", Lighten(borderDark, 0.08f));
-        SetBrushColor(r, "BorderHoverBrush", Blend(accent, borderDark, 0.45f));
-        SetBrushColor(r, "BorderEditorBrush", Lighten(borderDark, 0.09f));
-        SetBrushColor(r, "BorderIconBrush", Lighten(borderDark, 0.06f));
-        SetBrushColor(r, "BorderSoftBrush", Lighten(borderDark, 0.04f));
+        SetBrushColor(r, "BorderStrongBrush", Color.Parse("#2E3038"));
+        SetBrushColor(r, "BorderCardSoftBrush", Color.Parse("#26282E"));
+        SetBrushColor(r, "BorderInputBrush", Color.Parse("#282A30"));
+        SetBrushColor(r, "BorderHoverBrush", Color.Parse("#3A3D46"));
+        SetBrushColor(r, "BorderEditorBrush", Color.Parse("#282A30"));
+        SetBrushColor(r, "BorderIconBrush", Color.Parse("#26282E"));
+        SetBrushColor(r, "BorderSoftBrush", Color.Parse("#222428"));
 
         // Accents
         SetBrushColor(r, "AccentBrush", accent);
@@ -207,29 +207,20 @@ public static class ZenithTheme
         if (!TryParse(accentHex)) accentHex = DefaultAccent;
         var accent = Color.Parse(accentHex);
 
-        // Harmonize dark surfaces with a subtle tint of the chosen accent color (Anti-AI-slop: clean, restrained, high-contrast)
-        var bg = Blend(accent, Color.Parse("#080A0F"), 0.05f);
-        var sidebarBg = Blend(accent, Color.Parse("#06080D"), 0.04f);
-        var surface = Blend(accent, Color.Parse("#0D111A"), 0.08f);
-        var card = Blend(accent, Color.Parse("#0D111A"), 0.09f);
-        var panel = Blend(accent, Color.Parse("#121722"), 0.12f);
-        var borderDark = Color.Parse("#222834");
-        var field = Blend(accent, Color.Parse("#121724"), 0.10f);
-        var hover = Blend(accent, Color.Parse("#1B2338"), 0.20f);
-
+        // Neutral charcoal base (Qoder design): crisp, matte, perfectly neutral borders
         return new Models.LauncherConfigData
         {
             AccentColor = accentHex,
-            BgColor = ColorToHex(bg),
-            SidebarBgColor = ColorToHex(sidebarBg),
-            SurfaceColor = ColorToHex(surface),
-            CardColor = ColorToHex(card),
-            PanelColor = ColorToHex(panel),
-            FieldColor = ColorToHex(field),
-            HoverColor = ColorToHex(hover),
-            BorderDarkColor = ColorToHex(borderDark),
+            BgColor = "#131416",
+            SidebarBgColor = "#101113",
+            SurfaceColor = "#18191C",
+            CardColor = "#18191C",
+            PanelColor = "#181A1E",
+            FieldColor = "#1B1C20",
+            HoverColor = "#222429",
+            BorderDarkColor = "#202227",
             TextPrimaryColor = "#FFFFFF",
-            TextSecondaryColor = "#C5CBD6"
+            TextSecondaryColor = "#8E929B"
         };
     }
 

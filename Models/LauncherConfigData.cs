@@ -14,16 +14,16 @@ public class LauncherConfigData
     public string CustomJavaPath { get; set; } = string.Empty;
     public string AccentColor { get; set; } = "";
     public string SimpleAccentColor { get; set; } = "#3B82F6";
-    public string BgColor { get; set; } = "#080A0F";
-    public string SurfaceColor { get; set; } = "#0D111A";
-    public string PanelColor { get; set; } = "#121722";
-    public string SidebarBgColor { get; set; } = "#06080D";
-    public string CardColor { get; set; } = "#0D111A";
+    public string BgColor { get; set; } = "#131416";
+    public string SurfaceColor { get; set; } = "#18191C";
+    public string PanelColor { get; set; } = "#181A1E";
+    public string SidebarBgColor { get; set; } = "#101113";
+    public string CardColor { get; set; } = "#18191C";
     public string TextPrimaryColor { get; set; } = "#FFFFFF";
-    public string TextSecondaryColor { get; set; } = "#C5CBD6";
-    public string BorderDarkColor { get; set; } = "#222834";
-    public string FieldColor { get; set; } = "#121724";
-    public string HoverColor { get; set; } = "#1B2338";
+    public string TextSecondaryColor { get; set; } = "#8E929B";
+    public string BorderDarkColor { get; set; } = "#202227";
+    public string FieldColor { get; set; } = "#1B1C20";
+    public string HoverColor { get; set; } = "#222429";
     public string LauncherName { get; set; } = "Zenith Launcher";
     public bool UseFlatVersionList { get; set; } = false;
 

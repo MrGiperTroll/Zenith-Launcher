@@ -117,8 +117,7 @@
                 <StackPanel Spacing="20">
                     <!-- Game Settings (Qoder Minimalist Grouped Cards) -->
                     <StackPanel Spacing="16" IsVisible="{Binding IsSettingsTabGame}">
-                        <TextBlock Text="{l10n:Tr set_game}" FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,4"/>
-
+                        
                         <!-- Group 1: Java & Runtime -->
                         <Border Classes="zenCard" Padding="16">
                             <StackPanel Spacing="14">

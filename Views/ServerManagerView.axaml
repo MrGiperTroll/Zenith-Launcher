@@ -16,8 +16,7 @@
         <Grid RowDefinitions="Auto,*,Auto">
             <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,14">
                 <StackPanel Spacing="2">
-                    <TextBlock Classes="pageTitle" Text="{l10n:Tr Key=sm_title}"/>
-                    <TextBlock Classes="sectionHint" Text="{Binding StatusText}"/>
+                                        <TextBlock Classes="sectionHint" Text="{Binding StatusText}"/>
                 </StackPanel>
                 <Button Grid.Column="1" Classes="primaryBtn" Content="{l10n:Tr Key=sm_add}" Command="{Binding AddServerCommand}" VerticalAlignment="Center" Padding="16,8"/>
             </Grid>

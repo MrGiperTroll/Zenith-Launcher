@@ -28,6 +28,21 @@ public partial class ProjectDetailsView : UserControl
         }
     }
 
+    private void OnDownloadVersionClicked(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Control { DataContext: ModrinthProjectVersion version })
+        {
+            if (DataContext is ViewModels.ContentBrowserViewModel cbVm)
+            {
+                cbVm.DownloadVersionCommand.Execute(version);
+            }
+            else if (DataContext is ViewModels.ModpacksBrowserViewModel mpVm)
+            {
+                mpVm.DownloadVersionCommand.Execute(version);
+            }
+        }
+    }
+
     private void OnGalleryItemTapped(object? sender, RoutedEventArgs e)
     {
         if (sender is Control { DataContext: ModrinthGalleryItem item })

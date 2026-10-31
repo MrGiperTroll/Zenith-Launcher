@@ -224,8 +224,7 @@
                 <!-- Overview / Dashboard -->
                 <ScrollViewer IsVisible="{Binding IsOverviewTab}" VerticalScrollBarVisibility="Auto">
                     <StackPanel Spacing="16" Margin="24,20,24,24">
-                        <TextBlock Classes="pageTitle" Text="{l10n:Tr Key=tab_overview}"/>
-                        <!-- Instance Hero Card -->
+                                                <!-- Instance Hero Card -->
                         <Border Classes="zenSection">
                             <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8" VerticalAlignment="Center">
                                 <!-- Instance Icon -->
@@ -314,7 +313,7 @@
                     <!-- Top Toolbar -->
                     <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Margin="2,0,2,12" VerticalAlignment="Center">
                         <!-- Left: Title -->
-                        <TextBlock Grid.Column="0" Classes="sectionTitle" Text="{l10n:Tr Key=tab_logs}" VerticalAlignment="Center"/>
+                        <Panel Grid.Column="0"/>
 
                         <!-- Middle: Log view options -->
                         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="14" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -398,8 +397,7 @@
                     <StackPanel Grid.Row="0" Spacing="10" Margin="0,0,0,8">
                         <Grid ColumnDefinitions="*,Auto">
                             <StackPanel Spacing="2" VerticalAlignment="Center">
-                                <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=tab_datapacks}"/>
-                                <TextBlock Text="{Binding DataPacks.Count, StringFormat='{}{0} datapack(s) in selected world'}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                                                                <TextBlock Text="{Binding DataPacks.Count, StringFormat='{}{0} datapack(s) in selected world'}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
                             </StackPanel>
                             <Button Grid.Column="1" Classes="primaryBtn" Content="{l10n:Tr Key=btn_browse_datapacks}" Command="{Binding OpenContentBrowserCommand}" CommandParameter="Data Packs" Padding="14,7" FontSize="12" VerticalAlignment="Center" IsEnabled="{Binding AvailableWorlds.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsNonZero}}"/>
                         </Grid>
@@ -462,8 +460,7 @@
                 <!-- Servers -->
                 <Grid IsVisible="{Binding IsServersTab}" RowDefinitions="Auto,*,Auto" Margin="14,10">
                     <StackPanel Grid.Row="0" Spacing="2" Margin="0,0,0,8">
-                        <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=tab_servers}"/>
-                        <TextBlock Text="{Binding Servers.Count, StringFormat='{}{0} server(s) in servers.dat'}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                                                <TextBlock Text="{Binding Servers.Count, StringFormat='{}{0} server(s) in servers.dat'}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
                     </StackPanel>
                     <Border Grid.Row="1" Background="Transparent" Padding="4">
                         <Grid>
@@ -524,8 +521,7 @@
                 <!-- Settings (Clean utilitarian controls) -->
                 <ScrollViewer IsVisible="{Binding IsSettingsTab}" VerticalScrollBarVisibility="Auto">
                     <StackPanel Spacing="16" Margin="24,16,24,24">
-                        <TextBlock Classes="pageTitle" Text="{l10n:Tr Key=tab_settings}"/>
-                        <controls:RamCardControl Title="{l10n:Tr Key=set_memory}"
+                                                <controls:RamCardControl Title="{l10n:Tr Key=set_memory}"
                                               Subtitle="{l10n:Tr Key=set_memory_hint}"
                                               Value="{Binding RamMb}"
                                               Minimum="512"

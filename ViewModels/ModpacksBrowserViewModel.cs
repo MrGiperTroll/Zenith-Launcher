@@ -210,11 +210,11 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     [ObservableProperty]
     private string _selectedFilterPlatform = "All platforms";
 
-    public IReadOnlyList<string> FilterGameVersions =>
-        new[] { "All versions" }.Concat(FullProject?.GameVersions ?? Array.Empty<string>()).Distinct().ToList();
+    [ObservableProperty]
+    private IReadOnlyList<string> _filterGameVersions = new[] { "All versions" };
 
-    public IReadOnlyList<string> FilterPlatforms =>
-        new[] { "All platforms" }.Concat(FullProject?.Loaders ?? Array.Empty<string>()).Distinct().ToList();
+    [ObservableProperty]
+    private IReadOnlyList<string> _filterPlatforms = new[] { "All platforms" };
 
     partial void OnSelectedFilterGameVersionChanged(string value) => OnPropertyChanged(nameof(VersionList));
     partial void OnSelectedFilterPlatformChanged(string value) => OnPropertyChanged(nameof(VersionList));
@@ -948,8 +948,10 @@ public partial class ModpacksBrowserViewModel : ObservableObject
                 }
                 SelectedDetailVersion = null;
                 OnPropertyChanged(nameof(IsVersionDetailActive));
-                OnPropertyChanged(nameof(FilterGameVersions));
-                OnPropertyChanged(nameof(FilterPlatforms));
+                FilterGameVersions = new[] { "All versions" }.Concat(full.GameVersions ?? Array.Empty<string>()).Distinct().ToList();
+                FilterPlatforms = new[] { "All platforms" }.Concat(full.Loaders ?? Array.Empty<string>()).Distinct().ToList();
+                SelectedFilterGameVersion = "All versions";
+                SelectedFilterPlatform = "All platforms";
 
                 if (!string.IsNullOrWhiteSpace(full.HeaderImageUrl))
                 {

@@ -150,7 +150,7 @@
         <Grid RowDefinitions="Auto,Auto,*">
 
             <!-- ========== TOP HEADER ========== -->
-            <Border Grid.Row="0" Background="Transparent" Padding="24,16">
+            <Border Grid.Row="0" Background="Transparent" Padding="24,14">
                 <Grid ColumnDefinitions="56,*,Auto" ColumnSpacing="14">
                     <Border Grid.Column="0" Width="56" Height="56" CornerRadius="12"
                             Background="{StaticResource IconChipBrush}" ClipToBounds="True" VerticalAlignment="Center">
@@ -163,7 +163,7 @@
                         </Panel>
                     </Border>
                     <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
-                        <TextBlock Classes="pageTitle" Text="{Binding DetailsProject.Title}" TextWrapping="Wrap"/>
+                        <TextBlock Text="{Binding DetailsProject.Title}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" TextWrapping="Wrap"/>
                         <TextBlock Classes="sectionHint" Text="{Binding DetailsProject.Description}" TextWrapping="Wrap" MaxLines="2"/>
                         <StackPanel Orientation="Horizontal" Spacing="14" Margin="0,2,0,0">
                             <StackPanel Orientation="Horizontal" Spacing="4">
@@ -329,227 +329,198 @@
                             </StackPanel>
 
                             <!-- ============================================== -->
-                            <!-- DESCRIPTION TAB -->
+                            <!-- REGULAR TABS (Visible when no version detail active) -->
                             <!-- ============================================== -->
-                            <StackPanel IsVisible="{Binding IsDescriptionTab}" Spacing="12">
-                                <StackPanel.IsVisible>
-                                    <MultiBinding Converter="{x:Static BoolConverters.And}">
-                                        <Binding Path="IsDescriptionTab"/>
-                                        <Binding Path="!IsVersionDetailActive"/>
-                                    </MultiBinding>
-                                </StackPanel.IsVisible>
-                                <Border CornerRadius="8" ClipToBounds="True" MaxHeight="240" Margin="0,0,0,8"
-                                        IsVisible="{Binding HeaderImage, Converter={x:Static ObjectConverters.IsNotNull}}">
-                                    <Image Source="{Binding HeaderImage}" Stretch="Uniform" HorizontalAlignment="Center"/>
-                                </Border>
-                                <TextBlock Text="{Binding DetailsProject.Description}" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="20"/>
-                                <Border Height="1" Background="{StaticResource BorderDarkBrush}" Margin="0,4,0,4"
-                                        IsVisible="{Binding CleanBody, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
-                                <TextBlock Text="{Binding CleanBody}" FontSize="12.5" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="20"
-                                           IsVisible="{Binding CleanBody, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
-                            </StackPanel>
+                            <StackPanel IsVisible="{Binding !IsVersionDetailActive}">
 
-                            <!-- ============================================== -->
-                            <!-- GALLERY TAB -->
-                            <!-- ============================================== -->
-                            <StackPanel Spacing="14">
-                                <StackPanel.IsVisible>
-                                    <MultiBinding Converter="{x:Static BoolConverters.And}">
-                                        <Binding Path="IsGalleryTab"/>
-                                        <Binding Path="!IsVersionDetailActive"/>
-                                    </MultiBinding>
-                                </StackPanel.IsVisible>
-                                <ItemsControl ItemsSource="{Binding GalleryItems}">
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <WrapPanel Orientation="Horizontal"/>
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate x:DataType="models:ModrinthGalleryItem">
-                                            <Border Classes="galleryCard" Width="260" Margin="0,0,14,14"
-                                                    Tapped="OnGalleryItemTapped">
-                                                <StackPanel>
-                                                    <Border Height="145" Background="{StaticResource FieldBrush}" ClipToBounds="True">
-                                                        <Image Source="{Binding Image}" Stretch="UniformToFill" IsVisible="{Binding HasImage}"/>
-                                                    </Border>
-                                                    <StackPanel Margin="12,10,12,10" Spacing="4">
-                                                        <TextBlock Text="{Binding Title}" FontSize="12.5" FontWeight="SemiBold"
-                                                                   Foreground="{StaticResource TextPrimaryBrush}"
-                                                                   TextTrimming="CharacterEllipsis"/>
-                                                        <TextBlock Text="{Binding CreatedDisplay}" FontSize="11"
-                                                                   Foreground="{StaticResource TextPlaceholderBrush}"
-                                                                   IsVisible="{Binding CreatedDisplay, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
-                                                    </StackPanel>
-                                                </StackPanel>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                                <TextBlock Text="{l10n:Tr Key=cb_no_screenshots}" FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}"
-                                           IsVisible="{Binding !GalleryItems.Count}"/>
-                            </StackPanel>
+                                <!-- DESCRIPTION TAB -->
+                                <StackPanel IsVisible="{Binding IsDescriptionTab}" Spacing="12">
+                                    <Border CornerRadius="8" ClipToBounds="True" MaxHeight="240" Margin="0,0,0,8"
+                                            IsVisible="{Binding HeaderImage, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                        <Image Source="{Binding HeaderImage}" Stretch="Uniform" HorizontalAlignment="Center"/>
+                                    </Border>
+                                    <TextBlock Text="{Binding DetailsProject.Description}" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="20"/>
+                                    <Border Height="1" Background="{StaticResource BorderDarkBrush}" Margin="0,4,0,4"
+                                            IsVisible="{Binding CleanBody, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
+                                    <TextBlock Text="{Binding CleanBody}" FontSize="12.5" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="20"
+                                               IsVisible="{Binding CleanBody, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
+                                </StackPanel>
 
-                            <!-- ============================================== -->
-                            <!-- CHANGELOG TAB (Timeline matching Modrinth) -->
-                            <!-- ============================================== -->
-                            <StackPanel Spacing="14">
-                                <StackPanel.IsVisible>
-                                    <MultiBinding Converter="{x:Static BoolConverters.And}">
-                                        <Binding Path="IsChangelogTab"/>
-                                        <Binding Path="!IsVersionDetailActive"/>
-                                    </MultiBinding>
-                                </StackPanel.IsVisible>
-
-                                <!-- Filters bar above timeline -->
-                                <Border Background="{StaticResource FieldBrush}" CornerRadius="8" Padding="10,6" Margin="0,0,0,6">
-                                    <Grid ColumnDefinitions="Auto,Auto,Auto,*" VerticalAlignment="Center">
-                                        <PathIcon Grid.Column="0" Data="M3 4h18v2l-7 8v6l-4-2v-4L3 6V4z" Width="13" Height="13"
-                                                  Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="2,0,10,0"/>
-                                        <ComboBox Grid.Column="1" ItemsSource="{Binding FilterGameVersions}" SelectedItem="{Binding SelectedFilterGameVersion}"
-                                                  Width="150" Height="30" FontSize="12" Margin="0,0,8,0"/>
-                                        <ComboBox Grid.Column="2" ItemsSource="{Binding FilterPlatforms}" SelectedItem="{Binding SelectedFilterPlatform}"
-                                                  Width="140" Height="30" FontSize="12"/>
-                                    </Grid>
-                                </Border>
-
-                                <!-- Timeline items -->
-                                <ItemsControl ItemsSource="{Binding VersionList}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate x:DataType="models:ModrinthProjectVersion">
-                                            <Border Classes="versionRow" Padding="6,8" Margin="0,0,0,6">
-                                                <Grid ColumnDefinitions="24,*,Auto" ColumnSpacing="8" VerticalAlignment="Center">
-                                                    <!-- Timeline line and dot -->
-                                                    <Grid Grid.Column="0" VerticalAlignment="Stretch">
-                                                        <Border Width="2" HorizontalAlignment="Center" Background="{DynamicResource AccentBrush}" VerticalAlignment="Stretch" Margin="0,8,0,-12"/>
-                                                        <Border Width="10" Height="10" CornerRadius="5" Background="{DynamicResource AccentBrush}"
-                                                                VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,4,0,0"/>
-                                                    </Grid>
-
-                                                    <!-- Clickable Title & Metadata -->
-                                                    <Border Grid.Column="1" Background="Transparent" Cursor="Hand" Tapped="OnVersionRowTapped">
-                                                        <TextBlock FontSize="13" TextWrapping="Wrap" VerticalAlignment="Center">
-                                                            <Run Text="{Binding Name}" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                                            <Run Text=" by " Foreground="{StaticResource TextMutedBrush}"/>
-                                                            <Run Text="{Binding AuthorName}" Foreground="{DynamicResource AccentBrush}"/>
-                                                            <Run Text=" on " Foreground="{StaticResource TextMutedBrush}"/>
-                                                            <Run Text="{Binding DateLabel}" Foreground="{StaticResource TextMutedBrush}"/>
-                                                        </TextBlock>
-                                                    </Border>
-
-                                                    <!-- Download Button -->
-                                                    <Button Grid.Column="2" Classes="actionBtn" Padding="12,5" MinWidth="100"
-                                                            Command="{Binding $parent[UserControl].((vm:ContentBrowserViewModel)DataContext).DownloadVersionCommand}"
-                                                            CommandParameter="{Binding}">
-                                                        <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
-                                                            <TextBlock Text="&#x2193;" FontWeight="Bold" FontSize="13"/>
-                                                            <TextBlock Text="Download" FontWeight="Bold" FontSize="11.5"/>
+                                <!-- GALLERY TAB -->
+                                <StackPanel IsVisible="{Binding IsGalleryTab}" Spacing="14">
+                                    <ItemsControl ItemsSource="{Binding GalleryItems}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel Orientation="Horizontal"/>
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="models:ModrinthGalleryItem">
+                                                <Border Classes="galleryCard" Width="260" Margin="0,0,14,14"
+                                                        Tapped="OnGalleryItemTapped">
+                                                    <StackPanel>
+                                                        <Border Height="145" Background="{StaticResource FieldBrush}" ClipToBounds="True">
+                                                            <Image Source="{Binding Image}" Stretch="UniformToFill" IsVisible="{Binding HasImage}"/>
+                                                        </Border>
+                                                        <StackPanel Margin="12,10,12,10" Spacing="4">
+                                                            <TextBlock Text="{Binding Title}" FontSize="12.5" FontWeight="SemiBold"
+                                                                       Foreground="{StaticResource TextPrimaryBrush}"
+                                                                       TextTrimming="CharacterEllipsis"/>
+                                                            <TextBlock Text="{Binding CreatedDisplay}" FontSize="11"
+                                                                       Foreground="{StaticResource TextPlaceholderBrush}"
+                                                                       IsVisible="{Binding CreatedDisplay, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
                                                         </StackPanel>
-                                                    </Button>
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <TextBlock Text="{l10n:Tr Key=cb_no_screenshots}" FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}"
+                                               IsVisible="{Binding !GalleryItems.Count}"/>
+                                </StackPanel>
+
+                                <!-- CHANGELOG TAB (Timeline matching Modrinth) -->
+                                <StackPanel IsVisible="{Binding IsChangelogTab}" Spacing="14">
+                                    <!-- Filters bar above timeline -->
+                                    <Border Background="{StaticResource FieldBrush}" CornerRadius="8" Padding="10,6" Margin="0,0,0,6">
+                                        <Grid ColumnDefinitions="Auto,Auto,Auto,*" VerticalAlignment="Center">
+                                            <PathIcon Grid.Column="0" Data="M3 4h18v2l-7 8v6l-4-2v-4L3 6V4z" Width="13" Height="13"
+                                                      Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="2,0,10,0"/>
+                                            <ComboBox Grid.Column="1" ItemsSource="{Binding FilterGameVersions}" SelectedItem="{Binding SelectedFilterGameVersion}"
+                                                      Width="150" Height="30" FontSize="12" Margin="0,0,8,0"/>
+                                            <ComboBox Grid.Column="2" ItemsSource="{Binding FilterPlatforms}" SelectedItem="{Binding SelectedFilterPlatform}"
+                                                      Width="140" Height="30" FontSize="12"/>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Timeline items -->
+                                    <ItemsControl ItemsSource="{Binding VersionList}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="models:ModrinthProjectVersion">
+                                                <Border Classes="versionRow" Padding="6,8" Margin="0,0,0,6">
+                                                    <Grid ColumnDefinitions="24,*,Auto" ColumnSpacing="8" VerticalAlignment="Center">
+                                                        <!-- Timeline line and dot -->
+                                                        <Grid Grid.Column="0" VerticalAlignment="Stretch">
+                                                            <Border Width="2" HorizontalAlignment="Center" Background="{DynamicResource AccentBrush}" VerticalAlignment="Stretch" Margin="0,8,0,-12"/>
+                                                            <Border Width="10" Height="10" CornerRadius="5" Background="{DynamicResource AccentBrush}"
+                                                                    VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                                                        </Grid>
+
+                                                        <!-- Clickable Title & Metadata -->
+                                                        <Border Grid.Column="1" Background="Transparent" Cursor="Hand" Tapped="OnVersionRowTapped">
+                                                            <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                <TextBlock Text="{Binding Name}" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,4,0"/>
+                                                                <TextBlock Text="by " Foreground="{StaticResource TextMutedBrush}"/>
+                                                                <TextBlock Text="{Binding AuthorName}" Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold" Margin="0,0,4,0"/>
+                                                                <TextBlock Text="on " Foreground="{StaticResource TextMutedBrush}"/>
+                                                                <TextBlock Text="{Binding DateLabel}" Foreground="{StaticResource TextMutedBrush}"/>
+                                                            </WrapPanel>
+                                                        </Border>
+
+                                                        <!-- Download Button -->
+                                                        <Button Grid.Column="2" Classes="actionBtn" Padding="12,5" MinWidth="100"
+                                                                Click="OnDownloadVersionClicked">
+                                                            <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                                                                <TextBlock Text="&#x2193;" FontWeight="Bold" FontSize="13"/>
+                                                                <TextBlock Text="Download" FontWeight="Bold" FontSize="11.5"/>
+                                                            </StackPanel>
+                                                        </Button>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+
+                                    <TextBlock Text="{l10n:Tr Key=cb_no_changelog}" FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}"
+                                               IsVisible="{Binding VersionList, Converter={x:Static converters:EditInstanceWindowConverters.IsCollectionEmpty}}"/>
+                                </StackPanel>
+
+                                <!-- VERSIONS TAB (Table matching Modrinth) -->
+                                <StackPanel IsVisible="{Binding IsVersionsTab}" Spacing="14">
+                                    <!-- Filters bar above table -->
+                                    <Border Background="{StaticResource FieldBrush}" CornerRadius="8" Padding="10,6" Margin="0,0,0,6">
+                                        <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto" VerticalAlignment="Center">
+                                            <PathIcon Grid.Column="0" Data="M3 4h18v2l-7 8v6l-4-2v-4L3 6V4z" Width="13" Height="13"
+                                                      Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="2,0,10,0"/>
+                                            <ComboBox Grid.Column="1" ItemsSource="{Binding FilterGameVersions}" SelectedItem="{Binding SelectedFilterGameVersion}"
+                                                      Width="150" Height="30" FontSize="12" Margin="0,0,8,0"/>
+                                            <ComboBox Grid.Column="2" ItemsSource="{Binding FilterPlatforms}" SelectedItem="{Binding SelectedFilterPlatform}"
+                                                      Width="140" Height="30" FontSize="12" Margin="0,0,8,0"/>
+                                            <CheckBox Grid.Column="4" Content="{l10n:Tr Key=cb_show_all_versions}" IsChecked="{Binding ShowAllVersions}"
+                                                      Foreground="{StaticResource TextSecondaryBrush}" FontSize="11.5"/>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Versions Table Container -->
+                                    <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}"
+                                            BorderThickness="1" CornerRadius="8" ClipToBounds="True">
+                                        <StackPanel>
+                                            <!-- Table Header -->
+                                            <Border Background="{StaticResource SurfaceBrush}" Padding="16,10"
+                                                    BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="0,0,0,1">
+                                                <Grid ColumnDefinitions="150,110,120,90,90,*">
+                                                    <TextBlock Grid.Column="0" Text="Version" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
+                                                    <TextBlock Grid.Column="1" Text="Game version" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
+                                                    <TextBlock Grid.Column="2" Text="Platform" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
+                                                    <TextBlock Grid.Column="3" Text="Published" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
+                                                    <TextBlock Grid.Column="4" Text="Downloads" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
                                                 </Grid>
                                             </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
 
-                                <TextBlock Text="{l10n:Tr Key=cb_no_changelog}" FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}"
-                                           IsVisible="{Binding VersionList, Converter={x:Static converters:EditInstanceWindowConverters.IsCollectionEmpty}}"/>
-                            </StackPanel>
+                                            <!-- Table Rows -->
+                                            <ItemsControl ItemsSource="{Binding VersionList}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate x:DataType="models:ModrinthProjectVersion">
+                                                        <Border Classes="versionRow" Padding="16,10" BorderBrush="{StaticResource BorderCardSoftBrush}"
+                                                                BorderThickness="0,0,0,1" Tapped="OnVersionRowTapped">
+                                                            <Grid ColumnDefinitions="150,110,120,90,90,*">
+                                                                <!-- Version with Initial Badge -->
+                                                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                                                    <Border Width="22" Height="22" CornerRadius="11" VerticalAlignment="Center"
+                                                                            Background="{Binding VersionType, Converter={x:Static converters:ContentBrowserConverters.VersionTypeBg}}">
+                                                                        <TextBlock Text="{Binding VersionTypeInitial}" FontSize="11" FontWeight="Bold"
+                                                                                   Foreground="{Binding VersionType, Converter={x:Static converters:ContentBrowserConverters.VersionTypeFg}}"
+                                                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                    <TextBlock Text="{Binding VersionNumber}" FontSize="13" FontWeight="SemiBold"
+                                                                               Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                                                </StackPanel>
 
-                            <!-- ============================================== -->
-                            <!-- VERSIONS TAB (Table matching Modrinth) -->
-                            <!-- ============================================== -->
-                            <StackPanel Spacing="14">
-                                <StackPanel.IsVisible>
-                                    <MultiBinding Converter="{x:Static BoolConverters.And}">
-                                        <Binding Path="IsVersionsTab"/>
-                                        <Binding Path="!IsVersionDetailActive"/>
-                                    </MultiBinding>
-                                </StackPanel.IsVisible>
-
-                                <!-- Filters bar above table -->
-                                <Border Background="{StaticResource FieldBrush}" CornerRadius="8" Padding="10,6" Margin="0,0,0,6">
-                                    <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto" VerticalAlignment="Center">
-                                        <PathIcon Grid.Column="0" Data="M3 4h18v2l-7 8v6l-4-2v-4L3 6V4z" Width="13" Height="13"
-                                                  Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="2,0,10,0"/>
-                                        <ComboBox Grid.Column="1" ItemsSource="{Binding FilterGameVersions}" SelectedItem="{Binding SelectedFilterGameVersion}"
-                                                  Width="150" Height="30" FontSize="12" Margin="0,0,8,0"/>
-                                        <ComboBox Grid.Column="2" ItemsSource="{Binding FilterPlatforms}" SelectedItem="{Binding SelectedFilterPlatform}"
-                                                  Width="140" Height="30" FontSize="12" Margin="0,0,8,0"/>
-                                        <CheckBox Grid.Column="4" Content="{l10n:Tr Key=cb_show_all_versions}" IsChecked="{Binding ShowAllVersions}"
-                                                  Foreground="{StaticResource TextSecondaryBrush}" FontSize="11.5"/>
-                                    </Grid>
-                                </Border>
-
-                                <!-- Versions Table Container -->
-                                <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}"
-                                        BorderThickness="1" CornerRadius="8" ClipToBounds="True">
-                                    <StackPanel>
-                                        <!-- Table Header -->
-                                        <Border Background="{StaticResource SurfaceBrush}" Padding="16,10"
-                                                BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="0,0,0,1">
-                                            <Grid ColumnDefinitions="150,110,120,90,90,*">
-                                                <TextBlock Grid.Column="0" Text="Version" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
-                                                <TextBlock Grid.Column="1" Text="Game version" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
-                                                <TextBlock Grid.Column="2" Text="Platform" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
-                                                <TextBlock Grid.Column="3" Text="Published" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
-                                                <TextBlock Grid.Column="4" Text="Downloads" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
-                                            </Grid>
-                                        </Border>
-
-                                        <!-- Table Rows -->
-                                        <ItemsControl ItemsSource="{Binding VersionList}">
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate x:DataType="models:ModrinthProjectVersion">
-                                                    <Border Classes="versionRow" Padding="16,10" BorderBrush="{StaticResource BorderCardSoftBrush}"
-                                                            BorderThickness="0,0,0,1" Tapped="OnVersionRowTapped">
-                                                        <Grid ColumnDefinitions="150,110,120,90,90,*">
-                                                            <!-- Version with Initial Badge -->
-                                                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                                                <Border Width="22" Height="22" CornerRadius="11" VerticalAlignment="Center"
-                                                                        Background="{Binding VersionType, Converter={x:Static converters:ContentBrowserConverters.VersionTypeBg}}">
-                                                                    <TextBlock Text="{Binding VersionTypeInitial}" FontSize="11" FontWeight="Bold"
-                                                                               Foreground="{Binding VersionType, Converter={x:Static converters:ContentBrowserConverters.VersionTypeFg}}"
-                                                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                <!-- Game Version Pill -->
+                                                                <Border Grid.Column="1" Background="{StaticResource CardBrush}" CornerRadius="10" Padding="8,3"
+                                                                        HorizontalAlignment="Left" VerticalAlignment="Center">
+                                                                    <TextBlock Text="{Binding PrimaryGameVersion}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
                                                                 </Border>
-                                                                <TextBlock Text="{Binding VersionNumber}" FontSize="13" FontWeight="SemiBold"
-                                                                           Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                                                            </StackPanel>
 
-                                                            <!-- Game Version Pill -->
-                                                            <Border Grid.Column="1" Background="{StaticResource CardBrush}" CornerRadius="10" Padding="8,3"
-                                                                    HorizontalAlignment="Left" VerticalAlignment="Center">
-                                                                <TextBlock Text="{Binding PrimaryGameVersion}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                                            </Border>
+                                                                <!-- Platform Pill -->
+                                                                <Border Grid.Column="2" Background="{StaticResource CardBrush}" CornerRadius="10" Padding="8,3"
+                                                                        HorizontalAlignment="Left" VerticalAlignment="Center">
+                                                                    <TextBlock Text="{Binding PrimaryLoader}" FontSize="11" Foreground="{DynamicResource AccentBrush}"/>
+                                                                </Border>
 
-                                                            <!-- Platform Pill -->
-                                                            <Border Grid.Column="2" Background="{StaticResource CardBrush}" CornerRadius="10" Padding="8,3"
-                                                                    HorizontalAlignment="Left" VerticalAlignment="Center">
-                                                                <TextBlock Text="{Binding PrimaryLoader}" FontSize="11" Foreground="{DynamicResource AccentBrush}"/>
-                                                            </Border>
+                                                                <!-- Published -->
+                                                                <TextBlock Grid.Column="3" Text="{Binding RelativeTime}" FontSize="11.5" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
 
-                                                            <!-- Published -->
-                                                            <TextBlock Grid.Column="3" Text="{Binding RelativeTime}" FontSize="11.5" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                                <!-- Downloads -->
+                                                                <TextBlock Grid.Column="4" Text="{Binding DownloadsLabel}" FontSize="11.5" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
 
-                                                            <!-- Downloads -->
-                                                            <TextBlock Grid.Column="4" Text="{Binding DownloadsLabel}" FontSize="11.5" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                                                <!-- Download Action Button -->
+                                                                <Button Grid.Column="5" Classes="actionBtn" Padding="10,4" HorizontalAlignment="Right"
+                                                                        Click="OnDownloadVersionClicked" ToolTip.Tip="Download and install">
+                                                                    <TextBlock Text="&#x2193;" FontSize="13" FontWeight="Bold"/>
+                                                                </Button>
+                                                            </Grid>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                    </Border>
 
-                                                            <!-- Download Action Button -->
-                                                            <Button Grid.Column="5" Classes="actionBtn" Padding="10,4" HorizontalAlignment="Right"
-                                                                    Command="{Binding $parent[UserControl].((vm:ContentBrowserViewModel)DataContext).DownloadVersionCommand}"
-                                                                    CommandParameter="{Binding}" ToolTip.Tip="Download and install">
-                                                                <TextBlock Text="&#x2193;" FontSize="13" FontWeight="Bold"/>
-                                                            </Button>
-                                                        </Grid>
-                                                    </Border>
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-                                    </StackPanel>
-                                </Border>
+                                    <TextBlock Text="{l10n:Tr Key=cb_no_versions}" FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}" Margin="0,4"
+                                               IsVisible="{Binding VersionList, Converter={x:Static converters:EditInstanceWindowConverters.IsCollectionEmpty}}"/>
+                                </StackPanel>
 
-                                <TextBlock Text="{l10n:Tr Key=cb_no_versions}" FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}" Margin="0,4"
-                                           IsVisible="{Binding VersionList, Converter={x:Static converters:EditInstanceWindowConverters.IsCollectionEmpty}}"/>
                             </StackPanel>
 
                         </StackPanel>

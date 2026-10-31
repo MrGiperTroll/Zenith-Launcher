@@ -265,11 +265,11 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private string _selectedFilterPlatform = "All platforms";
 
-    public IReadOnlyList<string> FilterGameVersions =>
-        new[] { "All versions" }.Concat(FullProject?.GameVersions ?? Array.Empty<string>()).Distinct().ToList();
+    [ObservableProperty]
+    private IReadOnlyList<string> _filterGameVersions = new[] { "All versions" };
 
-    public IReadOnlyList<string> FilterPlatforms =>
-        new[] { "All platforms" }.Concat(FullProject?.Loaders ?? Array.Empty<string>()).Distinct().ToList();
+    [ObservableProperty]
+    private IReadOnlyList<string> _filterPlatforms = new[] { "All platforms" };
 
     partial void OnSelectedFilterGameVersionChanged(string value) => OnPropertyChanged(nameof(VersionList));
     partial void OnSelectedFilterPlatformChanged(string value) => OnPropertyChanged(nameof(VersionList));
@@ -333,29 +333,29 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
     {
         get
         {
-            if (_allVersions.Count == 0) return _allVersions;
+            if (_allVersions == null || _allVersions.Count == 0) return new();
             var filtered = (IEnumerable<Models.ModrinthProjectVersion>)_allVersions;
 
             if (!string.IsNullOrWhiteSpace(SelectedFilterGameVersion) && !SelectedFilterGameVersion.Equals("All versions", StringComparison.OrdinalIgnoreCase))
             {
-                filtered = filtered.Where(v => v.GameVersions.Any(gv => gv.Equals(SelectedFilterGameVersion, StringComparison.OrdinalIgnoreCase)));
+                filtered = filtered.Where(v => v.GameVersions != null && v.GameVersions.Any(gv => gv != null && gv.Equals(SelectedFilterGameVersion, StringComparison.OrdinalIgnoreCase)));
             }
             else if (!ShowAllVersions && !string.IsNullOrWhiteSpace(_gameVersion))
             {
-                filtered = filtered.Where(v => v.GameVersions.Any(gv => gv.Contains(_gameVersion)));
+                filtered = filtered.Where(v => v.GameVersions != null && v.GameVersions.Any(gv => gv != null && gv.Contains(_gameVersion, StringComparison.OrdinalIgnoreCase)));
             }
 
             if (!string.IsNullOrWhiteSpace(SelectedFilterPlatform) && !SelectedFilterPlatform.Equals("All platforms", StringComparison.OrdinalIgnoreCase))
             {
-                filtered = filtered.Where(v => v.Loaders.Any(l => l.Equals(SelectedFilterPlatform, StringComparison.OrdinalIgnoreCase)));
+                filtered = filtered.Where(v => v.Loaders != null && v.Loaders.Any(l => l != null && l.Equals(SelectedFilterPlatform, StringComparison.OrdinalIgnoreCase)));
             }
 
             if (!string.IsNullOrWhiteSpace(VersionFilter))
             {
                 var q = VersionFilter.ToLowerInvariant();
                 filtered = filtered.Where(v =>
-                    v.Name.ToLowerInvariant().Contains(q) ||
-                    v.VersionNumber.ToLowerInvariant().Contains(q));
+                    (v.Name != null && v.Name.ToLowerInvariant().Contains(q)) ||
+                    (v.VersionNumber != null && v.VersionNumber.ToLowerInvariant().Contains(q)));
             }
             return filtered.ToList();
         }
@@ -1353,8 +1353,10 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
                 }
                 SelectedDetailVersion = null;
                 OnPropertyChanged(nameof(IsVersionDetailActive));
-                OnPropertyChanged(nameof(FilterGameVersions));
-                OnPropertyChanged(nameof(FilterPlatforms));
+                FilterGameVersions = new[] { "All versions" }.Concat(full.GameVersions ?? Array.Empty<string>()).Distinct().ToList();
+                FilterPlatforms = new[] { "All platforms" }.Concat(full.Loaders ?? Array.Empty<string>()).Distinct().ToList();
+                SelectedFilterGameVersion = "All versions";
+                SelectedFilterPlatform = "All platforms";
 
                 if (!string.IsNullOrWhiteSpace(full.HeaderImageUrl))
                 {

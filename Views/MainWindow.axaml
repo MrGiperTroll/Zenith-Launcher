@@ -525,6 +525,54 @@
             <Setter Property="Background" Value="#E81123"/>
             <Setter Property="Foreground" Value="#FFFFFF"/>
         </Style>
+        <!-- Discord-Style Navigation Buttons -->
+        <Style Selector="Button.discordNavBtn">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="CornerRadius" Value="7"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.15"/>
+                    <BrushTransition Property="Foreground" Duration="0:0:0.15"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.discordNavBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        </Style>
+        <Style Selector="Button.discordNavBtn:pointerover PathIcon">
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        </Style>
+        <Style Selector="Button.discordNavBtn.active /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource AccentDimBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+        <Style Selector="Button.discordNavBtn.active PathIcon">
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+        <Style Selector="Button.gearSettingsBtn">
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.gearSettingsBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+        </Style>
+        <Style Selector="Button.gearSettingsBtn:pointerover PathIcon">
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        </Style>
     </Window.Styles>
 
     <Panel Background="{DynamicResource BgBrush}">
@@ -533,16 +581,20 @@
             <LayoutTransformControl.LayoutTransform>
                 <ScaleTransform ScaleX="{Binding LauncherScale}" ScaleY="{Binding LauncherScale}"/>
             </LayoutTransformControl.LayoutTransform>
-            <Grid RowDefinitions="32,*">
-                <!-- Top Window Title / Menu Bar (Row 0) -->
-                <Grid Grid.Row="0" Height="32" Background="{StaticResource SidebarBgBrush}"
-                      ColumnDefinitions="Auto,*,Auto"
+            <Grid RowDefinitions="38,*">
+                <!-- Unified Top Header (Row 0) -->
+                <Grid Grid.Row="0" Height="38" Background="{StaticResource SidebarBgBrush}"
+                      ColumnDefinitions="220,*,Auto"
                       PointerPressed="OnTopBarPointerPressed"
                       DoubleTapped="OnTopBarDoubleTapped">
-                    <!-- Left: Zenith Brand Menu -->
-                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="6,0,0,0">
-                        <Button Classes="menuBarBtn">
-                            <TextBlock Text="Zenith" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+
+                    <!-- Left (Col 0, Width 220): Zenith Brand Menu -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0,0,0">
+                        <Button Classes="menuBarBtn" Padding="8,5">
+                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                <TextBlock Text="Zenith" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                <PathIcon Data="M7 10l5 5 5-5z" Width="8" Height="8" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
                             <Button.Flyout>
                                 <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="Standard">
                                     <Flyout.FlyoutPresenterTheme>
@@ -571,10 +623,43 @@
                         </Button>
                     </StackPanel>
 
-                    <!-- Middle: Drag area (empty) -->
-                    <Panel Grid.Column="1" Background="Transparent"/>
+                    <!-- Middle (Col 1): Navigation (< >) + Breadcrumbs + Drag Area -->
+                    <Grid Grid.Column="1" ColumnDefinitions="Auto,*" VerticalAlignment="Center" Margin="12,0,0,0">
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                            <Button Classes="navBtn" Command="{Binding GoBackCommand}" ToolTip.Tip="{l10n:Tr Key=nav_back}">
+                                <PathIcon Data="M15.41 16.59L10.83 12L15.41 7.41L14 6L8 12L14 18L15.41 16.59Z" Width="13" Height="13"/>
+                            </Button>
+                            <Button Classes="navBtn" Command="{Binding GoForwardCommand}" ToolTip.Tip="{l10n:Tr Key=nav_forward}">
+                                <PathIcon Data="M8.59 16.59L13.17 12L8.59 7.41L10 6L16 12L10 18L8.59 16.59Z" Width="13" Height="13"/>
+                            </Button>
 
-                    <!-- Right: Window Caption Controls (Minimize, Maximize, Close - No diagonal fullscreen arrow) -->
+                            <!-- Breadcrumbs -->
+                            <ItemsControl ItemsSource="{Binding Breadcrumbs}" Margin="4,0,0,0">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:BreadcrumbItem">
+                                        <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                            <TextBlock Text="/" Foreground="{StaticResource TextDisabledBrush}" FontSize="12" VerticalAlignment="Center"
+                                                       IsVisible="{Binding ShowSeparator}"/>
+                                            <Button Classes="breadcrumbBtn" Classes.active="{Binding IsActive}"
+                                                    Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).NavigateToBreadcrumbCommand}"
+                                                    CommandParameter="{Binding}"
+                                                    Content="{Binding Title}"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+
+                        <!-- Draggable Area -->
+                        <Panel Grid.Column="1" Background="Transparent"/>
+                    </Grid>
+
+                    <!-- Right (Col 2): Window Caption Controls -->
                     <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="0" VerticalAlignment="Stretch">
                         <Button Classes="captionBtn" Click="OnMinimizeButtonClick" ToolTip.Tip="Minimize">
                             <PathIcon Data="M19 13H5v-2h14v2z" Width="10" Height="10"/>
@@ -588,129 +673,95 @@
                     </StackPanel>
                 </Grid>
 
-                <!-- Main Application Body (Row 1) -->
-                <Grid Grid.Row="1" ColumnDefinitions="Auto,*">
-            <!-- Left Rail (Qoder Minimalist Rail) -->
-            <Border Grid.Column="0" Width="{Binding SidebarWidth}" Background="{StaticResource SidebarBgBrush}" Padding="6,8" Classes.expanded="{Binding IsSidebarExpanded}" ClipToBounds="True">
-                <Border.Transitions>
-                    <Transitions>
-                        <DoubleTransition Property="Width" Duration="0:0:0.24" Easing="0.16, 1, 0.3, 1"/>
-                    </Transitions>
-                </Border.Transitions>
-                <StackPanel Spacing="6">
-                    <Button Classes="railBtn" Command="{Binding ToggleSidebarCommand}"
-                            ToolTip.Tip="{l10n:Tr Key=nav_sidebar_brand}">
-                        <Grid ColumnDefinitions="42,*" Height="40" VerticalAlignment="Center">
-                            <PathIcon Grid.Column="0" Data="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" Width="19" Height="19" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            <TextBlock Grid.Column="1" Text="{l10n:Tr Key=nav_sidebar_brand}" FontSize="12.5" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,8,0" IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsSidebarExpanded}"/>
-                        </Grid>
-                    </Button>
+                <!-- Row 1: Main Application Body -->
+                <Grid Grid.Row="1" ColumnDefinitions="220,*">
 
-                    <Button Classes="railBtn" Classes.active="{Binding IsProfilesView}" Command="{Binding ShowProfilesCommand}" ToolTip.Tip="{l10n:Tr Key=nav_profiles}">
-                        <Grid ColumnDefinitions="42,*" Height="40" VerticalAlignment="Center">
-                            <PathIcon Grid.Column="0" Data="M3 3H10V10H3V3M14 3H21V10H14V3M3 14H10V21H3V14M14 14H21V21H14V14Z" Width="19" Height="19" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            <TextBlock Grid.Column="1" Text="{l10n:Tr Key=nav_profiles}" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,8,0" IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsSidebarExpanded}"/>
-                        </Grid>
-                    </Button>
+                    <!-- Discord-Style Left Sidebar (Width 220) -->
+                    <Border Grid.Column="0" Width="220" Background="{StaticResource SidebarBgBrush}"
+                            BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,1,0" Padding="10,10,10,10">
+                        <Grid RowDefinitions="*,Auto">
+                            <!-- Nav items (Profiles, Modpacks, Servers, Directory) -->
+                            <StackPanel Grid.Row="0" Spacing="4">
+                                <Button Classes="discordNavBtn" Classes.active="{Binding IsProfilesView}" Command="{Binding ShowProfilesCommand}" ToolTip.Tip="{l10n:Tr Key=nav_profiles}">
+                                    <Grid ColumnDefinitions="30,*" VerticalAlignment="Center">
+                                        <PathIcon Grid.Column="0" Data="M3 3H10V10H3V3M14 3H21V10H14V3M3 14H10V21H3V14M14 14H21V21H14V14Z" Width="18" Height="18" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="1" Text="{l10n:Tr Key=nav_profiles}" FontSize="13.5" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                    </Grid>
+                                </Button>
 
-                    <Button Classes="railBtn" Classes.active="{Binding IsModpacksView}" Command="{Binding ShowModpacksCommand}" ToolTip.Tip="{l10n:Tr Key=nav_modpacks}">
-                        <Grid ColumnDefinitions="42,*" Height="40" VerticalAlignment="Center">
-                            <PathIcon Grid.Column="0" Data="M20.5 11H19V7C19 5.9 18.1 5 17 5H13V3.5C13 2.12 11.88 1 10.5 1S8 2.12 8 3.5V5H4C2.9 5 2 5.9 2 7V10.8H3.5C4.99 10.8 6.2 12.01 6.2 13.5S4.99 16.2 3.5 16.2H2V20C2 21.1 2.9 22 4 22H7.8V20.5C7.8 19.01 9.01 17.8 10.5 17.8S13.2 19.01 13.2 20.5V22H17C18.1 22 19 21.1 19 20V16H20.5C21.88 16 23 14.88 23 13.5S21.88 11 20.5 11Z" Width="19" Height="19" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            <TextBlock Grid.Column="1" Text="{l10n:Tr Key=nav_modpacks}" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,8,0" IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsSidebarExpanded}"/>
-                        </Grid>
-                    </Button>
+                                <Button Classes="discordNavBtn" Classes.active="{Binding IsModpacksView}" Command="{Binding ShowModpacksCommand}" ToolTip.Tip="{l10n:Tr Key=nav_modpacks}">
+                                    <Grid ColumnDefinitions="30,*" VerticalAlignment="Center">
+                                        <PathIcon Grid.Column="0" Data="M20.5 11H19V7C19 5.9 18.1 5 17 5H13V3.5C13 2.12 11.88 1 10.5 1S8 2.12 8 3.5V5H4C2.9 5 2 5.9 2 7V10.8H3.5C4.99 10.8 6.2 12.01 6.2 13.5S4.99 16.2 3.5 16.2H2V20C2 21.1 2.9 22 4 22H7.8V20.5C7.8 19.01 9.01 17.8 10.5 17.8S13.2 19.01 13.2 20.5V22H17C18.1 22 19 21.1 19 20V16H20.5C21.88 16 23 14.88 23 13.5S21.88 11 20.5 11Z" Width="18" Height="18" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="1" Text="{l10n:Tr Key=nav_modpacks}" FontSize="13.5" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                    </Grid>
+                                </Button>
 
-                    <Button Classes="railBtn" Command="{Binding NavigateToCreateServerCommand}" ToolTip.Tip="{l10n:Tr Key=nav_create_server}" IsVisible="{Binding HasExistingServers}">
-                        <Grid ColumnDefinitions="42,*" Height="40" VerticalAlignment="Center">
-                            <PathIcon Grid.Column="0" Data="M20 13H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1v-6c0-.55-.45-1-1-1zM7 19c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM20 3H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1zM7 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" Width="19" Height="19" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            <TextBlock Grid.Column="1" Text="{l10n:Tr Key=nav_create_server}" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,8,0" IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsSidebarExpanded}"/>
-                        </Grid>
-                    </Button>
+                                <Button Classes="discordNavBtn" Command="{Binding NavigateToCreateServerCommand}" ToolTip.Tip="{l10n:Tr Key=nav_create_server}" IsVisible="{Binding HasExistingServers}">
+                                    <Grid ColumnDefinitions="30,*" VerticalAlignment="Center">
+                                        <PathIcon Grid.Column="0" Data="M20 13H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1v-6c0-.55-.45-1-1-1zM7 19c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM20 3H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1zM7 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" Width="18" Height="18" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="1" Text="{l10n:Tr Key=nav_create_server}" FontSize="13.5" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                    </Grid>
+                                </Button>
 
-                    <Border Height="1" Background="{StaticResource BorderDarkBrush}" Margin="6,6,6,6"/>
+                                <Border Height="1" Background="{StaticResource BorderDarkBrush}" Margin="2,8,2,8"/>
 
-                    <Button Classes="railBtn" Command="{Binding OpenRootDirectoryCommand}" ToolTip.Tip="{l10n:Tr Key=nav_dir}">
-                        <Grid ColumnDefinitions="42,*" Height="40" VerticalAlignment="Center">
-                            <PathIcon Grid.Column="0" Data="M10 4H4C2.89 4 2 4.89 2 6V18A2 2 0 0 0 4 20H20A2 2 0 0 0 22 18V8C22 6.89 21.1 6 20 6H12L10 4Z" Width="19" Height="19" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            <TextBlock Grid.Column="1" Text="{l10n:Tr Key=nav_dir}" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,8,0" IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsSidebarExpanded}"/>
-                        </Grid>
-                    </Button>
-
-                    <Button Classes="railBtn" Classes.active="{Binding IsSettingsView}" Command="{Binding OpenSettingsDialogCommand}" ToolTip.Tip="{l10n:Tr Key=nav_settings}">
-                        <Grid ColumnDefinitions="42,*" Height="40" VerticalAlignment="Center">
-                            <PathIcon Grid.Column="0" Data="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" Width="19" Height="19" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            <TextBlock Grid.Column="1" Text="{l10n:Tr Key=nav_settings}" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,8,0" IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsSidebarExpanded}"/>
-                        </Grid>
-                    </Button>
-                </StackPanel>
-            </Border>
-
-            <!-- Main Workspace -->
-            <Grid Grid.Column="1" RowDefinitions="44,*,Auto">
-                <!-- Top Header -->
-                <Grid Grid.Row="0" Margin="0,0,10,0" VerticalAlignment="Center" ColumnDefinitions="*,Auto">
-                    <!-- Left: Navigation (Back, Forward, Breadcrumbs) -->
-                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="24,0,0,0">
-                        <Button Classes="navBtn" Command="{Binding GoBackCommand}" ToolTip.Tip="{l10n:Tr Key=nav_back}">
-                            <PathIcon Data="M15.41 16.59L10.83 12L15.41 7.41L14 6L8 12L14 18L15.41 16.59Z" Width="14" Height="14"/>
-                        </Button>
-                        <Button Classes="navBtn" Command="{Binding GoForwardCommand}" ToolTip.Tip="{l10n:Tr Key=nav_forward}">
-                            <PathIcon Data="M8.59 16.59L13.17 12L8.59 7.41L10 6L16 12L10 18L8.59 16.59Z" Width="14" Height="14"/>
-                        </Button>
-
-                        <!-- Breadcrumbs -->
-                        <ItemsControl ItemsSource="{Binding Breadcrumbs}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center"/>
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="vm:BreadcrumbItem">
-                                    <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                                        <TextBlock Text="/" Foreground="{StaticResource TextDisabledBrush}" FontSize="12" VerticalAlignment="Center"
-                                                   IsVisible="{Binding ShowSeparator}"/>
-                                        <Button Classes="breadcrumbBtn" Classes.active="{Binding IsActive}"
-                                                Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).NavigateToBreadcrumbCommand}"
-                                                CommandParameter="{Binding}"
-                                                Content="{Binding Title}"/>
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </StackPanel>
-
-                    <!-- Right: Redesigned Account Card -->
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <Button Command="{Binding OpenAccountsDialogCommand}" Classes="headerAccountBtn">
-                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                <Border Width="20" Height="20" Background="{StaticResource IconChipBrush}" CornerRadius="5" ClipToBounds="True">
-                                    <Panel>
-                                        <Image Source="{Binding ActiveAccountRow.HeadImage}" Stretch="UniformToFill" IsVisible="{Binding ActiveAccountRow.HasHead}"/>
-                                        <PathIcon Data="M12 4A4 4 0 0 1 16 8A4 4 0 0 1 12 12A4 4 0 0 1 8 8A4 4 0 0 1 12 4ZM4 20C4 16.69 7.58 14 12 14C16.42 14 20 16.69 20 20V21H4V20Z"
-                                                  Width="11" Height="11" Foreground="{StaticResource TextSecondaryBrush}"
-                                                  HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                  IsVisible="{Binding !ActiveAccountRow.HasHead}"/>
-                                    </Panel>
-                                </Border>
-                                <TextBlock Text="{Binding ActiveAccountName}" FontWeight="SemiBold" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                                <Border Background="{StaticResource AccentDimBrush}" BorderBrush="{StaticResource AccentBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="5,1.5" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding ActiveAccountType}" FontSize="10" Foreground="{StaticResource AccentBrush}" FontWeight="Bold" VerticalAlignment="Center"/>
-                                </Border>
-                                <PathIcon Data="M7 10l5 5 5-5z" Width="8" Height="8" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="2,0,0,0"/>
+                                <Button Classes="discordNavBtn" Command="{Binding OpenRootDirectoryCommand}" ToolTip.Tip="{l10n:Tr Key=nav_dir}">
+                                    <Grid ColumnDefinitions="30,*" VerticalAlignment="Center">
+                                        <PathIcon Grid.Column="0" Data="M10 4H4C2.89 4 2 4.89 2 6V18A2 2 0 0 0 4 20H20A2 2 0 0 0 22 18V8C22 6.89 21.1 6 20 6H12L10 4Z" Width="18" Height="18" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="1" Text="{l10n:Tr Key=nav_dir}" FontSize="13.5" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                    </Grid>
+                                </Button>
                             </StackPanel>
-                        </Button>
-                    </StackPanel>
-                </Grid>
 
-                <!-- Center Workspace -->
-                <Grid Grid.Row="1" Margin="24,0,0,0">
+                            <!-- Row 1: Pinned Discord User Account Bar -->
+                            <Border Grid.Row="1" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}"
+                                    BorderThickness="1" CornerRadius="8" Padding="6,6" Margin="0,8,0,0">
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6" VerticalAlignment="Center">
+                                    <!-- User info (Click opens accounts) -->
+                                    <Button Grid.Column="0" Command="{Binding OpenAccountsDialogCommand}"
+                                            Background="Transparent" BorderThickness="0" Padding="2" Cursor="Hand"
+                                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+                                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                            <Border Width="30" Height="30" Background="{StaticResource IconChipBrush}" CornerRadius="6" ClipToBounds="True">
+                                                <Panel>
+                                                    <Image Source="{Binding ActiveAccountRow.HeadImage}" Stretch="UniformToFill" IsVisible="{Binding ActiveAccountRow.HasHead}"/>
+                                                    <PathIcon Data="M12 4A4 4 0 0 1 16 8A4 4 0 0 1 12 12A4 4 0 0 1 8 8A4 4 0 0 1 12 4ZM4 20C4 16.69 7.58 14 12 14C16.42 14 20 16.69 20 20V21H4V20Z"
+                                                              Width="14" Height="14" Foreground="{StaticResource TextSecondaryBrush}"
+                                                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                              IsVisible="{Binding !ActiveAccountRow.HasHead}"/>
+                                                </Panel>
+                                            </Border>
+                                            <StackPanel Spacing="1" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding ActiveAccountName}" FontWeight="Bold" FontSize="12.5"
+                                                           Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" MaxWidth="105"/>
+                                                <TextBlock Text="{Binding ActiveAccountType}" FontSize="10.5"
+                                                           Foreground="{StaticResource TextMutedBrush}"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Button>
+
+                                    <!-- Settings Gear Button -->
+                                    <Button Grid.Column="1" Classes="gearSettingsBtn" Command="{Binding OpenSettingsDialogCommand}"
+                                            ToolTip.Tip="{l10n:Tr Key=nav_settings}">
+                                        <PathIcon Data="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"
+                                                  Width="16" Height="16" Foreground="{StaticResource TextSecondaryBrush}"
+                                                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Button>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </Border>
+
+                    <!-- Workspace Column (RowDefinitions="*,Auto") -->
+                    <Grid Grid.Column="1" RowDefinitions="*,Auto">
+                        <!-- Center Workspace Content (Row 0) -->
+                        <Grid Grid.Row="0" Margin="24,14,0,0">
                     <!-- Profiles View -->
                     <Grid IsVisible="{Binding IsProfilesView}" ColumnDefinitions="*,Auto" x:Name="ProfilesPane" Classes="viewPane">
                         <ScrollViewer Grid.Column="0" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Hidden" Padding="0,0,16,16">
                             <StackPanel Spacing="14">
-                                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" Margin="0,2,0,2">
-                                    <TextBlock Classes="pageTitle" Text="{l10n:Tr Key=mw_profiles_title}" VerticalAlignment="Center"/>
+                                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" Margin="0,2,0,6">
+                                    <Panel Grid.Column="0"/>
                                     <Button Grid.Column="1" Classes="subBtn" Command="{Binding ImportInstancesCommand}" Padding="14,7">
                                         <TextBlock Text="{l10n:Tr Key=profile_import}" FontSize="12" FontWeight="SemiBold"/>
                                     </Button>
@@ -1115,7 +1166,7 @@
                 </Grid>
 
                 <!-- Full-Width Bottom Launch Bar -->
-                <Border Grid.Row="2" Height="76" IsVisible="{Binding IsLaunchBarVisible}" Background="{StaticResource SidebarBgBrush}">
+                <Border Grid.Row="1" Height="76" IsVisible="{Binding IsLaunchBarVisible}" Background="{StaticResource SidebarBgBrush}">
                     <Grid ColumnDefinitions="*,280" VerticalAlignment="Center">
                         <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="24,0,16,0">
                             <TextBlock Text="{Binding SelectedInstanceName}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>

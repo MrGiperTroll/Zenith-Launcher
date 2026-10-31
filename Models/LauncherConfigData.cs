@@ -21,7 +21,7 @@ public class LauncherConfigData
     public string CardColor { get; set; } = "#0D111A";
     public string TextPrimaryColor { get; set; } = "#FFFFFF";
     public string TextSecondaryColor { get; set; } = "#C5CBD6";
-    public string BorderDarkColor { get; set; } = "#16181C";
+    public string BorderDarkColor { get; set; } = "#222834";
     public string FieldColor { get; set; } = "#121724";
     public string HoverColor { get; set; } = "#1B2338";
     public string LauncherName { get; set; } = "Zenith Launcher";

@@ -471,6 +471,8 @@ dependencies {{
 
     public string GameVersionsLabel => string.Join(", ", GameVersions);
     public string LoadersLabel => string.Join(", ", Loaders);
+    public string DateReleaseDisplay =>
+        DatePublished == default ? "" : $"on {DatePublished.ToString("MMM d, yyyy", System.Globalization.CultureInfo.InvariantCulture)}";
     public string DateLabel =>
         DatePublished == default ? "" : DatePublished.ToString("dd.MM.yyyy");
 

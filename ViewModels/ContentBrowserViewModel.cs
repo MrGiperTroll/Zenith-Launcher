@@ -295,6 +295,8 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
 
     public bool IsVersionDetailActive => SelectedDetailVersion != null;
 
+    public GameVersionFilterViewModel GameVersionFilter { get; } = new();
+
     [ObservableProperty]
     private string _selectedFilterGameVersion = "All versions";
 
@@ -511,11 +513,17 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
             if (_allVersions == null || _allVersions.Count == 0) return new();
             var filtered = (IEnumerable<Models.ModrinthProjectVersion>)_allVersions;
 
-            if (!string.IsNullOrWhiteSpace(SelectedFilterGameVersion) && !SelectedFilterGameVersion.Equals("All versions", StringComparison.OrdinalIgnoreCase))
+            var selectedVersions = GameVersionFilter.SelectedVersions;
+            if (selectedVersions.Count > 0)
+            {
+                filtered = filtered.Where(v => v.GameVersions != null && v.GameVersions.Any(gv =>
+                    selectedVersions.Contains(gv, StringComparer.OrdinalIgnoreCase)));
+            }
+            else if (!string.IsNullOrWhiteSpace(SelectedFilterGameVersion) && !SelectedFilterGameVersion.Equals("All versions", StringComparison.OrdinalIgnoreCase))
             {
                 filtered = filtered.Where(v => v.GameVersions != null && v.GameVersions.Any(gv => gv != null && gv.Equals(SelectedFilterGameVersion, StringComparison.OrdinalIgnoreCase)));
             }
-            else if (!ShowAllVersions && !string.IsNullOrWhiteSpace(_gameVersion))
+            else if (!GameVersionFilter.ShowAllVersions && !ShowAllVersions && !string.IsNullOrWhiteSpace(_gameVersion))
             {
                 filtered = filtered.Where(v => v.GameVersions != null && v.GameVersions.Any(gv => gv != null && gv.Contains(_gameVersion, StringComparison.OrdinalIgnoreCase)));
             }
@@ -833,6 +841,12 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
 
         RefreshWorlds();
         UpdateAvailableTags();
+        GameVersionFilter.FilterChanged += () =>
+        {
+            CurrentVersionPage = 1;
+            RefreshPagination();
+            OnPropertyChanged(nameof(VersionList));
+        };
         _ = ReloadAsync();
     }
 
@@ -1518,6 +1532,7 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
                 .Where(v => !string.IsNullOrWhiteSpace(v))
                 .Distinct();
             FilterGameVersions = SortGameVersionsDesc(actualVersions);
+            GameVersionFilter.SetVersions(actualVersions);
 
             var actualLoaders = _allVersions
                 .SelectMany(v => v.Loaders ?? Array.Empty<string>())
@@ -1710,6 +1725,7 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
                     .Where(v => !string.IsNullOrWhiteSpace(v))
                     .Distinct();
                 FilterGameVersions = SortGameVersionsDesc(actualVersions);
+                GameVersionFilter.SetVersions(actualVersions);
 
                 var actualLoaders = (_allVersions.Count > 0
                     ? _allVersions.SelectMany(v => v.Loaders ?? Array.Empty<string>())

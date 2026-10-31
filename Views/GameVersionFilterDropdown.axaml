@@ -1,0 +1,130 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:CustomMcLauncher.ViewModels"
+             x:Class="CustomMcLauncher.Views.GameVersionFilterDropdown"
+             x:DataType="vm:GameVersionFilterViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="Button.filterDropdownBtn">
+            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.filterDropdownBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+
+        <Style Selector="CheckBox.zenFilterCheck">
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Padding" Value="8,0,0,0"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="CornerRadius" Value="4"/>
+        </Style>
+        <Style Selector="CheckBox.zenFilterCheck:checked /template/ Border#NormalRectangle">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+        <Style Selector="CheckBox.zenFilterCheck:checked:pointerover /template/ Border#NormalRectangle">
+            <Setter Property="Background" Value="{DynamicResource AccentBrushHover}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrushHover}"/>
+        </Style>
+
+        <Style Selector="Button.clearBtn">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="4,1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}"/>
+        </Style>
+        <Style Selector="Button.clearBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="Button.clearBtn:pointerover">
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Button Classes="filterDropdownBtn" VerticalAlignment="Center">
+        <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Grid.Column="0" Text="{Binding ButtonText}" FontSize="12" FontWeight="SemiBold"
+                       Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,8,0"
+                       MaxWidth="130" TextTrimming="CharacterEllipsis"/>
+            <PathIcon Grid.Column="1" Data="M7 10l5 5 5-5z" Width="10" Height="10"
+                      Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+        </Grid>
+        <Button.Flyout>
+            <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="Standard">
+                <Flyout.FlyoutPresenterTheme>
+                    <ControlTheme TargetType="FlyoutPresenter" BasedOn="{StaticResource {x:Type FlyoutPresenter}}">
+                        <Setter Property="Padding" Value="0"/>
+                        <Setter Property="Background" Value="{StaticResource CardBrush}"/>
+                        <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
+                        <Setter Property="BorderThickness" Value="1"/>
+                        <Setter Property="CornerRadius" Value="10"/>
+                        <Setter Property="ClipToBounds" Value="True"/>
+                    </ControlTheme>
+                </Flyout.FlyoutPresenterTheme>
+                <Border Width="240" Background="{StaticResource CardBrush}">
+                    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto,Auto">
+                        <!-- Search Box (Row 0) -->
+                        <TextBox Grid.Row="0" Classes="darkInput" Margin="10,10,10,6"
+                                 Text="{Binding SearchText, Mode=TwoWay}"
+                                 PlaceholderText="Search version..." FontSize="12" Height="32">
+                            <TextBox.InnerLeftContent>
+                                <PathIcon Data="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
+                                          Width="12" Height="12" Foreground="{StaticResource TextPlaceholderBrush}"
+                                          Margin="8,0,4,0" VerticalAlignment="Center"/>
+                            </TextBox.InnerLeftContent>
+                        </TextBox>
+
+                        <!-- Header: Count & Clear (Row 1) -->
+                        <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="12,2,12,6">
+                            <TextBlock Grid.Column="0" Text="{Binding SelectedText}" FontSize="11.5"
+                                       Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                            <Button Grid.Column="1" Classes="clearBtn" Content="Clear" Command="{Binding ClearCommand}"
+                                    FontSize="11.5" VerticalAlignment="Center"/>
+                        </Grid>
+
+                        <!-- Divider (Row 2) -->
+                        <Border Grid.Row="2" Height="1" Background="{StaticResource BorderDarkBrush}"/>
+
+                        <!-- Scrollable Version List (Row 3) -->
+                        <ScrollViewer Grid.Row="3" MaxHeight="240" HorizontalScrollBarVisibility="Disabled">
+                            <ItemsControl ItemsSource="{Binding Items}" Margin="4,4">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:GameVersionFilterItem">
+                                        <CheckBox Classes="zenFilterCheck" IsChecked="{Binding IsSelected}"
+                                                  IsVisible="{Binding IsVisible}" Margin="6,2" Padding="8,4"
+                                                  HorizontalAlignment="Stretch">
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="12.5"
+                                                       Foreground="{StaticResource TextPrimaryBrush}"/>
+                                        </CheckBox>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+
+                        <!-- Divider (Row 4) -->
+                        <Border Grid.Row="4" Height="1" Background="{StaticResource BorderDarkBrush}"/>
+
+                        <!-- Bottom: Show all versions Checkbox (Row 5) -->
+                        <Border Grid.Row="5" Padding="12,8" Background="Transparent">
+                            <CheckBox Classes="zenFilterCheck" IsChecked="{Binding ShowAllVersions, Mode=TwoWay}">
+                                <TextBlock Text="Show all versions" FontWeight="SemiBold" FontSize="12"
+                                           Foreground="{StaticResource TextPrimaryBrush}"/>
+                            </CheckBox>
+                        </Border>
+                    </Grid>
+                </Border>
+            </Flyout>
+        </Button.Flyout>
+    </Button>
+</UserControl>

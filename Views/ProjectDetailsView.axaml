@@ -5,6 +5,7 @@
              xmlns:models="using:CustomMcLauncher.Models"
              xmlns:utils="using:CustomMcLauncher.Common.Utils"
              xmlns:l10n="using:CustomMcLauncher.Extensions"
+             xmlns:views="using:CustomMcLauncher.Views"
              x:Class="CustomMcLauncher.Views.ProjectDetailsView"
              x:CompileBindings="False">
 
@@ -862,8 +863,7 @@
                                     <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto" VerticalAlignment="Center" Margin="0,0,0,8">
                                         <PathIcon Grid.Column="0" Data="M3 4h18v2l-7 8v6l-4-2v-4L3 6V4z" Width="13" Height="13"
                                                   Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="2,0,10,0"/>
-                                        <ComboBox Grid.Column="1" Classes="roundedFilterCombo" ItemsSource="{Binding FilterGameVersions}" SelectedItem="{Binding SelectedFilterGameVersion}"
-                                                  Width="150" Margin="0,0,8,0"/>
+                                        <views:GameVersionFilterDropdown Grid.Column="1" DataContext="{Binding GameVersionFilter}" Margin="0,0,8,0" VerticalAlignment="Center"/>
                                         <ComboBox Grid.Column="2" Classes="roundedFilterCombo" ItemsSource="{Binding FilterPlatforms}" SelectedItem="{Binding SelectedFilterPlatform}"
                                                   Width="140" VerticalAlignment="Center"/>
 
@@ -957,8 +957,7 @@
                                     <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto" VerticalAlignment="Center" Margin="0,0,0,8">
                                         <PathIcon Grid.Column="0" Data="M3 4h18v2l-7 8v6l-4-2v-4L3 6V4z" Width="13" Height="13"
                                                   Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="2,0,10,0"/>
-                                        <ComboBox Grid.Column="1" Classes="roundedFilterCombo" ItemsSource="{Binding FilterGameVersions}" SelectedItem="{Binding SelectedFilterGameVersion}"
-                                                  Width="150" Margin="0,0,8,0"/>
+                                        <views:GameVersionFilterDropdown Grid.Column="1" DataContext="{Binding GameVersionFilter}" Margin="0,0,8,0" VerticalAlignment="Center"/>
                                         <ComboBox Grid.Column="2" Classes="roundedFilterCombo" ItemsSource="{Binding FilterPlatforms}" SelectedItem="{Binding SelectedFilterPlatform}"
                                                   Width="140" VerticalAlignment="Center"/>
 

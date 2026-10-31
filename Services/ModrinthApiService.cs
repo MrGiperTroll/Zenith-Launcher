@@ -75,10 +75,19 @@ public static class ModrinthApiService
         => await SearchAsync(query, gameVersion, loaderFacets, projectType, sortIndex, Array.Empty<string>(), offset, limit, cancellationToken);
 
     public static async Task<ModrinthSearchPage?> SearchAsync(
-        string query, string gameVersion, IReadOnlyList<string> loaderFacets, string? projectType, string sortIndex, IReadOnlyList<string> categoryTags, int offset, int limit = 20, CancellationToken cancellationToken = default)
+        string query, string gameVersion, IReadOnlyList<string> loaderFacets, string? projectType, string sortIndex, IReadOnlyList<string> categoryTags, int offset, int limit = 20, CancellationToken cancellationToken = default, IReadOnlyList<string>? gameVersions = null)
     {
         var facets = new List<string[]>();
-        if (!string.IsNullOrWhiteSpace(gameVersion))
+        if (gameVersions != null && gameVersions.Count > 0)
+        {
+            var cleanVersions = gameVersions.Where(v => !string.IsNullOrWhiteSpace(v))
+                .Select(v => $"versions:{v.Trim()}")
+                .Distinct()
+                .ToArray();
+            if (cleanVersions.Length > 0)
+                facets.Add(cleanVersions);
+        }
+        else if (!string.IsNullOrWhiteSpace(gameVersion))
             facets.Add(new[] { $"versions:{gameVersion}" });
         if (loaderFacets.Count > 0)
         {

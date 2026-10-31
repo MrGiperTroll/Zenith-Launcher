@@ -240,6 +240,9 @@ public partial class ModpacksBrowserViewModel : ObservableObject
 
     public bool IsVersionDetailActive => SelectedDetailVersion != null;
 
+    public GameVersionFilterViewModel GameVersionFilter { get; } = new();
+    public GameVersionFilterViewModel BrowserVersionFilter { get; } = new();
+
     [ObservableProperty]
     private string _selectedFilterGameVersion = "All versions";
 
@@ -456,11 +459,17 @@ public partial class ModpacksBrowserViewModel : ObservableObject
             if (_allVersions == null || _allVersions.Count == 0) return new();
             var filtered = (IEnumerable<Models.ModrinthProjectVersion>)_allVersions;
 
-            if (!string.IsNullOrWhiteSpace(SelectedFilterGameVersion) && !SelectedFilterGameVersion.Equals("All versions", StringComparison.OrdinalIgnoreCase))
+            var selectedVersions = GameVersionFilter.SelectedVersions;
+            if (selectedVersions.Count > 0)
+            {
+                filtered = filtered.Where(v => v.GameVersions != null && v.GameVersions.Any(gv =>
+                    selectedVersions.Contains(gv, StringComparer.OrdinalIgnoreCase)));
+            }
+            else if (!string.IsNullOrWhiteSpace(SelectedFilterGameVersion) && !SelectedFilterGameVersion.Equals("All versions", StringComparison.OrdinalIgnoreCase))
             {
                 filtered = filtered.Where(v => v.GameVersions != null && v.GameVersions.Any(gv => gv != null && gv.Equals(SelectedFilterGameVersion, StringComparison.OrdinalIgnoreCase)));
             }
-            else if (!ShowAllVersions && !string.IsNullOrWhiteSpace(SelectedVersion))
+            else if (!GameVersionFilter.ShowAllVersions && !ShowAllVersions && !string.IsNullOrWhiteSpace(SelectedVersion))
             {
                 filtered = filtered.Where(v => v.GameVersions != null && v.GameVersions.Any(gv => gv != null && gv.Contains(SelectedVersion, StringComparison.OrdinalIgnoreCase)));
             }
@@ -768,6 +777,16 @@ public partial class ModpacksBrowserViewModel : ObservableObject
         _onInstalled = onInstalled;
         AvailableCategories = new ObservableCollection<string>(new[] { "", "adventure", "cursed", "magic", "technology", "exploration", "optimization" });
         RefreshAvailableLoaders();
+        GameVersionFilter.FilterChanged += () =>
+        {
+            CurrentVersionPage = 1;
+            RefreshPagination();
+            OnPropertyChanged(nameof(VersionList));
+        };
+        BrowserVersionFilter.FilterChanged += () =>
+        {
+            _ = ReloadAsync();
+        };
         _ = LoadVersionsAsync();
         _ = ReloadAsync();
     }
@@ -818,6 +837,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
                     AvailableVersions.Add(v);
                 if (string.IsNullOrEmpty(SelectedVersion) && AvailableVersions.Count > 1)
                     SelectedVersion = "";
+                BrowserVersionFilter.SetVersions(sorted);
             });
         }
         catch
@@ -839,6 +859,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
                     AvailableVersions.Clear();
                     AvailableVersions.Add("");
                     foreach (var v in releases) AvailableVersions.Add(v);
+                    BrowserVersionFilter.SetVersions(releases);
                 });
             }
             catch
@@ -958,7 +979,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
             };
             var catSlug = SelectedCategory == "exploration" ? "adventure" : SelectedCategory;
             var categoryFilter = string.IsNullOrWhiteSpace(catSlug) ? Array.Empty<string>() : new[] { catSlug };
-            var page = await ModrinthApiService.SearchAsync(SearchQuery, SelectedVersion, LoaderFacets, "modpack", sort, categoryFilter, 0, PageSize, token);
+            var page = await ModrinthApiService.SearchAsync(SearchQuery, SelectedVersion, LoaderFacets, "modpack", sort, categoryFilter, 0, PageSize, token, BrowserVersionFilter.SelectedVersions);
             if (token.IsCancellationRequested || gen != _searchGeneration) return;
             if (page == null)
             {
@@ -1248,6 +1269,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
                     .Where(v => !string.IsNullOrWhiteSpace(v))
                     .Distinct();
                 FilterGameVersions = SortGameVersionsDesc(actualVersions);
+                GameVersionFilter.SetVersions(actualVersions);
 
                 var actualLoaders = (_allVersions.Count > 0
                     ? _allVersions.SelectMany(v => v.Loaders ?? Array.Empty<string>())

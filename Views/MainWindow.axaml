@@ -1034,13 +1034,7 @@
                                                 Foreground="{StaticResource TextPlaceholderBrush}"/>
                                     </TextBox.InnerRightContent>
                                 </TextBox>
-                                <ComboBox Classes="zenCombo" MinWidth="112" Margin="0,0,8,8" ItemsSource="{Binding ModpacksBrowser.AvailableVersions}" SelectedItem="{Binding ModpacksBrowser.SelectedVersion}" FontSize="11" VerticalAlignment="Center">
-                                    <ComboBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding Converter={x:Static converters:BlankTextConverter.Instance}, ConverterParameter=mp_all_versions}" FontSize="11"/>
-                                        </DataTemplate>
-                                    </ComboBox.ItemTemplate>
-                                </ComboBox>
+                                <views:GameVersionFilterDropdown DataContext="{Binding ModpacksBrowser.BrowserVersionFilter}" Margin="0,0,8,8" VerticalAlignment="Center"/>
                                 <ComboBox Classes="zenCombo" MinWidth="118" Margin="0,0,8,8" ItemsSource="{Binding ModpacksBrowser.AvailableCategories}" SelectedItem="{Binding ModpacksBrowser.SelectedCategory}" FontSize="11" VerticalAlignment="Center">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>

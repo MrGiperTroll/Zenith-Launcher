@@ -591,10 +591,7 @@
                     <!-- Left (Col 0, Width 220): Zenith Brand Menu -->
                     <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0,0,0">
                         <Button Classes="menuBarBtn" Padding="8,5">
-                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                <TextBlock Text="Zenith" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                                <PathIcon Data="M7 10l5 5 5-5z" Width="8" Height="8" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
-                            </StackPanel>
+                            <TextBlock Text="Zenith Launcher" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                             <Button.Flyout>
                                 <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="Standard">
                                     <Flyout.FlyoutPresenterTheme>
@@ -678,10 +675,10 @@
 
                     <!-- Discord-Style Left Sidebar (Width 220) -->
                     <Border Grid.Column="0" Width="220" Background="{StaticResource SidebarBgBrush}"
-                            BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,1,0" Padding="10,10,10,10">
+                            BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,1,0" Padding="0">
                         <Grid RowDefinitions="*,Auto">
-                            <!-- Nav items (Profiles, Modpacks, Servers, Directory) -->
-                            <StackPanel Grid.Row="0" Spacing="4">
+                            <!-- Nav items (Profiles, Modpacks, Servers, Directory, Settings) -->
+                            <StackPanel Grid.Row="0" Spacing="4" Margin="10,10,10,10">
                                 <Button Classes="discordNavBtn" Classes.active="{Binding IsProfilesView}" Command="{Binding ShowProfilesCommand}" ToolTip.Tip="{l10n:Tr Key=nav_profiles}">
                                     <Grid ColumnDefinitions="30,*" VerticalAlignment="Center">
                                         <PathIcon Grid.Column="0" Data="M3 3H10V10H3V3M14 3H21V10H14V3M3 14H10V21H3V14M14 14H21V21H14V14Z" Width="18" Height="18" HorizontalAlignment="Left" VerticalAlignment="Center"/>
@@ -711,38 +708,46 @@
                                         <TextBlock Grid.Column="1" Text="{l10n:Tr Key=nav_dir}" FontSize="13.5" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                     </Grid>
                                 </Button>
+
+                                <Button Classes="discordNavBtn" Command="{Binding OpenSettingsDialogCommand}" ToolTip.Tip="{l10n:Tr Key=nav_settings}">
+                                    <Grid ColumnDefinitions="30,*" VerticalAlignment="Center">
+                                        <PathIcon Grid.Column="0" Data="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" Width="18" Height="18" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="1" Text="{l10n:Tr Key=nav_settings}" FontSize="13.5" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                    </Grid>
+                                </Button>
                             </StackPanel>
 
-                            <!-- Row 1: Pinned Discord User Account Bar -->
-                            <Border Grid.Row="1" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}"
-                                    BorderThickness="1" CornerRadius="8" Padding="6,6" Margin="0,8,0,0">
+                            <!-- Row 1: Pinned Discord User Account Bar (flush at bottom) -->
+                            <Border Grid.Row="1" Height="52" Background="{StaticResource CardBrush}"
+                                    BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,1,0,0"
+                                    CornerRadius="0" Padding="8,0">
                                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6" VerticalAlignment="Center">
                                     <!-- User info (Click opens accounts) -->
                                     <Button Grid.Column="0" Command="{Binding OpenAccountsDialogCommand}"
-                                            Background="Transparent" BorderThickness="0" Padding="2" Cursor="Hand"
+                                            Background="Transparent" BorderThickness="0" Padding="4,4" Cursor="Hand"
                                             HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
                                         <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                            <Border Width="30" Height="30" Background="{StaticResource IconChipBrush}" CornerRadius="6" ClipToBounds="True">
+                                            <Border Width="32" Height="32" Background="{StaticResource IconChipBrush}" CornerRadius="16" ClipToBounds="True">
                                                 <Panel>
                                                     <Image Source="{Binding ActiveAccountRow.HeadImage}" Stretch="UniformToFill" IsVisible="{Binding ActiveAccountRow.HasHead}"/>
                                                     <PathIcon Data="M12 4A4 4 0 0 1 16 8A4 4 0 0 1 12 12A4 4 0 0 1 8 8A4 4 0 0 1 12 4ZM4 20C4 16.69 7.58 14 12 14C16.42 14 20 16.69 20 20V21H4V20Z"
-                                                              Width="14" Height="14" Foreground="{StaticResource TextSecondaryBrush}"
+                                                              Width="15" Height="15" Foreground="{StaticResource TextSecondaryBrush}"
                                                               HorizontalAlignment="Center" VerticalAlignment="Center"
                                                               IsVisible="{Binding !ActiveAccountRow.HasHead}"/>
                                                 </Panel>
                                             </Border>
                                             <StackPanel Spacing="1" VerticalAlignment="Center">
                                                 <TextBlock Text="{Binding ActiveAccountName}" FontWeight="Bold" FontSize="12.5"
-                                                           Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" MaxWidth="105"/>
+                                                           Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" MaxWidth="110"/>
                                                 <TextBlock Text="{Binding ActiveAccountType}" FontSize="10.5"
                                                            Foreground="{StaticResource TextMutedBrush}"/>
                                             </StackPanel>
                                         </StackPanel>
                                     </Button>
 
-                                    <!-- Settings Gear Button -->
-                                    <Button Grid.Column="1" Classes="gearSettingsBtn" Command="{Binding OpenSettingsDialogCommand}"
-                                            ToolTip.Tip="{l10n:Tr Key=nav_settings}">
+                                    <!-- Account Settings Gear Button -->
+                                    <Button Grid.Column="1" Classes="gearSettingsBtn" Command="{Binding OpenAccountsDialogCommand}"
+                                            ToolTip.Tip="Account Settings">
                                         <PathIcon Data="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"
                                                   Width="16" Height="16" Foreground="{StaticResource TextSecondaryBrush}"
                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -1032,8 +1037,8 @@
                 <!-- Modpacks View -->
                     <Grid IsVisible="{Binding IsModpacksView}" Classes="viewPane" Margin="0,0,16,0" x:Name="ModpacksPane">
                         <Grid RowDefinitions="Auto,*" IsVisible="{Binding !ModpacksBrowser.IsDetailsOpen}">
-                            <Border Grid.Row="0" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="14" Margin="0,0,0,12">
-                                <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <!-- Filters directly on page background -->
+                            <WrapPanel Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,12">
                                 <TextBox Classes="darkInput" Width="220" Margin="0,0,8,8" Text="{Binding ModpacksBrowser.SearchQuery}" PlaceholderText="{l10n:Tr Key=mp_search_hint}" FontSize="12" VerticalAlignment="Center">
                                     <TextBox.KeyBindings>
                                         <KeyBinding Gesture="Enter" Command="{Binding ModpacksBrowser.SearchCommand}"/>
@@ -1078,9 +1083,9 @@
                                     <PathIcon Data="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" Width="13" Height="13" Foreground="{StaticResource TextSecondaryBrush}"/>
                                 </Button>
                             </WrapPanel>
-                        </Border>
-                        <Border Grid.Row="1" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="8">
-                            <Grid RowDefinitions="*,Auto">
+
+                            <!-- Results list directly on page background -->
+                            <Grid Grid.Row="1" RowDefinitions="*,Auto">
                                 <ListBox x:Name="ModpacksList" ItemsSource="{Binding ModpacksBrowser.Results}" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" AttachedToVisualTree="OnModpacksListAttached">
                                     <ListBox.ItemContainerTheme>
                                         <ControlTheme TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
@@ -1119,14 +1124,12 @@
                                 </StackPanel>
                                 <TextBlock Grid.Row="1" Text="{Binding ModpacksBrowser.StatusText}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="4,8,0,0" TextWrapping="Wrap" IsVisible="{Binding ModpacksBrowser.StatusText, Converter={x:Static conv:ObjectConverters.IsNotNull}}"/>
                             </Grid>
-                        </Border>
                         </Grid>
 
-                        <!-- Full-page modpack details (replaces catalog when open) -->
-                        <Border IsVisible="{Binding ModpacksBrowser.IsDetailsOpen}" Background="{StaticResource BgBrush}" Margin="14" CornerRadius="10"
-                                BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1">
+                        <!-- Full-page modpack details (replaces catalog when open, seamless stretch) -->
+                        <Panel IsVisible="{Binding ModpacksBrowser.IsDetailsOpen}">
                             <views:ProjectDetailsView DataContext="{Binding ModpacksBrowser}"/>
-                        </Border>
+                        </Panel>
                     </Grid>
 
                     <!-- In-Window Edit Instance View -->

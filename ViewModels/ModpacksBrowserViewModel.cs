@@ -100,7 +100,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     private string _selectedDetailTab = "description";
 
     [ObservableProperty]
-    private bool _showAllVersions;
+    private bool _showAllVersions = true;
 
     [ObservableProperty]
     private string _versionFilter = "";

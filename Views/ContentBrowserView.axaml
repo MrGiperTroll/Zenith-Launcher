@@ -331,7 +331,7 @@
     </Border>
 
     <!-- Full-page project details (replaces catalog when open) -->
-    <Border IsVisible="{Binding IsDetailsOpen}" Background="Transparent" Margin="14">
+    <Border IsVisible="{Binding IsDetailsOpen}" Background="Transparent" Margin="0">
         <views:ProjectDetailsView DataContext="{Binding}"/>
     </Border>
     </Panel>

@@ -36,6 +36,7 @@ public partial class MainWindow : Window
         // RAM optimization: when the window is minimized or deactivated, collect GC generation and release unneeded working set
         PropertyChanged += (s, e) =>
         {
+            if (e.Property == WindowStateProperty) { UpdateMaximizeButtonIcon(); }
             if (e.Property == WindowStateProperty && WindowState == WindowState.Minimized)
             {
                 OptimizeMemory();
@@ -45,6 +46,33 @@ public partial class MainWindow : Window
         {
             OptimizeMemory();
         };
+    }
+
+    private static readonly Geometry MaximizeGeometry = Geometry.Parse("M4 4h16v16H4V4zm2 2v12h12V6H6z");
+    private static readonly Geometry RestoreGeometry = Geometry.Parse("M4 8h12v12H4V8zm2 2v8h8v-8H6zm2-6h12v12h-2V6H8V4z");
+
+    private void UpdateMaximizeButtonIcon()
+    {
+        var icon = this.FindControl<PathIcon>("MaximizeButtonIcon");
+        if (icon != null)
+        {
+            icon.Data = WindowState == WindowState.Maximized ? RestoreGeometry : MaximizeGeometry;
+        }
+    }
+
+    private void OnMinimizeButtonClick(object? sender, RoutedEventArgs e)
+    {
+        WindowState = WindowState.Minimized;
+    }
+
+    private void OnMaximizeButtonClick(object? sender, RoutedEventArgs e)
+    {
+        WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+    }
+
+    private void OnCloseButtonClick(object? sender, RoutedEventArgs e)
+    {
+        Close();
     }
 
     private void OnTopBarPointerPressed(object? sender, PointerPressedEventArgs e)

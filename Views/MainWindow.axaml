@@ -17,8 +17,8 @@
         Background="{DynamicResource BgBrush}"
         TransparencyLevelHint="None"
         TransparencyBackgroundFallback="{DynamicResource BgBrush}"
-        ExtendClientAreaToDecorationsHint="True"
-        ExtendClientAreaTitleBarHeightHint="-1"
+        WindowDecorations="BorderOnly"
+        
         Opacity="1">
 
 <Window.Resources>
@@ -411,6 +411,56 @@
             <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
             <Setter Property="FontWeight" Value="Bold"/>
         </Style>
+        <!-- Top Menu Bar Buttons -->
+        <Style Selector="Button.menuBarBtn">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}"/>
+        </Style>
+        <Style Selector="Button.menuBarBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource CardAltBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        </Style>
+
+        <!-- Menu Flyout Item Button -->
+        <Style Selector="Button.menuItemBtn">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        </Style>
+        <Style Selector="Button.menuItemBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        </Style>
+
+        <!-- Window Caption Controls -->
+        <Style Selector="Button.captionBtn">
+            <Setter Property="Width" Value="46"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="CornerRadius" Value="0"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+        </Style>
+        <Style Selector="Button.captionBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource CardAltBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        </Style>
+        <Style Selector="Button.captionCloseBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#E81123"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+        </Style>
     </Window.Styles>
 
     <Panel Background="{DynamicResource BgBrush}">
@@ -419,8 +469,61 @@
             <LayoutTransformControl.LayoutTransform>
                 <ScaleTransform ScaleX="{Binding LauncherScale}" ScaleY="{Binding LauncherScale}"/>
             </LayoutTransformControl.LayoutTransform>
-            <Grid>
-            <Grid ColumnDefinitions="Auto,*">
+            <Grid RowDefinitions="32,*">
+                <!-- Top Window Title / Menu Bar (Row 0) -->
+                <Grid Grid.Row="0" Height="32" Background="{StaticResource SidebarBgBrush}"
+                      ColumnDefinitions="Auto,*,Auto"
+                      PointerPressed="OnTopBarPointerPressed"
+                      DoubleTapped="OnTopBarDoubleTapped">
+                    <!-- Left: Zenith Brand Menu -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="6,0,0,0">
+                        <Button Classes="menuBarBtn">
+                            <TextBlock Text="Zenith" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            <Button.Flyout>
+                                <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="Standard">
+                                    <Border Background="{StaticResource CardBrush}"
+                                            BorderBrush="{StaticResource BorderCardSoftBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="8"
+                                            Padding="4"
+                                            MinWidth="160">
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="{Binding VersionLabel, StringFormat='Version {0}'}"
+                                                       Foreground="{StaticResource TextMutedBrush}"
+                                                       FontSize="11.5"
+                                                       FontWeight="SemiBold"
+                                                       Padding="10,6"
+                                                       IsHitTestVisible="False"/>
+                                            <Border Height="1" Background="{StaticResource BorderDarkBrush}" Margin="4,2"/>
+                                            <Button Classes="menuItemBtn" Command="{Binding CheckForUpdatesNowCommand}">
+                                                <TextBlock Text="{l10n:Tr Key=update_btn}" FontSize="12" VerticalAlignment="Center"/>
+                                            </Button>
+                                        </StackPanel>
+                                    </Border>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                    </StackPanel>
+
+                    <!-- Middle: Drag area (empty) -->
+                    <Panel Grid.Column="1" Background="Transparent"/>
+
+                    <!-- Right: Window Caption Controls -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="0" VerticalAlignment="Stretch">
+                        <Button Classes="captionBtn" Click="OnMinimizeButtonClick" ToolTip.Tip="Minimize">
+                            <PathIcon Data="M19 13H5v-2h14v2z" Width="10" Height="10"/>
+                        </Button>
+                        <Button Classes="captionBtn" Click="OnMaximizeButtonClick" ToolTip.Tip="Maximize">
+                            <PathIcon x:Name="MaximizeButtonIcon" Data="M4 4h16v16H4V4zm2 2v12h12V6H6z" Width="10" Height="10"/>
+                        </Button>
+                        <Button Classes="captionBtn captionCloseBtn" Click="OnCloseButtonClick" ToolTip.Tip="Close">
+                            <PathIcon Data="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" Width="10" Height="10"/>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Main Application Body (Row 1) -->
+                <Grid Grid.Row="1" ColumnDefinitions="Auto,*">
             <!-- Left Rail -->
             <Border Grid.Column="0" Width="{Binding SidebarWidth}" Background="{StaticResource SidebarBgBrush}" Padding="8,12" Classes.expanded="{Binding IsSidebarExpanded}" ClipToBounds="True">
                 <Border.Transitions>
@@ -478,12 +581,9 @@
             </Border>
 
             <!-- Main Workspace -->
-            <Grid Grid.Column="1" RowDefinitions="52,*,Auto">
+            <Grid Grid.Column="1" RowDefinitions="44,*,Auto">
                 <!-- Top Header -->
-                <Grid Grid.Row="0" Margin="0,0,140,0" VerticalAlignment="Stretch" ColumnDefinitions="Auto,*,Auto"
-                      Background="Transparent"
-                      PointerPressed="OnTopBarPointerPressed"
-                      DoubleTapped="OnTopBarDoubleTapped">
+                <Grid Grid.Row="0" Margin="0,0,24,0" VerticalAlignment="Center" ColumnDefinitions="*,Auto">
                     <!-- Left: Navigation (Back, Forward, Breadcrumbs) -->
                     <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="24,0,0,0">
                         <Button Classes="navBtn" Command="{Binding GoBackCommand}" ToolTip.Tip="{l10n:Tr Key=nav_back}">
@@ -517,18 +617,7 @@
                         </ItemsControl>
                     </StackPanel>
 
-                    <!-- Center: Window Title in top bar -->
-                    <TextBlock Grid.Column="1"
-                               Text="{Binding WindowTitle}"
-                               FontSize="12"
-                               FontWeight="SemiBold"
-                               Foreground="{StaticResource TextMutedBrush}"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center"
-                               IsHitTestVisible="False"
-                               Opacity="0.7"/>
-
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="0" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="0" HorizontalAlignment="Right" VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal" Spacing="3" VerticalAlignment="Center" IsVisible="{Binding IsUpdateAvailable}">
                         <Border Width="8" Height="1" Background="{StaticResource BorderSoftBrush}" Opacity="0.7" VerticalAlignment="Center"/>
                         <Button Classes="updateBtn" Command="{Binding CheckForUpdatesNowCommand}" ToolTip.Tip="{l10n:Tr Key=update_btn}">

@@ -108,7 +108,7 @@
         </Style>
     </UserControl.Styles>
 
-    <Border Background="{StaticResource CardAltBrush}" CornerRadius="12" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" ClipToBounds="True">
+    <Border Background="{StaticResource CardAltBrush}" CornerRadius="12" ClipToBounds="True">
         <Grid ColumnDefinitions="*,300" Margin="22,20">
 
             <!-- LEFT: Account List -->

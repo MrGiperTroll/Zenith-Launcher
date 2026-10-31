@@ -412,7 +412,7 @@
             <Setter Property="FontWeight" Value="Bold"/>
         </Style>
 
-        <!-- Header Account and Update Buttons -->
+        <!-- Header Account Button -->
         <Style Selector="Button.headerAccountBtn">
             <Setter Property="Background" Value="{StaticResource CardBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
@@ -424,18 +424,6 @@
         <Style Selector="Button.headerAccountBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource CardAltBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
-        </Style>
-        <Style Selector="Button.headerUpdateBtn">
-            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderEditorBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="10,5"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
-        <Style Selector="Button.headerUpdateBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
         </Style>
         <!-- Top Menu Bar Buttons -->
         <Style Selector="Button.menuBarBtn">
@@ -631,15 +619,8 @@
                         </ItemsControl>
                     </StackPanel>
 
-                    <!-- Right: Check for Updates (Always) + Redesigned Account Card -->
+                    <!-- Right: Redesigned Account Card -->
                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <Button Classes="headerUpdateBtn" Command="{Binding CheckForUpdatesNowCommand}" ToolTip.Tip="Check for Updates">
-                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                <PathIcon Data="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z" Width="12" Height="12" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                <TextBlock Text="Check for Updates" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
-
                         <Button Command="{Binding OpenAccountsDialogCommand}" Classes="headerAccountBtn">
                             <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                 <Border Width="20" Height="20" Background="{StaticResource IconChipBrush}" CornerRadius="5" ClipToBounds="True">

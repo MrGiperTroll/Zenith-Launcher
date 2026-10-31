@@ -27,9 +27,12 @@
         <Style Selector="ToggleButton.tabBtn:pointerover">
             <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
         </Style>
+        <Style Selector="ToggleButton.tabBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+        </Style>
         <Style Selector="ToggleButton.tabBtn:checked /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
+            <Setter Property="Background" Value="{StaticResource AccentDimBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
         </Style>
         <Style Selector="Button.actionBtn">
             <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
@@ -153,7 +156,7 @@
         </Border>
 
         <!-- ========== TABS ========== -->
-        <Border Grid.Row="1" Background="Transparent" Padding="24,0">
+        <Border Grid.Row="1" Background="{StaticResource FieldBrush}" CornerRadius="8" Padding="3" HorizontalAlignment="Left" Margin="24,0,24,12">
             <StackPanel Orientation="Horizontal" Spacing="4">
                 <ToggleButton Classes="tabBtn" IsChecked="{Binding IsDescriptionTab}"
                               Content="{l10n:Tr Key=cb_description}"
@@ -171,7 +174,7 @@
         <Grid Grid.Row="2" ColumnDefinitions="*,260" ColumnSpacing="16" Margin="24,12,24,12">
 
             <!-- Left: tabbed content -->
-            <Border Grid.Column="0" Background="Transparent" Padding="20,20,12,20">
+            <Border Grid.Column="0" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="10" Padding="20,18,16,18">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel>
                         <!-- Description tab -->

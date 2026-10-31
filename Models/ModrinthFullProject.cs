@@ -232,6 +232,33 @@ public partial class ModrinthTeamMember : ObservableObject
 public class ModrinthProjectVersion
 {
     public string Id { get; init; } = "";
+    public string ProjectId { get; init; } = "";
+    public string MavenCoordinates => $"maven.modrinth:{(string.IsNullOrWhiteSpace(ProjectId) ? "project" : ProjectId)}:{Id}";
+    public string GradleSnippet => 
+$@"repositories {{
+    exclusiveContent {{
+        forRepository {{
+            maven {{
+                name = ""Modrinth""
+                url = ""https://api.modrinth.com/maven""
+            }}
+        }}
+        // forRepositories(fg.repository) // Uncomment when using ForgeGradle
+        filter {{
+            includeGroup ""maven.modrinth""
+        }}
+    }}
+}}
+
+// Standard Gradle dependency
+dependencies {{
+    implementation ""maven.modrinth:{(string.IsNullOrWhiteSpace(ProjectId) ? "project" : ProjectId)}:{Id}""
+}}
+
+// Legacy Loom dependency
+dependencies {{
+    modImplementation ""maven.modrinth:{(string.IsNullOrWhiteSpace(ProjectId) ? "project" : ProjectId)}:{Id}""
+}}";
     public string Name { get; init; } = "";
     public string VersionNumber { get; init; } = "";
     public string Changelog { get; init; } = "";
@@ -331,4 +358,14 @@ public class ModrinthVersionFile
     public string Filename { get; init; } = "";
     public long FileSize { get; init; } = 0;
     public bool IsPrimary { get; init; }
+}
+
+
+public class PaginationPageItem
+{
+    public int PageNumber { get; init; }
+    public string DisplayText { get; init; } = "";
+    public bool IsActive { get; init; }
+    public bool IsEllipsis { get; init; }
+    public bool IsClickable => !IsActive && !IsEllipsis;
 }

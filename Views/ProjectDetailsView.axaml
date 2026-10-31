@@ -162,13 +162,59 @@
             <Setter Property="Background" Value="{StaticResource DangerBgDeepBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
         </Style>
+        <Style Selector="Button.pageNumberBtn">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="6,4"/>
+            <Setter Property="MinWidth" Value="24"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Button.pageNumberBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        </Style>
+        <Style Selector="Button.pageNavBtn">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="4"/>
+            <Setter Property="Width" Value="28"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Button.pageNavBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+        </Style>
+        <Style Selector="Button.iconCopyBtn">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="4"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Button.iconCopyBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+        </Style>
+        <Style Selector="Button.iconCopyBtn:pointerover PathIcon">
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+        <Style Selector="Button.iconCopyBtn:pointerover TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+        </Style>
     </UserControl.Styles>
 
     <Panel>
         <Grid RowDefinitions="Auto,Auto,*">
 
             <!-- ========== TOP HEADER ========== -->
-            <Border Grid.Row="0" Background="Transparent" Padding="24,14">
+            <Border Grid.Row="0" Background="Transparent" Padding="0,8,0,14">
                 <Grid ColumnDefinitions="56,*,Auto" ColumnSpacing="14">
                     <Border Grid.Column="0" Width="56" Height="56" CornerRadius="12"
                             Background="{StaticResource IconChipBrush}" ClipToBounds="True" VerticalAlignment="Center">
@@ -210,7 +256,7 @@
             </Border>
 
             <!-- ========== TABS ========== -->
-            <Border Grid.Row="1" Background="{StaticResource FieldBrush}" CornerRadius="20" Padding="3" HorizontalAlignment="Left" Margin="24,0,24,14">
+            <Border Grid.Row="1" Background="{StaticResource FieldBrush}" CornerRadius="20" Padding="3" HorizontalAlignment="Left" Margin="0,0,0,14">
                 <StackPanel Orientation="Horizontal" Spacing="2">
                     <Button Classes="tabBtn" Classes.active="{Binding IsDescriptionTab}"
                             Content="{l10n:Tr Key=cb_description}"
@@ -228,7 +274,7 @@
             </Border>
 
             <!-- ========== TWO-COLUMN BODY ========== -->
-            <Grid Grid.Row="2" ColumnDefinitions="*,270" ColumnSpacing="16" Margin="24,0,24,16">
+            <Grid Grid.Row="2" ColumnDefinitions="*,270" ColumnSpacing="16" Margin="0,0,0,16">
 
                 <!-- LEFT: Tabbed Content or Version Detail View (Clean seamless layout) -->
                 <Grid Grid.Column="0">
@@ -325,22 +371,60 @@
                                     </Border>
                                 </StackPanel>
 
-                                <!-- Developer Information Section -->
+                                <!-- Developer Information Section matching Modrinth -->
                                 <Expander Header="Developer information" IsExpanded="False" Background="{StaticResource FieldBrush}"
-                                          BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="12,8">
-                                    <StackPanel Spacing="6" Margin="0,8,0,0">
-                                        <Grid ColumnDefinitions="140,*">
-                                            <TextBlock Text="Filename:" FontSize="11.5" Foreground="{StaticResource TextMutedBrush}"/>
-                                            <TextBlock Grid.Column="1" Text="{Binding SelectedDetailVersion.PrimaryFileName}" FontSize="11.5" Foreground="{StaticResource TextPrimaryBrush}" TextWrapping="Wrap"/>
-                                        </Grid>
-                                        <Grid ColumnDefinitions="140,*">
-                                            <TextBlock Text="File size:" FontSize="11.5" Foreground="{StaticResource TextMutedBrush}"/>
-                                            <TextBlock Grid.Column="1" Text="{Binding SelectedDetailVersion.FileSizeLabel}" FontSize="11.5" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                        </Grid>
-                                        <Grid ColumnDefinitions="140,*">
-                                            <TextBlock Text="Version ID:" FontSize="11.5" Foreground="{StaticResource TextMutedBrush}"/>
-                                            <TextBlock Grid.Column="1" Text="{Binding SelectedDetailVersion.Id}" FontSize="11.5" Foreground="{StaticResource TextPlaceholderBrush}"/>
-                                        </Grid>
+                                          BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="14,10"
+                                          Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" FontSize="13">
+                                    <StackPanel Spacing="14" Margin="0,10,0,6">
+                                        <!-- Explanatory intro text -->
+                                        <TextBlock Text="Projects on Modrinth are automatically available through a Maven repository for use with JVM build tools such as Gradle. To learn more about the Modrinth Maven API, click here."
+                                                   FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="18"/>
+
+                                        <!-- Explanatory note text -->
+                                        <TextBlock Text="Note: When available, you should use the creator's maven repo instead as it will have transitive dependency information that the Modrinth Maven API does not. You may also end up with duplicate dependencies if you use a mix of Modrinth and non-Modrinth Maven repositories for your dependencies, because the group identifier will be different when served through the Modrinth Maven API."
+                                                   FontSize="11.5" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap" LineHeight="17"/>
+
+                                        <!-- Maven coordinates -->
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="Maven coordinates:" FontSize="12.5" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                            <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6" HorizontalAlignment="Left">
+                                                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding SelectedDetailVersion.MavenCoordinates}" FontFamily="Consolas, Cascadia Code, monospace" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                                    <Button Classes="iconCopyBtn" Click="OnCopyMavenClicked" ToolTip.Tip="Copy Maven coordinates">
+                                                        <PathIcon Data="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" Width="13" Height="13" Foreground="{StaticResource TextMutedBrush}"/>
+                                                    </Button>
+                                                </StackPanel>
+                                            </Border>
+                                        </StackPanel>
+
+                                        <!-- Version ID -->
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="Version ID:" FontSize="12.5" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                            <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6" HorizontalAlignment="Left">
+                                                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding SelectedDetailVersion.Id}" FontFamily="Consolas, Cascadia Code, monospace" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                                    <Button Classes="iconCopyBtn" Click="OnCopyVersionIdClicked" ToolTip.Tip="Copy Version ID">
+                                                        <PathIcon Data="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" Width="13" Height="13" Foreground="{StaticResource TextMutedBrush}"/>
+                                                    </Button>
+                                                </StackPanel>
+                                            </Border>
+                                        </StackPanel>
+
+                                        <!-- build.gradle -->
+                                        <StackPanel Spacing="6">
+                                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                                <TextBlock Grid.Column="0" Text="build.gradle:" FontSize="12.5" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                                <Button Grid.Column="1" Classes="iconCopyBtn" Click="OnCopyGradleClicked" ToolTip.Tip="Copy build.gradle snippet">
+                                                    <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                                        <PathIcon Data="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" Width="12" Height="12" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Copy" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                    </StackPanel>
+                                                </Button>
+                                            </Grid>
+                                            <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="14,12">
+                                                <TextBlock Text="{Binding SelectedDetailVersion.GradleSnippet}" FontFamily="Consolas, Cascadia Code, monospace" FontSize="11.5" Foreground="{StaticResource TextSecondaryBrush}" LineHeight="18" TextWrapping="Wrap"/>
+                                            </Border>
+                                        </StackPanel>
                                     </StackPanel>
                                 </Expander>
                             </StackPanel>
@@ -452,81 +536,121 @@
 
                                 <!-- VERSIONS TAB (Table matching Modrinth) -->
                                 <StackPanel IsVisible="{Binding IsVersionsTab}" Spacing="14">
-                                    <!-- Filters bar above table (sitting directly on background) -->
-                                    <Grid ColumnDefinitions="Auto,Auto,Auto,*" VerticalAlignment="Center" Margin="0,0,0,10">
+                                    <!-- Filters bar above table with Modrinth pagination (identical alignment to changelog) -->
+                                    <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto" VerticalAlignment="Center" Margin="0,0,0,12">
                                         <PathIcon Grid.Column="0" Data="M3 4h18v2l-7 8v6l-4-2v-4L3 6V4z" Width="13" Height="13"
                                                   Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="2,0,10,0"/>
                                         <ComboBox Grid.Column="1" Classes="roundedFilterCombo" ItemsSource="{Binding FilterGameVersions}" SelectedItem="{Binding SelectedFilterGameVersion}"
                                                   Width="150" Margin="0,0,8,0"/>
                                         <ComboBox Grid.Column="2" Classes="roundedFilterCombo" ItemsSource="{Binding FilterPlatforms}" SelectedItem="{Binding SelectedFilterPlatform}"
                                                   Width="140"/>
+
+                                        <!-- Modrinth Pagination -->
+                                        <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center"
+                                                    IsVisible="{Binding HasMultipleVersionPages}">
+                                            <Button Classes="pageNavBtn" Click="OnPrevPageClicked" IsEnabled="{Binding CanGoPrevVersionPage}"
+                                                    IsVisible="{Binding CanGoPrevVersionPage}">
+                                                <TextBlock Text="&#x2039;" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Button>
+                                            <ItemsControl ItemsSource="{Binding VersionPageItems}">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center"/>
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate x:DataType="models:PaginationPageItem">
+                                                        <Panel VerticalAlignment="Center">
+                                                            <!-- Active Page: Green Circle -->
+                                                            <Border Width="28" Height="28" CornerRadius="14" Background="#16a34a"
+                                                                    IsVisible="{Binding IsActive}" VerticalAlignment="Center">
+                                                                <TextBlock Text="{Binding DisplayText}" FontSize="12.5" FontWeight="Bold"
+                                                                           Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                            </Border>
+                                                            <!-- Ellipsis -->
+                                                            <TextBlock Text="..." FontSize="13" Foreground="{StaticResource TextMutedBrush}"
+                                                                       VerticalAlignment="Center" Margin="4,0" IsVisible="{Binding IsEllipsis}"/>
+                                                            <!-- Inactive Page Button -->
+                                                            <Button Classes="pageNumberBtn" Content="{Binding DisplayText}" Click="OnPageNumberClicked"
+                                                                    IsVisible="{Binding IsClickable}"/>
+                                                        </Panel>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                            <Button Classes="pageNavBtn" Click="OnNextPageClicked" IsEnabled="{Binding CanGoNextVersionPage}"
+                                                    IsVisible="{Binding CanGoNextVersionPage}">
+                                                <TextBlock Text="&#x203A;" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Button>
+                                        </StackPanel>
                                     </Grid>
 
-                                    <!-- Versions Table (Clean, seamless layout without outer window box) -->
-                                    <StackPanel>
-                                        <!-- Table Header -->
-                                        <Border Background="Transparent" Padding="12,10"
-                                                BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,0,1">
-                                            <Grid ColumnDefinitions="150,110,120,90,90,*">
-                                                <TextBlock Grid.Column="0" Text="Version" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
-                                                <TextBlock Grid.Column="1" Text="Game version" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
-                                                <TextBlock Grid.Column="2" Text="Platform" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
-                                                <TextBlock Grid.Column="3" Text="Published" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
-                                                <TextBlock Grid.Column="4" Text="Downloads" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
-                                            </Grid>
-                                        </Border>
+                                    <!-- Versions Table Container with subtle soft border -->
+                                    <Border Background="{StaticResource FieldBrush}" BorderBrush="#1E2026" BorderThickness="1" CornerRadius="10" ClipToBounds="True">
+                                        <StackPanel>
+                                            <!-- Table Header -->
+                                            <Border Background="Transparent" Padding="14,10"
+                                                    BorderBrush="#1E2026" BorderThickness="0,0,0,1">
+                                                <Grid ColumnDefinitions="150,110,120,90,90,*">
+                                                    <TextBlock Grid.Column="0" Text="Version" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
+                                                    <TextBlock Grid.Column="1" Text="Game version" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
+                                                    <TextBlock Grid.Column="2" Text="Platform" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
+                                                    <TextBlock Grid.Column="3" Text="Published" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
+                                                    <TextBlock Grid.Column="4" Text="Downloads" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
+                                                </Grid>
+                                            </Border>
 
-                                        <!-- Table Rows -->
-                                        <ItemsControl ItemsSource="{Binding VersionList}">
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate x:DataType="models:ModrinthProjectVersion">
-                                                    <Border Classes="versionRow" Padding="12,10" BorderBrush="{StaticResource BorderDarkBrush}"
-                                                            BorderThickness="0,0,0,1" Tapped="OnVersionRowTapped">
-                                                        <Grid ColumnDefinitions="150,110,120,90,90,*">
-                                                            <!-- Version with Initial Badge -->
-                                                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                                                <Border Width="22" Height="22" CornerRadius="11" VerticalAlignment="Center"
-                                                                        Background="{Binding VersionType, Converter={x:Static converters:ContentBrowserConverters.VersionTypeBg}}">
-                                                                    <TextBlock Text="{Binding VersionTypeInitial}" FontSize="11" FontWeight="Bold"
-                                                                               Foreground="{Binding VersionType, Converter={x:Static converters:ContentBrowserConverters.VersionTypeFg}}"
-                                                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                                </Border>
-                                                                <TextBlock Text="{Binding VersionNumber}" FontSize="13" FontWeight="SemiBold"
-                                                                           Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                                                            </StackPanel>
-
-                                                            <!-- Game Version Pill -->
-                                                            <Border Grid.Column="1" Background="{StaticResource CardBrush}" CornerRadius="10" Padding="8,3"
-                                                                    HorizontalAlignment="Left" VerticalAlignment="Center">
-                                                                <TextBlock Text="{Binding PrimaryGameVersion}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                                            </Border>
-
-                                                            <!-- Platform Pill -->
-                                                            <Border Grid.Column="2" Background="{StaticResource CardBrush}" CornerRadius="10" Padding="8,3"
-                                                                    HorizontalAlignment="Left" VerticalAlignment="Center">
-                                                                <TextBlock Text="{Binding PrimaryLoader}" FontSize="11" Foreground="{DynamicResource AccentBrush}"/>
-                                                            </Border>
-
-                                                            <!-- Published -->
-                                                            <TextBlock Grid.Column="3" Text="{Binding RelativeTime}" FontSize="11.5" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
-
-                                                            <!-- Downloads -->
-                                                            <TextBlock Grid.Column="4" Text="{Binding DownloadsLabel}" FontSize="11.5" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-
-                                                            <!-- Download Action Button matching Changelog -->
-                                                            <Button Grid.Column="5" Classes="actionBtn" Padding="12,5" MinWidth="100" HorizontalAlignment="Right"
-                                                                    Click="OnDownloadVersionClicked" ToolTip.Tip="Download and install">
-                                                                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
-                                                                    <TextBlock Text="&#x2193;" FontWeight="Bold" FontSize="13"/>
-                                                                    <TextBlock Text="Download" FontWeight="Bold" FontSize="11.5"/>
+                                            <!-- Table Rows -->
+                                            <ItemsControl ItemsSource="{Binding VersionList}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate x:DataType="models:ModrinthProjectVersion">
+                                                        <Border Classes="versionRow" Padding="14,10" BorderBrush="#1E2026"
+                                                                BorderThickness="0,0,0,1" Tapped="OnVersionRowTapped">
+                                                            <Grid ColumnDefinitions="150,110,120,90,90,*">
+                                                                <!-- Version with Initial Badge -->
+                                                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                                                    <Border Width="22" Height="22" CornerRadius="11" VerticalAlignment="Center"
+                                                                            Background="{Binding VersionType, Converter={x:Static converters:ContentBrowserConverters.VersionTypeBg}}">
+                                                                        <TextBlock Text="{Binding VersionTypeInitial}" FontSize="11" FontWeight="Bold"
+                                                                                   Foreground="{Binding VersionType, Converter={x:Static converters:ContentBrowserConverters.VersionTypeFg}}"
+                                                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                    <TextBlock Text="{Binding VersionNumber}" FontSize="13" FontWeight="SemiBold"
+                                                                               Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                                                 </StackPanel>
-                                                            </Button>
-                                                        </Grid>
-                                                    </Border>
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-                                    </StackPanel>
+
+                                                                <!-- Game Version Pill -->
+                                                                <Border Grid.Column="1" Background="{StaticResource CardBrush}" CornerRadius="10" Padding="8,3"
+                                                                        HorizontalAlignment="Left" VerticalAlignment="Center">
+                                                                    <TextBlock Text="{Binding PrimaryGameVersion}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                                </Border>
+
+                                                                <!-- Platform Pill -->
+                                                                <Border Grid.Column="2" Background="{StaticResource CardBrush}" CornerRadius="10" Padding="8,3"
+                                                                        HorizontalAlignment="Left" VerticalAlignment="Center">
+                                                                    <TextBlock Text="{Binding PrimaryLoader}" FontSize="11" Foreground="{DynamicResource AccentBrush}"/>
+                                                                </Border>
+
+                                                                <!-- Published -->
+                                                                <TextBlock Grid.Column="3" Text="{Binding RelativeTime}" FontSize="11.5" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+
+                                                                <!-- Downloads -->
+                                                                <TextBlock Grid.Column="4" Text="{Binding DownloadsLabel}" FontSize="11.5" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+
+                                                                <!-- Download Action Button matching Changelog -->
+                                                                <Button Grid.Column="5" Classes="actionBtn" Padding="12,5" MinWidth="100" HorizontalAlignment="Right"
+                                                                        Click="OnDownloadVersionClicked" ToolTip.Tip="Download and install">
+                                                                    <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                                                                        <TextBlock Text="&#x2193;" FontWeight="Bold" FontSize="13"/>
+                                                                        <TextBlock Text="Download" FontWeight="Bold" FontSize="11.5"/>
+                                                                    </StackPanel>
+                                                                </Button>
+                                                            </Grid>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                    </Border>
 
                                     <TextBlock Text="{l10n:Tr Key=cb_no_versions}" FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}" Margin="0,4"
                                                IsVisible="{Binding VersionList, Converter={x:Static converters:EditInstanceWindowConverters.IsCollectionEmpty}}"/>

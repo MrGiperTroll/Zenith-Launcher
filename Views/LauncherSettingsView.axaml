@@ -72,8 +72,7 @@
         </Style>
     </UserControl.Styles>
 
-    <Border Background="{StaticResource CardAltBrush}" CornerRadius="12" ClipToBounds="True">
-        <Panel>
+    <Panel>
             <Grid ColumnDefinitions="200,*">
             <!-- Sidebar -->
             <Border Grid.Column="0" Background="{StaticResource SidebarBgBrush}" Padding="14,16">
@@ -248,8 +247,6 @@
 
                     <!-- General Settings (Qoder Minimalist Grouped Card) -->
                     <StackPanel Spacing="16" IsVisible="{Binding IsSettingsTabGeneral}">
-                        <TextBlock Text="{l10n:Tr set_general}" FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,4"/>
-
                         <Border Classes="zenCard" Padding="16">
                             <StackPanel Spacing="14">
                                 <!-- Directory Strategy -->
@@ -291,8 +288,6 @@
 
                     <!-- Settings (Appearance & Themes - Qoder Minimalist Grouped Card) -->
                     <StackPanel Spacing="16" IsVisible="{Binding IsSettingsTabAppearance}">
-                        <TextBlock Text="Launcher Settings" FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,4"/>
-
                         <Border Classes="zenCard" Padding="16">
                             <StackPanel Spacing="14">
                                 <!-- Discord Rich Presence -->
@@ -360,8 +355,7 @@
                 </StackPanel>
             </Border>
         </Border>
-        </Panel>
-    </Border>
+    </Panel>
 </UserControl>
 
 

@@ -530,6 +530,7 @@ public static class ModrinthApiService
                 versions.Add(new ModrinthProjectVersion
                 {
                     Id = GetString(v, "id") ?? "",
+                    ProjectId = GetString(v, "project_id") ?? projectId,
                     Name = GetString(v, "name") ?? "",
                     VersionNumber = GetString(v, "version_number") ?? "",
                     Changelog = GetString(v, "changelog") ?? "",

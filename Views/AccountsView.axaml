@@ -124,15 +124,10 @@
         </Style>
     </UserControl.Styles>
 
-    <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" ClipToBounds="True">
-        <Grid ColumnDefinitions="*,260" Margin="20,18">
+    <Grid ColumnDefinitions="*,260" Margin="0,0,8,0">
 
-            <!-- LEFT: Account List -->
-            <Grid Grid.Column="0" RowDefinitions="Auto,*" Margin="0,0,20,0">
-                <StackPanel Grid.Row="0" Spacing="2" Margin="2,0,0,14">
-                                    </StackPanel>
-
-                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <!-- LEFT: Account List -->
+        <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="0,0,20,0">
                     <StackPanel Spacing="6" Margin="0,0,12,0">
                         <ItemsControl ItemsSource="{Binding AccountRows}">
                             <ItemsControl.ItemTemplate>
@@ -178,8 +173,7 @@
                                    FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}" HorizontalAlignment="Center"
                                    IsVisible="{Binding HasNoAccounts}" Padding="0,20"/>
                     </StackPanel>
-                </ScrollViewer>
-            </Grid>
+        </ScrollViewer>
 
             <!-- RIGHT: Clean Minimal Sign-in Actions -->
             <Border Grid.Column="1" Background="Transparent" Padding="16,0,0,0">
@@ -237,7 +231,6 @@
                     </StackPanel>
                 </Panel>
             </Border>
-        </Grid>
-    </Border>
+    </Grid>
 </UserControl>
 

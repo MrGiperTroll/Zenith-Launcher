@@ -216,9 +216,6 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     [ObservableProperty]
     private IReadOnlyList<string> _filterPlatforms = new[] { "All platforms" };
 
-    partial void OnSelectedFilterGameVersionChanged(string value) => OnPropertyChanged(nameof(VersionList));
-    partial void OnSelectedFilterPlatformChanged(string value) => OnPropertyChanged(nameof(VersionList));
-
     [RelayCommand]
     public void OpenGalleryModal(Models.ModrinthGalleryItem? item)
     {
@@ -274,34 +271,183 @@ public partial class ModpacksBrowserViewModel : ObservableObject
         InstallSelectedVersion(version);
     }
 
-    public List<Models.ModrinthProjectVersion> VersionList
+    private const int DetailVersionsPageSize = 15;
+
+    [ObservableProperty]
+    private int _currentVersionPage = 1;
+
+    public int TotalVersionPages
     {
         get
         {
-            if (_allVersions.Count == 0) return _allVersions;
-            var filtered = _allVersions;
-            // Filter by selected compatibility version (from sidebar), or instance version
-            var targetVersion = !string.IsNullOrWhiteSpace(SelectedCompatibilityVersion)
-                ? SelectedCompatibilityVersion
-                : SelectedVersion;
-            if (!ShowAllVersions && !string.IsNullOrWhiteSpace(targetVersion))
+            var count = AllFilteredVersions.Count;
+            return Math.Max(1, (int)Math.Ceiling(count / (double)DetailVersionsPageSize));
+        }
+    }
+
+    public bool HasMultipleVersionPages => TotalVersionPages > 1;
+    public bool CanGoNextVersionPage => CurrentVersionPage < TotalVersionPages;
+    public bool CanGoPrevVersionPage => CurrentVersionPage > 1;
+
+    private void RefreshPagination()
+    {
+        OnPropertyChanged(nameof(TotalVersionPages));
+        OnPropertyChanged(nameof(HasMultipleVersionPages));
+        OnPropertyChanged(nameof(CanGoNextVersionPage));
+        OnPropertyChanged(nameof(CanGoPrevVersionPage));
+        OnPropertyChanged(nameof(VersionPageItems));
+        OnPropertyChanged(nameof(VersionList));
+    }
+
+    partial void OnSelectedFilterGameVersionChanged(string value)
+    {
+        CurrentVersionPage = 1;
+        RefreshPagination();
+    }
+
+    partial void OnSelectedFilterPlatformChanged(string value)
+    {
+        CurrentVersionPage = 1;
+        RefreshPagination();
+    }
+
+    partial void OnVersionFilterChanged(string value)
+    {
+        CurrentVersionPage = 1;
+        RefreshPagination();
+    }
+
+    partial void OnShowAllVersionsChanged(bool value)
+    {
+        CurrentVersionPage = 1;
+        RefreshPagination();
+    }
+
+    public List<Models.ModrinthProjectVersion> AllFilteredVersions
+    {
+        get
+        {
+            if (_allVersions == null || _allVersions.Count == 0) return new();
+            var filtered = (IEnumerable<Models.ModrinthProjectVersion>)_allVersions;
+
+            if (!string.IsNullOrWhiteSpace(SelectedFilterGameVersion) && !SelectedFilterGameVersion.Equals("All versions", StringComparison.OrdinalIgnoreCase))
             {
-                filtered = filtered.Where(v =>
-                    v.GameVersions.Any(gv => gv.Contains(targetVersion))).ToList();
+                filtered = filtered.Where(v => v.GameVersions != null && v.GameVersions.Any(gv => gv != null && gv.Equals(SelectedFilterGameVersion, StringComparison.OrdinalIgnoreCase)));
             }
+            else if (!ShowAllVersions && !string.IsNullOrWhiteSpace(SelectedVersion))
+            {
+                filtered = filtered.Where(v => v.GameVersions != null && v.GameVersions.Any(gv => gv != null && gv.Contains(SelectedVersion, StringComparison.OrdinalIgnoreCase)));
+            }
+
+            if (!string.IsNullOrWhiteSpace(SelectedFilterPlatform) && !SelectedFilterPlatform.Equals("All platforms", StringComparison.OrdinalIgnoreCase))
+            {
+                filtered = filtered.Where(v => v.Loaders != null && v.Loaders.Any(l => l != null && l.Equals(SelectedFilterPlatform, StringComparison.OrdinalIgnoreCase)));
+            }
+
             if (!string.IsNullOrWhiteSpace(VersionFilter))
             {
                 var q = VersionFilter.ToLowerInvariant();
                 filtered = filtered.Where(v =>
-                    v.Name.ToLowerInvariant().Contains(q) ||
-                    v.VersionNumber.ToLowerInvariant().Contains(q)).ToList();
+                    (v.Name != null && v.Name.ToLowerInvariant().Contains(q)) ||
+                    (v.VersionNumber != null && v.VersionNumber.ToLowerInvariant().Contains(q)));
             }
-            return filtered;
+            return filtered.ToList();
         }
     }
 
-    partial void OnVersionFilterChanged(string value) => OnPropertyChanged(nameof(VersionList));
-    partial void OnShowAllVersionsChanged(bool value) => OnPropertyChanged(nameof(VersionList));
+    public List<Models.ModrinthProjectVersion> VersionList
+    {
+        get
+        {
+            var all = AllFilteredVersions;
+            int total = Math.Max(1, (int)Math.Ceiling(all.Count / (double)DetailVersionsPageSize));
+            int cur = CurrentVersionPage;
+            if (cur > total) cur = total;
+            if (cur < 1) cur = 1;
+
+            return all.Skip((cur - 1) * DetailVersionsPageSize)
+                      .Take(DetailVersionsPageSize)
+                      .ToList();
+        }
+    }
+
+    public List<Models.PaginationPageItem> VersionPageItems
+    {
+        get
+        {
+            var list = new List<Models.PaginationPageItem>();
+            int total = TotalVersionPages;
+            int cur = CurrentVersionPage;
+
+            if (total <= 7)
+            {
+                for (int i = 1; i <= total; i++)
+                {
+                    list.Add(new Models.PaginationPageItem
+                    {
+                        PageNumber = i,
+                        DisplayText = i.ToString(),
+                        IsActive = (i == cur),
+                        IsEllipsis = false
+                    });
+                }
+            }
+            else
+            {
+                if (cur <= 4)
+                {
+                    for (int i = 1; i <= 5; i++)
+                    {
+                        list.Add(new Models.PaginationPageItem { PageNumber = i, DisplayText = i.ToString(), IsActive = (i == cur) });
+                    }
+                    list.Add(new Models.PaginationPageItem { PageNumber = -1, DisplayText = "...", IsEllipsis = true });
+                    list.Add(new Models.PaginationPageItem { PageNumber = total, DisplayText = total.ToString(), IsActive = (total == cur) });
+                }
+                else if (cur >= total - 3)
+                {
+                    list.Add(new Models.PaginationPageItem { PageNumber = 1, DisplayText = "1", IsActive = (1 == cur) });
+                    list.Add(new Models.PaginationPageItem { PageNumber = -1, DisplayText = "...", IsEllipsis = true });
+                    for (int i = total - 4; i <= total; i++)
+                    {
+                        list.Add(new Models.PaginationPageItem { PageNumber = i, DisplayText = i.ToString(), IsActive = (i == cur) });
+                    }
+                }
+                else
+                {
+                    list.Add(new Models.PaginationPageItem { PageNumber = 1, DisplayText = "1", IsActive = (1 == cur) });
+                    list.Add(new Models.PaginationPageItem { PageNumber = -1, DisplayText = "...", IsEllipsis = true });
+                    list.Add(new Models.PaginationPageItem { PageNumber = cur - 1, DisplayText = (cur - 1).ToString(), IsActive = false });
+                    list.Add(new Models.PaginationPageItem { PageNumber = cur, DisplayText = cur.ToString(), IsActive = true });
+                    list.Add(new Models.PaginationPageItem { PageNumber = cur + 1, DisplayText = (cur + 1).ToString(), IsActive = false });
+                    list.Add(new Models.PaginationPageItem { PageNumber = -1, DisplayText = "...", IsEllipsis = true });
+                    list.Add(new Models.PaginationPageItem { PageNumber = total, DisplayText = total.ToString(), IsActive = (total == cur) });
+                }
+            }
+            return list;
+        }
+    }
+
+    [RelayCommand]
+    public void GoToVersionPage(int page)
+    {
+        if (page < 1 || page > TotalVersionPages || page == CurrentVersionPage) return;
+        CurrentVersionPage = page;
+        RefreshPagination();
+    }
+
+    [RelayCommand]
+    public void NextVersionPage()
+    {
+        if (CanGoNextVersionPage)
+            GoToVersionPage(CurrentVersionPage + 1);
+    }
+
+    [RelayCommand]
+    public void PrevVersionPage()
+    {
+        if (CanGoPrevVersionPage)
+            GoToVersionPage(CurrentVersionPage - 1);
+    }
 
     // --- Version selector modal ---
 
@@ -975,7 +1121,8 @@ public partial class ModpacksBrowserViewModel : ObservableObject
                 }
                 // Default: select the instance MC version in Compatibility sidebar
                 SelectedCompatibilityVersion = SelectedVersion;
-                OnPropertyChanged(nameof(VersionList));
+                CurrentVersionPage = 1;
+            RefreshPagination();
                 OnPropertyChanged(nameof(VersionSelectorProject));
                 OnPropertyChanged(nameof(CompatibilityVersions));
 

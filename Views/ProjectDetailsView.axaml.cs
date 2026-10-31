@@ -1,6 +1,7 @@
 using System;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using CustomMcLauncher.Models;
 
@@ -40,6 +41,96 @@ public partial class ProjectDetailsView : UserControl
             {
                 mpVm.DownloadVersionCommand.Execute(version);
             }
+        }
+    }
+
+    private void OnPageNumberClicked(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Control { DataContext: PaginationPageItem item } && !item.IsEllipsis && item.PageNumber > 0)
+        {
+            if (DataContext is ViewModels.ContentBrowserViewModel cbVm)
+            {
+                cbVm.GoToVersionPageCommand.Execute(item.PageNumber);
+            }
+            else if (DataContext is ViewModels.ModpacksBrowserViewModel mpVm)
+            {
+                mpVm.GoToVersionPageCommand.Execute(item.PageNumber);
+            }
+        }
+    }
+
+    private void OnPrevPageClicked(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ViewModels.ContentBrowserViewModel cbVm)
+        {
+            cbVm.PrevVersionPageCommand.Execute(null);
+        }
+        else if (DataContext is ViewModels.ModpacksBrowserViewModel mpVm)
+        {
+            mpVm.PrevVersionPageCommand.Execute(null);
+        }
+    }
+
+    private void OnNextPageClicked(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is ViewModels.ContentBrowserViewModel cbVm)
+        {
+            cbVm.NextVersionPageCommand.Execute(null);
+        }
+        else if (DataContext is ViewModels.ModpacksBrowserViewModel mpVm)
+        {
+            mpVm.NextVersionPageCommand.Execute(null);
+        }
+    }
+
+    private ModrinthProjectVersion? GetActiveDetailVersion()
+    {
+        if (DataContext is ViewModels.ContentBrowserViewModel cbVm)
+            return cbVm.SelectedDetailVersion;
+        if (DataContext is ViewModels.ModpacksBrowserViewModel mpVm)
+            return mpVm.SelectedDetailVersion;
+        return null;
+    }
+
+    private async void CopyTextToClipboard(string text)
+    {
+        try
+        {
+            var topLevel = TopLevel.GetTopLevel(this);
+            if (topLevel?.Clipboard != null)
+            {
+                var transfer = new DataTransfer();
+                transfer.Add(DataTransferItem.CreateText(text));
+                await topLevel.Clipboard.SetDataAsync(transfer);
+            }
+        }
+        catch { }
+    }
+
+    private void OnCopyMavenClicked(object? sender, RoutedEventArgs e)
+    {
+        var ver = GetActiveDetailVersion();
+        if (ver != null && !string.IsNullOrEmpty(ver.MavenCoordinates))
+        {
+            CopyTextToClipboard(ver.MavenCoordinates);
+        }
+    }
+
+    private void OnCopyVersionIdClicked(object? sender, RoutedEventArgs e)
+    {
+        var ver = GetActiveDetailVersion();
+        if (ver != null && !string.IsNullOrEmpty(ver.Id))
+        {
+            CopyTextToClipboard(ver.Id);
+        }
+    }
+
+    private void OnCopyGradleClicked(object? sender, RoutedEventArgs e)
+    {
+        var ver = GetActiveDetailVersion();
+        if (ver != null && !string.IsNullOrEmpty(ver.GradleSnippet))
+        {
+            CopyTextToClipboard(ver.GradleSnippet);
         }
     }
 

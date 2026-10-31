@@ -108,7 +108,7 @@
                             </Grid>
                         </Button>
                     </StackPanel>
-                    <TextBlock Grid.Row="2" Text="{Binding WindowTitle}" FontSize="10" Foreground="{StaticResource TextCaptionBrush}" HorizontalAlignment="Left" Margin="10,0,0,6"/>
+                    <TextBlock Grid.Row="2" IsVisible="False"/>
                 </Grid>
             </Border>
 

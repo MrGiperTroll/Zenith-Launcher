@@ -132,7 +132,7 @@ private void OnTopBarDoubleTapped(object? sender, TappedEventArgs e)
                 LauncherNavPage.Modpacks => this.FindControl<Control>("ModpacksPane"),
                 LauncherNavPage.EditInstance => this.FindControl<Panel>("EditInstancePane"),
                 LauncherNavPage.ContentBrowser => this.FindControl<Panel>("ContentBrowserPane"),
-                LauncherNavPage.Settings => this.FindControl<Panel>("SettingsPane"),
+                LauncherNavPage.Settings => null, // Instantly displayed without micro-animation / slide
                 LauncherNavPage.ServerManager => this.FindControl<Panel>("ServerManagerPane"),
                 LauncherNavPage.Accounts => this.FindControl<Panel>("AccountsPane"),
                 LauncherNavPage.CreateProfile => this.FindControl<Panel>("CreateProfilePane"),

@@ -21,7 +21,7 @@ public class StepToBrushConverter : IValueConverter
         }
         if (Avalonia.Application.Current?.Resources.TryGetResource("BorderStrongBrush", Avalonia.Styling.ThemeVariant.Default, out var res2) == true && res2 is ISolidColorBrush bb)
             return bb;
-        return new SolidColorBrush(Color.Parse("#1A1D23"));
+        return new SolidColorBrush(Color.Parse("#283040"));
     }
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
 }
@@ -92,7 +92,7 @@ public class BoolToErrorBrushConverter : IValueConverter
         }
         if (Avalonia.Application.Current?.Resources.TryGetResource("BorderStrongBrush", Avalonia.Styling.ThemeVariant.Default, out var res2) == true && res2 is ISolidColorBrush bb)
             return bb;
-        return new SolidColorBrush(Color.Parse("#1A1D23"));
+        return new SolidColorBrush(Color.Parse("#283040"));
     }
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
 }

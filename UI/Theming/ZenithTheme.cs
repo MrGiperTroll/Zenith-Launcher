@@ -27,7 +27,7 @@ public static class ZenithTheme
         var surface = TryParse(cfg.SurfaceColor) ? Color.Parse(cfg.SurfaceColor) : Color.Parse("#0A0D15");
         var card = TryParse(cfg.CardColor) ? Color.Parse(cfg.CardColor) : Color.Parse("#0D111A");
         var panel = TryParse(cfg.PanelColor) ? Color.Parse(cfg.PanelColor) : Color.Parse("#151C2C");
-        var borderDark = TryParse(cfg.BorderDarkColor) && cfg.BorderDarkColor != "#121622" && cfg.BorderDarkColor != "#182743" ? Color.Parse(cfg.BorderDarkColor) : Color.Parse("#16181C");
+        var borderDark = TryParse(cfg.BorderDarkColor) && cfg.BorderDarkColor != "#121622" && cfg.BorderDarkColor != "#182743" && cfg.BorderDarkColor != "#16181C" ? Color.Parse(cfg.BorderDarkColor) : Color.Parse("#222834");
         var field = TryParse(cfg.FieldColor) ? Color.Parse(cfg.FieldColor) : Blend(panel, card, 0.5f);
         var hoverTint = TryParse(cfg.HoverColor) ? Color.Parse(cfg.HoverColor) : Blend(accent, card, 0.22f);
         var textPrimary = TryParse(cfg.TextPrimaryColor) ? Color.Parse(cfg.TextPrimaryColor) : Colors.White;
@@ -59,13 +59,13 @@ public static class ZenithTheme
 
         // Borders
         SetBrushColor(r, "BorderDarkBrush", borderDark);
-        SetBrushColor(r, "BorderStrongBrush", Lighten(borderDark, 0.05f));
-        SetBrushColor(r, "BorderCardSoftBrush", Lighten(borderDark, 0.03f));
-        SetBrushColor(r, "BorderInputBrush", Lighten(borderDark, 0.04f));
-        SetBrushColor(r, "BorderHoverBrush", Blend(accent, borderDark, 0.35f));
-        SetBrushColor(r, "BorderEditorBrush", Lighten(borderDark, 0.05f));
-        SetBrushColor(r, "BorderIconBrush", Lighten(borderDark, 0.03f));
-        SetBrushColor(r, "BorderSoftBrush", Lighten(borderDark, 0.02f));
+        SetBrushColor(r, "BorderStrongBrush", Lighten(borderDark, 0.12f));
+        SetBrushColor(r, "BorderCardSoftBrush", Lighten(borderDark, 0.07f));
+        SetBrushColor(r, "BorderInputBrush", Lighten(borderDark, 0.08f));
+        SetBrushColor(r, "BorderHoverBrush", Blend(accent, borderDark, 0.45f));
+        SetBrushColor(r, "BorderEditorBrush", Lighten(borderDark, 0.09f));
+        SetBrushColor(r, "BorderIconBrush", Lighten(borderDark, 0.06f));
+        SetBrushColor(r, "BorderSoftBrush", Lighten(borderDark, 0.04f));
 
         // Accents
         SetBrushColor(r, "AccentBrush", accent);
@@ -213,7 +213,7 @@ public static class ZenithTheme
         var surface = Blend(accent, Color.Parse("#0D111A"), 0.08f);
         var card = Blend(accent, Color.Parse("#0D111A"), 0.09f);
         var panel = Blend(accent, Color.Parse("#121722"), 0.12f);
-        var borderDark = Color.Parse("#16181C");
+        var borderDark = Color.Parse("#222834");
         var field = Blend(accent, Color.Parse("#121724"), 0.10f);
         var hover = Blend(accent, Color.Parse("#1B2338"), 0.20f);
 

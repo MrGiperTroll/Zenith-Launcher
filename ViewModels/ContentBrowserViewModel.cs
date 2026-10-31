@@ -125,6 +125,14 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
     private Models.ModrinthFullProject? _fullProject;
 
     [ObservableProperty]
+    private Avalonia.Media.Imaging.Bitmap? _headerImage;
+
+    public IReadOnlyList<Models.ModrinthGalleryItem> GalleryItems =>
+        FullProject?.Gallery ?? (IReadOnlyList<Models.ModrinthGalleryItem>)Array.Empty<Models.ModrinthGalleryItem>();
+
+    public bool HasGalleryItems => GalleryItems.Count > 0;
+
+    [ObservableProperty]
     private bool _fullProjectBusy;
 
     /// <summary>Body text with raw HTML tags stripped for display.</summary>
@@ -216,12 +224,14 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
     partial void OnSelectedDetailTabChanged(string value)
     {
         OnPropertyChanged(nameof(IsDescriptionTab));
+        OnPropertyChanged(nameof(IsGalleryTab));
         OnPropertyChanged(nameof(IsChangelogTab));
         OnPropertyChanged(nameof(IsVersionsTab));
         OnPropertyChanged(nameof(VersionList));
     }
 
     public bool IsDescriptionTab => SelectedDetailTab.Equals("description", StringComparison.OrdinalIgnoreCase);
+    public bool IsGalleryTab => SelectedDetailTab.Equals("gallery", StringComparison.OrdinalIgnoreCase);
     public bool IsChangelogTab => SelectedDetailTab.Equals("changelog", StringComparison.OrdinalIgnoreCase);
     public bool IsVersionsTab => SelectedDetailTab.Equals("versions", StringComparison.OrdinalIgnoreCase);
 
@@ -1235,9 +1245,31 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
         {
             var full = await ModrinthApiService.GetFullProjectAsync(project.ProjectId);
             FullProject = full;
+            HeaderImage = null;
             OnPropertyChanged(nameof(CleanBody));
+            OnPropertyChanged(nameof(GalleryItems));
+            OnPropertyChanged(nameof(HasGalleryItems));
             if (full != null)
             {
+                foreach (var g in full.Gallery)
+                {
+                    g.LoadImage();
+                }
+
+                if (!string.IsNullOrWhiteSpace(full.HeaderImageUrl))
+                {
+                    var bannerUrl = full.HeaderImageUrl;
+                    _ = Task.Run(async () =>
+                    {
+                        var bytes = await ModrinthApiService.GetIconAsync(bannerUrl);
+                        if (bytes is { Length: > 0 })
+                        {
+                            using var ms = new System.IO.MemoryStream(bytes);
+                            var bmp = Avalonia.Media.Imaging.Bitmap.DecodeToWidth(ms, 1200);
+                            Avalonia.Threading.Dispatcher.UIThread.Post(() => HeaderImage = bmp);
+                        }
+                    });
+                }
                 _allVersions = await ModrinthApiService.GetProjectVersionsAsync(project.ProjectId);
                 // Default: select the instance MC version in Compatibility sidebar
                 SelectedCompatibilityVersion = _gameVersion;

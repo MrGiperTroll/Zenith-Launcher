@@ -439,6 +439,29 @@ public static class ModrinthApiService
                 licenseName = GetString(lic, "name") ?? "";
             }
 
+            // Gallery
+            var gallery = new List<ModrinthGalleryItem>();
+            if (r.TryGetProperty("gallery", out var galArr) && galArr.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var g in galArr.EnumerateArray())
+                {
+                    var url = GetString(g, "url") ?? "";
+                    if (string.IsNullOrWhiteSpace(url)) continue;
+                    var featured = g.TryGetProperty("featured", out var feat) && feat.ValueKind == JsonValueKind.True;
+                    var title = GetString(g, "title") ?? "";
+                    var desc = GetString(g, "description") ?? "";
+                    var created = DateTime.TryParse(GetString(g, "created"), out var cdt) ? cdt : default;
+                    gallery.Add(new ModrinthGalleryItem
+                    {
+                        Url = url,
+                        Featured = featured,
+                        Title = title,
+                        Description = desc,
+                        Created = created
+                    });
+                }
+            }
+
             return new ModrinthFullProject
             {
                 Id = GetString(r, "id") ?? "",
@@ -464,6 +487,7 @@ public static class ModrinthApiService
                 DateModified = DateTime.TryParse(GetString(r, "date_modified"), out var dm) ? dm : default,
                 DateCreated = DateTime.TryParse(GetString(r, "date_created"), out var dc) ? dc : default,
                 TeamMembers = team,
+                Gallery = gallery,
             };
         }
         catch { return null; }

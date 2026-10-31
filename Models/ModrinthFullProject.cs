@@ -1,5 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
+using CommunityToolkit.Mvvm.ComponentModel;
+using Avalonia.Media.Imaging;
+using Avalonia.Threading;
+using CustomMcLauncher.ViewModels;
 
 namespace CustomMcLauncher.Models;
 
@@ -39,9 +45,62 @@ public class ModrinthFullProject
     public string ClientSide { get; init; } = "";
     public string ServerSide { get; init; } = "";
 
-    // Moderators
+    // Moderators & Gallery
     public List<ModrinthTeamMember> TeamMembers { get; init; } = new();
     public List<ModrinthProjectVersion> Versions { get; init; } = new();
+    public List<ModrinthGalleryItem> Gallery { get; init; } = new();
+
+    public string? FeaturedImageUrl =>
+        Gallery.FirstOrDefault(g => g.Featured)?.Url ?? Gallery.FirstOrDefault()?.Url;
+
+    public string? HeaderImageUrl
+    {
+        get
+        {
+            if (!string.IsNullOrWhiteSpace(Body))
+            {
+                var match = Regex.Match(Body, @"!\[.*?\]\((https?://\S+?\.(?:png|jpg|jpeg|gif|webp|svg))\)");
+                if (match.Success) return match.Groups[1].Value;
+
+                var htmlMatch = Regex.Match(Body, @"<img\s+[^>]*?src=[""'](https?://\S+?\.(?:png|jpg|jpeg|gif|webp|svg))[""']", RegexOptions.IgnoreCase);
+                if (htmlMatch.Success) return htmlMatch.Groups[1].Value;
+            }
+            return FeaturedImageUrl;
+        }
+    }
+}
+
+public partial class ModrinthGalleryItem : ObservableObject
+{
+    public string Url { get; init; } = "";
+    public bool Featured { get; init; }
+    public string Title { get; init; } = "";
+    public string Description { get; init; } = "";
+    public DateTime Created { get; init; }
+    public string CreatedDisplay => Created == default ? "" : Created.ToString("MMMM dd, yyyy", System.Globalization.CultureInfo.InvariantCulture);
+
+    [ObservableProperty]
+    private Bitmap? _image;
+    public bool HasImage => Image != null;
+
+    public void LoadImage()
+    {
+        if (string.IsNullOrWhiteSpace(Url) || Image != null) return;
+        System.Threading.Tasks.Task.Run(async () =>
+        {
+            var bytes = await Services.ModrinthApiService.GetIconAsync(Url);
+            if (bytes is { Length: > 0 })
+            {
+                using var ms = new System.IO.MemoryStream(bytes);
+                var bmp = Bitmap.DecodeToWidth(ms, 600);
+                Dispatcher.UIThread.Post(() =>
+                {
+                    Image = bmp;
+                    OnPropertyChanged(nameof(HasImage));
+                });
+            }
+        });
+    }
 }
 
 public class ModrinthTeamMember
@@ -58,6 +117,12 @@ public class ModrinthProjectVersion
     public string Name { get; init; } = "";
     public string VersionNumber { get; init; } = "";
     public string Changelog { get; init; } = "";
+    public string CleanChangelog =>
+        string.IsNullOrWhiteSpace(Changelog)
+            ? "No changelog provided for this version."
+            : Common.Utils.MarkdownSanitizer.Clean(Changelog);
+    public bool HasChangelog => !string.IsNullOrWhiteSpace(Changelog);
+
     public string VersionType { get; init; } = "release"; // release, beta, alpha
     public DateTime DatePublished { get; init; }
     public string[] GameVersions { get; init; } = Array.Empty<string>();

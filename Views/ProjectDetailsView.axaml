@@ -161,6 +161,9 @@
                 <ToggleButton Classes="tabBtn" IsChecked="{Binding IsDescriptionTab}"
                               Content="{l10n:Tr Key=cb_description}"
                               Command="{Binding SelectTabCommand}" CommandParameter="description"/>
+                <ToggleButton Classes="tabBtn" IsChecked="{Binding IsGalleryTab}"
+                              Content="{l10n:Tr Key=cb_gallery}"
+                              Command="{Binding SelectTabCommand}" CommandParameter="gallery"/>
                 <ToggleButton Classes="tabBtn" IsChecked="{Binding IsChangelogTab}"
                               Content="{l10n:Tr Key=cb_changelog}"
                               Command="{Binding SelectTabCommand}" CommandParameter="changelog"/>
@@ -178,20 +181,107 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel>
                         <!-- Description tab -->
-                        <StackPanel IsVisible="{Binding IsDescriptionTab}" Spacing="10">
+                        <StackPanel IsVisible="{Binding IsDescriptionTab}" Spacing="12">
+                            <Border CornerRadius="8" ClipToBounds="True" MaxHeight="240" Margin="0,0,0,8"
+                                    IsVisible="{Binding HeaderImage, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                <Image Source="{Binding HeaderImage}" Stretch="Uniform" HorizontalAlignment="Center"/>
+                            </Border>
                             <TextBlock Classes="sectionTitle" Text="{Binding DetailsProject.Title}"/>
                             <TextBlock Text="{Binding DetailsProject.Description}" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="20"/>
+                            <Border Height="1" Background="{StaticResource BorderDarkBrush}" Margin="0,4,0,4"
+                                    IsVisible="{Binding CleanBody, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
                             <TextBlock Text="{Binding CleanBody}" FontSize="12.5" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="20"
                                        IsVisible="{Binding CleanBody, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
                         </StackPanel>
 
+                        <!-- Gallery tab -->
+                        <StackPanel IsVisible="{Binding IsGalleryTab}" Spacing="14">
+                            <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=cb_gallery}"/>
+                            <ItemsControl ItemsSource="{Binding GalleryItems}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel Orientation="Horizontal"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="models:ModrinthGalleryItem">
+                                        <Border Width="260" Margin="0,0,14,14"
+                                                Background="{StaticResource CardBrush}"
+                                                BorderBrush="{StaticResource BorderCardSoftBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="8"
+                                                ClipToBounds="True">
+                                            <StackPanel>
+                                                <Border Height="145" Background="{StaticResource FieldBrush}" ClipToBounds="True">
+                                                    <Image Source="{Binding Image}" Stretch="UniformToFill"
+                                                           IsVisible="{Binding HasImage}"/>
+                                                </Border>
+                                                <StackPanel Margin="12,10,12,10" Spacing="4">
+                                                    <TextBlock Text="{Binding Title}" FontSize="12.5" FontWeight="SemiBold"
+                                                               Foreground="{StaticResource TextPrimaryBrush}"
+                                                               TextTrimming="CharacterEllipsis"/>
+                                                    <StackPanel Orientation="Horizontal" Spacing="6"
+                                                                IsVisible="{Binding CreatedDisplay, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}">
+                                                        <PathIcon Data="M7 2a1 1 0 0 1 1 1v1h8V3a1 1 0 1 1 2 0v1h1a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1V3a1 1 0 0 1 1-1zm11 6H4v10h14V8zm-8 3H6v2h4v-2z"
+                                                                  Width="12" Height="12"
+                                                                  Foreground="{StaticResource TextPlaceholderBrush}"/>
+                                                        <TextBlock Text="{Binding CreatedDisplay}" FontSize="11"
+                                                                   Foreground="{StaticResource TextPlaceholderBrush}"/>
+                                                    </StackPanel>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <TextBlock Text="{l10n:Tr Key=cb_no_screenshots}" FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}"
+                                       IsVisible="{Binding !GalleryItems.Count}"/>
+                        </StackPanel>
+
                         <!-- Changelog tab -->
-                        <StackPanel IsVisible="{Binding IsChangelogTab}" Spacing="10">
+                        <StackPanel IsVisible="{Binding IsChangelogTab}" Spacing="14">
                             <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=cb_changelog}"/>
-                            <TextBlock Text="{Binding CleanBody}" FontSize="12.5" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="20"
-                                       IsVisible="{Binding CleanBody, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
+
+                            <ItemsControl ItemsSource="{Binding VersionList}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="models:ModrinthProjectVersion">
+                                        <Grid ColumnDefinitions="24,*" Margin="0,0,0,14">
+                                            <!-- Timeline indicator -->
+                                            <Grid Grid.Column="0">
+                                                <Border Width="2" HorizontalAlignment="Center" Background="{StaticResource BorderDarkBrush}" Margin="0,14,0,0"/>
+                                                <Border Width="10" Height="10" CornerRadius="5" Background="{StaticResource AccentBrush}"
+                                                        VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                                            </Grid>
+                                            <!-- Version details & changelog -->
+                                            <StackPanel Grid.Column="1" Margin="8,0,0,0" Spacing="6">
+                                                <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold"
+                                                               Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,8,0"/>
+                                                    <Border CornerRadius="6" Padding="6,2" Margin="0,0,8,0"
+                                                            Background="{Binding VersionType, Converter={x:Static converters:ContentBrowserConverters.VersionTypeBg}}">
+                                                        <TextBlock Text="{Binding VersionTypeDisplay}" FontSize="10" FontWeight="SemiBold"
+                                                                   Foreground="{Binding VersionType, Converter={x:Static converters:ContentBrowserConverters.VersionTypeFg}}"/>
+                                                    </Border>
+                                                    <TextBlock Text="{Binding LoadersLabel}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"
+                                                               Margin="0,0,8,0" VerticalAlignment="Center"
+                                                               IsVisible="{Binding LoadersLabel, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
+                                                    <TextBlock Text="{Binding DateLabel}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"
+                                                               VerticalAlignment="Center"/>
+                                                </WrapPanel>
+
+                                                <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}"
+                                                        BorderThickness="1" CornerRadius="8" Padding="14,10" Margin="0,2,0,0">
+                                                    <TextBlock Text="{Binding CleanChangelog}" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"
+                                                               TextWrapping="Wrap" LineHeight="18"/>
+                                                </Border>
+                                            </StackPanel>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
                             <TextBlock Text="{l10n:Tr Key=cb_no_changelog}" FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}"
-                                       IsVisible="{Binding CleanBody, Converter={x:Static converters:EditInstanceWindowConverters.IsEmpty}}"/>
+                                       IsVisible="{Binding VersionList, Converter={x:Static converters:EditInstanceWindowConverters.IsCollectionEmpty}}"/>
                         </StackPanel>
 
                         <!-- Versions tab -->

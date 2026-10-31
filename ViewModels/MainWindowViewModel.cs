@@ -1053,7 +1053,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isSidebarExpanded;
 
-    public double SidebarWidth => IsSidebarExpanded ? 176 : 48;
+    public double SidebarWidth => IsSidebarExpanded ? 188 : 54;
 
     partial void OnIsSidebarExpandedChanged(bool value)
     {

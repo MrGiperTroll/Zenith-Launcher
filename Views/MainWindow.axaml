@@ -595,7 +595,7 @@
                                         <Border Width="150" Height="150" Margin="2,2,10,10" CornerRadius="12"
                                                 Classes="instanceCard" Classes.dragging="{Binding IsDragging}"
                                                 BorderBrush="{Binding IsSelected, Converter={StaticResource BoolToBorderBrushConverter}}"
-                                                BorderThickness="1.5"
+                                                BorderThickness="1"
                                                 Tag="{Binding}" Cursor="Hand"
                                                 PointerPressed="OnInstanceCardPointerPressed"
                                                 Tapped="OnInstanceCardTapped"

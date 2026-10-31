@@ -534,7 +534,7 @@ public partial class MainWindowViewModel : ViewModelBase
     partial void OnTextSecondaryHexChanged(string value) { if (!_isLoadingConfig) ZenithTheme.Apply(GetLauncherConfigSnapshot()); }
 
     [ObservableProperty]
-    private string _borderDarkHex = "#121622";
+    private string _borderDarkHex = "#16181C";
     partial void OnBorderDarkHexChanged(string value) { if (!_isLoadingConfig) ZenithTheme.Apply(GetLauncherConfigSnapshot()); }
 
     [ObservableProperty]
@@ -638,7 +638,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private string _savedPanelHex = "#121722";
     private string _savedFieldHex = "#121724";
     private string _savedHoverHex = "#1B2338";
-    private string _savedBorderDarkHex = "#121622";
+    private string _savedBorderDarkHex = "#16181C";
     private string _savedTextPrimaryHex = "#FFFFFF";
     private string _savedTextSecondaryHex = "#C5CBD6";
     private string _savedCustomThemeHex = ZenithTheme.DefaultAccent;
@@ -2192,7 +2192,7 @@ public partial class MainWindowViewModel : ViewModelBase
                     if (!string.IsNullOrWhiteSpace(cfg.HoverColor)) HoverHex = cfg.HoverColor;
                     if (!string.IsNullOrWhiteSpace(cfg.TextPrimaryColor)) TextPrimaryHex = cfg.TextPrimaryColor;
                     if (!string.IsNullOrWhiteSpace(cfg.TextSecondaryColor)) TextSecondaryHex = cfg.TextSecondaryColor;
-                    if (!string.IsNullOrWhiteSpace(cfg.BorderDarkColor)) BorderDarkHex = cfg.BorderDarkColor;
+                    if (!string.IsNullOrWhiteSpace(cfg.BorderDarkColor)) BorderDarkHex = (cfg.BorderDarkColor == "#121622" || cfg.BorderDarkColor == "#182743") ? "#16181C" : cfg.BorderDarkColor;
                     if (!string.IsNullOrWhiteSpace(cfg.SimpleAccentColor))
                     {
                         SimpleAccentHex = cfg.SimpleAccentColor;

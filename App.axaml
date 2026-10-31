@@ -42,14 +42,14 @@
         <SolidColorBrush x:Key="LogSidebarBrush" Color="#0B0E16"/>
 
         <!-- Borders -->
-        <SolidColorBrush x:Key="BorderDarkBrush" Color="#121622"/>
-        <SolidColorBrush x:Key="BorderCardSoftBrush" Color="#182030"/>
-        <SolidColorBrush x:Key="BorderInputBrush" Color="#1B2236"/>
-        <SolidColorBrush x:Key="BorderStrongBrush" Color="#1C2438"/>
-        <SolidColorBrush x:Key="BorderHoverBrush" Color="#2A3754"/>
-        <SolidColorBrush x:Key="BorderEditorBrush" Color="#1D263B"/>
-        <SolidColorBrush x:Key="BorderIconBrush" Color="#1E2638"/>
-        <SolidColorBrush x:Key="BorderSoftBrush" Color="#1B2234"/>
+        <SolidColorBrush x:Key="BorderDarkBrush" Color="#16181C"/>
+        <SolidColorBrush x:Key="BorderCardSoftBrush" Color="#1E2025"/>
+        <SolidColorBrush x:Key="BorderInputBrush" Color="#202228"/>
+        <SolidColorBrush x:Key="BorderStrongBrush" Color="#22252B"/>
+        <SolidColorBrush x:Key="BorderHoverBrush" Color="#2E333D"/>
+        <SolidColorBrush x:Key="BorderEditorBrush" Color="#22252B"/>
+        <SolidColorBrush x:Key="BorderIconBrush" Color="#1E2025"/>
+        <SolidColorBrush x:Key="BorderSoftBrush" Color="#1A1C20"/>
 
         <!-- Danger / Warning -->
         <SolidColorBrush x:Key="DangerBrush" Color="#EF4444"/>
@@ -115,7 +115,7 @@
         <SolidColorBrush x:Key="SliderTrackValueFillPointerOver" Color="#60A5FA"/>
         <SolidColorBrush x:Key="SliderTrackValueFillPressed" Color="#1D4ED8"/>
         <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillUnchecked" Color="#121724"/>
-        <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeUnchecked" Color="#2A3754"/>
+        <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeUnchecked" Color="#2E333D"/>
         <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillUncheckedPointerOver" Color="#121724"/>
         <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeUncheckedPointerOver" Color="#3B82F6"/>
         <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillUncheckedPressed" Color="#121724"/>
@@ -127,7 +127,7 @@
         <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPointerOver" Color="#FFFFFF"/>
         <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPressed" Color="#FFFFFF"/>
         <SolidColorBrush x:Key="ToggleSwitchFillOff" Color="#121724"/>
-        <SolidColorBrush x:Key="ToggleSwitchStrokeOff" Color="#2A3754"/>
+        <SolidColorBrush x:Key="ToggleSwitchStrokeOff" Color="#2E333D"/>
         <SolidColorBrush x:Key="ToggleSwitchFillOffPointerOver" Color="#121724"/>
         <SolidColorBrush x:Key="ToggleSwitchStrokeOffPointerOver" Color="#3B82F6"/>
         <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="#3B82F6"/>

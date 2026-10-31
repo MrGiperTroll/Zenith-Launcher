@@ -42,14 +42,14 @@
         <SolidColorBrush x:Key="LogSidebarBrush" Color="#121315"/>
 
         <!-- Borders (Clean, 100% Neutral, No Cold Tint) -->
-        <SolidColorBrush x:Key="BorderDarkBrush" Color="#202227"/>
-        <SolidColorBrush x:Key="BorderCardSoftBrush" Color="#26282E"/>
-        <SolidColorBrush x:Key="BorderInputBrush" Color="#282A30"/>
-        <SolidColorBrush x:Key="BorderStrongBrush" Color="#2E3038"/>
-        <SolidColorBrush x:Key="BorderHoverBrush" Color="#3A3D46"/>
-        <SolidColorBrush x:Key="BorderEditorBrush" Color="#282A30"/>
-        <SolidColorBrush x:Key="BorderIconBrush" Color="#26282E"/>
-        <SolidColorBrush x:Key="BorderSoftBrush" Color="#222428"/>
+        <SolidColorBrush x:Key="BorderDarkBrush" Color="#25272D"/>
+        <SolidColorBrush x:Key="BorderCardSoftBrush" Color="#2E3139"/>
+        <SolidColorBrush x:Key="BorderInputBrush" Color="#2D3038"/>
+        <SolidColorBrush x:Key="BorderStrongBrush" Color="#383C46"/>
+        <SolidColorBrush x:Key="BorderHoverBrush" Color="#484C58"/>
+        <SolidColorBrush x:Key="BorderEditorBrush" Color="#2D3038"/>
+        <SolidColorBrush x:Key="BorderIconBrush" Color="#2E3139"/>
+        <SolidColorBrush x:Key="BorderSoftBrush" Color="#26282E"/>
 
         <!-- Danger / Warning -->
         <SolidColorBrush x:Key="DangerBrush" Color="#EF4444"/>
@@ -659,11 +659,13 @@
             <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
 
-        <!-- Flat section: прозрачная, без рамки. Единственный уровень «карты» — только для диалогов. -->
+        <!-- Section card: минималистичный уровень карточки с тонкой нейтральной обводкой -->
         <Style Selector="Border.zenSection">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="14,12"/>
             <Setter Property="Margin" Value="0,0,0,8"/>
         </Style>
         <!-- Isolated mini-card for settings groups: single-level surface, no nesting inside -->

@@ -522,220 +522,177 @@
                         </Grid>
                     </StackPanel>
 
-                    <!-- TAB 1: SERVER.PROPERTIES (Clean 2-column grid, no overlapping) -->
-                    <Border Classes="zenSection" IsVisible="{Binding IsPropertiesTab}">
-                        <StackPanel Spacing="14">
-                            <!-- Card Header Bar: Title + Save Button -->
-                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                    <PathIcon Data="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" Width="14" Height="14" Foreground="{DynamicResource AccentBrush}"/>
-                                    <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=cs_tab_properties}"/>
-                                </StackPanel>
-                                <Button Grid.Column="1" Classes="primaryBtn" Content="{l10n:Tr Key=cs_save_props}" Command="{Binding SavePropertiesCommand}" Padding="16,6" FontSize="11.5" VerticalAlignment="Center"/>
-                            </Grid>
+                    <!-- TAB 1: SERVER.PROPERTIES (Qoder Minimalist 2-Column Grouped Cards) -->
+                    <StackPanel Spacing="14" IsVisible="{Binding IsPropertiesTab}">
+                        <!-- Card Header Bar: Title + Save Button -->
+                        <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                            <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=cs_tab_properties}"/>
+                            <Button Grid.Column="1" Classes="primaryBtn" Content="{l10n:Tr Key=cs_save_props}" Command="{Binding SavePropertiesCommand}" Padding="16,6" FontSize="11.5" VerticalAlignment="Center"/>
+                        </Grid>
 
-                            <!-- Feedback Message -->
-                            <Border IsVisible="{Binding ConfigStatusMessage, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}" Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource AccentBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6">
-                                <TextBlock Text="{Binding ConfigStatusMessage}" Foreground="{StaticResource AccentBrush}" FontWeight="SemiBold" FontSize="12"/>
-                            </Border>
+                        <!-- Feedback Message -->
+                        <Border IsVisible="{Binding ConfigStatusMessage, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}" Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource AccentBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6">
+                            <TextBlock Text="{Binding ConfigStatusMessage}" Foreground="{StaticResource AccentBrush}" FontWeight="SemiBold" FontSize="12"/>
+                        </Border>
 
-                            <!-- Balanced 2-Column Grid -->
-                            <Grid ColumnDefinitions="*,*" ColumnSpacing="24">
-                                <!-- Left Column: Core Parameters -->
-                                <StackPanel Grid.Column="0" Spacing="10">
-                                    <TextBlock Text="{l10n:Tr Key=cs_prop_general_network}" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" Margin="0,0,0,2"/>
+                        <!-- Balanced 2-Column Grouped Cards -->
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="16">
+                            <!-- Left Card: Core Parameters -->
+                            <Border Grid.Column="0" Classes="zenCard" Padding="16">
+                                <StackPanel Spacing="10">
+                                    <TextBlock Text="{l10n:Tr Key=cs_prop_general_network}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,2"/>
 
                                     <!-- Row 1: Server Name & Port -->
                                     <Grid ColumnDefinitions="*,110" ColumnSpacing="10">
                                         <StackPanel Spacing="4">
-                                            <TextBlock Text="Server Name" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                            <TextBox Classes="darkInput" Text="{Binding PropsServerName, Mode=TwoWay}" Height="30" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
+                                            <TextBlock Text="Server Name" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <TextBox Classes="darkInput" Text="{Binding PropsServerName, Mode=TwoWay}" Height="32" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="1" Spacing="4">
-                                            <TextBlock Text="{l10n:Tr Key=cs_prop_port}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                            <TextBox Classes="darkInput" Text="{Binding PropsPort}" Height="30" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
+                                            <TextBlock Text="{l10n:Tr Key=cs_prop_port}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <TextBox Classes="darkInput" Text="{Binding PropsPort}" Height="32" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
                                         </StackPanel>
                                     </Grid>
 
                                     <!-- Row 2: MOTD / Description -->
                                     <StackPanel Spacing="4">
-                                        <TextBlock Text="{l10n:Tr Key=cs_prop_motd}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                        <TextBox Classes="darkInput" Text="{Binding PropsMotd}" Height="30" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=cs_prop_motd}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                        <TextBox Classes="darkInput" Text="{Binding PropsMotd}" Height="32" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
                                     </StackPanel>
 
                                     <!-- Row 3: Gamemode & Difficulty -->
                                     <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                                         <StackPanel Spacing="4">
-                                            <TextBlock Text="{l10n:Tr Key=cs_prop_gamemode}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                            <ComboBox Classes="zenCombo" ItemsSource="{Binding GamemodeOptions}" SelectedItem="{Binding PropsGamemode}" HorizontalAlignment="Stretch" Height="30" Padding="8,3" FontSize="11.5" IsEnabled="{Binding PropsForceGamemode}" ToolTip.Tip="{l10n:Tr Key=cs_prop_force_gamemode}"/>
+                                            <TextBlock Text="{l10n:Tr Key=cs_prop_gamemode}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <ComboBox Classes="zenCombo" ItemsSource="{Binding GamemodeOptions}" SelectedItem="{Binding PropsGamemode}" HorizontalAlignment="Stretch" Height="32" Padding="8,3" FontSize="11.5" IsEnabled="{Binding PropsForceGamemode}" ToolTip.Tip="{l10n:Tr Key=cs_prop_force_gamemode}"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="1" Spacing="4">
-                                            <TextBlock Text="{l10n:Tr Key=cs_prop_difficulty}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                            <ComboBox Classes="zenCombo" ItemsSource="{Binding DifficultyOptions}" SelectedItem="{Binding PropsDifficulty}" HorizontalAlignment="Stretch" Height="30" Padding="8,3" FontSize="11.5"/>
+                                            <TextBlock Text="{l10n:Tr Key=cs_prop_difficulty}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <ComboBox Classes="zenCombo" ItemsSource="{Binding DifficultyOptions}" SelectedItem="{Binding PropsDifficulty}" HorizontalAlignment="Stretch" Height="32" Padding="8,3" FontSize="11.5"/>
                                         </StackPanel>
                                     </Grid>
 
                                     <!-- Row 4: Max Players & Spawn Protection -->
                                     <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                                         <StackPanel Spacing="4">
-                                            <TextBlock Text="{l10n:Tr Key=cs_prop_max_players}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                            <TextBox Classes="darkInput" Text="{Binding PropsMaxPlayers}" Height="30" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
+                                            <TextBlock Text="{l10n:Tr Key=cs_prop_max_players}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <TextBox Classes="darkInput" Text="{Binding PropsMaxPlayers}" Height="32" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="1" Spacing="4">
-                                            <TextBlock Text="{l10n:Tr Key=cs_prop_spawn_protection}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                            <TextBox Classes="darkInput" Text="{Binding PropsSpawnProtection}" Height="30" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
+                                            <TextBlock Text="{l10n:Tr Key=cs_prop_spawn_protection}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <TextBox Classes="darkInput" Text="{Binding PropsSpawnProtection}" Height="32" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
                                         </StackPanel>
                                     </Grid>
 
                                     <!-- Row 5: View Distance & Simulation Distance -->
                                     <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                                         <StackPanel Spacing="4">
-                                            <TextBlock Text="{l10n:Tr Key=cs_prop_view_distance}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                            <TextBox Classes="darkInput" Text="{Binding PropsViewDistance}" Height="30" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
+                                            <TextBlock Text="{l10n:Tr Key=cs_prop_view_distance}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <TextBox Classes="darkInput" Text="{Binding PropsViewDistance}" Height="32" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="1" Spacing="4" IsVisible="{Binding IsSimulationDistanceVisible}">
-                                            <TextBlock Text="{l10n:Tr Key=cs_prop_sim_distance}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                            <TextBox Classes="darkInput" Text="{Binding PropsSimulationDistance}" Height="30" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
+                                            <TextBlock Text="{l10n:Tr Key=cs_prop_sim_distance}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <TextBox Classes="darkInput" Text="{Binding PropsSimulationDistance}" Height="32" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
                                         </StackPanel>
                                     </Grid>
 
                                     <!-- Row 6: Entity Broadcast Range (removed in 1.21.2+) -->
                                     <StackPanel Spacing="4" IsVisible="{Binding IsEntityBroadcastRangeVisible}">
-                                        <TextBlock Text="{l10n:Tr Key=cs_prop_entity_range}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                        <TextBox Classes="darkInput" Text="{Binding PropsEntityBroadcastRangePercentage}" Height="30" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=cs_prop_entity_range}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                        <TextBox Classes="darkInput" Text="{Binding PropsEntityBroadcastRangePercentage}" Height="32" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
                                     </StackPanel>
 
                                     <!-- Row 7: Resource Pack URL -->
                                     <StackPanel Spacing="4">
-                                        <TextBlock Text="{l10n:Tr Key=cs_prop_resource_pack}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                        <TextBox Classes="darkInput" Text="{Binding PropsResourcePack}" PlaceholderText="https://example.com/pack.zip" Height="30" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=cs_prop_resource_pack}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                        <TextBox Classes="darkInput" Text="{Binding PropsResourcePack}" PlaceholderText="https://example.com/pack.zip" Height="32" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
                                     </StackPanel>
 
                                     <!-- Row 8: Resource Pack Prompt (1.20.2+) -->
                                     <StackPanel Spacing="4" IsVisible="{Binding IsResourcePackPromptVisible}">
-                                        <TextBlock Text="{l10n:Tr Key=cs_prop_resource_pack_prompt}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                        <TextBox Classes="darkInput" Text="{Binding PropsResourcePackPrompt}" PlaceholderText="Custom prompt message shown to players..." Height="30" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=cs_prop_resource_pack_prompt}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                        <TextBox Classes="darkInput" Text="{Binding PropsResourcePackPrompt}" PlaceholderText="Custom prompt message..." Height="32" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
                                     </StackPanel>
                                 </StackPanel>
+                            </Border>
 
-                                <!-- Right Column: Rules & Flags -->
-                                <StackPanel Grid.Column="1" Spacing="6">
-                                    <TextBlock Text="{l10n:Tr Key=cs_props_rules}" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" Margin="0,0,0,2"/>
+                            <!-- Right Card: Rules & Flags (Clean Minimalist Rows) -->
+                            <Border Grid.Column="1" Classes="zenCard" Padding="16">
+                                <StackPanel Spacing="6">
+                                    <TextBlock Text="{l10n:Tr Key=cs_props_rules}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,2"/>
 
-                                    <!-- Online Mode / Cracked -->
-                                    <Border Classes="zenRow">
-                                        <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                            <StackPanel Spacing="1">
-                                                <TextBlock Text="{l10n:Tr Key=cs_prop_online_mode}" Classes="rowTitle"/>
-                                                <TextBlock Text="On = Mojang authentication; Off = Cracked / Offline mode" FontSize="9.5" Foreground="{StaticResource TextPlaceholderBrush}"/>
-                                            </StackPanel>
-                                            <CheckBox Grid.Column="1" IsChecked="{Binding PropsOnlineMode}" VerticalAlignment="Center" Margin="6,0,0,0"/>
-                                        </Grid>
-                                    </Border>
+                                    <!-- Online Mode -->
+                                    <Grid ColumnDefinitions="*,Auto" Height="28" VerticalAlignment="Center">
+                                        <TextBlock Text="{l10n:Tr Key=cs_prop_online_mode}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                        <CheckBox Grid.Column="1" IsChecked="{Binding PropsOnlineMode}" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <Border Height="1" Background="{StaticResource BorderDarkBrush}"/>
 
                                     <!-- Whitelist -->
-                                    <Border Classes="zenRow">
-                                        <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                            <StackPanel Spacing="1">
-                                                <TextBlock Text="{l10n:Tr Key=cs_prop_whitelist}" Classes="rowTitle"/>
-                                                <TextBlock Text="Only players on whitelist can join the server" FontSize="9.5" Foreground="{StaticResource TextPlaceholderBrush}"/>
-                                            </StackPanel>
-                                            <CheckBox Grid.Column="1" IsChecked="{Binding PropsWhitelist}" VerticalAlignment="Center" Margin="6,0,0,0"/>
-                                        </Grid>
-                                    </Border>
+                                    <Grid ColumnDefinitions="*,Auto" Height="28" VerticalAlignment="Center">
+                                        <TextBlock Text="{l10n:Tr Key=cs_prop_whitelist}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                        <CheckBox Grid.Column="1" IsChecked="{Binding PropsWhitelist}" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <Border Height="1" Background="{StaticResource BorderDarkBrush}"/>
 
                                     <!-- Force Gamemode -->
-                                    <Border Classes="zenRow">
-                                        <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                            <StackPanel Spacing="1">
-                                                <TextBlock Text="{l10n:Tr Key=cs_prop_force_gamemode}" Classes="rowTitle"/>
-                                                <TextBlock Text="Force players to join in default game mode" FontSize="9.5" Foreground="{StaticResource TextPlaceholderBrush}"/>
-                                            </StackPanel>
-                                            <CheckBox Grid.Column="1" IsChecked="{Binding PropsForceGamemode}" VerticalAlignment="Center" Margin="6,0,0,0"/>
-                                        </Grid>
-                                    </Border>
+                                    <Grid ColumnDefinitions="*,Auto" Height="28" VerticalAlignment="Center">
+                                        <TextBlock Text="{l10n:Tr Key=cs_prop_force_gamemode}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                        <CheckBox Grid.Column="1" IsChecked="{Binding PropsForceGamemode}" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <Border Height="1" Background="{StaticResource BorderDarkBrush}"/>
 
-                                    <!-- Require Resource Pack (1.17+) -->
-                                    <Border Classes="zenRow" IsVisible="{Binding IsRequireResourcePackVisible}">
-                                        <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                            <StackPanel Spacing="1">
-                                                <TextBlock Text="{l10n:Tr Key=cs_prop_require_resource_pack}" Classes="rowTitle"/>
-                                                <TextBlock Text="Disconnect players who decline downloading the pack" FontSize="9.5" Foreground="{StaticResource TextPlaceholderBrush}"/>
-                                            </StackPanel>
-                                            <CheckBox Grid.Column="1" IsChecked="{Binding PropsRequireResourcePack}" VerticalAlignment="Center" Margin="6,0,0,0"/>
-                                        </Grid>
-                                    </Border>
+                                    <!-- Require Resource Pack -->
+                                    <Grid ColumnDefinitions="*,Auto" Height="28" VerticalAlignment="Center" IsVisible="{Binding IsRequireResourcePackVisible}">
+                                        <TextBlock Text="{l10n:Tr Key=cs_prop_require_resource_pack}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                        <CheckBox Grid.Column="1" IsChecked="{Binding PropsRequireResourcePack}" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <Border Height="1" Background="{StaticResource BorderDarkBrush}" IsVisible="{Binding IsRequireResourcePackVisible}"/>
 
                                     <!-- PVP -->
-                                    <Border Classes="zenRow">
-                                        <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                            <StackPanel Spacing="1">
-                                                <TextBlock Text="{l10n:Tr Key=cs_prop_pvp}" Classes="rowTitle"/>
-                                                <TextBlock Text="Enable player versus player combat damage" FontSize="9.5" Foreground="{StaticResource TextPlaceholderBrush}"/>
-                                            </StackPanel>
-                                            <CheckBox Grid.Column="1" IsChecked="{Binding PropsPvp}" VerticalAlignment="Center" Margin="6,0,0,0"/>
-                                        </Grid>
-                                    </Border>
+                                    <Grid ColumnDefinitions="*,Auto" Height="28" VerticalAlignment="Center">
+                                        <TextBlock Text="{l10n:Tr Key=cs_prop_pvp}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                        <CheckBox Grid.Column="1" IsChecked="{Binding PropsPvp}" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <Border Height="1" Background="{StaticResource BorderDarkBrush}"/>
 
                                     <!-- Allow Flight -->
-                                    <Border Classes="zenRow">
-                                        <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                            <StackPanel Spacing="1">
-                                                <TextBlock Text="{l10n:Tr Key=cs_prop_allow_flight}" Classes="rowTitle"/>
-                                                <TextBlock Text="Allow players to fly in survival without being kicked" FontSize="9.5" Foreground="{StaticResource TextPlaceholderBrush}"/>
-                                            </StackPanel>
-                                            <CheckBox Grid.Column="1" IsChecked="{Binding PropsAllowFlight}" VerticalAlignment="Center" Margin="6,0,0,0"/>
-                                        </Grid>
-                                    </Border>
+                                    <Grid ColumnDefinitions="*,Auto" Height="28" VerticalAlignment="Center">
+                                        <TextBlock Text="{l10n:Tr Key=cs_prop_allow_flight}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                        <CheckBox Grid.Column="1" IsChecked="{Binding PropsAllowFlight}" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <Border Height="1" Background="{StaticResource BorderDarkBrush}"/>
 
                                     <!-- Command Blocks -->
-                                    <Border Classes="zenRow">
-                                        <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                            <StackPanel Spacing="1">
-                                                <TextBlock Text="{l10n:Tr Key=cs_prop_command_blocks}" Classes="rowTitle"/>
-                                                <TextBlock Text="Enable execution of command blocks" FontSize="9.5" Foreground="{StaticResource TextPlaceholderBrush}"/>
-                                            </StackPanel>
-                                            <CheckBox Grid.Column="1" IsChecked="{Binding PropsCommandBlocks}" VerticalAlignment="Center" Margin="6,0,0,0"/>
-                                        </Grid>
-                                    </Border>
+                                    <Grid ColumnDefinitions="*,Auto" Height="28" VerticalAlignment="Center">
+                                        <TextBlock Text="{l10n:Tr Key=cs_prop_command_blocks}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                        <CheckBox Grid.Column="1" IsChecked="{Binding PropsCommandBlocks}" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <Border Height="1" Background="{StaticResource BorderDarkBrush}"/>
 
                                     <!-- Allow Nether -->
-                                    <Border Classes="zenRow">
-                                        <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                            <StackPanel Spacing="1">
-                                                <TextBlock Text="{l10n:Tr Key=cs_prop_allow_nether}" Classes="rowTitle"/>
-                                                <TextBlock Text="Enable portals and Nether dimension travel" FontSize="9.5" Foreground="{StaticResource TextPlaceholderBrush}"/>
-                                            </StackPanel>
-                                            <CheckBox Grid.Column="1" IsChecked="{Binding PropsAllowNether}" VerticalAlignment="Center" Margin="6,0,0,0"/>
-                                        </Grid>
-                                    </Border>
+                                    <Grid ColumnDefinitions="*,Auto" Height="28" VerticalAlignment="Center">
+                                        <TextBlock Text="{l10n:Tr Key=cs_prop_allow_nether}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                        <CheckBox Grid.Column="1" IsChecked="{Binding PropsAllowNether}" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <Border Height="1" Background="{StaticResource BorderDarkBrush}"/>
 
                                     <!-- Spawn Animals -->
-                                    <Border Classes="zenRow">
-                                        <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                            <StackPanel Spacing="1">
-                                                <TextBlock Text="{l10n:Tr Key=cs_prop_spawn_animals}" Classes="rowTitle"/>
-                                                <TextBlock Text="Allow passive animals to spawn in the world" FontSize="9.5" Foreground="{StaticResource TextPlaceholderBrush}"/>
-                                            </StackPanel>
-                                            <CheckBox Grid.Column="1" IsChecked="{Binding PropsSpawnAnimals}" VerticalAlignment="Center" Margin="6,0,0,0"/>
-                                        </Grid>
-                                    </Border>
+                                    <Grid ColumnDefinitions="*,Auto" Height="28" VerticalAlignment="Center">
+                                        <TextBlock Text="{l10n:Tr Key=cs_prop_spawn_animals}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                        <CheckBox Grid.Column="1" IsChecked="{Binding PropsSpawnAnimals}" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <Border Height="1" Background="{StaticResource BorderDarkBrush}"/>
 
                                     <!-- Spawn Monsters -->
-                                    <Border Classes="zenRow">
-                                        <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                            <StackPanel Spacing="1">
-                                                <TextBlock Text="{l10n:Tr Key=cs_prop_spawn_monsters}" Classes="rowTitle"/>
-                                                <TextBlock Text="Allow hostile mobs and monsters to spawn" FontSize="9.5" Foreground="{StaticResource TextPlaceholderBrush}"/>
-                                            </StackPanel>
-                                            <CheckBox Grid.Column="1" IsChecked="{Binding PropsSpawnMonsters}" VerticalAlignment="Center" Margin="6,0,0,0"/>
-                                        </Grid>
-                                    </Border>
-
+                                    <Grid ColumnDefinitions="*,Auto" Height="28" VerticalAlignment="Center">
+                                        <TextBlock Text="{l10n:Tr Key=cs_prop_spawn_monsters}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                        <CheckBox Grid.Column="1" IsChecked="{Binding PropsSpawnMonsters}" VerticalAlignment="Center"/>
+                                    </Grid>
                                 </StackPanel>
-                            </Grid>
-                        </StackPanel>
-                    </Border>
+                            </Border>
+                        </Grid>
+                    </StackPanel>
 
                     <!-- TAB 6: CONSOLE -->
                     <Border Classes="zenSection" IsVisible="{Binding IsConsoleTab}">

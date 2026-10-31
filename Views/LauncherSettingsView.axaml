@@ -72,7 +72,7 @@
         </Style>
     </UserControl.Styles>
 
-    <Border Background="{StaticResource CardAltBrush}" CornerRadius="12" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" ClipToBounds="True">
+    <Border Background="{StaticResource CardAltBrush}" CornerRadius="12" ClipToBounds="True">
         <Panel>
             <Grid ColumnDefinitions="200,*">
             <!-- Sidebar -->

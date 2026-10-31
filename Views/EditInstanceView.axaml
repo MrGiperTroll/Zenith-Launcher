@@ -342,7 +342,7 @@
                     </Grid>
 
                     <!-- Terminal Card -->
-                    <Border Grid.Row="1" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1" CornerRadius="10" ClipToBounds="True">
+                    <Border Grid.Row="1" Background="{StaticResource SidebarBgBrush}" CornerRadius="10" ClipToBounds="True">
                         <Panel>
                             <ScrollViewer x:Name="LogScroll" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
                                           ScrollChanged="OnLogScrollChanged" Padding="14,10"

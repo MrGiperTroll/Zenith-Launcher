@@ -1677,8 +1677,11 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
             OnPropertyChanged(nameof(CleanBody));
             OnPropertyChanged(nameof(GalleryItems));
             OnPropertyChanged(nameof(HasGalleryItems));
+
+            _allVersions = await ModrinthApiService.GetProjectVersionsAsync(project.ProjectId);
             if (full != null)
             {
+                full.Versions = _allVersions;
                 foreach (var g in full.Gallery)
                 {
                     g.LoadImage();
@@ -1687,16 +1690,30 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
                 {
                     tm.LoadAvatar();
                 }
+
+                var memberMap = full.TeamMembers.Where(m => !string.IsNullOrWhiteSpace(m.Id) && !string.IsNullOrWhiteSpace(m.Username))
+                                                .ToDictionary(m => m.Id, m => m.Username);
+                foreach (var v in _allVersions)
+                {
+                    if (!string.IsNullOrWhiteSpace(v.AuthorId) && memberMap.TryGetValue(v.AuthorId, out var uname))
+                        v.AuthorName = uname;
+                    else
+                        v.AuthorName = full.Author ?? project.Author;
+                }
+
                 SelectedDetailVersion = null;
                 OnPropertyChanged(nameof(IsVersionDetailActive));
-                var actualVersions = (full?.Versions ?? new())
-                    .SelectMany(v => v.GameVersions ?? Array.Empty<string>())
+
+                var actualVersions = (_allVersions.Count > 0
+                    ? _allVersions.SelectMany(v => v.GameVersions ?? Array.Empty<string>())
+                    : (full.GameVersions ?? Array.Empty<string>()))
                     .Where(v => !string.IsNullOrWhiteSpace(v))
                     .Distinct();
                 FilterGameVersions = SortGameVersionsDesc(actualVersions);
 
-                var actualLoaders = (full?.Versions ?? new())
-                    .SelectMany(v => v.Loaders ?? Array.Empty<string>())
+                var actualLoaders = (_allVersions.Count > 0
+                    ? _allVersions.SelectMany(v => v.Loaders ?? Array.Empty<string>())
+                    : (full.Loaders ?? Array.Empty<string>()))
                     .Select(Models.ModrinthProjectVersion.FormatPlatformName)
                     .Where(p => !string.IsNullOrWhiteSpace(p) && !p.Equals("All platforms", StringComparison.OrdinalIgnoreCase))
                     .Distinct()
@@ -1728,7 +1745,7 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
                 OnPropertyChanged(nameof(PlatformFilterButtonText));
                 OnPropertyChanged(nameof(IsAllPlatformsSelected));
 
-                if (full != null && !string.IsNullOrWhiteSpace(full.HeaderImageUrl))
+                if (!string.IsNullOrWhiteSpace(full.HeaderImageUrl))
                 {
                     var bannerUrl = full.HeaderImageUrl;
                     _ = Task.Run(async () =>
@@ -1742,20 +1759,11 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
                         }
                     });
                 }
-                _allVersions = await ModrinthApiService.GetProjectVersionsAsync(project.ProjectId);
-                var memberMap = full?.TeamMembers?.Where(m => !string.IsNullOrWhiteSpace(m.Id) && !string.IsNullOrWhiteSpace(m.Username))
-                                                  .ToDictionary(m => m.Id, m => m.Username) ?? new Dictionary<string, string>();
-                foreach (var v in _allVersions)
-                {
-                    if (!string.IsNullOrWhiteSpace(v.AuthorId) && memberMap.TryGetValue(v.AuthorId, out var uname))
-                        v.AuthorName = uname;
-                    else
-                        v.AuthorName = full?.Author ?? project.Author;
-                }
+
                 // Default: select the instance MC version in Compatibility sidebar
                 SelectedCompatibilityVersion = _gameVersion;
                 CurrentVersionPage = 1;
-            RefreshPagination();
+                RefreshPagination();
                 OnPropertyChanged(nameof(VersionSelectorProject));
                 OnPropertyChanged(nameof(CompatibilityVersions));
 

@@ -75,21 +75,19 @@
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="HorizontalAlignment" Value="Right"/>
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="Background" Duration="0:0:0.15"/>
-                    <BrushTransition Property="BorderBrush" Duration="0:0:0.15"/>
-                    <BrushTransition Property="Foreground" Duration="0:0:0.15"/>
-                </Transitions>
-            </Setter>
+        </Style>
+        <Style Selector="Button.delAccBtn PathIcon">
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
         </Style>
         <Style Selector="Button.delAccBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource DangerDimBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource DangerBorderBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource DangerLightBrush}"/>
+        </Style>
+        <Style Selector="Button.delAccBtn:pointerover TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
         </Style>
         <Style Selector="Button.delAccBtn:pointerover PathIcon">
-            <Setter Property="Foreground" Value="{StaticResource DangerLightBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
         </Style>
 
         <!-- Primary / secondary (offline form buttons) -->
@@ -159,7 +157,7 @@
                                             <Button Grid.Column="2" Classes="delAccBtn" Command="{Binding $parent[UserControl].((pages:AccountsViewModel)DataContext).DeleteAccountCommand}" CommandParameter="{Binding Model}"
                                                     ToolTip.Tip="{l10n:Tr Key=acc_remove}">
                                                 <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
-                                                    <PathIcon Data="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" Width="11" Height="11" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                                    <PathIcon Data="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" Width="11" Height="11" VerticalAlignment="Center"/>
                                                     <TextBlock Text="{l10n:Tr Key=acc_remove}" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                                 </StackPanel>
                                             </Button>

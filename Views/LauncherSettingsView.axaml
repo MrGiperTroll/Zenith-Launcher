@@ -22,13 +22,6 @@
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
         </Style>
-        <Style Selector="Button.sideTab /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="Background" Duration="0:0:0.2" Easing="0.16, 1, 0.3, 1"/>
-                </Transitions>
-            </Setter>
-        </Style>
         <Style Selector="Button.sideTab:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
         </Style>

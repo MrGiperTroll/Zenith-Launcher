@@ -112,11 +112,9 @@
             </StackPanel>
         </StackPanel>
 
-        <!-- Main Content Area: Left Projects List, Right Badges Sidebar -->
-        <Grid Grid.Row="1" ColumnDefinitions="*,260" ColumnSpacing="18">
-
-            <!-- Left: Projects List -->
-            <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <!-- Main Content Area: Full-width Projects List -->
+        <Grid Grid.Row="1">
+            <ScrollViewer VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled" AllowAutoHide="True">
                 <StackPanel Spacing="10">
                     <TextBlock Text="Loading projects..." Foreground="{StaticResource TextMutedBrush}"
                                FontSize="13" HorizontalAlignment="Center" Margin="0,30" IsVisible="{Binding IsLoading}"/>
@@ -178,31 +176,6 @@
                 </StackPanel>
             </ScrollViewer>
 
-            <!-- Right Sidebar: Badges matching Modrinth -->
-            <Border Grid.Column="1" Background="{StaticResource FieldBrush}" BorderBrush="#1E2026" BorderThickness="1"
-                    CornerRadius="10" Padding="16,14" VerticalAlignment="Top">
-                <StackPanel Spacing="12">
-                    <TextBlock Text="Badges" FontSize="13.5" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                    <!-- Badges Row -->
-                    <StackPanel Orientation="Horizontal" Spacing="12">
-                        <!-- Rainbow Heart Badge -->
-                        <Border Width="40" Height="40" CornerRadius="20" Background="#242832" ToolTip.Tip="Pride Supporter">
-                            <TextBlock Text="&#x2764;" FontSize="20" Foreground="#E11D48" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <!-- Electric Plug Badge -->
-                        <Border Width="40" Height="40" CornerRadius="20" Background="#242832" ToolTip.Tip="Mod Author">
-                            <TextBlock Text="&#x26A1;" FontSize="18" Foreground="#3B82F6" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <!-- 250M+ Downloads Badge -->
-                        <Border Width="40" Height="40" CornerRadius="20" Background="#242832" ToolTip.Tip="Over 250M Total Downloads">
-                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                <TextBlock Text="250M+" FontSize="9" FontWeight="Bold" Foreground="#F59E0B" HorizontalAlignment="Center"/>
-                                <TextBlock Text="&#x2B50;" FontSize="10" HorizontalAlignment="Center"/>
-                            </StackPanel>
-                        </Border>
-                    </StackPanel>
-                </StackPanel>
-            </Border>
-        </Grid>
+            </Grid>
     </Grid>
 </UserControl>

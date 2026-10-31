@@ -727,7 +727,95 @@
             <Setter Property="Padding" Value="10,6"/>
             <Setter Property="MinHeight" Value="34"/>
         </Style>
-    </Application.Styles>
+    
+        <!-- Global Button Animation Disabling (Strictly instant response, no squash/scale) -->
+        <Style Selector="Button:pressed">
+            <Setter Property="RenderTransform" Value="none"/>
+        </Style>
+        <Style Selector="Button:pressed /template/ ContentPresenter">
+            <Setter Property="RenderTransform" Value="none"/>
+        </Style>
+        <Style Selector="Button:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="RenderTransform" Value="none"/>
+        </Style>
+
+        <!-- Expander Modern Fluent Styling (No black header) -->
+        <Style Selector="Expander">
+            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+        </Style>
+        <Style Selector="Expander /template/ ToggleButton#ExpanderHeader">
+            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="14,10"/>
+        </Style>
+        <Style Selector="Expander /template/ ToggleButton#ExpanderHeader:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+        </Style>
+        <Style Selector="Expander /template/ ToggleButton#ExpanderHeader:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource CardAltBrush}"/>
+        </Style>
+        <Style Selector="Expander:expanded /template/ ToggleButton#ExpanderHeader">
+            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+        </Style>
+
+        <!-- Author Link Button (Clean text link, no box, underline and white on hover) -->
+        <Style Selector="Button.authorLinkBtn">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <TextBlock Text="{TemplateBinding Content}"
+                               FontSize="{TemplateBinding FontSize}"
+                               Foreground="{TemplateBinding Foreground}"
+                               VerticalAlignment="Center"/>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="Button.authorLinkBtn:pointerover TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="TextDecorations" Value="Underline"/>
+        </Style>
+        <Style Selector="Button.authorLinkBtn:pressed TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="TextDecorations" Value="Underline"/>
+        </Style>
+
+        <!-- Inline Link Button -->
+        <Style Selector="Button.inlineLinkBtn">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <TextBlock Text="{TemplateBinding Content}"
+                               FontSize="{TemplateBinding FontSize}"
+                               Foreground="{TemplateBinding Foreground}"
+                               VerticalAlignment="Center"/>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="Button.inlineLinkBtn:pointerover TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="TextDecorations" Value="Underline"/>
+        </Style>
+        <Style Selector="Button.inlineLinkBtn:pressed TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="TextDecorations" Value="Underline"/>
+        </Style>
+</Application.Styles>
 </Application>
 
 

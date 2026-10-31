@@ -68,7 +68,7 @@ public class ModrinthFullProject
 
     // Moderators & Gallery
     public List<ModrinthTeamMember> TeamMembers { get; init; } = new();
-    public List<ModrinthProjectVersion> Versions { get; init; } = new();
+    public List<ModrinthProjectVersion> Versions { get; set; } = new();
     public List<ModrinthGalleryItem> Gallery { get; init; } = new();
 
     public string? FeaturedImageUrl =>

@@ -243,12 +243,14 @@
                                         </Border>
                                         <!-- Middle: title, author, desc, tags -->
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3" Margin="12,8,12,8">
-                                            <TextBlock Text="{Binding Title}" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
-                                            <Button Classes="inlineLinkBtn" Content="{Binding Author}"
-                                                    Command="{Binding $parent[UserControl].((vm:ContentBrowserViewModel)DataContext).OpenAuthorProfileCommand}"
-                                                    CommandParameter="{Binding Author}"
-                                                    FontSize="10.5" Foreground="{StaticResource TextLabelBrush}"
-                                                    HorizontalAlignment="Left"/>
+                                            <WrapPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,2">
+                                                <TextBlock Text="{Binding Title}" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                                <TextBlock Text="by " FontSize="11.5" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                <Button Classes="authorLinkBtn" Content="{Binding Author}"
+                                                        Command="{Binding $parent[UserControl].((vm:ContentBrowserViewModel)DataContext).OpenAuthorProfileCommand}"
+                                                        CommandParameter="{Binding Author}"
+                                                        FontSize="11.5" VerticalAlignment="Center"/>
+                                            </WrapPanel>
                                             <TextBlock Text="{Binding Description}" FontSize="10.5" Foreground="{StaticResource TextMutedBrush}" TextTrimming="CharacterEllipsis" MaxLines="2" TextWrapping="Wrap"/>
                                             <TextBlock Text="{Binding TagsLabel}" FontSize="9.5" Foreground="{StaticResource AccentBrush}" TextTrimming="CharacterEllipsis" IsVisible="{Binding TagsLabel, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
                                         </StackPanel>

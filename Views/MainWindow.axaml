@@ -525,6 +525,9 @@
             <Setter Property="Background" Value="#E81123"/>
             <Setter Property="Foreground" Value="#FFFFFF"/>
         </Style>
+        <Style Selector="Button.captionCloseBtn:pointerover PathIcon">
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+        </Style>
         <!-- Discord-Style Navigation Buttons -->
         <Style Selector="Button.discordNavBtn">
             <Setter Property="Background" Value="Transparent"/>
@@ -1143,7 +1146,7 @@
                     </Panel>
 
                     <!-- In-Window Launcher Settings View -->
-                    <Panel x:Name="SettingsPane" Classes="viewPane" IsVisible="{Binding IsSettingsView}" Margin="0,0,16,0">
+                    <Panel x:Name="SettingsPane" Classes="viewPane" IsVisible="{Binding IsSettingsView}" Margin="-24,-14,0,0">
                         <views:LauncherSettingsView DataContext="{Binding LauncherSettingsVm}"/>
                     </Panel>
 

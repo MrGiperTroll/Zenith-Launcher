@@ -413,19 +413,38 @@ public static class ModrinthApiService
 
             // Get team members for creators section
             var team = new List<ModrinthTeamMember>();
+            var ownerAuthor = "";
+            var ownerAvatar = "";
             try
             {
                 var teamJson = await Http.GetStringAsync($"{ApiBase}/project/{Uri.EscapeDataString(projectId)}/members");
                 using var teamDoc = JsonDocument.Parse(teamJson);
                 foreach (var m in teamDoc.RootElement.EnumerateArray())
                 {
-                    var username = GetString(m, "username") ?? "";
-                    var role = GetString(m, "role") ?? "";
-                    // Get avatar from user object if available
+                    var userId = "";
+                    var username = "";
                     var avatar = "";
-                    if (m.TryGetProperty("avatar_url", out var av)) avatar = av.GetString() ?? "";
+                    if (m.TryGetProperty("user", out var u) && u.ValueKind == JsonValueKind.Object)
+                    {
+                        userId = GetString(u, "id") ?? "";
+                        username = GetString(u, "username") ?? "";
+                        avatar = GetString(u, "avatar_url") ?? "";
+                    }
+                    else
+                    {
+                        username = GetString(m, "username") ?? "";
+                        avatar = GetString(m, "avatar_url") ?? "";
+                    }
+                    var role = GetString(m, "role") ?? "";
                     if (!string.IsNullOrWhiteSpace(username))
-                        team.Add(new ModrinthTeamMember { Username = username, Role = role, AvatarUrl = avatar });
+                    {
+                        team.Add(new ModrinthTeamMember { Id = userId, Username = username, Role = role, AvatarUrl = avatar });
+                        if (string.Equals(role, "Owner", StringComparison.OrdinalIgnoreCase) || string.IsNullOrEmpty(ownerAuthor))
+                        {
+                            ownerAuthor = username;
+                            ownerAvatar = avatar;
+                        }
+                    }
                 }
             }
             catch { }
@@ -467,6 +486,8 @@ public static class ModrinthApiService
                 Id = GetString(r, "id") ?? "",
                 Slug = GetString(r, "slug") ?? "",
                 Title = GetString(r, "title") ?? "",
+                Author = ownerAuthor,
+                AuthorAvatarUrl = ownerAvatar,
                 Description = GetString(r, "description") ?? "",
                 Body = GetString(r, "body") ?? "",
                 ProjectType = GetString(r, "project_type") ?? "",

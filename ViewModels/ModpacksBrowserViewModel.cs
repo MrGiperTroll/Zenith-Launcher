@@ -185,6 +185,8 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     [RelayCommand]
     private void SelectTab(string tab)
     {
+        SelectedDetailVersion = null;
+        OnPropertyChanged(nameof(IsVersionDetailActive));
         SelectedDetailTab = tab;
     }
 
@@ -215,6 +217,67 @@ public partial class ModpacksBrowserViewModel : ObservableObject
 
     [ObservableProperty]
     private IReadOnlyList<string> _filterPlatforms = new[] { "All platforms" };
+
+    [ObservableProperty]
+    private System.Collections.ObjectModel.ObservableCollection<Models.FilterCheckItem> _platformFilterItems = new();
+
+    public string PlatformFilterButtonText
+    {
+        get
+        {
+            var selected = PlatformFilterItems.Where(p => p.IsSelected).Select(p => p.Name).ToList();
+            if (selected.Count == 0 || selected.Count == PlatformFilterItems.Count)
+                return "All platforms";
+            if (selected.Count == 1)
+                return selected[0];
+            return $"Platforms ({selected.Count})";
+        }
+    }
+
+    public bool IsAllPlatformsSelected => PlatformFilterItems.Count == 0 || PlatformFilterItems.All(p => !p.IsSelected) || PlatformFilterItems.All(p => p.IsSelected);
+
+    [RelayCommand]
+    public void SelectAllPlatforms()
+    {
+        foreach (var item in PlatformFilterItems)
+            item.IsSelected = false;
+        OnPropertyChanged(nameof(PlatformFilterButtonText));
+        OnPropertyChanged(nameof(IsAllPlatformsSelected));
+        CurrentVersionPage = 1;
+        RefreshPagination();
+    }
+
+    public static List<string> SortGameVersionsDesc(IEnumerable<string>? rawVersions)
+    {
+        if (rawVersions == null) return new() { "All versions" };
+        var distinct = rawVersions.Where(v => !string.IsNullOrWhiteSpace(v) && !v.Equals("All versions", StringComparison.OrdinalIgnoreCase)).Distinct().ToList();
+
+        distinct.Sort((a, b) =>
+        {
+            var partsA = a.Split(new[] { '.', '-', '_' }, StringSplitOptions.RemoveEmptyEntries);
+            var partsB = b.Split(new[] { '.', '-', '_' }, StringSplitOptions.RemoveEmptyEntries);
+            int max = Math.Min(partsA.Length, partsB.Length);
+            for (int i = 0; i < max; i++)
+            {
+                bool isNumA = int.TryParse(partsA[i], out int numA);
+                bool isNumB = int.TryParse(partsB[i], out int numB);
+                if (isNumA && isNumB)
+                {
+                    if (numA != numB) return numB.CompareTo(numA);
+                }
+                else
+                {
+                    int cmp = string.Compare(partsB[i], partsA[i], StringComparison.OrdinalIgnoreCase);
+                    if (cmp != 0) return cmp;
+                }
+            }
+            return partsB.Length.CompareTo(partsA.Length);
+        });
+
+        var result = new List<string> { "All versions" };
+        result.AddRange(distinct);
+        return result;
+    }
 
     [RelayCommand]
     public void OpenGalleryModal(Models.ModrinthGalleryItem? item)
@@ -255,6 +318,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     {
         if (version == null) return;
         SelectedDetailVersion = version;
+        SelectedDetailTab = "versions";
         OnPropertyChanged(nameof(IsVersionDetailActive));
     }
 
@@ -339,9 +403,16 @@ public partial class ModpacksBrowserViewModel : ObservableObject
                 filtered = filtered.Where(v => v.GameVersions != null && v.GameVersions.Any(gv => gv != null && gv.Contains(SelectedVersion, StringComparison.OrdinalIgnoreCase)));
             }
 
-            if (!string.IsNullOrWhiteSpace(SelectedFilterPlatform) && !SelectedFilterPlatform.Equals("All platforms", StringComparison.OrdinalIgnoreCase))
+            var selectedPlatforms = PlatformFilterItems.Where(p => p.IsSelected).Select(p => p.Name).ToList();
+            if (selectedPlatforms.Count > 0)
             {
-                filtered = filtered.Where(v => v.Loaders != null && v.Loaders.Any(l => l != null && l.Equals(SelectedFilterPlatform, StringComparison.OrdinalIgnoreCase)));
+                filtered = filtered.Where(v => v.Loaders != null && v.Loaders.Any(l =>
+                    selectedPlatforms.Any(sp => sp.Equals(Models.ModrinthProjectVersion.FormatPlatformName(l), StringComparison.OrdinalIgnoreCase))));
+            }
+            else if (!string.IsNullOrWhiteSpace(SelectedFilterPlatform) && !SelectedFilterPlatform.Equals("All platforms", StringComparison.OrdinalIgnoreCase))
+            {
+                filtered = filtered.Where(v => v.Loaders != null && v.Loaders.Any(l => l != null &&
+                    Models.ModrinthProjectVersion.FormatPlatformName(l).Equals(SelectedFilterPlatform, StringComparison.OrdinalIgnoreCase)));
             }
 
             if (!string.IsNullOrWhiteSpace(VersionFilter))
@@ -1094,12 +1165,36 @@ public partial class ModpacksBrowserViewModel : ObservableObject
                 }
                 SelectedDetailVersion = null;
                 OnPropertyChanged(nameof(IsVersionDetailActive));
-                FilterGameVersions = new[] { "All versions" }.Concat(full.GameVersions ?? Array.Empty<string>()).Distinct().ToList();
-                FilterPlatforms = new[] { "All platforms" }.Concat(full.Loaders ?? Array.Empty<string>()).Distinct().ToList();
+                FilterGameVersions = SortGameVersionsDesc(full?.GameVersions);
+                var formattedLoaders = (full?.Loaders ?? Array.Empty<string>())
+                    .Select(Models.ModrinthProjectVersion.FormatPlatformName)
+                    .Where(p => !string.IsNullOrWhiteSpace(p) && !p.Equals("All platforms", StringComparison.OrdinalIgnoreCase))
+                    .Distinct()
+                    .ToList();
+                FilterPlatforms = new[] { "All platforms" }.Concat(formattedLoaders).Distinct().ToList();
                 SelectedFilterGameVersion = "All versions";
                 SelectedFilterPlatform = "All platforms";
 
-                if (!string.IsNullOrWhiteSpace(full.HeaderImageUrl))
+                PlatformFilterItems.Clear();
+                foreach (var p in formattedLoaders)
+                {
+                    var item = new Models.FilterCheckItem { Name = p, IsSelected = false };
+                    item.PropertyChanged += (s, e) =>
+                    {
+                        if (e.PropertyName == nameof(Models.FilterCheckItem.IsSelected))
+                        {
+                            OnPropertyChanged(nameof(PlatformFilterButtonText));
+                            OnPropertyChanged(nameof(IsAllPlatformsSelected));
+                            CurrentVersionPage = 1;
+                            RefreshPagination();
+                        }
+                    };
+                    PlatformFilterItems.Add(item);
+                }
+                OnPropertyChanged(nameof(PlatformFilterButtonText));
+                OnPropertyChanged(nameof(IsAllPlatformsSelected));
+
+                if (full != null && !string.IsNullOrWhiteSpace(full.HeaderImageUrl))
                 {
                     var bannerUrl = full.HeaderImageUrl;
                     _ = Task.Run(async () =>
@@ -1114,9 +1209,13 @@ public partial class ModpacksBrowserViewModel : ObservableObject
                     });
                 }
                 _allVersions = await ModrinthApiService.GetProjectVersionsAsync(project.ProjectId);
+                var memberMap = full?.TeamMembers?.Where(m => !string.IsNullOrWhiteSpace(m.Id) && !string.IsNullOrWhiteSpace(m.Username))
+                                                  .ToDictionary(m => m.Id, m => m.Username) ?? new Dictionary<string, string>();
                 foreach (var v in _allVersions)
                 {
-                    if (string.IsNullOrWhiteSpace(v.AuthorName))
+                    if (!string.IsNullOrWhiteSpace(v.AuthorId) && memberMap.TryGetValue(v.AuthorId, out var uname))
+                        v.AuthorName = uname;
+                    else
                         v.AuthorName = full?.Author ?? project.Author;
                 }
                 // Default: select the instance MC version in Compatibility sidebar
@@ -1143,7 +1242,20 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     [RelayCommand]
     private void InstallSelectedVersion(Models.ModrinthProjectVersion? version)
     {
-        if (version == null || SelectedProject == null) return;
+        if (version == null) return;
+        if (SelectedProject == null && FullProject != null)
+        {
+            SelectedProject = new ModrinthProjectItemViewModel
+            {
+                ProjectId = FullProject.Id,
+                Title = FullProject.Title,
+                Description = FullProject.Description,
+                IconUrl = FullProject.IconUrl,
+                Slug = FullProject.Slug,
+                Author = FullProject.Author
+            };
+        }
+        if (SelectedProject == null) return;
         IsVersionSelectorOpen = false;
         _ = InstallSpecificVersionAsync(SelectedProject, version);
     }

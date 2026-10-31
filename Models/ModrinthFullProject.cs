@@ -88,6 +88,8 @@ public class ModrinthFullProject
             return FeaturedImageUrl;
         }
     }
+
+    public List<Common.Utils.MarkdownBlock> DescriptionBlocks => Common.Utils.MarkdownBlockParser.Parse(Body);
 }
 
 public partial class ModrinthGalleryItem : ObservableObject
@@ -199,6 +201,7 @@ public partial class ModrinthGalleryItem : ObservableObject
 
 public partial class ModrinthTeamMember : ObservableObject
 {
+    public string Id { get; init; } = "";
     public string Username { get; init; } = "";
     public string AvatarUrl { get; init; } = "";
     public string Role { get; init; } = "";
@@ -290,7 +293,25 @@ dependencies {{
         Files.Count > 0 ? Files[0].Filename : "";
     public long PrimaryFileSize =>
         Files.Count > 0 ? Files[0].FileSize : 0;
-    public string PrimaryLoader => Loaders.Length > 0 ? Loaders[0] : "";
+    public static string FormatPlatformName(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return "";
+        var s = raw.Trim();
+        if (s.Equals("all platforms", StringComparison.OrdinalIgnoreCase)) return "All platforms";
+        if (s.Equals("babric", StringComparison.OrdinalIgnoreCase)) return "Fabric";
+        if (s.Equals("fabric", StringComparison.OrdinalIgnoreCase)) return "Fabric";
+        if (s.Equals("forge", StringComparison.OrdinalIgnoreCase)) return "Forge";
+        if (s.Equals("neoforge", StringComparison.OrdinalIgnoreCase)) return "NeoForge";
+        if (s.Equals("quilt", StringComparison.OrdinalIgnoreCase)) return "Quilt";
+        if (s.Equals("liteloader", StringComparison.OrdinalIgnoreCase)) return "LiteLoader";
+        if (s.Equals("optifine", StringComparison.OrdinalIgnoreCase)) return "OptiFine";
+        if (s.Equals("canvas", StringComparison.OrdinalIgnoreCase)) return "Canvas";
+        if (s.Equals("iris", StringComparison.OrdinalIgnoreCase)) return "Iris";
+        if (s.Length <= 1) return s.ToUpperInvariant();
+        return char.ToUpperInvariant(s[0]) + s.Substring(1);
+    }
+
+    public string PrimaryLoader => Loaders.Length > 0 ? FormatPlatformName(Loaders[0]) : "";
     public string PrimaryGameVersion => GameVersions.Length > 0 ? GameVersions[0] : "";
 
     public string FileSizeLabel
@@ -368,4 +389,12 @@ public class PaginationPageItem
     public bool IsActive { get; init; }
     public bool IsEllipsis { get; init; }
     public bool IsClickable => !IsActive && !IsEllipsis;
+}
+
+public partial class FilterCheckItem : ObservableObject
+{
+    public string Name { get; init; } = "";
+
+    [ObservableProperty]
+    private bool _isSelected;
 }

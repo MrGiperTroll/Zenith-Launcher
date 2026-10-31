@@ -17,7 +17,9 @@ public class BoolToBorderBrushConverter : IValueConverter
                 return new SolidColorBrush(brush.Color);
             return new SolidColorBrush(Color.Parse("#10B981"));
         }
-        return new SolidColorBrush(Color.Parse("#283040"));
+        if (Application.Current?.Resources.TryGetResource("BorderCardSoftBrush", ThemeVariant.Default, out var softRes) == true && softRes is ISolidColorBrush softBrush)
+            return new SolidColorBrush(softBrush.Color);
+        return new SolidColorBrush(Color.Parse("#26282E"));
     }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)

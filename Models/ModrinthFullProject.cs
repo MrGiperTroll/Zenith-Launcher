@@ -42,6 +42,7 @@ public class ModrinthFullProject
 
     // Compatibility
     public string[] GameVersions { get; init; } = Array.Empty<string>();
+    public IReadOnlyList<string> GroupedGameVersions => ModrinthFullProject.FormatGroupedVersions(GameVersions);
     public string[] Loaders { get; init; } = Array.Empty<string>();
     public string[] Categories { get; init; } = Array.Empty<string>();
 
@@ -90,7 +91,130 @@ public class ModrinthFullProject
         }
     }
 
-    public List<Common.Utils.MarkdownBlock> DescriptionBlocks => Common.Utils.MarkdownBlockParser.Parse(Body);
+    private List<Common.Utils.MarkdownBlock>? _cachedDescriptionBlocks;
+    public List<Common.Utils.MarkdownBlock> DescriptionBlocks => _cachedDescriptionBlocks ??= Common.Utils.MarkdownBlockParser.Parse(Body);
+
+    public static List<string> FormatGroupedVersions(IEnumerable<string>? rawVersions)
+    {
+        if (rawVersions == null) return new();
+        var list = rawVersions.Where(v => !string.IsNullOrWhiteSpace(v)).Distinct().ToList();
+        if (list.Count == 0) return new();
+
+        var branchMap = new Dictionary<string, List<string>>();
+
+        foreach (var v in list)
+        {
+            var branch = GetVersionBranch(v);
+            if (!string.IsNullOrEmpty(branch))
+            {
+                if (!branchMap.TryGetValue(branch, out var bList))
+                {
+                    bList = new List<string>();
+                    branchMap[branch] = bList;
+                }
+                bList.Add(v);
+            }
+        }
+
+        var result = new List<(string Display, double SortKey)>();
+
+        foreach (var kvp in branchMap)
+        {
+            var branch = kvp.Key;
+            var versions = kvp.Value;
+
+            bool hasRelease = versions.Any(v => IsReleaseVersion(v));
+            var latestInBranch = versions.OrderByDescending(v => ParseVersionNumber(v)).First();
+
+            string display;
+            if (!hasRelease)
+            {
+                display = latestInBranch;
+            }
+            else
+            {
+                if (branch.StartsWith("1.") || versions.Count > 1 || versions.Any(v => v.Count(c => c == '.') >= 2))
+                {
+                    display = $"{branch}.x";
+                }
+                else
+                {
+                    display = branch;
+                }
+            }
+
+            double sortKey = ParseVersionNumber(display.Replace(".x", ".0"));
+            result.Add((display, sortKey));
+        }
+
+        return result
+            .OrderByDescending(r => r.SortKey)
+            .Select(r => r.Display)
+            .Distinct()
+            .ToList();
+    }
+
+    public static string GetVersionBranch(string v)
+    {
+        if (string.IsNullOrWhiteSpace(v)) return "";
+        var trimmed = v.Trim();
+
+        var weekMatch = Regex.Match(trimmed, @"^(\d{2})w(\d{2})[a-z]?$", RegexOptions.IgnoreCase);
+        if (weekMatch.Success)
+        {
+            int yy = int.Parse(weekMatch.Groups[1].Value);
+            int ww = int.Parse(weekMatch.Groups[2].Value);
+            if (yy < 19 || (yy == 19 && ww <= 14)) return "1.14";
+            if (yy == 19 && ww <= 46) return "1.15";
+            if (yy == 20 && ww <= 30) return "1.16";
+            if (yy == 20 || (yy == 21 && ww <= 20)) return "1.17";
+            if (yy == 21 || (yy == 22 && ww <= 7)) return "1.18";
+            if (yy == 22 && ww <= 19) return "1.19";
+            if (yy == 22 || (yy == 23 && ww <= 7)) return "1.20";
+            if (yy == 23 || (yy == 24 && ww <= 14)) return "1.21";
+            return "1.21";
+        }
+
+        var dashIdx = trimmed.IndexOf('-');
+        var baseVer = dashIdx > 0 ? trimmed[..dashIdx] : trimmed;
+
+        var parts = baseVer.Split('.', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 2)
+        {
+            return $"{parts[0]}.{parts[1]}";
+        }
+        if (parts.Length == 1 && int.TryParse(parts[0], out _))
+        {
+            return parts[0];
+        }
+
+        return trimmed;
+    }
+
+    public static bool IsReleaseVersion(string v)
+    {
+        if (string.IsNullOrWhiteSpace(v)) return false;
+        var lower = v.ToLowerInvariant();
+        if (lower.Contains("snapshot") || lower.Contains("pre") || lower.Contains("rc") ||
+            lower.Contains("alpha") || lower.Contains("beta") || lower.Contains("infinite"))
+            return false;
+        if (Regex.IsMatch(lower, @"^\d{2}w\d{2}")) return false;
+        return true;
+    }
+
+    public static double ParseVersionNumber(string v)
+    {
+        if (string.IsNullOrWhiteSpace(v)) return 0;
+        var digits = new string(v.Where(c => char.IsDigit(c) || c == '.').ToArray());
+        var parts = digits.Split('.', StringSplitOptions.RemoveEmptyEntries);
+        double result = 0;
+        foreach (var p in parts)
+        {
+            if (int.TryParse(p, out var n))
+                result = result * 1000 + n;
+        }
+        return result;
+    }
 }
 
 public partial class ModrinthGalleryItem : ObservableObject
@@ -291,6 +415,7 @@ dependencies {{
         }
     }
     public string[] GameVersions { get; init; } = Array.Empty<string>();
+    public IReadOnlyList<string> GroupedGameVersions => ModrinthFullProject.FormatGroupedVersions(GameVersions);
     public string[] Loaders { get; init; } = Array.Empty<string>();
     public List<ModrinthVersionFile> Files { get; init; } = new();
     public string PrimaryFileName =>

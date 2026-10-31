@@ -658,7 +658,7 @@
                             <!-- Game Versions -->
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Minecraft: Java Edition" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
-                                <ItemsControl ItemsSource="{Binding FullProject.GameVersions}">
+                                <ItemsControl ItemsSource="{Binding FullProject.GroupedGameVersions}">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
                                             <WrapPanel Orientation="Horizontal"/>

@@ -31,7 +31,7 @@
         </Style>
         <Style Selector="Button.presetBtn.active">
             <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="BorderThickness" Value="1.5"/>
+            <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Background" Value="{DynamicResource AccentDimBrush}"/>
         </Style>
         <Style Selector="Button.presetBtn.active /template/ ContentPresenter#PART_ContentPresenter">

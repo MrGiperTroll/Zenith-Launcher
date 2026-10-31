@@ -22,6 +22,7 @@ public enum MarkdownBlockType
     DividerImage,
     DividerLine,
     HeadlineImage,
+    ContentImage,
     Header1,
     Header2,
     Header3,
@@ -69,7 +70,7 @@ public class MarkdownParagraphControl : TextBlock
         {
             var run = new Run(s.Text)
             {
-                FontWeight = s.IsBold ? FontWeight.Bold : FontWeight.Normal,
+                FontWeight = s.IsBold ? FontWeight.SemiBold : FontWeight.Normal,
                 Foreground = s.IsBold ? new SolidColorBrush(Color.Parse("#E2E8F0")) : new SolidColorBrush(Color.Parse("#94A3B8"))
             };
             Inlines?.Add(run);
@@ -86,6 +87,7 @@ public class MarkdownTableData
 {
     public List<string> Headers { get; init; } = new();
     public List<MarkdownTableRow> Rows { get; init; } = new();
+    public int ColumnCount => Math.Max(Headers.Count > 0 ? Headers.Count : 1, Rows.Count > 0 ? Rows.Max(r => r.Cells.Count) : 1);
 }
 
 public partial class MarkdownSocialButton : ObservableObject
@@ -142,6 +144,7 @@ public partial class MarkdownBlock : ObservableObject
     public bool IsDividerImage => Type == MarkdownBlockType.DividerImage;
     public bool IsDividerLine => Type == MarkdownBlockType.DividerLine;
     public bool IsHeadlineImage => Type == MarkdownBlockType.HeadlineImage;
+    public bool IsContentImage => Type == MarkdownBlockType.ContentImage;
     public bool IsHeader1 => Type == MarkdownBlockType.Header1;
     public bool IsHeader2 => Type == MarkdownBlockType.Header2;
     public bool IsHeader3 => Type == MarkdownBlockType.Header3;
@@ -184,9 +187,9 @@ public partial class MarkdownBlock : ObservableObject
 
 public static class MarkdownBlockParser
 {
-    private static readonly Regex BannerRegex = new(@"\[?!\[(.*?)\]\((https?://\S+?\.(?:png|jpg|jpeg|gif|webp))\)\]?", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-    private static readonly Regex HeadlineImgRegex = new(@"(?:<img\s+[^>]*src=[""']([^""']+headlines[^""']+)[""'][^>]*alt=[""']([^""']*)[""']|!\[([^\]]*)\]\((https?://[^)]+headlines[^)]+)\))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-    private static readonly Regex DividerImgRegex = new(@"(?:!\[Divider\]\((https?://[^\)]+)\)|<img\s+[^>]*divider[^>]*src=[""']([^""']+)[""'])", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static readonly Regex BannerRegex = new(@"\[?!\[(.*?)\]\((https?://\S+?\.(?:png|jpg|jpeg|gif|webp|svg))\)\]?", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static readonly Regex HeadlineImgRegex = new(@"(?:<img\s+[^>]*src=[""']([^""']*(?:headline|header|title|features|about|download)[^""']*)[""'][^>]*alt=[""']([^""']*)[""']|!\[([^\]]*)\]\((https?://[^)]*(?:headline|header|title|features|about|download)[^)]*)\))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static readonly Regex DividerImgRegex = new(@"(?:!\[Divider\]\((https?://[^\)]+)\)|<img\s+[^>]*(?:divider|line|bar)[^>]*src=[""']([^""']+)[""'])", RegexOptions.IgnoreCase | RegexOptions.Compiled);
     private static readonly Regex SocialRowRegex = new(@"<a\s+href=[""']([^""']+)[""'][^>]*>\s*<img\s+src=[""']([^""']+)[""'][^>]*alt=[""']([^""']*)[""']", RegexOptions.IgnoreCase | RegexOptions.Compiled);
     private static readonly Regex BulletRegex = new(@"^[\-\*\+]\s+(.+)$", RegexOptions.Compiled);
     private static readonly Regex BoldRegex = new(@"\*\*(.+?)\*\*", RegexOptions.Compiled);
@@ -214,7 +217,10 @@ public static class MarkdownBlockParser
                 (line.Contains("discord", StringComparison.OrdinalIgnoreCase) ||
                  line.Contains("github", StringComparison.OrdinalIgnoreCase) ||
                  line.Contains("curseforge", StringComparison.OrdinalIgnoreCase) ||
-                 line.Contains("modrinth", StringComparison.OrdinalIgnoreCase)))
+                 line.Contains("modrinth", StringComparison.OrdinalIgnoreCase) ||
+                 line.Contains("shields.io", StringComparison.OrdinalIgnoreCase) ||
+                 line.Contains("patreon", StringComparison.OrdinalIgnoreCase) ||
+                 line.Contains("kofi", StringComparison.OrdinalIgnoreCase)))
             {
                 var pChunk = line;
                 while (i < lines.Length && !lines[i].Contains("</p>", StringComparison.OrdinalIgnoreCase))
@@ -262,8 +268,11 @@ public static class MarkdownBlockParser
                 continue;
             }
 
-            // Plain divider: ---, ***, ___
-            if (line.StartsWith("---") || line.StartsWith("***") || line.StartsWith("___"))
+            // Plain divider: ---, ***, ___, <hr>, <hr/>
+            if (line.StartsWith("---") || line.StartsWith("***") || line.StartsWith("___") ||
+                line.Equals("<hr>", StringComparison.OrdinalIgnoreCase) ||
+                line.Equals("<hr/>", StringComparison.OrdinalIgnoreCase) ||
+                line.Equals("<hr />", StringComparison.OrdinalIgnoreCase))
             {
                 blocks.Add(new MarkdownBlock { Type = MarkdownBlockType.DividerLine });
                 i++;
@@ -288,26 +297,101 @@ public static class MarkdownBlockParser
                 continue;
             }
 
-            // 4. Banner image (top hero banner)
-            if (!firstBannerFound)
+            // 4. Markdown image or HTML img
+            var bannerMatch = BannerRegex.Match(line);
+            if (bannerMatch.Success)
             {
-                var bannerMatch = BannerRegex.Match(line);
-                if (bannerMatch.Success)
+                var url = bannerMatch.Groups[2].Value;
+                var alt = bannerMatch.Groups[1].Value;
+
+                if (!firstBannerFound && i < 3)
                 {
                     firstBannerFound = true;
                     var bannerBlock = new MarkdownBlock
                     {
                         Type = MarkdownBlockType.BannerImage,
-                        ImageUrl = bannerMatch.Groups[2].Value
+                        ImageUrl = url,
+                        Text = alt
                     };
                     bannerBlock.LoadImages();
                     blocks.Add(bannerBlock);
-                    i++;
-                    continue;
                 }
+                else
+                {
+                    var contentBlock = new MarkdownBlock
+                    {
+                        Type = MarkdownBlockType.ContentImage,
+                        ImageUrl = url,
+                        Text = alt
+                    };
+                    contentBlock.LoadImages();
+                    blocks.Add(contentBlock);
+                }
+                i++;
+                continue;
             }
 
-            // 5. Section headers: ###, ##, #
+            var htmlImgMatch = Regex.Match(line, @"^<img\s+[^>]*src=[""'](https?://[^""']+)[""'][^>]*>", RegexOptions.IgnoreCase);
+            if (htmlImgMatch.Success)
+            {
+                var url = htmlImgMatch.Groups[1].Value;
+                var contentBlock = new MarkdownBlock
+                {
+                    Type = MarkdownBlockType.ContentImage,
+                    ImageUrl = url
+                };
+                contentBlock.LoadImages();
+                blocks.Add(contentBlock);
+                i++;
+                continue;
+            }
+
+            // 5. HTML Table: <table ...> ... </table>
+            if (line.StartsWith("<table", StringComparison.OrdinalIgnoreCase))
+            {
+                var tableChunk = line;
+                while (i < lines.Length && !lines[i].Contains("</table>", StringComparison.OrdinalIgnoreCase))
+                {
+                    i++;
+                    if (i < lines.Length) tableChunk += " " + lines[i].Trim();
+                }
+
+                var headers = new List<string>();
+                var rows = new List<MarkdownTableRow>();
+
+                foreach (Match thMatch in Regex.Matches(tableChunk, @"<th[^>]*>(.*?)</th>", RegexOptions.IgnoreCase | RegexOptions.Singleline))
+                {
+                    var cleanH = CleanText(thMatch.Groups[1].Value);
+                    if (!string.IsNullOrEmpty(cleanH)) headers.Add(cleanH);
+                }
+
+                foreach (Match trMatch in Regex.Matches(tableChunk, @"<tr[^>]*>(.*?)</tr>", RegexOptions.IgnoreCase | RegexOptions.Singleline))
+                {
+                    var trContent = trMatch.Groups[1].Value;
+                    var cells = new List<string>();
+                    foreach (Match tdMatch in Regex.Matches(trContent, @"<td[^>]*>(.*?)</td>", RegexOptions.IgnoreCase | RegexOptions.Singleline))
+                    {
+                        cells.Add(CleanText(tdMatch.Groups[1].Value));
+                    }
+                    if (cells.Count > 0)
+                    {
+                        rows.Add(new MarkdownTableRow { Cells = cells });
+                    }
+                }
+
+                if (headers.Count > 0 || rows.Count > 0)
+                {
+                    blocks.Add(new MarkdownBlock
+                    {
+                        Type = MarkdownBlockType.Table,
+                        Table = new MarkdownTableData { Headers = headers, Rows = rows }
+                    });
+                }
+                i++;
+                continue;
+            }
+
+            // 6. Section headers: ###, ##, #
             if (line.StartsWith("### "))
             {
                 blocks.Add(new MarkdownBlock { Type = MarkdownBlockType.Header3, Text = CleanText(line[4..]) });
@@ -327,7 +411,7 @@ public static class MarkdownBlockParser
                 continue;
             }
 
-            // 6. Markdown Table
+            // 7. Markdown Table (| Col 1 | Col 2 |)
             if (line.StartsWith('|') && line.Count(c => c == '|') >= 2)
             {
                 var headers = line.Split('|', StringSplitOptions.RemoveEmptyEntries).Select(s => CleanText(s.Trim())).Where(s => !string.IsNullOrEmpty(s)).ToList();
@@ -358,7 +442,7 @@ public static class MarkdownBlockParser
                 continue;
             }
 
-            // 7. Bullets
+            // 8. Bullets
             var bulletMatch = BulletRegex.Match(line);
             if (bulletMatch.Success)
             {
@@ -373,7 +457,7 @@ public static class MarkdownBlockParser
                 continue;
             }
 
-            // 8. Paragraph
+            // 9. Paragraph
             var cleaned = CleanText(line);
             if (!string.IsNullOrWhiteSpace(cleaned))
             {

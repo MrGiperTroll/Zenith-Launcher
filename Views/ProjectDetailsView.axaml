@@ -561,7 +561,7 @@
                                                                 <DataTemplate x:DataType="utils:MarkdownSocialButton">
                                                                     <Button Classes="socialMediaBtn" ToolTip.Tip="{Binding Alt}" Tag="{Binding LinkUrl}" Click="OnExternalLinkTagClicked"
                                                                             Padding="0" Width="36" Height="36" Background="{StaticResource FieldBrush}" CornerRadius="8">
-                                                                        <Image Source="{Binding IconBitmap}" Width="24" Height="24" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                        <Image Source="{Binding IconBitmap}" Width="24" Height="24" Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                     </Button>
                                                                 </DataTemplate>
                                                             </ItemsControl.ItemTemplate>
@@ -570,12 +570,12 @@
 
                                                     <!-- Headline image (e.g. About.png, Features.png) -->
                                                     <Border HorizontalAlignment="Left" Margin="0,18,0,8" IsVisible="{Binding IsHeadlineImage}">
-                                                        <Image Source="{Binding ImageBitmap}" Height="34" Stretch="Uniform"/>
+                                                        <Image Source="{Binding ImageBitmap}" Height="34" Stretch="Uniform" StretchDirection="DownOnly"/>
                                                     </Border>
 
                                                     <!-- Divider graphic image -->
                                                     <Border HorizontalAlignment="Center" Margin="0,16,0,16" IsVisible="{Binding IsDividerImage}">
-                                                        <Image Source="{Binding ImageBitmap}" Height="16" Stretch="Uniform"/>
+                                                        <Image Source="{Binding ImageBitmap}" Height="16" Stretch="Uniform" StretchDirection="DownOnly"/>
                                                     </Border>
 
                                                     <!-- Divider Line -->

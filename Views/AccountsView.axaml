@@ -165,7 +165,7 @@
             </Grid>
 
             <!-- RIGHT: Sign-in Methods -->
-            <Border Grid.Column="1" Background="Transparent" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1,0,0,0" Padding="20,0,0,0">
+            <Border Grid.Column="1" Background="Transparent" Padding="20,0,0,0">
                 <Panel>
                     <!-- Method buttons -->
                     <StackPanel IsVisible="{Binding !IsOfflinePanelOpen}" Spacing="10">

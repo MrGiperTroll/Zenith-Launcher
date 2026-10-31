@@ -420,7 +420,7 @@
             <Grid>
             <Grid ColumnDefinitions="Auto,*">
             <!-- Left Rail -->
-            <Border Grid.Column="0" Width="{Binding SidebarWidth}" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,1,0" Padding="8,12" Classes.expanded="{Binding IsSidebarExpanded}" ClipToBounds="True">
+            <Border Grid.Column="0" Width="{Binding SidebarWidth}" Background="{StaticResource SidebarBgBrush}" Padding="8,12" Classes.expanded="{Binding IsSidebarExpanded}" ClipToBounds="True">
                 <Border.Transitions>
                     <Transitions>
                         <DoubleTransition Property="Width" Duration="0:0:0.24" Easing="0.16, 1, 0.3, 1"/>
@@ -621,7 +621,7 @@
                     </ScrollViewer>
 
                     <!-- Right Sidebar: Instance Details -->
-                    <Border Grid.Column="1" IsVisible="False" Width="300" Opacity="0" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1,0,0,0" Padding="16,8,16,16"
+                    <Border Grid.Column="1" IsVisible="False" Width="300" Opacity="0" Background="{StaticResource SidebarBgBrush}" Padding="16,8,16,16"
                             x:Name="InstanceDetailsSidebar">
                         <Border.RenderTransform>
                             <TranslateTransform X="300">
@@ -925,7 +925,7 @@
                 </Grid>
 
                 <!-- Full-Width Bottom Launch Bar -->
-                <Border Grid.Row="2" Height="76" IsVisible="{Binding IsLaunchBarVisible}" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,1,0,0">
+                <Border Grid.Row="2" Height="76" IsVisible="{Binding IsLaunchBarVisible}" Background="{StaticResource SidebarBgBrush}">
                     <Grid ColumnDefinitions="*,280" VerticalAlignment="Center">
                         <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="24,0,16,0">
                             <TextBlock Text="{Binding SelectedInstanceName}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>

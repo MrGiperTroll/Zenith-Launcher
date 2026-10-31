@@ -95,7 +95,7 @@
     <Border Background="{StaticResource CardAltBrush}" CornerRadius="12" ClipToBounds="True">
         <Grid ColumnDefinitions="200,*">
             <!-- Left Vertical Stepper -->
-            <Border Grid.Column="0" Background="{StaticResource SurfaceBrush}" Padding="20,24" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,1,0">
+            <Border Grid.Column="0" Background="{StaticResource SurfaceBrush}" Padding="20,24">
                 <StackPanel Spacing="0">
                     <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=cp_title}" Margin="0,0,0,4"/>
                     <TextBlock Classes="caption" Text="{Binding StepTitle}" Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,20"/>
@@ -353,7 +353,7 @@
                 </Border>
 
                 <!-- Bottom Panel -->
-                <Border Grid.Row="1" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,1,0,0" Padding="16,12">
+                <Border Grid.Row="1" Background="{StaticResource SurfaceBrush}" Padding="16,12">
                     <Grid ColumnDefinitions="Auto,*,Auto">
                         <Button Grid.Column="0" Content="{l10n:Tr Key=btn_reset}" Command="{Binding ResetWizardCommand}" Classes="subBtn" Padding="16,8" FontSize="11" HorizontalAlignment="Left"/>
                         <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">

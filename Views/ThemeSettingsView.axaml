@@ -100,7 +100,7 @@
 
     <Grid RowDefinitions="Auto,Auto,*">
         <!-- Header with Back Button -->
-        <Border Grid.Row="0" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,0,1" Padding="0,0,0,14" Margin="0,0,0,12">
+        <Border Grid.Row="0" Padding="0,0,0,14" Margin="0,0,0,12">
             <Grid ColumnDefinitions="Auto,*,Auto">
                 <Button Grid.Column="0" Classes="subBtn" Command="{Binding CloseThemeEditorCommand}" Padding="10,6" ToolTip.Tip="{l10n:Tr Key=btn_back}">
                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">

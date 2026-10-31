@@ -535,6 +535,8 @@ public static class ModrinthApiService
                     Changelog = GetString(v, "changelog") ?? "",
                     VersionType = GetString(v, "version_type") ?? "release",
                     DatePublished = DateTime.TryParse(GetString(v, "date_published"), out var dp) ? dp : default,
+                    Downloads = GetLong(v, "downloads"),
+                    AuthorId = GetString(v, "author_id") ?? "",
                     GameVersions = GetStringArray(v, "game_versions"),
                     Loaders = GetStringArray(v, "loaders"),
                     Files = files,

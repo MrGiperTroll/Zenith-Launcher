@@ -223,6 +223,8 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
 
     partial void OnSelectedDetailTabChanged(string value)
     {
+        SelectedDetailVersion = null;
+        OnPropertyChanged(nameof(IsVersionDetailActive));
         OnPropertyChanged(nameof(IsDescriptionTab));
         OnPropertyChanged(nameof(IsGalleryTab));
         OnPropertyChanged(nameof(IsChangelogTab));
@@ -243,29 +245,119 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
 
     private List<Models.ModrinthProjectVersion> _allVersions = new();
 
+        // --- Gallery Lightbox & Version Detail View ---
+    [ObservableProperty]
+    private Models.ModrinthGalleryItem? _activeGalleryModalItem;
+
+    [ObservableProperty]
+    private double _galleryZoom = 1.0;
+
+    public bool IsGalleryModalOpen => ActiveGalleryModalItem != null;
+
+    [ObservableProperty]
+    private Models.ModrinthProjectVersion? _selectedDetailVersion;
+
+    public bool IsVersionDetailActive => SelectedDetailVersion != null;
+
+    [ObservableProperty]
+    private string _selectedFilterGameVersion = "All versions";
+
+    [ObservableProperty]
+    private string _selectedFilterPlatform = "All platforms";
+
+    public IReadOnlyList<string> FilterGameVersions =>
+        new[] { "All versions" }.Concat(FullProject?.GameVersions ?? Array.Empty<string>()).Distinct().ToList();
+
+    public IReadOnlyList<string> FilterPlatforms =>
+        new[] { "All platforms" }.Concat(FullProject?.Loaders ?? Array.Empty<string>()).Distinct().ToList();
+
+    partial void OnSelectedFilterGameVersionChanged(string value) => OnPropertyChanged(nameof(VersionList));
+    partial void OnSelectedFilterPlatformChanged(string value) => OnPropertyChanged(nameof(VersionList));
+
+    [RelayCommand]
+    public void OpenGalleryModal(Models.ModrinthGalleryItem? item)
+    {
+        if (item == null) return;
+        ActiveGalleryModalItem = item;
+        GalleryZoom = 1.0;
+        OnPropertyChanged(nameof(IsGalleryModalOpen));
+    }
+
+    [RelayCommand]
+    public void CloseGalleryModal()
+    {
+        ActiveGalleryModalItem = null;
+        OnPropertyChanged(nameof(IsGalleryModalOpen));
+    }
+
+    [RelayCommand]
+    public void GalleryZoomIn()
+    {
+        GalleryZoom = Math.Min(4.0, Math.Round(GalleryZoom + 0.25, 2));
+    }
+
+    [RelayCommand]
+    public void GalleryZoomOut()
+    {
+        GalleryZoom = Math.Max(0.25, Math.Round(GalleryZoom - 0.25, 2));
+    }
+
+    [RelayCommand]
+    public void GalleryZoomReset()
+    {
+        GalleryZoom = 1.0;
+    }
+
+    [RelayCommand]
+    public void OpenVersionDetail(Models.ModrinthProjectVersion? version)
+    {
+        if (version == null) return;
+        SelectedDetailVersion = version;
+        OnPropertyChanged(nameof(IsVersionDetailActive));
+    }
+
+    [RelayCommand]
+    public void CloseVersionDetail()
+    {
+        SelectedDetailVersion = null;
+        OnPropertyChanged(nameof(IsVersionDetailActive));
+    }
+
+    [RelayCommand]
+    public void DownloadVersion(Models.ModrinthProjectVersion? version)
+    {
+        InstallSelectedVersion(version);
+    }
+
     public List<Models.ModrinthProjectVersion> VersionList
     {
         get
         {
             if (_allVersions.Count == 0) return _allVersions;
-            var filtered = _allVersions;
-            // Filter by selected compatibility version (from sidebar), or instance version
-            var targetVersion = !string.IsNullOrWhiteSpace(SelectedCompatibilityVersion)
-                ? SelectedCompatibilityVersion
-                : _gameVersion;
-            if (!ShowAllVersions && !string.IsNullOrWhiteSpace(targetVersion))
+            var filtered = (IEnumerable<Models.ModrinthProjectVersion>)_allVersions;
+
+            if (!string.IsNullOrWhiteSpace(SelectedFilterGameVersion) && !SelectedFilterGameVersion.Equals("All versions", StringComparison.OrdinalIgnoreCase))
             {
-                filtered = filtered.Where(v =>
-                    v.GameVersions.Any(gv => gv.Contains(targetVersion))).ToList();
+                filtered = filtered.Where(v => v.GameVersions.Any(gv => gv.Equals(SelectedFilterGameVersion, StringComparison.OrdinalIgnoreCase)));
             }
+            else if (!ShowAllVersions && !string.IsNullOrWhiteSpace(_gameVersion))
+            {
+                filtered = filtered.Where(v => v.GameVersions.Any(gv => gv.Contains(_gameVersion)));
+            }
+
+            if (!string.IsNullOrWhiteSpace(SelectedFilterPlatform) && !SelectedFilterPlatform.Equals("All platforms", StringComparison.OrdinalIgnoreCase))
+            {
+                filtered = filtered.Where(v => v.Loaders.Any(l => l.Equals(SelectedFilterPlatform, StringComparison.OrdinalIgnoreCase)));
+            }
+
             if (!string.IsNullOrWhiteSpace(VersionFilter))
             {
                 var q = VersionFilter.ToLowerInvariant();
                 filtered = filtered.Where(v =>
                     v.Name.ToLowerInvariant().Contains(q) ||
-                    v.VersionNumber.ToLowerInvariant().Contains(q)).ToList();
+                    v.VersionNumber.ToLowerInvariant().Contains(q));
             }
-            return filtered;
+            return filtered.ToList();
         }
     }
 
@@ -1255,6 +1347,14 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
                 {
                     g.LoadImage();
                 }
+                foreach (var tm in full.TeamMembers)
+                {
+                    tm.LoadAvatar();
+                }
+                SelectedDetailVersion = null;
+                OnPropertyChanged(nameof(IsVersionDetailActive));
+                OnPropertyChanged(nameof(FilterGameVersions));
+                OnPropertyChanged(nameof(FilterPlatforms));
 
                 if (!string.IsNullOrWhiteSpace(full.HeaderImageUrl))
                 {
@@ -1271,6 +1371,11 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
                     });
                 }
                 _allVersions = await ModrinthApiService.GetProjectVersionsAsync(project.ProjectId);
+                foreach (var v in _allVersions)
+                {
+                    if (string.IsNullOrWhiteSpace(v.AuthorName))
+                        v.AuthorName = full?.Author ?? project.Author;
+                }
                 // Default: select the instance MC version in Compatibility sidebar
                 SelectedCompatibilityVersion = _gameVersion;
                 OnPropertyChanged(nameof(VersionList));

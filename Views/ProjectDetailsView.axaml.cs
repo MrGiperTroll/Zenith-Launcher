@@ -1,5 +1,6 @@
 using System;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using CustomMcLauncher.Models;
 
@@ -14,35 +15,51 @@ public partial class ProjectDetailsView : UserControl
 
     private void OnVersionRowTapped(object? sender, RoutedEventArgs e)
     {
-        if (sender is Border { DataContext: Models.ModrinthProjectVersion version })
+        if (sender is Control { DataContext: ModrinthProjectVersion version })
         {
             if (DataContext is ViewModels.ContentBrowserViewModel cbVm)
             {
-                cbVm.SelectedVersionForDetails = version;
+                cbVm.OpenVersionDetailCommand.Execute(version);
             }
             else if (DataContext is ViewModels.ModpacksBrowserViewModel mpVm)
             {
-                mpVm.SelectedVersionForDetails = version;
+                mpVm.OpenVersionDetailCommand.Execute(version);
             }
         }
     }
 
-    private void OnCompatibilityVersionTapped(object? sender, RoutedEventArgs e)
+    private void OnGalleryItemTapped(object? sender, RoutedEventArgs e)
     {
-        if (sender is Border { DataContext: string version })
+        if (sender is Control { DataContext: ModrinthGalleryItem item })
         {
             if (DataContext is ViewModels.ContentBrowserViewModel cbVm)
             {
-                cbVm.SelectCompatibilityVersionCommand.Execute(version);
+                cbVm.OpenGalleryModalCommand.Execute(item);
             }
             else if (DataContext is ViewModels.ModpacksBrowserViewModel mpVm)
             {
-                mpVm.SelectCompatibilityVersionCommand.Execute(version);
+                mpVm.OpenGalleryModalCommand.Execute(item);
             }
         }
     }
 
-    private void OnActionButtonHover(object? sender, Avalonia.Input.PointerEventArgs e)
+    private void OnGalleryViewerPointerWheel(object? sender, PointerWheelEventArgs e)
+    {
+        if (DataContext is ViewModels.ContentBrowserViewModel cbVm)
+        {
+            if (e.Delta.Y > 0) cbVm.GalleryZoomInCommand.Execute(null);
+            else if (e.Delta.Y < 0) cbVm.GalleryZoomOutCommand.Execute(null);
+            e.Handled = true;
+        }
+        else if (DataContext is ViewModels.ModpacksBrowserViewModel mpVm)
+        {
+            if (e.Delta.Y > 0) mpVm.GalleryZoomInCommand.Execute(null);
+            else if (e.Delta.Y < 0) mpVm.GalleryZoomOutCommand.Execute(null);
+            e.Handled = true;
+        }
+    }
+
+    private void OnActionButtonHover(object? sender, PointerEventArgs e)
     {
         if (DataContext is ViewModels.ContentBrowserViewModel cbVm)
         {
@@ -54,7 +71,7 @@ public partial class ProjectDetailsView : UserControl
         }
     }
 
-    private void OnActionButtonHoverOut(object? sender, Avalonia.Input.PointerEventArgs e)
+    private void OnActionButtonHoverOut(object? sender, PointerEventArgs e)
     {
         if (DataContext is ViewModels.ContentBrowserViewModel cbVm)
         {

@@ -592,7 +592,7 @@
                       DoubleTapped="OnTopBarDoubleTapped">
 
                     <!-- Left (Col 0, Width 220): Zenith Brand Menu -->
-                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0,0,0">
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="4,0,0,0">
                         <Button Classes="menuBarBtn" Padding="8,5">
                             <TextBlock Text="Zenith Launcher" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                             <Button.Flyout>
@@ -840,20 +840,7 @@
                     <!-- Right Sidebar: Instance Details -->
                     <Border Grid.Column="1" IsVisible="False" Width="300" Opacity="0" Background="{StaticResource SidebarBgBrush}" Padding="16,8,16,16"
                             x:Name="InstanceDetailsSidebar">
-                        <Border.RenderTransform>
-                            <TranslateTransform X="300">
-                                <TranslateTransform.Transitions>
-                                    <Transitions>
-                                        <DoubleTransition Property="X" Easing="0.16, 1, 0.3, 1" Duration="0:0:0.24"/>
-                                    </Transitions>
-                                </TranslateTransform.Transitions>
-                            </TranslateTransform>
-                        </Border.RenderTransform>
-                        <Border.Transitions>
-                            <Transitions>
-                                <DoubleTransition Property="Opacity" Easing="0.16, 1, 0.3, 1" Duration="0:0:0.24"/>
-                            </Transitions>
-                        </Border.Transitions>
+
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                             <StackPanel Spacing="12">
                                 <Grid ColumnDefinitions="*,Auto">
@@ -1111,7 +1098,11 @@
                                                     </Border>
                                                     <StackPanel Grid.Column="1" Margin="12,0,8,0" VerticalAlignment="Center" Spacing="2">
                                                         <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
-                                                        <TextBlock Text="{Binding Author}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                                                        <Button Classes="inlineLinkBtn" Content="{Binding Author}"
+                                                                Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ModpacksBrowser.OpenAuthorProfileCommand}"
+                                                                CommandParameter="{Binding Author}"
+                                                                FontSize="11" Foreground="{StaticResource TextMutedBrush}"
+                                                                HorizontalAlignment="Left"/>
                                                         <TextBlock Text="{Binding Description}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" MaxLines="2" TextWrapping="Wrap"/>
                                                         <TextBlock Text="{Binding DownloadsLabel}" FontSize="10" Foreground="{StaticResource TextCaptionBrush}"/>
                                                     </StackPanel>
@@ -1132,6 +1123,11 @@
                         <!-- Full-page modpack details (replaces catalog when open, seamless stretch) -->
                         <Panel IsVisible="{Binding ModpacksBrowser.IsDetailsOpen}">
                             <views:ProjectDetailsView DataContext="{Binding ModpacksBrowser}"/>
+                        </Panel>
+
+                        <!-- Full-page author profile for modpacks -->
+                        <Panel IsVisible="{Binding ModpacksBrowser.IsAuthorProfileOpen}">
+                            <views:AuthorProfileView DataContext="{Binding ModpacksBrowser.CurrentAuthorProfileVm}"/>
                         </Panel>
                     </Grid>
 

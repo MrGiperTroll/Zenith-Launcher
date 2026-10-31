@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -20,6 +21,39 @@ namespace CustomMcLauncher.ViewModels;
 
 public partial class ContentBrowserViewModel : ObservableObject, IDisposable
 {
+    [ObservableProperty]
+    private AuthorProfileViewModel? _currentAuthorProfileVm;
+
+    public bool IsAuthorProfileOpen => CurrentAuthorProfileVm != null;
+
+    [RelayCommand]
+    public void OpenAuthorProfile(string? author)
+    {
+        if (string.IsNullOrWhiteSpace(author)) return;
+        var vm = new AuthorProfileViewModel();
+        vm.OnCloseRequested = () =>
+        {
+            CurrentAuthorProfileVm = null;
+            OnPropertyChanged(nameof(IsAuthorProfileOpen));
+        };
+        vm.OnOpenProjectRequested = project =>
+        {
+            CurrentAuthorProfileVm = null;
+            OnPropertyChanged(nameof(IsAuthorProfileOpen));
+            OpenProjectPage(project);
+        };
+        CurrentAuthorProfileVm = vm;
+        OnPropertyChanged(nameof(IsAuthorProfileOpen));
+        _ = vm.LoadAuthorAsync(author);
+    }
+
+    [RelayCommand]
+    public void CloseAuthorProfile()
+    {
+        CurrentAuthorProfileVm = null;
+        OnPropertyChanged(nameof(IsAuthorProfileOpen));
+    }
+
     private const int PageSize = 20;
 
     private readonly string _gameVersion;
@@ -305,33 +339,54 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
     public static List<string> SortGameVersionsDesc(IEnumerable<string>? rawVersions)
     {
         if (rawVersions == null) return new() { "All versions" };
-        var distinct = rawVersions.Where(v => !string.IsNullOrWhiteSpace(v) && !v.Equals("All versions", StringComparison.OrdinalIgnoreCase)).Distinct().ToList();
+        var distinct = rawVersions
+            .Where(v => !string.IsNullOrWhiteSpace(v) && !v.Equals("All versions", StringComparison.OrdinalIgnoreCase))
+            .Distinct()
+            .ToList();
 
         distinct.Sort((a, b) =>
         {
-            var partsA = a.Split(new[] { '.', '-', '_' }, StringSplitOptions.RemoveEmptyEntries);
-            var partsB = b.Split(new[] { '.', '-', '_' }, StringSplitOptions.RemoveEmptyEntries);
-            int max = Math.Min(partsA.Length, partsB.Length);
+            var keyA = GetVersionSortKey(a);
+            var keyB = GetVersionSortKey(b);
+            if (keyA.rank != keyB.rank) return keyB.rank.CompareTo(keyA.rank);
+
+            int max = Math.Min(keyA.numbers.Count, keyB.numbers.Count);
             for (int i = 0; i < max; i++)
             {
-                bool isNumA = int.TryParse(partsA[i], out int numA);
-                bool isNumB = int.TryParse(partsB[i], out int numB);
-                if (isNumA && isNumB)
-                {
-                    if (numA != numB) return numB.CompareTo(numA);
-                }
-                else
-                {
-                    int cmp = string.Compare(partsB[i], partsA[i], StringComparison.OrdinalIgnoreCase);
-                    if (cmp != 0) return cmp;
-                }
+                if (keyA.numbers[i] != keyB.numbers[i])
+                    return keyB.numbers[i].CompareTo(keyA.numbers[i]);
             }
-            return partsB.Length.CompareTo(partsA.Length);
+            return keyB.numbers.Count.CompareTo(keyA.numbers.Count);
         });
 
         var result = new List<string> { "All versions" };
         result.AddRange(distinct);
         return result;
+    }
+
+    private static (int rank, List<int> numbers) GetVersionSortKey(string v)
+    {
+        var clean = v.Trim().ToLowerInvariant();
+        int rank = 2;
+        if (clean.StartsWith("b") || clean.Contains("beta"))
+        {
+            rank = 1;
+            clean = Regex.Replace(clean, @"^[b_]+", "");
+        }
+        else if (clean.StartsWith("a") || clean.Contains("alpha"))
+        {
+            rank = 0;
+            clean = Regex.Replace(clean, @"^[a_]+", "");
+        }
+
+        var nums = new List<int>();
+        var parts = Regex.Split(clean, @"[^0-9]+");
+        foreach (var p in parts)
+        {
+            if (int.TryParse(p, out int n))
+                nums.Add(n);
+        }
+        return (rank, nums);
     }
 
     [RelayCommand]
@@ -368,12 +423,15 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
         GalleryZoom = 1.0;
     }
 
+    [ObservableProperty]
+    private string _sourceTabBeforeDetail = "versions";
+
     [RelayCommand]
     public void OpenVersionDetail(Models.ModrinthProjectVersion? version)
     {
         if (version == null) return;
+        SourceTabBeforeDetail = SelectedDetailTab;
         SelectedDetailVersion = version;
-        SelectedDetailTab = "versions";
         OnPropertyChanged(nameof(IsVersionDetailActive));
     }
 
@@ -382,6 +440,10 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
     {
         SelectedDetailVersion = null;
         OnPropertyChanged(nameof(IsVersionDetailActive));
+        if (!string.IsNullOrWhiteSpace(SourceTabBeforeDetail))
+        {
+            SelectedDetailTab = SourceTabBeforeDetail;
+        }
     }
 
     [RelayCommand]
@@ -1451,18 +1513,29 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
                 else
                     v.AuthorName = full?.Author ?? project.Author;
             }
-            FilterGameVersions = SortGameVersionsDesc(full?.GameVersions);
-            var formattedLoaders = (full?.Loaders ?? Array.Empty<string>())
-                .Select(Models.ModrinthProjectVersion.FormatPlatformName)
+            var actualVersions = _allVersions
+                .SelectMany(v => v.GameVersions ?? Array.Empty<string>())
+                .Where(v => !string.IsNullOrWhiteSpace(v))
+                .Distinct();
+            FilterGameVersions = SortGameVersionsDesc(actualVersions);
+
+            var actualLoaders = _allVersions
+                .SelectMany(v => v.Loaders ?? Array.Empty<string>())
+                .Select(Models.ModrinthFullProject.FormatPlatformName)
                 .Where(p => !string.IsNullOrWhiteSpace(p) && !p.Equals("All platforms", StringComparison.OrdinalIgnoreCase))
                 .Distinct()
+                .OrderBy(p => p)
                 .ToList();
-            FilterPlatforms = new[] { "All platforms" }.Concat(formattedLoaders).Distinct().ToList();
+
+            var platforms = new List<string> { "All platforms" };
+            platforms.AddRange(actualLoaders);
+            FilterPlatforms = platforms;
+            SelectedFilterPlatform = "All platforms";
             SelectedFilterGameVersion = "All versions";
             SelectedFilterPlatform = "All platforms";
 
             PlatformFilterItems.Clear();
-            foreach (var p in formattedLoaders)
+            foreach (var p in actualLoaders)
             {
                 var item = new Models.FilterCheckItem { Name = p, IsSelected = false };
                 item.PropertyChanged += (s, e) =>
@@ -1616,18 +1689,28 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
                 }
                 SelectedDetailVersion = null;
                 OnPropertyChanged(nameof(IsVersionDetailActive));
-                FilterGameVersions = SortGameVersionsDesc(full?.GameVersions);
-                var formattedLoaders = (full?.Loaders ?? Array.Empty<string>())
+                var actualVersions = (full?.Versions ?? new())
+                    .SelectMany(v => v.GameVersions ?? Array.Empty<string>())
+                    .Where(v => !string.IsNullOrWhiteSpace(v))
+                    .Distinct();
+                FilterGameVersions = SortGameVersionsDesc(actualVersions);
+
+                var actualLoaders = (full?.Versions ?? new())
+                    .SelectMany(v => v.Loaders ?? Array.Empty<string>())
                     .Select(Models.ModrinthProjectVersion.FormatPlatformName)
                     .Where(p => !string.IsNullOrWhiteSpace(p) && !p.Equals("All platforms", StringComparison.OrdinalIgnoreCase))
                     .Distinct()
+                    .OrderBy(p => p)
                     .ToList();
-                FilterPlatforms = new[] { "All platforms" }.Concat(formattedLoaders).Distinct().ToList();
+
+                var platforms = new List<string> { "All platforms" };
+                platforms.AddRange(actualLoaders);
+                FilterPlatforms = platforms;
                 SelectedFilterGameVersion = "All versions";
                 SelectedFilterPlatform = "All platforms";
 
                 PlatformFilterItems.Clear();
-                foreach (var p in formattedLoaders)
+                foreach (var p in actualLoaders)
                 {
                     var item = new Models.FilterCheckItem { Name = p, IsSelected = false };
                     item.PropertyChanged += (s, e) =>

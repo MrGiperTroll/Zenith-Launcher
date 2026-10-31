@@ -99,17 +99,35 @@
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="Foreground" Duration="0:0:0.15"/>
-                </Transitions>
-            </Setter>
         </Style>
         <Style Selector="Button.sidebarLinkBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="Transparent"/>
         </Style>
         <Style Selector="Button.sidebarLinkBtn:pointerover">
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        </Style>
+
+        <Style Selector="Button.inlineLinkBtn">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.inlineLinkBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="Button.inlineLinkBtn:pointerover">
             <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+
+        <Style Selector="Button.socialMediaBtn">
+            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.socialMediaBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
         </Style>
 
         <!-- Table and List Row Hover Styles (No transition to prevent white flash) -->
@@ -229,6 +247,13 @@
                     </Border>
                     <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
                         <TextBlock Text="{Binding DetailsProject.Title}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" TextWrapping="Wrap"/>
+                        <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,1,0,2">
+                            <TextBlock Text="by" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                            <Button Classes="inlineLinkBtn" Content="{Binding DetailsProject.Author}"
+                                    Tag="{Binding DetailsProject.Author}" Click="OnAuthorTapped"
+                                    FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"
+                                    Padding="0" Background="Transparent" BorderThickness="0" Cursor="Hand" VerticalAlignment="Center"/>
+                        </StackPanel>
                         <TextBlock Classes="sectionHint" Text="{Binding DetailsProject.Description}" TextWrapping="Wrap" MaxLines="2"/>
                         <StackPanel Orientation="Horizontal" Spacing="14" Margin="0,2,0,0">
                             <StackPanel Orientation="Horizontal" Spacing="4">
@@ -373,7 +398,7 @@
                                 </StackPanel>
 
                                 <!-- Developer Information Section matching Modrinth -->
-                                <Expander Header="Developer information" IsExpanded="True" Background="{StaticResource FieldBrush}"
+                                <Expander Header="Developer information" IsExpanded="True" HorizontalAlignment="Stretch" Background="{StaticResource FieldBrush}"
                                           BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="14,10"
                                           Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" FontSize="13">
                                     <StackPanel Spacing="14" Margin="0,10,0,6">
@@ -442,10 +467,43 @@
                                             <DataTemplate x:DataType="utils:MarkdownBlock">
                                                 <Panel Margin="0,0,0,4">
                                                     <!-- Banner image -->
-                                                    <Border CornerRadius="8" ClipToBounds="True" MaxWidth="640" HorizontalAlignment="Center" Margin="0,0,0,16"
+                                                    <Border CornerRadius="8" ClipToBounds="True" MaxWidth="640" HorizontalAlignment="Center" Margin="0,4,0,16"
                                                             IsVisible="{Binding IsBannerImage}">
                                                         <Image Source="{Binding ImageBitmap}" Stretch="Uniform" MaxWidth="640"/>
                                                     </Border>
+
+                                                    <!-- Social media button row -->
+                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8" Margin="0,4,0,16"
+                                                                IsVisible="{Binding IsSocialButtons}">
+                                                        <ItemsControl ItemsSource="{Binding SocialButtons}">
+                                                            <ItemsControl.ItemsPanel>
+                                                                <ItemsPanelTemplate>
+                                                                    <StackPanel Orientation="Horizontal" Spacing="8"/>
+                                                                </ItemsPanelTemplate>
+                                                            </ItemsControl.ItemsPanel>
+                                                            <ItemsControl.ItemTemplate>
+                                                                <DataTemplate x:DataType="utils:MarkdownSocialButton">
+                                                                    <Button Classes="socialMediaBtn" ToolTip.Tip="{Binding Alt}" Tag="{Binding LinkUrl}" Click="OnExternalLinkTagClicked"
+                                                                            Padding="0" Width="36" Height="36" Background="{StaticResource FieldBrush}" CornerRadius="8">
+                                                                        <Image Source="{Binding IconBitmap}" Width="24" Height="24" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Button>
+                                                                </DataTemplate>
+                                                            </ItemsControl.ItemTemplate>
+                                                        </ItemsControl>
+                                                    </StackPanel>
+
+                                                    <!-- Headline image (e.g. About.png, Features.png) -->
+                                                    <Border HorizontalAlignment="Left" Margin="0,18,0,8" IsVisible="{Binding IsHeadlineImage}">
+                                                        <Image Source="{Binding ImageBitmap}" Height="34" Stretch="Uniform"/>
+                                                    </Border>
+
+                                                    <!-- Divider graphic image -->
+                                                    <Border HorizontalAlignment="Center" Margin="0,16,0,16" IsVisible="{Binding IsDividerImage}">
+                                                        <Image Source="{Binding ImageBitmap}" Height="16" Stretch="Uniform"/>
+                                                    </Border>
+
+                                                    <!-- Divider Line -->
+                                                    <Border Height="1" Background="{StaticResource BorderDarkBrush}" Margin="0,12,0,12" IsVisible="{Binding IsDividerLine}"/>
 
                                                     <!-- Header 1 -->
                                                     <TextBlock Text="{Binding Text}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"
@@ -459,18 +517,16 @@
                                                     <TextBlock Text="{Binding Text}" FontSize="13.5" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"
                                                                Margin="0,8,0,3" IsVisible="{Binding IsHeader3}"/>
 
-                                                    <!-- Bullet point -->
+                                                    <!-- Bullet point with rich spans -->
                                                     <Grid ColumnDefinitions="14,*" Margin="4,2,0,2" IsVisible="{Binding IsBullet}">
                                                         <TextBlock Text="&#x2022;" FontSize="13" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Top"/>
-                                                        <TextBlock Grid.Column="1" Text="{Binding Text}" FontSize="12.5" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="19"/>
+                                                        <utils:MarkdownParagraphControl Grid.Column="1" Spans="{Binding Spans}" Text="{Binding Text}" FontSize="12.5" TextWrapping="Wrap" LineHeight="19"/>
                                                     </Grid>
 
-                                                    <!-- Divider -->
-                                                    <Border Height="1" Background="{StaticResource BorderDarkBrush}" Margin="0,10,0,10" IsVisible="{Binding IsDivider}"/>
-
-                                                    <!-- Paragraph -->
-                                                    <TextBlock Text="{Binding Text}" FontSize="12.5" Foreground="{StaticResource TextSecondaryBrush}"
-                                                               TextWrapping="Wrap" LineHeight="20" Margin="0,0,0,6" IsVisible="{Binding IsParagraph}"/>
+                                                    <!-- Paragraph with bold spans and formatted runs -->
+                                                    <utils:MarkdownParagraphControl Spans="{Binding Spans}" Text="{Binding Text}" FontSize="12.5"
+                                                                                     TextWrapping="Wrap" LineHeight="20" Margin="0,0,0,6"
+                                                                                     IsVisible="{Binding IsParagraph}"/>
 
                                                     <!-- Table -->
                                                     <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}"
@@ -541,11 +597,12 @@
                                                             <Image Source="{Binding Image}" Stretch="UniformToFill" IsVisible="{Binding HasImage}"/>
                                                         </Border>
                                                         <StackPanel Margin="12,10,12,10" Spacing="4">
-                                                            <TextBlock Text="{Binding Title}" FontSize="12.5" FontWeight="SemiBold"
+                                                            <TextBlock Text="{Binding DisplayTitle}" FontSize="12.5" FontWeight="SemiBold"
                                                                        Foreground="{StaticResource TextPrimaryBrush}"
-                                                                       TextTrimming="CharacterEllipsis"/>
+                                                                       TextTrimming="CharacterEllipsis"
+                                                                       IsVisible="{Binding HasDisplayTitle}"/>
                                                             <TextBlock Text="{Binding CreatedDisplay}" FontSize="11"
-                                                                       Foreground="{StaticResource TextPlaceholderBrush}"
+                                                                       Foreground="{StaticResource TextSecondaryBrush}"
                                                                        IsVisible="{Binding CreatedDisplay, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
                                                         </StackPanel>
                                                     </StackPanel>
@@ -565,37 +622,8 @@
                                                   Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="2,0,10,0"/>
                                         <ComboBox Grid.Column="1" Classes="roundedFilterCombo" ItemsSource="{Binding FilterGameVersions}" SelectedItem="{Binding SelectedFilterGameVersion}"
                                                   Width="150" Margin="0,0,8,0"/>
-                                        <Button Grid.Column="2" Classes="roundedFilterBtn" VerticalAlignment="Center" ToolTip.Tip="Filter platforms">
-                                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding PlatformFilterButtonText}" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                                                <PathIcon Data="M7 10l5 5 5-5z" Width="10" Height="10" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
-                                            </StackPanel>
-                                            <Button.Flyout>
-                                                <Flyout Placement="BottomEdgeAlignedLeft">
-                                                    <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}"
-                                                            BorderThickness="1" CornerRadius="8" Padding="12,10" MinWidth="170">
-                                                        <StackPanel Spacing="6">
-                                                            <Button Classes="flyoutCheckBtn" Command="{Binding SelectAllPlatformsCommand}">
-                                                                <Grid ColumnDefinitions="22,*">
-                                                                    <PathIcon Grid.Column="0" Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" Width="12" Height="12"
-                                                                              Foreground="{DynamicResource AccentBrush}" IsVisible="{Binding IsAllPlatformsSelected}"/>
-                                                                    <TextBlock Grid.Column="1" Text="All platforms" FontWeight="SemiBold" FontSize="12.5" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                                                </Grid>
-                                                            </Button>
-                                                            <Border Height="1" Background="{StaticResource BorderDarkBrush}" Margin="0,4"/>
-                                                            <ItemsControl ItemsSource="{Binding PlatformFilterItems}">
-                                                                <ItemsControl.ItemTemplate>
-                                                                    <DataTemplate x:DataType="models:FilterCheckItem">
-                                                                        <CheckBox Content="{Binding Name}" IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                                                                                  FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,2"/>
-                                                                    </DataTemplate>
-                                                                </ItemsControl.ItemTemplate>
-                                                            </ItemsControl>
-                                                        </StackPanel>
-                                                    </Border>
-                                                </Flyout>
-                                            </Button.Flyout>
-                                        </Button>
+                                        <ComboBox Grid.Column="2" Classes="roundedFilterCombo" ItemsSource="{Binding FilterPlatforms}" SelectedItem="{Binding SelectedFilterPlatform}"
+                                                  Width="140" VerticalAlignment="Center"/>
 
                                         <!-- Theme-aware Pagination -->
                                         <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center"
@@ -641,7 +669,7 @@
                                         <ItemsControl ItemsSource="{Binding VersionList}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate x:DataType="models:ModrinthProjectVersion">
-                                                    <Border Classes="versionRow" Padding="6,8" Margin="0,0,0,6">
+                                                    <Border Classes="versionRow" Padding="16,10" Margin="0,0,0,6">
                                                         <Grid ColumnDefinitions="24,*,Auto" ColumnSpacing="8" VerticalAlignment="Center">
                                                             <!-- Timeline line and dot -->
                                                             <Grid Grid.Column="0" VerticalAlignment="Stretch">
@@ -653,18 +681,21 @@
                                                             <!-- Clickable Title & Metadata -->
                                                             <Border Grid.Column="1" Background="Transparent" Cursor="Hand" Tapped="OnVersionRowTapped">
                                                                 <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                                    <TextBlock Text="{Binding Name}" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,6,0"/>
-                                                                    <TextBlock Text="by " Foreground="{StaticResource TextMutedBrush}"/>
-                                                                    <TextBlock Text="{Binding AuthorName}" Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold" Margin="0,0,6,0"/>
-                                                                    <TextBlock Text="on " Foreground="{StaticResource TextMutedBrush}"/>
-                                                                    <TextBlock Text="{Binding DateLabel}" Foreground="{StaticResource TextMutedBrush}"/>
+                                                                    <TextBlock Text="{Binding Name}" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                                    <TextBlock Text="by " Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                                    <Button Classes="inlineLinkBtn" Content="{Binding AuthorName}" Tag="{Binding AuthorName}" Click="OnAuthorTapped"
+                                                                            Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold" Margin="0,0,6,0"
+                                                                            Padding="0" Background="Transparent" BorderThickness="0" Cursor="Hand" VerticalAlignment="Center"/>
+                                                                    <TextBlock Text="on " Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                                    <TextBlock Text="{Binding DateLabel}" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
                                                                 </WrapPanel>
                                                             </Border>
 
-                                                            <!-- Download Button -->
-                                                            <Button Grid.Column="2" Classes="actionBtn" Padding="12,5" MinWidth="100"
+                                                            <!-- Download Button matching Versions -->
+                                                            <Button Grid.Column="2" Classes="actionBtn" Width="104" Height="28" Padding="0"
+                                                                    HorizontalAlignment="Right" VerticalAlignment="Center"
                                                                     Click="OnDownloadVersionClicked">
-                                                                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                                                                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
                                                                     <TextBlock Text="&#x2193;" FontWeight="Bold" FontSize="13"/>
                                                                     <TextBlock Text="Download" FontWeight="Bold" FontSize="11.5"/>
                                                                 </StackPanel>
@@ -688,37 +719,8 @@
                                                   Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="2,0,10,0"/>
                                         <ComboBox Grid.Column="1" Classes="roundedFilterCombo" ItemsSource="{Binding FilterGameVersions}" SelectedItem="{Binding SelectedFilterGameVersion}"
                                                   Width="150" Margin="0,0,8,0"/>
-                                        <Button Grid.Column="2" Classes="roundedFilterBtn" VerticalAlignment="Center" ToolTip.Tip="Filter platforms">
-                                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding PlatformFilterButtonText}" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                                                <PathIcon Data="M7 10l5 5 5-5z" Width="10" Height="10" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
-                                            </StackPanel>
-                                            <Button.Flyout>
-                                                <Flyout Placement="BottomEdgeAlignedLeft">
-                                                    <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}"
-                                                            BorderThickness="1" CornerRadius="8" Padding="12,10" MinWidth="170">
-                                                        <StackPanel Spacing="6">
-                                                            <Button Classes="flyoutCheckBtn" Command="{Binding SelectAllPlatformsCommand}">
-                                                                <Grid ColumnDefinitions="22,*">
-                                                                    <PathIcon Grid.Column="0" Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" Width="12" Height="12"
-                                                                              Foreground="{DynamicResource AccentBrush}" IsVisible="{Binding IsAllPlatformsSelected}"/>
-                                                                    <TextBlock Grid.Column="1" Text="All platforms" FontWeight="SemiBold" FontSize="12.5" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                                                </Grid>
-                                                            </Button>
-                                                            <Border Height="1" Background="{StaticResource BorderDarkBrush}" Margin="0,4"/>
-                                                            <ItemsControl ItemsSource="{Binding PlatformFilterItems}">
-                                                                <ItemsControl.ItemTemplate>
-                                                                    <DataTemplate x:DataType="models:FilterCheckItem">
-                                                                        <CheckBox Content="{Binding Name}" IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                                                                                  FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,2"/>
-                                                                    </DataTemplate>
-                                                                </ItemsControl.ItemTemplate>
-                                                            </ItemsControl>
-                                                        </StackPanel>
-                                                    </Border>
-                                                </Flyout>
-                                            </Button.Flyout>
-                                        </Button>
+                                        <ComboBox Grid.Column="2" Classes="roundedFilterCombo" ItemsSource="{Binding FilterPlatforms}" SelectedItem="{Binding SelectedFilterPlatform}"
+                                                  Width="140" VerticalAlignment="Center"/>
 
                                         <!-- Theme-aware Pagination -->
                                         <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center"
@@ -812,9 +814,9 @@
                                                                 <TextBlock Grid.Column="4" Text="{Binding DownloadsLabel}" FontSize="11.5" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
 
                                                                 <!-- Download Action Button matching Changelog -->
-                                                                <Button Grid.Column="5" Classes="actionBtn" Padding="12,5" MinWidth="100" HorizontalAlignment="Right"
+                                                                <Button Grid.Column="5" Classes="actionBtn" Width="104" Height="28" Padding="0" HorizontalAlignment="Right" VerticalAlignment="Center"
                                                                         Click="OnDownloadVersionClicked" ToolTip.Tip="Download and install">
-                                                                    <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                                                                    <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
                                                                         <TextBlock Text="&#x2193;" FontWeight="Bold" FontSize="13"/>
                                                                         <TextBlock Text="Download" FontWeight="Bold" FontSize="11.5"/>
                                                                     </StackPanel>
@@ -923,10 +925,11 @@
 
                             <Button Classes="sidebarLinkBtn" IsVisible="{Binding FullProject.DiscordUrl, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"
                                     Command="{Binding OpenLinkCommand}" CommandParameter="discord">
-                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <TextBlock Text="&#x1F4AC;" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
-                                    <TextBlock Text="Join Discord server" FontSize="11.5"/>
-                                    <TextBlock Text="&#x2197;" FontSize="10" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                    <PathIcon Data="M19.27 5.33C17.94 4.71 16.5 4.26 15 4a.09.09 0 0 0-.07.03c-.18.33-.39.76-.53 1.09a16.09 16.09 0 0 0-4.8 0c-.14-.34-.35-.76-.54-1.09-.01-.02-.04-.03-.07-.03-1.5.26-2.93.71-4.27 1.33-.01 0-.02.01-.03.02-2.72 4.07-3.47 8.03-3.1 11.95 0 .02.01.04.03.05 1.8 1.32 3.53 2.12 5.24 2.65.03.01.06 0 .07-.02.4-.55.76-1.13 1.07-1.74.02-.04 0-.08-.04-.09-.57-.22-1.11-.48-1.64-.78-.04-.02-.04-.08-.01-.11.11-.08.22-.17.33-.25.02-.02.05-.02.07-.01 3.44 1.57 7.15 1.57 10.55 0 .02-.01.05-.01.07.01.11.09.22.17.33.26.04.03.04.08-.01.11-.52.31-1.07.56-1.64.78-.04.01-.05.06-.04.09.32.61.68 1.19 1.07 1.74.03.01.06.02.09.01 1.72-.53 3.45-1.33 5.25-2.65.02-.01.03-.03.03-.05.44-4.53-.73-8.46-3.1-11.95-.01-.01-.02-.02-.04-.02zM8.52 14.91c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12 0 1.17-.84 2.12-1.89 2.12zm6.97 0c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12 0 1.17-.83 2.12-1.89 2.12z"
+                                              Width="13" Height="13" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Join Discord server" FontSize="11.5" VerticalAlignment="Center"/>
+                                    <TextBlock Text="&#x2197;" FontSize="10" Foreground="{StaticResource TextPlaceholderBrush}" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
 
@@ -985,7 +988,7 @@
                                             </Border>
                                             <StackPanel Spacing="1" VerticalAlignment="Center">
                                                 <StackPanel Orientation="Horizontal" Spacing="4">
-                                                    <TextBlock Text="{Binding Username}" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                                    <Button Classes="inlineLinkBtn" Content="{Binding Username}" Tag="{Binding Username}" Click="OnAuthorTapped" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" Padding="0" Background="Transparent" BorderThickness="0" Cursor="Hand" VerticalAlignment="Center"/>
                                                     <TextBlock Text="&#x1F451;" FontSize="10" IsVisible="{Binding IsOwner}" VerticalAlignment="Center"/>
                                                 </StackPanel>
                                                 <TextBlock Text="{Binding Role}" FontSize="10" Foreground="{StaticResource TextMutedBrush}"/>

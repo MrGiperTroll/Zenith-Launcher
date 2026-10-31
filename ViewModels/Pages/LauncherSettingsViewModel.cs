@@ -360,6 +360,15 @@ public partial class LauncherSettingsViewModel : ViewModelBase
     // --- Discord RPC & Scale ---
     [ObservableProperty] private bool _discordRpcEnabled = true;
     [ObservableProperty] private double _launcherScale = 1.0;
+    [ObservableProperty] private double _pendingLauncherScale = 1.0;
+
+    public void CommitLauncherScale()
+    {
+        if (Math.Abs(LauncherScale - PendingLauncherScale) > 0.001)
+        {
+            LauncherScale = PendingLauncherScale;
+        }
+    }
 
     partial void OnDiscordRpcEnabledChanged(bool value)
     {
@@ -426,7 +435,7 @@ public partial class LauncherSettingsViewModel : ViewModelBase
             UseFlatVersionList = cfg.UseFlatVersionList;
             AutoManageJava = cfg.AutoManageJava;
             DiscordRpcEnabled = cfg.DiscordRpcEnabled;
-            if (cfg.LauncherScale > 0.4 && cfg.LauncherScale < 3.0) LauncherScale = cfg.LauncherScale;
+            if (cfg.LauncherScale > 0.4 && cfg.LauncherScale < 3.0) { LauncherScale = cfg.LauncherScale; PendingLauncherScale = cfg.LauncherScale; }
 
             if (!string.IsNullOrWhiteSpace(cfg.Language))
                 SelectedLanguage = cfg.Language;

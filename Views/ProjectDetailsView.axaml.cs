@@ -188,4 +188,52 @@ public partial class ProjectDetailsView : UserControl
             mpVm.IsDetailsInstallButtonHovered = false;
         }
     }
+    private void OnAuthorTapped(object? sender, RoutedEventArgs e)
+    {
+        string? author = null;
+        if (sender is Control { Tag: string tagStr } && !string.IsNullOrWhiteSpace(tagStr))
+        {
+            author = tagStr;
+        }
+        else if (sender is Control { DataContext: ModrinthTeamMember member })
+        {
+            author = member.Username;
+        }
+        else if (sender is Control { DataContext: ModrinthProjectVersion version })
+        {
+            author = version.AuthorName;
+        }
+        else if (DataContext is ViewModels.ContentBrowserViewModel cbVm)
+        {
+            author = cbVm.DetailsProject?.Author;
+        }
+        else if (DataContext is ViewModels.ModpacksBrowserViewModel mpVm)
+        {
+            author = mpVm.DetailsProject?.Author;
+        }
+
+        if (!string.IsNullOrWhiteSpace(author))
+        {
+            if (DataContext is ViewModels.ContentBrowserViewModel cb)
+            {
+                cb.OpenAuthorProfileCommand.Execute(author);
+            }
+            else if (DataContext is ViewModels.ModpacksBrowserViewModel mp)
+            {
+                mp.OpenAuthorProfileCommand.Execute(author);
+            }
+        }
+    }
+
+    private void OnExternalLinkTagClicked(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Control { Tag: string url } && !string.IsNullOrWhiteSpace(url))
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true });
+            }
+            catch { }
+        }
+    }
 }

@@ -586,4 +586,90 @@ public static class ModrinthApiService
             if (item.ValueKind == JsonValueKind.String) list.Add(item.GetString() ?? "");
         return list.ToArray();
     }
+
+    public static async Task<Models.ModrinthUserProfile?> GetUserProfileAsync(string usernameOrId, CancellationToken token = default)
+    {
+        if (string.IsNullOrWhiteSpace(usernameOrId)) return null;
+        try
+        {
+            var url = $"{ApiBase}/user/{Uri.EscapeDataString(usernameOrId)}";
+            var json = await Http.GetStringAsync(url, token);
+            using var doc = JsonDocument.Parse(json);
+            var r = doc.RootElement;
+            DateTime.TryParse(GetString(r, "created"), out var created);
+
+            var profile = new Models.ModrinthUserProfile
+            {
+                Id = GetString(r, "id") ?? "",
+                Username = GetString(r, "username") ?? usernameOrId,
+                Name = GetString(r, "name") ?? "",
+                Bio = GetString(r, "bio") ?? "",
+                AvatarUrl = GetString(r, "avatar_url") ?? "",
+                Created = created,
+                Role = GetString(r, "role") ?? "developer"
+            };
+            profile.LoadAvatar();
+            return profile;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public static async Task<List<ViewModels.Items.ModrinthProjectItemViewModel>> GetUserProjectsAsync(string usernameOrId, CancellationToken token = default)
+    {
+        var result = new List<ViewModels.Items.ModrinthProjectItemViewModel>();
+        if (string.IsNullOrWhiteSpace(usernameOrId)) return result;
+        try
+        {
+            var url = $"{ApiBase}/user/{Uri.EscapeDataString(usernameOrId)}/projects";
+            var json = await Http.GetStringAsync(url, token);
+            using var doc = JsonDocument.Parse(json);
+            if (doc.RootElement.ValueKind != JsonValueKind.Array) return result;
+
+            foreach (var item in doc.RootElement.EnumerateArray())
+            {
+                var id = GetString(item, "id") ?? "";
+                if (string.IsNullOrWhiteSpace(id)) continue;
+
+                var rawLoaders = GetStringArray(item, "loaders");
+                var formattedLoaders = (rawLoaders ?? Array.Empty<string>())
+                    .Select(Models.ModrinthFullProject.FormatPlatformName)
+                    .Where(p => !string.IsNullOrWhiteSpace(p))
+                    .Distinct()
+                    .ToArray();
+
+                DateTime.TryParse(GetString(item, "updated"), out var updated);
+
+                var vm = new ViewModels.Items.ModrinthProjectItemViewModel
+                {
+                    ProjectId = id,
+                    Slug = GetString(item, "slug") ?? id,
+                    Title = GetString(item, "title") ?? "",
+                    Author = usernameOrId,
+                    Description = GetString(item, "description") ?? "",
+                    Downloads = GetLong(item, "downloads"),
+                    IconUrl = GetString(item, "icon_url") ?? "",
+                    GameVersions = GetStringArray(item, "game_versions"),
+                    Loaders = formattedLoaders,
+                    Categories = GetStringArray(item, "categories"),
+                    ProjectType = GetString(item, "project_type") ?? "mod",
+                    Updated = updated
+                };
+                if (!string.IsNullOrWhiteSpace(vm.IconUrl))
+                {
+                    _ = Task.Run(async () =>
+                    {
+                        var bytes = await GetIconAsync(vm.IconUrl);
+                        if (bytes is { Length: > 0 }) vm.SetIcon(bytes);
+                    });
+                }
+                result.Add(vm);
+            }
+        }
+        catch { }
+        return result;
+    }
+
 }

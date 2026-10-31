@@ -15,6 +15,7 @@ namespace CustomMcLauncher.Models;
 /// <summary>Full Modrinth project body returned by GET /v2/project/{id}.</summary>
 public class ModrinthFullProject
 {
+    public static string FormatPlatformName(string? raw) => ModrinthProjectVersion.FormatPlatformName(raw);
     public string Id { get; init; } = "";
     public string Slug { get; init; } = "";
     public string Title { get; init; } = "";
@@ -98,6 +99,9 @@ public partial class ModrinthGalleryItem : ObservableObject
     public bool Featured { get; init; }
     public string Title { get; init; } = "";
     public string Description { get; init; } = "";
+
+    public string DisplayTitle => !string.IsNullOrWhiteSpace(Title) ? Title : (!string.IsNullOrWhiteSpace(Description) ? Description : "");
+    public bool HasDisplayTitle => !string.IsNullOrWhiteSpace(DisplayTitle);
     public DateTime Created { get; init; }
     public string CreatedDisplay => Created == default ? "" : Created.ToString("MMMM dd, yyyy", System.Globalization.CultureInfo.InvariantCulture);
 
@@ -295,6 +299,9 @@ dependencies {{
         Files.Count > 0 ? Files[0].FileSize : 0;
     public static string FormatPlatformName(string? raw)
     {
+        if (string.IsNullOrWhiteSpace(raw)) return "";
+        var trimmed = raw.Trim();
+        if (trimmed.Equals("babric", StringComparison.OrdinalIgnoreCase)) return "Fabric";
         if (string.IsNullOrWhiteSpace(raw)) return "";
         var s = raw.Trim();
         if (s.Equals("all platforms", StringComparison.OrdinalIgnoreCase)) return "All platforms";

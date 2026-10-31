@@ -255,25 +255,8 @@
             <Setter Property="Opacity" Value="0.45"/>
         </Style>
 
-        <!-- View Pane entry transitions -->
-        <Style Selector="Control.viewPane">
-            <Setter Property="Transitions">
-                <Transitions>
-                    <DoubleTransition Property="Opacity" Duration="0:0:0.24" Easing="0.16, 1, 0.3, 1"/>
-                </Transitions>
-            </Setter>
-        </Style>
-        <!-- Smooth dropdown / flyout animations + stylish dark menus -->
-        <Style Selector="ComboBox /template/ Popup">
-            <Setter Property="Opacity" Value="0"/>
-            <Setter Property="RenderTransform" Value="translateY(-6px)"/>
-            <Setter Property="Transitions">
-                <Transitions>
-                    <DoubleTransition Property="Opacity" Duration="0:0:0.22" Easing="0.16, 1, 0.3, 1"/>
-                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.22" Easing="0.16, 1, 0.3, 1"/>
-                </Transitions>
-            </Setter>
-        </Style>
+        <!-- View Pane instant switching (no jerky transitions) -->
+        <!-- Clean instant popup -->
         <Style Selector="ComboBox:open /template/ Popup">
             <Setter Property="Opacity" Value="1"/>
             <Setter Property="RenderTransform" Value="translateY(0px)"/>
@@ -375,14 +358,7 @@
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="10"/>
             <Setter Property="Padding" Value="4"/>
-            <Setter Property="Opacity" Value="0"/>
-            <Setter Property="RenderTransform" Value="translateY(-6px)"/>
-            <Setter Property="Transitions">
-                <Transitions>
-                    <DoubleTransition Property="Opacity" Duration="0:0:0.22" Easing="0.16, 1, 0.3, 1"/>
-                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.22" Easing="0.16, 1, 0.3, 1"/>
-                </Transitions>
-            </Setter>
+
         </Style>
         <Style Selector="MenuFlyoutPresenter:open">
             <Setter Property="Opacity" Value="1"/>

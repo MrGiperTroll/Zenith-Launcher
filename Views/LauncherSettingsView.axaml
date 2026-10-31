@@ -316,8 +316,9 @@
                                 <StackPanel Spacing="8">
                                     <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=settings_scale}"/>
                                     <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                        <Slider Minimum="0.5" Maximum="2.0" Value="{Binding LauncherScale}" TickFrequency="0.05" IsSnapToTickEnabled="True" VerticalAlignment="Center"/>
-                                        <TextBlock Grid.Column="1" Text="{Binding LauncherScale, StringFormat='{}{0:P0}'}" Margin="12,0,0,0" VerticalAlignment="Center" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" FontSize="12" Width="40" TextAlignment="Right"/>
+                                        <Slider Minimum="0.5" Maximum="2.0" Value="{Binding PendingLauncherScale}" TickFrequency="0.05" IsSnapToTickEnabled="True" VerticalAlignment="Center"
+                                                PointerCaptureLost="OnScaleSliderPointerCaptureLost"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding PendingLauncherScale, StringFormat='{}{0:P0}'}" Margin="12,0,0,0" VerticalAlignment="Center" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" FontSize="12" Width="40" TextAlignment="Right"/>
                                     </Grid>
                                 </StackPanel>
                             </StackPanel>

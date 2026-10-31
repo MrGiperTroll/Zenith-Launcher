@@ -40,7 +40,12 @@ public partial class ModrinthProjectItemViewModel : ViewModelBase
     }
 
     public string[] Categories { get; init; } = Array.Empty<string>();
-    public string[] Loaders { get; init; } = Array.Empty<string>();
+        private readonly string[] _loaders = Array.Empty<string>();
+    public string[] Loaders
+    {
+        get => _loaders;
+        init => _loaders = value?.Select(Models.ModrinthFullProject.FormatPlatformName).Where(p => !string.IsNullOrWhiteSpace(p)).Distinct().ToArray() ?? Array.Empty<string>();
+    }
     public DateTime Updated { get; init; }
     public string ProjectType { get; init; } = "mod";
 

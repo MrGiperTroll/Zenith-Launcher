@@ -41,4 +41,12 @@ public partial class LauncherSettingsView : UserControl
             }
         }
     }
+
+    private void OnScaleSliderPointerCaptureLost(object? sender, Avalonia.Input.PointerCaptureLostEventArgs e)
+    {
+        if (DataContext is ViewModels.Pages.LauncherSettingsViewModel vm)
+        {
+            vm.CommitLauncherScale();
+        }
+    }
 }

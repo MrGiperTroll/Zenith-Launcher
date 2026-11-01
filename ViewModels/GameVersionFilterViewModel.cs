@@ -24,6 +24,7 @@ public partial class GameVersionFilterItem : ObservableObject
 public partial class GameVersionFilterViewModel : ObservableObject
 {
     public ObservableCollection<GameVersionFilterItem> Items { get; } = new();
+    public ObservableCollection<GameVersionFilterItem> FilteredItems { get; } = new();
 
     [ObservableProperty]
     private string _searchText = "";
@@ -66,13 +67,19 @@ public partial class GameVersionFilterViewModel : ObservableObject
     public void ApplyFilter()
     {
         var query = SearchText.Trim();
-        foreach (var item in Items)
+        var matching = Items.Where(item =>
         {
             bool matchesSnapshot = ShowAllVersions || !item.IsSnapshot || item.IsSelected;
             bool matchesSearch = string.IsNullOrWhiteSpace(query) ||
                                  item.Name.Contains(query, StringComparison.OrdinalIgnoreCase);
+            return matchesSnapshot && matchesSearch;
+        }).ToList();
 
-            item.IsVisible = matchesSnapshot && matchesSearch;
+        FilteredItems.Clear();
+        foreach (var m in matching)
+        {
+            m.IsVisible = true;
+            FilteredItems.Add(m);
         }
     }
 

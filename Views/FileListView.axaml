@@ -231,5 +231,29 @@
                 </StackPanel>
             </Button>
         </StackPanel>
+
+        <!-- Delete File Confirmation Overlay -->
+        <Border Grid.Row="0" Grid.RowSpan="3" Background="#99000000" IsVisible="{Binding IsDeleteConfirmOpen}"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="100">
+            <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
+                    BorderThickness="1" CornerRadius="12" Padding="24"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    MinWidth="360" MaxWidth="460">
+                <StackPanel Spacing="16">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="{l10n:Tr Key=fl_delete}" FontSize="15" FontWeight="Bold"
+                                   Foreground="{DynamicResource DangerBrush}"/>
+                        <TextBlock Text="{Binding PendingDeleteName, StringFormat='Are you sure you want to delete \'{0}\'? This cannot be undone.'}"
+                                   TextWrapping="Wrap" FontSize="12.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    </StackPanel>
+                    <Grid ColumnDefinitions="*,10,*" HorizontalAlignment="Right" Width="200">
+                        <Button Grid.Column="0" Classes="subBtn" Content="{l10n:Tr Key=cancel}"
+                                Command="{Binding CancelDeleteFileCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                        <Button Grid.Column="2" Classes="dangerBtn" Content="{l10n:Tr Key=btn_delete}"
+                                Command="{Binding ConfirmDeleteFileCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Border>
     </Grid>
 </UserControl>

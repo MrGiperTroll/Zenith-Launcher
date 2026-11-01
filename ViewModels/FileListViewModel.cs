@@ -304,21 +304,56 @@ public partial class FileListViewModel : ObservableObject
         ApplyFilter();
     }
 
+    [ObservableProperty]
+    private bool _isDeleteConfirmOpen;
+
+    [ObservableProperty]
+    private InstanceFileEntry? _pendingDeleteEntry;
+
+    public string PendingDeleteName => PendingDeleteEntry?.DisplayName ?? PendingDeleteEntry?.Name ?? "";
+
     [RelayCommand]
-    private void DeleteFile(InstanceFileEntry entry)
+    public void RequestDeleteFile(InstanceFileEntry? entry)
     {
         if (entry == null) return;
-        try
+        PendingDeleteEntry = entry;
+        OnPropertyChanged(nameof(PendingDeleteName));
+        IsDeleteConfirmOpen = true;
+    }
+
+    [RelayCommand]
+    public void CancelDeleteFile()
+    {
+        PendingDeleteEntry = null;
+        IsDeleteConfirmOpen = false;
+    }
+
+    [RelayCommand]
+    public async Task ConfirmDeleteFileAsync()
+    {
+        var entry = PendingDeleteEntry;
+        IsDeleteConfirmOpen = false;
+        PendingDeleteEntry = null;
+        if (entry == null) return;
+
+        await Task.Run(() =>
         {
-            if (Directory.Exists(entry.FullPath)) Directory.Delete(entry.FullPath, true);
-            else if (File.Exists(entry.FullPath)) File.Delete(entry.FullPath);
-        }
-        catch (Exception ex)
-        {
-            _reportError($"Failed to delete {entry.Name}: {ex.Message}");
-        }
+            try
+            {
+                if (Directory.Exists(entry.FullPath)) Directory.Delete(entry.FullPath, true);
+                else if (File.Exists(entry.FullPath)) File.Delete(entry.FullPath);
+            }
+            catch (Exception ex)
+            {
+                _reportError($"Failed to delete {entry.Name}: {ex.Message}");
+            }
+        });
+
         Refresh();
     }
+
+    [RelayCommand]
+    private void DeleteFile(InstanceFileEntry entry) => RequestDeleteFile(entry);
 
     [RelayCommand]
     private void EnableAll()

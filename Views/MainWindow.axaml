@@ -802,6 +802,7 @@
                                                     <Separator Background="{StaticResource BorderStrongBrush}"/>
                                                     <MenuItem Header="{l10n:Tr Key=btn_browse_mods}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenProfileBrowseModsCommand}" CommandParameter="{Binding}" IsVisible="{Binding HasModsSupport}"/>
                                                     <MenuItem Header="{l10n:Tr Key=tab_servers}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenProfileServerManagerCommand}" CommandParameter="{Binding}"/>
+                                                    <MenuItem Header="{l10n:Tr Key=btn_open_folder}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenProfileFolderCommand}" CommandParameter="{Binding}"/>
                                                     <MenuItem Header="{l10n:Tr Key=mi_sections}">
                                                         <MenuItem Header="{l10n:Tr Key=tab_mods}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenProfileSectionModsCommand}" CommandParameter="{Binding}" IsVisible="{Binding HasModsSupport}"/>
                                                         <MenuItem Header="{l10n:Tr Key=tab_resourcepacks}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenProfileSectionResourcePacksCommand}" CommandParameter="{Binding}"/>
@@ -810,7 +811,6 @@
                                                         <MenuItem Header="{l10n:Tr Key=tab_screenshots}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenProfileSectionScreenshotsCommand}" CommandParameter="{Binding}"/>
                                                         <MenuItem Header="{l10n:Tr Key=tab_logs}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenProfileSectionLogsCommand}" CommandParameter="{Binding}"/>
                                                     </MenuItem>
-                                                    <MenuItem Header="{l10n:Tr Key=btn_open_folder}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenProfileFolderCommand}" CommandParameter="{Binding}"/>
                                                     <Separator Background="{StaticResource BorderStrongBrush}"/>
                                                     <MenuItem Header="{l10n:Tr Key=mi_change_icon}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ChangeInstanceIconCommand}" CommandParameter="{Binding}"/>
                                                     <MenuItem Header="{l10n:Tr Key=btn_clone_profile}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenCopyDialogCommand}" CommandParameter="{Binding}"/>

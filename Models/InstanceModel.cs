@@ -10,7 +10,7 @@ public partial class InstanceModel : ObservableObject
     [JsonIgnore]
     public string DisplayVersion => string.IsNullOrEmpty(LoaderType) || LoaderType.Equals("Vanilla", StringComparison.OrdinalIgnoreCase)
         ? Version
-        : string.IsNullOrEmpty(LoaderVersion) ? $"{Version} {LoaderType}" : $"{Version} {LoaderType} {LoaderVersion}";
+        : $"{Version} {LoaderType}";
     [ObservableProperty] private string _id = Guid.NewGuid().ToString("N");
     [ObservableProperty] private string _name = "New Profile";
     [ObservableProperty] private string _version = "1.20.1";

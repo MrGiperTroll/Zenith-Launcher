@@ -274,14 +274,9 @@
 
                                 <DataTemplate x:DataType="vm:AccountRow">
                                     <Border Classes="accRowCard" Classes.active="{Binding IsActive}" Classes.dragging="{Binding IsDragging}" Tag="{Binding}" Margin="0,0,0,6">
-                                        <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
-                                            <!-- Drag handle -->
-                                            <Border Grid.Column="0" Width="20" Background="Transparent" Cursor="SizeAll" Margin="10,0,0,0" VerticalAlignment="Stretch">
-                                                <PathIcon Data="M9 5h2v2H9zm0 6h2v2H9zm0 6h2v2H9zm4-12h2v2h-2zm0 6h2v2h-2zm0 6h2v2h-2z" Width="11" Height="13" Foreground="{StaticResource TextFaintBrush}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                            </Border>
-
+                                        <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                             <!-- Switch account button (covers info area) -->
-                                            <Button Grid.Column="1" Classes="accSwitchBtn"
+                                            <Button Grid.Column="0" Classes="accSwitchBtn"
                                                     Command="{Binding $parent[UserControl].((pages:AccountsViewModel)DataContext).SwitchAccountCommand}"
                                                     CommandParameter="{Binding Model}">
                                                 <Grid ColumnDefinitions="Auto,*" VerticalAlignment="Center">
@@ -307,7 +302,7 @@
                                             </Button>
 
                                             <!-- Delete Button (no tooltip duplicate) -->
-                                            <Button Grid.Column="2" Classes="delAccBtn"
+                                            <Button Grid.Column="1" Classes="delAccBtn"
                                                     Command="{Binding $parent[UserControl].((pages:AccountsViewModel)DataContext).DeleteAccountCommand}"
                                                     CommandParameter="{Binding Model}"
                                                     Margin="0,0,10,0">

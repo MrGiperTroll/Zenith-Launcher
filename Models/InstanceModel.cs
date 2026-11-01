@@ -75,6 +75,26 @@ public partial class InstanceModel : ObservableObject
     [JsonIgnore]
     public bool HasCustomIcon => !string.IsNullOrEmpty(IconPath) && File.Exists(IconPath);
 
+    [JsonIgnore]
+    public bool HasModsSupport
+    {
+        get
+        {
+            var l = LoaderType?.Trim().ToLowerInvariant() ?? "";
+            return l is "fabric" or "forge" or "neoforge" or "quilt";
+        }
+    }
+
+    [JsonIgnore]
+    public bool HasShaderSupport
+    {
+        get
+        {
+            var l = LoaderType?.Trim() ?? "";
+            return !string.IsNullOrEmpty(l) && !l.Equals("Vanilla", StringComparison.OrdinalIgnoreCase);
+        }
+    }
+
     public void RefreshTimeDisplays()
     {
         OnPropertyChanged(nameof(PlaytimeDisplay));

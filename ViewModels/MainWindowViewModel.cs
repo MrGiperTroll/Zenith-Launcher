@@ -218,6 +218,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         OnPropertyChanged(nameof(CanLaunch));
         OnPropertyChanged(nameof(CanLaunchOrCancel));
+        OnPropertyChanged(nameof(LaunchButtonText));
         IsLaunching = value != null && _launchingInstanceIds.Contains(value.Id);
         UpdateJavaDisplay();
         _preRenameName = value?.Name;
@@ -234,10 +235,16 @@ public partial class MainWindowViewModel : ViewModelBase
     private void OnInstancePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(InstanceModel.IsRunning))
+        {
             OnPropertyChanged(nameof(CanLaunch));
+            OnPropertyChanged(nameof(CanLaunchOrCancel));
+            OnPropertyChanged(nameof(LaunchButtonText));
+        }
         if (e.PropertyName == nameof(InstanceModel.IsLaunching))
         {
             OnPropertyChanged(nameof(CanLaunch));
+            OnPropertyChanged(nameof(CanLaunchOrCancel));
+            OnPropertyChanged(nameof(LaunchButtonText));
             if (ReferenceEquals(sender, SelectedInstance))
                 IsLaunching = SelectedInstance!.IsLaunching;
         }
@@ -952,7 +959,15 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public bool CanLaunchOrCancel => CanLaunch || IsLaunching;
 
-    public string LaunchButtonText => IsLaunching ? L10n.T("cancel") : L10n.T("btn_launch_game");
+    public string LaunchButtonText
+    {
+        get
+        {
+            if (IsLaunching) return L10n.T("cancel");
+            if (SelectedInstance?.IsRunning == true) return L10n.T("status_running");
+            return L10n.T("btn_launch_game");
+        }
+    }
 
     [ObservableProperty]
     private double _launchProgress;
@@ -3089,10 +3104,15 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private async Task LaunchSpecificInstanceAsync(InstanceModel instance)
     {
+        await LaunchSpecificInstanceWithArgsAsync(instance, null);
+    }
+
+    public async Task LaunchSpecificInstanceWithArgsAsync(InstanceModel? instance, string? extraArgs)
+    {
         var inst = instance ?? SelectedInstance;
         if (inst == null) return;
         SelectInstance(inst);
-        await LaunchGameAsync();
+        await LaunchGameWithArgsAsync(extraArgs);
     }
 
     [RelayCommand]
@@ -3486,6 +3506,11 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private async Task LaunchGameAsync()
     {
+        await LaunchGameWithArgsAsync(null);
+    }
+
+    public async Task LaunchGameWithArgsAsync(string? extraArgs)
+    {
         var instance = SelectedInstance ?? _instanceService.GetSelectedInstance();
 
         if (instance == null) return;
@@ -3502,6 +3527,7 @@ public partial class MainWindowViewModel : ViewModelBase
             IsLaunching = true;
         OnPropertyChanged(nameof(CanLaunch));
         OnPropertyChanged(nameof(CanLaunchOrCancel));
+        OnPropertyChanged(nameof(LaunchButtonText));
         LaunchProgress = 0;
         Services.DiscordPresenceService.SetLaunchingGame(instance.Name);
 
@@ -3514,7 +3540,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 return;
             }
 
-            var process = await Task.Run(() => _launchService.LaunchAsync(instance, account));
+            var process = await Task.Run(() => _launchService.LaunchAsync(instance, account, extraArgs));
             StatusText = string.Format(L10n.T("mw_status_launched"), instance.Name);
             ApplyLaunchBehavior(process);
         }

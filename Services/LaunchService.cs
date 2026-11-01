@@ -278,7 +278,7 @@ public class LaunchService : ILaunchService
         }
     }
 
-    public async Task<Process?> LaunchAsync(InstanceModel instance, AccountModel account)
+    public async Task<Process?> LaunchAsync(InstanceModel instance, AccountModel account, string? extraGameArgs = null)
     {
         var config = GetConfig();
 
@@ -575,6 +575,13 @@ public class LaunchService : ILaunchService
         EnsureNativesExtracted(version, zenithRoot, nativesDir, targetVersion, instance.Version, msg => LogReceived?.Invoke(msg));
 
         var process = await launcher.BuildProcessAsync(targetVersion, launchOption);
+
+        if (!string.IsNullOrWhiteSpace(extraGameArgs))
+        {
+            process.StartInfo.Arguments = string.IsNullOrWhiteSpace(process.StartInfo.Arguments)
+                ? extraGameArgs
+                : $"{process.StartInfo.Arguments} {extraGameArgs}";
+        }
 
         // Log the full command line for debugging — redact access token for security
         var fullCommandLine = $"\"{process.StartInfo.FileName}\" {process.StartInfo.Arguments}";

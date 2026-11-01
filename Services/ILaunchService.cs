@@ -16,7 +16,7 @@ event Action<int>? ProgressChanged;
     event Action<InstanceModel, int>? GameExited;
     /// <summary>Raised on non-zero exit with the crash analysis result.</summary>
     event Action<InstanceModel, int, CrashAnalysis>? CrashDetected;
-Task<Process?> LaunchAsync(InstanceModel instance, AccountModel account);
+Task<Process?> LaunchAsync(InstanceModel instance, AccountModel account, string? extraGameArgs = null);
     void KillProcess(string instanceId);
     /// <summary>Explicit one-click Java install (Settings "+" button). Bypasses AutoManageJava.</summary>
     Task<bool> DownloadJavaRuntimeAsync(int major, string zenithRoot);

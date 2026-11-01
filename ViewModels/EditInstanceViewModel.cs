@@ -1038,13 +1038,33 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
         await _host.CreateDesktopShortcutCommand.ExecuteAsync(Instance);
     }
 
+    private static bool IsModernQuickPlaySupported(string? version)
+    {
+        if (string.IsNullOrWhiteSpace(version)) return true;
+        var parts = version.Split('.');
+        if (int.TryParse(parts[0], out var major))
+        {
+            if (major >= 2) return true;
+            if (major == 1 && parts.Length > 1 && int.TryParse(parts[1], out var minor))
+            {
+                return minor >= 20;
+            }
+        }
+        return false;
+    }
+
     [RelayCommand]
     public async Task LaunchWorldAsync(InstanceFileEntry? world)
     {
         if (world == null) return;
         SaveSettings();
-        _host.LaunchSpecificInstanceCommand.Execute(Instance);
-        await Task.CompletedTask;
+        var worldFolder = !string.IsNullOrWhiteSpace(world.Name) ? world.Name : world.Title;
+        string? quickPlayArg = null;
+        if (IsModernQuickPlaySupported(Instance.Version))
+        {
+            quickPlayArg = $"--quickPlaySingleplayer \"{worldFolder}\"";
+        }
+        await _host.LaunchSpecificInstanceWithArgsAsync(Instance, quickPlayArg);
     }
 
     // ===== Servers Management =====
@@ -1160,8 +1180,20 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
     {
         if (server == null) return;
         SaveSettings();
-        _host.LaunchSpecificInstanceCommand.Execute(Instance);
-        await Task.CompletedTask;
+        var serverAddress = server.Subtitle ?? server.Title;
+        string? quickPlayArg = null;
+        if (IsModernQuickPlaySupported(Instance.Version))
+        {
+            quickPlayArg = $"--quickPlayMultiplayer \"{serverAddress}\"";
+        }
+        else if (!string.IsNullOrWhiteSpace(serverAddress))
+        {
+            var parts = serverAddress.Split(':');
+            var host = parts[0].Trim();
+            var port = parts.Length > 1 && int.TryParse(parts[1].Trim(), out var p) ? p : 25565;
+            quickPlayArg = $"--server {host} --port {port}";
+        }
+        await _host.LaunchSpecificInstanceWithArgsAsync(Instance, quickPlayArg);
     }
 
     // ----- Settings -----

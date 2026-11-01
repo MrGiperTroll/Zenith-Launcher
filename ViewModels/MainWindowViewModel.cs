@@ -2041,6 +2041,25 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isUpdateChecking;
 
+    [ObservableProperty]
+    private bool _isInfoDialogOpen;
+
+    [ObservableProperty]
+    private string _infoDialogTitle = "";
+
+    [ObservableProperty]
+    private string _infoDialogMessage = "";
+
+    [RelayCommand]
+    private void CloseInfoDialog() => IsInfoDialogOpen = false;
+
+    public void ShowInfoDialog(string title, string message)
+    {
+        InfoDialogTitle = title;
+        InfoDialogMessage = message;
+        IsInfoDialogOpen = true;
+    }
+
     [RelayCommand]
     private void CloseUpdate()
     {
@@ -2058,14 +2077,20 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             var result = await new GitHubUpdateService().CheckForUpdatesAsync();
             if (result?.IsNewerThanCurrent == true)
+            {
                 OpenUpdate(result);
+            }
             else
+            {
                 StatusText = L10n.T("update_uptodate");
+                ShowInfoDialog(L10n.T("update_btn"), L10n.T("update_uptodate"));
+            }
         }
         catch (Exception ex)
         {
             LauncherLog.Error("Manual update check failed.", ex);
             StatusText = L10n.T("update_failed");
+            ShowInfoDialog(L10n.T("update_btn"), L10n.T("update_failed"));
         }
         finally
         {

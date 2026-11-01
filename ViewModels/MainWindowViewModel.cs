@@ -3120,6 +3120,106 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    private void OpenProfileBrowseMods(InstanceModel instance)
+    {
+        var inst = instance ?? SelectedInstance;
+        if (inst == null) return;
+        SelectInstance(inst);
+
+        var editVm = new EditInstanceViewModel(inst, this, _instanceService);
+        var type = ContentType.Mod;
+        if (!editVm.HasModsSupport)
+            type = ContentType.ResourcePack;
+
+        var vm = new ContentBrowserViewModel(
+            inst.Version,
+            inst.LoaderType,
+            inst.Path,
+            msg => StatusText = msg,
+            () => editVm.RefreshFileLists(),
+            () => editVm.HasModsSupport,
+            type);
+
+        NavigateToContentBrowser(vm, inst, inst.Name, "Mods", editVm);
+    }
+
+    [RelayCommand]
+    private void OpenProfileServerManager(InstanceModel instance)
+    {
+        var inst = instance ?? SelectedInstance;
+        if (inst == null) return;
+        SelectInstance(inst);
+
+        var editVm = new EditInstanceViewModel(inst, this, _instanceService);
+        var path = Path.Combine(inst.Path, "servers.dat");
+        var vm = new ServerManagerViewModel(path);
+        NavigateToServerManager(vm, inst, editVm);
+    }
+
+    [RelayCommand]
+    private void OpenProfileSectionMods(InstanceModel instance) => OpenProfileWithSection(instance, "Mods");
+
+    [RelayCommand]
+    private void OpenProfileSectionResourcePacks(InstanceModel instance) => OpenProfileWithSection(instance, "Resource Packs");
+
+    [RelayCommand]
+    private void OpenProfileSectionShaderPacks(InstanceModel instance) => OpenProfileWithSection(instance, "Shader Packs");
+
+    [RelayCommand]
+    private void OpenProfileSectionWorlds(InstanceModel instance) => OpenProfileWithSection(instance, "Worlds");
+
+    [RelayCommand]
+    private void OpenProfileSectionScreenshots(InstanceModel instance) => OpenProfileWithSection(instance, "Screenshots");
+
+    [RelayCommand]
+    private void OpenProfileSectionLogs(InstanceModel instance) => OpenProfileWithSection(instance, "Logs");
+
+    private void OpenProfileWithSection(InstanceModel? instance, string tab)
+    {
+        var inst = instance ?? SelectedInstance;
+        if (inst == null) return;
+        SelectInstance(inst);
+        NavigateToEditInstance(inst, tab);
+    }
+
+    [RelayCommand]
+    private void OpenProfileModsFolder(InstanceModel instance) => OpenInstanceSubfolder(instance, "mods");
+
+    [RelayCommand]
+    private void OpenProfileResourcePacksFolder(InstanceModel instance) => OpenInstanceSubfolder(instance, "resourcepacks");
+
+    [RelayCommand]
+    private void OpenProfileShaderPacksFolder(InstanceModel instance) => OpenInstanceSubfolder(instance, "shaderpacks");
+
+    [RelayCommand]
+    private void OpenProfileWorldsFolder(InstanceModel instance) => OpenInstanceSubfolder(instance, "saves");
+
+    [RelayCommand]
+    private void OpenProfileScreenshotsFolder(InstanceModel instance) => OpenInstanceSubfolder(instance, "screenshots");
+
+    [RelayCommand]
+    private void OpenProfileLogsFolder(InstanceModel instance) => OpenInstanceSubfolder(instance, "logs");
+
+    private void OpenInstanceSubfolder(InstanceModel? instance, string subfolder)
+    {
+        var inst = instance ?? SelectedInstance;
+        if (inst == null || string.IsNullOrWhiteSpace(inst.Path)) return;
+        try
+        {
+            var targetDir = Path.Combine(inst.Path, subfolder);
+            if (!Directory.Exists(targetDir))
+            {
+                Directory.CreateDirectory(targetDir);
+            }
+            Process.Start(new ProcessStartInfo { FileName = targetDir, UseShellExecute = true, Verb = "open" });
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Error($"Failed to open subfolder '{subfolder}': {ex.Message}");
+        }
+    }
+
+    [RelayCommand]
     private async Task ExportCurseForgeAsync(InstanceModel instance)
     {
         var inst = instance ?? SelectedInstance;

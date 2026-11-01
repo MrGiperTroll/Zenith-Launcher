@@ -569,7 +569,7 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
 
     private void ReportError(string message) => _host.StatusText = message;
 
-    private void RefreshFileLists()
+    public void RefreshFileLists()
     {
         // All folder scans run off the UI thread (see FileListViewModel.RefreshAsync).
         if (HasModsSupport) _ = ModList.RefreshAsync();

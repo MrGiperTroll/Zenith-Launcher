@@ -907,7 +907,7 @@
                                     </Grid>
 
                                                                         <!-- Timeline items container matching Modrinth background -->
-                                    <Border Background="{StaticResource FieldBrush}" BorderBrush="#1E2026" BorderThickness="1" CornerRadius="10" Padding="18,14" MaxWidth="960" HorizontalAlignment="Left">
+                                    <Border Background="{StaticResource FieldBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="10" Padding="18,14" MaxWidth="960" HorizontalAlignment="Left">
                                         <ItemsControl ItemsSource="{Binding VersionList}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate x:DataType="models:ModrinthProjectVersion">
@@ -926,7 +926,7 @@
                                                                 <Button Classes="versionTitleBtn" Content="{Binding Name}" Click="OnVersionRowTapped" Margin="0,0,6,0" VerticalAlignment="Center" FontWeight="Bold" FontSize="13"/>
                                                                 <TextBlock Text="by " FontSize="12" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,4,0"/>
                                                                 <Button Classes="authorLinkBtn" Content="{Binding AuthorName}" Tag="{Binding AuthorName}" Click="OnAuthorTapped"
-                                                                        FontSize="12" Foreground="#38BDF8" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                                        FontSize="12" Foreground="{DynamicResource AccentBrush}" Margin="0,0,6,0" VerticalAlignment="Center"/>
                                                                 <TextBlock Text="{Binding DateReleaseDisplay}" Foreground="{StaticResource TextMutedBrush}" FontSize="12" VerticalAlignment="Center"/>
                                                             </WrapPanel>
 
@@ -1001,11 +1001,11 @@
                                     </Grid>
 
                                     <!-- Versions Table Container matching Modrinth coordinates -->
-                                    <Border Background="{StaticResource FieldBrush}" BorderBrush="#1E2026" BorderThickness="1" CornerRadius="10" ClipToBounds="True">
+                                    <Border Background="{StaticResource FieldBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="10" ClipToBounds="True">
                                         <StackPanel>
                                             <!-- Table Header -->
                                             <Border Background="Transparent" Padding="16,10"
-                                                    BorderBrush="#1E2026" BorderThickness="0,0,0,1">
+                                                    BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="0,0,0,1">
                                                 <Grid ColumnDefinitions="150,110,120,90,90,*">
                                                     <TextBlock Grid.Column="0" Text="Version" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
                                                     <TextBlock Grid.Column="1" Text="Game version" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
@@ -1019,7 +1019,7 @@
                                             <ItemsControl ItemsSource="{Binding VersionList}">
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate x:DataType="models:ModrinthProjectVersion">
-                                                        <Border Classes="versionRow" Padding="16,10" BorderBrush="#1E2026"
+                                                        <Border Classes="versionRow" Padding="16,10" BorderBrush="{DynamicResource BorderDarkBrush}"
                                                                 BorderThickness="0,0,0,1" Tapped="OnVersionRowTapped">
                                                             <Grid ColumnDefinitions="150,110,120,90,90,*">
                                                                 <!-- Version with Initial Badge -->

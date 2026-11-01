@@ -70,9 +70,16 @@ public class MarkdownParagraphControl : TextBlock
         {
             var run = new Run(s.Text)
             {
-                FontWeight = s.IsBold ? FontWeight.SemiBold : FontWeight.Normal,
-                Foreground = s.IsBold ? new SolidColorBrush(Color.Parse("#E2E8F0")) : new SolidColorBrush(Color.Parse("#94A3B8"))
+                FontWeight = s.IsBold ? FontWeight.SemiBold : FontWeight.Normal
             };
+            if (Avalonia.Application.Current?.Resources.TryGetResource(s.IsBold ? "TextPrimaryBrush" : "TextSecondaryBrush", null, out var b) == true && b is IBrush resBrush)
+            {
+                run.Foreground = resBrush;
+            }
+            else
+            {
+                run.Foreground = s.IsBold ? new SolidColorBrush(Color.Parse("#E2E8F0")) : new SolidColorBrush(Color.Parse("#94A3B8"));
+            }
             Inlines?.Add(run);
         }
     }

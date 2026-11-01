@@ -125,6 +125,19 @@ public static class ZenithTheme
         SetBrushColor(r, "CheckBoxCheckGlyphForegroundCheckedPointerOver", Colors.White);
         SetBrushColor(r, "CheckBoxCheckGlyphForegroundCheckedPressed", Colors.White);
 
+        // Expander overrides
+        SetBrushColor(r, "ExpanderBorderBrush", Color.Parse("#26282E"));
+        SetBrushColor(r, "ExpanderBorderBrushPointerOver", Color.Parse("#26282E"));
+        SetBrushColor(r, "ExpanderBorderBrushPressed", Color.Parse("#26282E"));
+        SetBrushColor(r, "ExpanderHeaderBackground", field);
+        SetBrushColor(r, "ExpanderHeaderBackgroundPointerOver", hoverTint);
+        SetBrushColor(r, "ExpanderHeaderBackgroundPressed", field);
+        SetBrushColor(r, "ExpanderHeaderBorderBrushPointerOver", Colors.Transparent);
+        SetBrushColor(r, "ExpanderHeaderBorderBrushPressed", Colors.Transparent);
+        SetBrushColor(r, "ExpanderBackground", field);
+        SetBrushColor(r, "ExpanderBackgroundPointerOver", field);
+        SetBrushColor(r, "ExpanderBackgroundPressed", field);
+
         // ToggleSwitch dynamic overrides (follow surfaces + accent, white knobs)
         SetBrushColor(r, "ToggleSwitchFillOff", field);
         SetBrushColor(r, "ToggleSwitchStrokeOff", Lighten(borderDark, 0.20f));

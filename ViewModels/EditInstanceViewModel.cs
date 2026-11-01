@@ -418,14 +418,14 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
     [ObservableProperty]
     private string _logSearchQuery = "";
 
-    partial void OnLogSearchQueryChanged(string value) => OnPropertyChanged(nameof(FilteredLogText));
+    partial void OnLogSearchQueryChanged(string value) => UpdateFilteredLogText();
 
     [ObservableProperty]
     private string _logFilterLevel = "All";
 
     partial void OnLogFilterLevelChanged(string value)
     {
-        OnPropertyChanged(nameof(FilteredLogText));
+        UpdateFilteredLogText();
         OnPropertyChanged(nameof(IsFilterAll));
         OnPropertyChanged(nameof(IsFilterError));
         OnPropertyChanged(nameof(IsFilterWarn));
@@ -451,7 +451,10 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
     partial void OnSelectedLogSourceChanged(string value) => RefreshLogs();
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(LogExpandText))]
     private bool _isLogExpanded;
+
+    public string LogExpandText => IsLogExpanded ? "Collapse" : "Expand";
 
     [RelayCommand]
     public void ToggleLogExpand()
@@ -459,13 +462,21 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
         IsLogExpanded = !IsLogExpanded;
     }
 
-    public string FilteredLogText
-    {
-        get
-        {
-            if (string.IsNullOrEmpty(LogText)) return "";
-            if (LogFilterLevel == "All" && string.IsNullOrWhiteSpace(LogSearchQuery)) return LogText;
+    private string _cachedFilteredLogText = "";
+    public string FilteredLogText => _cachedFilteredLogText;
 
+    private void UpdateFilteredLogText()
+    {
+        if (string.IsNullOrEmpty(LogText))
+        {
+            _cachedFilteredLogText = "";
+        }
+        else if (LogFilterLevel == "All" && string.IsNullOrWhiteSpace(LogSearchQuery))
+        {
+            _cachedFilteredLogText = LogText;
+        }
+        else
+        {
             var lines = LogText.Split('\n');
             var query = LogSearchQuery?.Trim();
             var filtered = lines.Where(line =>
@@ -488,8 +499,9 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
                 return true;
             });
 
-            return string.Join('\n', filtered);
+            _cachedFilteredLogText = string.Join('\n', filtered);
         }
+        UpdateFilteredLogText();
     }
 
     public Avalonia.Media.TextWrapping LogTextWrapping =>
@@ -567,7 +579,7 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
 
             LogText = text;
             LogHasContent = hasContent;
-            OnPropertyChanged(nameof(FilteredLogText));
+            UpdateFilteredLogText();
         }
         catch { }
         finally
@@ -911,7 +923,8 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
     [ObservableProperty]
     private InstanceFileEntry? _pendingDeleteWorld;
 
-    public string DeleteWorldName => PendingDeleteWorld?.Title ?? PendingDeleteWorld?.Name ?? "";
+    public string DeleteWorldName => PendingDeleteWorld?.Title ?? PendingDeleteWorld?.Name ?? "";
+
     public string DeleteWorldPrompt => string.Format(CustomMcLauncher.Services.L10n.T("w_delete_prompt"), DeleteWorldName);
 
     [ObservableProperty]
@@ -1041,7 +1054,8 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
     [ObservableProperty]
     private InstanceFileEntry? _pendingDeleteServer;
 
-    public string DeleteServerName => PendingDeleteServer?.Title ?? PendingDeleteServer?.Subtitle ?? "";
+    public string DeleteServerName => PendingDeleteServer?.Title ?? PendingDeleteServer?.Subtitle ?? "";
+
     public string DeleteServerPrompt => string.Format(CustomMcLauncher.Services.L10n.T("sv_delete_prompt"), DeleteServerName);
 
     [ObservableProperty]

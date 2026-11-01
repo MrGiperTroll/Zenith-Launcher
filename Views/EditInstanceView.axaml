@@ -25,6 +25,27 @@
             <Setter Property="IsVisible" Value="False"/>
         </Style>
 
+        <Style Selector="Button.chipBtn">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderEditorBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="14"/>
+            <Setter Property="Padding" Value="12,3"/>
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.chipBtn:pointerover">
+            <Setter Property="Background" Value="{DynamicResource FieldBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        </Style>
+        <Style Selector="Button.chipBtn.active">
+            <Setter Property="Background" Value="#10b981"/>
+            <Setter Property="Foreground" Value="#000000"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+
         <Style Selector="Button.primaryBtn">
             <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
@@ -308,59 +329,74 @@
                     </StackPanel>
                 </ScrollViewer>
 
-                <!-- Logs (Lunar Client styled terminal) -->
-                <Grid IsVisible="{Binding IsLogsTab}" RowDefinitions="Auto,*" Margin="16,14,16,14">
-                    <!-- Top Toolbar -->
-                    <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Margin="2,0,2,12" VerticalAlignment="Center">
-                        <!-- Left: Title -->
-                        <Panel Grid.Column="0"/>
+                <!-- Logs (Redesigned matching Modrinth style) -->
+                <Grid IsVisible="{Binding IsLogsTab}" RowDefinitions="Auto,Auto,*" Margin="16,14,16,14">
+                    <!-- Row 0: Search input & Live Log dropdown -->
+                    <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center" Margin="0,0,0,10">
+                        <Border Grid.Column="0" Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
+                                BorderThickness="1" CornerRadius="8" Width="280" Height="34" Padding="10,0">
+                            <Grid ColumnDefinitions="Auto,*">
+                                <PathIcon Data="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
+                                          Width="13" Height="13" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <TextBox Grid.Column="1" Classes="titleInput" Text="{Binding LogSearchQuery, Mode=TwoWay}"
+                                         PlaceholderText="Search logs" FontSize="12" Background="Transparent" BorderThickness="0"
+                                         VerticalAlignment="Center" Padding="0"/>
+                            </Grid>
+                        </Border>
 
-                        <!-- Middle: Log view options -->
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="14" HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <CheckBox Content="{l10n:Tr Key=opt_follow_output}" IsChecked="{Binding LogsFollowOutput}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" VerticalAlignment="Center"/>
-                            <CheckBox Content="{l10n:Tr Key=opt_wrap_lines}" IsChecked="{Binding LogsWrapLines}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" VerticalAlignment="Center"/>
-                            <CheckBox Content="{l10n:Tr Key=opt_show_system}" IsChecked="{Binding LogsShowSystemMessages}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" VerticalAlignment="Center"/>
-                            <CheckBox Content="{l10n:Tr Key=opt_full_logs}" IsChecked="{Binding LogsFullJava}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" VerticalAlignment="Center"/>
+                        <ComboBox Grid.Column="2" Classes="zenCombo" ItemsSource="{Binding LogSources}"
+                                  SelectedItem="{Binding SelectedLogSource}" Width="130" Height="34" VerticalAlignment="Center"/>
+                    </Grid>
+
+                    <!-- Row 1: Filter chips (All / Error / Warn / Info) + Expand & Copy actions -->
+                    <Grid Grid.Row="1" ColumnDefinitions="*,Auto" VerticalAlignment="Center" Margin="0,0,0,12">
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <PathIcon Data="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z" Width="14" Height="14"
+                                      Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                            <Button Classes="chipBtn" Classes.active="{Binding IsFilterAll}" Content="All"
+                                    Command="{Binding SelectLogFilterCommand}" CommandParameter="All"/>
+                            <Button Classes="chipBtn" Classes.active="{Binding IsFilterError}" Content="Error"
+                                    Command="{Binding SelectLogFilterCommand}" CommandParameter="Error"/>
+                            <Button Classes="chipBtn" Classes.active="{Binding IsFilterWarn}" Content="Warn"
+                                    Command="{Binding SelectLogFilterCommand}" CommandParameter="Warn"/>
+                            <Button Classes="chipBtn" Classes.active="{Binding IsFilterInfo}" Content="Info"
+                                    Command="{Binding SelectLogFilterCommand}" CommandParameter="Info"/>
                         </StackPanel>
 
-                        <!-- Right: Actions -->
-                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                            <Button Classes="subBtn" Command="{Binding CopyLogsCommand}" Padding="12,6" FontSize="11" VerticalAlignment="Center" ToolTip.Tip="{l10n:Tr Key=btn_copy_logs}">
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <Button Classes="subBtn" Command="{Binding CopyLogsCommand}" Padding="10,5" FontSize="11" ToolTip.Tip="{l10n:Tr Key=btn_copy_logs}">
                                 <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                    <PathIcon Data="M16 1H4C2.9 1 2 1.9 2 3v14h2V3h12V1zm3 4H8C6.9 5 6 5.9 6 7v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" Width="13" Height="13" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                                    <TextBlock Text="{l10n:Tr Key=btn_copy_logs}" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                    <PathIcon Data="M16 1H4C2.9 1 2 1.9 2 3v14h2V3h12V1zm3 4H8C6.9 5 6 5.9 6 7v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" Width="12" Height="12"/>
+                                    <TextBlock Text="{l10n:Tr Key=btn_copy_logs}" FontSize="11"/>
                                 </StackPanel>
                             </Button>
-                            <Button Classes="subBtn" Command="{Binding OpenInstanceFolderCommand}" Padding="12,6" FontSize="11" VerticalAlignment="Center" ToolTip.Tip="{l10n:Tr Key=btn_open_folder}">
+                            <Button Classes="subBtn" Command="{Binding ToggleLogExpandCommand}" Padding="10,5" FontSize="11">
                                 <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                    <PathIcon Data="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="13" Height="13" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                                    <TextBlock Text="{l10n:Tr Key=btn_open_folder}" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                    <PathIcon Data="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" Width="12" Height="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="Expand" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                 </StackPanel>
                             </Button>
                         </StackPanel>
                     </Grid>
 
-                    <!-- Terminal Card -->
-                    <Border Grid.Row="1" Background="{StaticResource SidebarBgBrush}" CornerRadius="10" ClipToBounds="True">
+                    <!-- Row 2: Terminal Area (Clean Monospace Container) -->
+                    <Border Grid.Row="2" Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
+                            BorderThickness="1" CornerRadius="10" ClipToBounds="True" Padding="14,10">
                         <Panel>
                             <ScrollViewer x:Name="LogScroll" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
-                                          ScrollChanged="OnLogScrollChanged" Padding="14,10"
-                                          IsVisible="{Binding LogHasContent}">
-                                <TextBox Text="{Binding LogText}" TextWrapping="{Binding LogTextWrapping}"
-                                         IsReadOnly="True" BorderThickness="0" Background="Transparent"
-                                         ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                                         FontFamily="Consolas, Cascadia Code, Courier New" FontSize="11"
-                                         Foreground="{StaticResource TextSoftBrush}" MinWidth="600"
-                                         FocusAdorner="{x:Null}"/>
+                                          ScrollChanged="OnLogScrollChanged" IsVisible="{Binding LogHasContent}">
+                                <SelectableTextBlock Text="{Binding FilteredLogText}" TextWrapping="{Binding LogTextWrapping}"
+                                                     FontFamily="Consolas, Cascadia Code, Courier New" FontSize="11.5"
+                                                     Foreground="{DynamicResource TextSoftBrush}" MinWidth="600"/>
                             </ScrollViewer>
 
-                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8" IsVisible="{Binding !LogHasContent}">
-                                <PathIcon Data="M20 19V7H4V19H20M20 3C21.1 3 22 3.9 22 5V19C22 20.1 21.1 21 20 21H4C2.9 21 2 20.1 2 19V5C2 3.9 2.9 3 4 3H20M13 13H17V15H13M13 9H17V11H13M13 17H17V19H13M7 13H11V15H7V17M7 9H11V11H7V13Z"
-                                          Width="32" Height="32" Foreground="{StaticResource TextPlaceholderBrush}" HorizontalAlignment="Center"/>
-                                <TextBlock Text="{Binding LogText}" TextWrapping="Wrap" FontFamily="Consolas, Cascadia Code, Courier New"
-                                           FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}" TextAlignment="Center"/>
-                            </StackPanel>
+                            <Border HorizontalAlignment="Center" VerticalAlignment="Center" Padding="24"
+                                    Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
+                                    BorderThickness="1" CornerRadius="10" IsVisible="{Binding !LogHasContent}">
+                                <TextBlock Text="Start your instance in the top right to start receiving live logs!"
+                                           TextWrapping="Wrap" FontFamily="Consolas, Cascadia Code, Courier New"
+                                           FontSize="12" Foreground="{DynamicResource TextMutedBrush}" TextAlignment="Center"/>
+                            </Border>
                         </Panel>
                     </Border>
                 </Grid>

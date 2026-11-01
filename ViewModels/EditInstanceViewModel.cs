@@ -386,6 +386,83 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
     partial void OnLogsShowSystemMessagesChanged(bool value) => RefreshLogs();
     partial void OnLogsFullJavaChanged(bool value) => RefreshLogs();
 
+    [ObservableProperty]
+    private string _logSearchQuery = "";
+
+    partial void OnLogSearchQueryChanged(string value) => OnPropertyChanged(nameof(FilteredLogText));
+
+    [ObservableProperty]
+    private string _logFilterLevel = "All";
+
+    partial void OnLogFilterLevelChanged(string value)
+    {
+        OnPropertyChanged(nameof(FilteredLogText));
+        OnPropertyChanged(nameof(IsFilterAll));
+        OnPropertyChanged(nameof(IsFilterError));
+        OnPropertyChanged(nameof(IsFilterWarn));
+        OnPropertyChanged(nameof(IsFilterInfo));
+    }
+
+    public bool IsFilterAll => LogFilterLevel == "All";
+    public bool IsFilterError => LogFilterLevel == "Error";
+    public bool IsFilterWarn => LogFilterLevel == "Warn";
+    public bool IsFilterInfo => LogFilterLevel == "Info";
+
+    [RelayCommand]
+    public void SelectLogFilter(string level)
+    {
+        LogFilterLevel = level;
+    }
+
+    public ObservableCollection<string> LogSources { get; } = new() { "Live Log", "latest.log" };
+
+    [ObservableProperty]
+    private string _selectedLogSource = "Live Log";
+
+    partial void OnSelectedLogSourceChanged(string value) => RefreshLogs();
+
+    [ObservableProperty]
+    private bool _isLogExpanded;
+
+    [RelayCommand]
+    public void ToggleLogExpand()
+    {
+        IsLogExpanded = !IsLogExpanded;
+    }
+
+    public string FilteredLogText
+    {
+        get
+        {
+            if (string.IsNullOrEmpty(LogText)) return "";
+            if (LogFilterLevel == "All" && string.IsNullOrWhiteSpace(LogSearchQuery)) return LogText;
+
+            var lines = LogText.Split('\n');
+            var query = LogSearchQuery?.Trim();
+            var filtered = lines.Where(line =>
+            {
+                if (!string.IsNullOrEmpty(query) && !line.Contains(query, StringComparison.OrdinalIgnoreCase))
+                    return false;
+
+                if (LogFilterLevel == "Error")
+                    return line.Contains("[ERROR]", StringComparison.OrdinalIgnoreCase) ||
+                           line.Contains("FATAL", StringComparison.OrdinalIgnoreCase) ||
+                           line.Contains("Exception", StringComparison.OrdinalIgnoreCase);
+
+                if (LogFilterLevel == "Warn")
+                    return line.Contains("[WARN", StringComparison.OrdinalIgnoreCase) ||
+                           line.Contains("Warning", StringComparison.OrdinalIgnoreCase);
+
+                if (LogFilterLevel == "Info")
+                    return line.Contains("[INFO", StringComparison.OrdinalIgnoreCase);
+
+                return true;
+            });
+
+            return string.Join('\n', filtered);
+        }
+    }
+
     public Avalonia.Media.TextWrapping LogTextWrapping =>
         LogsWrapLines ? Avalonia.Media.TextWrapping.Wrap : Avalonia.Media.TextWrapping.NoWrap;
 
@@ -461,6 +538,7 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
 
             LogText = text;
             LogHasContent = hasContent;
+            OnPropertyChanged(nameof(FilteredLogText));
         }
         catch { }
         finally

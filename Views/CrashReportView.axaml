@@ -61,6 +61,26 @@
                     </StackPanel>
                 </Border>
 
+                <!-- Solution Steps -->
+                <Border Classes="zenSection" Background="{DynamicResource AccentDimBrush}" BorderBrush="{DynamicResource AccentBrush}"
+                        BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,2,0,2"
+                        IsVisible="{Binding HasSolutionSteps}">
+                    <StackPanel Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                            <PathIcon Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" Width="13" Height="13" Foreground="{DynamicResource AccentBrush}"/>
+                            <TextBlock Text="Recommended Solution Steps" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/>
+                        </StackPanel>
+                        <ItemsControl ItemsSource="{Binding SolutionSteps}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" FontSize="12" TextWrapping="Wrap"
+                                               Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,2"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
                 <StackPanel Spacing="5"
                             IsVisible="{Binding Requirements.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsNonZero}}">
                     <TextBlock Classes="rowTitle" Text="{l10n:Tr crash_mods_check}"/>

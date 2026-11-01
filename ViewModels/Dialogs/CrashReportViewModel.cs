@@ -15,6 +15,8 @@ public sealed class CrashReportViewModel : ViewModelBase
     public string ExitCodeLine { get; }
     public IReadOnlyList<string> Evidence => Analysis.Evidence;
     public IReadOnlyList<string> Requirements => Analysis.Requirements ?? Array.Empty<string>();
+    public IReadOnlyList<string> SolutionSteps => Analysis.SolutionSteps ?? Array.Empty<string>();
+    public bool HasSolutionSteps => SolutionSteps.Count > 0;
 
     public CrashReportViewModel(CrashAnalysis analysis)
     {

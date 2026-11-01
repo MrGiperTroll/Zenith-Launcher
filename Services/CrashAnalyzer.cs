@@ -14,7 +14,8 @@ public sealed record CrashAnalysis(
     IReadOnlyList<string> Evidence,
     string LogPath,
     int ExitCode,
-    IReadOnlyList<string>? Requirements = null);
+    IReadOnlyList<string>? Requirements = null,
+    IReadOnlyList<string>? SolutionSteps = null);
 
 /// <summary>
 /// Log-based crash classifier. Reads the game log tail (and the newest
@@ -33,6 +34,7 @@ public static class CrashAnalyzer
     {
         var evidence = new List<string>();
         var requirements = new List<string>();
+        var solutionSteps = new List<string>();
         var logText = ReadLogTail(instanceLogPath, instanceBasePath);
 
         string title = L10n.T("crash_generic_title");
@@ -46,15 +48,19 @@ public static class CrashAnalyzer
             {
                 cause = "Manual debug crash (Shift+F3+C)";
                 evidence.AddRange(PickLines(logText, "Manually triggered debug crash", 2));
-                return Build(title, human, cause, evidence, requirements, instanceLogPath, exitCode);
+                solutionSteps.Add("No action required. The crash was manually triggered via keyboard shortcut Shift+F3+C.");
+                return Build(title, human, cause, evidence, requirements, solutionSteps, instanceLogPath, exitCode);
             }
 
             // 2. Out of memory.
             var oom = PickLines(logText, "OutOfMemoryError|Out of memory|Failed to allocate|Memory allocation failed", 3);
             if (oom.Count > 0)
             {
+                solutionSteps.Add("1. Open Profile Settings and navigate to Memory (RAM).");
+                solutionSteps.Add("2. Increase Allocated RAM (recommended: 4096 MB - 6144 MB for modded Minecraft).");
+                solutionSteps.Add("3. Close memory-heavy background applications before launching.");
                 return Build(L10n.T("crash_mem_title"), L10n.T("crash_mem_human"),
-                    "Java heap exhausted", oom, requirements, instanceLogPath, exitCode);
+                    "Java heap exhausted", oom, requirements, solutionSteps, instanceLogPath, exitCode);
             }
 
             // 3. Wrong Java (class file version -> required major).
@@ -65,10 +71,13 @@ public static class CrashAnalyzer
             {
                 var needJava = classMajor >= 69 ? 25 : classMajor >= 65 ? 21 : classMajor >= 61 ? 17 : classMajor >= 55 ? 11 : 8;
                 requirements.Add($"Requires Java {needJava} (class file {classMajor})");
+                solutionSteps.Add($"1. Open Profile Settings -> Java Runtime.");
+                solutionSteps.Add($"2. Set Java Mode to 'Recommended' or select Java {needJava}.");
+                solutionSteps.Add($"3. If Java {needJava} is not available, install it via Settings -> Java Runtimes.");
                 return Build(L10n.T("crash_java_title"), L10n.T("crash_java_human"),
                     $"Game needs Java {needJava}",
                     PickLines(logText, "UnsupportedClassVersionError|class file version|has been compiled by a more recent version", 3),
-                    requirements, instanceLogPath, exitCode);
+                    requirements, solutionSteps, instanceLogPath, exitCode);
             }
 
             // 4. Missing mod dependencies.
@@ -81,8 +90,11 @@ public static class CrashAnalyzer
                 if (modNames.Count > 0)
                     evidence.Add(string.Format(L10n.T("crash_mods_names"), string.Join(", ", modNames.Take(5))));
                 evidence.AddRange(depLines);
+                solutionSteps.Add("1. Review the required dependencies listed in the Requirements section above.");
+                solutionSteps.Add("2. Use the Content Browser to search and install the missing mods.");
+                solutionSteps.Add("3. Ensure that all installed mods match your mod loader (Fabric vs Forge vs NeoForge).");
                 return Build(L10n.T("crash_mods_title"), L10n.T("crash_mods_human"),
-                    "Missing or incompatible mod dependency", evidence, requirements, instanceLogPath, exitCode);
+                    "Missing or incompatible mod dependency", evidence, requirements, solutionSteps, instanceLogPath, exitCode);
             }
 
             // 5. Mod conflict / broken mod code.
@@ -92,39 +104,52 @@ public static class CrashAnalyzer
                 if (modNames.Count > 0)
                     evidence.Add(string.Format(L10n.T("crash_mods_names"), string.Join(", ", modNames.Take(5))));
                 evidence.AddRange(conflict);
+                solutionSteps.Add("1. Review the faulting mod or mixin in the Details section below.");
+                solutionSteps.Add("2. In Profile -> Mods, temporarily disable the conflicting mod to test.");
+                solutionSteps.Add("3. Update the mod to the latest version matching your Minecraft version.");
                 return Build(L10n.T("crash_mods_title"), L10n.T("crash_mods_human"),
-                    "Incompatible or broken mod", evidence, requirements, instanceLogPath, exitCode);
+                    "Incompatible or broken mod", evidence, requirements, solutionSteps, instanceLogPath, exitCode);
             }
 
             // 6. Graphics / driver.
             var gpu = PickLines(logText, @"EXCEPTION_ACCESS_VIOLATION|ig[0-9][a-z0-9_]*\.dll|atio6axx|nvoglv|Pixel format not accelerated|GLFW error 6554|Failed to create.*context|OpenGL", 3);
             if (gpu.Count > 0)
             {
+                solutionSteps.Add("1. Update your graphics card drivers (NVIDIA, AMD, or Intel).");
+                solutionSteps.Add("2. For laptops with dual GPUs, force the High-Performance discrete GPU.");
+                solutionSteps.Add("3. Disable active Shader Packs or incompatible graphics mods.");
                 return Build(L10n.T("crash_gpu_title"), L10n.T("crash_gpu_human"),
-                    "Graphics driver / OpenGL failure", gpu, requirements, instanceLogPath, exitCode);
+                    "Graphics driver / OpenGL failure", gpu, requirements, solutionSteps, instanceLogPath, exitCode);
             }
 
             // 7. Disk full / access denied.
             if (ContainsAny(logText, "No space left on device|Disk quota exceeded|There is not enough space on the disk"))
             {
+                solutionSteps.Add("1. Free up disk space on the drive where Zenith and instances are stored.");
+                solutionSteps.Add("2. Empty the Recycle Bin and delete old temporary files.");
                 return Build(L10n.T("crash_disk_title"), L10n.T("crash_disk_human"),
                     "Drive ran out of free space",
                     PickLines(logText, "No space left|Disk quota|not enough space", 2),
-                    requirements, instanceLogPath, exitCode);
+                    requirements, solutionSteps, instanceLogPath, exitCode);
             }
             var perm = PickLines(logText, "AccessDeniedException|Access to the path .* denied|Permission denied|Failed to (create|write|save).* (directory|file)", 2);
             if (perm.Count > 0)
             {
+                solutionSteps.Add("1. Ensure the game folder is not set to Read-Only or locked by another app.");
+                solutionSteps.Add("2. Add the Zenith Launcher directory to your antivirus exclusions.");
                 return Build(L10n.T("crash_perm_title"), L10n.T("crash_perm_human"),
-                    "Cannot write game files", perm, requirements, instanceLogPath, exitCode);
+                    "Cannot write game files", perm, requirements, solutionSteps, instanceLogPath, exitCode);
             }
 
             // 8. Corrupted jars / locked world.
             var corrupt = PickLines(logText, "Invalid or corrupt jarfile|ZipException|zip file is empty|Session lock|already locked|Level .*(corrupt|damaged)|Failed to read level", 3);
             if (corrupt.Count > 0)
             {
+                solutionSteps.Add("1. Close any hanging javaw.exe processes in Task Manager.");
+                solutionSteps.Add("2. If a world is locked, delete 'session.lock' in the world save folder.");
+                solutionSteps.Add("3. Redownload corrupt mod jar files or restore world from backup.");
                 return Build(L10n.T("crash_corrupt_title"), L10n.T("crash_corrupt_human"),
-                    "Damaged game or world files", corrupt, requirements, instanceLogPath, exitCode);
+                    "Damaged game or world files", corrupt, requirements, solutionSteps, instanceLogPath, exitCode);
             }
 
             // 9. Crash-report description / first error as a last hint.
@@ -138,20 +163,25 @@ public static class CrashAnalyzer
         if (exitCode == 137 || exitCode == -1073741819)
         {
             cause = "Process killed (exit 137 — often the system OOM-killer)";
+            solutionSteps.Add("1. Increase RAM allocation in Profile Settings -> Memory.");
+            solutionSteps.Add("2. Close background applications to free up system memory.");
             return Build(L10n.T("crash_mem_title"), L10n.T("crash_mem_human"), cause,
-                evidence, requirements, instanceLogPath, exitCode);
+                evidence, requirements, solutionSteps, instanceLogPath, exitCode);
         }
 
-        return Build(title, human, cause, evidence, requirements, instanceLogPath, exitCode);
+        solutionSteps.Add("1. Click 'Open Log' below to inspect the full game log.");
+        solutionSteps.Add("2. Disable recently added mods or test with a clean profile.");
+        return Build(title, human, cause, evidence, requirements, solutionSteps, instanceLogPath, exitCode);
     }
 
     private static CrashAnalysis Build(string title, string human, string cause,
-        List<string> evidence, List<string> requirements, string logPath, int exitCode)
+        List<string> evidence, List<string> requirements, List<string> solutionSteps, string logPath, int exitCode)
     {
         var ev = evidence.Take(MaxEvidence).ToList();
         ev.Insert(0, string.Format(L10n.T("crash_exit_code"), exitCode));
         return new CrashAnalysis(title, human, cause, ev, logPath, exitCode,
-            requirements.Count > 0 ? requirements : null);
+            requirements.Count > 0 ? requirements : null,
+            solutionSteps.Count > 0 ? solutionSteps : null);
     }
 
     private static bool ContainsAny(string text, string alternation) =>

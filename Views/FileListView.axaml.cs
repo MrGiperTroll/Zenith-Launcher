@@ -69,7 +69,19 @@ public partial class FileListView : UserControl
     private void OnEntryDoubleTapped(object? sender, TappedEventArgs e)
     {
         if (sender is Control { DataContext: Models.InstanceFileEntry entry } && DataContext is FileListViewModel vm)
-            vm.ShowDetailsCommand.Execute(entry);
+        {
+            if (vm.IsGalleryMode)
+                vm.OpenFileCommand.Execute(entry);
+            else
+                vm.ShowDetailsCommand.Execute(entry);
+        }
+        e.Handled = true;
+    }
+
+    private void OnGalleryItemDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        if (sender is Control { DataContext: Models.InstanceFileEntry entry } && DataContext is FileListViewModel vm)
+            vm.OpenFileCommand.Execute(entry);
         e.Handled = true;
     }
 }

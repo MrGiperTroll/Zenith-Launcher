@@ -162,16 +162,23 @@
                     <ListBox.ItemTemplate>
                         <DataTemplate x:DataType="models:InstanceFileEntry">
 <Border Width="190" CornerRadius="10" Background="{StaticResource CardBrush}"
-                                        BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" ClipToBounds="True">
+                                        BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" ClipToBounds="True"
+                                        DoubleTapped="OnGalleryItemDoubleTapped">
                                 <StackPanel>
                                     <Border Height="112" Background="{StaticResource CardAltBrush}" ClipToBounds="True">
-                                        <Panel>
-                                            <Image Source="{Binding PreviewBytes, Converter={x:Static converters:BytesToBitmapConverter.Instance}}" Stretch="Uniform" Width="188" Height="112"
-                                                   HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding HasPreview}"/>
-                                            <Path Data="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01 3.5-4.51 4.5 6H5l3.5-4.5z"
-                                                  Width="42" Height="42" Stretch="Uniform" Fill="{StaticResource TextPlaceholderBrush}"
-                                                  HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding !HasPreview}"/>
-                                        </Panel>
+                                        <Button Command="{Binding $parent[UserControl].DataContext.OpenFileCommand}" CommandParameter="{Binding}"
+                                                Padding="0" BorderThickness="0" Background="Transparent"
+                                                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                                                HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Cursor="Hand"
+                                                ToolTip.Tip="{l10n:Tr Key=fl_open}">
+                                            <Panel>
+                                                <Image Source="{Binding PreviewBytes, Converter={x:Static converters:BytesToBitmapConverter.Instance}}" Stretch="Uniform" Width="188" Height="112"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding HasPreview}"/>
+                                                <Path Data="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01 3.5-4.51 4.5 6H5l3.5-4.5z"
+                                                      Width="42" Height="42" Stretch="Uniform" Fill="{StaticResource TextPlaceholderBrush}"
+                                                      HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding !HasPreview}"/>
+                                            </Panel>
+                                        </Button>
                                     </Border>
                                     <StackPanel Spacing="2" Margin="10,8,10,10">
                                         <TextBlock Text="{Binding Title}" FontSize="12" FontWeight="SemiBold"

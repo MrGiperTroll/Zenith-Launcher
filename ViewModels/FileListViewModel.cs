@@ -428,6 +428,11 @@ public partial class FileListViewModel : ObservableObject
         if (entry == null || string.IsNullOrEmpty(entry.FullPath)) return;
         try
         {
+            if (!File.Exists(entry.FullPath))
+            {
+                _reportError($"File not found: {entry.FullPath}");
+                return;
+            }
             Process.Start(new ProcessStartInfo { FileName = entry.FullPath, UseShellExecute = true });
         }
         catch (Exception ex)
@@ -461,6 +466,12 @@ public partial class FileListViewModel : ObservableObject
     private void ShowDetails(InstanceFileEntry entry)
     {
         if (entry == null) return;
+
+        if (_kind == InstanceFileKind.Screenshot)
+        {
+            OpenFile(entry);
+            return;
+        }
 
         if (OpenProjectDetails != null)
         {

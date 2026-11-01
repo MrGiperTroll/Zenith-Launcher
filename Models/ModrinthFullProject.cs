@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using SkiaSharp;
@@ -503,6 +504,57 @@ dependencies {{
                 return $"{days} {(days == 1 ? "day" : "days")} ago";
             }
             return "today";
+        }
+    }
+
+    private static readonly IBrush ReleaseBrush = new SolidColorBrush(Color.Parse("#10B981"));
+    private static readonly IBrush BetaBrush = new SolidColorBrush(Color.Parse("#F59E0B"));
+    private static readonly IBrush AlphaBrush = new SolidColorBrush(Color.Parse("#EF4444"));
+
+    public IBrush TimelineColorBrush
+    {
+        get
+        {
+            var vt = VersionType?.ToLowerInvariant() ?? "";
+            var n = Name ?? "";
+            if (vt == "alpha" || n.Contains("alpha", StringComparison.OrdinalIgnoreCase)) return AlphaBrush;
+            if (vt == "beta" || n.Contains("beta", StringComparison.OrdinalIgnoreCase) || n.Contains("snapshot", StringComparison.OrdinalIgnoreCase) || n.Contains("-rc", StringComparison.OrdinalIgnoreCase) || n.Contains("-pre", StringComparison.OrdinalIgnoreCase)) return BetaBrush;
+            return ReleaseBrush;
+        }
+    }
+
+    public bool HasChangelogLines => ChangelogBulletLines.Count > 0;
+
+    public IReadOnlyList<string> ChangelogBulletLines
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(Changelog)) return Array.Empty<string>();
+            var rawLines = Changelog.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            var result = new List<string>();
+            foreach (var r in rawLines)
+            {
+                var line = r.Trim();
+                if (string.IsNullOrWhiteSpace(line)) continue;
+                if (line.StartsWith("#"))
+                {
+                    line = line.TrimStart('#').Trim();
+                    if (string.IsNullOrWhiteSpace(line)) continue;
+                }
+                if (line.StartsWith("- ") || line.StartsWith("* ") || line.StartsWith("+ "))
+                {
+                    line = line[2..].TrimStart();
+                }
+                line = Common.Utils.MarkdownSanitizer.Clean(line).Trim();
+                if (string.IsNullOrWhiteSpace(line)) continue;
+                if (!line.StartsWith("\u2022"))
+                {
+                    line = "\u2022 " + line;
+                }
+                result.Add(line);
+                if (result.Count >= 25) break;
+            }
+            return result;
         }
     }
 }

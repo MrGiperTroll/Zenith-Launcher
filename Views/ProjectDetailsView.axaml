@@ -281,6 +281,26 @@
             <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
             <Setter Property="TextDecorations" Value="Underline"/>
         </Style>
+
+        <Style Selector="Button.authorLinkBtn">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <TextBlock Text="{TemplateBinding Content}"
+                               FontSize="{TemplateBinding FontSize}"
+                               Foreground="{TemplateBinding Foreground}"
+                               VerticalAlignment="Center"/>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="Button.authorLinkBtn:pointerover TextBlock">
+            <Setter Property="TextDecorations" Value="Underline"/>
+        </Style>
 </UserControl.Styles>
 
     <Panel>
@@ -907,37 +927,47 @@
                                     </Grid>
 
                                                                         <!-- Timeline items container matching Modrinth background -->
-                                    <Border Background="{StaticResource FieldBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="10" Padding="18,14" MaxWidth="960" HorizontalAlignment="Left">
+                                    <Border Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="10" Padding="20,16" HorizontalAlignment="Stretch">
                                         <ItemsControl ItemsSource="{Binding VersionList}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate x:DataType="models:ModrinthProjectVersion">
-                                                    <Border Classes="changelogRow" Padding="0,7" Margin="0" Background="Transparent">
-                                                        <Grid ColumnDefinitions="32,*,Auto" VerticalAlignment="Center">
-                                                            <!-- Timeline: Vertical Dashed Line + Centered Solid Dot -->
+                                                    <Border Classes="changelogRow" Padding="0,6" Margin="0" Background="Transparent">
+                                                        <Grid ColumnDefinitions="28,*,Auto">
+                                                            <!-- Timeline: Vertical Line running downwards from node -->
                                                             <Grid Grid.Column="0" VerticalAlignment="Stretch" Width="20" HorizontalAlignment="Center">
                                                                 <Rectangle Width="2" HorizontalAlignment="Center" VerticalAlignment="Stretch"
-                                                                           Stroke="{DynamicResource AccentBrush}" StrokeDashArray="3,3" StrokeThickness="2"/>
-                                                                <Ellipse Width="10" Height="10" Fill="{DynamicResource AccentBrush}"
-                                                                         VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                                                           Fill="{Binding TimelineColorBrush}" Margin="0,10,0,0"/>
+                                                                <Ellipse Width="10" Height="10" Fill="{Binding TimelineColorBrush}"
+                                                                         VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,4,0,0"/>
                                                             </Grid>
 
-                                                            <!-- Title & Author & Date (Exact Screenshot 1 layout) -->
-                                                            <WrapPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="6,0,12,0">
-                                                                <Button Classes="versionTitleBtn" Content="{Binding Name}" Click="OnVersionRowTapped" Margin="0,0,6,0" VerticalAlignment="Center" FontWeight="Bold" FontSize="13"/>
-                                                                <TextBlock Text="by " FontSize="12" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,4,0"/>
-                                                                <Button Classes="authorLinkBtn" Content="{Binding AuthorName}" Tag="{Binding AuthorName}" Click="OnAuthorTapped"
-                                                                        FontSize="12" Foreground="{DynamicResource AccentBrush}" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                                                                <TextBlock Text="{Binding DateReleaseDisplay}" Foreground="{StaticResource TextMutedBrush}" FontSize="12" VerticalAlignment="Center"/>
-                                                            </WrapPanel>
+                                                            <!-- Title, Author, Date & Changelog Lines -->
+                                                            <StackPanel Grid.Column="1" VerticalAlignment="Top" Margin="8,0,16,10" Spacing="4">
+                                                                <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                    <Button Classes="versionTitleBtn" Content="{Binding Name}" Click="OnVersionRowTapped" Margin="0,0,6,0" VerticalAlignment="Center" FontWeight="Bold" FontSize="13"/>
+                                                                    <TextBlock Text="by " FontSize="12" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                                                    <Button Classes="authorLinkBtn" Content="{Binding AuthorName}" Tag="{Binding AuthorName}" Click="OnAuthorTapped"
+                                                                            FontSize="12" Foreground="{DynamicResource AccentBrush}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                                    <TextBlock Text="{Binding DateReleaseDisplay}" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" VerticalAlignment="Center"/>
+                                                                </WrapPanel>
 
-                                                            <!-- Download Action Button matching Screenshot 1 -->
-                                                            <Button Grid.Column="2" Classes="changelogDownloadBtn" Click="OnDownloadVersionClicked"
-                                                                    VerticalAlignment="Center" ToolTip.Tip="Download Version">
-                                                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                                                    <PathIcon Data="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" Width="13" Height="13"
-                                                                              Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
-                                                                    <TextBlock Text="Download" FontSize="12" FontWeight="Bold"
-                                                                               Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                                                                <ItemsControl ItemsSource="{Binding ChangelogBulletLines}" Margin="0,4,0,4"
+                                                                              IsVisible="{Binding HasChangelogLines}">
+                                                                    <ItemsControl.ItemTemplate>
+                                                                        <DataTemplate>
+                                                                            <TextBlock Text="{Binding}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
+                                                                                       TextWrapping="Wrap" Margin="0,1,0,1"/>
+                                                                        </DataTemplate>
+                                                                    </ItemsControl.ItemTemplate>
+                                                                </ItemsControl>
+                                                            </StackPanel>
+
+                                                            <!-- Download Action Button matching Versions tab -->
+                                                            <Button Grid.Column="2" Classes="actionBtn" Width="104" Height="28" Padding="0" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0"
+                                                                    Click="OnDownloadVersionClicked" ToolTip.Tip="Download and install">
+                                                                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                                    <TextBlock Text="&#x2193;" FontWeight="Bold" FontSize="13"/>
+                                                                    <TextBlock Text="Download" FontWeight="Bold" FontSize="11.5"/>
                                                                 </StackPanel>
                                                             </Button>
                                                         </Grid>

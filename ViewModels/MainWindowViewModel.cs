@@ -2931,20 +2931,67 @@ public partial class MainWindowViewModel : ViewModelBase
         GoBack();
     }
 
-        [RelayCommand]
-    private void OpenCopyDialog(InstanceModel instance)
+    [RelayCommand]
+    private async Task OpenCopyDialog(InstanceModel instance)
     {
         var inst = instance ?? SelectedInstance;
         if (inst == null) return;
 
-        CloneDialogVm = new CloneProfileViewModel(inst, _instanceService);
-        CloneDialogVm.Cloned += created =>
+        var existingNames = _instanceService.GetInstances().Select(i => i.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        string copyName = $"{inst.Name} (Copy)";
+        int counter = 2;
+        while (existingNames.Contains(copyName))
         {
-            Instances.Add(created);
-            SelectedInstance = created;
-        };
-        CloneDialogVm.RequestClose += () => IsCloneDialogOpen = false;
-        IsCloneDialogOpen = true;
+            copyName = $"{inst.Name} (Copy {counter})";
+            counter++;
+        }
+
+        StatusText = $"Cloning {inst.Name}...";
+        var created = await _instanceService.CreateInstanceAsync(copyName, inst.Version, inst.LoaderType);
+        if (created == null) return;
+
+        try
+        {
+            await Task.Run(() =>
+            {
+                if (Directory.Exists(inst.Path) && Directory.Exists(created.Path))
+                {
+                    CopyTree(inst.Path, created.Path);
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Error($"Failed to copy instance directory during clone: {inst.Name}", ex);
+        }
+
+        await _instanceService.SaveInstanceAsync(created);
+        Instances.Add(created);
+        SelectedInstance = created;
+        StatusText = $"Profile '{copyName}' cloned successfully.";
+    }
+
+    private static void CopyTree(string sourceDir, string destinationDir)
+    {
+        var dir = new DirectoryInfo(sourceDir);
+        if (!dir.Exists) return;
+
+        Directory.CreateDirectory(destinationDir);
+        foreach (var file in dir.GetFiles())
+        {
+            if (file.Name.EndsWith(".lock", StringComparison.OrdinalIgnoreCase)) continue;
+            try { file.CopyTo(Path.Combine(destinationDir, file.Name), true); } catch { }
+        }
+
+        foreach (var subDir in dir.GetDirectories())
+        {
+            if (subDir.Name.Equals(".fabric", StringComparison.OrdinalIgnoreCase) ||
+                subDir.Name.Equals(".quilt", StringComparison.OrdinalIgnoreCase) ||
+                subDir.Name.Equals("crash-reports", StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            try { CopyTree(subDir.FullName, Path.Combine(destinationDir, subDir.Name)); } catch { }
+        }
     }
 
 

@@ -968,57 +968,7 @@
                 </Border>
             </Border>
 
-            <!-- Clone Profile Modal -->
-            <Border IsVisible="{Binding IsCloneDialogOpen}" Background="{StaticResource OverlayBrush}"  ZIndex="150">
-                <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="16" Padding="24" Width="460" HorizontalAlignment="Center" VerticalAlignment="Center"  DataContext="{Binding CloneDialogVm}">
-                    <Grid RowDefinitions="Auto,*,Auto">
-                        <!-- Header -->
-                        <StackPanel Grid.Row="0" Spacing="2" Margin="0,0,0,16">
-                            <TextBlock Text="{l10n:Tr Key=clone_title}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                            <TextBlock Text="{Binding SourceTitle}" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis"/>
-                        </StackPanel>
-
-                        <!-- Content -->
-                        <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-                            <StackPanel Spacing="14">
-                                <StackPanel Spacing="4">
-                                    <TextBlock Text="{l10n:Tr Key=clone_new_name}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                    <Border BorderThickness="1" CornerRadius="10" Background="{StaticResource InputBrush}"
-                                            BorderBrush="{Binding IsNameDuplicate, Converter={x:Static converters:BoolToErrorBrushConverter.Instance}}">
-                                        <TextBox Classes="darkInput" Text="{Binding ProfileName}" PlaceholderText="{l10n:Tr Key=clone_ph}" BorderThickness="0"/>
-                                    </Border>
-                                    <TextBlock Text="{l10n:Tr Key=cp_duplicate}" FontSize="11" Foreground="{StaticResource DangerBrush}" IsVisible="{Binding IsNameDuplicate}" Margin="0,2,0,0"/>
-                                </StackPanel>
-
-                                <Border Background="{StaticResource CardBrush}" CornerRadius="12" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" Padding="14,10">
-                                    <StackPanel Spacing="2">
-                                        <CheckBox Content="{l10n:Tr Key=clone_select_all}" IsChecked="{Binding SelectAll}" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                        <Separator Background="{StaticResource BorderCardSoftBrush}" Margin="0,4,0,6"/>
-                                        <CheckBox Content="{l10n:Tr Key=tab_mods}" IsChecked="{Binding CopyMods}"/>
-                                        <CheckBox Content="{l10n:Tr Key=tab_resourcepacks}" IsChecked="{Binding CopyResourcePacks}"/>
-                                        <CheckBox Content="{l10n:Tr Key=tab_shaders}" IsChecked="{Binding CopyShaderPacks}"/>
-                                        <CheckBox Content="{l10n:Tr Key=clone_configs}" IsChecked="{Binding CopyConfigs}"/>
-                                        <CheckBox Content="Options (options.txt)" IsChecked="{Binding CopyOptions}"/>
-                                        <CheckBox Content="Servers (servers.dat)" IsChecked="{Binding CopyServers}"/>
-                                        <CheckBox Content="{l10n:Tr Key=clone_worlds}" IsChecked="{Binding CopyWorlds}"/>
-                                        <CheckBox Content="{l10n:Tr Key=tab_datapacks}" IsChecked="{Binding CopyDataPacks}"/>
-                                        <CheckBox Content="Screenshots" IsChecked="{Binding CopyScreenshots}"/>
-                                        <CheckBox Content="Logs" IsChecked="{Binding CopyLogs}"/>
-                                    </StackPanel>
-                                </Border>
-                            </StackPanel>
-                        </ScrollViewer>
-
-                        <!-- Footer -->
-                        <Grid Grid.Row="2" ColumnDefinitions="*,*" Margin="0,16,0,0">
-                            <Button Grid.Column="0" Content="{l10n:Tr Key=cancel}" Command="{Binding CancelCommand}" Classes="subBtn" HorizontalContentAlignment="Center" Margin="0,0,6,0"/>
-                            <Button Grid.Column="1" Classes="primaryBtn" Content="{l10n:Tr Key=create}" Command="{Binding CloneCommand}" IsEnabled="{Binding CanClone}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="6,0,0,0"/>
-                        </Grid>
-                    </Grid>
-                </Border>
-            </Border>
-
-                <!-- Modpacks View -->
+            <!-- Modpacks View -->
                     <Grid IsVisible="{Binding IsModpacksView}" Classes="viewPane" Margin="0,0,16,0" x:Name="ModpacksPane">
                         <Grid RowDefinitions="Auto,*" IsVisible="{Binding !ModpacksBrowser.IsDetailsOpen}">
                             <!-- Filters directly on page background -->

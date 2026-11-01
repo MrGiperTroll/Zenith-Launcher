@@ -9,9 +9,23 @@ namespace CustomMcLauncher;
 
 class Program
 {
+    [System.Runtime.InteropServices.DllImport("shell32.dll", SetLastError = true)]
+    private static extern void SetCurrentProcessExplicitAppUserModelID([System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.LPWStr)] string AppID);
+
     [STAThread]
     public static int Main(string[] args)
     {
+        if (OperatingSystem.IsWindows())
+        {
+            try
+            {
+                SetCurrentProcessExplicitAppUserModelID("Zenith.Launcher");
+            }
+            catch
+            {
+            }
+        }
+
         // Headless Discord RPC validation: connects to the real desktop client,
         // performs the handshake, sends a presence and requires the echo
         // acknowledgement. Exit code 0 = PASS, 3 = FAIL.

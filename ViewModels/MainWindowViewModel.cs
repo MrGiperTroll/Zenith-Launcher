@@ -1092,12 +1092,22 @@ public partial class MainWindowViewModel : ViewModelBase
 
         if (CurrentPage == LauncherNavPage.ContentBrowser && CurrentContentBrowserVm?.SelectedProject != null)
         {
+            if (CurrentContentBrowserVm.IsAuthorProfileOpen)
+            {
+                CurrentContentBrowserVm.CloseAuthorProfile();
+                return;
+            }
             CurrentContentBrowserVm.SelectedProject = null;
             return;
         }
 
         if (CurrentPage == LauncherNavPage.Modpacks && ModpacksBrowser?.SelectedProject != null)
         {
+            if (ModpacksBrowser.IsAuthorProfileOpen)
+            {
+                ModpacksBrowser.CloseAuthorProfile();
+                return;
+            }
             ModpacksBrowser.SelectedProject = null;
             return;
         }
@@ -1323,6 +1333,15 @@ public partial class MainWindowViewModel : ViewModelBase
                     RebuildBreadcrumbs(cur);
             }
         };
+        vm.OnAuthorProfileChanged = _ =>
+        {
+            if (_historyIndex >= 0 && _historyIndex < _navHistory.Count)
+            {
+                var cur = _navHistory[_historyIndex];
+                if (cur.Page == LauncherNavPage.ContentBrowser)
+                    RebuildBreadcrumbs(cur);
+            }
+        };
 
         PushHistory(new HistoryEntry
         {
@@ -1434,6 +1453,15 @@ public partial class MainWindowViewModel : ViewModelBase
                         RebuildBreadcrumbs(cur);
                 }
             };
+            CurrentContentBrowserVm.OnAuthorProfileChanged = _ =>
+            {
+                if (_historyIndex >= 0 && _historyIndex < _navHistory.Count)
+                {
+                    var cur = _navHistory[_historyIndex];
+                    if (cur.Page == LauncherNavPage.ContentBrowser)
+                        RebuildBreadcrumbs(cur);
+                }
+            };
         }
 
         OnPropertyChanged(nameof(IsProfilesView));
@@ -1499,6 +1527,7 @@ public partial class MainWindowViewModel : ViewModelBase
             case LauncherNavPage.Modpacks:
                 if (ModpacksBrowser?.SelectedProject != null)
                 {
+                    bool isAuthor = ModpacksBrowser.IsAuthorProfileOpen && ModpacksBrowser.CurrentAuthorProfileVm != null;
                     Breadcrumbs.Add(new BreadcrumbItem
                     {
                         Title = L10n.T("nav_modpacks"),
@@ -1506,14 +1535,33 @@ public partial class MainWindowViewModel : ViewModelBase
                         OnClick = () =>
                         {
                             if (ModpacksBrowser != null)
+                            {
+                                ModpacksBrowser.CloseAuthorProfile();
                                 ModpacksBrowser.SelectedProject = null;
+                            }
                         }
                     });
                     Breadcrumbs.Add(new BreadcrumbItem
                     {
                         Title = ModpacksBrowser.SelectedProject.Title,
-                        IsLast = true
+                        IsLast = !isAuthor,
+                        OnClick = () =>
+                        {
+                            if (ModpacksBrowser != null)
+                                ModpacksBrowser.CloseAuthorProfile();
+                        }
                     });
+                    if (isAuthor)
+                    {
+                        var authorName = !string.IsNullOrWhiteSpace(ModpacksBrowser.CurrentAuthorProfileVm!.Username)
+                            ? ModpacksBrowser.CurrentAuthorProfileVm.Username
+                            : ModpacksBrowser.SelectedProject.Author;
+                        Breadcrumbs.Add(new BreadcrumbItem
+                        {
+                            Title = authorName,
+                            IsLast = true
+                        });
+                    }
                 }
                 else
                 {
@@ -1573,6 +1621,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 }
 
                 var hasSelectedProj = CurrentContentBrowserVm?.SelectedProject != null;
+                bool isAuthorContent = hasSelectedProj && CurrentContentBrowserVm!.IsAuthorProfileOpen && CurrentContentBrowserVm.CurrentAuthorProfileVm != null;
                 Breadcrumbs.Add(new BreadcrumbItem
                 {
                     Title = L10n.T("cb_title"),
@@ -1580,7 +1629,10 @@ public partial class MainWindowViewModel : ViewModelBase
                     OnClick = () =>
                     {
                         if (CurrentContentBrowserVm != null)
+                        {
+                            CurrentContentBrowserVm.CloseAuthorProfile();
                             CurrentContentBrowserVm.SelectedProject = null;
+                        }
                     }
                 });
 
@@ -1589,8 +1641,25 @@ public partial class MainWindowViewModel : ViewModelBase
                     Breadcrumbs.Add(new BreadcrumbItem
                     {
                         Title = CurrentContentBrowserVm.SelectedProject.Title,
-                        IsLast = true
+                        IsLast = !isAuthorContent,
+                        OnClick = () =>
+                        {
+                            if (CurrentContentBrowserVm != null)
+                                CurrentContentBrowserVm.CloseAuthorProfile();
+                        }
                     });
+
+                    if (isAuthorContent)
+                    {
+                        var authorName = !string.IsNullOrWhiteSpace(CurrentContentBrowserVm.CurrentAuthorProfileVm!.Username)
+                            ? CurrentContentBrowserVm.CurrentAuthorProfileVm.Username
+                            : CurrentContentBrowserVm.SelectedProject.Author;
+                        Breadcrumbs.Add(new BreadcrumbItem
+                        {
+                            Title = authorName,
+                            IsLast = true
+                        });
+                    }
                 }
                 break;
 
@@ -1915,6 +1984,15 @@ public partial class MainWindowViewModel : ViewModelBase
             });
         });
         ModpacksBrowser.OnProjectSelectedChanged = _ =>
+        {
+            if (_historyIndex >= 0 && _historyIndex < _navHistory.Count)
+            {
+                var cur = _navHistory[_historyIndex];
+                if (cur.Page == LauncherNavPage.Modpacks)
+                    RebuildBreadcrumbs(cur);
+            }
+        };
+        ModpacksBrowser.OnAuthorProfileChanged = _ =>
         {
             if (_historyIndex >= 0 && _historyIndex < _navHistory.Count)
             {

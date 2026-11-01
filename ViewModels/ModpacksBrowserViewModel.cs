@@ -25,6 +25,8 @@ public partial class ModpacksBrowserViewModel : ObservableObject
 
     public bool IsAuthorProfileOpen => CurrentAuthorProfileVm != null;
 
+    public Action<bool>? OnAuthorProfileChanged { get; set; }
+
     [RelayCommand]
     public void OpenAuthorProfile(string? author)
     {
@@ -34,15 +36,18 @@ public partial class ModpacksBrowserViewModel : ObservableObject
         {
             CurrentAuthorProfileVm = null;
             OnPropertyChanged(nameof(IsAuthorProfileOpen));
+            OnAuthorProfileChanged?.Invoke(false);
         };
         vm.OnOpenProjectRequested = project =>
         {
             CurrentAuthorProfileVm = null;
             OnPropertyChanged(nameof(IsAuthorProfileOpen));
+            OnAuthorProfileChanged?.Invoke(false);
             OpenProjectPage(project);
         };
         CurrentAuthorProfileVm = vm;
         OnPropertyChanged(nameof(IsAuthorProfileOpen));
+        OnAuthorProfileChanged?.Invoke(true);
         _ = vm.LoadAuthorAsync(author);
     }
 
@@ -51,6 +56,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     {
         CurrentAuthorProfileVm = null;
         OnPropertyChanged(nameof(IsAuthorProfileOpen));
+        OnAuthorProfileChanged?.Invoke(false);
     }
 
     private const int PageSize = 20;

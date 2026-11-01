@@ -17,6 +17,8 @@ public partial class AuthorProfileViewModel : ViewModelBase
     [ObservableProperty]
     private ModrinthUserProfile? _profile;
 
+    public string Username => Profile?.Username ?? "";
+
     [ObservableProperty]
     private bool _isLoading = true;
 

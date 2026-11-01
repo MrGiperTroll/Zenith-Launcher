@@ -19,4 +19,5 @@ public interface IAccountService
     /// <summary>Silent startup maintenance: renew stored sessions via refresh tokens. Returns renewed count.</summary>
     Task<int> RefreshAllSessionsAsync(CancellationToken ct = default);
     void RemoveAccount(string accountId);
+    void ReorderAccounts(string sourceId, string targetId, bool dropAfter);
 }

@@ -42,6 +42,7 @@ public partial class AccountRow : ObservableObject
     public string Initial => string.IsNullOrWhiteSpace(Username) ? "?" : Username[..1].ToUpperInvariant();
 
     [ObservableProperty] private bool _isActive;
+    [ObservableProperty] private bool _isDragging;
     [ObservableProperty] private Bitmap? _headImage;
 
     public bool HasHead => HeadImage != null;

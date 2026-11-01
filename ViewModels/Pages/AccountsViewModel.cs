@@ -64,6 +64,38 @@ public partial class AccountsViewModel : ViewModelBase
         _accountService = accountService;
     }
 
+    public void ReorderAccount(string sourceId, string targetId, bool dropAfter, bool save = true)
+    {
+        var row = AccountRows.FirstOrDefault(r => r.Model.Id == sourceId);
+        var targetRow = AccountRows.FirstOrDefault(r => r.Model.Id == targetId);
+        if (row != null && targetRow != null && row != targetRow)
+        {
+            AccountRows.Remove(row);
+            int targetIdx = AccountRows.IndexOf(targetRow);
+            int insertIdx = dropAfter ? targetIdx + 1 : targetIdx;
+            if (insertIdx < 0) insertIdx = 0;
+            if (insertIdx > AccountRows.Count) insertIdx = AccountRows.Count;
+            AccountRows.Insert(insertIdx, row);
+        }
+
+        var acc = Accounts.FirstOrDefault(a => a.Id == sourceId);
+        var targetAcc = Accounts.FirstOrDefault(a => a.Id == targetId);
+        if (acc != null && targetAcc != null && acc != targetAcc)
+        {
+            Accounts.Remove(acc);
+            int targetIdx = Accounts.IndexOf(targetAcc);
+            int insertIdx = dropAfter ? targetIdx + 1 : targetIdx;
+            if (insertIdx < 0) insertIdx = 0;
+            if (insertIdx > Accounts.Count) insertIdx = Accounts.Count;
+            Accounts.Insert(insertIdx, acc);
+        }
+
+        if (save)
+        {
+            _accountService.ReorderAccounts(sourceId, targetId, dropAfter);
+        }
+    }
+
     public void RefreshAccounts()
     {
         var allAccs = _accountService.GetAccounts();

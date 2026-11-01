@@ -189,6 +189,31 @@ public class AccountService : IAccountService
         }
     }
 
+    public void ReorderAccounts(string sourceId, string targetId, bool dropAfter)
+    {
+        lock (_accounts)
+        {
+            var source = _accounts.FirstOrDefault(a => a.Id == sourceId);
+            var target = _accounts.FirstOrDefault(a => a.Id == targetId);
+            if (source == null || target == null || source == target) return;
+
+            _accounts.Remove(source);
+            int targetIdx = _accounts.IndexOf(target);
+            if (targetIdx < 0)
+            {
+                _accounts.Add(source);
+            }
+            else
+            {
+                int insertIdx = dropAfter ? targetIdx + 1 : targetIdx;
+                if (insertIdx < 0) insertIdx = 0;
+                if (insertIdx > _accounts.Count) insertIdx = _accounts.Count;
+                _accounts.Insert(insertIdx, source);
+            }
+            SaveAccounts();
+        }
+    }
+
     private void LoadAccounts()
     {
         if (File.Exists(_accountsFilePath))

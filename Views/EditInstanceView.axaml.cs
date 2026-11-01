@@ -78,7 +78,6 @@ public partial class EditInstanceView : UserControl
                     "Mods" => ModView,
                     "Resource Packs" => ResourceView,
                     "Shader Packs" => ShaderView,
-                    "Worlds" => WorldView,
                     "Screenshots" => ScreenshotView,
                     _ => null
                 };

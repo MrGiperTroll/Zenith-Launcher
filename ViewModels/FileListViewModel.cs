@@ -377,6 +377,26 @@ public partial class FileListViewModel : ObservableObject
     }
 
     [RelayCommand]
+    public async Task ImportFilesAsync()
+    {
+        var topLevel = Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop
+            ? desktop.MainWindow
+            : null;
+        if (topLevel?.StorageProvider == null) return;
+
+        var files = await topLevel.StorageProvider.OpenFilePickerAsync(new Avalonia.Platform.Storage.FilePickerOpenOptions
+        {
+            Title = $"Import {Title}",
+            AllowMultiple = true
+        });
+
+        if (files != null && files.Count > 0)
+        {
+            ImportPaths(files.Select(f => f.Path.LocalPath));
+        }
+    }
+
+    [RelayCommand]
     private void OpenFolder()
     {
         try

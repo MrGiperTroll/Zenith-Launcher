@@ -797,6 +797,248 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
         OnOpenProjectDetails(entry, InstanceFileKind.DataPack);
     }
 
+    // ===== Worlds Management =====
+    [ObservableProperty]
+    private bool _isDeleteWorldConfirmOpen;
+
+    [ObservableProperty]
+    private InstanceFileEntry? _pendingDeleteWorld;
+
+    public string DeleteWorldName => PendingDeleteWorld?.Title ?? PendingDeleteWorld?.Name ?? "";
+
+    [ObservableProperty]
+    private bool _isEditWorldOpen;
+
+    [ObservableProperty]
+    private InstanceFileEntry? _editingWorld;
+
+    [ObservableProperty]
+    private string _editingWorldName = "";
+
+    [RelayCommand]
+    public void RequestDeleteWorld(InstanceFileEntry? world)
+    {
+        if (world == null) return;
+        PendingDeleteWorld = world;
+        OnPropertyChanged(nameof(DeleteWorldName));
+        IsDeleteWorldConfirmOpen = true;
+    }
+
+    [RelayCommand]
+    public void CancelDeleteWorld()
+    {
+        PendingDeleteWorld = null;
+        IsDeleteWorldConfirmOpen = false;
+    }
+
+    [RelayCommand]
+    public async Task ConfirmDeleteWorldAsync()
+    {
+        var world = PendingDeleteWorld;
+        IsDeleteWorldConfirmOpen = false;
+        PendingDeleteWorld = null;
+        if (world == null) return;
+
+        await Task.Run(() =>
+        {
+            try
+            {
+                if (Directory.Exists(world.FullPath))
+                    Directory.Delete(world.FullPath, true);
+            }
+            catch (Exception ex)
+            {
+                LauncherLog.Error($"Failed to delete world '{world.Name}'", ex);
+            }
+        });
+
+        _ = WorldList.RefreshAsync();
+        RefreshAvailableWorlds();
+    }
+
+    [RelayCommand]
+    public void OpenEditWorldDialog(InstanceFileEntry? world)
+    {
+        if (world == null) return;
+        EditingWorld = world;
+        EditingWorldName = world.Title;
+        IsEditWorldOpen = true;
+    }
+
+    [RelayCommand]
+    public void CancelEditWorld()
+    {
+        EditingWorld = null;
+        EditingWorldName = "";
+        IsEditWorldOpen = false;
+    }
+
+    [RelayCommand]
+    public void SaveEditWorld()
+    {
+        if (EditingWorld == null || string.IsNullOrWhiteSpace(EditingWorldName)) return;
+        var newName = EditingWorldName.Trim();
+        try
+        {
+            EditingWorld.Title = newName;
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Error($"Failed to rename world '{EditingWorld.Name}'", ex);
+        }
+        IsEditWorldOpen = false;
+        EditingWorld = null;
+    }
+
+    [RelayCommand]
+    public void OpenWorldFolder(InstanceFileEntry? world)
+    {
+        if (world == null || !Directory.Exists(world.FullPath)) return;
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = world.FullPath,
+                UseShellExecute = true,
+                Verb = "open"
+            });
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Error("Failed to open world folder", ex);
+        }
+    }
+
+    [RelayCommand]
+    public async Task CreateWorldShortcutAsync(InstanceFileEntry? world)
+    {
+        if (world == null) return;
+        await _host.CreateDesktopShortcutCommand.ExecuteAsync(Instance);
+    }
+
+    [RelayCommand]
+    public async Task LaunchWorldAsync(InstanceFileEntry? world)
+    {
+        if (world == null) return;
+        SaveSettings();
+        _host.LaunchSpecificInstanceCommand.Execute(Instance);
+        await Task.CompletedTask;
+    }
+
+    // ===== Servers Management =====
+    [ObservableProperty]
+    private bool _isDeleteServerConfirmOpen;
+
+    [ObservableProperty]
+    private InstanceFileEntry? _pendingDeleteServer;
+
+    public string DeleteServerName => PendingDeleteServer?.Title ?? PendingDeleteServer?.Subtitle ?? "";
+
+    [ObservableProperty]
+    private bool _isAddServerOpen;
+
+    [ObservableProperty]
+    private string _newServerName = "";
+
+    [ObservableProperty]
+    private string _newServerIp = "";
+
+    [RelayCommand]
+    public void RequestDeleteServer(InstanceFileEntry? server)
+    {
+        if (server == null) return;
+        PendingDeleteServer = server;
+        OnPropertyChanged(nameof(DeleteServerName));
+        IsDeleteServerConfirmOpen = true;
+    }
+
+    [RelayCommand]
+    public void CancelDeleteServer()
+    {
+        PendingDeleteServer = null;
+        IsDeleteServerConfirmOpen = false;
+    }
+
+    [RelayCommand]
+    public void ConfirmDeleteServer()
+    {
+        var server = PendingDeleteServer;
+        IsDeleteServerConfirmOpen = false;
+        PendingDeleteServer = null;
+        if (server == null) return;
+
+        var file = Path.Combine(Instance.Path, "servers.dat");
+        if (File.Exists(file))
+        {
+            try
+            {
+                var existing = ServersDatService.Read(file);
+                var toRemove = existing.FirstOrDefault(s => s.Ip == server.Subtitle || s.Name == server.Title);
+                if (toRemove != null)
+                {
+                    existing.Remove(toRemove);
+                    ServersDatService.Write(file, existing);
+                }
+            }
+            catch (Exception ex)
+            {
+                LauncherLog.Error("Failed to delete server from servers.dat", ex);
+            }
+        }
+
+        RefreshServers();
+    }
+
+    [RelayCommand]
+    public void OpenAddServerDialog()
+    {
+        NewServerName = "";
+        NewServerIp = "";
+        IsAddServerOpen = true;
+    }
+
+    [RelayCommand]
+    public void CancelAddServer()
+    {
+        NewServerName = "";
+        NewServerIp = "";
+        IsAddServerOpen = false;
+    }
+
+    [RelayCommand]
+    public void SaveAddServer()
+    {
+        if (string.IsNullOrWhiteSpace(NewServerIp)) return;
+        var name = string.IsNullOrWhiteSpace(NewServerName) ? NewServerIp.Trim() : NewServerName.Trim();
+        var ip = NewServerIp.Trim();
+
+        var file = Path.Combine(Instance.Path, "servers.dat");
+        try
+        {
+            var list = File.Exists(file) ? ServersDatService.Read(file) : new List<ServerEntry>();
+            list.Add(new ServerEntry { Name = name, Ip = ip });
+            ServersDatService.Write(file, list);
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Error("Failed to add server to servers.dat", ex);
+        }
+
+        IsAddServerOpen = false;
+        NewServerName = "";
+        NewServerIp = "";
+        RefreshServers();
+    }
+
+    [RelayCommand]
+    public async Task LaunchServerAsync(InstanceFileEntry? server)
+    {
+        if (server == null) return;
+        SaveSettings();
+        _host.LaunchSpecificInstanceCommand.Execute(Instance);
+        await Task.CompletedTask;
+    }
+
     // ----- Settings -----
     public ObservableCollection<string> JavaModes { get; } = new() { "Recommended", "System", "Custom" };
 

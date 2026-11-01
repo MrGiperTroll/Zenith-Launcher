@@ -3160,27 +3160,17 @@ public partial class MainWindowViewModel : ViewModelBase
             if (file != null)
             {
                 var targetPath = file.Path.LocalPath;
-                if (File.Exists(targetPath)) File.Delete(targetPath);
-
-                // Only export relevant modpack folders, not full game directory
-                var relevantFolders = new[] { "mods", "config", "scripts", "kubejs", "shaderpacks", "resourcepacks" };
-                await Task.Run(() =>
+                try
                 {
-                    using var archive = ZipFile.Open(targetPath, ZipArchiveMode.Create);
-                    foreach (var folder in relevantFolders)
-                    {
-                        var folderPath = Path.Combine(instance.Path, folder);
-                        if (Directory.Exists(folderPath))
-                            AddDirectoryToZip(archive, folderPath, folder);
-                    }
-                    // Include manifest files if they exist
-                    foreach (var manifest in new[] { "manifest.json", "modrinth.index.json" })
-                    {
-                        var manifestPath = Path.Combine(instance.Path, manifest);
-                        if (File.Exists(manifestPath))
-                            archive.CreateEntryFromFile(manifestPath, manifest);
-                    }
-                });
+                    StatusText = $"Exporting {instance.Name} to {format}...";
+                    await InstanceExportService.ExportAsync(instance, format, targetPath);
+                    StatusText = $"Exported to {Path.GetFileName(targetPath)} successfully.";
+                }
+                catch (Exception ex)
+                {
+                    LauncherLog.Error($"Export to {format} failed for {instance.Name}", ex);
+                    StatusText = $"Export to {format} failed.";
+                }
             }
         }
     }

@@ -158,7 +158,7 @@ public static class InstanceImportService
         try
         {
             var cfg = ReadIni(Path.Combine(dir, "instance.cfg"));
-            var name = fallbackName;
+            var name = cfg.TryGetValue("name", out var n) && !string.IsNullOrWhiteSpace(n) ? n.Trim() : fallbackName;
             var mcVersion = cfg.GetValueOrDefault("IntendedVersion") ?? cfg.GetValueOrDefault("MCVersion") ?? "";
             var loaderType = "Vanilla";
             var loaderBuild = "";
@@ -193,7 +193,16 @@ public static class InstanceImportService
             }
 
             var gameDir = Path.Combine(dir, ".minecraft");
-            if (!Directory.Exists(gameDir)) return null; // not a runnable instance
+            if (!Directory.Exists(gameDir))
+            {
+                var altGameDir = Path.Combine(dir, "minecraft");
+                if (Directory.Exists(altGameDir))
+                    gameDir = altGameDir;
+                else if (Directory.Exists(Path.Combine(dir, "mods")) || File.Exists(Path.Combine(dir, "options.txt")) || File.Exists(Path.Combine(dir, "instance.cfg")))
+                    gameDir = dir;
+                else
+                    return null;
+            }
 
             int maxMem = 0;
             if (cfg.TryGetValue("MaxMemAlloc", out var mm) && int.TryParse(mm, out var parsed) && parsed >= 512)

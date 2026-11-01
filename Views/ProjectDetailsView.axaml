@@ -566,7 +566,13 @@
                                                     <!-- Banner image -->
                                                     <Border CornerRadius="8" ClipToBounds="True" MaxWidth="640" HorizontalAlignment="Center" Margin="0,4,0,16"
                                                             IsVisible="{Binding IsBannerImage}">
-                                                        <Image Source="{Binding ImageBitmap}" Stretch="Uniform" MaxWidth="640"/>
+                                                        <Image Source="{Binding ImageBitmap}" Stretch="Uniform" MaxWidth="640" StretchDirection="DownOnly"/>
+                                                    </Border>
+
+                                                    <!-- Content Image -->
+                                                    <Border CornerRadius="8" ClipToBounds="True" HorizontalAlignment="Left" Margin="0,8,0,12"
+                                                            IsVisible="{Binding IsContentImage}">
+                                                        <Image Source="{Binding ImageBitmap}" MaxWidth="720" Stretch="Uniform" StretchDirection="DownOnly"/>
                                                     </Border>
 
                                                     <!-- Social media button row -->
@@ -630,7 +636,8 @@
                                                             BorderThickness="1" CornerRadius="8" Margin="0,6,0,10" ClipToBounds="True" IsVisible="{Binding IsTable}">
                                                         <StackPanel>
                                                             <!-- Headers -->
-                                                            <Border Background="{StaticResource CardAltBrush}" Padding="10,8" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="0,0,0,1">
+                                                            <Border Background="{DynamicResource CardAltBrush}" Padding="10,8" BorderBrush="{DynamicResource BorderCardSoftBrush}" BorderThickness="0,0,0,1"
+                                                                    IsVisible="{Binding Table.Headers.Count}">
                                                                 <ItemsControl ItemsSource="{Binding Table.Headers}">
                                                                     <ItemsControl.ItemsPanel>
                                                                         <ItemsPanelTemplate>

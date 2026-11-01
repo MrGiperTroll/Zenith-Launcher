@@ -102,9 +102,11 @@
                                                Foreground="{StaticResource TextCaptionBrush}" Margin="0,2,0,0"/>
                                 </StackPanel>
 
-                                <CheckBox Grid.Column="2" IsChecked="{Binding IsEnabled}"
+                                <ToggleSwitch Grid.Column="2" IsChecked="{Binding IsEnabled}"
                                           Command="{Binding $parent[UserControl].DataContext.ToggleFileCommand}"
-                                          CommandParameter="{Binding}" Margin="4,0,4,0" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                          CommandParameter="{Binding}"
+                                          OnContent="" OffContent=""
+                                          Margin="4,0,4,0" VerticalAlignment="Center" HorizontalAlignment="Center"/>
 
                                 <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Spacing="2">
                                     <Button Classes="subBtn" Content="{l10n:Tr Key=fl_backup}" FontSize="11" Padding="12,4" ToolTip.Tip="{l10n:Tr Key=fl_backup_tip}"
@@ -122,10 +124,10 @@
                                         </Button.Styles>
                                     </Button>
                                     <Button Command="{Binding $parent[UserControl].DataContext.DeleteFileCommand}" CommandParameter="{Binding}"
-                                            Background="Transparent" Foreground="{StaticResource TextPlaceholderBrush}" Padding="4,1" Cursor="Hand"
+                                            Background="Transparent" Foreground="{StaticResource DangerBrush}" Padding="4,1" Cursor="Hand"
                                             ToolTip.Tip="{l10n:Tr Key=fl_delete}" VerticalAlignment="Center">
                                         <PathIcon Data="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
-                                                  Width="13" Height="13" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                                                  Width="13" Height="13" Foreground="{StaticResource DangerBrush}"/>
                                         <Button.Styles>
                                             <Style Selector="Button:pointerover PathIcon">
                                                 <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
@@ -224,7 +226,7 @@
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,8,0,0">
             <Button Classes="subBtn" Command="{Binding OpenFolderCommand}" FontSize="12" Padding="14,7">
                 <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
-                    <PathIcon Data="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="14" Height="14"/>
+                    <PathIcon Data="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="14" Height="14" Foreground="{DynamicResource AccentBrush}"/>
                     <TextBlock Text="{l10n:Tr Key=btn_open_folder}" FontSize="12"/>
                 </StackPanel>
             </Button>

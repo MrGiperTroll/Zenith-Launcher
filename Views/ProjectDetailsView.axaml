@@ -55,6 +55,19 @@
         <Style Selector="Expander:expanded:pointerover /template/ Border#Root">
             <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
         </Style>
+        <Style Selector="Expander:pressed /template/ Border#Root">
+            <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
+            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+        </Style>
+        <Style Selector="Expander /template/ ToggleButton#ExpanderHeader:pressed">
+            <Setter Property="Background" Value="{StaticResource CardAltBrush}"/>
+        </Style>
+        <Style Selector="Expander /template/ ToggleButton#ExpanderHeader:pressed /template/ Border">
+            <Setter Property="Background" Value="{StaticResource CardAltBrush}"/>
+        </Style>
+        <Style Selector="Expander /template/ ToggleButton#ExpanderHeader:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource CardAltBrush}"/>
+        </Style>
         <Style Selector="ComboBox.roundedFilterCombo">
             <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>

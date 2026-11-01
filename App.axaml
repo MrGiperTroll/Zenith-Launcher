@@ -804,6 +804,14 @@
         <Style Selector="Expander /template/ ToggleButton#ExpanderHeader:pointerover /template/ ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
         </Style>
+        <Style Selector="Expander /template/ ToggleButton#ExpanderHeader:pressed">
+            <Setter Property="Background" Value="{DynamicResource CardAltBrush}"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+        </Style>
+        <Style Selector="Expander /template/ ToggleButton#ExpanderHeader:pressed /template/ Border">
+            <Setter Property="Background" Value="{DynamicResource CardAltBrush}"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+        </Style>
         <Style Selector="Expander /template/ ToggleButton#ExpanderHeader:pressed /template/ ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource CardAltBrush}"/>
         </Style>
@@ -811,6 +819,21 @@
             <Setter Property="Background" Value="{DynamicResource FieldBrush}"/>
             <Setter Property="BorderBrush" Value="{DynamicResource BorderCardSoftBrush}"/>
             <Setter Property="BorderThickness" Value="0,0,0,1"/>
+        </Style>
+        <Style Selector="Expander:expanded /template/ ToggleButton#ExpanderHeader:pressed">
+            <Setter Property="Background" Value="{DynamicResource CardAltBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderCardSoftBrush}"/>
+        </Style>
+        <Style Selector="Expander:expanded /template/ ToggleButton#ExpanderHeader:pressed /template/ Border">
+            <Setter Property="Background" Value="{DynamicResource CardAltBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderCardSoftBrush}"/>
+        </Style>
+        <Style Selector="Expander:expanded /template/ ToggleButton#ExpanderHeader:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource CardAltBrush}"/>
+        </Style>
+        <Style Selector="Expander:pressed /template/ Border#Root">
+            <Setter Property="Background" Value="{DynamicResource FieldBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderCardSoftBrush}"/>
         </Style>
         <Style Selector="Expander:expanded /template/ ToggleButton#ExpanderHeader:pointerover">
             <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>

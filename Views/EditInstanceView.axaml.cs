@@ -35,18 +35,7 @@ public partial class EditInstanceView : UserControl
     {
         if (e.PropertyName == nameof(EditInstanceViewModel.SelectedTab))
         {
-            var content = this.FindControl<Grid>("TabContentGrid");
-            if (content != null)
-            {
-                Dispatcher.UIThread.Post(() =>
-                {
-                    foreach (var child in content.Children)
-                    {
-                        if (child.IsVisible)
-                            UiFx.FadeInNow(child, 180, 2);
-                    }
-                }, DispatcherPriority.Render);
-            }
+            // Tab switching is instantaneous and static with zero jitter or layout shift
         }
         else if (e.PropertyName == nameof(EditInstanceViewModel.LogText))
         {

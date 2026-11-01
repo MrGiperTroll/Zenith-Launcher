@@ -259,6 +259,35 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
     private void ExportPrism() => _host.ExportPrismCommand.Execute(Instance);
 
     [RelayCommand]
+    public async Task ChangeIconAsync()
+    {
+        var topLevel = Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop
+            ? desktop.MainWindow
+            : null;
+
+        if (topLevel?.StorageProvider != null)
+        {
+            var files = await topLevel.StorageProvider.OpenFilePickerAsync(new Avalonia.Platform.Storage.FilePickerOpenOptions
+            {
+                Title = "Select Profile Icon",
+                AllowMultiple = false,
+                FileTypeFilter = new[] { Avalonia.Platform.Storage.FilePickerFileTypes.ImageAll }
+            });
+
+            if (files.Count > 0)
+            {
+                var srcFile = files[0].Path.LocalPath;
+                var targetExt = Path.GetExtension(srcFile);
+                var destIcon = Path.Combine(Instance.Path, $"icon{targetExt}");
+                Directory.CreateDirectory(Instance.Path);
+                File.Copy(srcFile, destIcon, true);
+                Instance.IconPath = destIcon;
+                await _instanceService.SaveInstanceAsync(Instance);
+            }
+        }
+    }
+
+    [RelayCommand]
     public void SelectTab(string tab)
     {
         if (tab == "Mods" && !HasModsSupport) return;

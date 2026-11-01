@@ -132,7 +132,13 @@ public partial class FileListViewModel : ObservableObject
     {
         var token = ++_refreshToken;
         var entries = await Task.Run(ReadEntries);
-        if (token != _refreshToken) return; // a newer refresh superseded this one
+        if (token != _refreshToken) return;
+        if (_all.Count == entries.Count && _all.Count > 0 &&
+            _all.Select(x => x.FullPath).SequenceEqual(entries.Select(x => x.FullPath)) &&
+            _all.Select(x => x.IsEnabled).SequenceEqual(entries.Select(x => x.IsEnabled)))
+        {
+            return;
+        }
         _all = entries;
         ApplyFilter();
     }
@@ -186,7 +192,7 @@ public partial class FileListViewModel : ObservableObject
         return entries;
     }
 
-    private void Enrich(InstanceFileEntry entry)
+    private void Enrich(InstanceFileEntry entry, Dictionary<string, string>? installedMap = null)
     {
         if (_kind == InstanceFileKind.Generic) return;
         entry.Kind = _kind;
@@ -206,9 +212,15 @@ public partial class FileListViewModel : ObservableObject
         // Look up Modrinth project ID from the installed registry
         if (!entry.IsDirectory && !string.IsNullOrEmpty(_instancePath))
         {
-            var projectId = FindProjectIdByFileName(entry.Name);
-            if (!string.IsNullOrEmpty(projectId))
-                entry.ModrinthProjectId = projectId;
+            var map = installedMap ?? LoadInstalledMap();
+            foreach (var kvp in map)
+            {
+                if (string.Equals(kvp.Value, entry.Name, StringComparison.OrdinalIgnoreCase))
+                {
+                    entry.ModrinthProjectId = kvp.Key;
+                    break;
+                }
+            }
         }
     }
 

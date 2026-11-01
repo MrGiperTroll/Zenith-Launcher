@@ -25,15 +25,11 @@
 
     <Grid RowDefinitions="Auto,*,Auto">
         <Border Grid.Row="0" Padding="0,0,0,8">
-            <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="6">
-                <StackPanel Spacing="2" VerticalAlignment="Center">
-                    <TextBlock Classes="sectionTitle" Text="{Binding Title, Converter={x:Static converters:FileListTitleConverter.Instance}}"/>
-                    <TextBlock Classes="rowHint" Text="{Binding CountLabel}"/>
-                </StackPanel>
-                <TextBox Grid.Column="1" x:Name="SearchBox" Classes="darkInput" Text="{Binding SearchQuery}"
+            <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto" ColumnSpacing="6">
+                <TextBox Grid.Column="0" x:Name="SearchBox" Classes="darkInput" Text="{Binding SearchQuery}"
                          PlaceholderText="{l10n:Tr Key=ph_search}" Width="160" FontSize="11" Padding="8,5"
                          VerticalAlignment="Center"/>
-                <ComboBox Grid.Column="2" Classes="zenCombo" ItemsSource="{Binding SortOptions}" SelectedItem="{Binding SelectedSortOption}"
+                <ComboBox Grid.Column="1" Classes="zenCombo" ItemsSource="{Binding SortOptions}" SelectedItem="{Binding SelectedSortOption}"
                           FontSize="11" Padding="8,4" Width="118" VerticalAlignment="Center">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
@@ -41,13 +37,13 @@
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>
-                <Button Grid.Column="3" Classes="subBtn" Command="{Binding EnableAllCommand}"
+                <Button Grid.Column="2" Classes="subBtn" Command="{Binding EnableAllCommand}"
                         Content="{l10n:Tr Key=fl_enable_all}" FontSize="11" Padding="10,5" VerticalAlignment="Center"
                         IsVisible="{Binding SupportsDisable}"/>
-                <Button Grid.Column="4" Classes="subBtn" Command="{Binding DisableAllCommand}"
+                <Button Grid.Column="3" Classes="subBtn" Command="{Binding DisableAllCommand}"
                         Content="{l10n:Tr Key=fl_disable_all}" FontSize="11" Padding="10,5" VerticalAlignment="Center"
                         IsVisible="{Binding SupportsDisable}"/>
-                <Button Grid.Column="5" Classes="subBtn" Command="{Binding RefreshListCommand}"
+                <Button Grid.Column="4" Classes="subBtn" Command="{Binding RefreshListCommand}"
                         Content="{l10n:Tr Key=fl_refresh}" FontSize="11" Padding="10,5" VerticalAlignment="Center"/>
             </Grid>
         </Border>

@@ -124,32 +124,13 @@
 
     </UserControl.Styles>
 
-    <Grid RowDefinitions="Auto,*,Auto">
-        <!-- Header -->
-        <Grid Grid.Row="0" Margin="20,14,20,10">
-            <StackPanel Spacing="3">
-                <TextBox Classes="titleInput"
-                         Text="{Binding Instance.Name, Mode=TwoWay}"
-                         FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"
-                         VerticalAlignment="Center" VerticalContentAlignment="Center"
-                         HorizontalAlignment="Left"
-                         Padding="0" Margin="0"
-                         MinWidth="80" MaxWidth="400"
-                         SelectionBrush="{DynamicResource AccentBrush}"
-                         SelectionForegroundBrush="{DynamicResource OnAccentBrush}"
-                         LostFocus="OnInstanceNameLostFocus"
-                         ToolTip.Tip="Double-click to rename"/>
-                <TextBlock Text="{Binding Instance.DisplayVersion}" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
-            </StackPanel>
-        </Grid>
-
+    <Grid RowDefinitions="*,Auto">
         <!-- Main: Sidebar + Content -->
-        <Grid Grid.Row="1" ColumnDefinitions="210,*">
+        <Grid Grid.Row="0" ColumnDefinitions="210,*">
             <!-- Sidebar -->
             <Border Grid.Column="0" Background="{StaticResource SidebarBgBrush}" Padding="10">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Spacing="2">
-                        <TextBlock Text="{l10n:Tr Key=ei_menu}" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextCaptionBrush}" LetterSpacing="1" Margin="10,6,10,8" HorizontalAlignment="Left"/>
 
                         <Button Classes="sideTab" Classes.active="{Binding IsOverviewTab}" Command="{Binding SelectTabCommand}" CommandParameter="Overview">
                             <Grid ColumnDefinitions="Auto,*">
@@ -248,23 +229,25 @@
                                                 <!-- Instance Hero Card -->
                         <Border Classes="zenSection">
                             <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8" VerticalAlignment="Center">
-                                <!-- Instance Icon -->
-                                <Border Width="72" Height="72" CornerRadius="16" ClipToBounds="True" Background="{StaticResource ChipBrush}" BorderBrush="{StaticResource BorderIconBrush}" BorderThickness="1">
-                                    <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                        <Path IsVisible="{Binding !Instance.HasCustomIcon}"
-                                              Data="{StaticResource ZenithLogoGeometry}"
-                                              Fill="{DynamicResource AccentBrush}"
-                                              Stretch="Uniform"
-                                              Width="42" Height="42"
-                                              Margin="0,3.5,0,0"
-                                              HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        <Image IsVisible="{Binding Instance.HasCustomIcon}"
-                                               Source="{Binding Instance.IconPath, Converter={x:Static converters:IconPathToBitmapConverter.Instance}}"
-                                               Stretch="UniformToFill"
-                                               Width="72" Height="72"
-                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Panel>
-                                </Border>
+                                <!-- Instance Icon (Clickable, no border) -->
+                                <Button Command="{Binding ChangeIconCommand}" Cursor="Hand" Padding="0" Background="Transparent" BorderThickness="0" CornerRadius="16" ToolTip.Tip="{l10n:Tr Key=mi_change_icon}">
+                                    <Border Width="72" Height="72" CornerRadius="16" ClipToBounds="True" Background="{StaticResource ChipBrush}" BorderThickness="0">
+                                        <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <Path IsVisible="{Binding !Instance.HasCustomIcon}"
+                                                  Data="{StaticResource ZenithLogoGeometry}"
+                                                  Fill="{DynamicResource AccentBrush}"
+                                                  Stretch="Uniform"
+                                                  Width="42" Height="42"
+                                                  Margin="0,3.5,0,0"
+                                                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            <Image IsVisible="{Binding Instance.HasCustomIcon}"
+                                                   Source="{Binding Instance.IconPath, Converter={x:Static converters:IconPathToBitmapConverter.Instance}}"
+                                                   Stretch="UniformToFill"
+                                                   Width="72" Height="72"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Panel>
+                                    </Border>
+                                </Button>
 
                                 <!-- Instance Details -->
                                 <StackPanel Grid.Column="1" Margin="16,0,16,0" VerticalAlignment="Center" Spacing="6">
@@ -402,14 +385,15 @@
                 </Grid>
 
                 <!-- Mods -->
-                <Grid IsVisible="{Binding IsModsTab}" RowDefinitions="Auto,Auto,*" Margin="14,10">
-                    <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,8" Spacing="8">
-                        <Button Classes="subBtn" Content="{l10n:Tr Key=mods_audit_check}" Command="{Binding AuditModsCommand}" Padding="14,7" FontSize="12"/>
-                        <Button Classes="primaryBtn" Content="{l10n:Tr Key=btn_browse_mods}" Command="{Binding OpenContentBrowserCommand}" CommandParameter="Mods" Padding="14,7" FontSize="12"/>
-                    </StackPanel>
-                    <TextBlock Grid.Row="1" Text="{Binding ModAuditMessage}" FontSize="11.5" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,8"
-                               IsVisible="{Binding ModAuditMessage, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
-                    <views:FileListView Grid.Row="2" x:Name="ModView" DataContext="{Binding ModList}"/>
+                <Grid IsVisible="{Binding IsModsTab}" RowDefinitions="Auto,*" Margin="14,10">
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,8" VerticalAlignment="Center">
+                        <TextBlock Grid.Column="0" Text="{Binding ModAuditMessage}" FontSize="11.5" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,10,0"/>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <Button Classes="subBtn" Content="{l10n:Tr Key=mods_audit_check}" Command="{Binding AuditModsCommand}" Padding="14,7" FontSize="12"/>
+                            <Button Classes="primaryBtn" Content="{l10n:Tr Key=btn_browse_mods}" Command="{Binding OpenContentBrowserCommand}" CommandParameter="Mods" Padding="14,7" FontSize="12"/>
+                        </StackPanel>
+                    </Grid>
+                    <views:FileListView Grid.Row="1" x:Name="ModView" DataContext="{Binding ModList}"/>
                 </Grid>
 
                 <!-- Resource Packs -->
@@ -433,7 +417,7 @@
                     <StackPanel Grid.Row="0" Spacing="10" Margin="0,0,0,8">
                         <Grid ColumnDefinitions="*,Auto">
                             <StackPanel Spacing="2" VerticalAlignment="Center">
-                                                                <TextBlock Text="{Binding DataPacks.Count, StringFormat='{}{0} datapack(s) in selected world'}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                                
                             </StackPanel>
                             <Button Grid.Column="1" Classes="primaryBtn" Content="{l10n:Tr Key=btn_browse_datapacks}" Command="{Binding OpenContentBrowserCommand}" CommandParameter="Data Packs" Padding="14,7" FontSize="12" VerticalAlignment="Center" IsEnabled="{Binding AvailableWorlds.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsNonZero}}"/>
                         </Grid>
@@ -492,10 +476,7 @@
                 <Grid IsVisible="{Binding IsWorldsTab}" RowDefinitions="Auto,*" Margin="14,10">
                     <!-- Top bar: search/count + import button -->
                     <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,10">
-                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding WorldList.Entries.Count, StringFormat='{}{0} world(s)'}"
-                                       FontSize="12" Foreground="{DynamicResource TextPlaceholderBrush}" VerticalAlignment="Center"/>
-                        </StackPanel>
+                        <Panel/>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
                             <Button Classes="subBtn" Command="{Binding WorldList.ImportFilesCommand}" FontSize="11" Padding="12,5">
                                 <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
@@ -618,8 +599,7 @@
                 <Grid IsVisible="{Binding IsServersTab}" RowDefinitions="Auto,*" Margin="14,10">
                     <!-- Top bar: count + Add Server button -->
                     <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,10">
-                        <TextBlock Text="{Binding Servers.Count, StringFormat='{}{0} server(s) in servers.dat'}"
-                                   FontSize="12" Foreground="{DynamicResource TextPlaceholderBrush}" VerticalAlignment="Center"/>
+                        <Panel/>
                         <Button Grid.Column="1" Classes="primaryBtn" Content="+ Add Server"
                                 Command="{Binding OpenAddServerDialogCommand}" FontSize="11" Padding="12,5"/>
                     </Grid>

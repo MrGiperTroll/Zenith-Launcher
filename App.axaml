@@ -216,13 +216,7 @@
             <Setter Property="Foreground" Value="{StaticResource DangerLightBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource DangerBrush}"/>
         </Style>
-        <Style Selector="Border[Cursor=Hand]">
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="BorderBrush" Duration="0:0:0.2" Easing="0.16, 1, 0.3, 1"/>
-                </Transitions>
-            </Setter>
-        </Style>
+
         <Style Selector="Border[Cursor=Hand]:pointerover">
             <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
         </Style>

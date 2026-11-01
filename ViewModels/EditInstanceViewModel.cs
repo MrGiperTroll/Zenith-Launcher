@@ -911,7 +911,8 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
     [ObservableProperty]
     private InstanceFileEntry? _pendingDeleteWorld;
 
-    public string DeleteWorldName => PendingDeleteWorld?.Title ?? PendingDeleteWorld?.Name ?? "";
+    public string DeleteWorldName => PendingDeleteWorld?.Title ?? PendingDeleteWorld?.Name ?? "";
+    public string DeleteWorldPrompt => string.Format(CustomMcLauncher.Services.L10n.T("w_delete_prompt"), DeleteWorldName);
 
     [ObservableProperty]
     private bool _isEditWorldOpen;
@@ -928,6 +929,7 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
         if (world == null) return;
         PendingDeleteWorld = world;
         OnPropertyChanged(nameof(DeleteWorldName));
+        OnPropertyChanged(nameof(DeleteWorldPrompt));
         IsDeleteWorldConfirmOpen = true;
     }
 
@@ -1039,7 +1041,8 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
     [ObservableProperty]
     private InstanceFileEntry? _pendingDeleteServer;
 
-    public string DeleteServerName => PendingDeleteServer?.Title ?? PendingDeleteServer?.Subtitle ?? "";
+    public string DeleteServerName => PendingDeleteServer?.Title ?? PendingDeleteServer?.Subtitle ?? "";
+    public string DeleteServerPrompt => string.Format(CustomMcLauncher.Services.L10n.T("sv_delete_prompt"), DeleteServerName);
 
     [ObservableProperty]
     private bool _isAddServerOpen;
@@ -1056,6 +1059,7 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
         if (server == null) return;
         PendingDeleteServer = server;
         OnPropertyChanged(nameof(DeleteServerName));
+        OnPropertyChanged(nameof(DeleteServerPrompt));
         IsDeleteServerConfirmOpen = true;
     }
 

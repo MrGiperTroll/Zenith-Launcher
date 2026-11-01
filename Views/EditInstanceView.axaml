@@ -41,9 +41,46 @@
             <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
         <Style Selector="Button.chipBtn.active">
-            <Setter Property="Background" Value="#10b981"/>
-            <Setter Property="Foreground" Value="#000000"/>
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style Selector="Button.chipBtn.active:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource AccentBrushHover}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
+        </Style>
+
+        <Style Selector="Button.worldPlayBtn">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="14,6"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.worldPlayBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource AccentBrushHover}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
+        </Style>
+
+        <Style Selector="Button.rowDelBtn">
+            <Setter Property="Background" Value="{DynamicResource IconChipBrush}"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Button.rowDelBtn PathIcon">
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+        </Style>
+        <Style Selector="Button.rowDelBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource DangerBgBrush}"/>
+        </Style>
+        <Style Selector="Button.rowDelBtn:pointerover PathIcon">
+            <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
         </Style>
 
         <Style Selector="Button.primaryBtn">
@@ -542,11 +579,10 @@
                                                         <!-- Green Play Button -->
                                                         <Button Classes="worldPlayBtn"
                                                                 Command="{Binding $parent[views:EditInstanceView].((vm:EditInstanceViewModel)DataContext).LaunchWorldCommand}"
-                                                                CommandParameter="{Binding}"
-                                                                Background="#10b981" Foreground="#000000" CornerRadius="8" Padding="14,6" Height="32" Cursor="Hand">
+                                                                CommandParameter="{Binding}">
                                                             <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                                                <PathIcon Data="M8 5v14l11-7z" Width="11" Height="11" Foreground="#000000"/>
-                                                                <TextBlock Text="Play" FontWeight="Bold" FontSize="12.5" Foreground="#000000"/>
+                                                                <PathIcon Data="M8 5v14l11-7z" Width="11" Height="11" Foreground="{DynamicResource OnAccentBrush}"/>
+                                                                <TextBlock Text="{l10n:Tr Key=btn_play}" FontWeight="Bold" FontSize="12.5" Foreground="{DynamicResource OnAccentBrush}"/>
                                                             </StackPanel>
                                                         </Button>
 
@@ -600,7 +636,7 @@
                     <!-- Top bar: count + Add Server button -->
                     <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,10">
                         <Panel/>
-                        <Button Grid.Column="1" Classes="primaryBtn" Content="+ Add Server"
+                        <Button Grid.Column="1" Classes="primaryBtn" Content="{l10n:Tr Key=sv_add_server}"
                                 Command="{Binding OpenAddServerDialogCommand}" FontSize="11" Padding="12,5"/>
                     </Grid>
 
@@ -643,27 +679,25 @@
                                                                VerticalAlignment="Center" HorizontalAlignment="Right" TextTrimming="CharacterEllipsis" Margin="0,0,16,0"
                                                                IsVisible="{Binding Meta, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
 
-                                                    <!-- Actions: Green Play Button + Delete Button -->
+                                                    <!-- Actions: Play Button + Delete Button -->
                                                     <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                                        <!-- Green Play Button -->
+                                                        <!-- Play Button -->
                                                         <Button Classes="worldPlayBtn"
                                                                 Command="{Binding $parent[views:EditInstanceView].((vm:EditInstanceViewModel)DataContext).LaunchServerCommand}"
-                                                                CommandParameter="{Binding}"
-                                                                Background="#10b981" Foreground="#000000" CornerRadius="8" Padding="14,6" Height="32" Cursor="Hand">
+                                                                CommandParameter="{Binding}">
                                                             <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                                                <PathIcon Data="M8 5v14l11-7z" Width="11" Height="11" Foreground="#000000"/>
-                                                                <TextBlock Text="Play" FontWeight="Bold" FontSize="12.5" Foreground="#000000"/>
+                                                                <PathIcon Data="M8 5v14l11-7z" Width="11" Height="11" Foreground="{DynamicResource OnAccentBrush}"/>
+                                                                <TextBlock Text="{l10n:Tr Key=btn_play}" FontWeight="Bold" FontSize="12.5" Foreground="{DynamicResource OnAccentBrush}"/>
                                                             </StackPanel>
                                                         </Button>
 
                                                         <!-- Delete Button -->
-                                                        <Button Width="32" Height="32" CornerRadius="8" Cursor="Hand"
-                                                                Background="{DynamicResource IconChipBrush}" Padding="0"
-                                                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                                        <Button Classes="rowDelBtn"
                                                                 Command="{Binding $parent[views:EditInstanceView].((vm:EditInstanceViewModel)DataContext).RequestDeleteServerCommand}"
-                                                                CommandParameter="{Binding}">
+                                                                CommandParameter="{Binding}"
+                                                                ToolTip.Tip="{l10n:Tr Key=btn_delete}">
                                                             <PathIcon Data="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
-                                                                      Width="13" Height="13" Foreground="{DynamicResource DangerBrush}"/>
+                                                                      Width="13" Height="13"/>
                                                         </Button>
                                                     </StackPanel>
                                                 </Grid>
@@ -795,9 +829,9 @@
                     MinWidth="380" MaxWidth="480">
                 <StackPanel Spacing="16">
                     <StackPanel Spacing="6">
-                        <TextBlock Text="Delete World" FontSize="16" FontWeight="Bold"
+                        <TextBlock Text="{l10n:Tr Key=w_delete_title}" FontSize="16" FontWeight="Bold"
                                    Foreground="{DynamicResource DangerBrush}"/>
-                        <TextBlock Text="{Binding DeleteWorldName, StringFormat='Are you sure you want to delete world \'{0}\' and all its files? This cannot be undone.'}"
+                        <TextBlock Text="{Binding DeleteWorldPrompt}"
                                    TextWrapping="Wrap" FontSize="12.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
                     </StackPanel>
                     <Grid ColumnDefinitions="*,10,*" HorizontalAlignment="Right" Width="200">
@@ -818,10 +852,10 @@
                     HorizontalAlignment="Center" VerticalAlignment="Center"
                     MinWidth="380" MaxWidth="480">
                 <StackPanel Spacing="16">
-                    <TextBlock Text="Edit World" FontSize="16" FontWeight="Bold"
+                    <TextBlock Text="{l10n:Tr Key=w_edit_title}" FontSize="16" FontWeight="Bold"
                                Foreground="{DynamicResource TextPrimaryBrush}"/>
                     <StackPanel Spacing="6">
-                        <TextBlock Text="World name:" FontSize="12" Foreground="{DynamicResource TextMutedBrush}"/>
+                        <TextBlock Text="{l10n:Tr Key=w_edit_name}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}"/>
                         <TextBox Classes="darkInput" Text="{Binding EditingWorldName, Mode=TwoWay}" FontSize="13" Padding="8,6"/>
                     </StackPanel>
                     <Grid ColumnDefinitions="*,10,*" HorizontalAlignment="Right" Width="200">
@@ -842,9 +876,9 @@
                     MinWidth="380" MaxWidth="480">
                 <StackPanel Spacing="16">
                     <StackPanel Spacing="6">
-                        <TextBlock Text="Delete Server" FontSize="16" FontWeight="Bold"
+                        <TextBlock Text="{l10n:Tr Key=sv_delete_title}" FontSize="16" FontWeight="Bold"
                                    Foreground="{DynamicResource DangerBrush}"/>
-                        <TextBlock Text="{Binding DeleteServerName, StringFormat='Are you sure you want to delete server \'{0}\' from servers.dat?'}"
+                        <TextBlock Text="{Binding DeleteServerPrompt}"
                                    TextWrapping="Wrap" FontSize="12.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
                     </StackPanel>
                     <Grid ColumnDefinitions="*,10,*" HorizontalAlignment="Right" Width="200">

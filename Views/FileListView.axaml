@@ -109,10 +109,10 @@
                                             IsVisible="{Binding $parent[UserControl].DataContext.SupportsBackup}"
                                             Command="{Binding $parent[UserControl].DataContext.BackupFileCommand}" CommandParameter="{Binding}"/>
                                     <Button Command="{Binding $parent[UserControl].DataContext.OpenFileCommand}" CommandParameter="{Binding}"
-                                            Background="Transparent" Foreground="{StaticResource TextPlaceholderBrush}" Padding="4,1" Cursor="Hand"
+                                            Background="Transparent" Foreground="{DynamicResource TextSecondaryBrush}" Padding="4,1" Cursor="Hand"
                                             ToolTip.Tip="{l10n:Tr Key=fl_reveal_tip}" VerticalAlignment="Center">
                                         <PathIcon Data="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
-                                                  Width="14" Height="14" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                                                  Width="14" Height="14" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                         <Button.Styles>
                                             <Style Selector="Button:pointerover PathIcon">
                                                 <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
@@ -120,10 +120,10 @@
                                         </Button.Styles>
                                     </Button>
                                     <Button Command="{Binding $parent[UserControl].DataContext.DeleteFileCommand}" CommandParameter="{Binding}"
-                                            Background="Transparent" Foreground="{StaticResource DangerBrush}" Padding="4,1" Cursor="Hand"
+                                            Background="Transparent" Foreground="{DynamicResource TextSecondaryBrush}" Padding="4,1" Cursor="Hand"
                                             ToolTip.Tip="{l10n:Tr Key=fl_delete}" VerticalAlignment="Center">
                                         <PathIcon Data="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
-                                                  Width="13" Height="13" Foreground="{StaticResource DangerBrush}"/>
+                                                  Width="13" Height="13" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                         <Button.Styles>
                                             <Style Selector="Button:pointerover PathIcon">
                                                 <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>

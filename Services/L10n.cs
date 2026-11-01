@@ -133,6 +133,17 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
     // ------------------------------------------------------------------ EN
     private static readonly Dictionary<string, string> En = new()
     {
+        ["fl_import"] = "Import",
+        ["btn_delete"] = "Delete",
+        ["btn_play"] = "Play",
+        ["w_delete_title"] = "Delete World",
+        ["w_delete_prompt"] = "Are you sure you want to delete world '{0}' and all its files? This cannot be undone.",
+        ["sv_delete_title"] = "Delete Server",
+        ["sv_delete_prompt"] = "Are you sure you want to delete server '{0}' from servers.dat?",
+        ["w_edit_title"] = "Edit World",
+        ["w_edit_name"] = "World name:",
+        ["sv_add_server"] = "+ Add Server",
+
         ["tab_overview"] = "Overview",
         ["stat_playtime"] = "Total Playtime",
         ["stat_last_played"] = "Last Played",
@@ -754,6 +765,17 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
     // ------------------------------------------------------------------ RU
     private static readonly Dictionary<string, string> Ru = new()
     {
+        ["fl_import"] = "Импорт",
+        ["btn_delete"] = "Удалить",
+        ["btn_play"] = "Играть",
+        ["w_delete_title"] = "Удалить мир",
+        ["w_delete_prompt"] = "Вы уверены, что хотите удалить мир '{0}' и все его файлы? Это действие необратимо.",
+        ["sv_delete_title"] = "Удалить сервер",
+        ["sv_delete_prompt"] = "Вы уверены, что хотите удалить сервер '{0}' из servers.dat?",
+        ["w_edit_title"] = "Редактировать мир",
+        ["w_edit_name"] = "Название мира:",
+        ["sv_add_server"] = "+ Добавить сервер",
+
         ["tab_overview"] = "Обзор",
         ["stat_playtime"] = "Общее время в игре",
         ["stat_last_played"] = "Последний запуск",
@@ -1374,6 +1396,17 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
     // ------------------------------------------------------------------ UK
     private static readonly Dictionary<string, string> Uk = new()
     {
+        ["fl_import"] = "Імпорт",
+        ["btn_delete"] = "Видалити",
+        ["btn_play"] = "Грати",
+        ["w_delete_title"] = "Видалити світ",
+        ["w_delete_prompt"] = "Ви впевнені, що хочете видалити світ '{0}' та всі його файли? Цю дію неможливо скасувати.",
+        ["sv_delete_title"] = "Видалити сервер",
+        ["sv_delete_prompt"] = "Ви впевнені, що хочете видалити сервер '{0}' з servers.dat?",
+        ["w_edit_title"] = "Редагувати світ",
+        ["w_edit_name"] = "Назва світу:",
+        ["sv_add_server"] = "+ Додати сервер",
+
         ["tab_overview"] = "Огляд",
         ["stat_playtime"] = "Загальний час у грі",
         ["stat_last_played"] = "Останній запуск",
@@ -1949,6 +1982,17 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
     // ------------------------------------------------------------------ TR
     private static readonly Dictionary<string, string> Tr = new()
     {
+        ["fl_import"] = "Ice Aktar",
+        ["btn_delete"] = "Sil",
+        ["btn_play"] = "Oyna",
+        ["w_delete_title"] = "Dunyayi Sil",
+        ["w_delete_prompt"] = "{0} dunyasini ve tum dosyalarini silmek istediginizden emin misiniz? Bu islem geri alinamaz.",
+        ["sv_delete_title"] = "Sunucuyu Sil",
+        ["sv_delete_prompt"] = "{0} sunucusunu servers.dat dosyasindan silmek istediginizden emin misiniz?",
+        ["w_edit_title"] = "Dunyayi Duzenle",
+        ["w_edit_name"] = "Dunya adi:",
+        ["sv_add_server"] = "+ Sunucu Ekle",
+
         ["tab_overview"] = "Genel Bakış",
         ["stat_playtime"] = "Toplam Oynama Süresi",
         ["stat_last_played"] = "Son Oynama",
@@ -2501,6 +2545,17 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
     // ------------------------------------------------------------------ DE
     private static readonly Dictionary<string, string> De = new()
     {
+        ["fl_import"] = "Importieren",
+        ["btn_delete"] = "Loschen",
+        ["btn_play"] = "Spielen",
+        ["w_delete_title"] = "Welt loschen",
+        ["w_delete_prompt"] = "Mochten Sie die Welt '{0}' und alle ihre Dateien wirklich loschen? Dies kann nicht ruckgangig gemacht werden.",
+        ["sv_delete_title"] = "Server loschen",
+        ["sv_delete_prompt"] = "Mochten Sie den Server '{0}' wirklich aus servers.dat loschen?",
+        ["w_edit_title"] = "Welt bearbeiten",
+        ["w_edit_name"] = "Weltname:",
+        ["sv_add_server"] = "+ Server hinzufugen",
+
         ["tab_overview"] = "Übersicht",
         ["stat_playtime"] = "Gesamte Spielzeit",
         ["stat_last_played"] = "Zuletzt gespielt",
@@ -3049,6 +3104,17 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
     // ------------------------------------------------------------------ FR
     private static readonly Dictionary<string, string> Fr = new()
     {
+        ["fl_import"] = "Importer",
+        ["btn_delete"] = "Supprimer",
+        ["btn_play"] = "Jouer",
+        ["w_delete_title"] = "Supprimer le monde",
+        ["w_delete_prompt"] = "Voulez-vous vraiment supprimer le monde '{0}' et tous ses fichiers ? Cette action est irreversible.",
+        ["sv_delete_title"] = "Supprimer le serveur",
+        ["sv_delete_prompt"] = "Voulez-vous vraiment supprimer le serveur '{0}' de servers.dat ?",
+        ["w_edit_title"] = "Modifier le monde",
+        ["w_edit_name"] = "Nom du monde :",
+        ["sv_add_server"] = "+ Ajouter un serveur",
+
         ["tab_overview"] = "Aperçu",
         ["stat_playtime"] = "Temps de jeu total",
         ["stat_last_played"] = "Dernier lancement",

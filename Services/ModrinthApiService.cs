@@ -230,6 +230,7 @@ public static class ModrinthApiService
                     Author = GetString(hit, "author") ?? "",
                     Description = GetString(hit, "description") ?? "",
                     Downloads = GetLong(hit, "downloads"),
+                    Follows = GetLong(hit, "follows"),
                     IconUrl = GetString(hit, "icon_url") ?? "",
                     GameVersions = GetStringArray(hit, "versions"),
                     Categories = otherCats,

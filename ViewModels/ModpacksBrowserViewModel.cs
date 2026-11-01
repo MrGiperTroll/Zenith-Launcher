@@ -73,6 +73,40 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     [ObservableProperty] private ObservableCollection<string> _availableLoaders = new();
     [ObservableProperty] private ObservableCollection<string> _availableSortOptions = new() { "Relevance", "Downloads", "Newest", "Recently Updated" };
 
+    [ObservableProperty] private string _selectedProjectType = "modpack";
+
+    public bool IsModpacksTab => SelectedProjectType == "modpack";
+    public bool IsModsTab => SelectedProjectType == "mod";
+    public bool IsResourcePacksTab => SelectedProjectType == "resourcepack";
+    public bool IsDataPacksTab => SelectedProjectType == "datapack";
+    public bool IsShadersTab => SelectedProjectType == "shader";
+    public bool IsServersTab => SelectedProjectType == "plugin";
+
+    public string SearchPlaceholder => SelectedProjectType switch
+    {
+        "mod" => "Search mods...",
+        "resourcepack" => "Search resource packs...",
+        "datapack" => "Search data packs...",
+        "shader" => "Search shaders...",
+        "plugin" => "Search servers & plugins...",
+        _ => "Search modpacks..."
+    };
+
+    [RelayCommand]
+    public void SelectProjectType(string type)
+    {
+        if (string.IsNullOrWhiteSpace(type) || SelectedProjectType == type) return;
+        SelectedProjectType = type;
+        OnPropertyChanged(nameof(IsModpacksTab));
+        OnPropertyChanged(nameof(IsModsTab));
+        OnPropertyChanged(nameof(IsResourcePacksTab));
+        OnPropertyChanged(nameof(IsDataPacksTab));
+        OnPropertyChanged(nameof(IsShadersTab));
+        OnPropertyChanged(nameof(IsServersTab));
+        OnPropertyChanged(nameof(SearchPlaceholder));
+        _ = Search();
+    }
+
     [ObservableProperty] private string _searchQuery = "";
 
     private CancellationTokenSource? _searchCts;
@@ -985,7 +1019,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
             };
             var catSlug = SelectedCategory == "exploration" ? "adventure" : SelectedCategory;
             var categoryFilter = string.IsNullOrWhiteSpace(catSlug) ? Array.Empty<string>() : new[] { catSlug };
-            var page = await ModrinthApiService.SearchAsync(SearchQuery, SelectedVersion, LoaderFacets, "modpack", sort, categoryFilter, 0, PageSize, token, BrowserVersionFilter.SelectedVersions);
+            var page = await ModrinthApiService.SearchAsync(SearchQuery, SelectedVersion, LoaderFacets, SelectedProjectType, sort, categoryFilter, 0, PageSize, token, BrowserVersionFilter.SelectedVersions);
             if (token.IsCancellationRequested || gen != _searchGeneration) return;
             if (page == null)
             {
@@ -1042,7 +1076,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
                 "Recently Updated" => "updated",
                 _ => "relevance"
             };
-            var page = await ModrinthApiService.SearchAsync(SearchQuery, SelectedVersion, LoaderFacets, "modpack", sort, categoryFilter, _offset, PageSize);
+            var page = await ModrinthApiService.SearchAsync(SearchQuery, SelectedVersion, LoaderFacets, SelectedProjectType, sort, categoryFilter, _offset, PageSize);
             if (page != null && gen == _searchGeneration)
             {
                 if (page.Hits.Count == 0)
@@ -1176,6 +1210,34 @@ public partial class ModpacksBrowserViewModel : ObservableObject
                 return;
             }
             await File.WriteAllBytesAsync(zipPath, data, token);
+
+            if (SelectedProjectType != "modpack")
+            {
+                var targetInstance = _instanceService.GetSelectedInstance();
+                if (targetInstance == null)
+                {
+                    StatusText = "Please create or select a profile first.";
+                    project.IsInstalling = false;
+                    return;
+                }
+                var subDir = SelectedProjectType switch
+                {
+                    "mod" => "mods",
+                    "resourcepack" => "resourcepacks",
+                    "shader" => "shaderpacks",
+                    "datapack" => Path.Combine("saves", "datapacks"),
+                    _ => "mods"
+                };
+                var targetDir = Path.Combine(targetInstance.Path, subDir);
+                Directory.CreateDirectory(targetDir);
+                var destPath = Path.Combine(targetDir, version.FileName);
+                await File.WriteAllBytesAsync(destPath, data, token);
+                project.IsInstalling = false;
+                project.IsInstalled = true;
+                StatusText = $"Installed {project.Title} to {targetInstance.Name}";
+                return;
+            }
+
             var instance = await InstallModpackFromZipAsync(project, zipPath, tempDir, version.VersionNumber, token);
             if (instance != null)
             {
@@ -1390,6 +1452,34 @@ public partial class ModpacksBrowserViewModel : ObservableObject
                 return;
             }
             await File.WriteAllBytesAsync(zipPath, data, token);
+
+            if (SelectedProjectType != "modpack")
+            {
+                var targetInstance = _instanceService.GetSelectedInstance();
+                if (targetInstance == null)
+                {
+                    StatusText = "Please create or select a profile first.";
+                    project.IsInstalling = false;
+                    return;
+                }
+                var subDir = SelectedProjectType switch
+                {
+                    "mod" => "mods",
+                    "resourcepack" => "resourcepacks",
+                    "shader" => "shaderpacks",
+                    "datapack" => Path.Combine("saves", "datapacks"),
+                    _ => "mods"
+                };
+                var targetDir = Path.Combine(targetInstance.Path, subDir);
+                Directory.CreateDirectory(targetDir);
+                var destPath = Path.Combine(targetDir, file.Filename);
+                await File.WriteAllBytesAsync(destPath, data, token);
+                project.IsInstalling = false;
+                project.IsInstalled = true;
+                StatusText = $"Installed {project.Title} to {targetInstance.Name}";
+                return;
+            }
+
             var instance = await InstallModpackFromZipAsync(project, zipPath, tempDir, version.VersionNumber, token);
             if (instance != null)
             {

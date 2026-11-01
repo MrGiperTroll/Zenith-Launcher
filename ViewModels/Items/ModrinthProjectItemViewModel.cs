@@ -19,6 +19,7 @@ public partial class ModrinthProjectItemViewModel : ViewModelBase
     public string Author { get; init; } = "";
     public string Description { get; init; } = "";
     public long Downloads { get; init; }
+    public long Follows { get; init; }
     public string IconUrl { get; init; } = "";
     public string[] GameVersions { get; init; } = Array.Empty<string>();
 
@@ -114,6 +115,50 @@ public partial class ModrinthProjectItemViewModel : ViewModelBase
             : "";
 
     public string FormattedDate => Updated == default ? "" : Updated.ToString("dd.MM.yyyy");
+
+    public string FollowsLabel =>
+        Follows >= 1_000_000 ? $"{Follows / 1e6:0.#}M"
+        : Follows >= 1_000 ? $"{Follows / 1e3:0.#}K"
+        : $"{Follows}";
+
+    public string RelativeUpdated
+    {
+        get
+        {
+            if (Updated == default) return "";
+            var span = DateTime.UtcNow - Updated;
+            if (span.TotalHours < 1) return $"{Math.Max(1, (int)span.TotalMinutes)}m ago";
+            if (span.TotalDays < 1) return $"{(int)span.TotalHours} hours ago";
+            if (span.TotalDays < 30) return $"{(int)span.TotalDays} days ago";
+            if (span.TotalDays < 365) return $"{(int)(span.TotalDays / 30)} months ago";
+            return $"{(int)(span.TotalDays / 365)} years ago";
+        }
+    }
+
+    public IReadOnlyList<string> DisplayTags
+    {
+        get
+        {
+            var list = new List<string>();
+            foreach (var l in Loaders)
+            {
+                if (!string.IsNullOrWhiteSpace(l)) list.Add(l);
+            }
+            foreach (var c in Categories)
+            {
+                if (string.IsNullOrWhiteSpace(c)) continue;
+                if (c.Equals("fabric", StringComparison.OrdinalIgnoreCase) ||
+                    c.Equals("forge", StringComparison.OrdinalIgnoreCase) ||
+                    c.Equals("quilt", StringComparison.OrdinalIgnoreCase) ||
+                    c.Equals("neoforge", StringComparison.OrdinalIgnoreCase) ||
+                    c.Equals("neoforged", StringComparison.OrdinalIgnoreCase)) continue;
+                var formatted = char.ToUpperInvariant(c[0]) + c[1..].Replace('-', ' ');
+                list.Add(formatted);
+                if (list.Count >= 5) break;
+            }
+            return list;
+        }
+    }
 
     public string TagsLabel
     {

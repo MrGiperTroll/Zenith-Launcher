@@ -2813,7 +2813,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private void CloseRightSidebar() => IsRightSidebarOpen = false;
 
     [RelayCommand]
-    private void CreateDesktopShortcut(InstanceModel instance)
+    private async Task CreateDesktopShortcutAsync(InstanceModel instance)
     {
         var inst = instance ?? SelectedInstance;
         if (inst == null) return;
@@ -2826,8 +2826,37 @@ public partial class MainWindowViewModel : ViewModelBase
                 return;
             }
 
-            var desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
-            var shortcutPath = Path.Combine(desktop, $"{inst.Name}.lnk");
+            var topLevel = Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop
+                ? desktop.MainWindow
+                : null;
+
+            string shortcutPath;
+            if (topLevel?.StorageProvider != null)
+            {
+                var desktopDir = await topLevel.StorageProvider.TryGetFolderFromPathAsync(
+                    Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory));
+
+                var file = await topLevel.StorageProvider.SaveFilePickerAsync(new Avalonia.Platform.Storage.FilePickerSaveOptions
+                {
+                    Title = L10n.T("btn_shortcut"),
+                    SuggestedFileName = $"{inst.Name}.lnk",
+                    DefaultExtension = "lnk",
+                    SuggestedStartLocation = desktopDir,
+                    FileTypeChoices = new[]
+                    {
+                        new Avalonia.Platform.Storage.FilePickerFileType("Shortcut (*.lnk)") { Patterns = new[] { "*.lnk" } }
+                    }
+                });
+
+                if (file == null) return;
+                shortcutPath = file.Path.LocalPath;
+            }
+            else
+            {
+                var desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+                shortcutPath = Path.Combine(desktopPath, $"{inst.Name}.lnk");
+            }
+
             var exePath = Environment.ProcessPath ?? Process.GetCurrentProcess().MainModule?.FileName;
             if (string.IsNullOrEmpty(exePath)) return;
             var workDir = AppDomain.CurrentDomain.BaseDirectory;

@@ -3276,13 +3276,20 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void ConfirmDeleteProfile()
+    private async Task ConfirmDeleteProfileAsync()
     {
         var inst = PendingDeleteInstance;
         if (inst == null) return;
-        _instanceService.DeleteInstance(inst.Id);
         IsDeleteConfirmOpen = false;
         PendingDeleteInstance = null;
+        StatusText = $"Deleting {inst.Name}...";
+
+        await Task.Run(() =>
+        {
+            _instanceService.DeleteInstance(inst.Id);
+        });
+
+        StatusText = $"Deleted {inst.Name}";
         RefreshState();
         ModpacksBrowser?.UpdateInstalledFlags();
     }

@@ -1147,7 +1147,7 @@
         </Grid>
 
         <!-- MODAL: Create Profile -->
-        <Border IsVisible="{Binding IsCreateDialogOpen}" Background="{StaticResource OverlayBrush}">
+        <Border Grid.Row="0" Grid.RowSpan="2" IsVisible="{Binding IsCreateDialogOpen}" Background="{StaticResource OverlayBrush}">
             <Border Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="440" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="12">
                     <TextBlock Text="{l10n:Tr Key=cp_title}" FontSize="17" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
@@ -1215,7 +1215,7 @@
         </Border>
 
         <!-- MODAL: Console & Logs -->
-        <Border IsVisible="{Binding IsConsoleDialogOpen}" Background="{StaticResource OverlayBrush}">
+        <Border Grid.Row="0" Grid.RowSpan="2" IsVisible="{Binding IsConsoleDialogOpen}" Background="{StaticResource OverlayBrush}">
             <Border Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="700" Height="480" Padding="18" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <Grid RowDefinitions="Auto,*,Auto">
                     <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,10">
@@ -1237,7 +1237,7 @@
         </Border>
 
 <!-- MODAL: Delete Confirmation -->
-        <Border IsVisible="{Binding IsDeleteConfirmOpen}" Background="{StaticResource OverlayBrush}">
+        <Border Grid.Row="0" Grid.RowSpan="2" IsVisible="{Binding IsDeleteConfirmOpen}" Background="{StaticResource OverlayBrush}">
             <Border Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="380" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="14">
                     <TextBlock Text="{l10n:Tr Key=dialog_delete_title}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource DangerBrush}"/>
@@ -1251,7 +1251,7 @@
         </Border>
 
         <!-- MODAL: Restart Confirmation (Theme Application) -->
-        <Border IsVisible="{Binding IsRestartConfirmOpen}" Background="{StaticResource OverlayBrush}">
+        <Border Grid.Row="0" Grid.RowSpan="2" IsVisible="{Binding IsRestartConfirmOpen}" Background="{StaticResource OverlayBrush}">
             <Border Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="400" Padding="22" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="14">
                     <TextBlock Text="{l10n:Tr Key=dialog_restart_title}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
@@ -1265,7 +1265,7 @@
         </Border>
 
         <!-- MODAL: Discard Changes Confirmation (Theme Tab Switch) -->
-        <Border IsVisible="{Binding IsThemeDiscardConfirmOpen}" Background="{StaticResource OverlayBrush}">
+        <Border Grid.Row="0" Grid.RowSpan="2" IsVisible="{Binding IsThemeDiscardConfirmOpen}" Background="{StaticResource OverlayBrush}">
             <Border Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="400" Padding="22" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="14">
                     <TextBlock Text="{l10n:Tr Key=dialog_discard_title}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
@@ -1279,7 +1279,7 @@
         </Border>
 
         <!-- MODAL: Modpack Delete Confirmation -->
-        <Border IsVisible="{Binding ModpacksBrowser.IsDeleteConfirmOpen}" Background="{StaticResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <Border Grid.Row="0" Grid.RowSpan="2" IsVisible="{Binding ModpacksBrowser.IsDeleteConfirmOpen}" Background="{StaticResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1"
                     CornerRadius="12" MaxWidth="360" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="12">
@@ -1297,7 +1297,7 @@
         </Border>
 
         <!-- MODAL: Ely.by Error -->
-        <Border IsVisible="{Binding IsElyByErrorOpen}" Background="{StaticResource OverlayBrush}">
+        <Border Grid.Row="0" Grid.RowSpan="2" IsVisible="{Binding IsElyByErrorOpen}" Background="{StaticResource OverlayBrush}">
             <Border Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="420" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="14">
                     <TextBlock Text="{l10n:Tr Key=dialog_connection}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource DangerBrush}"/>
@@ -1311,8 +1311,8 @@
         </Border>
 
     <!-- Java Runtime Installer In-App Modal -->
-        <Border Background="{StaticResource OverlayBrush}" IsVisible="{Binding IsJavaInstallerOpen}" ZIndex="1000"
-                HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.RowSpan="3" Grid.ColumnSpan="3">
+        <Border Grid.Row="0" Grid.RowSpan="2" Background="{StaticResource OverlayBrush}" IsVisible="{Binding IsJavaInstallerOpen}" ZIndex="1000"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
             <Border x:Name="JavaInstallerCard" Background="{StaticResource SurfaceBrush}" CornerRadius="14" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1"
                     Width="420" HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 18 46 0 #55000000" Padding="24,20,24,18">
                 <Grid RowDefinitions="Auto,Auto,Auto,Auto">
@@ -1396,8 +1396,8 @@
             </Border>
         </Border>
     <!-- Import Picker In-App Modal -->
-        <Border Background="{StaticResource OverlayBrush}" IsVisible="{Binding IsImportPickerOpen}" ZIndex="1000"
-                HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.RowSpan="3" Grid.ColumnSpan="3">
+        <Border Grid.Row="0" Grid.RowSpan="2" Background="{StaticResource OverlayBrush}" IsVisible="{Binding IsImportPickerOpen}" ZIndex="1000"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
             <Border Background="{StaticResource BgBrush}" CornerRadius="14" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1"
                     Width="460" HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 18 46 0 #55000000" Padding="24,20,24,18">
                 <StackPanel Spacing="14">
@@ -1451,24 +1451,24 @@
             </Border>
         </Border>
     <!-- Crash Report In-App Modal (soft fade-in via code-behind) -->
-        <Border x:Name="CrashOverlay" Background="{StaticResource OverlayBrush}" IsVisible="{Binding IsCrashReportOpen}" ZIndex="2000"
-                HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.RowSpan="3" Grid.ColumnSpan="3">
+        <Border Grid.Row="0" Grid.RowSpan="2" x:Name="CrashOverlay" Background="{StaticResource OverlayBrush}" IsVisible="{Binding IsCrashReportOpen}" ZIndex="2000"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
             <Border Background="{StaticResource SurfaceBrush}" CornerRadius="16" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1"
                     HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 18 46 0 #55000000" Padding="6,4">
                 <views:CrashReportView DataContext="{Binding CrashReportVm}"/>
             </Border>
         </Border>
     <!-- Update In-App Modal (soft fade-in via code-behind) -->
-        <Border x:Name="UpdateOverlay" Background="{StaticResource OverlayBrush}" IsVisible="{Binding IsUpdateOpen}" ZIndex="2000"
-                HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.RowSpan="3" Grid.ColumnSpan="3">
+        <Border Grid.Row="0" Grid.RowSpan="2" x:Name="UpdateOverlay" Background="{StaticResource OverlayBrush}" IsVisible="{Binding IsUpdateOpen}" ZIndex="2000"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
             <Border Background="{StaticResource SurfaceBrush}" CornerRadius="16" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1"
                     HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 18 46 0 #55000000" Padding="24,20">
                 <views:UpdateNotificationView DataContext="{Binding UpdateVm}"/>
             </Border>
         </Border>
         <!-- Info Dialog Modal (Updates / Alerts) -->
-        <Border IsVisible="{Binding IsInfoDialogOpen}" Background="{StaticResource OverlayBrush}" ZIndex="2100"
-                HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.RowSpan="3" Grid.ColumnSpan="3">
+        <Border Grid.Row="0" Grid.RowSpan="2" IsVisible="{Binding IsInfoDialogOpen}" Background="{StaticResource OverlayBrush}" ZIndex="2100"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
             <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderCardSoftBrush}" BorderThickness="1"
                     CornerRadius="12" Padding="24" Width="400" HorizontalAlignment="Center" VerticalAlignment="Center"
                     BoxShadow="0 18 46 0 #55000000">
@@ -1489,7 +1489,7 @@
             </Border>
         </Border>
         <!-- DragOverlayPanel: topmost layer for drag ghost rendering -->
-        <Canvas x:Name="DragOverlayPanel" IsHitTestVisible="False" ClipToBounds="False" ZIndex="9999"/>
+        <Canvas Grid.Row="0" Grid.RowSpan="2" x:Name="DragOverlayPanel" IsHitTestVisible="False" ClipToBounds="False" ZIndex="9999"/>
     </Grid>
     </LayoutTransformControl>
     <controls:ParticleSystemControl ParticleType="{Binding SelectedParticle}" ParticleCount="{Binding ParticleCount}" ParticleScale="{Binding ParticleScale}" ParticleSpeed="{Binding ParticleSpeed}" ParticleColorHex="{Binding ParticleColorHex}" ParticleAngleDeg="{Binding ParticleAngleDeg}" ParticleTexturePath="{Binding ParticleTexturePath}" IsHitTestVisible="False"/>

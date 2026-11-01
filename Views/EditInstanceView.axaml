@@ -579,60 +579,89 @@
                     </Border>
                 </Grid>
 
-                <!-- Servers -->
-                <Grid IsVisible="{Binding IsServersTab}" RowDefinitions="Auto,*,Auto" Margin="14,10">
-                    <StackPanel Grid.Row="0" Spacing="2" Margin="0,0,0,8">
-                                                <TextBlock Text="{Binding Servers.Count, StringFormat='{}{0} server(s) in servers.dat'}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"/>
-                    </StackPanel>
-                    <Border Grid.Row="1" Background="Transparent" Padding="4">
+                <!-- Servers (Unified list with Play, Delete, Add Server) -->
+                <Grid IsVisible="{Binding IsServersTab}" RowDefinitions="Auto,*" Margin="14,10">
+                    <!-- Top bar: count + Add Server button -->
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,10">
+                        <TextBlock Text="{Binding Servers.Count, StringFormat='{}{0} server(s) in servers.dat'}"
+                                   FontSize="12" Foreground="{DynamicResource TextPlaceholderBrush}" VerticalAlignment="Center"/>
+                        <Button Grid.Column="1" Classes="primaryBtn" Content="+ Add Server"
+                                Command="{Binding OpenAddServerDialogCommand}" FontSize="11" Padding="12,5"/>
+                    </Grid>
+
+                    <!-- Servers List -->
+                    <Border Grid.Row="1" Background="Transparent">
                         <Grid>
-                            <ListBox ItemsSource="{Binding Servers}" Background="Transparent" BorderThickness="0" Padding="6">
-                                <ListBox.Styles>
-                                    <Style Selector="ListBoxItem">
-                                        <Setter Property="Padding" Value="0"/>
-                                        <Setter Property="Background" Value="Transparent"/>
-                                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                                    </Style>
-                                    <Style Selector="ListBoxItem:selected">
-                                        <Setter Property="Background" Value="{StaticResource PanelBrush}"/>
-                                    </Style>
-                                </ListBox.Styles>
-                                <ListBox.ItemTemplate>
-                                    <DataTemplate x:DataType="models:InstanceFileEntry">
-                                        <Grid ColumnDefinitions="52,*,Auto" MinHeight="58" Margin="4,6,4,6">
-                                            <Border Width="44" Height="44" Background="{StaticResource IconChipBrush}" CornerRadius="10"
-                                                    ClipToBounds="True" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                                <Panel>
-                                                    <Image Source="{Binding PreviewBytes, Converter={x:Static converters:BytesToBitmapConverter.Instance}}" Stretch="Uniform" Width="38" Height="38"
-                                                           HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding HasPreview}"/>
-                                                    <Path Data="M4 1H20C21.1 1 22 1.9 22 3V6C22 7.1 21.1 8 20 8H4C2.9 8 2 7.1 2 6V3C2 1.9 2.9 1 4 1ZM4 10H20C21.1 10 22 10.9 22 12V15C22 16.1 21.1 17 20 17H4C2.9 17 2 16.1 2 15V12C2 10.9 2.9 10 4 10ZM6 3V6H8V3H6ZM6 12V15H8V12H6Z"
-                                                          Width="20" Height="20" Stretch="Uniform" Fill="{StaticResource TextPlaceholderBrush}"
-                                                          HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding !HasPreview}"/>
-                                                </Panel>
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <ItemsControl ItemsSource="{Binding Servers}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="models:InstanceFileEntry">
+                                            <Border Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
+                                                    BorderThickness="1" CornerRadius="10" Padding="12,10" Margin="0,0,0,8">
+                                                <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                                                    <!-- Server Icon -->
+                                                    <Border Grid.Column="0" Width="44" Height="44" CornerRadius="8" ClipToBounds="True"
+                                                            Background="{DynamicResource IconChipBrush}" VerticalAlignment="Center">
+                                                        <Panel>
+                                                            <Image Source="{Binding PreviewBytes, Converter={x:Static converters:BytesToBitmapConverter.Instance}}"
+                                                                   Stretch="Uniform" Width="38" Height="38" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                   IsVisible="{Binding HasPreview}"/>
+                                                            <Path Data="M4 1H20C21.1 1 22 1.9 22 3V6C22 7.1 21.1 8 20 8H4C2.9 8 2 7.1 2 6V3C2 1.9 2.9 1 4 1ZM4 10H20C21.1 10 22 10.9 22 12V15C22 16.1 21.1 17 20 17H4C2.9 17 2 16.1 2 15V12C2 10.9 2.9 10 4 10ZM6 3V6H8V3H6ZM6 12V15H8V12H6Z"
+                                                                  Width="20" Height="20" Stretch="Uniform" Fill="{DynamicResource TextPlaceholderBrush}"
+                                                                  HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding !HasPreview}"/>
+                                                        </Panel>
+                                                    </Border>
+
+                                                    <!-- Server Title, IP, MOTD -->
+                                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2" Margin="12,0,16,0">
+                                                        <TextBlock Text="{Binding Title}" FontSize="13.5" FontWeight="Bold"
+                                                                   Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                                        <TextBlock Text="{Binding Subtitle}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                                                                   TextTrimming="CharacterEllipsis" IsVisible="{Binding Subtitle, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
+                                                        <TextBlock Text="{Binding Description}" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}"
+                                                                   TextTrimming="CharacterEllipsis" MaxLines="2" TextWrapping="Wrap"
+                                                                   IsVisible="{Binding Description, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
+                                                    </StackPanel>
+
+                                                    <!-- Player count / Ping -->
+                                                    <TextBlock Grid.Column="2" Text="{Binding Meta}" FontSize="11" Foreground="{DynamicResource TextCaptionBrush}"
+                                                               VerticalAlignment="Center" HorizontalAlignment="Right" TextTrimming="CharacterEllipsis" Margin="0,0,16,0"
+                                                               IsVisible="{Binding Meta, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
+
+                                                    <!-- Actions: Green Play Button + Delete Button -->
+                                                    <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                                        <!-- Green Play Button -->
+                                                        <Button Classes="worldPlayBtn"
+                                                                Command="{Binding $parent[views:EditInstanceView].((vm:EditInstanceViewModel)DataContext).LaunchServerCommand}"
+                                                                CommandParameter="{Binding}"
+                                                                Background="#10b981" Foreground="#000000" CornerRadius="8" Padding="14,6" Height="32" Cursor="Hand">
+                                                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                                                <PathIcon Data="M8 5v14l11-7z" Width="11" Height="11" Foreground="#000000"/>
+                                                                <TextBlock Text="Play" FontWeight="Bold" FontSize="12.5" Foreground="#000000"/>
+                                                            </StackPanel>
+                                                        </Button>
+
+                                                        <!-- Delete Button -->
+                                                        <Button Width="32" Height="32" CornerRadius="8" Cursor="Hand"
+                                                                Background="{DynamicResource IconChipBrush}" Padding="0"
+                                                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                                                Command="{Binding $parent[views:EditInstanceView].((vm:EditInstanceViewModel)DataContext).RequestDeleteServerCommand}"
+                                                                CommandParameter="{Binding}">
+                                                            <PathIcon Data="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                                                                      Width="13" Height="13" Foreground="{DynamicResource DangerBrush}"/>
+                                                        </Button>
+                                                    </StackPanel>
+                                                </Grid>
                                             </Border>
-                                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2" Margin="0,0,8,0">
-                                                <StackPanel Orientation="Vertical">
-                                                    <TextBlock Text="{Binding Title}" FontSize="12.5" FontWeight="SemiBold"
-                                                               Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
-                                                    <TextBlock Text="{Binding Subtitle}" FontSize="10.5" Foreground="{StaticResource TextMutedBrush}"
-                                                               TextTrimming="CharacterEllipsis" IsVisible="{Binding Subtitle, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
-                                                </StackPanel>
-                                                <TextBlock Text="{Binding Description}" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}"
-                                                           TextTrimming="CharacterEllipsis" MaxLines="2" TextWrapping="Wrap"
-                                                           IsVisible="{Binding Description, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
-                                            </StackPanel>
-                                            <TextBlock Grid.Column="2" Text="{Binding Meta}" FontSize="10" Foreground="{StaticResource TextCaptionBrush}"
-                                                       VerticalAlignment="Center" HorizontalAlignment="Right" TextTrimming="CharacterEllipsis" Margin="4,0,0,0"
-                                                       IsVisible="{Binding Meta, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
-                                        </Grid>
-                                    </DataTemplate>
-                                </ListBox.ItemTemplate>
-                            </ListBox>
-                            <TextBlock Text="{l10n:Tr Key=sv_nodat}" TextWrapping="Wrap" Foreground="{StaticResource TextPlaceholderBrush}" FontSize="12" Margin="12,14" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                            <TextBlock Text="{l10n:Tr Key=sv_nodat}" TextWrapping="Wrap" Foreground="{DynamicResource TextPlaceholderBrush}" FontSize="12"
+                                       Margin="12,24" HorizontalAlignment="Center" VerticalAlignment="Center"
                                        IsVisible="{Binding Servers.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}"/>
                         </Grid>
                     </Border>
-                    <Button Grid.Row="2" Classes="primaryBtn" Content="{l10n:Tr Key=btn_manage_servers}" Command="{Binding OpenServerManagerCommand}" HorizontalAlignment="Left" Margin="2,8,0,0" Padding="14,7" FontSize="12"/>
                 </Grid>
 
                 <!-- Screenshots -->
@@ -785,6 +814,59 @@
                                 Command="{Binding CancelEditWorldCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
                         <Button Grid.Column="2" Classes="primaryBtn" Content="{l10n:Tr Key=btn_save}"
                                 Command="{Binding SaveEditWorldCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Border>
+        <!-- Delete Server Confirmation Overlay -->
+        <Border Grid.Row="0" Grid.RowSpan="3" Background="#99000000" IsVisible="{Binding IsDeleteServerConfirmOpen}"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="110">
+            <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
+                    BorderThickness="1" CornerRadius="12" Padding="24"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    MinWidth="380" MaxWidth="480">
+                <StackPanel Spacing="16">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="Delete Server" FontSize="16" FontWeight="Bold"
+                                   Foreground="{DynamicResource DangerBrush}"/>
+                        <TextBlock Text="{Binding DeleteServerName, StringFormat='Are you sure you want to delete server \'{0}\' from servers.dat?'}"
+                                   TextWrapping="Wrap" FontSize="12.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    </StackPanel>
+                    <Grid ColumnDefinitions="*,10,*" HorizontalAlignment="Right" Width="200">
+                        <Button Grid.Column="0" Classes="subBtn" Content="{l10n:Tr Key=cancel}"
+                                Command="{Binding CancelDeleteServerCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                        <Button Grid.Column="2" Classes="dangerBtn" Content="{l10n:Tr Key=btn_delete}"
+                                Command="{Binding ConfirmDeleteServerCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Border>
+
+        <!-- Add Server Dialog Overlay -->
+        <Border Grid.Row="0" Grid.RowSpan="3" Background="#99000000" IsVisible="{Binding IsAddServerOpen}"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="110">
+            <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
+                    BorderThickness="1" CornerRadius="12" Padding="24"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    MinWidth="380" MaxWidth="480">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="Add Server" FontSize="16" FontWeight="Bold"
+                               Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    <StackPanel Spacing="10">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Server Name:" FontSize="12" Foreground="{DynamicResource TextMutedBrush}"/>
+                            <TextBox Classes="darkInput" Text="{Binding NewServerName, Mode=TwoWay}" PlaceholderText="Minecraft Server" FontSize="13" Padding="8,6"/>
+                        </StackPanel>
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Server Address / IP:" FontSize="12" Foreground="{DynamicResource TextMutedBrush}"/>
+                            <TextBox Classes="darkInput" Text="{Binding NewServerIp, Mode=TwoWay}" PlaceholderText="mc.example.com" FontSize="13" Padding="8,6"/>
+                        </StackPanel>
+                    </StackPanel>
+                    <Grid ColumnDefinitions="*,10,*" HorizontalAlignment="Right" Width="200">
+                        <Button Grid.Column="0" Classes="subBtn" Content="{l10n:Tr Key=cancel}"
+                                Command="{Binding CancelAddServerCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                        <Button Grid.Column="2" Classes="primaryBtn" Content="Add"
+                                Command="{Binding SaveAddServerCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
                     </Grid>
                 </StackPanel>
             </Border>

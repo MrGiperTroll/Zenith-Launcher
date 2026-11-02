@@ -287,12 +287,24 @@
             <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
         </Style>
-        <Style Selector="ComboBoxItem:selected">
-            <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Style Selector="ComboBoxItem /template/ Path#PART_CheckMark">
+            <Setter Property="IsVisible" Value="False"/>
         </Style>
-        <Style Selector="ComboBoxItem:selected:pointerover">
-            <Setter Property="Background" Value="{StaticResource AccentDimBrush}"/>
+        <Style Selector="ComboBoxItem /template/ Border#PART_CheckMark">
+            <Setter Property="IsVisible" Value="False"/>
+        </Style>
+        <Style Selector="ComboBoxItem:selected">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="ComboBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
+        </Style>
+        <Style Selector="ComboBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource AccentBrushHover}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
         </Style>
 
         <!-- ListBoxItem: ban system blue/cyan selection highlights, preserve dark theme palette -->

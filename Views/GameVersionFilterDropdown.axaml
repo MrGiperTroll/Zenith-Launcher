@@ -37,6 +37,34 @@
             <Setter Property="BorderBrush" Value="{DynamicResource AccentBrushHover}"/>
         </Style>
 
+        <Style Selector="ToggleButton.filterItemChip">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Margin" Value="2,1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        </Style>
+        <Style Selector="ToggleButton.filterItemChip:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        </Style>
+        <Style Selector="ToggleButton.filterItemChip:checked">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
+        </Style>
+        <Style Selector="ToggleButton.filterItemChip:checked /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
+        </Style>
+        <Style Selector="ToggleButton.filterItemChip:checked:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource AccentBrushHover}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
+        </Style>
+
         <Style Selector="Button.clearBtn">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
@@ -112,11 +140,10 @@
                             </ListBox.ItemContainerTheme>
                             <ListBox.ItemTemplate>
                                 <DataTemplate x:DataType="vm:GameVersionFilterItem">
-                                    <CheckBox Classes="zenFilterCheck" IsChecked="{Binding IsSelected}"
-                                              Margin="6,2" Padding="8,4" HorizontalAlignment="Stretch">
-                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="12.5"
-                                                   Foreground="{StaticResource TextPrimaryBrush}"/>
-                                    </CheckBox>
+                                    <ToggleButton Classes="filterItemChip" IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                  HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="12.5"/>
+                                    </ToggleButton>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>
@@ -124,12 +151,14 @@
                         <!-- Divider (Row 4) -->
                         <Border Grid.Row="4" Height="1" Background="{StaticResource BorderDarkBrush}"/>
 
-                        <!-- Bottom: Show all versions Checkbox (Row 5) -->
+                        <!-- Bottom: Show all versions ToggleSwitch (Row 5) -->
                         <Border Grid.Row="5" Padding="12,8" Background="Transparent">
-                            <CheckBox Classes="zenFilterCheck" IsChecked="{Binding ShowAllVersions, Mode=TwoWay}">
-                                <TextBlock Text="Show all versions" FontWeight="SemiBold" FontSize="12"
-                                           Foreground="{StaticResource TextPrimaryBrush}"/>
-                            </CheckBox>
+                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                <TextBlock Grid.Column="0" Text="Show all versions" FontWeight="SemiBold" FontSize="12"
+                                           Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                <ToggleSwitch Grid.Column="1" IsChecked="{Binding ShowAllVersions, Mode=TwoWay}"
+                                              OnContent="" OffContent="" Margin="0" VerticalAlignment="Center"/>
+                            </Grid>
                         </Border>
                     </Grid>
                 </Border>

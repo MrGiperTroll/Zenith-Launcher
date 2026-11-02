@@ -91,16 +91,17 @@
         </Style>
 
         <Style Selector="Border.accRowCard.active">
-            <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="BorderThickness" Value="1.5"/>
-            <Setter Property="BoxShadow" Value="0 0 10 0 #3310B981"/>
+            <Setter Property="Background" Value="{DynamicResource AccentDimBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderCardSoftBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BoxShadow" Value="inset 0 0 16 0 #2010B981"/>
         </Style>
 
         <Style Selector="Border.accRowCard.active:pointerover">
             <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrushHover}"/>
-            <Setter Property="BoxShadow" Value="0 0 12 0 #4410B981"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderHoverBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BoxShadow" Value="inset 0 0 18 0 #2810B981"/>
         </Style>
         <Style Selector="Border.accRowCard.dragging">
             <Setter Property="Opacity" Value="0.0"/>
@@ -308,9 +309,6 @@
                                                         <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                                                             <Border Background="{StaticResource ChipBrush}" CornerRadius="4" Padding="5,1.5">
                                                                 <TextBlock Text="{Binding TypeDisplay}" FontSize="9.5" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                                                            </Border>
-                                                            <Border Background="{DynamicResource AccentDimBrush}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1" CornerRadius="4" Padding="5,1.5" IsVisible="{Binding IsActive}">
-                                                                <TextBlock Text="Active" FontSize="9.5" Foreground="{DynamicResource AccentBrush}" FontWeight="Bold" VerticalAlignment="Center"/>
                                                             </Border>
                                                         </StackPanel>
                                                     </StackPanel>

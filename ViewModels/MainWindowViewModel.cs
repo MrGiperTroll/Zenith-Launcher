@@ -3314,10 +3314,7 @@ public partial class MainWindowViewModel : ViewModelBase
         PendingDeleteInstance = null;
         StatusText = $"Deleting {inst.Name}...";
 
-        await Task.Run(() =>
-        {
-            _instanceService.DeleteInstance(inst.Id);
-        });
+        await _instanceService.DeleteInstanceAsync(inst.Id);
 
         StatusText = $"Deleted {inst.Name}";
         RefreshState();

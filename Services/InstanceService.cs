@@ -150,6 +150,32 @@ public class InstanceService : IInstanceService
         }
     }
 
+    public async Task DeleteInstanceAsync(string instanceId)
+    {
+        string? pathToDel = null;
+        lock (_lock)
+        {
+            var inst = _instances.FirstOrDefault(i => i.Id == instanceId);
+            if (inst != null)
+            {
+                _instances.Remove(inst);
+                pathToDel = inst.Path;
+                if (_selectedInstanceId == instanceId)
+                    _selectedInstanceId = _instances.FirstOrDefault()?.Id;
+
+                SaveInstances();
+            }
+        }
+
+        if (!string.IsNullOrEmpty(pathToDel) && Directory.Exists(pathToDel))
+        {
+            await Task.Run(() =>
+            {
+                try { Directory.Delete(pathToDel, true); } catch { }
+            }).ConfigureAwait(false);
+        }
+    }
+
     public async Task SaveInstanceAsync(InstanceModel instance)
     {
         try

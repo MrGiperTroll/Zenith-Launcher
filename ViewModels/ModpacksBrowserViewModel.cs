@@ -2115,15 +2115,15 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void ConfirmDelete()
+    private async Task ConfirmDeleteAsync()
     {
         var project = PendingDelete;
         if (project == null) return;
         PendingDelete = null;
-        DeleteModpack(project);
+        await DeleteModpackAsync(project);
     }
 
-    private void DeleteModpack(ModrinthProjectItemViewModel project)
+    private async Task DeleteModpackAsync(ModrinthProjectItemViewModel project)
     {
         if (project == null) return;
         try
@@ -2148,7 +2148,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
             }
 
             foreach (var inst in matches)
-                _instanceService.DeleteInstance(inst.Id);
+                await _instanceService.DeleteInstanceAsync(inst.Id);
 
             project.IsInstalled = false;
             StatusText = string.Format(L10n.T("cb_deleted"), project.Title);

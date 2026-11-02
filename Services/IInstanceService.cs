@@ -14,6 +14,7 @@ public interface IInstanceService
     Task SaveInstanceAsync(InstanceModel instance);
     Task<InstanceModel?> CreateInstanceAsync(string name, string version, string loaderType = "Vanilla", string loaderBuild = "");
     void DeleteInstance(string instanceId);
+    Task DeleteInstanceAsync(string instanceId);
     Task<(bool ok, string? error)> RenameInstanceAsync(InstanceModel instance, string newName);
     void ReorderInstances(string movedId, string targetId, bool dropAfter, bool save = true);
     void SetInstanceOrder(IReadOnlyList<string> orderedIds);

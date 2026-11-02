@@ -1302,7 +1302,7 @@
         </Grid>
 
         <!-- MODAL: Create Profile -->
-        <Border Grid.Row="0" Grid.RowSpan="2" IsVisible="{Binding IsCreateDialogOpen}" Background="{StaticResource OverlayBrush}">
+        <Border Grid.Row="0" Grid.RowSpan="2" IsVisible="{Binding IsCreateDialogOpen}" Background="{StaticResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1000">
             <Border Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="440" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="12">
                     <TextBlock Text="{l10n:Tr Key=cp_title}" FontSize="17" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
@@ -1370,7 +1370,7 @@
         </Border>
 
         <!-- MODAL: Console & Logs -->
-        <Border Grid.Row="0" Grid.RowSpan="2" IsVisible="{Binding IsConsoleDialogOpen}" Background="{StaticResource OverlayBrush}">
+        <Border Grid.Row="0" Grid.RowSpan="2" IsVisible="{Binding IsConsoleDialogOpen}" Background="{StaticResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1000">
             <Border Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="700" Height="480" Padding="18" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <Grid RowDefinitions="Auto,*,Auto">
                     <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,10">
@@ -1392,7 +1392,7 @@
         </Border>
 
 <!-- MODAL: Delete Confirmation -->
-        <Border Grid.Row="0" Grid.RowSpan="2" IsVisible="{Binding IsDeleteConfirmOpen}" Background="{StaticResource OverlayBrush}">
+        <Border Grid.Row="0" Grid.RowSpan="2" IsVisible="{Binding IsDeleteConfirmOpen}" Background="{StaticResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1000">
             <Border Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="380" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="14">
                     <TextBlock Text="{l10n:Tr Key=dialog_delete_title}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource DangerBrush}"/>
@@ -1406,7 +1406,7 @@
         </Border>
 
         <!-- MODAL: Restart Confirmation (Theme Application) -->
-        <Border Grid.Row="0" Grid.RowSpan="2" IsVisible="{Binding IsRestartConfirmOpen}" Background="{StaticResource OverlayBrush}">
+        <Border Grid.Row="0" Grid.RowSpan="2" IsVisible="{Binding IsRestartConfirmOpen}" Background="{StaticResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1000">
             <Border Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="400" Padding="22" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="14">
                     <TextBlock Text="{l10n:Tr Key=dialog_restart_title}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
@@ -1420,7 +1420,7 @@
         </Border>
 
         <!-- MODAL: Discard Changes Confirmation (Theme Tab Switch) -->
-        <Border Grid.Row="0" Grid.RowSpan="2" IsVisible="{Binding IsThemeDiscardConfirmOpen}" Background="{StaticResource OverlayBrush}">
+        <Border Grid.Row="0" Grid.RowSpan="2" IsVisible="{Binding IsThemeDiscardConfirmOpen}" Background="{StaticResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1000">
             <Border Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="400" Padding="22" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="14">
                     <TextBlock Text="{l10n:Tr Key=dialog_discard_title}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
@@ -1434,7 +1434,7 @@
         </Border>
 
         <!-- MODAL: Modpack Delete Confirmation -->
-        <Border Grid.Row="0" Grid.RowSpan="2" IsVisible="{Binding ModpacksBrowser.IsDeleteConfirmOpen}" Background="{StaticResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <Border Grid.Row="0" Grid.RowSpan="2" IsVisible="{Binding ModpacksBrowser.IsDeleteConfirmOpen}" Background="{StaticResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1000">
             <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1"
                     CornerRadius="12" MaxWidth="360" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="12">
@@ -1452,7 +1452,7 @@
         </Border>
 
         <!-- MODAL: Ely.by Error -->
-        <Border Grid.Row="0" Grid.RowSpan="2" IsVisible="{Binding IsElyByErrorOpen}" Background="{StaticResource OverlayBrush}">
+        <Border Grid.Row="0" Grid.RowSpan="2" IsVisible="{Binding IsElyByErrorOpen}" Background="{StaticResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1000">
             <Border Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="420" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="14">
                     <TextBlock Text="{l10n:Tr Key=dialog_connection}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource DangerBrush}"/>

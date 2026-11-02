@@ -125,10 +125,15 @@
                         <Border Grid.Row="2" Height="1" Background="{StaticResource BorderDarkBrush}"/>
 
                         <!-- Scrollable Version List with Virtualization (Row 3) -->
-                        <ListBox Grid.Row="3" ItemsSource="{Binding FilteredItems}" MaxHeight="240"
+                        <ListBox Grid.Row="3" ItemsSource="{Binding FilteredItems}" Height="240"
                                  Background="Transparent" BorderThickness="0" Margin="4,4"
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                  ScrollViewer.VerticalScrollBarVisibility="Auto">
+                            <ListBox.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <VirtualizingStackPanel/>
+                                </ItemsPanelTemplate>
+                            </ListBox.ItemsPanel>
                             <ListBox.ItemContainerTheme>
                                 <ControlTheme TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
                                     <Setter Property="Background" Value="Transparent"/>

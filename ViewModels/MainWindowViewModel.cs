@@ -6769,83 +6769,78 @@ public partial class MainWindowViewModel : ViewModelBase
 
 
     [RelayCommand]
-
-    private async Task PickImportFolderAsync(string? kind)
-
+    private async Task PickImportFileAsync()
     {
-
         var topLevel = Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
-
             ? desktop.MainWindow
-
             : null;
-
         if (topLevel?.StorageProvider == null) return;
 
+        var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "Import Instance or Modpack Archive",
+            AllowMultiple = false,
+            FileTypeFilter = new[]
+            {
+                new FilePickerFileType("Minecraft Archives") { Patterns = new[] { "*.zip", "*.mrpack", "*.rar" } },
+                FilePickerFileTypes.All
+            }
+        });
+        if (files.Count == 0) return;
 
+        await RunImportProcessAsync(files[0].Path.LocalPath);
+    }
+
+    [RelayCommand]
+    private async Task PickImportFolderAsync(string? kind)
+    {
+        if (kind is "Archive" or "File")
+        {
+            await PickImportFileAsync();
+            return;
+        }
+
+        var topLevel = Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
+            ? desktop.MainWindow
+            : null;
+        if (topLevel?.StorageProvider == null) return;
 
         var folders = await topLevel.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
-
         {
-
             Title = L10n.T("profile_import"),
-
             AllowMultiple = false
-
         });
-
         if (folders.Count == 0) return;
 
+        await RunImportProcessAsync(folders[0].Path.LocalPath);
+    }
 
-
-        var path = folders[0].Path.LocalPath;
-
+    private async Task RunImportProcessAsync(string path)
+    {
         var detected = InstanceImportService.Detect(path);
-
         if (detected == ImportSourceKind.None)
-
         {
-
             StatusText = L10n.T("imp_not_recognized");
-
             return;
-
         }
-
-
 
         IsImportPickerOpen = false;
-
         StatusText = L10n.T("profile_importing");
-
         try
-
         {
-
             var result = await Task.Run(() => InstanceImportService.ImportAsync(_instanceService, path));
-
             StatusText = result.Imported > 0
-
                 ? string.Format(L10n.T("profile_imported"), result.Imported, result.Skipped)
-
                 : L10n.T("profile_import_none");
-
             if (result.Warnings.Count > 0)
-
                 StatusText += " " + result.Warnings[0];
-
+            RefreshState();
         }
-
         catch (Exception ex)
-
         {
-
             LauncherLog.Error("Instance import failed", ex);
-
             StatusText = ex.Message;
-
         }
-
     }
 
 

@@ -1885,13 +1885,24 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
                 var platforms = new List<string> { "All platforms" };
                 platforms.AddRange(actualLoaders);
                 FilterPlatforms = platforms;
-                SelectedFilterGameVersion = "All versions";
-                SelectedFilterPlatform = "All platforms";
+
+                // Auto-select instance game version if present
+                var matchingVer = GameVersionFilter.Items.FirstOrDefault(i => i.Name.Equals(_gameVersion, StringComparison.OrdinalIgnoreCase));
+                if (matchingVer != null)
+                {
+                    matchingVer.IsSelected = true;
+                    GameVersionFilter.NotifySelectionState();
+                }
+
+                var loaderName = Models.ModrinthFullProject.FormatPlatformName(_loaderType);
+                var matchingPlatform = actualLoaders.FirstOrDefault(p => p.Equals(loaderName, StringComparison.OrdinalIgnoreCase));
+                SelectedFilterPlatform = matchingPlatform ?? "All platforms";
 
                 PlatformFilterItems.Clear();
                 foreach (var p in actualLoaders)
                 {
-                    var item = new Models.FilterCheckItem { Name = p, IsSelected = false };
+                    var isSel = matchingPlatform != null && p.Equals(matchingPlatform, StringComparison.OrdinalIgnoreCase);
+                    var item = new Models.FilterCheckItem { Name = p, IsSelected = isSel };
                     item.PropertyChanged += (s, e) =>
                     {
                         if (e.PropertyName == nameof(Models.FilterCheckItem.IsSelected))

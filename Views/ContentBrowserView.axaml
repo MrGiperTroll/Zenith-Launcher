@@ -176,22 +176,76 @@
         <Style Selector="Button.inlineLinkBtn:pointerover">
             <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
         </Style>
+        <!-- Unified Toolbar Controls -->
+        <Style Selector="ComboBox.toolbarCombo">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="0"/>
+            <Setter Property="Padding" Value="12,0,6,0"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="MinHeight" Value="34"/>
+            <Setter Property="Height" Value="34"/>
+        </Style>
+        <Style Selector="ComboBox.toolbarCombo /template/ Border#Background">
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="ComboBox.toolbarCombo:pointerover /template/ Border#Background">
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+
+        <Style Selector="TextBox.toolbarInput">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="0"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="6,0"/>
+            <Setter Property="MinHeight" Value="34"/>
+            <Setter Property="Height" Value="34"/>
+        </Style>
+        <Style Selector="TextBox.toolbarInput:focus /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style Selector="TextBox.toolbarInput:pointerover /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+
+        <Style Selector="Button.toolbarBtn">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Button.toolbarBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+        </Style>
     </UserControl.Styles>
 
     <Panel>
     <Grid RowDefinitions="Auto,*" Margin="14">
-        <!-- Header: Harmonious Filter Bar -->
-        <Border Grid.Row="0" Background="Transparent" Padding="2" Margin="0,0,0,16"
+        <!-- Header: Unified Seamless Filter Bar -->
+        <Border Grid.Row="0" Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
+                BorderThickness="1" CornerRadius="8" Height="36" Margin="0,0,0,16" Padding="0"
                 IsVisible="{Binding !IsDetailsOpen}">
-            <Grid ColumnDefinitions="140,*,140,Auto" ColumnSpacing="8" VerticalAlignment="Center">
-                <ComboBox Grid.Column="0" Classes="zenCombo" Height="34" ItemsSource="{Binding AvailableContentTypes}" SelectedItem="{Binding SelectedContentType}" VerticalAlignment="Center">
+            <Grid ColumnDefinitions="140,1,*,1,130,1,36" VerticalAlignment="Center">
+                <!-- 1. Category Dropdown -->
+                <ComboBox Grid.Column="0" Classes="toolbarCombo" Height="34" ItemsSource="{Binding AvailableContentTypes}" SelectedItem="{Binding SelectedContentType}" VerticalAlignment="Center">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding Converter={x:Static converters:ContentBrowserConverters.ContentTypeDisplay}}"/>
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>
-                <TextBox Grid.Column="1" Classes="darkInput" Height="34" Text="{Binding SearchQuery}" PlaceholderText="{l10n:Tr Key=cb_search}" FontSize="12" VerticalAlignment="Center">
+
+                <Rectangle Grid.Column="1" Width="1" Fill="{DynamicResource BorderDarkBrush}" VerticalAlignment="Stretch" Margin="0,6"/>
+
+                <!-- 2. Search Box -->
+                <TextBox Grid.Column="2" Classes="toolbarInput" Height="34" Text="{Binding SearchQuery}" PlaceholderText="{l10n:Tr Key=cb_search}" FontSize="12" VerticalAlignment="Center">
                     <TextBox.KeyBindings>
                         <KeyBinding Gesture="Enter" Command="{Binding SearchCommand}"/>
                     </TextBox.KeyBindings>
@@ -206,15 +260,23 @@
                                 Foreground="{DynamicResource TextPlaceholderBrush}"/>
                     </TextBox.InnerRightContent>
                 </TextBox>
-                <ComboBox Grid.Column="2" Classes="zenCombo" Height="34" ItemsSource="{Binding SortOptions}" SelectedItem="{Binding SelectedSortDisplay}" VerticalAlignment="Center" FontSize="11">
+
+                <Rectangle Grid.Column="3" Width="1" Fill="{DynamicResource BorderDarkBrush}" VerticalAlignment="Stretch" Margin="0,6"/>
+
+                <!-- 3. Sort Dropdown -->
+                <ComboBox Grid.Column="4" Classes="toolbarCombo" Height="34" ItemsSource="{Binding SortOptions}" SelectedItem="{Binding SelectedSortDisplay}" VerticalAlignment="Center" FontSize="11">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding Converter={x:Static converters:SortDisplayConverter.Instance}}" FontSize="11"/>
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>
-                <Button Grid.Column="3" Classes="subBtn" Command="{Binding ResetFiltersCommand}" ToolTip.Tip="{l10n:Tr Key=cb_clear}"
-                        Width="34" Height="34" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" VerticalAlignment="Center">
+
+                <Rectangle Grid.Column="5" Width="1" Fill="{DynamicResource BorderDarkBrush}" VerticalAlignment="Stretch" Margin="0,6"/>
+
+                <!-- 4. Refresh Button -->
+                <Button Grid.Column="6" Classes="toolbarBtn" Command="{Binding ResetFiltersCommand}" ToolTip.Tip="{l10n:Tr Key=cb_clear}"
+                        Width="36" Height="34" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" VerticalAlignment="Center">
                     <PathIcon Data="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" Width="13" Height="13" Foreground="{DynamicResource TextSecondaryBrush}"/>
                 </Button>
             </Grid>

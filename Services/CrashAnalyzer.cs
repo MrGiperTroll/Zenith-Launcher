@@ -180,6 +180,36 @@ public static class CrashAnalyzer
                     evidence, requirements, solutionSteps, resolvedLogPath, exitCode, modNames, instanceBasePath);
             }
 
+            // 4a. Sodium / Embeddium / Iris rendering & uniform buffer crashes
+            if (ContainsAny(logText, @"Overflowed the mesh time buffer|writeMeshTimes|UniformBufferManager|net\.caffeinemc\.mods\.sodium|me\.jellysquid\.mods\.sodium"))
+            {
+                var sodiumJar = FindModJar("sodium", instanceBasePath);
+                var sodiumMods = new List<string> { sodiumJar ?? "sodium" };
+                
+                var meshErr = PickLines(logText, @"Overflowed the mesh time buffer|writeMeshTimes|UniformBufferManager", 2).FirstOrDefault()
+                    ?? "java.lang.IllegalStateException: Overflowed the mesh time buffer";
+
+                string causeTitle = "Render crash in mod 'Sodium' (Mesh buffer overflow)";
+                string humanDesc = "A rendering crash occurred in the Sodium mod while processing chunk mesh times (UniformBufferManager.writeMeshTimes). This happens when chunk rendering commands exceed the allocated uniform buffer, typically due to extreme render distance, an outdated Sodium build, or shader incompatibilities.";
+
+                evidence.Add(meshErr);
+                evidence.AddRange(PickLines(logText, @"at net\.caffeinemc\.mods\.sodium|at me\.jellysquid\.mods\.sodium", 4));
+
+                solutionSteps.Add("1. Update Sodium to the latest compatible version for your Minecraft version.");
+                solutionSteps.Add("2. Lower Render Distance in Video Settings (recommended: 12-16 chunks).");
+                solutionSteps.Add("3. Update your graphics card drivers (NVIDIA / AMD / Intel).");
+                solutionSteps.Add("4. If using shaders (Iris), try temporarily disabling the active shader pack.");
+                solutionSteps.Add("5. Click 'Disable Mod' below if you want to temporarily play without Sodium.");
+
+                return Build("Sodium Render Crash", humanDesc, causeTitle,
+                    evidence, requirements, solutionSteps, resolvedLogPath, exitCode, sodiumMods, instanceBasePath);
+            }
+
+            // 4b. General Mod Stack Trace & Exception Parser (identifies specific crashing mod and method)
+            var modCrashAnalysis = AnalyzeModStackTrace(logText, instanceBasePath, resolvedLogPath, exitCode);
+            if (modCrashAnalysis != null)
+                return modCrashAnalysis;
+
             // 5. Mod conflict / broken mod code (checked before graphics to avoid false positives on Exit Code: 1).
             var conflict = PickLines(logText, @"NoClassDefFoundError|NoSuchMethodError|Mixin apply failed|MixinPrepareError|MixinTransformerError|Duplicate Questo|is already registered|mod .* (crashed|failed)|Caused by:.*(fabric|forge|neoforge|mixin)", 4);
             if (conflict.Count > 0 || (modNames.Count > 0 && exitCode == 1))
@@ -378,11 +408,17 @@ public static class CrashAnalyzer
                     .Select(f => new FileInfo(f))
                     .OrderByDescending(f => f.LastWriteTimeUtc)
                     .FirstOrDefault();
-                if (newest != null && newest.Length > 0 && newest.Length < MaxLogBytes * 2)
+                if (newest != null && newest.Length > 0)
                 {
                     var crashText = File.ReadAllText(newest.FullName);
                     if (!string.IsNullOrWhiteSpace(crashText))
-                        return Tail(crashText);
+                    {
+                        // Minecraft crash reports place the exception and stack trace in the first 32 KB,
+                        // and system details / loaded mods at the end. Keep both so parsing never misses the cause.
+                        if (crashText.Length <= MaxLogBytes * 2)
+                            return crashText;
+                        return crashText[..MaxLogBytes] + "\n\n... [truncated] ...\n\n" + crashText[^MaxLogBytes..];
+                    }
                 }
             }
             if (!string.IsNullOrWhiteSpace(instanceLogPath) && File.Exists(instanceLogPath))
@@ -402,5 +438,126 @@ public static class CrashAnalyzer
     {
         if (text.Length <= MaxLogBytes) return text;
         return text.Substring(text.Length - MaxLogBytes);
+    }
+    private static CrashAnalysis? AnalyzeModStackTrace(string logText, string instanceBasePath, string resolvedLogPath, int exitCode)
+    {
+        try
+        {
+            // Find top exception: e.g. java.lang.NullPointerException: ... or Caused by: ...
+            var excMatch = Regex.Match(logText, @"(?:Caused by:\s+)?([a-zA-Z0-9_.]+(?:Exception|Error|Throwable))(?::\s*([^
+]*))?", RegexOptions.Multiline);
+            string excType = excMatch.Success ? excMatch.Groups[1].Value.Trim() : "Exception";
+            string excMsg = excMatch.Success && excMatch.Groups[2].Success ? excMatch.Groups[2].Value.Trim() : "";
+            string excShort = excType.Contains('.') ? excType[(excType.LastIndexOf('.') + 1)..] : excType;
+
+            // Find stack trace frames: at package.Class.method(File.java:123)
+            var frames = Regex.Matches(logText, @"^\s*at\s+([a-zA-Z0-9_$.]+)\.([a-zA-Z0-9_$]+)\s*\(([^)]*)\)", RegexOptions.Multiline);
+            foreach (Match frame in frames)
+            {
+                var fullClass = frame.Groups[1].Value;
+                var method = frame.Groups[2].Value;
+
+                // Skip core / standard runtime classes
+                if (fullClass.StartsWith("net.minecraft.", StringComparison.OrdinalIgnoreCase) ||
+                    fullClass.StartsWith("com.mojang.", StringComparison.OrdinalIgnoreCase) ||
+                    fullClass.StartsWith("java.", StringComparison.OrdinalIgnoreCase) ||
+                    fullClass.StartsWith("jdk.", StringComparison.OrdinalIgnoreCase) ||
+                    fullClass.StartsWith("sun.", StringComparison.OrdinalIgnoreCase) ||
+                    fullClass.StartsWith("org.lwjgl.", StringComparison.OrdinalIgnoreCase) ||
+                    fullClass.StartsWith("com.google.", StringComparison.OrdinalIgnoreCase) ||
+                    fullClass.StartsWith("net.fabricmc.loader.", StringComparison.OrdinalIgnoreCase) ||
+                    fullClass.StartsWith("cpw.mods.modlauncher.", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                // We found a non-vanilla mod frame!
+                var (modId, modDisplayName) = IdentifyModFromClass(fullClass);
+                if (string.IsNullOrWhiteSpace(modId)) continue;
+
+                var className = fullClass.Contains('.') ? fullClass[(fullClass.LastIndexOf('.') + 1)..] : fullClass;
+                var jarName = FindModJar(modId, instanceBasePath);
+                var faultyList = new List<string> { jarName ?? modId };
+
+                var evidence = new List<string>();
+                if (excMatch.Success)
+                    evidence.Add(excMatch.Value.Trim());
+                evidence.Add(frame.Value.Trim());
+                evidence.AddRange(PickLines(logText, @"at\s+" + Regex.Escape(fullClass.Substring(0, Math.Min(fullClass.Length, 20))), 3));
+
+                string causeTitle = !string.IsNullOrWhiteSpace(excMsg)
+                    ? $"{excShort} in mod '{modDisplayName}' ({excMsg})"
+                    : $"{excShort} in mod '{modDisplayName}' ({className}.{method})";
+
+                string humanDesc = $"The mod '{modDisplayName}' encountered a fatal error ({excShort}{(string.IsNullOrWhiteSpace(excMsg) ? "" : $": {excMsg}")}) in {className}.{method}. Click 'Download Compatible' to search for an update, or 'Disable Mod' to start without it.";
+
+                var solutionSteps = new List<string>
+                {
+                    $"1. Click 'Download Compatible' below to find a newer version of '{modDisplayName}'.",
+                    $"2. Click 'Disable Mod' below to disable '{modDisplayName}' and start Minecraft.",
+                    "3. Check if all required dependency mods for this profile are installed."
+                };
+
+                return Build($"Crash in {modDisplayName}", humanDesc, causeTitle,
+                    evidence, new List<string>(), solutionSteps, resolvedLogPath, exitCode, faultyList, instanceBasePath);
+            }
+        }
+        catch { }
+        return null;
+    }
+
+    private static (string modId, string displayName) IdentifyModFromClass(string fullClass)
+    {
+        var lower = fullClass.ToLowerInvariant();
+        if (lower.Contains(".sodium.") || lower.Contains("caffeinemc.mods.sodium")) return ("sodium", "Sodium");
+        if (lower.Contains(".iris.") || lower.Contains("irisshaders.iris")) return ("iris", "Iris Shaders");
+        if (lower.Contains(".lithium.") || lower.Contains("caffeinemc.mods.lithium")) return ("lithium", "Lithium");
+        if (lower.Contains(".ferritecore.")) return ("ferritecore", "FerriteCore");
+        if (lower.Contains(".indium.")) return ("indium", "Indium");
+        if (lower.Contains(".embeddium.")) return ("embeddium", "Embeddium");
+        if (lower.Contains(".oculus.")) return ("oculus", "Oculus");
+        if (lower.Contains(".optifine.")) return ("optifine", "OptiFine");
+        if (lower.Contains(".create.")) return ("create", "Create");
+        if (lower.Contains(".cloth.")) return ("cloth_config", "Cloth Config");
+        if (lower.Contains(".yacl.") || lower.Contains("yet_another_config_lib")) return ("yet_another_config_lib_v3", "YetAnotherConfigLib (YACL)");
+        if (lower.Contains(".jei.")) return ("jei", "Just Enough Items (JEI)");
+        if (lower.Contains(".rei.")) return ("roughlyenoughitems", "Roughly Enough Items");
+        if (lower.Contains(".emi.")) return ("emi", "EMI");
+        if (lower.Contains(".xaero.")) return ("xaeros_minimap", "Xaero's Minimap");
+        if (lower.Contains(".journeymap.")) return ("journeymap", "JourneyMap");
+        if (lower.Contains(".appleskin.")) return ("appleskin", "AppleSkin");
+
+        // Heuristic: extract package segment after com/net/org/dev/me
+        var match = Regex.Match(lower, @"^(?:com|net|org|dev|me|io)\.([a-zA-Z0-9_]+)");
+        if (match.Success)
+        {
+            var id = match.Groups[1].Value;
+            if (id.Length > 2 && !id.Equals("minecraft", StringComparison.OrdinalIgnoreCase) && !id.Equals("mojang", StringComparison.OrdinalIgnoreCase))
+            {
+                var display = char.ToUpperInvariant(id[0]) + id[1..];
+                return (id, display);
+            }
+        }
+        return ("", "");
+    }
+
+    private static string? FindModJar(string modId, string? instanceBasePath)
+    {
+        if (string.IsNullOrWhiteSpace(instanceBasePath)) return null;
+        var modsDir = Path.Combine(instanceBasePath, "mods");
+        if (!Directory.Exists(modsDir)) return null;
+        try
+        {
+            var cleanId = modId.ToLowerInvariant().Replace("-", "").Replace("_", "");
+            foreach (var file in Directory.GetFiles(modsDir, "*.jar"))
+            {
+                var fileName = Path.GetFileName(file);
+                var cleanFileName = fileName.ToLowerInvariant().Replace("-", "").Replace("_", "");
+                if (cleanFileName.Contains(cleanId))
+                    return fileName;
+            }
+        }
+        catch { }
+        return null;
     }
 }

@@ -82,11 +82,27 @@
 
         </Style>
 
+        <Style Selector="Border.accRowCard:pointerover">
+
+            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+
+            <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
+
+        </Style>
+
         <Style Selector="Border.accRowCard.active">
 
             <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
 
             <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
+
+        </Style>
+
+        <Style Selector="Border.accRowCard.active:pointerover">
+
+            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
 
         </Style>
         <Style Selector="Border.accRowCard.dragging">
@@ -123,7 +139,7 @@
 
         <Style Selector="Button.accSwitchBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
 
-            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+            <Setter Property="Background" Value="Transparent"/>
 
         </Style>
 

@@ -233,39 +233,72 @@
                         <ListBox.ItemTemplate>
                             <DataTemplate x:DataType="items:ModrinthProjectItemViewModel">
                                 <Border Classes="catalogCard" Margin="4" CornerRadius="10" Padding="0" ClipToBounds="True" Tapped="OnCardTapped" Cursor="Hand">
-                                    <Grid ColumnDefinitions="64,*,140" Height="88">
+                                    <Grid ColumnDefinitions="64,*,Auto" ColumnSpacing="12" Margin="10,10,14,10">
                                         <!-- Icon -->
-                                        <Border Width="56" Height="56" CornerRadius="10" Background="{StaticResource IconChipBrush}" ClipToBounds="True" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="8,0,0,0">
+                                        <Border Grid.Column="0" Width="56" Height="56" CornerRadius="10" Background="{StaticResource IconChipBrush}" ClipToBounds="True" HorizontalAlignment="Center" VerticalAlignment="Top">
                                             <Panel>
                                                 <Image Source="{Binding Icon}" Stretch="Uniform" Width="52" Height="52" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding HasIcon}"/>
                                                 <Path Data="M20.5 11H19V7C19 5.9 18.1 5 17 5H13V3.5C13 2.12 11.88 1 10.5 1S8 2.12 8 3.5V5H4C2.9 5 2 5.9 2 7V10.8H3.5C4.99 10.8 6.2 12.01 6.2 13.5S4.99 16.2 3.5 16.2H2V20C2 21.1 2.9 22 4 22H7.8V20.5C7.8 19.01 9.01 17.8 10.5 17.8S13.2 19.01 13.2 20.5V22H17C18.1 22 19 21.1 19 20V16H20.5C21.88 16 23 14.88 23 13.5S21.88 11 20.5 11Z" Width="24" Height="24" Stretch="Uniform" Fill="{StaticResource TextPlaceholderBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding !HasIcon}"/>
                                             </Panel>
                                         </Border>
-                                        <!-- Middle: title, author, desc, tags -->
-                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3" Margin="12,8,12,8">
-                                            <WrapPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,2">
-                                                <TextBlock Text="{Binding Title}" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,5,0"/>
+
+                                        <!-- Middle: title, author, desc, tags, stats -->
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
+                                            <!-- Title + Author link -->
+                                            <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Title}" FontSize="13.5" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,5,0"/>
                                                 <TextBlock Text="by " FontSize="11.5" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
                                                 <Button Classes="authorLinkBtn" Content="{Binding Author}"
                                                         Command="{Binding $parent[UserControl].((vm:ContentBrowserViewModel)DataContext).OpenAuthorProfileCommand}"
                                                         CommandParameter="{Binding Author}"
                                                         FontSize="11.5" VerticalAlignment="Center"/>
                                             </WrapPanel>
-                                            <TextBlock Text="{Binding Description}" FontSize="10.5" Foreground="{StaticResource TextMutedBrush}" TextTrimming="CharacterEllipsis" MaxLines="2" TextWrapping="Wrap"/>
-                                            <TextBlock Text="{Binding TagsLabel}" FontSize="9.5" Foreground="{StaticResource AccentBrush}" TextTrimming="CharacterEllipsis" IsVisible="{Binding TagsLabel, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
-                                        </StackPanel>
-                                        <!-- Right: stats + fixed button -->
-                                        <Grid Grid.Column="2" RowDefinitions="*,Auto" Margin="0,8,12,8">
-                                            <StackPanel Spacing="2" HorizontalAlignment="Right" VerticalAlignment="Top">
-                                                <TextBlock Text="{Binding DownloadsLabel}" FontSize="10" Foreground="{StaticResource TextCaptionBrush}" HorizontalAlignment="Right"/>
-                                                <TextBlock Text="{Binding FormattedDate}" FontSize="10" Foreground="{StaticResource TextPlaceholderBrush}" HorizontalAlignment="Right"/>
+
+                                            <!-- Description -->
+                                            <TextBlock Text="{Binding Description}" FontSize="11.5" Foreground="{StaticResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" MaxLines="2" TextWrapping="Wrap" LineHeight="16"/>
+
+                                            <!-- Tag Badges / Chips -->
+                                            <ItemsControl ItemsSource="{Binding DisplayTags}" Margin="0,2,0,0">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <WrapPanel Orientation="Horizontal"/>
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Background="{DynamicResource ChipBrush}" CornerRadius="6" Padding="6,2" Margin="0,0,6,4">
+                                                            <TextBlock Text="{Binding}" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" FontWeight="SemiBold"/>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+
+                                            <!-- Stats row: Downloads, Likes/Follows, Updated -->
+                                            <StackPanel Orientation="Horizontal" Spacing="14" Margin="0,2,0,0">
+                                                <!-- Downloads -->
+                                                <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                                    <PathIcon Data="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" Width="11" Height="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding DownloadsLabel}" FontSize="10.5" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                                <!-- Likes / Follows -->
+                                                <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                                    <PathIcon Data="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" Width="11" Height="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding FollowsLabel}" FontSize="10.5" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                                <!-- Updated -->
+                                                <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                                    <PathIcon Data="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.59-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" Width="11" Height="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding RelativeUpdated}" FontSize="10.5" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                </StackPanel>
                                             </StackPanel>
-                                            <Button Grid.Row="1" Classes="subBtn installedBtn" Classes.installed="{Binding IsInstalled}" Classes.installing="{Binding IsInstalling}" Width="114" Height="30" HorizontalAlignment="Right" VerticalAlignment="Bottom" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                                    Content="{Binding InstallButtonText}"
-                                                    PointerEntered="OnInstalledButtonHover" PointerExited="OnInstalledButtonHoverOut"
-                                                    Tapped="OnInstallButtonTapped"
-                                                    Command="{Binding $parent[views:ContentBrowserView].((vm:ContentBrowserViewModel)DataContext).DeleteOrInstallCommand}" CommandParameter="{Binding}"/>
-                                        </Grid>
+                                        </StackPanel>
+
+                                        <!-- Right: Install button -->
+                                        <Button Grid.Column="2" Classes="subBtn installedBtn" Classes.installed="{Binding IsInstalled}" Classes.installing="{Binding IsInstalling}" Width="114" Height="30" HorizontalAlignment="Right" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                                Content="{Binding InstallButtonText}"
+                                                PointerEntered="OnInstalledButtonHover" PointerExited="OnInstalledButtonHoverOut"
+                                                Tapped="OnInstallButtonTapped"
+                                                Command="{Binding $parent[views:ContentBrowserView].((vm:ContentBrowserViewModel)DataContext).DeleteOrInstallCommand}" CommandParameter="{Binding}"/>
                                     </Grid>
                                 </Border>
                             </DataTemplate>

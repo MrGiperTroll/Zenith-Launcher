@@ -286,6 +286,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
 
     public GameVersionFilterViewModel GameVersionFilter { get; } = new();
     public GameVersionFilterViewModel BrowserVersionFilter { get; } = new();
+    public LoaderFilterViewModel BrowserLoaderFilter { get; } = new();
 
     [ObservableProperty]
     private string _selectedFilterGameVersion = "All versions";
@@ -831,6 +832,10 @@ public partial class ModpacksBrowserViewModel : ObservableObject
         {
             _ = ReloadAsync();
         };
+        BrowserLoaderFilter.FilterChanged += () =>
+        {
+            _ = ReloadAsync();
+        };
         _ = LoadVersionsAsync();
         _ = ReloadAsync();
     }
@@ -960,23 +965,31 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     private void RefreshAvailableLoaders()
     {
         long key = string.IsNullOrWhiteSpace(SelectedVersion) ? long.MaxValue : ParseVersion(SelectedVersion);
+        var defs = new List<(string Id, string DisplayName)>();
+        if (key >= ParseVersion("1.14")) defs.Add(("fabric", "Fabric"));
+        if (key >= ParseVersion("1.1")) defs.Add(("forge", "Forge"));
+        if (key >= ParseVersion("1.20")) defs.Add(("neoforge", "NeoForge"));
+        if (key >= ParseVersion("1.14")) defs.Add(("quilt", "Quilt"));
+
         var loaders = new List<string> { "" };
-        if (key >= ParseVersion("1.1")) loaders.Add("forge");
-        if (key >= ParseVersion("1.14")) { loaders.Add("fabric"); loaders.Add("quilt"); }
-        if (key >= ParseVersion("1.20")) loaders.Add("neoforge");
+        foreach (var d in defs) loaders.Add(d.Id);
+
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
             AvailableLoaders.Clear();
             foreach (var l in loaders) AvailableLoaders.Add(l);
             if (!AvailableLoaders.Contains(SelectedLoader))
                 SelectedLoader = "";
-            // Re-push after the ItemsSource reset or the closed combo renders blank.
             OnPropertyChanged(nameof(SelectedLoader));
+
+            BrowserLoaderFilter.SetAvailableLoaders(defs);
         });
     }
 
     private string[] LoaderFacets =>
-        string.IsNullOrWhiteSpace(SelectedLoader) ? Array.Empty<string>() : new[] { SelectedLoader.Trim().ToLowerInvariant() };
+        BrowserLoaderFilter.SelectedLoaders.Count > 0
+            ? BrowserLoaderFilter.SelectedLoaders.ToArray()
+            : (string.IsNullOrWhiteSpace(SelectedLoader) ? Array.Empty<string>() : new[] { SelectedLoader.Trim().ToLowerInvariant() });
 
     [RelayCommand]
     public void ClearSearch()
@@ -992,6 +1005,8 @@ public partial class ModpacksBrowserViewModel : ObservableObject
         SelectedCategory = "";
         SelectedLoader = "";
         SelectedSort = "Relevance";
+        BrowserVersionFilter.ClearCommand.Execute(null);
+        BrowserLoaderFilter.ClearCommand.Execute(null);
         _ = ReloadAsync();
     }
 

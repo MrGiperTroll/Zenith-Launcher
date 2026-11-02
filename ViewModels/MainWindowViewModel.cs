@@ -1998,6 +1998,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 ModpacksBrowser.UpdateInstalledFlags();
             });
         });
+        ModpacksBrowser.GetCurseForgeApiKey = () => LauncherSettingsVm?.CurseForgeApiKey ?? "";
         ModpacksBrowser.OnProjectSelectedChanged = _ =>
         {
             if (_historyIndex >= 0 && _historyIndex < _navHistory.Count)

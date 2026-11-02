@@ -35,6 +35,7 @@ public class LauncherConfigData
 
     // UI language display name ("" = auto-detect from OS on first run).
     public string Language { get; set; } = "";
+    public string CurseForgeApiKey { get; set; } = string.Empty;
 
     public string SelectedParticle { get; set; } = "None";
     public int ParticleCount { get; set; } = 50;

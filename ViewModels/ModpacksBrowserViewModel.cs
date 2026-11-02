@@ -26,6 +26,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     public bool IsAuthorProfileOpen => CurrentAuthorProfileVm != null;
 
     public Action<bool>? OnAuthorProfileChanged { get; set; }
+    public Func<string>? GetCurseForgeApiKey { get; set; }
 
     [RelayCommand]
     public void OpenAuthorProfile(string? author)
@@ -81,6 +82,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     public bool IsDataPacksTab => SelectedProjectType == "datapack";
     public bool IsShadersTab => SelectedProjectType == "shader";
     public bool IsServersTab => SelectedProjectType == "plugin";
+    public bool IsWorldsTab => SelectedProjectType == "world";
 
     public string SearchPlaceholder => SelectedProjectType switch
     {
@@ -89,6 +91,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
         "datapack" => "Search data packs...",
         "shader" => "Search shaders...",
         "plugin" => "Search servers & plugins...",
+        "world" => "Search worlds & maps...",
         _ => "Search modpacks..."
     };
 
@@ -103,6 +106,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
         OnPropertyChanged(nameof(IsDataPacksTab));
         OnPropertyChanged(nameof(IsShadersTab));
         OnPropertyChanged(nameof(IsServersTab));
+        OnPropertyChanged(nameof(IsWorldsTab));
         OnPropertyChanged(nameof(SearchPlaceholder));
         _ = Search();
     }
@@ -1019,6 +1023,33 @@ public partial class ModpacksBrowserViewModel : ObservableObject
             };
             var catSlug = SelectedCategory == "exploration" ? "adventure" : SelectedCategory;
             var categoryFilter = string.IsNullOrWhiteSpace(catSlug) ? Array.Empty<string>() : new[] { catSlug };
+            if (SelectedProjectType == "world")
+            {
+                var apiKey = GetCurseForgeApiKey?.Invoke() ?? "";
+                if (string.IsNullOrWhiteSpace(apiKey))
+                {
+                    StatusText = "CurseForge API key required to browse Worlds & Maps. Add your key in Settings.";
+                    return;
+                }
+                var res = await CurseForgeApiService.SearchMapsAsync(SearchQuery, SelectedVersion, 0, PageSize, apiKey, token);
+                if (token.IsCancellationRequested || gen != _searchGeneration) return;
+                if (res == null)
+                {
+                    StatusText = L10n.T("mp_status_unreachable");
+                    return;
+                }
+                _totalHits = res.TotalHits;
+                _offset = res.Limit;
+                foreach (var p in res.Hits)
+                {
+                    Results.Add(p);
+                    LoadIcon(p, gen);
+                }
+                UpdateInstalledFlags();
+                StatusText = res.TotalHits == 0 ? L10n.T("mp_status_none") : "";
+                return;
+            }
+
             var page = await ModrinthApiService.SearchAsync(SearchQuery, SelectedVersion, LoaderFacets, SelectedProjectType, sort, categoryFilter, 0, PageSize, token, BrowserVersionFilter.SelectedVersions);
             if (token.IsCancellationRequested || gen != _searchGeneration) return;
             if (page == null)
@@ -1034,7 +1065,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject
                 LoadIcon(p, gen);
             }
             UpdateInstalledFlags();
-            StatusText = page.TotalHits == 0 ? L10n.T("mp_status_none") : string.Format(L10n.T("mp_status_count"), page.TotalHits);
+            StatusText = page.TotalHits == 0 ? L10n.T("mp_status_none") : "";
         }
         catch (OperationCanceledException)
         {
@@ -1076,6 +1107,33 @@ public partial class ModpacksBrowserViewModel : ObservableObject
                 "Recently Updated" => "updated",
                 _ => "relevance"
             };
+            if (SelectedProjectType == "world")
+            {
+                var apiKey = GetCurseForgeApiKey?.Invoke() ?? "";
+                if (string.IsNullOrWhiteSpace(apiKey)) return;
+                var res = await CurseForgeApiService.SearchMapsAsync(SearchQuery, SelectedVersion, _offset, PageSize, apiKey);
+                if (res != null && gen == _searchGeneration)
+                {
+                    _totalHits = res.TotalHits;
+                    if (res.Hits.Count == 0) _offset = _totalHits;
+                    else
+                    {
+                        _offset += res.Limit;
+                        var existing = Results.Select(r => r.ProjectId).ToHashSet();
+                        foreach (var p in res.Hits)
+                        {
+                            if (existing.Add(p.ProjectId))
+                            {
+                                Results.Add(p);
+                                LoadIcon(p, gen);
+                            }
+                        }
+                        UpdateInstalledFlags();
+                    }
+                }
+                return;
+            }
+
             var page = await ModrinthApiService.SearchAsync(SearchQuery, SelectedVersion, LoaderFacets, SelectedProjectType, sort, categoryFilter, _offset, PageSize);
             if (page != null && gen == _searchGeneration)
             {
@@ -1185,6 +1243,55 @@ public partial class ModpacksBrowserViewModel : ObservableObject
         var token = cts.Token;
         try
         {
+            if (project.ProjectType == "world" || SelectedProjectType == "world")
+            {
+                var apiKey = GetCurseForgeApiKey?.Invoke() ?? "";
+                project.IsInstalling = true;
+                StatusText = "Fetching map details...";
+                var fileInfo = await CurseForgeApiService.GetLatestMapFileAsync(project.ProjectId, SelectedVersion, apiKey, token);
+                if (fileInfo == null || string.IsNullOrWhiteSpace(fileInfo.DownloadUrl))
+                {
+                    StatusText = $"No downloadable map file found for {project.Title}";
+                    project.IsInstalling = false;
+                    return;
+                }
+                StatusText = "Downloading map...";
+                var targetInstance = _instanceService.GetSelectedInstance();
+                if (targetInstance == null)
+                {
+                    StatusText = "Please create or select a profile first.";
+                    project.IsInstalling = false;
+                    return;
+                }
+                var savesDir = Path.Combine(targetInstance.Path, "saves");
+                Directory.CreateDirectory(savesDir);
+                var tempZip = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}_{fileInfo.FileName}");
+                var mapData = await CurseForgeApiService.DownloadAsync(fileInfo.DownloadUrl, token);
+                if (mapData is not { Length: > 0 })
+                {
+                    StatusText = "Download failed.";
+                    project.IsInstalling = false;
+                    return;
+                }
+                await File.WriteAllBytesAsync(tempZip, mapData, token);
+                StatusText = "Extracting map...";
+                try
+                {
+                    System.IO.Compression.ZipFile.ExtractToDirectory(tempZip, savesDir, overwriteFiles: true);
+                }
+                catch (Exception ex)
+                {
+                    LauncherLog.Error("Failed to extract map", ex);
+                }
+                finally
+                {
+                    try { File.Delete(tempZip); } catch { }
+                }
+                project.IsInstalling = false;
+                project.IsInstalled = true;
+                StatusText = $"Installed map {project.Title} to {targetInstance.Name}";
+                return;
+            }
             var version = await ModrinthApiService.GetLatestVersionAsync(project.ProjectId, SelectedVersion, Array.Empty<string>(), token);
             if (version == null)
             {
@@ -1298,6 +1405,18 @@ public partial class ModpacksBrowserViewModel : ObservableObject
         FullProjectBusy = true;
         try
         {
+            if (project.ProjectType == "world")
+            {
+                var apiKey = GetCurseForgeApiKey?.Invoke() ?? "";
+                var cfProject = await CurseForgeApiService.GetFullProjectAsync(project.ProjectId, apiKey);
+                FullProject = cfProject;
+                HeaderImage = null;
+                OnPropertyChanged(nameof(CleanBody));
+                OnPropertyChanged(nameof(GalleryItems));
+                OnPropertyChanged(nameof(HasGalleryItems));
+                FullProjectBusy = false;
+                return;
+            }
             var full = await ModrinthApiService.GetFullProjectAsync(project.ProjectId);
             FullProject = full;
             HeaderImage = null;

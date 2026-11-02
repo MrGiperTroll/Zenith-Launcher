@@ -361,6 +361,15 @@ public partial class LauncherSettingsViewModel : ViewModelBase
     [ObservableProperty] private bool _discordRpcEnabled = true;
     [ObservableProperty] private double _launcherScale = 1.0;
     [ObservableProperty] private double _pendingLauncherScale = 1.0;
+    [ObservableProperty] private string _curseForgeApiKey = string.Empty;
+
+    partial void OnCurseForgeApiKeyChanged(string value)
+    {
+        if (!_isLoadingConfig)
+        {
+            SaveConfigRequested?.Invoke();
+        }
+    }
 
     public void CommitLauncherScale()
     {
@@ -439,6 +448,8 @@ public partial class LauncherSettingsViewModel : ViewModelBase
 
             if (!string.IsNullOrWhiteSpace(cfg.Language))
                 SelectedLanguage = cfg.Language;
+            if (!string.IsNullOrWhiteSpace(cfg.CurseForgeApiKey))
+                CurseForgeApiKey = cfg.CurseForgeApiKey;
 
             UpdateJavaDisplay();
         }
@@ -463,6 +474,7 @@ public partial class LauncherSettingsViewModel : ViewModelBase
         cfg.UseFlatVersionList = UseFlatVersionList;
         cfg.AutoManageJava = AutoManageJava;
         cfg.DiscordRpcEnabled = DiscordRpcEnabled;
+        cfg.CurseForgeApiKey = CurseForgeApiKey;
         cfg.LauncherScale = LauncherScale;
         cfg.Language = SelectedLanguage;
     }

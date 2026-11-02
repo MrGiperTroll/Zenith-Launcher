@@ -1048,7 +1048,7 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
             UpdateInstalledFlags();
             StatusText = page.TotalHits == 0
                 ? string.Format(L10n.T("cb_status_none"), SelectedContentType.DisplayName().ToLower())
-                : string.Format(L10n.T("cb_status_count"), page.TotalHits, SelectedContentType.DisplayName().ToLower(), _gameVersion);
+                : "";
         }
         catch (OperationCanceledException)
         {

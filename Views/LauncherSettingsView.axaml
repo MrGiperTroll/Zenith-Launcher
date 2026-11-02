@@ -314,6 +314,15 @@
                                         <TextBlock Grid.Column="1" Text="{Binding PendingLauncherScale, StringFormat='{}{0:P0}'}" Margin="12,0,0,0" VerticalAlignment="Center" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" FontSize="12" Width="40" TextAlignment="Right"/>
                                     </Grid>
                                 </StackPanel>
+
+                                <Border Height="1" Background="{StaticResource BorderDarkBrush}"/>
+
+                                <!-- CurseForge API Key -->
+                                <StackPanel Spacing="6">
+                                    <TextBlock Classes="sectionTitle" Text="CurseForge API Key"/>
+                                    <TextBlock Text="Required to browse and install Worlds and Maps from CurseForge (console.curseforge.com)." FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}" TextWrapping="Wrap"/>
+                                    <TextBox Classes="darkInput" Text="{Binding CurseForgeApiKey}" PasswordChar="•" PlaceholderText="Enter your CurseForge API key" Height="34" FontSize="12"/>
+                                </StackPanel>
                             </StackPanel>
                         </Border>
                     </StackPanel>

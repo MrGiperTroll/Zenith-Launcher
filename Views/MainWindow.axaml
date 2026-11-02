@@ -1060,6 +1060,9 @@
                                         <Button Classes="catalogTabBtn" Classes.active="{Binding ModpacksBrowser.IsServersTab}"
                                                 Command="{Binding ModpacksBrowser.SelectProjectTypeCommand}" CommandParameter="plugin"
                                                 Content="Servers"/>
+                                        <Button Classes="catalogTabBtn" Classes.active="{Binding ModpacksBrowser.IsWorldsTab}"
+                                                Command="{Binding ModpacksBrowser.SelectProjectTypeCommand}" CommandParameter="world"
+                                                Content="Worlds"/>
                                     </StackPanel>
                                 </Border>
 

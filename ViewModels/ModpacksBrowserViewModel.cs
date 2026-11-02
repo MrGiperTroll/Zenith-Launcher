@@ -1,3 +1,4 @@
+using CustomMcLauncher.ViewModels.Dialogs;
 using System.Text.RegularExpressions;
 using System;
 using System.Collections.Generic;
@@ -1252,8 +1253,118 @@ public partial class ModpacksBrowserViewModel : ObservableObject
             PendingDelete = project;
             return;
         }
+        if (project.ProjectType != "modpack" && SelectedProjectType != "modpack")
+        {
+            OpenAddToInstanceModal(project);
+            return;
+        }
         // Install directly with the latest version (no page navigation)
         _ = InstallLatestAsync(project);
+    }
+
+    [ObservableProperty] private bool _isAddToInstanceOpen;
+    [ObservableProperty] private string _instanceSearchQuery = "";
+    [ObservableProperty] private ModrinthProjectItemViewModel? _projectForAddToInstance;
+    [ObservableProperty] private ObservableCollection<InstanceTargetItem> _targetInstances = new();
+
+    public int CompatibleInstanceCount => TargetInstances.Count(i => !i.IsInstalled);
+
+    [RelayCommand]
+    public void CloseAddToInstance()
+    {
+        IsAddToInstanceOpen = false;
+        ProjectForAddToInstance = null;
+        TargetInstances.Clear();
+    }
+
+    [RelayCommand]
+    public void OpenAddToInstanceModal(ModrinthProjectItemViewModel? project)
+    {
+        if (project == null) return;
+        ProjectForAddToInstance = project;
+        InstanceSearchQuery = "";
+        TargetInstances.Clear();
+
+        var allInstances = _instanceService.GetInstances();
+        foreach (var inst in allInstances)
+        {
+            bool isInst = CheckIfProjectInstalledInInstance(inst, project);
+            TargetInstances.Add(new InstanceTargetItem(inst, isInst, async (target) =>
+            {
+                await InstallProjectToInstanceAsync(project, target.Instance);
+            }));
+        }
+        OnPropertyChanged(nameof(CompatibleInstanceCount));
+        IsAddToInstanceOpen = true;
+    }
+
+    private async Task InstallProjectToInstanceAsync(ModrinthProjectItemViewModel project, InstanceModel instance)
+    {
+        var mcVer = instance.Version;
+        var loader = (instance.LoaderType ?? "").ToLowerInvariant();
+
+        var versions = await ModrinthApiService.GetProjectVersionsAsync(
+            project.ProjectId,
+            !string.IsNullOrWhiteSpace(loader) && loader != "vanilla" ? new[] { loader } : null,
+            !string.IsNullOrWhiteSpace(mcVer) ? new[] { mcVer } : null);
+
+        if (versions.Count == 0)
+        {
+            versions = await ModrinthApiService.GetProjectVersionsAsync(project.ProjectId);
+        }
+
+        var targetVer = versions.FirstOrDefault(v => v.GameVersions.Contains(mcVer)) ?? versions.FirstOrDefault();
+        if (targetVer == null || targetVer.Files == null || targetVer.Files.Count == 0)
+            throw new Exception("No compatible version found.");
+
+        var primaryFile = targetVer.Files.FirstOrDefault(f => f.IsPrimary) ?? targetVer.Files[0];
+        if (string.IsNullOrWhiteSpace(primaryFile.Url))
+            throw new Exception("No file URL.");
+
+        var data = await ModrinthApiService.DownloadAsync(primaryFile.Url);
+        if (data == null || data.Length == 0)
+            throw new Exception("Download failed.");
+
+        var subDir = project.ProjectType switch
+        {
+            "resourcepack" => "resourcepacks",
+            "shader" => "shaderpacks",
+            "datapack" => Path.Combine("saves", "datapacks"),
+            _ => "mods"
+        };
+
+        var targetFolder = Path.Combine(instance.Path, subDir);
+        Directory.CreateDirectory(targetFolder);
+        var dest = Path.Combine(targetFolder, primaryFile.Filename);
+        await File.WriteAllBytesAsync(dest, data);
+
+        StatusText = $"Added {project.Title} to {instance.Name}";
+    }
+
+    private static bool CheckIfProjectInstalledInInstance(InstanceModel instance, ModrinthProjectItemViewModel project)
+    {
+        var subDir = project.ProjectType switch
+        {
+            "resourcepack" => "resourcepacks",
+            "shader" => "shaderpacks",
+            "datapack" => Path.Combine("saves", "datapacks"),
+            _ => "mods"
+        };
+        var folder = Path.Combine(instance.Path, subDir);
+        if (!Directory.Exists(folder)) return false;
+
+        var slug = project.Slug?.ToLowerInvariant() ?? "";
+        var title = project.Title?.ToLowerInvariant() ?? "";
+        var id = project.ProjectId?.ToLowerInvariant() ?? "";
+
+        foreach (var file in Directory.GetFiles(folder))
+        {
+            var fn = Path.GetFileName(file).ToLowerInvariant();
+            if (!string.IsNullOrEmpty(slug) && fn.Contains(slug)) return true;
+            if (!string.IsNullOrEmpty(id) && fn.Contains(id)) return true;
+            if (!string.IsNullOrEmpty(title) && fn.Contains(title.Replace(" ", "-"))) return true;
+        }
+        return false;
     }
 
     private async Task InstallLatestAsync(ModrinthProjectItemViewModel project)

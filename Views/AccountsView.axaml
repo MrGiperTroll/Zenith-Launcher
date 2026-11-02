@@ -94,14 +94,12 @@
             <Setter Property="Background" Value="{DynamicResource AccentDimBrush}"/>
             <Setter Property="BorderBrush" Value="{DynamicResource BorderCardSoftBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="BoxShadow" Value="inset 0 0 16 0 #2010B981"/>
         </Style>
 
         <Style Selector="Border.accRowCard.active:pointerover">
-            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource AccentDimBrush}"/>
             <Setter Property="BorderBrush" Value="{DynamicResource BorderHoverBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="BoxShadow" Value="inset 0 0 18 0 #2810B981"/>
         </Style>
         <Style Selector="Border.accRowCard.dragging">
             <Setter Property="Opacity" Value="0.0"/>

@@ -61,6 +61,40 @@
                     </StackPanel>
                 </Border>
 
+                <!-- Faulty / Conflicting Mods Action Section -->
+                <Border Classes="zenSection" Background="{DynamicResource DangerBgDeepBrush}" BorderBrush="{DynamicResource DangerBorderBrush}"
+                        BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,2,0,2"
+                        IsVisible="{Binding HasFaultyMods}">
+                    <StackPanel Spacing="8">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                            <PathIcon Data="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" Width="13" Height="13" Foreground="{DynamicResource DangerLightBrush}"/>
+                            <TextBlock Text="Conflicting or Faulty Mods" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource DangerLightBrush}"/>
+                        </StackPanel>
+                        <ItemsControl ItemsSource="{Binding FaultyMods}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="dialogs:FaultyModItem">
+                                    <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
+                                            BorderThickness="1" CornerRadius="6" Padding="10,8" Margin="0,3">
+                                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
+                                                <TextBlock Text="{Binding ModName}" FontWeight="SemiBold" FontSize="12"
+                                                           Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Text="{Binding StatusText}" FontSize="10.5" Foreground="{DynamicResource WarningBrush}"
+                                                           IsVisible="{Binding StatusText.Length, Converter={x:Static converters:EditInstanceWindowConverters.IsNonZero}}"/>
+                                            </StackPanel>
+                                            <Button Grid.Column="1" Classes="dangerBtn" Content="Disable Mod" FontSize="11" Padding="10,5"
+                                                    Command="{Binding DisableModCommand}" IsEnabled="{Binding !IsDisabled}"
+                                                    IsVisible="{Binding CanDisable}"/>
+                                            <Button Grid.Column="2" Classes="subBtn" Content="Download Compatible" FontSize="11" Padding="10,5"
+                                                    Command="{Binding SearchCompatibleCommand}"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
                 <!-- Solution Steps -->
                 <Border Classes="zenSection" Background="{DynamicResource AccentDimBrush}" BorderBrush="{DynamicResource AccentBrush}"
                         BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,2,0,2"

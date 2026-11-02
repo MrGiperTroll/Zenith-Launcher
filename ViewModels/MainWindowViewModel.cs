@@ -1962,7 +1962,13 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 try
                 {
-                    CrashReportVm = new Dialogs.CrashReportViewModel(analysis);
+                    CrashReportVm = new Dialogs.CrashReportViewModel(analysis, modQuery =>
+                    {
+                        IsCrashReportOpen = false;
+                        ModpacksBrowser.SearchQuery = modQuery;
+                        ModpacksBrowser.SelectProjectType("mod");
+                        NavigateToModpacks();
+                    });
                     IsCrashReportOpen = true;
                 }
                 catch (Exception wex) { LauncherLog.Error("Failed to show crash report", wex); }

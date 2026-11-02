@@ -15,7 +15,9 @@ public sealed record CrashAnalysis(
     string LogPath,
     int ExitCode,
     IReadOnlyList<string>? Requirements = null,
-    IReadOnlyList<string>? SolutionSteps = null);
+    IReadOnlyList<string>? SolutionSteps = null,
+    IReadOnlyList<string>? FaultyMods = null,
+    string? InstanceBasePath = null);
 
 /// <summary>
 /// Log-based crash classifier. Reads the game log tail (and the newest
@@ -80,9 +82,9 @@ public static class CrashAnalyzer
                     requirements, solutionSteps, instanceLogPath, exitCode);
             }
 
-            // 4. Missing mod dependencies.
-            var depLines = PickLines(logText, "Missing.*dependenc|requires .* of |needs .* to be|but it is missing", 4);
-            var modNames = ExtractModJars(logText);
+            // 4. Missing mod dependencies or incompatibilities.
+            var depLines = PickLines(logText, @"Missing.*dependenc|requires .* of |needs .* to be|but it is missing|IncompatibleModsException|DuplicateModsFoundException|ModResolutionException", 4);
+            var modNames = ExtractModJars(logText, instanceBasePath);
             if (depLines.Count > 0)
             {
                 foreach (var req in ParseRequirements(logText).Take(5))
@@ -91,28 +93,29 @@ public static class CrashAnalyzer
                     evidence.Add(string.Format(L10n.T("crash_mods_names"), string.Join(", ", modNames.Take(5))));
                 evidence.AddRange(depLines);
                 solutionSteps.Add("1. Review the required dependencies listed in the Requirements section above.");
-                solutionSteps.Add("2. Use the Content Browser to search and install the missing mods.");
-                solutionSteps.Add("3. Ensure that all installed mods match your mod loader (Fabric vs Forge vs NeoForge).");
+                solutionSteps.Add("2. Disable conflicting mods or download compatible versions using the buttons below.");
+                solutionSteps.Add("3. Ensure all installed mods match your mod loader (Fabric vs Forge vs NeoForge).");
                 return Build(L10n.T("crash_mods_title"), L10n.T("crash_mods_human"),
-                    "Missing or incompatible mod dependency", evidence, requirements, solutionSteps, instanceLogPath, exitCode);
+                    "Missing or incompatible mod dependency", evidence, requirements, solutionSteps, instanceLogPath, exitCode, modNames, instanceBasePath);
             }
 
-            // 5. Mod conflict / broken mod code.
-            var conflict = PickLines(logText, "NoClassDefFoundError|NoSuchMethodError|Mixin apply failed|MixinPrepareError|Duplicate Questo|is already registered|mod .* (crashed|failed)|Caused by:.*(fabric|forge|mixin)", 4);
-            if (conflict.Count > 0)
+            // 5. Mod conflict / broken mod code (checked before graphics to avoid false positives on Exit Code: 1).
+            var conflict = PickLines(logText, @"NoClassDefFoundError|NoSuchMethodError|Mixin apply failed|MixinPrepareError|MixinTransformerError|Duplicate Questo|is already registered|mod .* (crashed|failed)|Caused by:.*(fabric|forge|neoforge|mixin)", 4);
+            if (conflict.Count > 0 || (modNames.Count > 0 && exitCode == 1))
             {
                 if (modNames.Count > 0)
                     evidence.Add(string.Format(L10n.T("crash_mods_names"), string.Join(", ", modNames.Take(5))));
-                evidence.AddRange(conflict);
+                if (conflict.Count > 0)
+                    evidence.AddRange(conflict);
                 solutionSteps.Add("1. Review the faulting mod or mixin in the Details section below.");
-                solutionSteps.Add("2. In Profile -> Mods, temporarily disable the conflicting mod to test.");
-                solutionSteps.Add("3. Update the mod to the latest version matching your Minecraft version.");
+                solutionSteps.Add("2. Click 'Disable Mod' below to disable the conflicting file.");
+                solutionSteps.Add("3. Click 'Download Compatible' to find a newer version for your Minecraft version.");
                 return Build(L10n.T("crash_mods_title"), L10n.T("crash_mods_human"),
-                    "Incompatible or broken mod", evidence, requirements, solutionSteps, instanceLogPath, exitCode);
+                    "Incompatible or broken mod", evidence, requirements, solutionSteps, instanceLogPath, exitCode, modNames, instanceBasePath);
             }
 
-            // 6. Graphics / driver.
-            var gpu = PickLines(logText, @"EXCEPTION_ACCESS_VIOLATION|ig[0-9][a-z0-9_]*\.dll|atio6axx|nvoglv|Pixel format not accelerated|GLFW error 6554|Failed to create.*context|OpenGL", 3);
+            // 6. Graphics / driver (strictly verify driver dll or GLFW context failure, not generic OpenGL mentioned in mod stack).
+            var gpu = PickLines(logText, @"EXCEPTION_ACCESS_VIOLATION.*(ig[0-9]|atio6axx|nvoglv|nvd3dum)|ig[0-9][a-z0-9_]*\.dll|atio6axx\.dll|nvoglv64\.dll|Pixel format not accelerated|GLFW error 6554: (WGL|GLX|EGL|GLFW)|Failed to create a valid OpenGL context", 3);
             if (gpu.Count > 0)
             {
                 solutionSteps.Add("1. Update your graphics card drivers (NVIDIA, AMD, or Intel).");
@@ -175,13 +178,16 @@ public static class CrashAnalyzer
     }
 
     private static CrashAnalysis Build(string title, string human, string cause,
-        List<string> evidence, List<string> requirements, List<string> solutionSteps, string logPath, int exitCode)
+        List<string> evidence, List<string> requirements, List<string> solutionSteps, string logPath, int exitCode,
+        List<string>? faultyMods = null, string? instanceBasePath = null)
     {
         var ev = evidence.Take(MaxEvidence).ToList();
         ev.Insert(0, string.Format(L10n.T("crash_exit_code"), exitCode));
         return new CrashAnalysis(title, human, cause, ev, logPath, exitCode,
             requirements.Count > 0 ? requirements : null,
-            solutionSteps.Count > 0 ? solutionSteps : null);
+            solutionSteps.Count > 0 ? solutionSteps : null,
+            faultyMods != null && faultyMods.Count > 0 ? faultyMods : null,
+            instanceBasePath);
     }
 
     private static bool ContainsAny(string text, string alternation) =>
@@ -211,14 +217,39 @@ public static class CrashAnalyzer
             || head.StartsWith("[authlib-injector] [info]") || head.StartsWith("picked up ");
     }
 
-    private static List<string> ExtractModJars(string text)
+    private static List<string> ExtractModJars(string text, string instanceBasePath = "")
     {
         var seen = new List<string>();
-        foreach (Match m in Regex.Matches(text, @"[/\\]mods[/\\]([^/\\:;""']+\.jar)", RegexOptions.IgnoreCase))
+        foreach (Match m in Regex.Matches(text, @"[/\\]mods[/\\]([^/\\:;""'\s]+\.jar)", RegexOptions.IgnoreCase))
         {
             var name = m.Groups[1].Value;
             if (!seen.Contains(name, StringComparer.OrdinalIgnoreCase))
                 seen.Add(name);
+            if (seen.Count >= 8) break;
+        }
+
+        foreach (Match m in Regex.Matches(text, @"(?:Mod|mod)\s+['""]([^'""]+)['""]", RegexOptions.IgnoreCase))
+        {
+            var id = m.Groups[1].Value.Trim();
+            if (id.Length > 2 && !id.Equals("minecraft", StringComparison.OrdinalIgnoreCase) && !seen.Contains(id, StringComparer.OrdinalIgnoreCase))
+            {
+                if (!string.IsNullOrWhiteSpace(instanceBasePath))
+                {
+                    var modsDir = Path.Combine(instanceBasePath, "mods");
+                    if (Directory.Exists(modsDir))
+                    {
+                        var matchingJar = Directory.GetFiles(modsDir, "*.jar")
+                            .Select(Path.GetFileName)
+                            .FirstOrDefault(f => f != null && f.Contains(id, StringComparison.OrdinalIgnoreCase));
+                        if (matchingJar != null && !seen.Contains(matchingJar, StringComparer.OrdinalIgnoreCase))
+                        {
+                            seen.Add(matchingJar);
+                            continue;
+                        }
+                    }
+                }
+                seen.Add(id);
+            }
             if (seen.Count >= 8) break;
         }
         return seen;

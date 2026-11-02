@@ -18,6 +18,50 @@ using CustomMcLauncher.ViewModels.Common;
 
 namespace CustomMcLauncher.ViewModels;
 
+public sealed partial class DuplicateModFileItem : ObservableObject
+{
+    private readonly Action<DuplicateModFileItem> _onDelete;
+    public string FileName { get; }
+    public string FullPath { get; }
+    public string FileSizeDisplay { get; }
+    public string ModifiedDisplay { get; }
+
+    public DuplicateModFileItem(string fullPath, Action<DuplicateModFileItem> onDelete)
+    {
+        FullPath = fullPath;
+        _onDelete = onDelete;
+        FileName = Path.GetFileName(fullPath);
+        try
+        {
+            var fi = new FileInfo(fullPath);
+            FileSizeDisplay = $"{fi.Length / 1024.0 / 1024.0:F2} MB";
+            ModifiedDisplay = fi.LastWriteTime.ToString("yyyy-MM-dd HH:mm");
+        }
+        catch
+        {
+            FileSizeDisplay = "";
+            ModifiedDisplay = "";
+        }
+    }
+
+    [RelayCommand]
+    private void Delete() => _onDelete(this);
+}
+
+public sealed class DuplicateConflictGroup
+{
+    public string ModId { get; }
+    public string Description { get; }
+    public ObservableCollection<DuplicateModFileItem> Files { get; }
+
+    public DuplicateConflictGroup(string modId, string description, IEnumerable<DuplicateModFileItem> files)
+    {
+        ModId = modId;
+        Description = description;
+        Files = new ObservableCollection<DuplicateModFileItem>(files);
+    }
+}
+
 public partial class EditInstanceViewModel : ViewModelBase, IDisposable
 {
     private readonly MainWindowViewModel _host;
@@ -188,7 +232,11 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
                 Instance.RefreshTimeDisplays();
                 break;
             case "Mods":
-                if (HasModsSupport) _ = ModList.RefreshAsync();
+                if (HasModsSupport)
+                {
+                    _ = ModList.RefreshAsync();
+                    _ = CheckDuplicatesAsync(showModalIfFound: false);
+                }
                 break;
             case "Resource Packs":
                 _ = ResourcePackList.RefreshAsync();
@@ -652,21 +700,80 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
     private string _modAuditMessage = "";
 
     /// <summary>Scans mods/ for duplicate mod ids (the classic no-start cause).</summary>
+    public ObservableCollection<DuplicateConflictGroup> DuplicateConflicts { get; } = new();
+
+    [ObservableProperty]
+    private bool _isConflictDialogOpen;
+
+    [RelayCommand]
+    public void CloseConflictDialog() => IsConflictDialogOpen = false;
+
+    /// <summary>Scans mods/ for duplicate mod ids (the classic no-start cause).</summary>
     [RelayCommand]
     public async Task AuditModsAsync()
     {
         ModAuditMessage = "";
-        var dir = Path.Combine(Instance.Path, "mods");
-        var conflicts = await Task.Run(() => Services.ModConflictAudit.AnalyzeDirectory(dir));
-        if (conflicts.Count == 0)
+        await CheckDuplicatesAsync(showModalIfFound: true);
+        if (DuplicateConflicts.Count == 0)
         {
             ModAuditMessage = Services.L10n.T("mods_audit_ok");
+        }
+        else
+        {
+            ModAuditMessage = string.Format(Services.L10n.T("mods_audit_found"), DuplicateConflicts.Count);
+        }
+    }
+
+    public async Task CheckDuplicatesAsync(bool showModalIfFound = true)
+    {
+        var dir = Path.Combine(Instance.Path, "mods");
+        var conflicts = await Task.Run(() => Services.ModConflictAudit.AnalyzeDirectory(dir));
+        DuplicateConflicts.Clear();
+        if (conflicts.Count == 0)
+        {
+            IsConflictDialogOpen = false;
             return;
         }
-        var lines = conflicts.Select(c =>
-            $"• {c.ModId}: {string.Join(", ", c.Files)} — {c.Hint}");
-        ModAuditMessage = string.Format(Services.L10n.T("mods_audit_found"), conflicts.Count)
-            + "\n" + string.Join("\n", lines);
+
+        foreach (var c in conflicts)
+        {
+            var fileItems = c.Files.Select(f =>
+            {
+                var full = Path.Combine(dir, f);
+                return new DuplicateModFileItem(full, OnDeleteDuplicateFile);
+            }).ToList();
+            DuplicateConflicts.Add(new DuplicateConflictGroup(c.ModId, c.Hint, fileItems));
+        }
+
+        if (showModalIfFound && DuplicateConflicts.Count > 0)
+        {
+            IsConflictDialogOpen = true;
+        }
+    }
+
+    private void OnDeleteDuplicateFile(DuplicateModFileItem item)
+    {
+        try
+        {
+            if (File.Exists(item.FullPath))
+                File.Delete(item.FullPath);
+
+            foreach (var grp in DuplicateConflicts.ToList())
+            {
+                grp.Files.Remove(item);
+                if (grp.Files.Count <= 1)
+                    DuplicateConflicts.Remove(grp);
+            }
+
+            if (DuplicateConflicts.Count == 0)
+                IsConflictDialogOpen = false;
+
+            _ = ModList.RefreshAsync();
+        }
+        catch (Exception ex)
+        {
+            ReportError("Failed to delete file: " + ex.Message);
+        }
     }
 
     // Data Packs (per-world)

@@ -582,36 +582,36 @@
                                             <DataTemplate x:DataType="utils:MarkdownBlock">
                                                 <Panel Margin="0,0,0,4">
                                                     <!-- Banner image -->
-                                                    <Border CornerRadius="8" ClipToBounds="True" MaxWidth="640" HorizontalAlignment="Center" Margin="0,4,0,16"
+                                                    <Border CornerRadius="8" ClipToBounds="True" MaxWidth="640" MaxHeight="280" HorizontalAlignment="Center" Margin="0,4,0,16"
                                                             IsVisible="{Binding IsBannerImage}">
-                                                        <Image Source="{Binding ImageBitmap}" Stretch="Uniform" MaxWidth="640" StretchDirection="DownOnly"/>
+                                                        <Image Source="{Binding ImageBitmap}" Stretch="Uniform" MaxWidth="640" MaxHeight="280" StretchDirection="DownOnly"/>
                                                     </Border>
 
                                                     <!-- Content Image -->
-                                                    <Border CornerRadius="8" ClipToBounds="True" HorizontalAlignment="Left" Margin="0,8,0,12"
+                                                    <Border CornerRadius="8" ClipToBounds="True" MaxWidth="680" MaxHeight="450" HorizontalAlignment="Left" Margin="0,8,0,12"
                                                             IsVisible="{Binding IsContentImage}">
-                                                        <Image Source="{Binding ImageBitmap}" MaxWidth="720" Stretch="Uniform" StretchDirection="DownOnly"/>
+                                                        <Image Source="{Binding ImageBitmap}" MaxWidth="680" MaxHeight="450" Stretch="Uniform" StretchDirection="DownOnly"/>
                                                     </Border>
 
-                                                    <!-- Social media button row -->
-                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8" Margin="0,4,0,16"
-                                                                IsVisible="{Binding IsSocialButtons}">
+                                                    <!-- Social media button row / badge strip -->
+                                                    <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,4,0,14"
+                                                               IsVisible="{Binding IsSocialButtons}">
                                                         <ItemsControl ItemsSource="{Binding SocialButtons}">
                                                             <ItemsControl.ItemsPanel>
                                                                 <ItemsPanelTemplate>
-                                                                    <StackPanel Orientation="Horizontal" Spacing="8"/>
+                                                                    <WrapPanel Orientation="Horizontal"/>
                                                                 </ItemsPanelTemplate>
                                                             </ItemsControl.ItemsPanel>
                                                             <ItemsControl.ItemTemplate>
                                                                 <DataTemplate x:DataType="utils:MarkdownSocialButton">
                                                                     <Button Classes="socialMediaBtn" ToolTip.Tip="{Binding Alt}" Tag="{Binding LinkUrl}" Click="OnExternalLinkTagClicked"
-                                                                            Padding="0" Width="36" Height="36" Background="{StaticResource FieldBrush}" CornerRadius="8">
-                                                                        <Image Source="{Binding IconBitmap}" Width="24" Height="24" Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                            Padding="6,4" MinWidth="32" Height="30" Margin="0,0,6,6" Background="{DynamicResource FieldBrush}" CornerRadius="6">
+                                                                        <Image Source="{Binding IconBitmap}" Height="20" Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                     </Button>
                                                                 </DataTemplate>
                                                             </ItemsControl.ItemTemplate>
                                                         </ItemsControl>
-                                                    </StackPanel>
+                                                    </WrapPanel>
 
                                                     <!-- Headline image (e.g. About.png, Features.png) -->
                                                     <Border HorizontalAlignment="Left" Margin="0,18,0,8" IsVisible="{Binding IsHeadlineImage}">

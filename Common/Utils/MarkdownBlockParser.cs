@@ -197,15 +197,24 @@ public static class MarkdownBlockParser
     private static readonly Regex BannerRegex = new(@"\[?!\[(.*?)\]\((https?://\S+?\.(?:png|jpg|jpeg|gif|webp|svg))\)\]?", RegexOptions.IgnoreCase | RegexOptions.Compiled);
     private static readonly Regex HeadlineImgRegex = new(@"(?:<img\s+[^>]*src=[""']([^""']*(?:headline|header|title|features|about|download)[^""']*)[""'][^>]*alt=[""']([^""']*)[""']|!\[([^\]]*)\]\((https?://[^)]*(?:headline|header|title|features|about|download)[^)]*)\))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
     private static readonly Regex DividerImgRegex = new(@"(?:!\[Divider\]\((https?://[^\)]+)\)|<img\s+[^>]*(?:divider|line|bar)[^>]*src=[""']([^""']+)[""'])", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-    private static readonly Regex SocialRowRegex = new(@"<a\s+href=[""']([^""']+)[""'][^>]*>\s*<img\s+src=[""']([^""']+)[""'][^>]*alt=[""']([^""']*)[""']", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static readonly Regex SocialRowRegex = new(@"<a\s+[^>]*href=[""']([^""']+)[""'][^>]*>\s*<img\s+[^>]*src=[""']([^""']+)[""'][^>]*alt=[""']([^""']*)[""']", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static readonly Regex MarkdownBadgeRegex = new(@"\[!\[(.*?)\]\((https?://[^\)]+)\)\]\((https?://[^\)]+)\)", RegexOptions.Compiled);
     private static readonly Regex BulletRegex = new(@"^[\-\*\+]\s+(.+)$", RegexOptions.Compiled);
-    private static readonly Regex BoldRegex = new(@"\*\*(.+?)\*\*", RegexOptions.Compiled);
+    private static readonly Regex InlineBoldRegex = new(@"(?:\*\*(.+?)\*\*|__(.+?)__|<b>(.*?)</b>|<strong>(.*?)</strong>|<code>(.*?)</code>)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     public static List<MarkdownBlock> Parse(string? raw)
     {
         if (string.IsNullOrWhiteSpace(raw)) return new();
 
-        var lines = raw.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n');
+        // Normalize minified HTML by ensuring block tags are surrounded by newlines
+        string processed = raw;
+        if (processed.Contains('<') && processed.Contains('>'))
+        {
+            processed = Regex.Replace(processed, @"<br\s*/?>", "\n", RegexOptions.IgnoreCase);
+            processed = Regex.Replace(processed, @"</?(?:p|h[1-6]|ul|ol|li|hr|table|tr|blockquote|div|center)[^>]*>", "\n$0\n", RegexOptions.IgnoreCase);
+        }
+
+        var lines = processed.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n');
         var blocks = new List<MarkdownBlock>();
         int i = 0;
         bool firstBannerFound = false;
@@ -219,13 +228,14 @@ public static class MarkdownBlockParser
                 continue;
             }
 
-            // 1. Social buttons row: <p align="center">...<a href="..."><img ...></a>...</p>
+            // 1. Social / badge buttons row: <p align="center">...<a href="..."><img ...></a>...</p> OR Markdown badges
             if (line.Contains("<p", StringComparison.OrdinalIgnoreCase) &&
                 (line.Contains("discord", StringComparison.OrdinalIgnoreCase) ||
                  line.Contains("github", StringComparison.OrdinalIgnoreCase) ||
                  line.Contains("curseforge", StringComparison.OrdinalIgnoreCase) ||
                  line.Contains("modrinth", StringComparison.OrdinalIgnoreCase) ||
                  line.Contains("shields.io", StringComparison.OrdinalIgnoreCase) ||
+                 line.Contains("cf.way2muchnoise.eu", StringComparison.OrdinalIgnoreCase) ||
                  line.Contains("patreon", StringComparison.OrdinalIgnoreCase) ||
                  line.Contains("kofi", StringComparison.OrdinalIgnoreCase)))
             {
@@ -257,6 +267,34 @@ public static class MarkdownBlockParser
                 }
                 i++;
                 continue;
+            }
+
+            // 1b. Markdown badge links row: [![...](...)](...)
+            var mdBadgeMatches = MarkdownBadgeRegex.Matches(line);
+            if (mdBadgeMatches.Count > 1 || (mdBadgeMatches.Count == 1 && (line.Contains("shields.io", StringComparison.OrdinalIgnoreCase) || line.Contains("cf.way2muchnoise.eu", StringComparison.OrdinalIgnoreCase))))
+            {
+                var buttons = new List<MarkdownSocialButton>();
+                foreach (Match m in mdBadgeMatches)
+                {
+                    buttons.Add(new MarkdownSocialButton
+                    {
+                        Alt = m.Groups[1].Value,
+                        ImageUrl = m.Groups[2].Value,
+                        LinkUrl = m.Groups[3].Value
+                    });
+                }
+                if (buttons.Count > 0)
+                {
+                    var block = new MarkdownBlock
+                    {
+                        Type = MarkdownBlockType.SocialButtons,
+                        SocialButtons = buttons
+                    };
+                    block.LoadImages();
+                    blocks.Add(block);
+                    i++;
+                    continue;
+                }
             }
 
             // 2. Divider image: ![Divider](...divider...)
@@ -311,7 +349,23 @@ public static class MarkdownBlockParser
                 var url = bannerMatch.Groups[2].Value;
                 var alt = bannerMatch.Groups[1].Value;
 
-                if (!firstBannerFound && i < 3)
+                // Check if it's a shield/badge rather than full banner
+                if (url.Contains("shields.io", StringComparison.OrdinalIgnoreCase) ||
+                    url.Contains("cf.way2muchnoise.eu", StringComparison.OrdinalIgnoreCase) ||
+                    url.Contains("badge", StringComparison.OrdinalIgnoreCase))
+                {
+                    var block = new MarkdownBlock
+                    {
+                        Type = MarkdownBlockType.SocialButtons,
+                        SocialButtons = new List<MarkdownSocialButton>
+                        {
+                            new() { Alt = alt, ImageUrl = url, LinkUrl = "" }
+                        }
+                    };
+                    block.LoadImages();
+                    blocks.Add(block);
+                }
+                else if (!firstBannerFound && i < 4)
                 {
                     firstBannerFound = true;
                     var bannerBlock = new MarkdownBlock
@@ -338,17 +392,46 @@ public static class MarkdownBlockParser
                 continue;
             }
 
-            var htmlImgMatch = Regex.Match(line, @"^<img\s+[^>]*src=[""'](https?://[^""']+)[""'][^>]*>", RegexOptions.IgnoreCase);
+            var htmlImgMatch = Regex.Match(line, @"<img\s+[^>]*src=[""'](https?://[^""']+)[""'][^>]*>", RegexOptions.IgnoreCase);
             if (htmlImgMatch.Success)
             {
                 var url = htmlImgMatch.Groups[1].Value;
-                var contentBlock = new MarkdownBlock
+                if (url.Contains("shields.io", StringComparison.OrdinalIgnoreCase) ||
+                    url.Contains("badge", StringComparison.OrdinalIgnoreCase) ||
+                    url.Contains("icon", StringComparison.OrdinalIgnoreCase))
                 {
-                    Type = MarkdownBlockType.ContentImage,
-                    ImageUrl = url
-                };
-                contentBlock.LoadImages();
-                blocks.Add(contentBlock);
+                    var block = new MarkdownBlock
+                    {
+                        Type = MarkdownBlockType.SocialButtons,
+                        SocialButtons = new List<MarkdownSocialButton>
+                        {
+                            new() { Alt = "", ImageUrl = url, LinkUrl = "" }
+                        }
+                    };
+                    block.LoadImages();
+                    blocks.Add(block);
+                }
+                else if (!firstBannerFound && i < 4)
+                {
+                    firstBannerFound = true;
+                    var bannerBlock = new MarkdownBlock
+                    {
+                        Type = MarkdownBlockType.BannerImage,
+                        ImageUrl = url
+                    };
+                    bannerBlock.LoadImages();
+                    blocks.Add(bannerBlock);
+                }
+                else
+                {
+                    var contentBlock = new MarkdownBlock
+                    {
+                        Type = MarkdownBlockType.ContentImage,
+                        ImageUrl = url
+                    };
+                    contentBlock.LoadImages();
+                    blocks.Add(contentBlock);
+                }
                 i++;
                 continue;
             }
@@ -398,7 +481,26 @@ public static class MarkdownBlockParser
                 continue;
             }
 
-            // 6. Section headers: ###, ##, #
+            // 6. Section headers: Markdown (###, ##, #) and HTML (<h1>, <h2>, <h3>...)
+            var htmlHeaderMatch = Regex.Match(line, @"^<h([1-6])[^>]*>(.*?)(?:</h\1>)?$", RegexOptions.IgnoreCase);
+            if (htmlHeaderMatch.Success)
+            {
+                int hLevel = int.Parse(htmlHeaderMatch.Groups[1].Value);
+                string hText = CleanText(htmlHeaderMatch.Groups[2].Value);
+                if (!string.IsNullOrWhiteSpace(hText))
+                {
+                    var hType = hLevel switch
+                    {
+                        1 => MarkdownBlockType.Header1,
+                        2 => MarkdownBlockType.Header2,
+                        _ => MarkdownBlockType.Header3
+                    };
+                    blocks.Add(new MarkdownBlock { Type = hType, Text = hText });
+                }
+                i++;
+                continue;
+            }
+
             if (line.StartsWith("### "))
             {
                 blocks.Add(new MarkdownBlock { Type = MarkdownBlockType.Header3, Text = CleanText(line[4..]) });
@@ -449,7 +551,25 @@ public static class MarkdownBlockParser
                 continue;
             }
 
-            // 8. Bullets
+            // 8. Bullets: Markdown (- / * / +) and HTML (<li>...</li>)
+            var htmlLiMatch = Regex.Match(line, @"^<li[^>]*>(.*?)(?:</li>)?$", RegexOptions.IgnoreCase);
+            if (htmlLiMatch.Success)
+            {
+                var rawLi = htmlLiMatch.Groups[1].Value;
+                var cleanedLi = CleanText(rawLi);
+                if (!string.IsNullOrWhiteSpace(cleanedLi))
+                {
+                    blocks.Add(new MarkdownBlock
+                    {
+                        Type = MarkdownBlockType.Bullet,
+                        Text = cleanedLi,
+                        Spans = ParseSpans(rawLi)
+                    });
+                }
+                i++;
+                continue;
+            }
+
             var bulletMatch = BulletRegex.Match(line);
             if (bulletMatch.Success)
             {
@@ -490,15 +610,20 @@ public static class MarkdownBlockParser
         if (string.IsNullOrWhiteSpace(line)) return spans;
 
         int lastIdx = 0;
-        foreach (Match m in BoldRegex.Matches(line))
+        foreach (Match m in InlineBoldRegex.Matches(line))
         {
             if (m.Index > lastIdx)
             {
                 var normal = CleanText(line[lastIdx..m.Index]);
                 if (!string.IsNullOrEmpty(normal)) spans.Add(new MarkdownSpan { Text = normal, IsBold = false });
             }
-            var bold = CleanText(m.Groups[1].Value);
-            if (!string.IsNullOrEmpty(bold)) spans.Add(new MarkdownSpan { Text = bold, IsBold = true });
+            var bold = CleanText(m.Groups[1].Success ? m.Groups[1].Value :
+                                 m.Groups[2].Success ? m.Groups[2].Value :
+                                 m.Groups[3].Success ? m.Groups[3].Value :
+                                 m.Groups[4].Success ? m.Groups[4].Value :
+                                 m.Groups[5].Value);
+            bool isCode = m.Groups[5].Success;
+            if (!string.IsNullOrEmpty(bold)) spans.Add(new MarkdownSpan { Text = bold, IsBold = true, IsCode = isCode });
             lastIdx = m.Index + m.Length;
         }
 
@@ -523,6 +648,14 @@ public static class MarkdownBlockParser
              .Replace("&quot;", "\"")
              .Replace("&#39;", "'")
              .Replace("&apos;", "'")
+             .Replace("&#x27;", "'")
+             .Replace("&bull;", "•")
+             .Replace("&ndash;", "–")
+             .Replace("&mdash;", "—")
+             .Replace("&hellip;", "…")
+             .Replace("&copy;", "©")
+             .Replace("&reg;", "®")
+             .Replace("&trade;", "™")
              .Replace(":white_check_mark:", "✓")
              .Replace(":x:", "✗");
         return s.Trim();

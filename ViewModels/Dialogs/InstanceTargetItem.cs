@@ -15,6 +15,18 @@ public sealed partial class InstanceTargetItem : ObservableObject
     public string? IconPath => Instance.IconPath;
     public bool HasIcon => !string.IsNullOrEmpty(IconPath) && File.Exists(IconPath);
 
+    public Avalonia.Media.Imaging.Bitmap? IconBitmap
+    {
+        get
+        {
+            if (HasIcon && File.Exists(IconPath))
+            {
+                try { return new Avalonia.Media.Imaging.Bitmap(IconPath); } catch { }
+            }
+            return null;
+        }
+    }
+
     [ObservableProperty] private bool _isInstalled;
     [ObservableProperty] private bool _isInstalling;
     [ObservableProperty] private string _buttonText = "Install";

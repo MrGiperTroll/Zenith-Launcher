@@ -137,7 +137,7 @@
                                         <PathIcon Data="M5 11h14v2H5z" Width="10" Height="10" Foreground="{StaticResource TextSecondaryBrush}"/>
                                     </Button>
                                     <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="6" Height="30" Padding="10,0" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding MinRam, StringFormat='{}{0} MB'}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding MinRamMb, StringFormat='{}{0} MB'}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                     </Border>
                                     <Button Command="{Binding StepMinRamUpCommand}" Classes="subBtn" Width="30" Height="30" Padding="0" ToolTip.Tip="Increase RAM">
                                         <PathIcon Data="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" Width="10" Height="10" Foreground="{StaticResource TextSecondaryBrush}"/>
@@ -154,13 +154,13 @@
                                     <TextBlock Classes="itemDesc" Text="Maximum memory limit Minecraft is permitted to consume."/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="16,0,0,0">
-                                    <Button Command="{Binding StepMaxRamDownCommand}" Classes="subBtn" Width="30" Height="30" Padding="0" ToolTip.Tip="Decrease RAM">
+                                    <Button Command="{Binding StepRamDownCommand}" Classes="subBtn" Width="30" Height="30" Padding="0" ToolTip.Tip="Decrease RAM">
                                         <PathIcon Data="M5 11h14v2H5z" Width="10" Height="10" Foreground="{StaticResource TextSecondaryBrush}"/>
                                     </Button>
                                     <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="6" Height="30" Padding="10,0" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding MaxRam, StringFormat='{}{0} MB'}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding RamMb, StringFormat='{}{0} MB'}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                     </Border>
-                                    <Button Command="{Binding StepMaxRamUpCommand}" Classes="subBtn" Width="30" Height="30" Padding="0" ToolTip.Tip="Increase RAM">
+                                    <Button Command="{Binding StepRamUpCommand}" Classes="subBtn" Width="30" Height="30" Padding="0" ToolTip.Tip="Increase RAM">
                                         <PathIcon Data="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" Width="10" Height="10" Foreground="{StaticResource TextSecondaryBrush}"/>
                                     </Button>
                                 </StackPanel>
@@ -247,7 +247,7 @@
                         </StackPanel>
 
                         <!-- Group: Advanced JVM Arguments -->
-                        <StackPanel Spacing="8" IsVisible="{Binding IsSearchJvmVisible}">
+                        <StackPanel Spacing="8" IsVisible="{Binding IsSearchJvmArgsVisible}">
                             <TextBlock Classes="groupTitle" Text="{l10n:Tr set_jvm_args}"/>
 
                             <StackPanel Spacing="4">
@@ -275,7 +275,7 @@
                                     <TextBlock Classes="itemTitle" Text="{l10n:Tr Key=settings_lang}"/>
                                     <TextBlock Classes="itemDesc" Text="Select application interface language."/>
                                 </StackPanel>
-                                <ComboBox Grid.Column="1" ItemsSource="{Binding Languages}" SelectedItem="{Binding SelectedLanguage}" Classes="darkCombo" Width="180" Height="32" FontSize="12" VerticalAlignment="Center" Margin="16,0,0,0"/>
+                                <ComboBox Grid.Column="1" ItemsSource="{Binding LanguageOptions}" SelectedItem="{Binding SelectedLanguage}" Classes="darkCombo" Width="180" Height="32" FontSize="12" VerticalAlignment="Center" Margin="16,0,0,0"/>
                             </Grid>
 
                             <Border Height="1" Background="{StaticResource BorderDarkBrush}" Margin="0,8"/>

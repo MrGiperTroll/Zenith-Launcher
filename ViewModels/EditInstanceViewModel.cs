@@ -549,7 +549,7 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
 
             _cachedFilteredLogText = string.Join('\n', filtered);
         }
-        UpdateFilteredLogText();
+        OnPropertyChanged(nameof(FilteredLogText));
     }
 
     public Avalonia.Media.TextWrapping LogTextWrapping =>
@@ -598,7 +598,7 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
                 var sb = new StringBuilder();
                 try
                 {
-                    using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                    using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
                     using var reader = new StreamReader(fs, Encoding.UTF8);
                     var lines = new List<string>();
                     string? l;
@@ -654,7 +654,7 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
             if (!File.Exists(path)) continue;
             try
             {
-                using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
                 using var reader = new StreamReader(fs, Encoding.UTF8);
                 var allLines = new List<string>();
                 string? line;

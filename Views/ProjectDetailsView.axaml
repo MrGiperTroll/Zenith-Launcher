@@ -952,22 +952,22 @@
                                     </Grid>
 
                                                                         <!-- Timeline items container matching Modrinth background -->
-                                    <Border Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="10" Padding="20,16" HorizontalAlignment="Stretch">
+                                    <Border Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="10" Padding="16,10" HorizontalAlignment="Stretch">
                                         <ItemsControl ItemsSource="{Binding VersionList}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate x:DataType="models:ModrinthProjectVersion">
-                                                    <Border Classes="changelogRow" Padding="0,6" Margin="0" Background="Transparent">
-                                                        <Grid ColumnDefinitions="28,*,Auto">
+                                                    <Border Classes="changelogRow" Padding="0,4" Margin="0" Background="Transparent">
+                                                        <Grid ColumnDefinitions="20,*,Auto">
                                                             <!-- Timeline: Vertical Dashed Line running between nodes -->
-                                                            <Grid Grid.Column="0" VerticalAlignment="Stretch" Width="20" HorizontalAlignment="Center">
+                                                            <Grid Grid.Column="0" VerticalAlignment="Stretch" Width="16" HorizontalAlignment="Center">
                                                                 <!-- Top line segment (from previous row to this dot) -->
-                                                                <Line StartPoint="0,0" EndPoint="0,1" Stretch="Fill" Height="9" VerticalAlignment="Top"
+                                                                <Line Width="2" StartPoint="1,0" EndPoint="1,1" Stretch="Fill" Height="9" VerticalAlignment="Top"
                                                                       Stroke="{Binding TimelineColorBrush}" StrokeDashArray="3,3" StrokeThickness="2"
                                                                       HorizontalAlignment="Center"
                                                                       IsVisible="{Binding !IsFirstInTimeline}"/>
 
                                                                 <!-- Bottom line segment (from this dot to next row) -->
-                                                                <Line StartPoint="0,0" EndPoint="0,1" Stretch="Fill" Margin="0,9,0,0" VerticalAlignment="Stretch"
+                                                                <Line Width="2" StartPoint="1,0" EndPoint="1,1" Stretch="Fill" Margin="0,9,0,0" VerticalAlignment="Stretch"
                                                                       Stroke="{Binding TimelineColorBrush}" StrokeDashArray="3,3" StrokeThickness="2"
                                                                       HorizontalAlignment="Center"
                                                                       IsVisible="{Binding !IsLastInTimeline}"/>

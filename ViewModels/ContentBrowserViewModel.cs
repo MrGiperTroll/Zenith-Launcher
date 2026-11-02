@@ -567,9 +567,15 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
             if (cur > total) cur = total;
             if (cur < 1) cur = 1;
 
-            return all.Skip((cur - 1) * DetailVersionsPageSize)
-                      .Take(DetailVersionsPageSize)
-                      .ToList();
+            var pageList = all.Skip((cur - 1) * DetailVersionsPageSize)
+                              .Take(DetailVersionsPageSize)
+                              .ToList();
+            for (int i = 0; i < pageList.Count; i++)
+            {
+                pageList[i].IsFirstInTimeline = (i == 0);
+                pageList[i].IsLastInTimeline = (i == pageList.Count - 1);
+            }
+            return pageList;
         }
     }
 

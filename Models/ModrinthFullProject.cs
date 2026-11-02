@@ -405,6 +405,8 @@ dependencies {{
     public long Downloads { get; init; } = 0;
     public string AuthorId { get; init; } = "";
     public string AuthorName { get; set; } = "";
+    public bool IsFirstInTimeline { get; set; }
+    public bool IsLastInTimeline { get; set; }
 
     public string DownloadsLabel
     {

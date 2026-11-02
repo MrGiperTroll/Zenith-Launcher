@@ -958,11 +958,21 @@
                                                 <DataTemplate x:DataType="models:ModrinthProjectVersion">
                                                     <Border Classes="changelogRow" Padding="0,6" Margin="0" Background="Transparent">
                                                         <Grid ColumnDefinitions="28,*,Auto">
-                                                            <!-- Timeline: Vertical Dashed Line running downwards from node -->
+                                                            <!-- Timeline: Vertical Dashed Line running between nodes -->
                                                             <Grid Grid.Column="0" VerticalAlignment="Stretch" Width="20" HorizontalAlignment="Center">
-                                                                <Line StartPoint="0,14" EndPoint="0,1000" Stretch="Fill"
+                                                                <!-- Top line segment (from previous row to this dot) -->
+                                                                <Line StartPoint="0,0" EndPoint="0,1" Stretch="Fill" Height="9" VerticalAlignment="Top"
                                                                       Stroke="{Binding TimelineColorBrush}" StrokeDashArray="3,3" StrokeThickness="2"
-                                                                      HorizontalAlignment="Center" VerticalAlignment="Stretch"/>
+                                                                      HorizontalAlignment="Center"
+                                                                      IsVisible="{Binding !IsFirstInTimeline}"/>
+
+                                                                <!-- Bottom line segment (from this dot to next row) -->
+                                                                <Line StartPoint="0,0" EndPoint="0,1" Stretch="Fill" Margin="0,9,0,0" VerticalAlignment="Stretch"
+                                                                      Stroke="{Binding TimelineColorBrush}" StrokeDashArray="3,3" StrokeThickness="2"
+                                                                      HorizontalAlignment="Center"
+                                                                      IsVisible="{Binding !IsLastInTimeline}"/>
+
+                                                                <!-- Circle node -->
                                                                 <Ellipse Width="10" Height="10" Fill="{Binding TimelineColorBrush}"
                                                                          VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,4,0,0"/>
                                                             </Grid>

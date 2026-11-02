@@ -9,61 +9,55 @@
 
     <UserControl.Styles>
         <Style Selector="Button.subBtn">
-            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderEditorBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource FieldBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderEditorBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="10"/>
-            <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="14,7"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="FontSize" Value="12"/>
         </Style>
         <Style Selector="Button.subBtn:pointerover">
-            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderHoverBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
         <Style Selector="ListBox.crashList">
-            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="8"/>
         </Style>
     </UserControl.Styles>
 
-    <Grid RowDefinitions="Auto,*,Auto" Margin="18,16" Width="560" MaxHeight="440">
-        <!-- Header -->
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12" Margin="2,0,0,14">
-            <Border Width="42" Height="42" CornerRadius="12"
-                    Background="{StaticResource DangerBgDeepBrush}"
-                    BorderBrush="{StaticResource DangerBorderBrush}" BorderThickness="1">
-                <TextBlock Text="!" FontSize="22" FontWeight="Bold" Foreground="{StaticResource DangerLightBrush}"
-                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </Border>
-            <StackPanel VerticalAlignment="Center" Spacing="4">
-                <TextBlock Classes="pageTitle" Text="{Binding Title}"/>
-                <Border Background="{StaticResource ChipBrush}" CornerRadius="6" Padding="8,3" HorizontalAlignment="Left">
-                    <TextBlock Text="{Binding ExitCodeLine}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                </Border>
+    <Grid RowDefinitions="Auto,*,Auto" Margin="20,18" Width="580" MaxHeight="460">
+        <!-- Header: Clean and professional without oversized badges -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,14" VerticalAlignment="Center">
+            <StackPanel Spacing="3">
+                <TextBlock Classes="pageTitle" Text="{Binding Title}" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                <TextBlock Text="{Binding LikelyCauseLabel}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource WarningBrush}"/>
             </StackPanel>
-        </StackPanel>
+            <Border Grid.Column="1" Background="{DynamicResource ChipBrush}" CornerRadius="6" Padding="10,4" VerticalAlignment="Center">
+                <TextBlock Text="{Binding ExitCodeLine}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+            </Border>
+        </Grid>
 
         <!-- Body -->
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-            <StackPanel Spacing="12">
-                <Border Classes="zenSection">
-                    <StackPanel Spacing="6">
-                        <TextBlock Text="{Binding LikelyCauseLabel}" FontSize="11" FontWeight="Bold"
-                                   Foreground="{StaticResource WarningBrush}" Margin="0,0,0,2"/>
-                        <TextBlock Classes="rowTitle" Text="{l10n:Tr crash_what}"/>
-                        <TextBlock Text="{Binding HumanSummary}" FontSize="13" TextWrapping="Wrap"
-                                   Foreground="{StaticResource TextSecondaryBrush}" LineHeight="20"/>
+            <StackPanel Spacing="10">
+                <Border Classes="zenSection" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderCardSoftBrush}"
+                        BorderThickness="1" CornerRadius="8" Padding="12">
+                    <StackPanel Spacing="5">
+                        <TextBlock Classes="rowTitle" Text="{l10n:Tr Key=crash_what}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <TextBlock Text="{Binding HumanSummary}" FontSize="12.5" TextWrapping="Wrap"
+                                   Foreground="{DynamicResource TextSecondaryBrush}" LineHeight="19"/>
                     </StackPanel>
                 </Border>
 
                 <!-- Faulty / Conflicting Mods Action Section -->
                 <Border Classes="zenSection" Background="{DynamicResource DangerBgDeepBrush}" BorderBrush="{DynamicResource DangerBorderBrush}"
-                        BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,2,0,2"
+                        BorderThickness="1" CornerRadius="8" Padding="12"
                         IsVisible="{Binding HasFaultyMods}">
                     <StackPanel Spacing="8">
                         <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
@@ -73,11 +67,11 @@
                         <ItemsControl ItemsSource="{Binding FaultyMods}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="dialogs:FaultyModItem">
-                                    <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
-                                            BorderThickness="1" CornerRadius="6" Padding="10,8" Margin="0,3">
-                                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
-                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
-                                                <TextBlock Text="{Binding ModName}" FontWeight="SemiBold" FontSize="12"
+                                    <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderCardSoftBrush}"
+                                            BorderThickness="1" CornerRadius="6" Padding="10,8" Margin="0,2">
+                                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" VerticalAlignment="Center">
+                                            <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding ModName}" FontSize="12" FontWeight="SemiBold"
                                                            Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
                                                 <TextBlock Text="{Binding StatusText}" FontSize="10.5" Foreground="{DynamicResource WarningBrush}"
                                                            IsVisible="{Binding StatusText.Length, Converter={x:Static converters:EditInstanceWindowConverters.IsNonZero}}"/>
@@ -97,7 +91,7 @@
 
                 <!-- Solution Steps -->
                 <Border Classes="zenSection" Background="{DynamicResource AccentDimBrush}" BorderBrush="{DynamicResource AccentBrush}"
-                        BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,2,0,2"
+                        BorderThickness="1" CornerRadius="8" Padding="12"
                         IsVisible="{Binding HasSolutionSteps}">
                     <StackPanel Spacing="6">
                         <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
@@ -115,41 +109,42 @@
                     </StackPanel>
                 </Border>
 
-                <StackPanel Spacing="5"
-                            IsVisible="{Binding Requirements.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsNonZero}}">
-                    <TextBlock Classes="rowTitle" Text="{l10n:Tr crash_mods_check}"/>
+                <!-- Requirements (if any) -->
+                <StackPanel Spacing="4" IsVisible="{Binding Requirements.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsNonZero}}">
+                    <TextBlock Classes="rowTitle" Text="{l10n:Tr Key=crash_mods_check}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                     <ItemsControl ItemsSource="{Binding Requirements}" FontSize="11.5">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,2"
-                                           Foreground="{StaticResource TextSoftBrush}"/>
+                                <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,2" Foreground="{DynamicResource TextSoftBrush}"/>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </StackPanel>
 
-                <StackPanel Spacing="5">
-                    <TextBlock Classes="rowTitle" Text="{l10n:Tr crash_details}"/>
-                    <ListBox Classes="crashList" ItemsSource="{Binding Evidence}" MaxHeight="150"
+                <!-- Compact Details Expander -->
+                <Expander Header="{l10n:Tr Key=crash_details}" IsExpanded="False" Background="Transparent"
+                          BorderBrush="{DynamicResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="6">
+                    <ListBox Classes="crashList" ItemsSource="{Binding Evidence}" MaxHeight="140"
+                             Background="{DynamicResource SurfaceBrush}" BorderThickness="0"
                              SelectionMode="Single" FontSize="11"
                              ScrollViewer.HorizontalScrollBarVisibility="Auto">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding}" TextWrapping="NoWrap"
-                                           FontFamily="Consolas, Courier New, monospace"
-                                           Foreground="{StaticResource TextSoftBrush}"/>
+                                           FontFamily="Consolas, Cascadia Code, Courier New, monospace"
+                                           Foreground="{DynamicResource TextSoftBrush}"/>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
-                </StackPanel>
+                </Expander>
             </StackPanel>
         </ScrollViewer>
 
         <!-- Footer -->
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,14,0,0">
-            <Button Classes="subBtn" Content="{l10n:Tr copy}" Click="OnCopyClick"/>
-            <Button Classes="subBtn" Content="{l10n:Tr crash_openlog}" Click="OnOpenLogClick"/>
-            <Button Classes="subBtn" Content="{l10n:Tr close}"
+            <Button Classes="subBtn" Content="{l10n:Tr Key=copy}" Click="OnCopyClick"/>
+            <Button Classes="subBtn" Content="{l10n:Tr Key=crash_openlog}" Click="OnOpenLogClick"/>
+            <Button Classes="subBtn" Content="{l10n:Tr Key=close}"
                     Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).CloseCrashReportCommand}"/>
         </StackPanel>
     </Grid>

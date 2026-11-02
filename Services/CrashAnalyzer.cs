@@ -83,7 +83,7 @@ public static class CrashAnalyzer
             }
 
             // 4. Missing mod dependencies or incompatibilities.
-            var depLines = PickLines(logText, @"Missing.*dependenc|requires .* of |needs .* to be|but it is missing|IncompatibleModsException|DuplicateModsFoundException|ModResolutionException", 4);
+            var depLines = PickLines(logText, @"Incompatible mod set found|FormattedException|Missing.*dependenc|requires.*which is missing|requires .* of |needs .* to be|but it is missing|IncompatibleModsException|DuplicateModsFoundException|ModResolutionException|ModLoadingException|Some of your mods are incompatible|A potential solution has been determined|requires version.*of mod", 6);
             var modNames = ExtractModJars(logText, instanceBasePath);
             if (depLines.Count > 0)
             {
@@ -115,7 +115,9 @@ public static class CrashAnalyzer
             }
 
             // 6. Graphics / driver (strictly verify driver dll or GLFW context failure, not generic OpenGL mentioned in mod stack).
-            var gpu = PickLines(logText, @"EXCEPTION_ACCESS_VIOLATION.*(ig[0-9]|atio6axx|nvoglv|nvd3dum)|ig[0-9][a-z0-9_]*\.dll|atio6axx\.dll|nvoglv64\.dll|Pixel format not accelerated|GLFW error 6554: (WGL|GLX|EGL|GLFW)|Failed to create a valid OpenGL context", 3);
+            var gpu = PickLines(logText, @"EXCEPTION_ACCESS_VIOLATION.*(ig[0-9]|atio6axx|nvoglv|nvd3dum)|(ig[0-9][a-z0-9_]*|atio6axx|nvoglv64)\.dll(?=.*(crash|exception|error|violation))|Pixel format not accelerated|GLFW error 6554: (WGL|GLX|EGL|GLFW)|Failed to create a valid OpenGL context|org\.lwjgl\.opengl\.OpenGLException", 3)
+                .Where(line => !line.Contains("NVIDIA Compatible OpenGL ICD", StringComparison.OrdinalIgnoreCase))
+                .ToList();
             if (gpu.Count > 0)
             {
                 solutionSteps.Add("1. Update your graphics card drivers (NVIDIA, AMD, or Intel).");
@@ -220,6 +222,15 @@ public static class CrashAnalyzer
     private static List<string> ExtractModJars(string text, string instanceBasePath = "")
     {
         var seen = new List<string>();
+
+        // Missing dependencies in Fabric (e.g. requires yet_another_config_lib 3.2.0 or later)
+        foreach (Match m in Regex.Matches(text, @"requires\s+([a-zA-Z0-9_\-]+)(?:\s+[0-9.]|\s+or later|\s*, which is missing)", RegexOptions.IgnoreCase))
+        {
+            var req = m.Groups[1].Value.Trim();
+            if (req.Length > 2 && !seen.Contains(req, StringComparer.OrdinalIgnoreCase) && !req.Equals("minecraft", StringComparison.OrdinalIgnoreCase))
+                seen.Add(req);
+        }
+
         foreach (Match m in Regex.Matches(text, @"[/\\]mods[/\\]([^/\\:;""'\s]+\.jar)", RegexOptions.IgnoreCase))
         {
             var name = m.Groups[1].Value;
@@ -260,9 +271,16 @@ public static class CrashAnalyzer
         // Forge: Mod 'x' (...) requires version ... of 'y'
         foreach (Match m in Regex.Matches(text, @"Mod '([^']+)'[^'\n]*requires [^'\n]*?of '([^']+)'", RegexOptions.IgnoreCase))
             yield return string.Format(L10n.T("crash_req_item"), m.Groups[1].Value, m.Groups[2].Value, L10n.T("crash_ver_any"));
-        // Fabric: Mod "x" requires "y"
-        foreach (Match m in Regex.Matches(text, @"Mod ""([^""]+)""[^""\n]*requires [""']([^""']+)[""']", RegexOptions.IgnoreCase))
+        // Fabric: Mod "x" requires "y" or Mod 'x' requires y ... which is missing
+        foreach (Match m in Regex.Matches(text, @"Mod\s+['""]([^'""]+)['""][^'\n]*?requires\s+['""]?([a-zA-Z0-9_\-]+)['""]?", RegexOptions.IgnoreCase))
             yield return string.Format(L10n.T("crash_req_item"), m.Groups[1].Value, m.Groups[2].Value, L10n.T("crash_ver_any"));
+        // Fabric bullet: - mod_name x.y.z or later
+        foreach (Match m in Regex.Matches(text, @"^\s*-\s+([a-zA-Z0-9_\-]+)\s+([0-9.]+.*?)\s*$", RegexOptions.Multiline))
+        {
+            var dep = m.Groups[1].Value;
+            if (!dep.Equals("replace", StringComparison.OrdinalIgnoreCase) && !dep.Equals("a", StringComparison.OrdinalIgnoreCase) && !dep.Equals("any", StringComparison.OrdinalIgnoreCase))
+                yield return $"{dep} ({m.Groups[2].Value.Trim()})";
+        }
     }
 
     private static string ReadLogTail(string instanceLogPath, string instanceBasePath)

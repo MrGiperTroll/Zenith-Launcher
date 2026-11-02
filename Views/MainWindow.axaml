@@ -7,6 +7,7 @@
         xmlns:items="using:CustomMcLauncher.ViewModels.Items"
         xmlns:conv="using:Avalonia.Data.Converters"
         xmlns:views="using:CustomMcLauncher.Views"
+        xmlns:dialogs="using:CustomMcLauncher.ViewModels.Dialogs"
         xmlns:l10n="using:CustomMcLauncher.Extensions"
         x:Class="CustomMcLauncher.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
@@ -17,11 +18,11 @@
         Background="{DynamicResource BgBrush}"
         TransparencyLevelHint="None"
         TransparencyBackgroundFallback="{DynamicResource BgBrush}"
-        ExtendClientAreaToDecorations="True"
-        ExtendClientAreaChromeHints="NoChrome"
+        BorderBrush="{DynamicResource AccentBrush}"
+        BorderThickness="1"
+        ExtendClientAreaToDecorationsHint="True"
         ExtendClientAreaTitleBarHeightHint="38"
-        
-        
+        WindowDecorations="None"
         Opacity="1">
 
 <Window.Resources>
@@ -784,6 +785,13 @@
                                     </Grid>
                                 </Button>
 
+                                <Button Classes="discordNavBtn" Classes.active="{Binding IsSkinsView}" Command="{Binding ShowSkinsCommand}" ToolTip.Tip="Skins">
+                                    <Grid ColumnDefinitions="30,*" VerticalAlignment="Center">
+                                        <PathIcon Grid.Column="0" Data="M12 2A5 5 0 0 0 7 7C7 8.5 7.6 9.8 8.6 10.7C5.8 11.8 4 14.6 4 18V20H20V18C20 14.6 18.2 11.8 15.4 10.7C16.4 9.8 17 8.5 17 7A5 5 0 0 0 12 2Z" Width="18" Height="18" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="1" Text="Skins" FontSize="13.5" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                    </Grid>
+                                </Button>
+
                                 <Border Height="1" Background="{StaticResource BorderDarkBrush}" Margin="2,8,2,8"/>
 
                                 <Button Classes="discordNavBtn" Command="{Binding OpenRootDirectoryCommand}" ToolTip.Tip="{l10n:Tr Key=nav_dir}">
@@ -1066,7 +1074,12 @@
                 </Border>
             </Border>
 
-            <!-- Catalog / Modpacks View -->
+            <!-- Skins View -->
+                    <Grid IsVisible="{Binding IsSkinsView}" Classes="viewPane" Margin="0,0,16,0" x:Name="SkinsPane">
+                        <views:SkinSelectorView DataContext="{Binding SkinsVm}"/>
+                    </Grid>
+
+                    <!-- Catalog / Modpacks View -->
                     <Grid IsVisible="{Binding IsModpacksView}" Classes="viewPane" Margin="0,0,16,0" x:Name="ModpacksPane">
                         <Grid RowDefinitions="Auto,*" IsVisible="{Binding !ModpacksBrowser.IsDetailsOpen}">
                             <!-- Header: Type Tabs, Search Bar, and Filter Controls -->
@@ -1692,7 +1705,7 @@
                                         <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalAlignment="Center">
                                             <Border Width="32" Height="32" Background="{StaticResource IconChipBrush}" CornerRadius="6" VerticalAlignment="Center" ClipToBounds="True">
                                                 <Panel>
-                                            <Image Source="{Binding IconPath, Converter={x:Static converters:EditInstanceWindowConverters.StringToBitmap}}" Stretch="UniformToFill" IsVisible="{Binding HasIcon}"/>
+                                            <Image Source="{Binding IconBitmap}" Stretch="UniformToFill" IsVisible="{Binding HasIcon}"/>
                                             <PathIcon Data="M21 16.5C21 16.88 20.79 17.21 20.47 17.38L12.57 21.82C12.41 21.91 12.21 21.96 12 21.96C11.79 21.96 11.59 21.91 11.43 21.82L3.53 17.38C3.21 17.21 3 16.88 3 16.5V7.5C3 7.12 3.21 6.79 3.53 6.62L11.43 2.18C11.59 2.09 11.79 2.04 12 2.04C12.21 2.04 12.41 2.09 12.57 2.18L20.47 6.62C20.79 6.79 21 7.12 21 7.5V16.5Z" Width="16" Height="16" Foreground="{DynamicResource AccentBrush}" IsVisible="{Binding !HasIcon}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Panel>
                                             </Border>

@@ -36,7 +36,7 @@
         <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,14" VerticalAlignment="Center">
             <StackPanel Spacing="3">
                 <TextBlock Classes="pageTitle" Text="{Binding Title}" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                <TextBlock Text="{Binding LikelyCauseLabel}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource WarningBrush}"/>
+                <TextBlock Text="{Binding LikelyCauseLabel}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
             </StackPanel>
             <Border Grid.Column="1" Background="{DynamicResource ChipBrush}" CornerRadius="6" Padding="10,4" VerticalAlignment="Center">
                 <TextBlock Text="{Binding ExitCodeLine}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
@@ -56,7 +56,7 @@
                 </Border>
 
                 <!-- Faulty / Conflicting Mods Action Section -->
-                <Border Classes="zenSection" Background="{DynamicResource DangerBgDeepBrush}" BorderBrush="{DynamicResource DangerBorderBrush}"
+                <Border Classes="zenSection" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderCardSoftBrush}"
                         BorderThickness="1" CornerRadius="8" Padding="12"
                         IsVisible="{Binding HasFaultyMods}">
                     <StackPanel Spacing="8">
@@ -90,7 +90,7 @@
                 </Border>
 
                 <!-- Solution Steps -->
-                <Border Classes="zenSection" Background="{DynamicResource AccentDimBrush}" BorderBrush="{DynamicResource AccentBrush}"
+                <Border Classes="zenSection" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderCardSoftBrush}"
                         BorderThickness="1" CornerRadius="8" Padding="12"
                         IsVisible="{Binding HasSolutionSteps}">
                     <StackPanel Spacing="6">
@@ -121,22 +121,7 @@
                     </ItemsControl>
                 </StackPanel>
 
-                <!-- Compact Details Expander -->
-                <Expander Header="{l10n:Tr Key=crash_details}" IsExpanded="False" Background="Transparent"
-                          BorderBrush="{DynamicResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="6">
-                    <ListBox Classes="crashList" ItemsSource="{Binding Evidence}" MaxHeight="140"
-                             Background="{DynamicResource SurfaceBrush}" BorderThickness="0"
-                             SelectionMode="Single" FontSize="11"
-                             ScrollViewer.HorizontalScrollBarVisibility="Auto">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding}" TextWrapping="NoWrap"
-                                           FontFamily="Consolas, Cascadia Code, Courier New, monospace"
-                                           Foreground="{DynamicResource TextSoftBrush}"/>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
-                </Expander>
+
             </StackPanel>
         </ScrollViewer>
 

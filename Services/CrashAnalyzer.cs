@@ -37,7 +37,30 @@ public static class CrashAnalyzer
         var evidence = new List<string>();
         var requirements = new List<string>();
         var solutionSteps = new List<string>();
-        var logText = ReadLogTail(instanceLogPath, instanceBasePath);
+
+        // Resolve actual instance crash report or latest.log
+        string resolvedLogPath = instanceLogPath;
+        if (!string.IsNullOrWhiteSpace(instanceBasePath))
+        {
+            var crashReportsDir = Path.Combine(instanceBasePath, "crash-reports");
+            if (Directory.Exists(crashReportsDir))
+            {
+                var newestCrash = Directory.GetFiles(crashReportsDir, "*.txt")
+                    .Select(f => new FileInfo(f))
+                    .OrderByDescending(f => f.LastWriteTimeUtc)
+                    .FirstOrDefault();
+                if (newestCrash != null && File.Exists(newestCrash.FullName))
+                    resolvedLogPath = newestCrash.FullName;
+            }
+            if (resolvedLogPath == instanceLogPath)
+            {
+                var instanceLatestLog = Path.Combine(instanceBasePath, "logs", "latest.log");
+                if (File.Exists(instanceLatestLog))
+                    resolvedLogPath = instanceLatestLog;
+            }
+        }
+
+        var logText = ReadLogTail(resolvedLogPath, instanceBasePath);
 
         string title = L10n.T("crash_generic_title");
         string human = L10n.T("crash_generic_human");
@@ -51,7 +74,7 @@ public static class CrashAnalyzer
                 cause = "Manual debug crash (Shift+F3+C)";
                 evidence.AddRange(PickLines(logText, "Manually triggered debug crash", 2));
                 solutionSteps.Add("No action required. The crash was manually triggered via keyboard shortcut Shift+F3+C.");
-                return Build(title, human, cause, evidence, requirements, solutionSteps, instanceLogPath, exitCode);
+                return Build(title, human, cause, evidence, requirements, solutionSteps, resolvedLogPath, exitCode);
             }
 
             // 2. Out of memory.
@@ -62,7 +85,7 @@ public static class CrashAnalyzer
                 solutionSteps.Add("2. Increase Allocated RAM (recommended: 4096 MB - 6144 MB for modded Minecraft).");
                 solutionSteps.Add("3. Close memory-heavy background applications before launching.");
                 return Build(L10n.T("crash_mem_title"), L10n.T("crash_mem_human"),
-                    "Java heap exhausted", oom, requirements, solutionSteps, instanceLogPath, exitCode);
+                    "Java heap exhausted", oom, requirements, solutionSteps, resolvedLogPath, exitCode);
             }
 
             // 3. Wrong Java (class file version -> required major).
@@ -79,24 +102,82 @@ public static class CrashAnalyzer
                 return Build(L10n.T("crash_java_title"), L10n.T("crash_java_human"),
                     $"Game needs Java {needJava}",
                     PickLines(logText, "UnsupportedClassVersionError|class file version|has been compiled by a more recent version", 3),
-                    requirements, solutionSteps, instanceLogPath, exitCode);
+                    requirements, solutionSteps, resolvedLogPath, exitCode);
             }
 
-            // 4. Missing mod dependencies or incompatibilities.
+            // 4. Missing mod dependencies or incompatibilities (Fabric, Forge, NeoForge).
             var depLines = PickLines(logText, @"Incompatible mod set found|FormattedException|Missing.*dependenc|requires.*which is missing|requires .* of |needs .* to be|but it is missing|IncompatibleModsException|DuplicateModsFoundException|ModResolutionException|ModLoadingException|Some of your mods are incompatible|A potential solution has been determined|requires version.*of mod", 6);
-            var modNames = ExtractModJars(logText, instanceBasePath);
-            if (depLines.Count > 0)
+            
+            var reqMatch = Regex.Match(logText, @"Mod\s+'([^']+)'\s*(?:\([^)]+\))?[^'
+]*?requires\s+(?:version\s+([^
+,]+?)\s+or\s+later\s+of\s+|version\s+([^
+,]+?)\s+of\s+)?([a-zA-Z0-9_\-]+)(?:,\s*which\s+is\s+missing)?", RegexOptions.IgnoreCase);
+            var installMatch = Regex.Match(logText, @"Install\s+([a-zA-Z0-9_\-]+)(?:,\s*version\s+([^
+,]+))?", RegexOptions.IgnoreCase);
+
+            string? missingMod = null;
+            string? requiringMod = null;
+            string? requiredVer = null;
+
+            if (installMatch.Success)
             {
+                missingMod = installMatch.Groups[1].Value.Trim();
+                if (installMatch.Groups[2].Success)
+                    requiredVer = installMatch.Groups[2].Value.Trim();
+            }
+
+            if (reqMatch.Success)
+            {
+                requiringMod = reqMatch.Groups[1].Value.Trim();
+                if (string.IsNullOrWhiteSpace(missingMod) && reqMatch.Groups[4].Success)
+                    missingMod = reqMatch.Groups[4].Value.Trim();
+                if (string.IsNullOrWhiteSpace(requiredVer))
+                    requiredVer = reqMatch.Groups[2].Success ? reqMatch.Groups[2].Value.Trim() : (reqMatch.Groups[3].Success ? reqMatch.Groups[3].Value.Trim() : null);
+            }
+
+            var modNames = ExtractModJars(logText, instanceBasePath);
+            if (!string.IsNullOrWhiteSpace(missingMod) && !modNames.Contains(missingMod, StringComparer.OrdinalIgnoreCase))
+                modNames.Insert(0, missingMod);
+            if (!string.IsNullOrWhiteSpace(requiringMod) && !modNames.Contains(requiringMod, StringComparer.OrdinalIgnoreCase))
+                modNames.Add(requiringMod);
+
+            if (depLines.Count > 0 || !string.IsNullOrWhiteSpace(missingMod))
+            {
+                string causeTitle;
+                string humanDesc;
+
+                if (!string.IsNullOrWhiteSpace(missingMod))
+                {
+                    causeTitle = !string.IsNullOrWhiteSpace(requiringMod)
+                        ? $"Missing mod '{missingMod}' (required by {requiringMod})"
+                        : $"Missing mod '{missingMod}'";
+                    humanDesc = !string.IsNullOrWhiteSpace(requiringMod)
+                        ? $"Mod '{requiringMod}' requires '{missingMod}'{(string.IsNullOrWhiteSpace(requiredVer) ? "" : $" (version {requiredVer})")}, which is missing. Click 'Download Compatible' to install '{missingMod}' or 'Disable Mod' to disable '{requiringMod}'."
+                        : $"The game requires '{missingMod}', which is not installed. Click 'Download Compatible' to install it.";
+                }
+                else
+                {
+                    causeTitle = "Missing or incompatible mod dependency";
+                    humanDesc = L10n.T("crash_mods_human");
+                }
+
                 foreach (var req in ParseRequirements(logText).Take(5))
                     requirements.Add(req);
+                if (requirements.Count == 0 && !string.IsNullOrWhiteSpace(missingMod))
+                    requirements.Add($"Install {missingMod}{(string.IsNullOrWhiteSpace(requiredVer) ? "" : $" {requiredVer}")}");
+
                 if (modNames.Count > 0)
                     evidence.Add(string.Format(L10n.T("crash_mods_names"), string.Join(", ", modNames.Take(5))));
                 evidence.AddRange(depLines);
-                solutionSteps.Add("1. Review the required dependencies listed in the Requirements section above.");
-                solutionSteps.Add("2. Disable conflicting mods or download compatible versions using the buttons below.");
+
+                if (!string.IsNullOrWhiteSpace(missingMod))
+                    solutionSteps.Add($"1. Click 'Download Compatible' to search and install '{missingMod}'.");
+                if (!string.IsNullOrWhiteSpace(requiringMod))
+                    solutionSteps.Add($"2. Or click 'Disable Mod' to disable '{requiringMod}'.");
                 solutionSteps.Add("3. Ensure all installed mods match your mod loader (Fabric vs Forge vs NeoForge).");
-                return Build(L10n.T("crash_mods_title"), L10n.T("crash_mods_human"),
-                    "Missing or incompatible mod dependency", evidence, requirements, solutionSteps, instanceLogPath, exitCode, modNames, instanceBasePath);
+
+                return Build(L10n.T("crash_mods_title"), humanDesc, causeTitle,
+                    evidence, requirements, solutionSteps, resolvedLogPath, exitCode, modNames, instanceBasePath);
             }
 
             // 5. Mod conflict / broken mod code (checked before graphics to avoid false positives on Exit Code: 1).
@@ -111,7 +192,7 @@ public static class CrashAnalyzer
                 solutionSteps.Add("2. Click 'Disable Mod' below to disable the conflicting file.");
                 solutionSteps.Add("3. Click 'Download Compatible' to find a newer version for your Minecraft version.");
                 return Build(L10n.T("crash_mods_title"), L10n.T("crash_mods_human"),
-                    "Incompatible or broken mod", evidence, requirements, solutionSteps, instanceLogPath, exitCode, modNames, instanceBasePath);
+                    "Incompatible or broken mod", evidence, requirements, solutionSteps, resolvedLogPath, exitCode, modNames, instanceBasePath);
             }
 
             // 6. Graphics / driver (strictly verify driver dll or GLFW context failure, not generic OpenGL mentioned in mod stack).
@@ -124,7 +205,7 @@ public static class CrashAnalyzer
                 solutionSteps.Add("2. For laptops with dual GPUs, force the High-Performance discrete GPU.");
                 solutionSteps.Add("3. Disable active Shader Packs or incompatible graphics mods.");
                 return Build(L10n.T("crash_gpu_title"), L10n.T("crash_gpu_human"),
-                    "Graphics driver / OpenGL failure", gpu, requirements, solutionSteps, instanceLogPath, exitCode);
+                    "Graphics driver / OpenGL failure", gpu, requirements, solutionSteps, resolvedLogPath, exitCode);
             }
 
             // 7. Disk full / access denied.
@@ -135,7 +216,7 @@ public static class CrashAnalyzer
                 return Build(L10n.T("crash_disk_title"), L10n.T("crash_disk_human"),
                     "Drive ran out of free space",
                     PickLines(logText, "No space left|Disk quota|not enough space", 2),
-                    requirements, solutionSteps, instanceLogPath, exitCode);
+                    requirements, solutionSteps, resolvedLogPath, exitCode);
             }
             var perm = PickLines(logText, "AccessDeniedException|Access to the path .* denied|Permission denied|Failed to (create|write|save).* (directory|file)", 2);
             if (perm.Count > 0)
@@ -143,7 +224,7 @@ public static class CrashAnalyzer
                 solutionSteps.Add("1. Ensure the game folder is not set to Read-Only or locked by another app.");
                 solutionSteps.Add("2. Add the Zenith Launcher directory to your antivirus exclusions.");
                 return Build(L10n.T("crash_perm_title"), L10n.T("crash_perm_human"),
-                    "Cannot write game files", perm, requirements, solutionSteps, instanceLogPath, exitCode);
+                    "Cannot write game files", perm, requirements, solutionSteps, resolvedLogPath, exitCode);
             }
 
             // 8. Corrupted jars / locked world.
@@ -154,7 +235,7 @@ public static class CrashAnalyzer
                 solutionSteps.Add("2. If a world is locked, delete 'session.lock' in the world save folder.");
                 solutionSteps.Add("3. Redownload corrupt mod jar files or restore world from backup.");
                 return Build(L10n.T("crash_corrupt_title"), L10n.T("crash_corrupt_human"),
-                    "Damaged game or world files", corrupt, requirements, solutionSteps, instanceLogPath, exitCode);
+                    "Damaged game or world files", corrupt, requirements, solutionSteps, resolvedLogPath, exitCode);
             }
 
             // 9. Crash-report description / first error as a last hint.
@@ -171,12 +252,12 @@ public static class CrashAnalyzer
             solutionSteps.Add("1. Increase RAM allocation in Profile Settings -> Memory.");
             solutionSteps.Add("2. Close background applications to free up system memory.");
             return Build(L10n.T("crash_mem_title"), L10n.T("crash_mem_human"), cause,
-                evidence, requirements, solutionSteps, instanceLogPath, exitCode);
+                evidence, requirements, solutionSteps, resolvedLogPath, exitCode);
         }
 
         solutionSteps.Add("1. Click 'Open Log' below to inspect the full game log.");
         solutionSteps.Add("2. Disable recently added mods or test with a clean profile.");
-        return Build(title, human, cause, evidence, requirements, solutionSteps, instanceLogPath, exitCode);
+        return Build(title, human, cause, evidence, requirements, solutionSteps, resolvedLogPath, exitCode);
     }
 
     private static CrashAnalysis Build(string title, string human, string cause,

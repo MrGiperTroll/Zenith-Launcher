@@ -1,3688 +1,7404 @@
 using System;
+
 using System.Collections.Generic;
+
 using System.Collections.ObjectModel;
+
 using System.Diagnostics;
+
 using System.IO;
+
 using System.IO.Compression;
+
 using System.Linq;
+
 using System.Net.Http;
+
 using System.Threading;
+
 using System.Threading.Tasks;
+
 using Avalonia.Controls.ApplicationLifetimes;
+
 using Avalonia.Input;
+
 using Avalonia.Media;
+
 using Avalonia.Platform.Storage;
+
 using Avalonia.Threading;
+
 using CmlLib.Core;
+
 using CommunityToolkit.Mvvm.ComponentModel;
+
 using CommunityToolkit.Mvvm.Input;
+
 using CustomMcLauncher.Models;
+
 using CustomMcLauncher.Services;
+
 using CustomMcLauncher.UI.Theming;
+
 using CustomMcLauncher.ViewModels.Common;
+
 using CustomMcLauncher.ViewModels.Pages;
+
 using CustomMcLauncher.Views;
+
+
 
 namespace CustomMcLauncher.ViewModels;
 
+
+
 public enum LauncherNavPage
+
 {
+
     Profiles,
+
     Modpacks,
+
     EditInstance,
+
     ContentBrowser,
+
     Settings,
+
     ServerManager,
+
     Accounts,
+
     CreateProfile,
+
     CreateServer
+
 }
+
+
 
 public class BreadcrumbItem : ObservableObject
+
 {
+
     public string Title { get; set; } = string.Empty;
+
     public bool IsLast { get; set; }
+
     public bool ShowSeparator { get; set; }
+
     public bool IsActive => IsLast;
+
     public Action? OnClick { get; set; }
+
 }
+
+
 
 public class HistoryEntry
+
 {
+
     public LauncherNavPage Page { get; set; }
+
     public string Title { get; set; } = string.Empty;
+
     public string? SubTitle { get; set; }
+
     public InstanceModel? Instance { get; set; }
+
     public EditInstanceViewModel? EditInstanceVm { get; set; }
+
     public ContentBrowserViewModel? ContentBrowserVm { get; set; }
+
     public ServerManagerViewModel? ServerManagerVm { get; set; }
+
     public CreateProfileViewModel? CreateProfileVm { get; set; }
+
     public CreateServerViewModel? CreateServerVm { get; set; }
+
 }
 
+
+
 public partial class MainWindowViewModel : ViewModelBase
+
 {
+
     private bool _isLoadingConfig = false;
+
     [ObservableProperty] private bool _showReleases = true;
+
     [ObservableProperty] private bool _showSnapshots = false;
+
     [ObservableProperty] private bool _showBetas = false;
+
     [ObservableProperty] private bool _showAlphas = false;
 
+
+
     partial void OnShowReleasesChanged(bool value) => FilterVersions();
+
     partial void OnShowSnapshotsChanged(bool value) => FilterVersions();
+
     partial void OnShowBetasChanged(bool value) => FilterVersions();
+
     partial void OnShowAlphasChanged(bool value) => FilterVersions();
+
     partial void OnSelectedDirectoryModeChanged(string value) => SaveLauncherConfig();
+
     [ObservableProperty] private bool _useFlatVersionList = false;
+
     partial void OnUseFlatVersionListChanged(bool value) => SaveLauncherConfig();
+
     [ObservableProperty] private string _customJavaPath = string.Empty;
 
+
+
     [ObservableProperty]
+
     private string _currentJavaDisplay = "";
 
+
+
     /// <summary>Concrete javaw.exe path for the current Java mode - always shown in Settings.</summary>
+
     [ObservableProperty]
+
     private string _resolvedJavaPath = "";
 
+
+
     /// <summary>True while "Custom" is selected (only then the path box is editable).</summary>
+
     [ObservableProperty]
+
     private bool _isCustomJavaMode;
+
     [RelayCommand] private void OpenConsoleDialog() => IsConsoleDialogOpen = true;
+
     [ObservableProperty]
+
     private ObservableCollection<string> _directoryModes = new() { "Separate directory for each instance", "Family", "Do not use separate directories" };
 
+
+
     [ObservableProperty]
+
     private string _selectedDirectoryMode = "Separate directory for each instance";
 
+
+
     [ObservableProperty]
+
     private ObservableCollection<string> _javaModes = new() { "Recommended", "System", "Custom" };
 
+
+
     private readonly IAccountService _accountService;
+
     private readonly IInstanceService _instanceService;
+
     private readonly ILaunchService _launchService;
+
     private readonly ModLoaderService _modLoaderService;
+
     private readonly List<(string Name, string Type)> _cachedVersions = new();
 
+
+
     [ObservableProperty]
+
     private string _statusText = string.Empty;
 
+
+
     public string VersionLabel { get; } =
+
         System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.0.0";
 
+
+
     [ObservableProperty]
+
     private string _launcherName = "Zenith Launcher";
 
+
+
     partial void OnLauncherNameChanged(string value)
+
     {
+
         OnPropertyChanged(nameof(WindowTitle));
+
         SaveLauncherConfig();
+
     }
+
+
 
     public string WindowTitle => $"{LauncherName} v{VersionLabel}";
 
+
+
     [RelayCommand]
+
     public void ResetLauncherName() => LauncherName = "Zenith Launcher";
 
+
+
     [ObservableProperty]
+
     private string _jvmArgs = "-XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC";
 
+
+
     [ObservableProperty]
+
     private int _minRamMb = 512;
 
+
+
     partial void OnMinRamMbChanged(int value)
+
     {
+
         if (value > RamMb)
+
             RamMb = value;
+
         SaveLauncherConfig();
+
     }
 
+
+
     [ObservableProperty]
+
     private int _ramMb = 4096;
 
+
+
     partial void OnRamMbChanged(int value)
+
     {
+
         if (value < MinRamMb)
+
             MinRamMb = value;
+
         SaveLauncherConfig();
+
     }
 
+
+
     [RelayCommand]
+
     private void StepMinRamDown()
+
     {
+
         MinRamMb = Math.Clamp(MinRamMb - 512, 512, MaxRamMb);
+
     }
 
+
+
     [RelayCommand]
+
     private void StepMinRamUp()
+
     {
+
         MinRamMb = Math.Clamp(MinRamMb + 512, 512, MaxRamMb);
+
     }
 
+
+
     [RelayCommand]
+
     private void StepRamDown()
+
     {
+
         RamMb = Math.Clamp(RamMb - 512, 512, MaxRamMb);
+
     }
 
+
+
     [RelayCommand]
+
     private void StepRamUp()
+
     {
+
         RamMb = Math.Clamp(RamMb + 512, 512, MaxRamMb);
+
     }
+
+
 
     [ObservableProperty]
+
     private string _selectedLaunchBehavior = "KeepOpen";
+
+
 
     public ObservableCollection<string> LaunchBehaviors { get; } = new() { "KeepOpen", "Hide", "Close" };
 
+
+
     partial void OnSelectedLaunchBehaviorChanged(string value) => SaveLauncherConfig();
 
+
+
     [ObservableProperty]
+
     private int _gameWidth = 1280;
 
+
+
     [ObservableProperty]
+
     private int _gameHeight = 720;
 
+
+
     [ObservableProperty]
+
     private bool _isFullscreen = false;
 
+
+
     [ObservableProperty]
+
     private bool _isElyByErrorOpen = false;
 
+
+
     [ObservableProperty]
+
     private string _elyByErrorMessage = "A connection issue occurred while preparing the game. Please verify your internet connection.\n\nRecommendation: Try switching to an Offline account to launch and play without an internet connection.";
 
+
+
     // Accounts
+
     public ObservableCollection<AccountModel> Accounts => AccountsVm.Accounts;
 
+
+
     public AccountModel? SelectedAccount
+
     {
+
         get => AccountsVm.SelectedAccount;
+
         set => AccountsVm.SelectedAccount = value;
+
     }
+
+
 
     public string ActiveAccountName => AccountsVm.ActiveAccountName;
 
+
+
     public string ActiveAccountType => AccountsVm.ActiveAccountType;
 
+
+
     // Profiles / Instances
+
     public ObservableCollection<InstanceModel> Instances { get; } = new();
 
+
+
     [ObservableProperty]
+
     private InstanceModel? _selectedInstance;
 
+
+
     private string? _preRenameName;
+
     private InstanceModel? _prevSelectedInstance;
 
+
+
     partial void OnSelectedInstanceChanged(InstanceModel? value)
+
     {
+
         OnPropertyChanged(nameof(CanLaunch));
+
         OnPropertyChanged(nameof(CanLaunchOrCancel));
+
         OnPropertyChanged(nameof(LaunchButtonText));
+
         IsLaunching = value != null && _launchingInstanceIds.Contains(value.Id);
+
         UpdateJavaDisplay();
+
         _preRenameName = value?.Name;
+
         if (!ReferenceEquals(_prevSelectedInstance, value))
+
         {
+
             if (_prevSelectedInstance != null)
+
                 _prevSelectedInstance.PropertyChanged -= OnInstancePropertyChanged;
+
             _prevSelectedInstance = value;
+
             if (value != null)
+
                 value.PropertyChanged += OnInstancePropertyChanged;
+
         }
+
     }
+
+
 
     private void OnInstancePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+
     {
+
         if (e.PropertyName == nameof(InstanceModel.IsRunning))
+
         {
+
             OnPropertyChanged(nameof(CanLaunch));
+
             OnPropertyChanged(nameof(CanLaunchOrCancel));
+
             OnPropertyChanged(nameof(LaunchButtonText));
+
         }
+
         if (e.PropertyName == nameof(InstanceModel.IsLaunching))
+
         {
+
             OnPropertyChanged(nameof(CanLaunch));
+
             OnPropertyChanged(nameof(CanLaunchOrCancel));
+
             OnPropertyChanged(nameof(LaunchButtonText));
+
             if (ReferenceEquals(sender, SelectedInstance))
+
                 IsLaunching = SelectedInstance!.IsLaunching;
+
         }
+
     }
+
+
 
     public async void OnInstanceNameLostFocus()
+
     {
+
         if (SelectedInstance == null) return;
+
         var currentName = SelectedInstance.Name;
+
         if (string.Equals(currentName, _preRenameName, StringComparison.Ordinal)) return;
 
+
+
         var (ok, error) = await _instanceService.RenameInstanceAsync(SelectedInstance, currentName);
+
         if (!ok)
+
         {
+
             SelectedInstance.Name = _preRenameName ?? currentName;
+
             StatusText = error ?? "";
+
         }
+
         else
+
         {
+
             _preRenameName = SelectedInstance.Name;
+
             RefreshState();
+
         }
+
     }
 
+
+
     [ObservableProperty]
+
     private string _selectedInstanceId = string.Empty;
 
+
+
     [ObservableProperty]
+
     private string _selectedInstanceName = "No Profile Selected";
 
+
+
     [ObservableProperty]
+
     private string _selectedInstanceDetails = "Click '+ Create Profile' to begin";
 
+
+
     [ObservableProperty]
+
     private bool _hasInstances;
 
+
+
     [ObservableProperty]
+
     private string _newInstanceName = string.Empty;
 
+
+
     partial void OnNewInstanceNameChanged(string value)
+
     {
+
         IsNewInstanceNameDuplicate = !string.IsNullOrWhiteSpace(value) &&
+
             _instanceService.GetInstances().Any(i => i.Name.Equals(value.Trim(), StringComparison.OrdinalIgnoreCase));
+
     }
 
+
+
     // Versions
+
     public ObservableCollection<string> AvailableVersions { get; } = new();
 
+
+
     [ObservableProperty]
+
     private string _selectedVersion = "";
 
+
+
     [ObservableProperty]
+
     private bool _isNewInstanceNameDuplicate;
 
+
+
     public bool CanCreateInstance => !string.IsNullOrWhiteSpace(SelectedVersion) &&
+
         (SelectedLoader == "Vanilla" || !string.IsNullOrWhiteSpace(SelectedLoaderBuild));
+
+
 
     [ObservableProperty] private string _settingsSearchQuery = string.Empty;
 
+
+
     partial void OnSettingsSearchQueryChanged(string value)
+
     {
+
         UpdateSearchVisibility();
+
     }
+
+
 
     [ObservableProperty] private bool _isSearchMemoryVisible = true;
+
     [ObservableProperty] private bool _isSearchResolutionVisible = true;
+
     [ObservableProperty] private bool _isSearchFullscreenVisible = true;
+
     [ObservableProperty] private bool _isSearchJavaVisible = true;
+
     [ObservableProperty] private bool _isSearchDirectoryVisible = true;
+
     [ObservableProperty] private bool _isSearchVersionFiltersVisible = true;
+
     [ObservableProperty] private bool _isSearchJvmArgsVisible = true;
+
     [ObservableProperty] private bool _isSearchLanguageVisible = true;
+
     [ObservableProperty] private bool _isSearchDiscordVisible = true;
+
     [ObservableProperty] private bool _isSearchAppearanceVisible = true;
 
+
+
     private void UpdateSearchVisibility()
+
     {
+
         var q = SettingsSearchQuery?.Trim().ToLowerInvariant() ?? "";
+
         if (string.IsNullOrEmpty(q))
+
         {
+
             IsSearchMemoryVisible = IsSearchResolutionVisible = IsSearchFullscreenVisible = IsSearchJavaVisible = true;
+
             IsSearchDirectoryVisible = IsSearchVersionFiltersVisible = IsSearchJvmArgsVisible = true;
+
             IsSearchLanguageVisible = IsSearchDiscordVisible = IsSearchAppearanceVisible = true;
+
             return;
+
         }
+
         IsSearchMemoryVisible = "memory ram allocated память озу".Contains(q);
+
         IsSearchResolutionVisible = "resolution window size разрешение экран".Contains(q);
+
         IsSearchFullscreenVisible = "fullscreen mode полноэкранный".Contains(q);
+
         IsSearchJavaVisible = "java runtime manage automatic download джава".Contains(q);
+
         IsSearchDirectoryVisible = "directory strategy isolation директория папка".Contains(q);
+
         IsSearchVersionFiltersVisible = "version filters releases snapshots версии фильтры".Contains(q);
+
         IsSearchJvmArgsVisible = "jvm arguments flags аргументы jvm".Contains(q);
+
         IsSearchLanguageVisible = "language localization english russian ukrainian turkish german french язык".Contains(q);
+
         IsSearchDiscordVisible = "discord rpc rich presence application id дискорд".Contains(q);
+
         IsSearchAppearanceVisible = "appearance theme color accent name branding внешний вид тема цвет акцент оформление launcher лаунчер настройки".Contains(q);
+
     }
+
+
 
     [ObservableProperty] private bool _autoManageJava = true;
 
+
+
     partial void OnAutoManageJavaChanged(bool value)
+
     {
+
         LauncherLog.Info($"Automatic Java management {(value ? "enabled" : "disabled")}.");
+
     }
+
+
 
     [ObservableProperty] private bool _discordRpcEnabled = true;
 
+
+
     [ObservableProperty] private double _launcherScale = 1.0;
+
+
 
     [ObservableProperty] private string _selectedParticle = "None";
 
+
+
     public string[] ParticleOptions { get; } = new[] { "None", "Snowflakes", "Leaves", "Sakura", "Custom" };
+
+
 
     partial void OnSelectedParticleChanged(string value) => SaveLauncherConfig();
 
+
+
     [ObservableProperty] private int _particleCount = 50;
+
     [ObservableProperty] private double _particleScale = 1.0;
+
     [ObservableProperty] private double _particleSpeed = 1.0;
+
     [ObservableProperty] private string _particleColorHex = "";
+
     [ObservableProperty] private double _particleAngleDeg = 90.0;
+
     [ObservableProperty] private string _particleTexturePath = "";
 
+
+
     partial void OnParticleCountChanged(int value) => SaveLauncherConfig();
+
     partial void OnParticleScaleChanged(double value) => SaveLauncherConfig();
+
     partial void OnParticleSpeedChanged(double value) => SaveLauncherConfig();
+
     partial void OnParticleColorHexChanged(string value) => SaveLauncherConfig();
+
     partial void OnParticleAngleDegChanged(double value) => SaveLauncherConfig();
+
     partial void OnParticleTexturePathChanged(string value) => SaveLauncherConfig();
+
+
 
     partial void OnLauncherScaleChanged(double value) => SaveLauncherConfig();
 
+
+
     partial void OnDiscordRpcEnabledChanged(bool value)
+
     {
+
         if (!value)
+
         {
+
             Services.DiscordPresenceService.Shutdown();
+
             LauncherLog.Info("Discord RPC: disabled via settings toggle.");
+
         }
+
         else
+
         {
+
             Services.DiscordPresenceService.Initialize(true);
+
             Services.DiscordPresenceService.SetBrowsingProfiles();
+
             LauncherLog.Info("Discord RPC: enabled via settings toggle.");
+
         }
+
     }
+
+
 
     [ObservableProperty] private string _selectedLanguage = "English";
 
+
+
     public string[] LanguageOptions => Services.L10n.LanguageDisplayNames;
 
+
+
     partial void OnSelectedLanguageChanged(string value)
+
     {
+
         Services.L10n.ApplyDisplay(value);
+
         // The Discord status is rendered from the current language - push the
+
         // same logical activity again so it switches language instantly.
+
         Services.DiscordPresenceService.RefreshForLanguageChange();
+
         // Rebuild converter-driven collections so ComboBox items re-evaluate
+
         // their display converters with the new language.
+
         JavaModes = new ObservableCollection<string>(new[] { "Recommended", "System", "Custom" });
+
         DirectoryModes = new ObservableCollection<string>(new[] { "Separate directory for each instance", "Family", "Do not use separate directories" });
+
         ModpacksBrowser?.RefreshTranslations();
+
     }
+
+
 
     // --- Manual Java install (Settings "+" button) ---
 
+
+
     [ObservableProperty] private int _isJavaDownloading;
+
+
 
     [ObservableProperty] private string _javaDownloadStatus = string.Empty;
 
+
+
     public bool CanDownloadJava => IsJavaDownloading == 0;
+
+
 
     partial void OnIsJavaDownloadingChanged(int value) => OnPropertyChanged(nameof(CanDownloadJava));
 
+
+
     [RelayCommand]
+
     private async Task DownloadJavaAsync(object? parameter)
+
     {
+
         if (!int.TryParse(parameter?.ToString(), out var major)) return;
+
         if (IsJavaDownloading != 0) return;
 
+
+
         IsJavaDownloading = major;
+
         JavaDownloadStatus = string.Format(L10n.T("java_status_installing"), major);
+
         try
+
         {
+
             var ok = await Task.Run(() => _launchService.DownloadJavaRuntimeAsync(major, ZenithPaths.AppDataDir));
+
             JavaDownloadStatus = ok
+
                 ? string.Format(L10n.T("java_status_installed"), major)
+
                 : string.Format(L10n.T("java_status_failed"), major);
+
             StatusText = JavaDownloadStatus;
 
+
+
             if (ok)
+
             {
+
                 // The freshly installed runtime becomes active immediately:
+
                 // Recommended mode auto-picks it whenever a profile needs its
+
                 // major version. Persisted right away so closing the dialog
+
                 // (or the app) keeps the choice.
+
                 SelectedJavaMode = "Recommended";
+
                 SaveLauncherConfig();
+
             }
+
         }
+
         catch (Exception ex)
+
         {
+
             JavaDownloadStatus = $"Java {major}: {ex.Message}";
+
             LauncherLog.Error($"Manual Java {major} install crashed.", ex);
+
         }
+
         finally
+
         {
+
             IsJavaDownloading = 0;
+
             UpdateJavaDisplay();
+
         }
+
     }
+
+
 
     [ObservableProperty] private string _currentSettingsTab = "Game";
+
     public bool IsSettingsTabGame => CurrentSettingsTab == "Game";
+
     public bool IsSettingsTabGeneral => CurrentSettingsTab == "General";
+
     public bool IsSettingsTabAppearance => CurrentSettingsTab is "Appearance" or "Launcher";
+
     public bool IsSettingsTabTheme => CurrentSettingsTab == "Theme";
+
     public bool IsSettingsTabLauncher => IsSettingsTabAppearance;
 
+
+
     [ObservableProperty] private bool _isLockAspectRatio = false;
+
     [ObservableProperty] private int _maxRamMb = 16384;
 
+
+
     [RelayCommand]
+
     private void SwitchSettingsTab(string tab)
+
     {
+
         if (IsSettingsTabTheme && tab != "Theme" && HasUnsavedThemeChanges())
+
         {
+
             _pendingThemeDiscardNavAction = () => SwitchSettingsTab(tab);
+
             IsThemeDiscardConfirmOpen = true;
+
             return;
+
         }
 
+
+
         CurrentSettingsTab = tab;
+
         OnPropertyChanged(nameof(IsSettingsTabGame));
+
         OnPropertyChanged(nameof(IsSettingsTabGeneral));
+
         OnPropertyChanged(nameof(IsSettingsTabAppearance));
+
         OnPropertyChanged(nameof(IsSettingsTabTheme));
+
         OnPropertyChanged(nameof(IsSettingsTabLauncher));
+
     }
+
+
 
     // Theme Customization
+
     public ObservableCollection<ThemePreset> AvailableThemes { get; } = new(ZenithTheme.Presets);
 
+
+
     [ObservableProperty]
+
     private string _currentAccentHex = ZenithTheme.DefaultAccent;
 
+
+
     [ObservableProperty]
+
     private string _customThemeHex = ZenithTheme.DefaultAccent;
+
     public Avalonia.Media.Color BgColorValue {
+
         get => Avalonia.Media.Color.TryParse(BgHex, out var c) ? c : Avalonia.Media.Colors.Black;
+
         set { BgHex = value.ToString(); OnPropertyChanged(nameof(BgColorValue)); }
+
     }
+
     public Avalonia.Media.Color SurfaceColorValue {
+
         get => Avalonia.Media.Color.TryParse(SurfaceHex, out var c) ? c : Avalonia.Media.Colors.Black;
+
         set { SurfaceHex = value.ToString(); OnPropertyChanged(nameof(SurfaceColorValue)); }
+
     }
+
     public Avalonia.Media.Color PanelColorValue {
+
         get => Avalonia.Media.Color.TryParse(PanelHex, out var c) ? c : Avalonia.Media.Colors.Black;
+
         set { PanelHex = value.ToString(); OnPropertyChanged(nameof(PanelColorValue)); }
+
     }
+
     public Avalonia.Media.Color CustomThemeColorValue {
+
         get => Avalonia.Media.Color.TryParse(CustomThemeHex, out var c) ? c : Avalonia.Media.Colors.Black;
+
         set { CustomThemeHex = value.ToString(); OnPropertyChanged(nameof(CustomThemeColorValue)); }
+
     }
+
     [ObservableProperty] private string _bgHex = "#080A0F";
+
     [ObservableProperty] private string _surfaceHex = "#0D111A";
+
     [ObservableProperty] private string _panelHex = "#121722";
+
     [ObservableProperty] private string _fieldHex = "#121724";
+
     public Avalonia.Media.Color FieldColorValue {
+
         get => Avalonia.Media.Color.TryParse(FieldHex, out var c) ? c : Avalonia.Media.Colors.Black;
+
         set { FieldHex = value.ToString(); OnPropertyChanged(nameof(FieldColorValue)); }
+
     }
+
     partial void OnFieldHexChanged(string value) { OnPropertyChanged(nameof(FieldColorValue)); if (!_isLoadingConfig) ZenithTheme.Apply(GetLauncherConfigSnapshot()); }
 
+
+
     [ObservableProperty] private string _hoverHex = "#1B2338";
+
     public Avalonia.Media.Color HoverColorValue {
+
         get => Avalonia.Media.Color.TryParse(HoverHex, out var c) ? c : Avalonia.Media.Colors.Black;
+
         set { HoverHex = value.ToString(); OnPropertyChanged(nameof(HoverColorValue)); }
+
     }
+
     partial void OnHoverHexChanged(string value) { OnPropertyChanged(nameof(HoverColorValue)); if (!_isLoadingConfig) ZenithTheme.Apply(GetLauncherConfigSnapshot()); }
 
+
+
     [ObservableProperty]
+
     private string _sidebarBgHex = "#06080D";
+
     partial void OnSidebarBgHexChanged(string value) { if (!_isLoadingConfig) ZenithTheme.Apply(GetLauncherConfigSnapshot()); }
 
+
+
     [ObservableProperty]
+
     private string _cardHex = "#0D111A";
+
     partial void OnCardHexChanged(string value) { if (!_isLoadingConfig) ZenithTheme.Apply(GetLauncherConfigSnapshot()); }
 
+
+
     [ObservableProperty]
+
     private string _textPrimaryHex = "#FFFFFF";
+
     partial void OnTextPrimaryHexChanged(string value) { if (!_isLoadingConfig) ZenithTheme.Apply(GetLauncherConfigSnapshot()); }
 
+
+
     [ObservableProperty]
+
     private string _textSecondaryHex = "#C5CBD6";
+
     partial void OnTextSecondaryHexChanged(string value) { if (!_isLoadingConfig) ZenithTheme.Apply(GetLauncherConfigSnapshot()); }
 
+
+
     [ObservableProperty]
+
     private string _borderDarkHex = "#222834";
+
     partial void OnBorderDarkHexChanged(string value) { if (!_isLoadingConfig) ZenithTheme.Apply(GetLauncherConfigSnapshot()); }
 
+
+
     [ObservableProperty]
+
     private IBrush _previewAccentBrush = new SolidColorBrush(Color.Parse(ZenithTheme.DefaultAccent));
 
+
+
     [ObservableProperty]
+
     private IBrush _previewAccentHoverBrush = new SolidColorBrush(Color.Parse("#60A5FA"));
 
-    [ObservableProperty]
-    private IBrush _previewAccentDimBrush = new SolidColorBrush(Color.FromArgb(45, 59, 130, 246));
+
 
     [ObservableProperty]
+
+    private IBrush _previewAccentDimBrush = new SolidColorBrush(Color.FromArgb(45, 59, 130, 246));
+
+
+
+    [ObservableProperty]
+
     private IBrush _previewAccentBorderBrush = new SolidColorBrush(Color.FromArgb(90, 59, 130, 246));
+
+
 
     private bool _isHarmonizingPalette = false;
 
+
+
     partial void OnCustomThemeHexChanged(string value)
+
     {
+
         UpdatePreviewBrushes(value);
+
         OnPropertyChanged(nameof(CustomThemeColorValue));
 
+
+
         if (!_isLoadingConfig && !_isHarmonizingPalette && !string.IsNullOrWhiteSpace(value) && IsThemeSubTabSimple)
+
         {
+
             _isHarmonizingPalette = true;
+
             try
+
             {
+
                 var harmonized = ZenithTheme.GenerateHarmonizedPalette(value);
+
                 BgHex = harmonized.BgColor!;
+
                 SidebarBgHex = harmonized.SidebarBgColor!;
+
                 SurfaceHex = harmonized.SurfaceColor!;
+
                 CardHex = harmonized.CardColor!;
+
                 PanelHex = harmonized.PanelColor!;
+
                 FieldHex = harmonized.FieldColor!;
+
                 HoverHex = harmonized.HoverColor!;
+
                 BorderDarkHex = harmonized.BorderDarkColor!;
+
                 TextPrimaryHex = harmonized.TextPrimaryColor!;
+
                 TextSecondaryHex = harmonized.TextSecondaryColor!;
+
             }
+
             finally
+
             {
+
                 _isHarmonizingPalette = false;
+
             }
+
             ZenithTheme.Apply(GetLauncherConfigSnapshot());
+
         }
+
         else if (!_isLoadingConfig && !string.IsNullOrWhiteSpace(value))
+
         {
+
             ZenithTheme.Apply(GetLauncherConfigSnapshot());
+
         }
+
     }
+
     partial void OnBgHexChanged(string value) { OnPropertyChanged(nameof(BgColorValue)); if (!_isLoadingConfig) ZenithTheme.Apply(GetLauncherConfigSnapshot()); }
+
     partial void OnSurfaceHexChanged(string value) { OnPropertyChanged(nameof(SurfaceColorValue)); if (!_isLoadingConfig) ZenithTheme.Apply(GetLauncherConfigSnapshot()); }
+
     partial void OnPanelHexChanged(string value) { OnPropertyChanged(nameof(PanelColorValue)); if (!_isLoadingConfig) ZenithTheme.Apply(GetLauncherConfigSnapshot()); }
 
+
+
     private void UpdatePreviewBrushes(string? hex)
+
     {
+
         try
+
         {
+
             if (string.IsNullOrWhiteSpace(hex)) return;
+
             hex = hex.Trim();
+
             if (!hex.StartsWith("#")) hex = "#" + hex;
+
             if (Color.TryParse(hex, out var c))
+
             {
+
                 PreviewAccentBrush = new SolidColorBrush(c);
+
                 var hoverColor = Color.FromRgb(
+
                     (byte)Math.Clamp(c.R + (255 - c.R) * 0.16f, 0, 255),
+
                     (byte)Math.Clamp(c.G + (255 - c.G) * 0.16f, 0, 255),
+
                     (byte)Math.Clamp(c.B + (255 - c.B) * 0.16f, 0, 255));
+
                 PreviewAccentHoverBrush = new SolidColorBrush(hoverColor);
+
                 PreviewAccentDimBrush = new SolidColorBrush(Color.FromArgb(45, c.R, c.G, c.B));
+
                 PreviewAccentBorderBrush = new SolidColorBrush(Color.FromArgb(90, c.R, c.G, c.B));
+
             }
+
         }
+
         catch { }
+
     }
 
+
+
     [ObservableProperty]
+
     private bool _isRestartConfirmOpen;
 
+
+
     [ObservableProperty]
+
     private string _pendingRestartThemeHex = "";
 
-    [ObservableProperty]
-    private bool _isThemeDiscardConfirmOpen;
+
 
     [ObservableProperty]
+
+    private bool _isThemeDiscardConfirmOpen;
+
+
+
+    [ObservableProperty]
+
     private bool _isApplyButtonHighlighted;
+
+
 
     private Action? _pendingThemeDiscardNavAction;
 
+
+
     [ObservableProperty]
+
     private string _simpleAccentHex = ZenithTheme.DefaultAccent;
 
+
+
     // Saved Simple baseline
+
     private string _savedSimpleAccentHex = ZenithTheme.DefaultAccent;
 
+
+
     // Saved Advanced baseline
+
     private string _savedBgHex = "#080A0F";
+
     private string _savedSidebarBgHex = "#06080D";
+
     private string _savedSurfaceHex = "#0D111A";
+
     private string _savedCardHex = "#0D111A";
+
     private string _savedPanelHex = "#121722";
+
     private string _savedFieldHex = "#121724";
+
     private string _savedHoverHex = "#1B2338";
+
     private string _savedBorderDarkHex = "#222834";
+
     private string _savedTextPrimaryHex = "#FFFFFF";
+
     private string _savedTextSecondaryHex = "#C5CBD6";
+
     private string _savedCustomThemeHex = ZenithTheme.DefaultAccent;
 
+
+
     public void SnapshotCurrentSavedTheme()
+
     {
+
         _savedSimpleAccentHex = SimpleAccentHex;
 
+
+
         _savedBgHex = BgHex;
+
         _savedSidebarBgHex = SidebarBgHex;
+
         _savedSurfaceHex = SurfaceHex;
+
         _savedCardHex = CardHex;
+
         _savedPanelHex = PanelHex;
+
         _savedFieldHex = FieldHex;
+
         _savedHoverHex = HoverHex;
+
         _savedBorderDarkHex = BorderDarkHex;
+
         _savedTextPrimaryHex = TextPrimaryHex;
+
         _savedTextSecondaryHex = TextSecondaryHex;
+
         _savedCustomThemeHex = CustomThemeHex;
+
     }
+
+
 
     public bool HasUnsavedThemeChanges()
+
     {
+
         if (IsThemeSubTabSimple)
+
         {
+
             return !string.Equals(_savedSimpleAccentHex, SimpleAccentHex, StringComparison.OrdinalIgnoreCase);
+
         }
+
+
 
         return !string.Equals(_savedBgHex, BgHex, StringComparison.OrdinalIgnoreCase)
+
             || !string.Equals(_savedSidebarBgHex, SidebarBgHex, StringComparison.OrdinalIgnoreCase)
+
             || !string.Equals(_savedSurfaceHex, SurfaceHex, StringComparison.OrdinalIgnoreCase)
+
             || !string.Equals(_savedCardHex, CardHex, StringComparison.OrdinalIgnoreCase)
+
             || !string.Equals(_savedPanelHex, PanelHex, StringComparison.OrdinalIgnoreCase)
+
             || !string.Equals(_savedFieldHex, FieldHex, StringComparison.OrdinalIgnoreCase)
+
             || !string.Equals(_savedHoverHex, HoverHex, StringComparison.OrdinalIgnoreCase)
+
             || !string.Equals(_savedBorderDarkHex, BorderDarkHex, StringComparison.OrdinalIgnoreCase)
+
             || !string.Equals(_savedTextPrimaryHex, TextPrimaryHex, StringComparison.OrdinalIgnoreCase)
+
             || !string.Equals(_savedTextSecondaryHex, TextSecondaryHex, StringComparison.OrdinalIgnoreCase)
+
             || !string.Equals(_savedCustomThemeHex, CustomThemeHex, StringComparison.OrdinalIgnoreCase);
+
     }
+
+
 
     public void ApplySimpleTheme(string hex)
+
     {
+
         _isLoadingConfig = true;
+
         try
+
         {
+
             SimpleAccentHex = hex;
+
             CurrentAccentHex = hex;
+
             CustomThemeHex = hex;
+
             var harmonized = ZenithTheme.GenerateHarmonizedPalette(hex);
+
             BgHex = harmonized.BgColor!;
+
             SidebarBgHex = harmonized.SidebarBgColor!;
+
             SurfaceHex = harmonized.SurfaceColor!;
+
             CardHex = harmonized.CardColor!;
+
             PanelHex = harmonized.PanelColor!;
+
             FieldHex = harmonized.FieldColor!;
+
             HoverHex = harmonized.HoverColor!;
+
             BorderDarkHex = harmonized.BorderDarkColor!;
+
             TextPrimaryHex = harmonized.TextPrimaryColor!;
+
             TextSecondaryHex = harmonized.TextSecondaryColor!;
+
             UpdatePreviewBrushes(hex);
+
             ZenithTheme.Apply(GetLauncherConfigSnapshot());
+
         }
+
         finally
+
         {
+
             _isLoadingConfig = false;
+
         }
+
     }
+
+
 
     public void ApplyAdvancedSavedTheme()
+
     {
+
         _isLoadingConfig = true;
+
         try
+
         {
+
             BgHex = _savedBgHex;
+
             SidebarBgHex = _savedSidebarBgHex;
+
             SurfaceHex = _savedSurfaceHex;
+
             CardHex = _savedCardHex;
+
             PanelHex = _savedPanelHex;
+
             FieldHex = _savedFieldHex;
+
             HoverHex = _savedHoverHex;
+
             BorderDarkHex = _savedBorderDarkHex;
+
             TextPrimaryHex = _savedTextPrimaryHex;
+
             TextSecondaryHex = _savedTextSecondaryHex;
+
             CustomThemeHex = _savedCustomThemeHex;
+
             CurrentAccentHex = _savedCustomThemeHex;
+
             UpdatePreviewBrushes(_savedCustomThemeHex);
+
             ZenithTheme.Apply(GetLauncherConfigSnapshot());
+
         }
+
         finally
+
         {
+
             _isLoadingConfig = false;
+
         }
+
     }
+
+
 
     public void ApplySimpleSavedTheme()
+
     {
+
         ApplySimpleTheme(_savedSimpleAccentHex);
+
     }
+
+
 
     public void RevertThemeToSaved()
+
     {
+
         if (IsThemeSubTabSimple)
+
         {
+
             ApplySimpleSavedTheme();
+
         }
+
         else
+
         {
+
             ApplyAdvancedSavedTheme();
+
         }
+
     }
 
+
+
     [RelayCommand]
+
     public void ChooseTheme(string hex)
+
     {
+
         if (string.IsNullOrWhiteSpace(hex)) return;
+
         hex = hex.Trim();
+
         if (!hex.StartsWith("#")) hex = "#" + hex;
+
         ApplySimpleTheme(hex);
+
     }
 
+
+
     [RelayCommand]
+
     public void SelectTheme(string hex)
+
     {
+
         if (string.IsNullOrWhiteSpace(hex)) return;
+
         hex = hex.Trim();
+
         if (!hex.StartsWith("#")) hex = "#" + hex;
+
+
 
         if (IsThemeSubTabSimple)
+
         {
+
             ApplySimpleTheme(hex);
+
             _savedSimpleAccentHex = hex;
+
         }
+
         else
+
         {
+
             CurrentAccentHex = hex;
+
             CustomThemeHex = hex;
+
             ZenithTheme.Apply(GetLauncherConfigSnapshot());
+
             SnapshotCurrentSavedTheme();
+
         }
+
+
 
         SaveLauncherConfig();
+
     }
 
+
+
     [RelayCommand]
+
     public void RequestApplyTheme(string? hex = null)
+
     {
+
         var targetHex = !string.IsNullOrWhiteSpace(hex) ? hex : (IsThemeSubTabSimple ? SimpleAccentHex : CustomThemeHex);
+
         if (string.IsNullOrWhiteSpace(targetHex)) return;
+
         targetHex = targetHex.Trim();
+
         if (!targetHex.StartsWith("#")) targetHex = "#" + targetHex;
 
+
+
         PendingRestartThemeHex = targetHex;
+
         IsRestartConfirmOpen = true;
+
     }
 
+
+
     [RelayCommand]
+
     public void CancelRestartConfirm()
+
     {
+
         IsRestartConfirmOpen = false;
+
         IsCloneDialogOpen = false;
+
         PendingRestartThemeHex = "";
+
     }
 
+
+
     [RelayCommand]
+
     public void ConfirmRestartAndApplyTheme()
+
     {
+
         IsRestartConfirmOpen = false;
+
         IsCloneDialogOpen = false;
+
         var hex = !string.IsNullOrWhiteSpace(PendingRestartThemeHex) ? PendingRestartThemeHex : (IsThemeSubTabSimple ? SimpleAccentHex : CustomThemeHex);
+
         SelectTheme(hex);
 
+
+
         try
+
         {
+
             var exePath = Environment.ProcessPath;
+
             if (string.IsNullOrEmpty(exePath))
+
                 exePath = Process.GetCurrentProcess().MainModule?.FileName;
 
+
+
             if (!string.IsNullOrEmpty(exePath) && System.IO.File.Exists(exePath))
+
             {
+
                 Process.Start(new ProcessStartInfo
+
                 {
+
                     FileName = exePath,
+
                     UseShellExecute = true,
+
                     WorkingDirectory = System.IO.Path.GetDirectoryName(exePath)
+
                 });
+
             }
+
         }
+
         catch (Exception ex)
+
         {
+
             Debug.WriteLine($"Failed to restart launcher: {ex.Message}");
+
         }
+
+
 
         Environment.Exit(0);
+
     }
 
+
+
     [RelayCommand]
+
     public void ConfirmDiscardThemeChanges()
+
     {
+
         IsThemeDiscardConfirmOpen = false;
+
         RevertThemeToSaved();
+
         var action = _pendingThemeDiscardNavAction;
+
         _pendingThemeDiscardNavAction = null;
+
         action?.Invoke();
+
     }
 
+
+
     [RelayCommand]
+
     public void CancelDiscardThemeChanges()
+
     {
+
         IsThemeDiscardConfirmOpen = false;
+
         _pendingThemeDiscardNavAction = null;
+
         // Highlight/flash Apply button for ~1.2s to guide the user
+
         IsApplyButtonHighlighted = true;
+
         _ = Task.Delay(1200).ContinueWith(_ =>
+
         {
+
             Dispatcher.UIThread.Post(() => IsApplyButtonHighlighted = false);
+
         });
+
     }
 
+
+
     [RelayCommand]
+
     public void ApplyCustomTheme()
+
     {
+
         RequestApplyTheme(CustomThemeHex);
+
     }
+
+
 
     partial void OnGameWidthChanged(int value)
+
     {
+
         if (value < 800) { GameWidth = 800; return; }
+
         if (value > 7680) { GameWidth = 7680; return; }
+
         if (IsLockAspectRatio && value > 0)
+
             GameHeight = value * 9 / 16;
+
     }
+
+
 
     partial void OnGameHeightChanged(int value)
+
     {
+
         if (value < 600) { GameHeight = 600; return; }
+
         if (value > 4320) { GameHeight = 4320; return; }
+
         if (IsLockAspectRatio && value > 0)
+
             GameWidth = value * 16 / 9;
+
     }
+
+
 
     partial void OnSelectedVersionChanged(string value)
+
     {
+
         OnPropertyChanged(nameof(CanCreateInstance));
+
         _ = UpdateAvailableLoadersAsync(value);
+
     }
 
+
+
     // Mod Loaders
+
     public ObservableCollection<string> AvailableLoaders { get; } = new();
 
-    [ObservableProperty]
-    private string _selectedLoader = "Vanilla";
+
 
     [ObservableProperty]
+
+    private string _selectedLoader = "Vanilla";
+
+
+
+    [ObservableProperty]
+
     private bool _isLoadingLoaders;
+
+
 
     public ObservableCollection<string> AvailableLoaderBuilds { get; } = new();
 
+
+
     [ObservableProperty]
+
     private string _selectedLoaderBuild = string.Empty;
 
+
+
     [ObservableProperty]
+
     private bool _showLoaderBuilds;
 
+
+
     [ObservableProperty]
+
     private string _loaderError = string.Empty;
 
+
+
     [ObservableProperty]
+
     private bool _loaderErrorVisible;
 
+
+
     public bool IsLoaderTypesVisible => !ShowLoaderBuilds;
+
     public bool IsLoaderBuildsVisible => ShowLoaderBuilds;
+
+
 
     public bool CanSwapLoader => SelectedLoader != "Vanilla";
 
+
+
     partial void OnShowLoaderBuildsChanged(bool value)
+
     {
+
         OnPropertyChanged(nameof(IsLoaderTypesVisible));
+
         OnPropertyChanged(nameof(IsLoaderBuildsVisible));
+
     }
+
+
 
     [RelayCommand]
+
     private void ToggleLoaderBuilds()
+
     {
+
         if (!ShowLoaderBuilds)
+
         {
+
             // switching to build mode — ensure builds are loaded
+
             if (AvailableLoaderBuilds.Count == 0 && SelectedLoader != "Vanilla")
+
                 _ = UpdateLoaderBuildsAsync();
+
         }
+
         ShowLoaderBuilds = !ShowLoaderBuilds;
+
     }
 
+
+
     // Java
+
     [ObservableProperty]
+
     private string _selectedJavaMode = "Recommended";
 
+
+
     // Launch & Logs
+
     private readonly HashSet<string> _launchingInstanceIds = new();
+
+
 
     public bool CanLaunch => SelectedInstance == null || (!SelectedInstance.IsRunning && !_launchingInstanceIds.Contains(SelectedInstance.Id));
 
+
+
     [ObservableProperty]
+
     private bool _isLaunching;
 
+
+
     partial void OnIsLaunchingChanged(bool value)
+
     {
+
         OnPropertyChanged(nameof(LaunchButtonText));
+
         OnPropertyChanged(nameof(CanLaunchOrCancel));
+
     }
+
+
 
     public bool CanLaunchOrCancel => CanLaunch || IsLaunching;
 
+
+
     public string LaunchButtonText
+
     {
+
         get
+
         {
+
             if (IsLaunching) return L10n.T("cancel");
+
             if (SelectedInstance?.IsRunning == true) return L10n.T("status_running");
+
             return L10n.T("btn_launch_game");
+
         }
+
     }
 
+
+
     [ObservableProperty]
+
     private double _launchProgress;
 
+
+
     [ObservableProperty]
+
     private string _consoleLogs = string.Empty;
 
+
+
     /// <summary>Background queue of console lines waiting to be flushed to the UI in batches.</summary>
+
     private readonly System.Collections.Concurrent.ConcurrentQueue<string> _consolePending = new();
 
+
+
     /// <summary>Flushes pending console lines to the UI on a tick, instead of posting every single
+
     /// game log line directly to the UI thread (which floods/saturates it for chatty versions).</summary>
+
     private readonly DispatcherTimer _consoleFlushTimer;
 
+
+
     [ObservableProperty]
+
     private string _currentDownloadFile = string.Empty;
 
+
+
     public static string AppVersion =>
+
         typeof(MainWindowViewModel).Assembly.GetName().Version?.ToString(3) ?? "1.0.0";
+
+
 
     public bool IsDownloading => IsLaunching && LaunchProgress < 100;
 
+
+
     // UI Dialogs
+
     [ObservableProperty]
+
     private bool _isRightSidebarOpen;
 
+
+
     [ObservableProperty]
+
     private bool _isVersionPickerOpen;
 
+
+
     [ObservableProperty]
+
     private bool _isCreateDialogOpen;
 
+
+
     [ObservableProperty]
+
     private bool _isJavaInstallerOpen;
 
+
+
     [ObservableProperty]
+
     private bool _isCrashReportOpen;
 
+
+
     [ObservableProperty]
+
     private Dialogs.CrashReportViewModel? _crashReportVm;
 
+
+
     [ObservableProperty]
+
     private bool _isImportPickerOpen;
 
+
+
     [ObservableProperty]
+
     private LauncherNavPage _currentPage = LauncherNavPage.Profiles;
 
+
+
     [ObservableProperty]
+
     private EditInstanceViewModel? _currentEditInstanceVm;
 
+
+
     [ObservableProperty]
+
     private ContentBrowserViewModel? _currentContentBrowserVm;
 
+
+
     [ObservableProperty]
+
     private ServerManagerViewModel? _currentServerManagerVm;
 
+
+
     [ObservableProperty]
+
     private CreateProfileViewModel? _createProfileVm;
 
+
+
     [ObservableProperty]
+
     private CreateServerViewModel? _createServerVm;
 
+
+
     partial void OnCreateServerVmChanged(CreateServerViewModel? oldValue, CreateServerViewModel? newValue)
+
     {
+
         if (oldValue != null)
+
         {
+
             oldValue.StateChanged -= OnCreateServerStateChanged;
+
         }
+
         if (newValue != null)
+
         {
+
             newValue.StateChanged += OnCreateServerStateChanged;
+
         }
+
     }
+
+
 
     private void OnCreateServerStateChanged()
+
     {
+
         if (CurrentPage == LauncherNavPage.CreateServer)
+
         {
+
             if (_historyIndex >= 0 && _historyIndex < _navHistory.Count)
+
             {
+
                 var cur = _navHistory[_historyIndex];
+
                 if (cur.Page == LauncherNavPage.CreateServer)
+
                     RebuildBreadcrumbs(cur);
+
             }
+
         }
+
     }
 
+
+
     public bool IsProfilesView => CurrentPage == LauncherNavPage.Profiles;
+
     public bool IsModpacksView => CurrentPage == LauncherNavPage.Modpacks;
+
     public bool IsEditInstanceView => CurrentPage == LauncherNavPage.EditInstance;
+
     public bool IsContentBrowserView => CurrentPage == LauncherNavPage.ContentBrowser;
+
     public bool IsSettingsView => CurrentPage == LauncherNavPage.Settings;
+
     public bool IsServerManagerView => CurrentPage == LauncherNavPage.ServerManager;
+
     public bool IsAccountsView => CurrentPage == LauncherNavPage.Accounts;
+
     public bool IsCreateProfileView => CurrentPage == LauncherNavPage.CreateProfile;
+
     public bool IsCreateServerView => CurrentPage == LauncherNavPage.CreateServer;
 
+
+
     [ObservableProperty]
+
     private bool _isSidebarExpanded;
+
+
 
     public double SidebarWidth => IsSidebarExpanded ? 188 : 54;
 
+
+
     partial void OnIsSidebarExpandedChanged(bool value)
+
     {
+
         OnPropertyChanged(nameof(SidebarWidth));
+
         SaveLauncherConfig();
+
     }
 
+
+
     [RelayCommand]
+
     public void ToggleSidebar()
+
     {
+
         IsSidebarExpanded = !IsSidebarExpanded;
+
     }
+
+
 
     public bool IsLaunchBarVisible => IsProfilesView || IsModpacksView;
 
+
+
     public ObservableCollection<BreadcrumbItem> Breadcrumbs { get; } = new();
 
+
+
     private readonly List<HistoryEntry> _navHistory = new();
+
     private int _historyIndex = -1;
 
+
+
     [ObservableProperty]
+
     private bool _canGoBack;
 
+
+
     [ObservableProperty]
+
     private bool _canGoForward;
 
+
+
     [RelayCommand]
+
     public void GoBack()
+
     {
+
         if (CurrentPage == LauncherNavPage.Settings && IsSettingsTabTheme && HasUnsavedThemeChanges())
+
         {
+
             _pendingThemeDiscardNavAction = () => GoBack();
+
             IsThemeDiscardConfirmOpen = true;
+
             return;
+
         }
+
+
 
         if (CurrentPage == LauncherNavPage.ContentBrowser && CurrentContentBrowserVm?.SelectedProject != null)
+
         {
+
             if (CurrentContentBrowserVm.IsAuthorProfileOpen)
+
             {
+
                 CurrentContentBrowserVm.CloseAuthorProfile();
+
                 return;
+
             }
+
             CurrentContentBrowserVm.SelectedProject = null;
+
             return;
+
         }
+
+
 
         if (CurrentPage == LauncherNavPage.Modpacks && ModpacksBrowser?.SelectedProject != null)
+
         {
+
             if (ModpacksBrowser.IsAuthorProfileOpen)
+
             {
+
                 ModpacksBrowser.CloseAuthorProfile();
+
                 return;
+
             }
+
             ModpacksBrowser.SelectedProject = null;
+
             return;
+
         }
+
+
 
         if (_historyIndex > 0)
+
         {
+
             _historyIndex--;
+
             ApplyHistoryEntry(_navHistory[_historyIndex]);
+
             UpdateHistoryButtons();
+
         }
+
     }
 
+
+
     [RelayCommand]
+
     public void GoForward()
+
     {
+
         if (CurrentPage == LauncherNavPage.Settings && IsSettingsTabTheme && HasUnsavedThemeChanges())
+
         {
+
             _pendingThemeDiscardNavAction = () => GoForward();
+
             IsThemeDiscardConfirmOpen = true;
+
             return;
+
         }
+
+
 
         if (_historyIndex >= 0 && _historyIndex < _navHistory.Count - 1)
+
         {
+
             _historyIndex++;
+
             ApplyHistoryEntry(_navHistory[_historyIndex]);
+
             UpdateHistoryButtons();
+
         }
+
     }
+
+
 
     private void UpdateHistoryButtons()
+
     {
+
         CanGoBack = _historyIndex > 0;
+
         CanGoForward = _historyIndex >= 0 && _historyIndex < _navHistory.Count - 1;
+
     }
+
+
 
     public void NavigateToProfiles()
+
     {
+
         PushHistory(new HistoryEntry
+
         {
+
             Page = LauncherNavPage.Profiles,
+
             Title = L10n.T("nav_home")
+
         });
+
     }
+
+
 
     public void NavigateToModpacks()
+
     {
+
         PushHistory(new HistoryEntry
+
         {
+
             Page = LauncherNavPage.Modpacks,
+
             Title = L10n.T("nav_modpacks")
+
         });
+
     }
+
+
 
     public void NavigateToSettings()
+
     {
+
         PushHistory(new HistoryEntry
+
         {
+
             Page = LauncherNavPage.Settings,
+
             Title = L10n.T("nav_settings")
+
         });
+
     }
+
+
 
     public void NavigateToAccounts()
+
     {
+
         RefreshState();
+
         PushHistory(new HistoryEntry
+
         {
+
             Page = LauncherNavPage.Accounts,
+
             Title = L10n.T("acc_manage")
+
         });
+
     }
+
+
 
     public void NavigateToCreateProfile()
+
     {
+
         var vm = new CreateProfileViewModel(_instanceService, _modLoaderService,
+
             UseFlatVersionList, ShowReleases, ShowSnapshots, ShowBetas, ShowAlphas);
 
+
+
         vm.ProfileCreated += inst =>
+
         {
+
             _instanceService.SetSelectedInstance(inst.Id);
+
             Dispatcher.UIThread.Post(() =>
+
             {
+
                 RefreshState();
+
                 NavigateToProfiles();
+
             });
+
         };
+
+
 
         vm.RequestClose += () =>
+
         {
+
             Dispatcher.UIThread.Post(() =>
+
             {
+
                 if (CanGoBack) GoBack();
+
                 else NavigateToProfiles();
+
             });
+
         };
 
+
+
         PushHistory(new HistoryEntry
+
         {
+
             Page = LauncherNavPage.CreateProfile,
+
             Title = L10n.T("cp_title"),
+
             CreateProfileVm = vm
+
         });
+
     }
+
+
 
     [ObservableProperty]
+
     private bool _isServerUnderDevDialogOpen;
 
+
+
     public bool HasExistingServers
+
     {
+
         get
+
         {
+
             try
+
             {
+
                 var dir = ServerCreatorService.DefaultServersDirectory;
+
                 return Directory.Exists(dir) && Directory.GetDirectories(dir).Length > 0;
+
             }
+
             catch
+
             {
+
                 return false;
+
             }
+
         }
+
     }
 
+
+
     [RelayCommand]
+
     public void NavigateToCreateServer()
+
     {
+
         IsServerUnderDevDialogOpen = true;
+
     }
 
+
+
     [RelayCommand]
+
     public void OpenServersDirectory()
+
     {
+
         try
+
         {
+
             var dir = ServerCreatorService.DefaultServersDirectory;
+
             Directory.CreateDirectory(dir);
+
             Process.Start(new ProcessStartInfo { FileName = dir, UseShellExecute = true, Verb = "open" });
+
         }
+
         catch { }
+
     }
+
+
 
     private void NavigateBackToInstance(HistoryEntry entry, string? tab = null)
+
     {
+
         int foundIndex = -1;
+
         for (int i = _historyIndex - 1; i >= 0; i--)
+
         {
+
             if (_navHistory[i].Page == LauncherNavPage.EditInstance && _navHistory[i].Instance == entry.Instance)
+
             {
+
                 foundIndex = i;
+
                 break;
+
             }
+
         }
+
+
 
         if (foundIndex >= 0)
+
         {
+
             _historyIndex = foundIndex;
+
             var hist = _navHistory[_historyIndex];
+
             if (!string.IsNullOrEmpty(tab) && hist.EditInstanceVm != null)
+
             {
+
                 hist.SubTitle = tab;
+
                 hist.EditInstanceVm.SelectTab(tab);
+
             }
+
             ApplyHistoryEntry(hist);
+
             UpdateHistoryButtons();
+
         }
+
         else if (entry.EditInstanceVm != null)
+
         {
+
             var targetTab = tab ?? entry.SubTitle ?? "Overview";
+
             PushHistory(new HistoryEntry
+
             {
+
                 Page = LauncherNavPage.EditInstance,
+
                 Title = entry.Instance?.Name ?? entry.Title,
+
                 SubTitle = targetTab,
+
                 Instance = entry.Instance,
+
                 EditInstanceVm = entry.EditInstanceVm
+
             });
+
             entry.EditInstanceVm.SelectTab(targetTab);
+
         }
+
         else
+
         {
+
             GoBack();
+
         }
+
     }
+
+
 
     public void NavigateToServerManager(ServerManagerViewModel vm, InstanceModel? instance, EditInstanceViewModel? editVm)
+
     {
+
         PushHistory(new HistoryEntry
+
         {
+
             Page = LauncherNavPage.ServerManager,
+
             Title = instance?.Name ?? L10n.T("sm_title"),
+
             SubTitle = L10n.T("tab_servers"),
+
             Instance = instance,
+
             EditInstanceVm = editVm,
+
             ServerManagerVm = vm
+
         });
+
     }
+
+
 
     public void NavigateToEditInstance(InstanceModel instance, string? tab = "Overview")
+
     {
+
         var vm = new EditInstanceViewModel(instance, this, _instanceService);
+
         if (!string.IsNullOrEmpty(tab))
+
             vm.SelectTab(tab);
 
+
+
         PushHistory(new HistoryEntry
+
         {
+
             Page = LauncherNavPage.EditInstance,
+
             Title = instance.Name,
+
             SubTitle = vm.SelectedTab,
+
             Instance = instance,
+
             EditInstanceVm = vm
+
         });
+
     }
+
+
 
     public void NavigateToContentBrowser(ContentBrowserViewModel vm, InstanceModel? instance, string parentTitle, string sectionTitle, EditInstanceViewModel? editVm)
+
     {
+
         vm.OnProjectSelectedChanged = _ =>
+
         {
+
             if (_historyIndex >= 0 && _historyIndex < _navHistory.Count)
+
             {
+
                 var cur = _navHistory[_historyIndex];
+
                 if (cur.Page == LauncherNavPage.ContentBrowser)
+
                     RebuildBreadcrumbs(cur);
+
             }
+
         };
+
         vm.OnAuthorProfileChanged = _ =>
+
         {
+
             if (_historyIndex >= 0 && _historyIndex < _navHistory.Count)
+
             {
+
                 var cur = _navHistory[_historyIndex];
+
                 if (cur.Page == LauncherNavPage.ContentBrowser)
+
                     RebuildBreadcrumbs(cur);
+
             }
+
         };
+
+
 
         PushHistory(new HistoryEntry
+
         {
+
             Page = LauncherNavPage.ContentBrowser,
+
             Title = parentTitle,
+
             SubTitle = sectionTitle,
+
             Instance = instance,
+
             EditInstanceVm = editVm,
+
             ContentBrowserVm = vm
+
         });
+
     }
 
+
+
     public void UpdateActiveInstanceTab(string instanceName, string tab)
+
     {
+
         if (_historyIndex >= 0 && _historyIndex < _navHistory.Count)
+
         {
+
             var cur = _navHistory[_historyIndex];
+
             if (cur.Page == LauncherNavPage.EditInstance)
+
             {
+
                 cur.SubTitle = tab;
+
                 RebuildBreadcrumbs(cur);
+
             }
+
         }
+
     }
+
+
 
     private DateTime _lastForcedGc = DateTime.MinValue;
 
+
+
     private static void DisposeHistoryEntry(HistoryEntry entry)
+
     {
+
         // Break event roots (timers, host/instance subscriptions) so GC can reclaim the page.
+
         try { (entry.EditInstanceVm as IDisposable)?.Dispose(); } catch { }
+
         try { (entry.ContentBrowserVm as IDisposable)?.Dispose(); } catch { }
+
     }
 
+
+
     private void PushHistory(HistoryEntry entry)
+
     {
+
         if (CurrentPage == LauncherNavPage.Settings && IsSettingsTabTheme && entry.Page != LauncherNavPage.Settings && HasUnsavedThemeChanges())
+
         {
+
             _pendingThemeDiscardNavAction = () => PushHistory(entry);
+
             IsThemeDiscardConfirmOpen = true;
+
             return;
+
         }
 
+
+
         if (_historyIndex >= 0 && _historyIndex < _navHistory.Count - 1)
+
         {
+
             var dropped = _navHistory.Skip(_historyIndex + 1).ToList();
+
             _navHistory.RemoveRange(_historyIndex + 1, _navHistory.Count - (_historyIndex + 1));
+
             foreach (var d in dropped) DisposeHistoryEntry(d);
+
         }
+
+
 
         _navHistory.Add(entry);
 
+
+
         while (_navHistory.Count > 20)
+
         {
+
             var evicted = _navHistory[0];
+
             _navHistory.RemoveAt(0);
+
             DisposeHistoryEntry(evicted);
+
         }
+
         _historyIndex = _navHistory.Count - 1;
+
         ApplyHistoryEntry(entry);
+
         UpdateHistoryButtons();
+
     }
 
+
+
     private void ApplyHistoryEntry(HistoryEntry entry)
+
     {
+
         if (CurrentPage == LauncherNavPage.Settings && entry.Page != LauncherNavPage.Settings)
+
         {
+
             SaveLauncherConfig();
+
         }
+
+
 
         if (CurrentPage == LauncherNavPage.Accounts && entry.Page != LauncherNavPage.Accounts)
+
         {
+
             AccountsVm.ResetAuthUiState();
+
         }
+
+
 
         if (CurrentPage == LauncherNavPage.ServerManager && entry.Page != LauncherNavPage.ServerManager)
+
         {
+
             CurrentEditInstanceVm?.RefreshServers();
+
         }
+
+
 
         // Force-reclaim LOH (image/log buffers) when leaving heavy pages.
+
         // Polite background collects are skipped by the runtime while LOH grows,
+
         // so do a throttled blocking Gen2 here instead of on every navigation.
+
         if ((CurrentPage == LauncherNavPage.CreateServer
+
                 || CurrentPage == LauncherNavPage.ContentBrowser
+
                 || CurrentPage == LauncherNavPage.EditInstance)
+
             && entry.Page != CurrentPage
+
             && (DateTime.UtcNow - _lastForcedGc).TotalSeconds > 30)
+
         {
+
             _lastForcedGc = DateTime.UtcNow;
+
             try { GC.Collect(2, GCCollectionMode.Forced, true); } catch { }
+
         }
+
+
 
         CurrentPage = entry.Page;
+
         CurrentEditInstanceVm = entry.EditInstanceVm;
+
         CurrentContentBrowserVm = entry.ContentBrowserVm;
+
         CurrentServerManagerVm = entry.ServerManagerVm;
+
         CreateProfileVm = entry.CreateProfileVm;
+
         CreateServerVm = entry.CreateServerVm;
 
+
+
         if (CurrentContentBrowserVm != null)
+
         {
+
             CurrentContentBrowserVm.OnProjectSelectedChanged = _ =>
+
             {
+
                 if (_historyIndex >= 0 && _historyIndex < _navHistory.Count)
+
                 {
+
                     var cur = _navHistory[_historyIndex];
+
                     if (cur.Page == LauncherNavPage.ContentBrowser)
+
                         RebuildBreadcrumbs(cur);
+
                 }
+
             };
+
             CurrentContentBrowserVm.OnAuthorProfileChanged = _ =>
+
             {
+
                 if (_historyIndex >= 0 && _historyIndex < _navHistory.Count)
+
                 {
+
                     var cur = _navHistory[_historyIndex];
+
                     if (cur.Page == LauncherNavPage.ContentBrowser)
+
                         RebuildBreadcrumbs(cur);
+
                 }
+
             };
+
         }
 
+
+
         OnPropertyChanged(nameof(IsProfilesView));
+
         OnPropertyChanged(nameof(IsModpacksView));
+
         OnPropertyChanged(nameof(IsEditInstanceView));
+
         OnPropertyChanged(nameof(IsContentBrowserView));
+
         OnPropertyChanged(nameof(IsSettingsView));
+
         OnPropertyChanged(nameof(IsServerManagerView));
+
         OnPropertyChanged(nameof(IsAccountsView));
+
         OnPropertyChanged(nameof(IsCreateProfileView));
+
         OnPropertyChanged(nameof(IsCreateServerView));
+
         OnPropertyChanged(nameof(IsLaunchBarVisible));
+
+
 
         RebuildBreadcrumbs(entry);
 
+
+
         switch (entry.Page)
+
         {
+
             case LauncherNavPage.Profiles:
+
                 Services.DiscordPresenceService.SetBrowsingProfiles();
+
                 break;
+
             case LauncherNavPage.Modpacks:
+
                 Services.DiscordPresenceService.SetBrowsingModpacks();
+
                 break;
+
             case LauncherNavPage.EditInstance:
+
                 if (entry.EditInstanceVm != null)
+
                     Services.DiscordPresenceService.SetEditingInstance(entry.EditInstanceVm.Instance.Name);
+
                 break;
+
             case LauncherNavPage.ContentBrowser:
+
                 Services.DiscordPresenceService.SetBrowsingMods();
+
                 break;
+
             case LauncherNavPage.Settings:
+
                 Services.DiscordPresenceService.SetInSettings();
+
                 break;
+
             case LauncherNavPage.Accounts:
+
                 Services.DiscordPresenceService.SetCreatingAccount();
+
                 break;
+
             case LauncherNavPage.CreateProfile:
+
                 Services.DiscordPresenceService.SetEditingInstance("Creating Profile");
+
                 break;
+
             case LauncherNavPage.CreateServer:
+
                 Services.DiscordPresenceService.SetEditingInstance("Creating Server");
+
                 break;
+
             case LauncherNavPage.ServerManager:
+
                 if (entry.EditInstanceVm != null)
+
                     Services.DiscordPresenceService.SetEditingInstance(entry.EditInstanceVm.Instance.Name);
+
                 break;
+
         }
+
     }
+
+
 
     private void RebuildBreadcrumbs(HistoryEntry entry)
+
     {
+
         Breadcrumbs.Clear();
+
         var homeItem = new BreadcrumbItem
+
         {
+
             Title = L10n.T("nav_home"),
+
             IsLast = entry.Page == LauncherNavPage.Profiles,
+
             OnClick = () => NavigateToProfiles()
+
         };
+
         Breadcrumbs.Add(homeItem);
 
+
+
         switch (entry.Page)
+
         {
+
             case LauncherNavPage.Modpacks:
+
                 if (ModpacksBrowser?.SelectedProject != null)
+
                 {
+
                     bool isAuthor = ModpacksBrowser.IsAuthorProfileOpen && ModpacksBrowser.CurrentAuthorProfileVm != null;
+
                     Breadcrumbs.Add(new BreadcrumbItem
+
                     {
+
                         Title = L10n.T("nav_modpacks"),
+
                         IsLast = false,
+
                         OnClick = () =>
+
                         {
+
                             if (ModpacksBrowser != null)
+
                             {
+
                                 ModpacksBrowser.CloseAuthorProfile();
+
                                 ModpacksBrowser.SelectedProject = null;
+
                             }
+
                         }
+
                     });
+
                     Breadcrumbs.Add(new BreadcrumbItem
+
                     {
+
                         Title = ModpacksBrowser.SelectedProject.Title,
+
                         IsLast = !isAuthor,
+
                         OnClick = () =>
+
                         {
+
                             if (ModpacksBrowser != null)
+
                                 ModpacksBrowser.CloseAuthorProfile();
+
                         }
+
                     });
+
                     if (isAuthor)
+
                     {
+
                         var authorName = !string.IsNullOrWhiteSpace(ModpacksBrowser.CurrentAuthorProfileVm!.Username)
+
                             ? ModpacksBrowser.CurrentAuthorProfileVm.Username
+
                             : ModpacksBrowser.SelectedProject.Author;
+
                         Breadcrumbs.Add(new BreadcrumbItem
+
                         {
+
                             Title = authorName,
+
                             IsLast = true
+
                         });
+
                     }
+
                 }
+
                 else
+
                 {
+
                     Breadcrumbs.Add(new BreadcrumbItem
+
                     {
+
                         Title = L10n.T("nav_modpacks"),
+
                         IsLast = true,
+
                         OnClick = () => NavigateToModpacks()
+
                     });
+
                 }
+
                 break;
+
+
 
             case LauncherNavPage.EditInstance:
+
                 var instName = entry.Instance?.Name ?? entry.Title;
+
                 var currentTab = string.IsNullOrWhiteSpace(entry.SubTitle) ? "Overview" : entry.SubTitle;
+
                 Breadcrumbs.Add(new BreadcrumbItem
+
                 {
+
                     Title = instName,
+
                     IsLast = false,
+
                     OnClick = () =>
+
                     {
+
                         if (entry.EditInstanceVm != null)
+
                             entry.EditInstanceVm.SelectTab("Overview");
+
                     }
+
                 });
+
                 Breadcrumbs.Add(new BreadcrumbItem
+
                 {
+
                     Title = GetLocalizedTabTitle(currentTab),
+
                     IsLast = true,
+
                     OnClick = () => entry.EditInstanceVm?.SelectTab(currentTab)
+
                 });
+
                 break;
+
+
 
             case LauncherNavPage.ContentBrowser:
+
                 var parentName = entry.Title;
+
                 Breadcrumbs.Add(new BreadcrumbItem
+
                 {
+
                     Title = parentName,
+
                     IsLast = false,
+
                     OnClick = () =>
+
                     {
+
                         NavigateBackToInstance(entry, "Overview");
+
                     }
+
                 });
+
+
 
                 if (!string.IsNullOrWhiteSpace(entry.SubTitle) && entry.SubTitle != "Overview")
+
                 {
+
                     Breadcrumbs.Add(new BreadcrumbItem
+
                     {
+
                         Title = GetLocalizedTabTitle(entry.SubTitle),
+
                         IsLast = false,
+
                         OnClick = () =>
+
                         {
+
                             NavigateBackToInstance(entry, entry.SubTitle);
+
                         }
+
                     });
+
                 }
+
+
 
                 var hasSelectedProj = CurrentContentBrowserVm?.SelectedProject != null;
+
                 bool isAuthorContent = hasSelectedProj && CurrentContentBrowserVm!.IsAuthorProfileOpen && CurrentContentBrowserVm.CurrentAuthorProfileVm != null;
+
                 Breadcrumbs.Add(new BreadcrumbItem
+
                 {
+
                     Title = L10n.T("cb_title"),
+
                     IsLast = !hasSelectedProj,
+
                     OnClick = () =>
+
                     {
+
                         if (CurrentContentBrowserVm != null)
+
                         {
+
                             CurrentContentBrowserVm.CloseAuthorProfile();
+
                             CurrentContentBrowserVm.SelectedProject = null;
+
                         }
+
                     }
+
                 });
+
+
 
                 if (hasSelectedProj && CurrentContentBrowserVm?.SelectedProject != null)
+
                 {
+
                     Breadcrumbs.Add(new BreadcrumbItem
+
                     {
+
                         Title = CurrentContentBrowserVm.SelectedProject.Title,
+
                         IsLast = !isAuthorContent,
+
                         OnClick = () =>
+
                         {
+
                             if (CurrentContentBrowserVm != null)
+
                                 CurrentContentBrowserVm.CloseAuthorProfile();
+
                         }
+
                     });
+
+
 
                     if (isAuthorContent)
+
                     {
+
                         var authorName = !string.IsNullOrWhiteSpace(CurrentContentBrowserVm.CurrentAuthorProfileVm!.Username)
+
                             ? CurrentContentBrowserVm.CurrentAuthorProfileVm.Username
+
                             : CurrentContentBrowserVm.SelectedProject.Author;
+
                         Breadcrumbs.Add(new BreadcrumbItem
+
                         {
+
                             Title = authorName,
+
                             IsLast = true
+
                         });
+
                     }
+
                 }
+
                 break;
+
+
 
             case LauncherNavPage.Settings:
+
                 Breadcrumbs.Add(new BreadcrumbItem
+
                 {
+
                     Title = L10n.T("nav_settings"),
+
                     IsLast = true,
+
                     OnClick = () => NavigateToSettings()
+
                 });
+
                 break;
+
+
 
             case LauncherNavPage.Accounts:
+
                 Breadcrumbs.Add(new BreadcrumbItem
+
                 {
+
                     Title = L10n.T("acc_manage"),
+
                     IsLast = true,
+
                     OnClick = () => NavigateToAccounts()
+
                 });
+
                 break;
+
+
 
             case LauncherNavPage.CreateProfile:
+
                 Breadcrumbs.Add(new BreadcrumbItem
+
                 {
+
                     Title = L10n.T("cp_title"),
+
                     IsLast = true,
+
                     OnClick = () => NavigateToCreateProfile()
+
                 });
+
                 break;
+
+
 
             case LauncherNavPage.CreateServer:
+
                 Breadcrumbs.Add(new BreadcrumbItem
+
                 {
+
                     Title = L10n.T("nav_create_server"),
+
                     IsLast = false,
+
                     OnClick = () =>
+
                     {
+
                         if (CreateServerVm != null && CreateServerVm.ExistingServers.Count > 0)
+
                         {
+
                             CreateServerVm.IsDashboardMode = true;
+
                             CreateServerVm.IsCreatingNewServer = false;
+
                         }
+
                         RebuildBreadcrumbs(entry);
+
                     }
+
                 });
+
+
 
                 if (CreateServerVm != null && CreateServerVm.IsDashboardMode && !CreateServerVm.IsCreatingNewServer && !string.IsNullOrWhiteSpace(CreateServerVm.SelectedServerName))
+
                 {
+
                     Breadcrumbs.Add(new BreadcrumbItem
+
                     {
+
                         Title = CreateServerVm.SelectedServerName,
+
                         IsLast = false,
+
                         OnClick = () =>
+
                         {
+
                             CreateServerVm.SelectedTab = 0;
+
                             RebuildBreadcrumbs(entry);
+
                         }
+
                     });
+
+
 
                     string tabTitle = CreateServerVm.SelectedTab switch
+
                     {
+
                         0 => L10n.T("cs_tab_overview"),
+
                         1 => L10n.T("cs_tab_properties"),
+
                         2 => CreateServerVm.PluginsTabTitle,
+
                         3 => L10n.T("cs_tab_settings"),
+
                         4 => L10n.T("cs_tab_players"),
+
                         5 => L10n.T("cs_tab_files"),
+
                         6 => L10n.T("cs_tab_console"),
+
                         7 => L10n.T("cs_tab_world"),
+
                         _ => L10n.T("nav_create_server")
+
                     };
 
+
+
                     Breadcrumbs.Add(new BreadcrumbItem
+
                     {
+
                         Title = tabTitle,
+
                         IsLast = true
+
                     });
+
                 }
+
                 else
+
                 {
+
                     Breadcrumbs.Add(new BreadcrumbItem
+
                     {
+
                         Title = L10n.T("cs_title"),
+
                         IsLast = true
+
                     });
+
                 }
+
                 break;
+
+
 
             case LauncherNavPage.ServerManager:
+
                 if (entry.Instance != null)
+
                 {
+
                     Breadcrumbs.Add(new BreadcrumbItem
+
                     {
+
                         Title = entry.Instance.Name,
+
                         IsLast = false,
+
                         OnClick = () =>
+
                         {
+
                             entry.EditInstanceVm?.RefreshServers();
+
                             NavigateBackToInstance(entry, "Servers");
+
                         }
+
                     });
+
                 }
+
                 Breadcrumbs.Add(new BreadcrumbItem
+
                 {
+
                     Title = L10n.T("tab_servers"),
+
                     IsLast = true
+
                 });
+
                 break;
+
         }
+
+
 
         for (int i = 0; i < Breadcrumbs.Count; i++)
+
         {
+
             Breadcrumbs[i].ShowSeparator = (i > 0);
+
         }
+
     }
+
+
 
     private static string GetLocalizedTabTitle(string tab) => tab switch
+
     {
+
         "Overview" => L10n.T("tab_overview"),
+
         "Logs" => L10n.T("tab_logs"),
+
         "Mods" => L10n.T("tab_mods"),
+
         "Resource Packs" => L10n.T("tab_resourcepacks"),
+
         "Shader Packs" => L10n.T("tab_shaders"),
+
         "Data Packs" => L10n.T("tab_datapacks"),
+
         "Worlds" => L10n.T("tab_worlds"),
+
         "Servers" => L10n.T("tab_servers"),
+
         "Screenshots" => L10n.T("tab_screenshots"),
+
         "Settings" or "General" => L10n.T("set_general"),
+
         _ => tab
+
     };
 
+
+
     [RelayCommand]
+
     private void NavigateToBreadcrumb(BreadcrumbItem? item)
+
     {
+
         if (item == null || item.IsLast) return;
+
         item.OnClick?.Invoke();
+
     }
 
+
+
     [RelayCommand]
+
     private void ShowProfiles()
+
     {
+
         NavigateToProfiles();
+
     }
 
+
+
     [RelayCommand]
+
     private void ShowModpacks()
+
     {
+
         NavigateToModpacks();
+
     }
+
+
 
     public ModpacksBrowserViewModel ModpacksBrowser { get; private set; } = null!;
 
+
+
     [ObservableProperty]
+
     private bool _isConsoleDialogOpen;
 
+
+
     // Delete confirmation dialog
-    [ObservableProperty]
-    private bool _isDeleteConfirmOpen;
 
     [ObservableProperty]
+
+    private bool _isDeleteConfirmOpen;
+
+
+
+    [ObservableProperty]
+
     private InstanceModel? _pendingDeleteInstance;
+
     [ObservableProperty] private bool _isCloneDialogOpen;
+
     [ObservableProperty] private CloneProfileViewModel? _cloneDialogVm;
+
+
 
     public ObservableCollection<AccountRow> AccountRows => AccountsVm.AccountRows;
 
+
+
     public AccountRow? ActiveAccountRow => AccountsVm.ActiveAccountRow;
 
+
+
     public ThemeSettingsViewModel ThemeSettingsVm { get; }
+
     public LauncherSettingsViewModel LauncherSettingsVm { get; }
+
     public AccountsViewModel AccountsVm { get; }
 
+
+
     public Avalonia.Media.Imaging.Bitmap? PrismImportIcon { get; } = ImportIconService.GetPrismIcon();
+
     public Avalonia.Media.Imaging.Bitmap? MultiMCImportIcon { get; } = ImportIconService.GetMultiMCIcon();
 
+
+
     public MainWindowViewModel()
+
     {
+
         ThemeSettingsVm = new ThemeSettingsViewModel
+
         {
+
             GetConfigSnapshot = () => GetLauncherConfigSnapshot(),
+
             SaveConfigRequested = () => SaveLauncherConfig()
+
         };
+
         LauncherSettingsVm = new LauncherSettingsViewModel(ThemeSettingsVm)
+
         {
+
             SaveConfigRequested = () => SaveLauncherConfig(),
+
             VersionFiltersChanged = () => FilterVersions(),
+
             LanguageChanged = lang => SelectedLanguage = lang,
+
             DiscordRpcChanged = enabled => DiscordRpcEnabled = enabled,
+
             ScaleChanged = scale => LauncherScale = scale,
+
             OpenJavaInstallerRequested = () => OpenJavaInstaller(),
+
             GetRecommendedJavaDisplay = () =>
+
             {
+
                 var inst = SelectedInstance ?? _instanceService?.GetSelectedInstance();
+
                 return inst != null
+
                     ? Services.JavaVersionHelper.RecommendedDisplay(inst.Version)
+
                     : L10n.T("java_display_auto");
+
             },
+
             GetWindowTitle = () => WindowTitle
+
         };
+
+
 
         LoadLauncherConfig();
 
+
+
         // Force-apply the language even when the loaded value equals the
+
         // field default ("English") — CommunityToolkit skips the change
+
         // notification in that case, so OnSelectedLanguageChanged never
+
         // fires and the UI stays on DetectSystemCode() (the OS language).
+
         Services.L10n.ApplyDisplay(SelectedLanguage);
 
+
+
         // Recompute language-dependent display strings AFTER the final language
+
         // is applied — LoadFromConfig above may have rendered them in the OS language.
+
         LauncherSettingsVm.UpdateJavaDisplay();
 
+
+
         _accountService = new AccountService();
+
         AccountsVm = new AccountsViewModel(_accountService);
+
         AccountsVm.AccountStateChanged += () =>
+
         {
+
             OnPropertyChanged(nameof(ActiveAccountName));
+
             OnPropertyChanged(nameof(ActiveAccountType));
+
             OnPropertyChanged(nameof(ActiveAccountRow));
+
             OnPropertyChanged(nameof(SelectedAccount));
+
             OnPropertyChanged(nameof(Accounts));
+
             OnPropertyChanged(nameof(AccountRows));
+
         };
+
         AccountsVm.OnStatusMessage += msg => StatusText = msg;
+
         _instanceService = new InstanceService();
+
         _launchService = new LaunchService((IInstanceService)_instanceService);
+
         _modLoaderService = new ModLoaderService();
 
+
+
         // Re-translate computed UI strings when the language changes.
+
         L10n.LanguageChanged += () => OnPropertyChanged(nameof(LaunchButtonText));
+
         L10n.LanguageChanged += () =>
+
         {
+
             if (_historyIndex >= 0 && _historyIndex < _navHistory.Count)
+
                 RebuildBreadcrumbs(_navHistory[_historyIndex]);
+
             CreateServerVm?.UpdatePluginsTabTitle();
+
         };
+
+
 
         // Detect total physical RAM
+
         try
+
         {
+
             if (OperatingSystem.IsWindows())
+
             {
+
                 var memStatus = new MEMORYSTATUSEX();
+
                 memStatus.dwLength = (uint)System.Runtime.InteropServices.Marshal.SizeOf(typeof(MEMORYSTATUSEX));
+
                 if (GlobalMemoryStatusEx(ref memStatus))
+
                     MaxRamMb = (int)(memStatus.ullTotalPhys / (1024 * 1024));
+
             }
+
         }
+
         catch { MaxRamMb = 16384; }
 
+
+
         _launchService.ProgressChanged += p => Dispatcher.UIThread.Post(() => LaunchProgress = p);
+
         _launchService.CurrentFileChanged += f => Dispatcher.UIThread.Post(() => CurrentDownloadFile = f);
 
+
+
         // Console log lines are enqueued cheaply from any (reader) thread and flushed
+
         // to the UI in batches every 250 ms. Posting every single line to the UI thread
+
         // freezes the launcher for chatty modern versions (huge log floods) and lets the
+
         // game's stdout/stderr pipe buffer fill up. Batching keeps both the UI responsive
+
         // and the pipe drained so the game never blocks waiting on the launcher.
+
         _launchService.LogReceived += log =>
+
         {
+
             _consolePending.Enqueue(log);
+
         };
+
+
 
         _consoleFlushTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
+
         _consoleFlushTimer.Tick += (_, _) => FlushConsolePending();
+
         _consoleFlushTimer.Start();
 
+
+
         ModLoaderService.Diagnostic += msg =>
+
         {
+
             Dispatcher.UIThread.Post(() =>
+
             {
+
                 ConsoleLogs += $"[ModLoader] {msg}" + Environment.NewLine;
+
             });
+
         };
 
+
+
         // Discord Rich Presence lifecycle
+
         Services.DiscordPresenceService.Initialize(DiscordRpcEnabled);
+
         Services.DiscordPresenceService.SetBrowsingProfiles();
+
         _launchService.GameLaunched += (instance, accountType) =>
+
             Services.DiscordPresenceService.SetPlaying(instance.Name, instance.Version, accountType, DateTime.UtcNow);
+
         _launchService.GameExited += (_, _) => Services.DiscordPresenceService.SetBrowsingProfiles();
+
         _launchService.CrashDetected += (instance, exitCode, analysis) =>
+
         {
+
             Dispatcher.UIThread.Post(() =>
+
             {
+
                 try
+
                 {
+
                     CrashReportVm = new Dialogs.CrashReportViewModel(analysis, modQuery =>
+
                     {
+
                         IsCrashReportOpen = false;
+
+                        if (instance != null)
+
+                        {
+
+                            SelectedInstance = instance;
+
+                            OpenProfileBrowseModsCommand.Execute(null);
+
+                            if (CurrentContentBrowserVm != null)
+
+                            {
+
+                                CurrentContentBrowserVm.SearchQuery = modQuery;
+
+                                CurrentContentBrowserVm.SearchCommand.Execute(null);
+
+                                return;
+
+                            }
+
+                        }
+
                         ModpacksBrowser.SearchQuery = modQuery;
+
                         ModpacksBrowser.SelectProjectType("mod");
+
                         NavigateToModpacks();
+
                     });
+
                     IsCrashReportOpen = true;
+
                 }
+
                 catch (Exception wex) { LauncherLog.Error("Failed to show crash report", wex); }
+
             });
+
         };
+
+
 
         RefreshState();
 
+
+
         // Silent startup session maintenance: renew expired tokens in the
+
         // background so returning users never see a re-login prompt.
+
         _ = Task.Run(async () =>
+
         {
+
             try
+
             {
+
                 var renewed = await _accountService.RefreshAllSessionsAsync().ConfigureAwait(false);
+
                 if (renewed > 0)
+
                     Dispatcher.UIThread.Post(RefreshState);
+
             }
+
             catch (Exception ex)
+
             {
+
                 LauncherLog.Error("Startup session refresh crashed.", ex);
+
             }
+
         });
+
+
 
         _ = LoadMojangVersionsAsync();
+
         _ = InitializeModLoadersAsync();
+
         UpdateJavaDisplay();
+
         ModpacksBrowser = new ModpacksBrowserViewModel(_instanceService, _modLoaderService, () =>
+
         {
+
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+
             {
+
                 RefreshState();
+
                 ModpacksBrowser.UpdateInstalledFlags();
+
             });
+
         });
+
         ModpacksBrowser.GetCurseForgeApiKey = () => LauncherSettingsVm?.CurseForgeApiKey ?? "";
+
         ModpacksBrowser.OnProjectSelectedChanged = _ =>
+
         {
+
             if (_historyIndex >= 0 && _historyIndex < _navHistory.Count)
+
             {
+
                 var cur = _navHistory[_historyIndex];
+
                 if (cur.Page == LauncherNavPage.Modpacks)
+
                     RebuildBreadcrumbs(cur);
+
             }
+
         };
+
         ModpacksBrowser.OnAuthorProfileChanged = _ =>
+
         {
+
             if (_historyIndex >= 0 && _historyIndex < _navHistory.Count)
+
             {
+
                 var cur = _navHistory[_historyIndex];
+
                 if (cur.Page == LauncherNavPage.Modpacks)
+
                     RebuildBreadcrumbs(cur);
+
             }
+
         };
+
+
 
         NavigateToProfiles();
+
         _ = CheckForUpdatesBackgroundAsync();
 
+
+
         // Final guarantee: re-apply the saved theme after all startup loading,
+
         // so no intermediate default state can stick.
+
         try { ZenithTheme.Apply(GetLauncherConfigSnapshot()); } catch { }
+
     }
+
+
 
     private async Task CheckForUpdatesBackgroundAsync()
+
     {
+
         try
+
         {
+
             await Task.Delay(5000);
+
             var service = new GitHubUpdateService();
+
             var result = await service.CheckForUpdatesAsync();
+
             if (result is { IsNewerThanCurrent: true })
+
             {
+
                 Avalonia.Threading.Dispatcher.UIThread.Post(() => OpenUpdate(result));
+
             }
+
         }
+
         catch (OperationCanceledException) { }
+
         catch (Exception ex)
+
         {
+
             LauncherLog.Error("Background update check failed.", ex);
+
         }
+
     }
 
+
+
     [ObservableProperty]
+
     private Views.UpdateNotificationViewModel? _updateVm;
 
+
+
     [ObservableProperty]
+
     private bool _isUpdateOpen;
 
+
+
     [ObservableProperty]
+
     private bool _isUpdateAvailable;
 
+
+
     [ObservableProperty]
+
     private bool _isUpdateChecking;
 
+
+
     [ObservableProperty]
+
     private bool _isInfoDialogOpen;
 
+
+
     [ObservableProperty]
+
     private string _infoDialogTitle = "";
 
+
+
     [ObservableProperty]
+
     private string _infoDialogMessage = "";
 
+
+
     [RelayCommand]
+
     private void CloseInfoDialog() => IsInfoDialogOpen = false;
 
+
+
     public void ShowInfoDialog(string title, string message)
+
     {
+
         InfoDialogTitle = title;
+
         InfoDialogMessage = message;
+
         IsInfoDialogOpen = true;
+
     }
 
+
+
     [RelayCommand]
+
     private void CloseUpdate()
+
     {
+
         IsUpdateOpen = false;
+
         IsUpdateAvailable = false;
+
     }
 
+
+
     [RelayCommand]
+
     private async Task CheckForUpdatesNowAsync()
+
     {
+
         if (IsUpdateChecking) return;
+
         IsUpdateChecking = true;
+
         StatusText = L10n.T("update_checking");
+
         try
+
         {
+
             var result = await new GitHubUpdateService().CheckForUpdatesAsync();
+
             if (result?.IsNewerThanCurrent == true)
+
             {
+
                 OpenUpdate(result);
+
             }
+
             else
+
             {
+
                 StatusText = L10n.T("update_uptodate");
+
                 ShowInfoDialog(L10n.T("update_btn"), L10n.T("update_uptodate"));
+
             }
+
         }
+
         catch (Exception ex)
+
         {
+
             LauncherLog.Error("Manual update check failed.", ex);
+
             StatusText = L10n.T("update_failed");
+
             ShowInfoDialog(L10n.T("update_btn"), L10n.T("update_failed"));
+
         }
+
         finally
+
         {
+
             IsUpdateChecking = false;
+
         }
+
     }
+
+
 
     private void OpenUpdate(UpdateCheckResult result)
+
     {
+
         UpdateVm = new Views.UpdateNotificationViewModel(result, () =>
+
         {
+
             IsUpdateOpen = false;
+
             IsUpdateAvailable = false;
+
         });
+
         IsUpdateAvailable = true;
+
         IsUpdateOpen = true;
+
     }
+
+
 
     private async Task InitializeModLoadersAsync()
+
     {
+
         await _modLoaderService.InitializeDatabaseAsync();
+
         await UpdateAvailableLoadersAsync(SelectedVersion);
+
     }
 
+
+
     [RelayCommand]
+
     public async Task SwitchToOfflineAccountAsync()
+
     {
+
         IsElyByErrorOpen = false;
+
         try
+
         {
+
             var targetName = !string.IsNullOrWhiteSpace(SelectedAccount?.Username)
+
                 ? SelectedAccount.Username
+
                 : (!string.IsNullOrWhiteSpace(ActiveAccountName) ? ActiveAccountName : "Steve");
 
+
+
             var existingAccounts = _accountService.GetAccounts();
+
             var offlineAcc = existingAccounts.FirstOrDefault(a => a.Type == Models.AccountType.Offline && string.Equals(a.Username, targetName, StringComparison.OrdinalIgnoreCase));
 
+
+
             if (offlineAcc == null)
+
             {
+
                 offlineAcc = await _accountService.AddOfflineAccountAsync(targetName);
+
             }
+
+
 
             _accountService.SetActiveAccount(offlineAcc.Id);
+
             RefreshState();
+
         }
+
         catch (Exception)
+
         {
+
             StatusText = L10n.T("mw_status_switch_failed");
+
         }
+
     }
+
+
 
     protected override void OnPropertyChanged(System.ComponentModel.PropertyChangedEventArgs e)
+
     {
+
         base.OnPropertyChanged(e);
+
         if (e.PropertyName is "JvmArgs" or "MinRamMb" or "RamMb" or "SelectedLaunchBehavior" or "GameWidth" or "GameHeight" or "IsFullscreen" or "CustomJavaPath" or "SelectedJavaMode"
+
             or "AutoManageJava" or "DiscordRpcEnabled" or "SelectedLanguage" or "LauncherScale" or "SelectedParticle")
+
         {
+
             SaveLauncherConfig();
+
         }
+
     }
+
+
 
     public void SaveLauncherConfig()
+
     {
+
         try
+
         {
+
             ZenithPaths.EnsureAppDataExists();
+
             var configPath = ZenithPaths.ConfigFilePath;
+
             var configData = new LauncherConfigData
+
             {
+
                 LauncherName = LauncherName,
+
                 AccentColor = CurrentAccentHex,
+
                 BgColor = BgHex,
+
                 SurfaceColor = SurfaceHex,
+
                 PanelColor = PanelHex,
+
                 SidebarBgColor = SidebarBgHex,
+
                 CardColor = CardHex,
+
                 FieldColor = FieldHex,
+
                 HoverColor = HoverHex,
+
                 TextPrimaryColor = TextPrimaryHex,
+
                 TextSecondaryColor = TextSecondaryHex,
+
                 BorderDarkColor = BorderDarkHex,
+
                 JvmArgs = JvmArgs,
+
                 MinRamMb = MinRamMb,
+
                 RamMb = RamMb,
+
                 LaunchBehavior = SelectedLaunchBehavior,
+
                 GameWidth = GameWidth,
+
                 GameHeight = GameHeight,
+
                 IsFullscreen = IsFullscreen,
+
                 SelectedDirectoryMode = SelectedDirectoryMode,
+
                 JavaMode = SelectedJavaMode,
+
                 CustomJavaPath = CustomJavaPath,
+
                 UseFlatVersionList = UseFlatVersionList,
+
                 AutoManageJava = AutoManageJava,
+
                 DiscordRpcEnabled = DiscordRpcEnabled,
+
                 LauncherScale = LauncherScale,
+
                 SelectedParticle = SelectedParticle,
+
                 ParticleCount = ParticleCount,
+
                 ParticleScale = ParticleScale,
+
                 ParticleSpeed = ParticleSpeed,
+
                 ParticleColorHex = ParticleColorHex,
+
                 ParticleAngleDeg = ParticleAngleDeg,
+
                 ParticleTexturePath = ParticleTexturePath,
+
                 Language = SelectedLanguage,
+
                 ThemeSubTab = ThemeSubTab,
+
                 SimpleAccentColor = _savedSimpleAccentHex,
+
                 IsSidebarExpanded = IsSidebarExpanded
+
             };
+
             LauncherSettingsVm?.ApplyToConfig(configData);
+
             ThemeSettingsVm?.ApplyToConfig(configData);
+
             File.WriteAllText(configPath, System.Text.Json.JsonSerializer.Serialize(configData, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
+
         }
+
         catch { }
+
     }
+
+
 
     /// <summary>
+
     /// Snapshot of the current global launcher settings, used by the instance editor
+
     /// so per-instance settings inherit the global defaults unless explicitly overridden.
+
     /// </summary>
+
     public LauncherConfigData GetLauncherConfigSnapshot()
+
     {
+
         var snapshot = new LauncherConfigData
+
         {
+
             LauncherName = LauncherName,
+
             AccentColor = CurrentAccentHex,
+
             BgColor = BgHex,
+
             SurfaceColor = SurfaceHex,
+
             PanelColor = PanelHex,
+
             SidebarBgColor = SidebarBgHex,
+
             CardColor = CardHex,
+
             FieldColor = FieldHex,
+
             HoverColor = HoverHex,
+
             TextPrimaryColor = TextPrimaryHex,
+
             TextSecondaryColor = TextSecondaryHex,
+
             BorderDarkColor = BorderDarkHex,
+
             JvmArgs = JvmArgs,
+
             MinRamMb = MinRamMb,
+
             RamMb = RamMb,
+
             LaunchBehavior = SelectedLaunchBehavior,
+
             GameWidth = GameWidth,
+
             GameHeight = GameHeight,
+
             IsFullscreen = IsFullscreen,
+
             SelectedDirectoryMode = SelectedDirectoryMode,
+
             JavaMode = SelectedJavaMode,
+
             CustomJavaPath = CustomJavaPath,
+
             UseFlatVersionList = UseFlatVersionList,
+
             AutoManageJava = AutoManageJava,
+
             DiscordRpcEnabled = DiscordRpcEnabled,
+
             LauncherScale = LauncherScale,
+
             SelectedParticle = SelectedParticle,
+
             Language = SelectedLanguage,
+
             ThemeSubTab = ThemeSubTab,
+
             IsSidebarExpanded = IsSidebarExpanded
+
         };
+
         LauncherSettingsVm?.ApplyToConfig(snapshot);
+
         ThemeSettingsVm?.ApplyToConfig(snapshot);
+
         return snapshot;
+
     }
 
+
+
     [ObservableProperty]
+
     private string _themeSubTab = "Simple";
 
+
+
     public bool IsThemeSubTabSimple => ThemeSubTab == "Simple";
+
     public bool IsThemeSubTabAdvanced => ThemeSubTab == "Advanced";
 
+
+
     [RelayCommand]
+
     public void SwitchThemeSubTab(string tab)
+
     {
+
         if (ThemeSubTab == tab) return;
 
+
+
         ThemeSubTab = tab;
+
         OnPropertyChanged(nameof(IsThemeSubTabSimple));
+
         OnPropertyChanged(nameof(IsThemeSubTabAdvanced));
 
+
+
         SaveLauncherConfig();
+
     }
 
+
+
     [RelayCommand]
+
     private void OpenThemeEditor()
+
     {
+
         SnapshotCurrentSavedTheme();
+
         SwitchSettingsTab("Theme");
+
     }
+
     
+
     [RelayCommand]
+
     private void CloseThemeEditor()
+
     {
+
         if (HasUnsavedThemeChanges())
+
         {
+
             _pendingThemeDiscardNavAction = () => SwitchSettingsTab("Appearance");
+
             IsThemeDiscardConfirmOpen = true;
+
             return;
+
         }
+
         SwitchSettingsTab("Appearance");
+
     }
+
+
 
     public void LoadLauncherConfig()
+
     {
+
         _isLoadingConfig = true;
+
         try
+
         {
+
             var configPath = ZenithPaths.ConfigFilePath;
+
             if (File.Exists(configPath))
+
             {
+
                 var json = File.ReadAllText(configPath);
+
                 var cfg = System.Text.Json.JsonSerializer.Deserialize<LauncherConfigData>(json);
+
                 if (cfg != null)
+
                 {
+
                     if (!string.IsNullOrWhiteSpace(cfg.LauncherName))
+
                         LauncherName = cfg.LauncherName;
 
+
+
                     if (!string.IsNullOrWhiteSpace(cfg.ThemeSubTab))
+
                     {
+
                         ThemeSubTab = cfg.ThemeSubTab;
+
                         OnPropertyChanged(nameof(IsThemeSubTabSimple));
+
                         OnPropertyChanged(nameof(IsThemeSubTabAdvanced));
+
                     }
+
+
 
                     if (!string.IsNullOrWhiteSpace(cfg.BgColor)) BgHex = cfg.BgColor;
+
                     if (!string.IsNullOrWhiteSpace(cfg.SurfaceColor)) SurfaceHex = cfg.SurfaceColor;
+
                     if (!string.IsNullOrWhiteSpace(cfg.PanelColor)) PanelHex = cfg.PanelColor;
+
                     if (!string.IsNullOrWhiteSpace(cfg.SidebarBgColor)) SidebarBgHex = cfg.SidebarBgColor;
+
                     if (!string.IsNullOrWhiteSpace(cfg.CardColor)) CardHex = cfg.CardColor;
+
                     if (!string.IsNullOrWhiteSpace(cfg.FieldColor)) FieldHex = cfg.FieldColor;
+
                     if (!string.IsNullOrWhiteSpace(cfg.HoverColor)) HoverHex = cfg.HoverColor;
+
                     if (!string.IsNullOrWhiteSpace(cfg.TextPrimaryColor)) TextPrimaryHex = cfg.TextPrimaryColor;
+
                     if (!string.IsNullOrWhiteSpace(cfg.TextSecondaryColor)) TextSecondaryHex = cfg.TextSecondaryColor;
+
                     if (!string.IsNullOrWhiteSpace(cfg.BorderDarkColor)) BorderDarkHex = (cfg.BorderDarkColor == "#121622" || cfg.BorderDarkColor == "#182743" || cfg.BorderDarkColor == "#16181C") ? "#222834" : cfg.BorderDarkColor;
+
                     if (!string.IsNullOrWhiteSpace(cfg.SimpleAccentColor))
+
                     {
+
                         SimpleAccentHex = cfg.SimpleAccentColor;
+
                         _savedSimpleAccentHex = cfg.SimpleAccentColor;
+
                     }
+
                     else if (!string.IsNullOrWhiteSpace(cfg.AccentColor))
+
                     {
+
                         SimpleAccentHex = cfg.AccentColor;
+
                         _savedSimpleAccentHex = cfg.AccentColor;
+
                     }
+
+
 
                     if (!string.IsNullOrWhiteSpace(cfg.AccentColor))
+
                     {
+
                         CurrentAccentHex = cfg.AccentColor;
+
                         CustomThemeHex = cfg.AccentColor;
+
                         UpdatePreviewBrushes(cfg.AccentColor);
+
                     }
+
+
 
                     // Apply the theme corresponding to the saved ThemeSubTab
+
                     if (IsThemeSubTabSimple)
+
                     {
+
                         ApplySimpleTheme(SimpleAccentHex);
+
                     }
+
                     else
+
                     {
+
                         ZenithTheme.Apply(GetLauncherConfigSnapshot());
+
                     }
+
+
 
                     // Language is restored FIRST and verbatim: an explicit
+
                     // choice (including "Auto") always wins over detection.
+
                     // The system language is consulted exactly once - on the
+
                     // very first run, when nothing has been stored yet.
+
                     if (string.IsNullOrWhiteSpace(cfg.Language))
+
                     {
+
                         // First launch: resolve the OS language once and
+
                         // persist it immediately as the user's choice.
+
                         SelectedLanguage = L10n.CurrentDisplay;
+
                         SaveLauncherConfig();
+
                         LauncherLog.Info($"First run: system language '{L10n.CurrentDisplay}' stored as default.");
+
                     }
+
                     else
+
                     {
+
                         SelectedLanguage = NormalizeStoredLanguage(cfg.Language);
+
                     }
+
+
 
                     if (!string.IsNullOrWhiteSpace(cfg.JvmArgs)) JvmArgs = cfg.JvmArgs;
+
                     if (cfg.MinRamMb > 0) MinRamMb = cfg.MinRamMb;
+
                     if (cfg.RamMb > 0) RamMb = cfg.RamMb;
+
                     if (!string.IsNullOrWhiteSpace(cfg.LaunchBehavior))
+
                         SelectedLaunchBehavior = cfg.LaunchBehavior;
+
                     if (cfg.GameWidth > 0) GameWidth = cfg.GameWidth;
+
                     if (cfg.GameHeight > 0) GameHeight = cfg.GameHeight;
+
                     IsFullscreen = cfg.IsFullscreen;
+
                     if (!string.IsNullOrWhiteSpace(cfg.SelectedDirectoryMode))
+
                         SelectedDirectoryMode = cfg.SelectedDirectoryMode;
+
                     if (!string.IsNullOrWhiteSpace(cfg.JavaMode))
+
                         SelectedJavaMode = cfg.JavaMode;
+
                     if (!string.IsNullOrWhiteSpace(cfg.CustomJavaPath))
+
                         CustomJavaPath = cfg.CustomJavaPath;
+
                     UseFlatVersionList = cfg.UseFlatVersionList;
+
                     AutoManageJava = cfg.AutoManageJava;
+
                     DiscordRpcEnabled = cfg.DiscordRpcEnabled;
+
                     if (cfg.LauncherScale > 0.4 && cfg.LauncherScale < 3.0) LauncherScale = cfg.LauncherScale;
+
                     if (!string.IsNullOrEmpty(cfg.SelectedParticle)) SelectedParticle = cfg.SelectedParticle;
+
                     if (cfg.ParticleCount >= 10 && cfg.ParticleCount <= 150) ParticleCount = cfg.ParticleCount;
+
                     if (cfg.ParticleScale >= 0.3 && cfg.ParticleScale <= 2.5) ParticleScale = cfg.ParticleScale;
+
                     if (cfg.ParticleSpeed >= 0.2 && cfg.ParticleSpeed <= 3.0) ParticleSpeed = cfg.ParticleSpeed;
+
                     ParticleColorHex = cfg.ParticleColorHex ?? "";
+
                     if (cfg.ParticleAngleDeg >= 0 && cfg.ParticleAngleDeg <= 360) ParticleAngleDeg = cfg.ParticleAngleDeg;
+
                     ParticleTexturePath = cfg.ParticleTexturePath ?? "";
+
                     IsSidebarExpanded = cfg.IsSidebarExpanded;
+
                     LauncherSettingsVm?.LoadFromConfig(cfg);
+
                     ThemeSettingsVm?.LoadFromConfig(cfg);
+
                     SnapshotCurrentSavedTheme();
+
                 }
+
             }
+
         }
+
         catch (Exception ex)
+
         {
+
             LauncherLog.Error("Failed to load launcher config - keeping current settings.", ex);
+
         }
+
         finally
+
         {
+
             _isLoadingConfig = false;
+
         }
+
     }
 
+
+
     /// <summary>
+
     /// Normalizes a stored language value (display name or legacy 2-letter code)
+
     /// into a display name that ApplyDisplay and the config file both understand.
+
     /// Returns "Auto" for "auto", empty, or completely unknown values.
+
     /// </summary>
+
     private static string NormalizeStoredLanguage(string stored)
+
     {
+
         return (stored ?? "").Trim() switch
+
         {
+
             "English" or "en" => "English",
+
             "Українська" or "uk" => "Українська",
+
             "Русский" or "ru" => "Русский",
+
             "Türkçe" or "tr" => "Türkçe",
+
             "Deutsch" or "de" => "Deutsch",
+
             "Français" or "fr" => "Français",
+
             "Auto" or "auto" => "Auto",
+
             _ => "Auto",
+
         };
+
     }
+
+
 
     private async Task UpdateAvailableLoadersAsync(string version)
+
     {
+
         await Dispatcher.UIThread.InvokeAsync(() =>
+
         {
+
             var loaders = _modLoaderService.GetSupportedLoaders(version);
+
             if (!AvailableLoaders.SequenceEqual(loaders))
+
             {
+
                 AvailableLoaders.Clear();
+
                 foreach (var loader in loaders)
+
                     AvailableLoaders.Add(loader);
+
             }
+
+
 
             if (!AvailableLoaders.Contains(SelectedLoader))
+
                 SelectedLoader = AvailableLoaders.FirstOrDefault() ?? "Vanilla";
+
             // Re-push the value: resetting ItemsSource wipes the ComboBox's visual
+
             // selection, and assigning the identical string raises no notification.
+
             OnPropertyChanged(nameof(SelectedLoader));
+
         });
+
         await UpdateLoaderBuildsAsync();
+
     }
+
+
 
     // Monotonic id: only the most recent builds request may touch the UI.
+
     private int _loaderBuildsRequestId;
 
+
+
     private async Task UpdateLoaderBuildsAsync()
+
     {
+
         var requestId = ++_loaderBuildsRequestId;
+
         var loader = SelectedLoader;
+
         var version = SelectedVersion;
+
         AvailableLoaderBuilds.Clear();
+
         if (string.IsNullOrWhiteSpace(loader) || loader == "Vanilla")
+
         {
+
             SelectedLoaderBuild = "";
+
             OnPropertyChanged(nameof(SelectedLoaderBuild));
+
             LoaderErrorVisible = false;
+
             LoaderError = string.Empty;
+
             return;
+
         }
+
+
 
         List<string> builds;
+
         try
+
         {
+
             builds = await _modLoaderService.GetLoaderBuildsAsync(version, loader);
+
         }
+
         catch (Exception ex)
+
         {
+
             LauncherLog.Error("Failed to load loader builds", ex);
+
             builds = new List<string> { "Latest (Auto)" };
+
         }
+
+
 
         await Dispatcher.UIThread.InvokeAsync(() =>
+
         {
+
             if (requestId != _loaderBuildsRequestId) return; // stale response - a newer request owns the UI
+
             AvailableLoaderBuilds.Clear();
+
             foreach (var b in builds)
+
                 AvailableLoaderBuilds.Add(b);
 
+
+
             SelectedLoaderBuild = AvailableLoaderBuilds.FirstOrDefault() ?? "";
+
             OnPropertyChanged(nameof(SelectedLoaderBuild));
 
+
+
             LoaderErrorVisible = false;
+
             LoaderError = string.Empty;
+
         });
+
     }
+
+
 
     partial void OnSelectedLoaderChanged(string value)
+
     {
+
         _ = UpdateLoaderBuildsAsync();
+
         OnPropertyChanged(nameof(CanSwapLoader));
+
     }
+
+
 
     partial void OnSelectedLoaderBuildChanged(string value)
+
     {
+
         OnPropertyChanged(nameof(CanCreateInstance));
+
     }
 
+
+
     [ObservableProperty]
+
     private string _effectiveJavaPath = "";
 
+
+
     [ObservableProperty]
+
     private bool _isEffectiveJavaPathInvalid = false;
 
+
+
     partial void OnEffectiveJavaPathChanged(string value)
+
     {
+
         IsEffectiveJavaPathInvalid = !string.IsNullOrWhiteSpace(value) && value != "java" && !File.Exists(value);
+
         if (!string.Equals(value, ResolvedJavaPath, StringComparison.Ordinal) && !string.Equals(value, CustomJavaPath, StringComparison.Ordinal))
+
         {
+
             CustomJavaPath = value;
+
             ResolvedJavaPath = value;
+
             if (SelectedJavaMode != "Custom")
+
                 SelectedJavaMode = "Custom";
+
             SaveLauncherConfig();
+
         }
+
     }
+
+
 
     partial void OnSelectedJavaModeChanged(string value)
+
     {
+
         UpdateJavaDisplay();
+
     }
+
+
 
     partial void OnCustomJavaPathChanged(string value)
+
     {
+
         UpdateJavaDisplay();
+
     }
+
+
 
     private void UpdateJavaDisplay()
+
     {
+
         IsCustomJavaMode = SelectedJavaMode == "Custom";
 
+
+
         switch (SelectedJavaMode)
+
         {
+
             case "Custom":
+
                 CurrentJavaDisplay = Services.JavaVersionHelper.CustomDisplay(CustomJavaPath);
+
                 ResolvedJavaPath = CustomJavaPath;
+
                 EffectiveJavaPath = CustomJavaPath;
+
                 break;
+
+
 
             case "System":
+
                 CurrentJavaDisplay = L10n.T("java_display_system_path");
+
                 ResolvedJavaPath = Services.JavaVersionHelper.FindSystemJavaPath() ?? "";
+
                 EffectiveJavaPath = ResolvedJavaPath;
+
                 break;
+
+
 
             default: // Recommended
+
                 var inst = SelectedInstance ?? _instanceService.GetSelectedInstance();
+
                 CurrentJavaDisplay = inst != null
+
                     ? Services.JavaVersionHelper.RecommendedDisplay(inst.Version)
+
                     : L10n.T("java_display_auto");
+
                 ResolvedJavaPath = "";
+
                 EffectiveJavaPath = "";
+
                 _ = ResolveRecommendedJavaPathAsync(inst?.Version);
+
                 break;
+
         }
+
     }
+
+
 
     /// <summary>
+
     /// Resolves the exact javaw.exe Recommended mode would launch for the
+
     /// selected profile (no downloads) so the Settings dialog can always show
+
     /// a real path. Runs off the UI thread; a result that arrives after the
+
     /// user switched the mode is discarded.
+
     /// </summary>
+
     private async Task ResolveRecommendedJavaPathAsync(string? mcVersion)
+
     {
+
         try
+
         {
+
             var path = await _launchService.ResolveJavaForDisplayAsync(mcVersion);
+
             if (SelectedJavaMode != "Recommended") return; // user switched meanwhile
+
             ResolvedJavaPath = path ?? "";
+
             EffectiveJavaPath = ResolvedJavaPath;
+
         }
+
         catch (Exception ex)
+
         {
+
             LauncherLog.Error("Failed to resolve the recommended Java path for display.", ex);
+
         }
+
     }
+
+
 
     /// <summary>Passthrough for the per-instance editor dialog.</summary>
+
     internal Task<string?> ResolveJavaForEditorAsync(string? instanceVersion) =>
+
         _launchService.ResolveJavaForDisplayAsync(instanceVersion);
 
+
+
     [RelayCommand]
+
     private async Task PickCustomJavaAsync()
+
     {
+
         var topLevel = Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
+
             ? desktop.MainWindow
+
             : null;
 
+
+
         if (topLevel?.StorageProvider != null)
+
         {
+
             var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+
             {
+
                 Title = "Select Java Executable (javaw.exe / java)",
+
                 AllowMultiple = false,
+
                 FileTypeFilter = new[]
+
                 {
+
                     new FilePickerFileType("Java Executable") { Patterns = new[] { "javaw.exe", "java.exe", "java" } },
+
                     FilePickerFileTypes.All
+
                 }
+
             });
 
+
+
             if (files.Count > 0)
+
             {
+
                 var chosen = files[0].Path.LocalPath;
+
                 CustomJavaPath = chosen;
+
                 ResolvedJavaPath = chosen;
+
                 EffectiveJavaPath = chosen;
+
                 SelectedJavaMode = "Custom";
+
                 SaveLauncherConfig(); // picked file is active + persisted at once
+
             }
+
         }
+
     }
+
+
 
     [RelayCommand]
+
     private Task BrowseJavaPathAsync() => PickCustomJavaAsync();
 
+
+
     public async Task<bool> CheckCommandLineLaunchAsync(string[]? args)
+
     {
+
         if (args == null || args.Length < 2 || !args[0].Equals("--launch", StringComparison.OrdinalIgnoreCase))
+
             return false;
+
+
 
         var targetId = args[1].Trim('\"');
+
         var match = Instances.FirstOrDefault(i => i.Id.Equals(targetId, StringComparison.OrdinalIgnoreCase))
+
                  ?? Instances.FirstOrDefault(i => i.Name.Equals(targetId, StringComparison.OrdinalIgnoreCase));
+
         if (match == null)
+
         {
+
             StatusText = string.Format(L10n.T("mw_status_profile_missing"), targetId);
+
             return false;
+
         }
+
+
 
         SelectInstance(match);
+
         await LaunchGameAsync();
+
         return match.IsRunning;
+
     }
+
+
 
     public bool HasProfile(string idOrName) =>
+
         Instances.Any(i => i.Id.Equals(idOrName, StringComparison.OrdinalIgnoreCase))
+
         || Instances.Any(i => i.Name.Equals(idOrName, StringComparison.OrdinalIgnoreCase));
 
+
+
     public async Task LoadMojangVersionsAsync()
+
     {
+
         try
+
         {
+
             var path = new MinecraftPath(ZenithPaths.AppDataDir);
+
             var launcher = new MinecraftLauncher(path);
+
             var versions = await LaunchService.WithManifestRetryAsync(() => launcher.GetAllVersionsAsync().AsTask());
 
+
+
             _cachedVersions.Clear();
+
             foreach (var v in versions)
+
             {
+
                 // Never force a type on local entries - unknown types are filtered
+
                 // downstream; forcing "release" leaked modloader profiles into the list.
+
                 if (ModLoaderService.IsLoaderProfileId(v.Name)) continue;
+
                 _cachedVersions.Add((v.Name, v.Type ?? ""));
+
             }
 
+
+
             var cachePath = Path.Combine(ZenithPaths.AppDataDir, "versions_cache.json");
+
             try { File.WriteAllText(cachePath, System.Text.Json.JsonSerializer.Serialize(_cachedVersions)); } catch { }
 
+
+
             FilterVersions();
+
         }
+
         catch (Exception ex)
+
         {
+
             LauncherLog.Error("Failed to fetch Mojang version list, falling back to cache", ex);
+
             // Try cache fallback
+
             var cachePath = Path.Combine(ZenithPaths.AppDataDir, "versions_cache.json");
+
             _cachedVersions.Clear();
+
             if (File.Exists(cachePath))
+
             {
+
                 try
+
                 {
+
                     var cached = System.Text.Json.JsonSerializer.Deserialize<List<(string Name, string Type)>>(File.ReadAllText(cachePath));
+
                     if (cached != null && cached.Count > 0)
+
                         _cachedVersions.AddRange(cached);
+
                 }
+
                 catch { }
+
             }
+
             if (_cachedVersions.Count == 0)
+
             {
+
                 _cachedVersions.Add(("1.21.1", "release"));
+
                 _cachedVersions.Add(("1.20.4", "release"));
+
                 _cachedVersions.Add(("1.20.1", "release"));
+
                 _cachedVersions.Add(("1.16.5", "release"));
+
                 _cachedVersions.Add(("1.8.9", "release"));
+
                 _cachedVersions.Add(("1.7.10", "release"));
+
                 _cachedVersions.Add(("1.0", "release"));
+
             }
+
             FilterVersions();
+
         }
+
         finally
+
         {
+
             if (!AvailableVersions.Contains(SelectedVersion) && AvailableVersions.Count > 0)
+
                 SelectedVersion = AvailableVersions.First();
+
         }
+
     }
+
+
 
     public void FilterVersions()
+
     {
+
         AvailableVersions.Clear();
 
+
+
         foreach (var v in _cachedVersions)
+
         {
+
             if (ModLoaderService.IsLoaderProfileId(v.Name)) continue;
+
             if (v.Type == "release" && ShowReleases)
+
                 AvailableVersions.Add(v.Name);
+
             else if (v.Type == "snapshot" && ShowSnapshots)
+
                 AvailableVersions.Add(v.Name);
+
             else if (v.Type == "old_beta" && ShowBetas)
+
                 AvailableVersions.Add(v.Name);
+
             else if (v.Type == "old_alpha" && ShowAlphas)
+
                 AvailableVersions.Add(v.Name);
+
         }
+
+
 
         if (AvailableVersions.Count == 0 && _cachedVersions.Count > 0)
+
         {
+
             foreach (var v in _cachedVersions)
+
             {
+
                 if (ModLoaderService.IsLoaderProfileId(v.Name)) continue;
+
                 AvailableVersions.Add(v.Name);
+
             }
+
         }
+
     }
 
+
+
     public void RefreshState()
+
     {
+
         AccountsVm.RefreshAccounts();
 
+
+
         Instances.Clear();
+
         foreach (var inst in _instanceService.GetInstances())
+
         {
+
             inst.IsSelected = (inst.Id == SelectedInstanceId);
+
             inst.IsRunning = false;
+
             inst.IsLaunching = false;
+
             Instances.Add(inst);
+
         }
+
+
 
         HasInstances = Instances.Count > 0;
 
+
+
         var selected = _instanceService.GetSelectedInstance();
+
         if (selected != null)
+
         {
+
             SelectedInstance = selected;
+
             SelectedInstanceId = selected.Id;
+
             SelectedInstanceName = selected.Name;
+
             SelectedInstanceDetails = selected.DisplayVersion;
+
         }
+
         else
+
             {
+
                 SelectedInstance = null;
+
                 SelectedInstanceId = "";
+
                 SelectedInstanceName = L10n.T("mw_no_profile");
+
                 SelectedInstanceDetails = L10n.T("ei_click_create");
+
                 IsRightSidebarOpen = false;
+
             }
+
     }
+
+
 
     public void ReorderInstance(string movedId, string targetId, bool dropAfter, bool save = true)
+
     {
+
         try
+
         {
+
             _instanceService.ReorderInstances(movedId, targetId, dropAfter, save);
 
+
+
             var moved = Instances.FirstOrDefault(i => i.Id == movedId);
+
             if (moved == null) return;
 
+
+
             var all = _instanceService.GetInstances().ToList();
+
             int newIdx = all.FindIndex(i => i.Id == movedId);
+
             int oldIdx = Instances.IndexOf(moved);
 
+
+
             // Clamp to valid range before calling Move
+
             if (oldIdx < 0 || newIdx < 0) return;
+
             newIdx = Math.Clamp(newIdx, 0, Instances.Count - 1);
+
             oldIdx = Math.Clamp(oldIdx, 0, Instances.Count - 1);
 
+
+
             if (oldIdx != newIdx)
+
                 { var item = Instances[oldIdx]; Instances.RemoveAt(oldIdx); Instances.Insert(newIdx, item); }
+
         }
+
         catch (Exception ex)
+
         {
+
             LauncherLog.Error("ReorderInstance failed", ex);
+
         }
+
     }
+
+
 
     public void PersistInstanceOrder()
+
     {
+
         var ids = Instances.Select(i => i.Id).ToList();
+
         _instanceService.SetInstanceOrder(ids);
+
     }
 
+
+
     [RelayCommand]
+
     private void SelectInstance(InstanceModel instance)
+
     {
+
         if (instance == null) return;
 
+
+
         _instanceService.SetSelectedInstance(instance.Id);
+
         SelectedInstanceId = instance.Id;
+
         foreach (var inst in Instances)
+
             inst.IsSelected = (inst.Id == instance.Id);
 
+
+
         SelectedInstance = instance;
+
         SelectedInstanceName = instance.Name;
+
         SelectedInstanceDetails = instance.DisplayVersion;
+
         IsRightSidebarOpen = true;
+
     }
 
+
+
     [RelayCommand]
+
     private void CloseRightSidebar() => IsRightSidebarOpen = false;
 
+
+
     [RelayCommand]
+
     private async Task CreateDesktopShortcutAsync(InstanceModel instance)
+
     {
+
         var inst = instance ?? SelectedInstance;
+
         if (inst == null) return;
 
+
+
         try
+
         {
+
             if (!OperatingSystem.IsWindows())
+
             {
+
                 StatusText = L10n.T("mw_status_shortcut_os");
+
                 return;
+
             }
+
+
 
             var topLevel = Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop
+
                 ? desktop.MainWindow
+
                 : null;
 
+
+
             string shortcutPath;
+
             if (topLevel?.StorageProvider != null)
+
             {
+
                 var desktopDir = await topLevel.StorageProvider.TryGetFolderFromPathAsync(
+
                     Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory));
 
+
+
                 var file = await topLevel.StorageProvider.SaveFilePickerAsync(new Avalonia.Platform.Storage.FilePickerSaveOptions
+
                 {
+
                     Title = L10n.T("btn_shortcut"),
+
                     SuggestedFileName = $"{inst.Name}.lnk",
+
                     DefaultExtension = "lnk",
+
                     SuggestedStartLocation = desktopDir,
+
                     FileTypeChoices = new[]
+
                     {
+
                         new Avalonia.Platform.Storage.FilePickerFileType("Shortcut (*.lnk)") { Patterns = new[] { "*.lnk" } }
+
                     }
+
                 });
 
+
+
                 if (file == null) return;
+
                 shortcutPath = file.Path.LocalPath;
+
             }
+
             else
+
             {
+
                 var desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+
                 shortcutPath = Path.Combine(desktopPath, $"{inst.Name}.lnk");
+
             }
+
+
 
             var exePath = Environment.ProcessPath ?? Process.GetCurrentProcess().MainModule?.FileName;
+
             if (string.IsNullOrEmpty(exePath)) return;
+
             var workDir = AppDomain.CurrentDomain.BaseDirectory;
 
+
+
             // Default: the launcher's own (white) icon. If the profile has a custom
+
             // icon, build a real .ico for it so Explorer shows it on the shortcut.
+
             var iconLocation = $"{Esc(exePath)},0";
+
             var customIco = ShortcutIconService.GetOrCreateInstanceIco(inst);
+
             if (!string.IsNullOrEmpty(customIco))
+
                 iconLocation = $"{Esc(customIco)},0";
 
+
+
             // .NET's dynamic COM dispatch to WScript.Shell is unreliable in Avalonia apps,
+
             // so generate the .lnk via a small PowerShell script instead.
+
             var script =
+
                 "$ws = New-Object -ComObject WScript.Shell\n" +
+
                 $"$sc = $ws.CreateShortcut('{Esc(shortcutPath)}')\n" +
+
                 $"$sc.TargetPath = '{Esc(exePath)}'\n" +
+
                 $"$sc.Arguments = '--launch \"{inst.Name}\"'\n" +
+
                 $"$sc.WorkingDirectory = '{Esc(workDir)}'\n" +
+
                 $"$sc.IconLocation = '{iconLocation}'\n" +
+
                 $"$sc.Description = 'Launch {Esc(inst.Name)} (Minecraft {inst.Version}) - Zenith Launcher'\n" +
+
                 "$sc.Save()\n";
 
+
+
             var scriptPath = Path.Combine(Path.GetTempPath(), $"zenith_shortcut_{Guid.NewGuid():N}.ps1");
+
             File.WriteAllText(scriptPath, script);
+
             try
+
             {
+
                 var psi = new ProcessStartInfo
+
                 {
+
                     FileName = "powershell.exe",
+
                     Arguments = $"-NoProfile -ExecutionPolicy Bypass -NoLogo -File \"{scriptPath}\"",
+
                     UseShellExecute = false,
+
                     CreateNoWindow = true
+
                 };
+
                 using var p = Process.Start(psi);
+
                 if (p != null && !p.WaitForExit(15000))
+
                     p.Kill(true);
+
                 StatusText = File.Exists(shortcutPath)
+
                     ? string.Format(L10n.T("mw_status_shortcut_done"), inst.Name)
+
                     : L10n.T("mw_status_shortcut_failed");
+
             }
+
             finally
+
             {
+
                 try { File.Delete(scriptPath); } catch { }
+
             }
+
         }
+
         catch (Exception ex)
+
         {
+
             LauncherLog.Error("Failed to create shortcut", ex);
+
             StatusText = L10n.T("mw_status_shortcut_failed");
+
         }
+
+
 
         static string Esc(string s) => s.Replace("'", "''");
+
     }
 
+
+
     [RelayCommand]
+
     private void EditInstance(InstanceModel instance)
+
     {
+
         var inst = instance ?? SelectedInstance;
+
         if (inst == null) return;
+
         SelectInstance(inst);
+
         OpenEditInstanceWindow(inst);
+
     }
+
+
 
     private void OpenEditInstanceWindow(InstanceModel instance)
+
     {
+
         NavigateToEditInstance(instance);
+
     }
+
+
 
     public void CloseEditInstanceWindow(EditInstanceViewModel viewModel)
+
     {
+
         GoBack();
+
     }
+
+
 
     [RelayCommand]
+
     private async Task OpenCopyDialog(InstanceModel instance)
+
     {
+
         var inst = instance ?? SelectedInstance;
+
         if (inst == null) return;
 
+
+
         var existingNames = _instanceService.GetInstances().Select(i => i.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
         string copyName = $"{inst.Name} (Copy)";
+
         int counter = 2;
+
         while (existingNames.Contains(copyName))
+
         {
+
             copyName = $"{inst.Name} (Copy {counter})";
+
             counter++;
+
         }
+
+
 
         StatusText = $"Cloning {inst.Name}...";
+
         var created = await _instanceService.CreateInstanceAsync(copyName, inst.Version, inst.LoaderType);
+
         if (created == null) return;
 
+
+
         try
+
         {
+
             await Task.Run(() =>
+
             {
+
                 if (Directory.Exists(inst.Path) && Directory.Exists(created.Path))
+
                 {
+
                     CopyTree(inst.Path, created.Path);
+
                 }
+
             });
+
         }
+
         catch (Exception ex)
+
         {
+
             LauncherLog.Error($"Failed to copy instance directory during clone: {inst.Name}", ex);
+
         }
+
+
 
         await _instanceService.SaveInstanceAsync(created);
+
         Instances.Add(created);
+
         SelectedInstance = created;
+
         StatusText = $"Profile '{copyName}' cloned successfully.";
+
     }
+
+
 
     private static void CopyTree(string sourceDir, string destinationDir)
+
     {
+
         var dir = new DirectoryInfo(sourceDir);
+
         if (!dir.Exists) return;
 
+
+
         Directory.CreateDirectory(destinationDir);
+
         foreach (var file in dir.GetFiles())
+
         {
+
             if (file.Name.EndsWith(".lock", StringComparison.OrdinalIgnoreCase)) continue;
+
             try { file.CopyTo(Path.Combine(destinationDir, file.Name), true); } catch { }
+
         }
+
+
 
         foreach (var subDir in dir.GetDirectories())
+
         {
+
             if (subDir.Name.Equals(".fabric", StringComparison.OrdinalIgnoreCase) ||
+
                 subDir.Name.Equals(".quilt", StringComparison.OrdinalIgnoreCase) ||
+
                 subDir.Name.Equals("crash-reports", StringComparison.OrdinalIgnoreCase))
+
                 continue;
 
+
+
             try { CopyTree(subDir.FullName, Path.Combine(destinationDir, subDir.Name)); } catch { }
+
         }
+
     }
+
+
+
 
 
     private void FlushConsolePending()
+
     {
+
         if (_consolePending.IsEmpty) return;
+
         var sb = new System.Text.StringBuilder();
+
         while (_consolePending.TryDequeue(out var line))
+
             sb.Append(line).Append(Environment.NewLine);
+
         if (sb.Length > 0)
+
         {
+
             var newText = ConsoleLogs + sb;
+
             if (newText.Length > 800_000)
+
                 newText = newText.Substring(newText.Length - 800_000);
+
             ConsoleLogs = newText;
+
         }
+
     }
 
+
+
     [RelayCommand]
+
     private async Task CopyConsoleLogsAsync()
+
     {
+
         if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime { MainWindow: { } window })
+
         {
+
             var clipboard = Avalonia.Controls.TopLevel.GetTopLevel(window)?.Clipboard;
+
             if (clipboard != null)
+
             {
+
                 var transfer = new DataTransfer();
+
                 transfer.Add(DataTransferItem.CreateText(ConsoleLogs ?? string.Empty));
+
                 await clipboard.SetDataAsync(transfer);
+
             }
+
         }
+
     }
 
+
+
     [RelayCommand]
+
     private void CloseConsoleDialog() => IsConsoleDialogOpen = false;
 
-    [RelayCommand]
-    private void StartRenameInstance(InstanceModel instance)
-    {
-        if (instance == null || instance.IsRunning || instance.IsLaunching || _launchingInstanceIds.Contains(instance.Id)) return;
-        instance.IsEditingName = true;
-    }
+
 
     [RelayCommand]
-    private async Task FinishRenameInstanceAsync(InstanceModel instance)
+
+    private void StartRenameInstance(InstanceModel instance)
+
     {
+
+        if (instance == null || instance.IsRunning || instance.IsLaunching || _launchingInstanceIds.Contains(instance.Id)) return;
+
+        instance.IsEditingName = true;
+
+    }
+
+
+
+    [RelayCommand]
+
+    private async Task FinishRenameInstanceAsync(InstanceModel instance)
+
+    {
+
         if (instance == null) return;
+
         instance.IsEditingName = false;
 
+
+
         // Check for duplicate name
+
         var allInstances = _instanceService.GetInstances();
+
         if (allInstances.Any(i => i.Id != instance.Id && i.Name.Equals(instance.Name, StringComparison.OrdinalIgnoreCase)))
+
         {
+
             StatusText = string.Format(L10n.T("mw_status_name_exists"), instance.Name);
+
             return;
+
         }
+
+
 
         await _instanceService.SaveInstanceAsync(instance);
+
         RefreshState();
+
     }
 
+
+
     [RelayCommand]
+
     private async Task ChangeInstanceIconAsync(InstanceModel instance)
+
     {
+
         var inst = instance ?? SelectedInstance;
+
         if (inst == null) return;
 
+
+
         var topLevel = Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
+
             ? desktop.MainWindow
+
             : null;
 
+
+
         if (topLevel?.StorageProvider != null)
+
         {
+
             var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+
             {
+
                 Title = "Select Profile Icon",
+
                 AllowMultiple = false,
+
                 FileTypeFilter = new[] { FilePickerFileTypes.ImageAll }
+
             });
+
+
 
             if (files.Count > 0)
+
             {
+
                 var srcFile = files[0].Path.LocalPath;
+
                 var targetExt = Path.GetExtension(srcFile);
+
                 var destIcon = Path.Combine(inst.Path, $"icon{targetExt}");
+
                 Directory.CreateDirectory(inst.Path);
+
                 File.Copy(srcFile, destIcon, true);
+
                 inst.IconPath = destIcon;
+
                 await _instanceService.SaveInstanceAsync(inst);
+
                 RefreshState();
+
             }
+
         }
+
     }
 
+
+
     [RelayCommand]
+
     private async Task LaunchSpecificInstanceAsync(InstanceModel instance)
+
     {
+
         await LaunchSpecificInstanceWithArgsAsync(instance, null);
+
     }
+
+
 
     public async Task LaunchSpecificInstanceWithArgsAsync(InstanceModel? instance, string? extraArgs)
+
     {
+
         var inst = instance ?? SelectedInstance;
+
         if (inst == null) return;
+
         SelectInstance(inst);
+
         await LaunchGameWithArgsAsync(extraArgs);
+
     }
 
+
+
     [RelayCommand]
+
     private void KillInstance(InstanceModel instance)
+
     {
+
         var inst = instance ?? SelectedInstance;
+
         if (inst == null) return;
+
         _launchingInstanceIds.Remove(inst.Id);
+
         inst.IsLaunching = false;
+
         _launchService.KillProcess(inst.Id);
+
         inst.IsRunning = false;
+
         OnPropertyChanged(nameof(CanLaunch));
+
         if (ReferenceEquals(SelectedInstance, inst))
+
             IsLaunching = false;
+
     }
 
+
+
     [RelayCommand]
+
     private void OpenProfileFolder(InstanceModel instance)
+
     {
+
         var inst = instance ?? SelectedInstance;
+
         if (inst != null && Directory.Exists(inst.Path))
+
         {
+
             Process.Start(new ProcessStartInfo { FileName = inst.Path, UseShellExecute = true, Verb = "open" });
+
         }
+
     }
 
+
+
     [RelayCommand]
+
     private void OpenProfileBrowseMods(InstanceModel instance)
+
     {
+
         var inst = instance ?? SelectedInstance;
+
         if (inst == null) return;
+
         SelectInstance(inst);
+
+
 
         var editVm = new EditInstanceViewModel(inst, this, _instanceService);
+
         var type = ContentType.Mod;
+
         if (!editVm.HasModsSupport)
+
             type = ContentType.ResourcePack;
 
+
+
         var vm = new ContentBrowserViewModel(
+
             inst.Version,
+
             inst.LoaderType,
+
             inst.Path,
+
             msg => StatusText = msg,
+
             () => editVm.RefreshFileLists(),
+
             () => editVm.HasModsSupport,
+
             type)
+
         {
+
             GetCurseForgeApiKey = () => LauncherSettingsVm?.CurseForgeApiKey ?? ""
+
         };
 
+
+
         NavigateToContentBrowser(vm, inst, inst.Name, "Mods", editVm);
+
     }
 
+
+
     [RelayCommand]
+
     private void OpenProfileServerManager(InstanceModel instance)
+
     {
+
         var inst = instance ?? SelectedInstance;
+
         if (inst == null) return;
+
         SelectInstance(inst);
+
+
 
         var editVm = new EditInstanceViewModel(inst, this, _instanceService);
+
         var path = Path.Combine(inst.Path, "servers.dat");
+
         var vm = new ServerManagerViewModel(path);
+
         NavigateToServerManager(vm, inst, editVm);
+
     }
 
+
+
     [RelayCommand]
+
     private void OpenProfileSectionMods(InstanceModel instance) => OpenProfileWithSection(instance, "Mods");
 
+
+
     [RelayCommand]
+
     private void OpenProfileSectionResourcePacks(InstanceModel instance) => OpenProfileWithSection(instance, "Resource Packs");
 
+
+
     [RelayCommand]
+
     private void OpenProfileSectionShaderPacks(InstanceModel instance) => OpenProfileWithSection(instance, "Shader Packs");
 
+
+
     [RelayCommand]
+
     private void OpenProfileSectionWorlds(InstanceModel instance) => OpenProfileWithSection(instance, "Worlds");
 
+
+
     [RelayCommand]
+
     private void OpenProfileSectionScreenshots(InstanceModel instance) => OpenProfileWithSection(instance, "Screenshots");
 
+
+
     [RelayCommand]
+
     private void OpenProfileSectionLogs(InstanceModel instance) => OpenProfileWithSection(instance, "Logs");
 
+
+
     private void OpenProfileWithSection(InstanceModel? instance, string tab)
+
     {
+
         var inst = instance ?? SelectedInstance;
+
         if (inst == null) return;
+
         SelectInstance(inst);
+
         NavigateToEditInstance(inst, tab);
+
     }
 
+
+
     [RelayCommand]
+
     private void OpenProfileModsFolder(InstanceModel instance) => OpenInstanceSubfolder(instance, "mods");
 
+
+
     [RelayCommand]
+
     private void OpenProfileResourcePacksFolder(InstanceModel instance) => OpenInstanceSubfolder(instance, "resourcepacks");
 
+
+
     [RelayCommand]
+
     private void OpenProfileShaderPacksFolder(InstanceModel instance) => OpenInstanceSubfolder(instance, "shaderpacks");
 
+
+
     [RelayCommand]
+
     private void OpenProfileWorldsFolder(InstanceModel instance) => OpenInstanceSubfolder(instance, "saves");
 
+
+
     [RelayCommand]
+
     private void OpenProfileScreenshotsFolder(InstanceModel instance) => OpenInstanceSubfolder(instance, "screenshots");
 
+
+
     [RelayCommand]
+
     private void OpenProfileLogsFolder(InstanceModel instance) => OpenInstanceSubfolder(instance, "logs");
 
+
+
     private void OpenInstanceSubfolder(InstanceModel? instance, string subfolder)
+
     {
+
         var inst = instance ?? SelectedInstance;
+
         if (inst == null || string.IsNullOrWhiteSpace(inst.Path)) return;
+
         try
+
         {
+
             var targetDir = Path.Combine(inst.Path, subfolder);
+
             if (!Directory.Exists(targetDir))
+
             {
+
                 Directory.CreateDirectory(targetDir);
+
             }
+
             Process.Start(new ProcessStartInfo { FileName = targetDir, UseShellExecute = true, Verb = "open" });
+
         }
+
         catch (Exception ex)
+
         {
+
             LauncherLog.Error($"Failed to open subfolder '{subfolder}': {ex.Message}");
+
         }
+
     }
 
+
+
     [RelayCommand]
+
     private async Task ExportCurseForgeAsync(InstanceModel instance)
+
     {
+
         var inst = instance ?? SelectedInstance;
+
         if (inst == null) return;
+
         await ExportZipArchiveAsync(inst, "CurseForge", $"{inst.Name}-CurseForge.zip");
+
     }
 
+
+
     [RelayCommand]
+
     private async Task ExportModrinthAsync(InstanceModel instance)
+
     {
+
         var inst = instance ?? SelectedInstance;
+
         if (inst == null) return;
+
         await ExportZipArchiveAsync(inst, "Modrinth", $"{inst.Name}.mrpack");
+
     }
 
+
+
     [RelayCommand]
+
     private async Task ExportPrismAsync(InstanceModel instance)
+
     {
+
         var inst = instance ?? SelectedInstance;
+
         if (inst == null) return;
+
         await ExportZipArchiveAsync(inst, "Prism", $"{inst.Name}-Prism.zip");
+
     }
+
+
 
     private async Task ExportZipArchiveAsync(InstanceModel instance, string format, string defaultFileName)
+
     {
+
         var topLevel = Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
+
             ? desktop.MainWindow
+
             : null;
 
+
+
         if (topLevel?.StorageProvider != null)
+
         {
+
             var file = await topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+
             {
+
                 Title = $"Export to {format}",
+
                 SuggestedFileName = defaultFileName
+
             });
 
+
+
             if (file != null)
+
             {
+
                 var targetPath = file.Path.LocalPath;
+
                 try
+
                 {
+
                     StatusText = $"Exporting {instance.Name} to {format}...";
+
                     await InstanceExportService.ExportAsync(instance, format, targetPath);
+
                     StatusText = $"Exported to {Path.GetFileName(targetPath)} successfully.";
+
                 }
+
                 catch (Exception ex)
+
                 {
+
                     LauncherLog.Error($"Export to {format} failed for {instance.Name}", ex);
+
                     StatusText = $"Export to {format} failed.";
+
                 }
+
             }
+
         }
+
     }
 
+
+
     [RelayCommand]
+
     private async Task ConfirmDeleteProfileAsync()
+
     {
+
         var inst = PendingDeleteInstance;
+
         if (inst == null) return;
+
         IsDeleteConfirmOpen = false;
+
         PendingDeleteInstance = null;
+
         StatusText = $"Deleting {inst.Name}...";
+
+
 
         await _instanceService.DeleteInstanceAsync(inst.Id);
 
+
+
         StatusText = $"Deleted {inst.Name}";
+
         RefreshState();
+
         ModpacksBrowser?.UpdateInstalledFlags();
+
     }
 
+
+
     [RelayCommand]
+
     private void CancelDeleteProfile()
+
     {
+
         IsDeleteConfirmOpen = false;
+
         PendingDeleteInstance = null;
+
     }
 
+
+
     [RelayCommand]
+
     private void RequestDeleteProfile(InstanceModel instance)
+
     {
+
         var inst = instance ?? SelectedInstance;
+
         if (inst == null) return;
+
         PendingDeleteInstance = inst;
+
         IsDeleteConfirmOpen = true;
+
     }
 
+
+
     [RelayCommand]
+
     private void OpenRootDirectory()
+
     {
+
         var dir = ZenithPaths.AppDataDir;
+
         Directory.CreateDirectory(dir);
+
         Process.Start(new ProcessStartInfo { FileName = dir, UseShellExecute = true, Verb = "open" });
+
     }
 
+
+
     [RelayCommand]
+
     private void ToggleVersionPicker() => IsVersionPickerOpen = !IsVersionPickerOpen;
 
+
+
     [RelayCommand]
+
     private void SelectVersion(string version)
+
     {
+
         SelectedVersion = version;
+
         IsVersionPickerOpen = false;
+
         IsElyByErrorOpen = false;
+
     }
 
+
+
     [RelayCommand]
+
     private void ClearVersion()
+
     {
+
         SelectedVersion = "";
+
     }
 
+
+
     [RelayCommand]
+
     public async Task ImportInstancesAsync()
+
     {
+
         IsImportPickerOpen = true;
+
         await Task.CompletedTask;
+
     }
 
+
+
     [RelayCommand]
+
     private void CloseImportPicker() => IsImportPickerOpen = false;
 
+
+
     [RelayCommand]
+
     private async Task PickImportFolderAsync(string? kind)
+
     {
+
         var topLevel = Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
+
             ? desktop.MainWindow
+
             : null;
+
         if (topLevel?.StorageProvider == null) return;
 
+
+
         var folders = await topLevel.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+
         {
+
             Title = L10n.T("profile_import"),
+
             AllowMultiple = false
+
         });
+
         if (folders.Count == 0) return;
 
+
+
         var path = folders[0].Path.LocalPath;
+
         var detected = InstanceImportService.Detect(path);
+
         if (detected == ImportSourceKind.None)
+
         {
+
             StatusText = L10n.T("imp_not_recognized");
+
             return;
+
         }
+
+
 
         IsImportPickerOpen = false;
+
         StatusText = L10n.T("profile_importing");
+
         try
+
         {
+
             var result = await Task.Run(() => InstanceImportService.ImportAsync(_instanceService, path));
+
             StatusText = result.Imported > 0
+
                 ? string.Format(L10n.T("profile_imported"), result.Imported, result.Skipped)
+
                 : L10n.T("profile_import_none");
+
             if (result.Warnings.Count > 0)
+
                 StatusText += " " + result.Warnings[0];
+
         }
+
         catch (Exception ex)
+
         {
+
             LauncherLog.Error("Instance import failed", ex);
+
             StatusText = ex.Message;
+
         }
+
     }
 
+
+
     [RelayCommand]
+
     private void OpenNewInstanceDialog()
+
     {
+
         NavigateToCreateProfile();
+
     }
 
+
+
     [RelayCommand]
+
     private void OpenSettingsDialog()
+
     {
+
         NavigateToSettings();
+
     }
 
+
+
     [RelayCommand]
+
     private void CloseCrashReport()
+
     {
+
         IsCrashReportOpen = false;
+
         CrashReportVm = null;
+
     }
 
+
+
     [RelayCommand]
+
     private void OpenJavaInstaller()
+
     {
+
         IsJavaInstallerOpen = true;
+
         Services.DiscordPresenceService.SetChoosingVersion();
+
     }
 
+
+
     [RelayCommand]
+
     private void CloseJavaInstaller()
+
     {
+
         IsJavaInstallerOpen = false;
+
         Services.DiscordPresenceService.SetBrowsingProfiles();
+
         UpdateJavaDisplay();
+
     }
 
+
+
     [RelayCommand]
+
     private void OpenAccountsDialog()
+
     {
+
         NavigateToAccounts();
+
     }
 
+
+
     [RelayCommand]
+
     private void CloseDialogs()
+
     {
+
         SaveLauncherConfig();
+
         IsCreateDialogOpen = false;
+
         IsJavaInstallerOpen = false;
+
         IsVersionPickerOpen = false;
+
         IsElyByErrorOpen = false;
+
         IsDeleteConfirmOpen = false;
+
         IsRestartConfirmOpen = false;
+
         IsCloneDialogOpen = false;
+
         IsServerUnderDevDialogOpen = false;
+
         PendingDeleteInstance = null;
+
         FilterVersions();
+
     }
 
+
+
     [RelayCommand]
+
     private async Task ConfirmCreateInstanceAsync()
+
     {
+
         if (string.IsNullOrWhiteSpace(SelectedVersion))
+
         {
+
             StatusText = L10n.T("mw_status_need_version");
+
             return;
+
         }
+
+
 
         var name = NewInstanceName?.Trim();
+
         if (string.IsNullOrWhiteSpace(name))
+
             name = L10n.T("ph_default_profile");
 
+
+
         var allNames = _instanceService.GetInstances().Select(i => i.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
         var finalName = name;
+
         if (allNames.Contains(finalName))
+
         {
+
             int idx = 1;
+
             while (allNames.Contains($"{finalName}_{idx}"))
+
                 idx++;
+
             finalName = $"{finalName}_{idx}";
+
         }
+
+
 
         var inst = await _instanceService.CreateInstanceAsync(finalName, SelectedVersion, SelectedLoader, SelectedLoaderBuild);
+
         if (inst == null)
+
         {
+
             StatusText = string.Format(L10n.T("mw_status_name_exists"), finalName);
+
             return;
+
         }
+
         _instanceService.SetSelectedInstance(inst.Id);
+
         CloseDialogs();
+
         RefreshState();
 
+
+
         // Reset create dialog form state
+
         NewInstanceName = "";
+
         SelectedVersion = "";
+
         SelectedLoader = "Vanilla";
+
         SelectedLoaderBuild = "";
+
         ShowLoaderBuilds = false;
+
     }
 
+
+
     [RelayCommand]
+
     private async Task LaunchGameAsync()
+
     {
+
         await LaunchGameWithArgsAsync(null);
+
     }
+
+
 
     public async Task LaunchGameWithArgsAsync(string? extraArgs)
+
     {
+
         var instance = SelectedInstance ?? _instanceService.GetSelectedInstance();
 
+
+
         if (instance == null) return;
+
         if (instance.IsRunning || _launchingInstanceIds.Contains(instance.Id)) return;
 
+
+
         if (instance.MinRamMb == null || instance.MinRamMb <= 0)
+
             instance.MinRamMb = MinRamMb;
+
         instance.MaxMemoryMb = instance.RamMb ?? RamMb;
 
+
+
         // Mark launching BEFORE any awaits so Cancel is clickable from second one.
+
         _launchingInstanceIds.Add(instance.Id);
+
         instance.IsLaunching = true;
+
         if (ReferenceEquals(SelectedInstance, instance))
+
             IsLaunching = true;
+
         OnPropertyChanged(nameof(CanLaunch));
+
         OnPropertyChanged(nameof(CanLaunchOrCancel));
+
         OnPropertyChanged(nameof(LaunchButtonText));
+
         LaunchProgress = 0;
+
         Services.DiscordPresenceService.SetLaunchingGame(instance.Name);
 
+
+
         try
+
         {
+
             var account = _accountService.GetActiveAccount() ?? await _accountService.AddOfflineAccountAsync(ActiveAccountName);
+
             if (SelectedJavaMode == "Custom" && (string.IsNullOrWhiteSpace(CustomJavaPath) || !File.Exists(CustomJavaPath)))
+
             {
+
                 StatusText = L10n.T("mw_status_java_invalid");
+
                 return;
+
             }
+
+
 
             var process = await Task.Run(() => _launchService.LaunchAsync(instance, account, extraArgs));
+
             StatusText = string.Format(L10n.T("mw_status_launched"), instance.Name);
+
             ApplyLaunchBehavior(process);
+
         }
+
         catch (HttpRequestException ex)
+
         {
+
             if (SelectedAccount?.Type == Models.AccountType.ElyBy)
+
             {
+
                 IsElyByErrorOpen = true;
+
                 StatusText = L10n.T("mw_status_conn_error");
+
                 return;
+
             }
+
             StatusText = string.Format(L10n.T("mw_status_http_error"), ex.Message);
+
         }
+
         catch (InvalidOperationException ex)
+
         {
+
             ConsoleLogs += $"[ERROR] {ex.Message}\n";
+
             ConsoleLogs += $"[ERROR] Stack: {ex}\n";
+
             StatusText = ex.Message;
+
         }
+
         catch (Exception ex)
+
         {
+
             LauncherLog.Error("Launch failed", ex);
+
             ConsoleLogs += $"[CRITICAL ERROR] {ex}\n";
+
             StatusText = string.Format(L10n.T("mw_status_launch_failed"), ex.Message);
+
         }
+
         finally
+
         {
+
             _launchingInstanceIds.Remove(instance.Id);
+
             instance.IsLaunching = false;
+
             if (ReferenceEquals(SelectedInstance, instance))
+
                 IsLaunching = false;
+
             OnPropertyChanged(nameof(CanLaunch));
+
             // Launch aborted before the process started - return to browsing.
+
             if (!instance.IsRunning)
+
                 Services.DiscordPresenceService.SetBrowsingProfiles();
+
         }
+
     }
+
+
 
     private static void AddDirectoryToZip(ZipArchive archive, string sourceDir, string entryPrefix)
+
     {
+
         foreach (var file in Directory.GetFiles(sourceDir, "*", SearchOption.AllDirectories))
+
         {
+
             var relativePath = Path.GetRelativePath(sourceDir, file);
+
             archive.CreateEntryFromFile(file, Path.Combine(entryPrefix, relativePath));
+
         }
+
     }
+
+
 
     [System.Runtime.InteropServices.DllImport("kernel32.dll", SetLastError = true)]
+
     [return: System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
+
     private static extern bool GlobalMemoryStatusEx(ref MEMORYSTATUSEX lpBuffer);
 
+
+
     [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+
     private struct MEMORYSTATUSEX
+
     {
+
         public uint dwLength;
+
         public uint dwMemoryLoad;
+
         public ulong ullTotalPhys;
+
         public ulong ullAvailPhys;
+
         public ulong ullTotalPageFile;
+
         public ulong ullAvailPageFile;
+
         public ulong ullTotalVirtual;
+
         public ulong ullAvailVirtual;
+
         public ulong ullAvailExtendedVirtual;
+
     }
+
+
 
     [RelayCommand]
+
     private async Task LaunchOrCancelAsync()
+
     {
+
         if (IsLaunching)
+
         {
+
             var instance = SelectedInstance ?? _instanceService.GetSelectedInstance();
+
             if (instance != null)
+
             {
+
                 _launchingInstanceIds.Remove(instance.Id);
+
                 instance.IsLaunching = false;
+
                 _launchService.KillProcess(instance.Id);
+
                 instance.IsRunning = false;
+
             }
+
             IsLaunching = false;
+
             StatusText = L10n.T("mw_status_launch_cancelled");
+
         }
+
         else
+
         {
+
             await LaunchGameAsync();
+
         }
+
     }
+
+
 
     private void ApplyLaunchBehavior(Process? process)
+
     {
+
         if (Avalonia.Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop || desktop.MainWindow == null)
+
             return;
 
+
+
         var behavior = SelectedLaunchBehavior;
+
         if (string.Equals(behavior, "Hide", StringComparison.OrdinalIgnoreCase))
+
         {
+
             Dispatcher.UIThread.Post(() =>
+
             {
+
                 if (desktop.MainWindow != null)
+
                 {
+
                     desktop.MainWindow.WindowState = Avalonia.Controls.WindowState.Minimized;
+
                 }
+
             });
 
+
+
             if (process != null)
+
             {
+
                 try
+
                 {
+
                     process.EnableRaisingEvents = true;
+
                     process.Exited += (_, _) =>
+
                     {
+
                         Dispatcher.UIThread.Post(() =>
+
                         {
+
                             if (desktop.MainWindow != null)
+
                             {
+
                                 desktop.MainWindow.WindowState = Avalonia.Controls.WindowState.Normal;
+
                                 desktop.MainWindow.Activate();
+
                             }
+
                         });
+
                     };
+
                 }
+
                 catch (Exception ex)
+
                 {
+
                     LauncherLog.Error("Failed to hook Exited event for launch behavior restore", ex);
+
                 }
+
             }
+
         }
+
         else if (string.Equals(behavior, "Close", StringComparison.OrdinalIgnoreCase))
+
         {
+
             Dispatcher.UIThread.Post(() =>
+
             {
+
                 desktop.MainWindow?.Close();
+
             });
+
         }
+
     }
+
 }
+
+
+
+
+
+
+
+
+
+
 
 
 

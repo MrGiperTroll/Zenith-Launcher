@@ -3165,7 +3165,10 @@ public partial class MainWindowViewModel : ViewModelBase
             msg => StatusText = msg,
             () => editVm.RefreshFileLists(),
             () => editVm.HasModsSupport,
-            type);
+            type)
+        {
+            GetCurseForgeApiKey = () => LauncherSettingsVm?.CurseForgeApiKey ?? ""
+        };
 
         NavigateToContentBrowser(vm, inst, inst.Name, "Mods", editVm);
     }

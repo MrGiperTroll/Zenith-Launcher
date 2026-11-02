@@ -131,7 +131,7 @@ public partial class GameVersionFilterViewModel : ObservableObject
         }
     }
 
-    private void NotifySelectionState()
+    public void NotifySelectionState()
     {
         OnPropertyChanged(nameof(SelectedCount));
         OnPropertyChanged(nameof(SelectedText));

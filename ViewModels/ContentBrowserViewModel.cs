@@ -794,7 +794,7 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
     {
         get
         {
-            var list = new List<ContentType> { ContentType.Mod, ContentType.ResourcePack, ContentType.Shader, ContentType.DataPack };
+            var list = new List<ContentType> { ContentType.Mod, ContentType.ResourcePack, ContentType.Shader, ContentType.DataPack, ContentType.World };
             if (!HasModsSupport) list.Remove(ContentType.Mod);
             if (!HasShaderSupport) list.Remove(ContentType.Shader);
             return list;
@@ -818,6 +818,7 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
     public string InstanceVersion => _gameVersion;
     public string InstanceLoader => _loaderType;
     public string InstancePath => _instancePath;
+    public Func<string>? GetCurseForgeApiKey { get; set; }
 
     public bool IsEmpty => Results.Count == 0 && !IsBusy && !IsLoadingMore;
     public bool HasMore => _offset < _totalHits;
@@ -854,6 +855,13 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
             OnPropertyChanged(nameof(VersionList));
         };
         _ = ReloadAsync();
+    }
+
+    private static string SanitizeFolderName(string name)
+    {
+        var invalid = Path.GetInvalidFileNameChars();
+        var clean = new string(name.Select(c => invalid.Contains(c) ? '_' : c).ToArray()).Trim();
+        return string.IsNullOrWhiteSpace(clean) ? "WorldMap" : clean;
     }
 
     private static string[] MapLoaders(string loader) => loader.Trim().ToLowerInvariant() switch
@@ -1025,6 +1033,35 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
         _totalHits = 0;
         try
         {
+            if (SelectedContentType == ContentType.World)
+            {
+                var apiKey = GetCurseForgeApiKey?.Invoke() ?? "";
+                if (string.IsNullOrWhiteSpace(apiKey))
+                {
+                    StatusText = "CurseForge API key required to browse Worlds & Maps. Add your key in Settings.";
+                    return;
+                }
+                var res = await CurseForgeApiService.SearchMapsAsync(SearchQuery, _gameVersion, 0, PageSize, apiKey, token);
+                if (token.IsCancellationRequested || gen != _searchGeneration) return;
+                if (res == null)
+                {
+                    StatusText = L10n.T("mp_status_unreachable");
+                    return;
+                }
+                _totalHits = res.TotalHits;
+                _offset = res.Limit;
+                foreach (var p in res.Hits)
+                {
+                    Results.Add(p);
+                    LoadIcon(p, gen);
+                }
+                UpdateInstalledFlags();
+                StatusText = res.TotalHits == 0
+                    ? string.Format(L10n.T("cb_status_none"), "worlds")
+                    : "";
+                return;
+            }
+
             var categoryTags = AvailableTags.Where(t => t.IsSelected && !t.IsReset).Select(t => t.Name).ToList();
             var loaders = SelectedContentType == ContentType.Mod ? MapLoaders(_loaderType) : Array.Empty<string>();
             var projectType = SelectedContentType.ModrinthProjectType();
@@ -1080,6 +1117,35 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
         var gen = _searchGeneration;
         try
         {
+            if (SelectedContentType == ContentType.World)
+            {
+                var apiKey = GetCurseForgeApiKey?.Invoke() ?? "";
+                if (!string.IsNullOrWhiteSpace(apiKey))
+                {
+                    var res = await CurseForgeApiService.SearchMapsAsync(SearchQuery, _gameVersion, _offset, PageSize, apiKey);
+                    if (res != null && gen == _searchGeneration)
+                    {
+                        if (res.Hits.Count == 0) _offset = _totalHits;
+                        else
+                        {
+                            _offset += res.Limit;
+                            _totalHits = res.TotalHits;
+                            var existing = Results.Select(r => r.ProjectId).ToHashSet();
+                            foreach (var p in res.Hits)
+                            {
+                                if (existing.Add(p.ProjectId))
+                                {
+                                    Results.Add(p);
+                                    LoadIcon(p, gen);
+                                }
+                            }
+                            UpdateInstalledFlags();
+                        }
+                    }
+                }
+                return;
+            }
+
             var categoryTags = AvailableTags.Where(t => t.IsSelected && !t.IsReset).Select(t => t.Name).ToList();
             var loaders = SelectedContentType == ContentType.Mod ? MapLoaders(_loaderType) : Array.Empty<string>();
             var projectType = SelectedContentType.ModrinthProjectType();
@@ -1156,6 +1222,70 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
         var token = cts.Token;
         try
         {
+            if (SelectedContentType == ContentType.World)
+            {
+                var apiKey = GetCurseForgeApiKey?.Invoke() ?? "";
+                project.IsInstalling = true;
+                StatusText = "Fetching map details...";
+                var fileInfo = await CurseForgeApiService.GetLatestMapFileAsync(project.ProjectId, _gameVersion, apiKey, token);
+                if (fileInfo == null || string.IsNullOrWhiteSpace(fileInfo.DownloadUrl))
+                {
+                    StatusText = $"No downloadable map file found for {project.Title}";
+                    project.IsInstalling = false;
+                    return;
+                }
+
+                StatusText = $"Downloading {project.Title}...";
+                var savesDir = Path.Combine(_instancePath, "saves");
+                Directory.CreateDirectory(savesDir);
+
+                var tempZip = Path.Combine(Path.GetTempPath(), $"{project.ProjectId}_{fileInfo.FileId}.zip");
+                var zipBytes = await CurseForgeApiService.DownloadAsync(fileInfo.DownloadUrl, token);
+                if (zipBytes == null || zipBytes.Length == 0)
+                {
+                    StatusText = $"Failed to download map file for {project.Title}";
+                    project.IsInstalling = false;
+                    return;
+                }
+                await File.WriteAllBytesAsync(tempZip, zipBytes, token);
+
+                StatusText = $"Extracting map to saves folder...";
+                var mapDirName = SanitizeFolderName(project.Title);
+                var destMapDir = Path.Combine(savesDir, mapDirName);
+                if (Directory.Exists(destMapDir))
+                {
+                    int counter = 1;
+                    while (Directory.Exists($"{destMapDir} ({counter})")) counter++;
+                    destMapDir = $"{destMapDir} ({counter})";
+                }
+                Directory.CreateDirectory(destMapDir);
+
+                await Task.Run(() =>
+                {
+                    System.IO.Compression.ZipFile.ExtractToDirectory(tempZip, destMapDir, true);
+                    var subDirs = Directory.GetDirectories(destMapDir);
+                    var rootFiles = Directory.GetFiles(destMapDir);
+                    if (subDirs.Length == 1 && rootFiles.Length == 0 && File.Exists(Path.Combine(subDirs[0], "level.dat")))
+                    {
+                        var nested = subDirs[0];
+                        foreach (var f in Directory.GetFiles(nested))
+                            File.Move(f, Path.Combine(destMapDir, Path.GetFileName(f)), true);
+                        foreach (var d in Directory.GetDirectories(nested))
+                            Directory.Move(d, Path.Combine(destMapDir, Path.GetFileName(d)));
+                        try { Directory.Delete(nested); } catch { }
+                    }
+                    try { File.Delete(tempZip); } catch { }
+                });
+
+                MarkInstalled(project.ProjectId, Path.GetFileName(destMapDir));
+                project.IsInstalled = true;
+                UpdateInstalledFlags();
+                StatusText = $"Installed {project.Title} into worlds!";
+                FlashInstalledFeedback();
+                _refreshAll?.Invoke();
+                return;
+            }
+
             var loaders = SelectedContentType == ContentType.Mod ? MapLoaders(_loaderType) : Array.Empty<string>();
             var version = await ModrinthApiService.GetLatestVersionAsync(project.ProjectId, _gameVersion, loaders, token);
             if (version == null)
@@ -1551,14 +1681,24 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
             var platforms = new List<string> { "All platforms" };
             platforms.AddRange(actualLoaders);
             FilterPlatforms = platforms;
-            SelectedFilterPlatform = "All platforms";
-            SelectedFilterGameVersion = "All versions";
-            SelectedFilterPlatform = "All platforms";
+
+            // Auto-select instance game version if present
+            var matchingVer = GameVersionFilter.Items.FirstOrDefault(i => i.Name.Equals(_gameVersion, StringComparison.OrdinalIgnoreCase));
+            if (matchingVer != null)
+            {
+                matchingVer.IsSelected = true;
+                GameVersionFilter.NotifySelectionState();
+            }
+
+            var loaderName = Models.ModrinthFullProject.FormatPlatformName(_loaderType);
+            var matchingPlatform = actualLoaders.FirstOrDefault(p => p.Equals(loaderName, StringComparison.OrdinalIgnoreCase));
+            SelectedFilterPlatform = matchingPlatform ?? "All platforms";
 
             PlatformFilterItems.Clear();
             foreach (var p in actualLoaders)
             {
-                var item = new Models.FilterCheckItem { Name = p, IsSelected = false };
+                var isSel = matchingPlatform != null && p.Equals(matchingPlatform, StringComparison.OrdinalIgnoreCase);
+                var item = new Models.FilterCheckItem { Name = p, IsSelected = isSel };
                 item.PropertyChanged += (s, e) =>
                 {
                     if (e.PropertyName == nameof(Models.FilterCheckItem.IsSelected))

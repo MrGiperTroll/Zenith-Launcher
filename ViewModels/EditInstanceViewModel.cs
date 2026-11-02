@@ -367,7 +367,10 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
                 msg => ReportError(msg),
                 () => RefreshFileLists(),
                 () => HasModsSupport,
-                type);
+                type)
+            {
+                GetCurseForgeApiKey = () => _host?.LauncherSettingsVm?.CurseForgeApiKey ?? ""
+            };
 
             // Pass selected world for datapacks
             if (!string.IsNullOrWhiteSpace(SelectedWorld))
@@ -403,7 +406,10 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
                 msg => ReportError(msg),
                 () => RefreshFileLists(),
                 () => HasModsSupport,
-                type);
+                type)
+            {
+                GetCurseForgeApiKey = () => _host?.LauncherSettingsVm?.CurseForgeApiKey ?? ""
+            };
 
             if (!string.IsNullOrWhiteSpace(entry.ModrinthProjectId))
             {

@@ -23,114 +23,119 @@
             <Setter Property="BorderBrush" Value="{DynamicResource BorderHoverBrush}"/>
             <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
-        <Style Selector="ListBox.crashList">
-            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}"/>
+        <Style Selector="Button.primaryBtn">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="14,7"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="Button.primaryBtn:pointerover">
+            <Setter Property="Background" Value="{DynamicResource AccentBrushHover}"/>
+        </Style>
+        <Style Selector="Button.actionBtn">
+            <Setter Property="Background" Value="{DynamicResource FieldBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderCardSoftBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="Button.actionBtn:pointerover">
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
         </Style>
     </UserControl.Styles>
 
-    <Grid RowDefinitions="Auto,*,Auto" Margin="20,18" Width="580" MaxHeight="460">
-        <!-- Header: Clean and professional without oversized badges -->
-        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,14" VerticalAlignment="Center">
+    <Grid RowDefinitions="Auto,*,Auto" Margin="24,20" Width="580" MaxHeight="480">
+        <!-- Header -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,16" VerticalAlignment="Center">
             <StackPanel Spacing="3">
-                <TextBlock Classes="pageTitle" Text="{Binding Title}" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                <TextBlock Text="{Binding LikelyCauseLabel}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                <TextBlock Text="{Binding Title}" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                <TextBlock Text="{Binding LikelyCauseLabel}" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource DangerLightBrush}"/>
             </StackPanel>
             <Border Grid.Column="1" Background="{DynamicResource ChipBrush}" CornerRadius="6" Padding="10,4" VerticalAlignment="Center">
                 <TextBlock Text="{Binding ExitCodeLine}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
             </Border>
         </Grid>
 
-        <!-- Body -->
+        <!-- Body: Clean, unbloated content -->
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-            <StackPanel Spacing="10">
-                <Border Classes="zenSection" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderCardSoftBrush}"
-                        BorderThickness="1" CornerRadius="8" Padding="12">
-                    <StackPanel Spacing="5">
-                        <TextBlock Classes="rowTitle" Text="{l10n:Tr Key=crash_what}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                        <TextBlock Text="{Binding HumanSummary}" FontSize="12.5" TextWrapping="Wrap"
-                                   Foreground="{DynamicResource TextSecondaryBrush}" LineHeight="19"/>
-                    </StackPanel>
-                </Border>
+            <StackPanel Spacing="16">
 
-                <!-- Faulty / Conflicting Mods Action Section -->
-                <Border Classes="zenSection" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderCardSoftBrush}"
-                        BorderThickness="1" CornerRadius="8" Padding="12"
-                        IsVisible="{Binding HasFaultyMods}">
-                    <StackPanel Spacing="8">
-                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                            <PathIcon Data="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" Width="13" Height="13" Foreground="{DynamicResource DangerLightBrush}"/>
-                            <TextBlock Text="Conflicting or Faulty Mods" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource DangerLightBrush}"/>
-                        </StackPanel>
-                        <ItemsControl ItemsSource="{Binding FaultyMods}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="dialogs:FaultyModItem">
-                                    <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderCardSoftBrush}"
-                                            BorderThickness="1" CornerRadius="6" Padding="10,8" Margin="0,2">
-                                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" VerticalAlignment="Center">
-                                            <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding ModName}" FontSize="12" FontWeight="SemiBold"
-                                                           Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
-                                                <TextBlock Text="{Binding StatusText}" FontSize="10.5" Foreground="{DynamicResource WarningBrush}"
-                                                           IsVisible="{Binding StatusText.Length, Converter={x:Static converters:EditInstanceWindowConverters.IsNonZero}}"/>
-                                            </StackPanel>
-                                            <Button Grid.Column="1" Classes="dangerBtn" Content="Disable Mod" FontSize="11" Padding="10,5"
-                                                    Command="{Binding DisableModCommand}" IsEnabled="{Binding !IsDisabled}"
-                                                    IsVisible="{Binding CanDisable}"/>
-                                            <Button Grid.Column="2" Classes="subBtn" Content="Download Compatible" FontSize="11" Padding="10,5"
-                                                    Command="{Binding SearchCompatibleCommand}"/>
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </StackPanel>
-                </Border>
+                <!-- Crash Summary -->
+                <TextBlock Text="{Binding HumanSummary}" FontSize="13" TextWrapping="Wrap"
+                           Foreground="{DynamicResource TextPrimaryBrush}" LineHeight="20"/>
 
-                <!-- Solution Steps -->
-                <Border Classes="zenSection" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderCardSoftBrush}"
-                        BorderThickness="1" CornerRadius="8" Padding="12"
-                        IsVisible="{Binding HasSolutionSteps}">
-                    <StackPanel Spacing="6">
-                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                            <PathIcon Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" Width="13" Height="13" Foreground="{DynamicResource AccentBrush}"/>
-                            <TextBlock Text="Recommended Solution Steps" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/>
-                        </StackPanel>
-                        <ItemsControl ItemsSource="{Binding SolutionSteps}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding}" FontSize="12" TextWrapping="Wrap"
-                                               Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,2"/>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </StackPanel>
-                </Border>
-
-                <!-- Requirements (if any) -->
-                <StackPanel Spacing="4" IsVisible="{Binding Requirements.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsNonZero}}">
-                    <TextBlock Classes="rowTitle" Text="{l10n:Tr Key=crash_mods_check}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                    <ItemsControl ItemsSource="{Binding Requirements}" FontSize="11.5">
+                <!-- Detected Faulty / Conflicting Mods List -->
+                <StackPanel Spacing="8" IsVisible="{Binding HasFaultyMods}">
+                    <TextBlock Text="Identified Mods" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    <ItemsControl ItemsSource="{Binding FaultyMods}">
                         <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,2" Foreground="{DynamicResource TextSoftBrush}"/>
+                            <DataTemplate x:DataType="dialogs:FaultyModItem">
+                                <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
+                                        BorderThickness="1" CornerRadius="8" Padding="12,9" Margin="0,2">
+                                    <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                        <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding ModName}" FontSize="12.5" FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding StatusText}" FontSize="11" Foreground="{DynamicResource AccentBrush}"
+                                                       IsVisible="{Binding StatusText.Length, Converter={x:Static converters:EditInstanceWindowConverters.IsNonZero}}"/>
+                                        </StackPanel>
+                                        <Button Grid.Column="1" Classes="subBtn" Content="Disable Mod" FontSize="11.5" Padding="12,5"
+                                                Command="{Binding DisableModCommand}" IsEnabled="{Binding !IsDisabled}"
+                                                IsVisible="{Binding CanDisable}"/>
+                                    </Grid>
+                                </Border>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </StackPanel>
 
+                <!-- Automated Direct Solutions -->
+                <StackPanel Spacing="10" IsVisible="{Binding HasQuickActions}">
+                    <TextBlock Text="Automated Actions" FontSize="12.5" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/>
+                    <ItemsControl ItemsSource="{Binding QuickActions}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="dialogs:CrashActionItem">
+                                <Button Classes="primaryBtn" Command="{Binding ExecuteCommand}"
+                                        IsEnabled="{Binding !IsExecuted}" Margin="0,0,8,8">
+                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                        <PathIcon Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" Width="12" Height="12"
+                                                  Foreground="{DynamicResource OnAccentBrush}"
+                                                  IsVisible="{Binding IsExecuted}"/>
+                                        <TextBlock Text="{Binding Title}" FontSize="12" FontWeight="SemiBold"/>
+                                    </StackPanel>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
 
             </StackPanel>
         </ScrollViewer>
 
         <!-- Footer -->
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,14,0,0">
-            <Button Classes="subBtn" Content="{l10n:Tr Key=copy}" Click="OnCopyClick"/>
-            <Button Classes="subBtn" Content="{l10n:Tr Key=crash_openlog}" Click="OnOpenLogClick"/>
-            <Button Classes="subBtn" Content="{l10n:Tr Key=close}"
-                    Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).CloseCrashReportCommand}"/>
-        </StackPanel>
+        <Grid Grid.Row="2" ColumnDefinitions="Auto,*" Margin="0,16,0,0" VerticalAlignment="Center">
+            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                <Button Classes="subBtn" Content="{l10n:Tr Key=copy}" Click="OnCopyClick"/>
+                <Button Classes="subBtn" Content="{l10n:Tr Key=crash_openlog}" Click="OnOpenLogClick"/>
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                <Button Classes="primaryBtn" Content="{l10n:Tr Key=close}"
+                        Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).CloseCrashReportCommand}"/>
+            </StackPanel>
+        </Grid>
     </Grid>
 </UserControl>

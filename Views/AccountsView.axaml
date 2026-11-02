@@ -301,14 +301,10 @@
                                                         </Panel>
                                                     </Border>
 
-                                                    <!-- Name + badges -->
-                                                    <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
-                                                        <TextBlock Classes="rowTitle" Text="{Binding Username}" FontSize="12.5"/>
-                                                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                                            <Border Background="{StaticResource ChipBrush}" CornerRadius="4" Padding="5,1.5">
-                                                                <TextBlock Text="{Binding TypeDisplay}" FontSize="9.5" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                                                            </Border>
-                                                        </StackPanel>
+                                                    <!-- Name + provider -->
+                                                    <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                                        <TextBlock Classes="rowTitle" Text="{Binding Username}" FontSize="13" FontWeight="SemiBold"/>
+                                                        <TextBlock Text="{Binding TypeDisplay}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                                     </StackPanel>
                                                 </Grid>
                                             </Button>

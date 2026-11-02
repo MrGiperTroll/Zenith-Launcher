@@ -165,7 +165,7 @@
         <!-- Main: Sidebar + Content -->
         <Grid Grid.Row="0" ColumnDefinitions="Auto,*">
             <!-- Sidebar -->
-            <Border Grid.Column="0" Width="210" Background="{StaticResource SidebarBgBrush}" Padding="10" IsVisible="{Binding !IsLogExpanded}">
+            <Border Grid.Column="0" Width="210" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,1,0" Padding="10" IsVisible="{Binding !IsLogExpanded}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Spacing="2">
 
@@ -795,7 +795,7 @@
         </Grid>
 
         <!-- Bottom control bar -->
-        <Border Grid.Row="2" Background="{StaticResource SidebarBgBrush}" Padding="16,10">
+        <Border Grid.Row="1" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,1,0,0" Padding="16,10">
             <StackPanel Spacing="8">
                 <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding IsDownloading}">
                     <ProgressBar Value="{Binding LaunchProgress}" Height="4" Foreground="{StaticResource AccentBrush}"
@@ -815,7 +815,7 @@
             </StackPanel>
         </Border>
         <!-- Delete World Confirmation Overlay -->
-        <Border Grid.Row="0" Grid.RowSpan="3" Background="#99000000" IsVisible="{Binding IsDeleteWorldConfirmOpen}"
+        <Border Grid.Row="0" Grid.RowSpan="2" Background="#99000000" IsVisible="{Binding IsDeleteWorldConfirmOpen}"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="110">
             <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
                     BorderThickness="1" CornerRadius="12" Padding="24"
@@ -839,7 +839,7 @@
         </Border>
 
         <!-- Edit World Dialog Overlay -->
-        <Border Grid.Row="0" Grid.RowSpan="3" Background="#99000000" IsVisible="{Binding IsEditWorldOpen}"
+        <Border Grid.Row="0" Grid.RowSpan="2" Background="#99000000" IsVisible="{Binding IsEditWorldOpen}"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="110">
             <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
                     BorderThickness="1" CornerRadius="12" Padding="24"
@@ -862,7 +862,7 @@
             </Border>
         </Border>
         <!-- Delete Server Confirmation Overlay -->
-        <Border Grid.Row="0" Grid.RowSpan="3" Background="#99000000" IsVisible="{Binding IsDeleteServerConfirmOpen}"
+        <Border Grid.Row="0" Grid.RowSpan="2" Background="#99000000" IsVisible="{Binding IsDeleteServerConfirmOpen}"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="110">
             <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
                     BorderThickness="1" CornerRadius="12" Padding="24"
@@ -886,7 +886,7 @@
         </Border>
 
         <!-- Add Server Dialog Overlay -->
-        <Border Grid.Row="0" Grid.RowSpan="3" Background="#99000000" IsVisible="{Binding IsAddServerOpen}"
+        <Border Grid.Row="0" Grid.RowSpan="2" Background="#99000000" IsVisible="{Binding IsAddServerOpen}"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="110">
             <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
                     BorderThickness="1" CornerRadius="12" Padding="24"
@@ -915,7 +915,7 @@
             </Border>
         </Border>
         <!-- Mod Conflicts Resolution Overlay -->
-        <Border Grid.Row="0" Grid.RowSpan="3" Background="#99000000" IsVisible="{Binding IsConflictDialogOpen}"
+        <Border Grid.Row="0" Grid.RowSpan="2" Background="#99000000" IsVisible="{Binding IsConflictDialogOpen}"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="110">
             <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
                     BorderThickness="1" CornerRadius="12" Padding="24"

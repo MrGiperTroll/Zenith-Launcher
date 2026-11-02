@@ -1246,7 +1246,7 @@
                     </Grid>
 
                     <!-- In-Window Edit Instance View -->
-                    <Panel x:Name="EditInstancePane" Classes="viewPane" IsVisible="{Binding IsEditInstanceView}" Margin="0,0,16,0">
+                    <Panel x:Name="EditInstancePane" Classes="viewPane" IsVisible="{Binding IsEditInstanceView}" Margin="-24,-14,0,0">
                         <views:EditInstanceView DataContext="{Binding CurrentEditInstanceVm}"/>
                     </Panel>
 

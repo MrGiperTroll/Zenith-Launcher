@@ -361,7 +361,7 @@ public partial class ModrinthTeamMember : ObservableObject
 }
 
 /// <summary>Single version of a Modrinth project returned by GET /v2/project/{id}/version.</summary>
-public class ModrinthProjectVersion
+public partial class ModrinthProjectVersion : ObservableObject
 {
     public string Id { get; init; } = "";
     public string ProjectId { get; init; } = "";
@@ -405,8 +405,8 @@ dependencies {{
     public long Downloads { get; init; } = 0;
     public string AuthorId { get; init; } = "";
     public string AuthorName { get; set; } = "";
-    public bool IsFirstInTimeline { get; set; }
-    public bool IsLastInTimeline { get; set; }
+    [ObservableProperty] private bool _isFirstInTimeline;
+    [ObservableProperty] private bool _isLastInTimeline;
 
     public string DownloadsLabel
     {

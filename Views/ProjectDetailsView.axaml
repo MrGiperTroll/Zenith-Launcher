@@ -959,23 +959,21 @@
                                                     <Border Classes="changelogRow" Padding="0,4" Margin="0" Background="Transparent">
                                                         <Grid ColumnDefinitions="20,*,Auto">
                                                             <!-- Timeline: Vertical Dashed Line running between nodes -->
-                                                            <Grid Grid.Column="0" VerticalAlignment="Stretch" Width="16" HorizontalAlignment="Center">
+                                                            <Canvas Grid.Column="0" Width="16" ClipToBounds="True">
                                                                 <!-- Top line segment (from previous row to this dot) -->
-                                                                <Line Width="2" StartPoint="1,0" EndPoint="1,1" Stretch="Fill" Height="9" VerticalAlignment="Top"
+                                                                <Line StartPoint="8,0" EndPoint="8,9"
                                                                       Stroke="{Binding TimelineColorBrush}" StrokeDashArray="3,3" StrokeThickness="2"
-                                                                      HorizontalAlignment="Center"
                                                                       IsVisible="{Binding !IsFirstInTimeline}"/>
 
                                                                 <!-- Bottom line segment (from this dot to next row) -->
-                                                                <Line Width="2" StartPoint="1,0" EndPoint="1,1" Stretch="Fill" Margin="0,9,0,0" VerticalAlignment="Stretch"
+                                                                <Line StartPoint="8,9" EndPoint="8,5000"
                                                                       Stroke="{Binding TimelineColorBrush}" StrokeDashArray="3,3" StrokeThickness="2"
-                                                                      HorizontalAlignment="Center"
                                                                       IsVisible="{Binding !IsLastInTimeline}"/>
 
-                                                                <!-- Circle node -->
+                                                                <!-- Circle node centered at X=8, Y=9 -->
                                                                 <Ellipse Width="10" Height="10" Fill="{Binding TimelineColorBrush}"
-                                                                         VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,4,0,0"/>
-                                                            </Grid>
+                                                                         Canvas.Left="3" Canvas.Top="4"/>
+                                                            </Canvas>
 
                                                             <!-- Title, Author, Date & Changelog Lines -->
                                                             <StackPanel Grid.Column="1" VerticalAlignment="Top" Margin="8,0,16,10" Spacing="4">

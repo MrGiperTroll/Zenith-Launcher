@@ -65,63 +65,53 @@
             </Border>
         </Grid>
 
-        <!-- Body: Clean, unbloated content -->
+        <!-- Body: Clean, unbloated content without verbose fluff -->
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-            <StackPanel Spacing="16">
+            <StackPanel Spacing="12">
 
-                <!-- Crash Summary -->
-                <TextBlock Text="{Binding HumanSummary}" FontSize="13" TextWrapping="Wrap"
-                           Foreground="{DynamicResource TextPrimaryBrush}" LineHeight="20"/>
-
-                <!-- Detected Faulty / Conflicting Mods List -->
-                <StackPanel Spacing="8" IsVisible="{Binding HasFaultyMods}">
-                    <TextBlock Text="Identified Mods" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                    <ItemsControl ItemsSource="{Binding FaultyMods}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="dialogs:FaultyModItem">
-                                <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
-                                        BorderThickness="1" CornerRadius="8" Padding="12,9" Margin="0,2">
-                                    <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                        <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding ModName}" FontSize="12.5" FontWeight="SemiBold"
-                                                       Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
-                                            <TextBlock Text="{Binding StatusText}" FontSize="11" Foreground="{DynamicResource AccentBrush}"
-                                                       IsVisible="{Binding StatusText.Length, Converter={x:Static converters:EditInstanceWindowConverters.IsNonZero}}"/>
-                                        </StackPanel>
-                                        <Button Grid.Column="1" Classes="subBtn" Content="Disable Mod" FontSize="11.5" Padding="12,5"
-                                                Command="{Binding DisableModCommand}" IsEnabled="{Binding !IsDisabled}"
-                                                IsVisible="{Binding CanDisable}"/>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </StackPanel>
-
-                <!-- Automated Direct Solutions -->
-                <StackPanel Spacing="10" IsVisible="{Binding HasQuickActions}">
-                    <TextBlock Text="Automated Actions" FontSize="12.5" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/>
-                    <ItemsControl ItemsSource="{Binding QuickActions}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <WrapPanel Orientation="Horizontal"/>
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="dialogs:CrashActionItem">
-                                <Button Classes="primaryBtn" Command="{Binding ExecuteCommand}"
-                                        IsEnabled="{Binding !IsExecuted}" Margin="0,0,8,8">
-                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                        <PathIcon Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" Width="12" Height="12"
-                                                  Foreground="{DynamicResource OnAccentBrush}"
-                                                  IsVisible="{Binding IsExecuted}"/>
-                                        <TextBlock Text="{Binding Title}" FontSize="12" FontWeight="SemiBold"/>
+                <!-- Faulty / Conflicting Mods List with direct disable action -->
+                <ItemsControl ItemsSource="{Binding FaultyMods}" IsVisible="{Binding HasFaultyMods}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="dialogs:FaultyModItem">
+                            <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
+                                    BorderThickness="1" CornerRadius="8" Padding="12,9" Margin="0,2">
+                                <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                    <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding ModName}" FontSize="12.5" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding StatusText}" FontSize="11" Foreground="{DynamicResource AccentBrush}"
+                                                   IsVisible="{Binding StatusText.Length, Converter={x:Static converters:EditInstanceWindowConverters.IsNonZero}}"/>
                                     </StackPanel>
-                                </Button>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </StackPanel>
+                                    <Button Grid.Column="1" Classes="subBtn" Content="Disable Mod" FontSize="11.5" Padding="12,5"
+                                            Command="{Binding DisableModCommand}" IsEnabled="{Binding !IsDisabled}"
+                                            IsVisible="{Binding CanDisable}"/>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Automated Direct Solutions Buttons -->
+                <ItemsControl ItemsSource="{Binding QuickActions}" IsVisible="{Binding HasQuickActions}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="dialogs:CrashActionItem">
+                            <Button Classes="primaryBtn" Command="{Binding ExecuteCommand}"
+                                    IsEnabled="{Binding !IsExecuted}" Margin="0,0,8,8">
+                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                    <PathIcon Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" Width="12" Height="12"
+                                              Foreground="{DynamicResource OnAccentBrush}"
+                                              IsVisible="{Binding IsExecuted}"/>
+                                    <TextBlock Text="{Binding Title}" FontSize="12" FontWeight="SemiBold"/>
+                                </StackPanel>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
 
             </StackPanel>
         </ScrollViewer>

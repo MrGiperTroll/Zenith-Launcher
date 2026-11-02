@@ -23,6 +23,29 @@ public class Skin3DControl : Control
         set => SetValue(SkinBitmapProperty, value);
     }
 
+    static Skin3DControl()
+    {
+        SkinBitmapProperty.Changed.AddClassHandler<Skin3DControl>((ctl, args) =>
+        {
+            ctl.OnSkinBitmapChanged(args.NewValue as Bitmap);
+        });
+    }
+
+    private Color[,]? _skinPixels;
+
+    private void OnSkinBitmapChanged(Bitmap? bmp)
+    {
+        if (bmp != null)
+        {
+            _skinPixels = SkinPixelExtractor.ExtractPixels(bmp);
+        }
+        else
+        {
+            _skinPixels = null;
+        }
+        InvalidateVisual();
+    }
+
     private float _yaw = 25f;
     private float _pitch = 10f;
     private bool _isDragging;
@@ -96,7 +119,6 @@ public class Skin3DControl : Control
         {
             _isDragging = false;
             e.Pointer.Capture(null);
-            // Click trigger animation
             _isActionPlaying = true;
             _actionTime = 0;
         }
@@ -126,25 +148,70 @@ public class Skin3DControl : Control
         float breath = MathF.Sin(_animTime * 1.5f) * 1.5f;
         float wave = _isActionPlaying ? MathF.Sin(_actionTime) * 45f : 0f;
 
+        // 1. Draw contact drop shadow under feet
+        var shadowPoint = Project(new Vector3(0, 0, 0), center, scale);
+        var shadowBrush = new RadialGradientBrush
+        {
+            GradientStops = new GradientStops
+            {
+                new GradientStop(Color.FromArgb(90, 0, 0, 0), 0.0),
+                new GradientStop(Color.FromArgb(40, 0, 0, 0), 0.5),
+                new GradientStop(Color.FromArgb(0, 0, 0, 0), 1.0)
+            }
+        };
+        context.DrawEllipse(shadowBrush, null, new Point(shadowPoint.X, shadowPoint.Y + 2), scale * 8.5, scale * 3.8);
+
         var faces = new List<QuadFace>();
 
-        // 1. Head (centered at Y=28)
-        AddCuboid(faces, new Vector3(-4, 24, -4), new Vector3(8, 8, 8), _defaultSkinTone, _defaultHair, 0, breath * 0.5f);
+        // 2. Head (8x8x8) at Y=24..32
+        AddTexturedBox(faces, new Vector3(-4, 24, -4), new Vector3(8, 8, 8),
+            u0: 8, v0: 0, uWidth: 8, vHeight: 8,
+            topU: 8, topV: 0, btmU: 16, btmV: 0,
+            rightU: 0, rightV: 8, frontU: 8, frontV: 8, leftU: 16, leftV: 8, backU: 24, backV: 8);
 
-        // 2. Torso (centered at Y=18)
-        AddCuboid(faces, new Vector3(-4, 12, -2), new Vector3(8, 12, 4), _defaultShirt, _defaultShirt, 0, 0);
+        // Hat layer (expanded by 0.4)
+        AddTexturedBox(faces, new Vector3(-4.4f, 23.6f, -4.4f), new Vector3(8.8f, 8.8f, 8.8f),
+            u0: 40, v0: 0, uWidth: 8, vHeight: 8,
+            topU: 40, topV: 0, btmU: 48, btmV: 0,
+            rightU: 32, rightV: 8, frontU: 40, frontV: 8, leftU: 48, leftV: 8, backU: 56, backV: 8, isOuterLayer: true);
 
-        // 3. Right Arm (centered at X=-6, Y=18)
-        AddCuboid(faces, new Vector3(-8, 12, -2), new Vector3(4, 12, 4), _defaultShirt, _defaultSkinTone, wave, 0);
+        // 3. Torso (8x12x4) at Y=12..24
+        AddTexturedBox(faces, new Vector3(-4, 12, -2), new Vector3(8, 12, 4),
+            u0: 20, v0: 16, uWidth: 8, vHeight: 12,
+            topU: 20, topV: 16, btmU: 28, btmV: 16,
+            rightU: 16, rightV: 20, frontU: 20, frontV: 20, leftU: 28, leftV: 20, backU: 32, backV: 20);
 
-        // 4. Left Arm (centered at X=6, Y=18)
-        AddCuboid(faces, new Vector3(4, 12, -2), new Vector3(4, 12, 4), _defaultShirt, _defaultSkinTone, -wave * 0.3f, 0);
+        // Jacket layer (expanded by 0.35)
+        AddTexturedBox(faces, new Vector3(-4.35f, 11.65f, -2.35f), new Vector3(8.7f, 12.7f, 4.7f),
+            u0: 20, v0: 32, uWidth: 8, vHeight: 12,
+            topU: 20, topV: 32, btmU: 28, btmV: 32,
+            rightU: 16, rightV: 36, frontU: 20, frontV: 36, leftU: 28, leftV: 36, backU: 32, backV: 36, isOuterLayer: true);
 
-        // 5. Right Leg (centered at X=-2, Y=6)
-        AddCuboid(faces, new Vector3(-4, 0, -2), new Vector3(4, 12, 4), _defaultPants, _defaultPants, 0, 0);
+        // 4. Right Arm (4x12x4) at X=-8..-4, Y=12..24
+        AddTexturedBox(faces, new Vector3(-8, 12, -2), new Vector3(4, 12, 4),
+            u0: 44, v0: 16, uWidth: 4, vHeight: 12,
+            topU: 44, topV: 16, btmU: 48, btmV: 16,
+            rightU: 40, rightV: 20, frontU: 44, frontV: 20, leftU: 48, leftV: 20, backU: 52, backV: 20,
+            rotXDeg: wave);
 
-        // 6. Left Leg (centered at X=2, Y=6)
-        AddCuboid(faces, new Vector3(0, 0, -2), new Vector3(4, 12, 4), _defaultPants, _defaultPants, 0, 0);
+        // 5. Left Arm (4x12x4) at X=4..8, Y=12..24
+        AddTexturedBox(faces, new Vector3(4, 12, -2), new Vector3(4, 12, 4),
+            u0: 36, v0: 48, uWidth: 4, vHeight: 12,
+            topU: 36, topV: 48, btmU: 40, btmV: 48,
+            rightU: 32, rightV: 52, frontU: 36, frontV: 52, leftU: 40, leftV: 52, backU: 44, backV: 52,
+            rotXDeg: -wave * 0.3f);
+
+        // 6. Right Leg (4x12x4) at X=-4..0, Y=0..12
+        AddTexturedBox(faces, new Vector3(-4, 0, -2), new Vector3(4, 12, 4),
+            u0: 4, v0: 16, uWidth: 4, vHeight: 12,
+            topU: 4, topV: 16, btmU: 8, btmV: 16,
+            rightU: 0, rightV: 20, frontU: 4, frontV: 20, leftU: 8, leftV: 20, backU: 12, backV: 20);
+
+        // 7. Left Leg (4x12x4) at X=0..4, Y=0..12
+        AddTexturedBox(faces, new Vector3(0, 0, -2), new Vector3(4, 12, 4),
+            u0: 20, v0: 48, uWidth: 4, vHeight: 12,
+            topU: 20, topV: 48, btmU: 24, btmV: 48,
+            rightU: 16, rightV: 52, frontU: 20, frontV: 52, leftU: 24, leftV: 52, backU: 28, backV: 52);
 
         // Transform vertices and calculate lighting
         var lightDir = Vector3.Normalize(new Vector3(0.4f, 0.8f, 0.6f));
@@ -201,7 +268,7 @@ public class Skin3DControl : Control
             byte r = (byte)Math.Clamp((int)(c.R * face.Light), 0, 255);
             byte g = (byte)Math.Clamp((int)(c.G * face.Light), 0, 255);
             byte b = (byte)Math.Clamp((int)(c.B * face.Light), 0, 255);
-            var brush = new SolidColorBrush(Color.FromRgb(r, g, b));
+            var brush = new SolidColorBrush(Color.FromArgb(c.A, r, g, b));
 
             context.DrawGeometry(brush, null, geom);
         }
@@ -209,14 +276,12 @@ public class Skin3DControl : Control
 
     private static Vector3 RotatePoint(Vector3 v, float yaw, float pitch)
     {
-        // 1. Yaw around Y axis
         float cosY = MathF.Cos(yaw);
         float sinY = MathF.Sin(yaw);
         float x1 = v.X * cosY - v.Z * sinY;
         float z1 = v.X * sinY + v.Z * cosY;
         float y1 = v.Y;
 
-        // 2. Pitch around X axis
         float cosP = MathF.Cos(pitch);
         float sinP = MathF.Sin(pitch);
         float y2 = y1 * cosP - z1 * sinP;
@@ -230,33 +295,96 @@ public class Skin3DControl : Control
         return new Point(center.X + v.X * scale, center.Y - v.Y * scale);
     }
 
-    private static void AddCuboid(List<QuadFace> faces, Vector3 origin, Vector3 size, Color mainCol, Color topCol, float rotXDeg, float rotYDeg)
+    private void AddTexturedBox(List<QuadFace> faces, Vector3 origin, Vector3 size,
+        int u0, int v0, int uWidth, int vHeight,
+        int topU, int topV, int btmU, int btmV,
+        int rightU, int rightV, int frontU, int frontV, int leftU, int leftV, int backU, int backV,
+        float rotXDeg = 0f, bool isOuterLayer = false)
     {
-        float x0 = origin.X, x1 = origin.X + size.X;
-        float y0 = origin.Y, y1 = origin.Y + size.Y;
-        float z0 = origin.Z, z1 = origin.Z + size.Z;
-
-        // Vertices
-        var v000 = new Vector3(x0, y0, z0);
-        var v100 = new Vector3(x1, y0, z0);
-        var v110 = new Vector3(x1, y1, z0);
-        var v010 = new Vector3(x0, y1, z0);
-        var v001 = new Vector3(x0, y0, z1);
-        var v101 = new Vector3(x1, y0, z1);
-        var v111 = new Vector3(x1, y1, z1);
-        var v011 = new Vector3(x0, y1, z1);
+        int sx = (int)MathF.Round(size.X);
+        int sy = (int)MathF.Round(size.Y);
+        int sz = (int)MathF.Round(size.Z);
 
         // Front (Z+)
-        faces.Add(new QuadFace { P1 = v001, P2 = v101, P3 = v111, P4 = v011, BaseColor = mainCol });
+        AddPlane(faces, new Vector3(origin.X, origin.Y + size.Y, origin.Z + size.Z),
+            new Vector3(size.X / sx, 0, 0), new Vector3(0, -size.Y / sy, 0),
+            sx, sy, frontU, frontV, rotXDeg, isOuterLayer);
+
         // Back (Z-)
-        faces.Add(new QuadFace { P1 = v100, P2 = v000, P3 = v010, P4 = v110, BaseColor = mainCol });
+        AddPlane(faces, new Vector3(origin.X + size.X, origin.Y + size.Y, origin.Z),
+            new Vector3(-size.X / sx, 0, 0), new Vector3(0, -size.Y / sy, 0),
+            sx, sy, backU, backV, rotXDeg, isOuterLayer);
+
         // Top (Y+)
-        faces.Add(new QuadFace { P1 = v011, P2 = v111, P3 = v110, P4 = v010, BaseColor = topCol });
+        AddPlane(faces, new Vector3(origin.X, origin.Y + size.Y, origin.Z),
+            new Vector3(size.X / sx, 0, 0), new Vector3(0, 0, size.Z / sz),
+            sx, sz, topU, topV, rotXDeg, isOuterLayer);
+
         // Bottom (Y-)
-        faces.Add(new QuadFace { P1 = v000, P2 = v100, P3 = v101, P4 = v001, BaseColor = mainCol });
-        // Left (X-)
-        faces.Add(new QuadFace { P1 = v000, P2 = v001, P3 = v011, P4 = v010, BaseColor = mainCol });
-        // Right (X+)
-        faces.Add(new QuadFace { P1 = v101, P2 = v100, P3 = v110, P4 = v111, BaseColor = mainCol });
+        AddPlane(faces, new Vector3(origin.X, origin.Y, origin.Z + size.Z),
+            new Vector3(size.X / sx, 0, 0), new Vector3(0, 0, -size.Z / sz),
+            sx, sz, btmU, btmV, rotXDeg, isOuterLayer);
+
+        // Right (X-)
+        AddPlane(faces, new Vector3(origin.X, origin.Y + size.Y, origin.Z),
+            new Vector3(0, 0, size.Z / sz), new Vector3(0, -size.Y / sy, 0),
+            sz, sy, rightU, rightV, rotXDeg, isOuterLayer);
+
+        // Left (X+)
+        AddPlane(faces, new Vector3(origin.X + size.X, origin.Y + size.Y, origin.Z + size.Z),
+            new Vector3(0, 0, -size.Z / sz), new Vector3(0, -size.Y / sy, 0),
+            sz, sy, leftU, leftV, rotXDeg, isOuterLayer);
+    }
+
+    private void AddPlane(List<QuadFace> faces, Vector3 start, Vector3 uDir, Vector3 vDir,
+        int countU, int countV, int texU, int texV, float rotXDeg, bool isOuterLayer)
+    {
+        for (int y = 0; y < countV; y++)
+        {
+            for (int x = 0; x < countU; x++)
+            {
+                int u = texU + x;
+                int v = texV + y;
+
+                Color c;
+                if (_skinPixels != null && u >= 0 && u < 64 && v >= 0 && v < 64)
+                {
+                    c = _skinPixels[u, v];
+                    if (isOuterLayer && c.A < 20) continue;
+                    if (c.A < 20) c = _defaultSkinTone;
+                }
+                else
+                {
+                    if (isOuterLayer) continue;
+                    c = (texV < 16) ? _defaultSkinTone : (texV < 32 ? _defaultShirt : _defaultPants);
+                }
+
+                var p0 = start + uDir * x + vDir * y;
+                var p1 = start + uDir * (x + 1) + vDir * y;
+                var p2 = start + uDir * (x + 1) + vDir * (y + 1);
+                var p3 = start + uDir * x + vDir * (y + 1);
+
+                if (MathF.Abs(rotXDeg) > 0.01f)
+                {
+                    float rad = rotXDeg * MathF.PI / 180f;
+                    float pivotY = start.Y;
+                    p0 = RotateLimbX(p0, pivotY, rad);
+                    p1 = RotateLimbX(p1, pivotY, rad);
+                    p2 = RotateLimbX(p2, pivotY, rad);
+                    p3 = RotateLimbX(p3, pivotY, rad);
+                }
+
+                faces.Add(new QuadFace { P1 = p0, P2 = p1, P3 = p2, P4 = p3, BaseColor = c });
+            }
+        }
+    }
+
+    private static Vector3 RotateLimbX(Vector3 p, float pivotY, float rad)
+    {
+        float dy = p.Y - pivotY;
+        float dz = p.Z;
+        float cos = MathF.Cos(rad);
+        float sin = MathF.Sin(rad);
+        return new Vector3(p.X, pivotY + dy * cos - dz * sin, dy * sin + dz * cos);
     }
 }

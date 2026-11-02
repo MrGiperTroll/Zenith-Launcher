@@ -12,6 +12,10 @@ public class LauncherConfigData
     public string SelectedDirectoryMode { get; set; } = "Separate directory for each instance";
     public string JavaMode { get; set; } = "Recommended";
     public string CustomJavaPath { get; set; } = string.Empty;
+    public string Java25Path { get; set; } = string.Empty;
+    public string Java21Path { get; set; } = string.Empty;
+    public string Java17Path { get; set; } = string.Empty;
+    public string Java8Path { get; set; } = string.Empty;
     public string AccentColor { get; set; } = "";
     public string SimpleAccentColor { get; set; } = "#3B82F6";
     public string BgColor { get; set; } = "#131416";

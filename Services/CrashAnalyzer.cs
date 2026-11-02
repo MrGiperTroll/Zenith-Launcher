@@ -108,12 +108,8 @@ public static class CrashAnalyzer
             // 4. Missing mod dependencies or incompatibilities (Fabric, Forge, NeoForge).
             var depLines = PickLines(logText, @"Incompatible mod set found|FormattedException|Missing.*dependenc|requires.*which is missing|requires .* of |needs .* to be|but it is missing|IncompatibleModsException|DuplicateModsFoundException|ModResolutionException|ModLoadingException|Some of your mods are incompatible|A potential solution has been determined|requires version.*of mod", 6);
             
-            var reqMatch = Regex.Match(logText, @"Mod\s+'([^']+)'\s*(?:\([^)]+\))?[^'
-]*?requires\s+(?:version\s+([^
-,]+?)\s+or\s+later\s+of\s+|version\s+([^
-,]+?)\s+of\s+)?([a-zA-Z0-9_\-]+)(?:,\s*which\s+is\s+missing)?", RegexOptions.IgnoreCase);
-            var installMatch = Regex.Match(logText, @"Install\s+([a-zA-Z0-9_\-]+)(?:,\s*version\s+([^
-,]+))?", RegexOptions.IgnoreCase);
+            var installMatch = Regex.Match(logText, @"Install\s+([a-zA-Z0-9_\-]+)(?:[\s,]+version\s+([^\r\n,.]+))?", RegexOptions.IgnoreCase);
+            var reqMatch = Regex.Match(logText, @"Mod\s+'([^']+)'(?:\s*\([^)]+\))?[^'\r\n]*?requires\s+(?:any\s+version|version\s+([^\r\n,]+?)\s+or\s+later\s+of|version\s+([^\r\n,]+?)\s+of)?\s*(?:mod\s+)?'?([a-zA-Z0-9_\-]+)'?(?:,\s*which\s+is\s+missing)?", RegexOptions.IgnoreCase);
 
             string? missingMod = null;
             string? requiringMod = null;
@@ -178,31 +174,6 @@ public static class CrashAnalyzer
 
                 return Build(L10n.T("crash_mods_title"), humanDesc, causeTitle,
                     evidence, requirements, solutionSteps, resolvedLogPath, exitCode, modNames, instanceBasePath);
-            }
-
-            // 4a. Sodium / Embeddium / Iris rendering & uniform buffer crashes
-            if (ContainsAny(logText, @"Overflowed the mesh time buffer|writeMeshTimes|UniformBufferManager|net\.caffeinemc\.mods\.sodium|me\.jellysquid\.mods\.sodium"))
-            {
-                var sodiumJar = FindModJar("sodium", instanceBasePath);
-                var sodiumMods = new List<string> { sodiumJar ?? "sodium" };
-                
-                var meshErr = PickLines(logText, @"Overflowed the mesh time buffer|writeMeshTimes|UniformBufferManager", 2).FirstOrDefault()
-                    ?? "java.lang.IllegalStateException: Overflowed the mesh time buffer";
-
-                string causeTitle = "Render crash in mod 'Sodium' (Mesh buffer overflow)";
-                string humanDesc = "A rendering crash occurred in the Sodium mod while processing chunk mesh times (UniformBufferManager.writeMeshTimes). This happens when chunk rendering commands exceed the allocated uniform buffer, typically due to extreme render distance, an outdated Sodium build, or shader incompatibilities.";
-
-                evidence.Add(meshErr);
-                evidence.AddRange(PickLines(logText, @"at net\.caffeinemc\.mods\.sodium|at me\.jellysquid\.mods\.sodium", 4));
-
-                solutionSteps.Add("1. Update Sodium to the latest compatible version for your Minecraft version.");
-                solutionSteps.Add("2. Lower Render Distance in Video Settings (recommended: 12-16 chunks).");
-                solutionSteps.Add("3. Update your graphics card drivers (NVIDIA / AMD / Intel).");
-                solutionSteps.Add("4. If using shaders (Iris), try temporarily disabling the active shader pack.");
-                solutionSteps.Add("5. Click 'Disable Mod' below if you want to temporarily play without Sodium.");
-
-                return Build("Sodium Render Crash", humanDesc, causeTitle,
-                    evidence, requirements, solutionSteps, resolvedLogPath, exitCode, sodiumMods, instanceBasePath);
             }
 
             // 4b. General Mod Stack Trace & Exception Parser (identifies specific crashing mod and method)
@@ -444,7 +415,8 @@ public static class CrashAnalyzer
         try
         {
             // Find top exception: e.g. java.lang.NullPointerException: ... or Caused by: ...
-            var excMatch = Regex.Match(logText, @"(?:Caused by:\s+)?([a-zA-Z0-9_.]+(?:Exception|Error|Throwable))(?::\s*([^
+            var excMatch = Regex.Match(logText, @"(?:Caused by:\s+)?([a-zA-Z0-9_.]+(?:Exception|Error|Throwable))(?::\s*([^
+
 ]*))?", RegexOptions.Multiline);
             string excType = excMatch.Success ? excMatch.Groups[1].Value.Trim() : "Exception";
             string excMsg = excMatch.Success && excMatch.Groups[2].Success ? excMatch.Groups[2].Value.Trim() : "";

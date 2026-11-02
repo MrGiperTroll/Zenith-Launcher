@@ -405,8 +405,16 @@ dependencies {{
     public long Downloads { get; init; } = 0;
     public string AuthorId { get; init; } = "";
     public string AuthorName { get; set; } = "";
-    [ObservableProperty] private bool _isFirstInTimeline;
-    [ObservableProperty] private bool _isLastInTimeline;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowTopTimelineLine))]
+    private bool _isFirstInTimeline;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowBottomTimelineLine))]
+    private bool _isLastInTimeline;
+
+    public bool ShowTopTimelineLine => !IsFirstInTimeline;
+    public bool ShowBottomTimelineLine => !IsLastInTimeline;
 
     public string DownloadsLabel
     {

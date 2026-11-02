@@ -1606,7 +1606,7 @@
                         </Grid>
                     </Border>
                     <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Padding="14">
-                        <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="10" VerticalAlignment="Center">
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" VerticalAlignment="Center">
                             <Border Width="40" Height="40" Background="{StaticResource IconChipBrush}" CornerRadius="10" VerticalAlignment="Center">
                                 <PathIcon Data="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="20" Height="20" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
@@ -1614,8 +1614,7 @@
                                 <TextBlock Classes="rowTitle" Text="{l10n:Tr Key=imp_single_t}"/>
                                 <TextBlock Classes="rowHint" Text="Any archive (.zip, .mrpack) or custom instance/version folder"/>
                             </StackPanel>
-                            <Button Grid.Column="2" Classes="subBtn" Content="Archive" Command="{Binding PickImportFileCommand}" VerticalAlignment="Center"/>
-                            <Button Grid.Column="3" Classes="subBtn" Content="{l10n:Tr Key=imp_choose}" Command="{Binding PickImportFolderCommand}" CommandParameter="Generic" VerticalAlignment="Center"/>
+                            <Button Grid.Column="2" Classes="subBtn" Content="{l10n:Tr Key=imp_choose}" Command="{Binding PickImportSingleCommand}" VerticalAlignment="Center"/>
                         </Grid>
                     </Border>
                 </StackPanel>
@@ -1670,44 +1669,31 @@
         <Border Grid.Row="0" Grid.RowSpan="2" Background="{StaticResource OverlayBrush}"
                 IsVisible="{Binding ModpacksBrowser.IsAddToInstanceOpen}" ZIndex="1100"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-            <Border Background="{StaticResource BgBrush}" CornerRadius="14" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1"
-                    Width="480" MaxHeight="520" HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 18 46 0 #55000000" Padding="24,20,24,18">
-                <Grid RowDefinitions="Auto,Auto,Auto,*,Auto">
+            <Border Background="{StaticResource BgBrush}" CornerRadius="14" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1"
+                    Width="520" MaxHeight="520" HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 18 46 0 #55000000" Padding="24,20,24,18">
+                <Grid RowDefinitions="Auto,Auto,*,Auto">
                     <!-- Header -->
-                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,14" VerticalAlignment="Center">
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,16" VerticalAlignment="Center">
                         <TextBlock Text="Install project" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
                         <Button Grid.Column="1" Content="✕" Command="{Binding ModpacksBrowser.CloseAddToInstanceCommand}" Classes="subBtn"
                                 Width="28" Height="28" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
                     </Grid>
 
-                    <!-- Instance Type Tabs -->
-                    <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8" Margin="0,0,0,12">
-                        <Border Background="{DynamicResource AccentDimBrush}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1" CornerRadius="8" Padding="12,6">
-                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                <PathIcon Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" Width="11" Height="11" Foreground="{DynamicResource AccentBrush}"/>
-                                <TextBlock Text="Existing instance" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"/>
-                            </StackPanel>
-                        </Border>
-                        <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1" CornerRadius="8" Padding="12,6" Opacity="0.6">
-                            <TextBlock Text="New instance" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                        </Border>
-                    </StackPanel>
-
                     <!-- Search instance -->
-                    <TextBox Grid.Row="2" Classes="darkInput" Text="{Binding ModpacksBrowser.InstanceSearchQuery}" PlaceholderText="Search instance" Height="34" FontSize="12" Margin="0,0,0,12"/>
+                    <TextBox Grid.Row="1" Classes="darkInput" Text="{Binding ModpacksBrowser.InstanceSearchQuery}" PlaceholderText="Search instance" Height="34" FontSize="12" Margin="0,0,0,12"/>
 
                     <!-- List of Instances -->
-                    <ScrollViewer Grid.Row="3" MaxHeight="260" VerticalScrollBarVisibility="Auto">
+                    <ScrollViewer Grid.Row="2" MaxHeight="280" VerticalScrollBarVisibility="Auto">
                         <ItemsControl ItemsSource="{Binding ModpacksBrowser.TargetInstances}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="dialogs:InstanceTargetItem">
                                     <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,6">
                                         <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalAlignment="Center">
-                                            <Border Width="32" Height="32" Background="{StaticResource IconChipBrush}" CornerRadius="6" VerticalAlignment="Center" ClipToBounds="True">
+                                            <Border Width="32" Height="32" Background="Transparent" CornerRadius="6" VerticalAlignment="Center" ClipToBounds="True">
                                                 <Panel>
-                                            <Image Source="{Binding IconBitmap}" Stretch="UniformToFill" IsVisible="{Binding HasIcon}"/>
-                                            <PathIcon Data="M21 16.5C21 16.88 20.79 17.21 20.47 17.38L12.57 21.82C12.41 21.91 12.21 21.96 12 21.96C11.79 21.96 11.59 21.91 11.43 21.82L3.53 17.38C3.21 17.21 3 16.88 3 16.5V7.5C3 7.12 3.21 6.79 3.53 6.62L11.43 2.18C11.59 2.09 11.79 2.04 12 2.04C12.21 2.04 12.41 2.09 12.57 2.18L20.47 6.62C20.79 6.79 21 7.12 21 7.5V16.5Z" Width="16" Height="16" Foreground="{DynamicResource AccentBrush}" IsVisible="{Binding !HasIcon}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        </Panel>
+                                                    <Image Source="{Binding IconBitmap}" Stretch="UniformToFill" IsVisible="{Binding HasIcon}"/>
+                                                    <PathIcon Data="M21 16.5C21 16.88 20.79 17.21 20.47 17.38L12.57 21.82C12.41 21.91 12.21 21.96 12 21.96C11.79 21.96 11.59 21.91 11.43 21.82L3.53 17.38C3.21 17.21 3 16.88 3 16.5V7.5C3 7.12 3.21 6.79 3.53 6.62L11.43 2.18C11.59 2.09 11.79 2.04 12 2.04C12.21 2.04 12.41 2.09 12.57 2.18L20.47 6.62C20.79 6.79 21 7.12 21 7.5V16.5Z" Width="16" Height="16" Foreground="{DynamicResource AccentBrush}" IsVisible="{Binding !HasIcon}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Panel>
                                             </Border>
                                             <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
                                                 <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
@@ -1726,12 +1712,8 @@
                     </ScrollViewer>
 
                     <!-- Footer -->
-                    <Grid Grid.Row="4" ColumnDefinitions="*,Auto" Margin="0,14,0,0" VerticalAlignment="Center">
-                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                            <PathIcon Data="M21 16.5C21 16.88 20.79 17.21 20.47 17.38L12.57 21.82C12.41 21.91 12.21 21.96 12 21.96C11.79 21.96 11.59 21.91 11.43 21.82L3.53 17.38C3.21 17.21 3 16.88 3 16.5V7.5C3 7.12 3.21 6.79 3.53 6.62L11.43 2.18C11.59 2.09 11.79 2.04 12 2.04C12.21 2.04 12.41 2.09 12.57 2.18L20.47 6.62C20.79 6.79 21 7.12 21 7.5V16.5Z" Width="13" Height="13" Foreground="{StaticResource TextSecondaryBrush}"/>
-                            <TextBlock Text="{Binding ModpacksBrowser.CompatibleInstanceCount, StringFormat='{}{0} compatible instances'}" FontSize="11.5" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                        </StackPanel>
-                        <Button Grid.Column="1" Classes="subBtn" Content="Cancel" Command="{Binding ModpacksBrowser.CloseAddToInstanceCommand}" Padding="16,6"/>
+                    <Grid Grid.Row="3" Margin="0,14,0,0" VerticalAlignment="Center">
+                        <Button Classes="subBtn" Content="Cancel" Command="{Binding ModpacksBrowser.CloseAddToInstanceCommand}" HorizontalAlignment="Right" Padding="18,6"/>
                     </Grid>
                 </Grid>
             </Border>

@@ -958,22 +958,22 @@
                                                 <DataTemplate x:DataType="models:ModrinthProjectVersion">
                                                     <Border Classes="changelogRow" Padding="0,4" Margin="0" Background="Transparent">
                                                         <Grid ColumnDefinitions="20,*,Auto">
-                                                            <!-- Timeline: Vertical Dashed Line running between nodes -->
-                                                            <Canvas Grid.Column="0" Width="16" ClipToBounds="True">
-                                                                <!-- Top line segment (from previous row to this dot) -->
-                                                                <Line StartPoint="8,0" EndPoint="8,9"
-                                                                      Stroke="{Binding TimelineColorBrush}" StrokeDashArray="3,3" StrokeThickness="2"
-                                                                      IsVisible="{Binding !IsFirstInTimeline}"/>
+                                                            <!-- Timeline: Perfectly centered node and vertical connection line -->
+                                                            <Grid Grid.Column="0" Width="20" HorizontalAlignment="Center">
+                                                                <!-- Top line segment (from row top to circle center at Y=9) -->
+                                                                <Rectangle Width="2" HorizontalAlignment="Center" VerticalAlignment="Top"
+                                                                           Height="9" Fill="{Binding TimelineColorBrush}"
+                                                                           IsVisible="{Binding ShowTopTimelineLine}"/>
 
-                                                                <!-- Bottom line segment (from this dot to next row) -->
-                                                                <Line StartPoint="8,9" EndPoint="8,5000"
-                                                                      Stroke="{Binding TimelineColorBrush}" StrokeDashArray="3,3" StrokeThickness="2"
-                                                                      IsVisible="{Binding !IsLastInTimeline}"/>
+                                                                <!-- Bottom line segment (from circle center at Y=9 to row bottom) -->
+                                                                <Rectangle Width="2" HorizontalAlignment="Center" VerticalAlignment="Stretch"
+                                                                           Margin="0,9,0,0" Fill="{Binding TimelineColorBrush}"
+                                                                           IsVisible="{Binding ShowBottomTimelineLine}"/>
 
-                                                                <!-- Circle node centered at X=8, Y=9 -->
+                                                                <!-- Circle node: centered horizontally and vertically aligned to version title -->
                                                                 <Ellipse Width="10" Height="10" Fill="{Binding TimelineColorBrush}"
-                                                                         Canvas.Left="3" Canvas.Top="4"/>
-                                                            </Canvas>
+                                                                         HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,4,0,0"/>
+                                                            </Grid>
 
                                                             <!-- Title, Author, Date & Changelog Lines -->
                                                             <StackPanel Grid.Column="1" VerticalAlignment="Top" Margin="8,0,16,10" Spacing="4">

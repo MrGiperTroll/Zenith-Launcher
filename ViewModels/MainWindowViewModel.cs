@@ -6794,6 +6794,30 @@ public partial class MainWindowViewModel : ViewModelBase
 
 
     [RelayCommand]
+    private async Task PickImportSingleAsync()
+    {
+        var topLevel = Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
+            ? desktop.MainWindow
+            : null;
+        if (topLevel?.StorageProvider == null) return;
+
+        var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "Import Instance (Archive or Folder)",
+            AllowMultiple = false,
+            FileTypeFilter = new[]
+            {
+                new FilePickerFileType("Minecraft Archives") { Patterns = new[] { "*.zip", "*.mrpack", "*.rar" } },
+                FilePickerFileTypes.All
+            }
+        });
+        if (files.Count > 0)
+        {
+            await RunImportProcessAsync(files[0].Path.LocalPath);
+        }
+    }
+
+    [RelayCommand]
     private async Task PickImportFileAsync()
     {
         var topLevel = Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop

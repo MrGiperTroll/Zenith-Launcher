@@ -209,6 +209,109 @@ public partial class LauncherSettingsViewModel : ViewModelBase
         }
     }
 
+    
+    // --- Java Installations (Versions 25, 21, 17, 8) ---
+    [ObservableProperty] private string _java25Location = string.Empty;
+    [ObservableProperty] private bool _isJava25Valid;
+    partial void OnJava25LocationChanged(string value)
+    {
+        IsJava25Valid = !string.IsNullOrWhiteSpace(value) && File.Exists(value);
+        if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
+    }
+
+    [ObservableProperty] private string _java21Location = string.Empty;
+    [ObservableProperty] private bool _isJava21Valid;
+    partial void OnJava21LocationChanged(string value)
+    {
+        IsJava21Valid = !string.IsNullOrWhiteSpace(value) && File.Exists(value);
+        if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
+    }
+
+    [ObservableProperty] private string _java17Location = string.Empty;
+    [ObservableProperty] private bool _isJava17Valid;
+    partial void OnJava17LocationChanged(string value)
+    {
+        IsJava17Valid = !string.IsNullOrWhiteSpace(value) && File.Exists(value);
+        if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
+    }
+
+    [ObservableProperty] private string _java8Location = string.Empty;
+    [ObservableProperty] private bool _isJava8Valid;
+    partial void OnJava8LocationChanged(string value)
+    {
+        IsJava8Valid = !string.IsNullOrWhiteSpace(value) && File.Exists(value);
+        if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
+    }
+
+    [RelayCommand]
+    public void DetectJava(string versionStr)
+    {
+        if (int.TryParse(versionStr, out int major))
+        {
+            var detected = JavaVersionHelper.FindJavaForVersion(major);
+            if (!string.IsNullOrWhiteSpace(detected))
+            {
+                SetJavaLocation(major, detected);
+            }
+        }
+    }
+
+    [RelayCommand]
+    public void InstallJava(string versionStr)
+    {
+        if (int.TryParse(versionStr, out int major))
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(JavaVersionHelper.AdoptiumDownloadUrl(major))
+                {
+                    UseShellExecute = true
+                });
+            }
+            catch { }
+        }
+    }
+
+    [RelayCommand]
+    public async Task BrowseJavaAsync(string versionStr)
+    {
+        if (!int.TryParse(versionStr, out int major)) return;
+        var topLevel = Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
+            ? desktop.MainWindow
+            : null;
+
+        if (topLevel?.StorageProvider != null)
+        {
+            var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = $"Select Java {major} Executable (javaw.exe / java)",
+                AllowMultiple = false,
+                FileTypeFilter = new[]
+                {
+                    new FilePickerFileType("Java Executable") { Patterns = new[] { "javaw.exe", "java.exe", "java" } },
+                    FilePickerFileTypes.All
+                }
+            });
+
+            if (files.Count > 0)
+            {
+                SetJavaLocation(major, files[0].Path.LocalPath);
+            }
+        }
+    }
+
+    private void SetJavaLocation(int major, string path)
+    {
+        switch (major)
+        {
+            case 25: Java25Location = path; break;
+            case 21: Java21Location = path; break;
+            case 17: Java17Location = path; break;
+            case 8: Java8Location = path; break;
+        }
+        SaveConfigRequested?.Invoke();
+    }
+
     public void UpdateJavaDisplay()
     {
         IsCustomJavaMode = SelectedJavaMode == "Custom";
@@ -476,6 +579,12 @@ public partial class LauncherSettingsViewModel : ViewModelBase
         cfg.DiscordRpcEnabled = DiscordRpcEnabled;
         cfg.CurseForgeApiKey = CurseForgeApiKey;
         cfg.LauncherScale = LauncherScale;
+        
+        cfg.Java25Path = Java25Location;
+        cfg.Java21Path = Java21Location;
+        cfg.Java17Path = Java17Location;
+        cfg.Java8Path = Java8Location;
+    
         cfg.Language = SelectedLanguage;
     }
 }

@@ -8,8 +8,8 @@
 
     <UserControl.Styles>
         <Style Selector="Border.skinCard">
-            <Setter Property="Width" Value="110"/>
-            <Setter Property="Height" Value="150"/>
+            <Setter Property="Width" Value="116"/>
+            <Setter Property="Height" Value="154"/>
             <Setter Property="Background" Value="{StaticResource CardBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderDarkBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
@@ -24,55 +24,101 @@
             <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
             <Setter Property="BorderThickness" Value="2"/>
         </Style>
+        <Style Selector="Button.modelTypeBtn">
+            <Setter Property="Background" Value="{DynamicResource FieldBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderDarkBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="16,8"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="12.5"/>
+        </Style>
+        <Style Selector="Button.modelTypeBtn.active">
+            <Setter Property="Background" Value="{DynamicResource AccentDimBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+        </Style>
     </UserControl.Styles>
 
-    <Grid ColumnDefinitions="320,*" Margin="24,20">
-        <!-- Left Pane: 3D Interactive Model Preview -->
-        <Grid Grid.Column="0" RowDefinitions="Auto,*,Auto,Auto" HorizontalAlignment="Center" Margin="0,0,24,0">
-            <TextBlock Grid.Row="0" Text="Skin selector" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,16"/>
+    <Panel>
+        <Grid ColumnDefinitions="320,*" Margin="24,20">
+            <!-- Left Pane: 3D Interactive Model Preview -->
+            <Grid Grid.Column="0" RowDefinitions="*,Auto,Auto" HorizontalAlignment="Center" Margin="0,0,24,0">
+                <!-- 3D Interactive Model (No duplicate header text above) -->
+                <Border Grid.Row="0" Width="270" Height="380" Background="{StaticResource SurfaceBrush}"
+                        BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1" CornerRadius="16" ClipToBounds="True">
+                    <controls:Skin3DControl SkinBitmap="{Binding ActiveSkinBitmap}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                </Border>
 
-            <!-- 3D Interactive Model -->
-            <Border Grid.Row="1" Width="260" Height="340" Background="{StaticResource SurfaceBrush}"
-                    BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1" CornerRadius="16" ClipToBounds="True">
-                <controls:Skin3DControl SkinBitmap="{Binding ActiveSkinBitmap}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-            </Border>
-
-            <!-- Drag to rotate hint -->
-            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="6" Margin="0,14,0,10">
-                <PathIcon Data="M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm14 2l-5-5v3h-3v4h3v3l5-5zm-9 3h-4v3H7l5 5 5-5h-3v-3z" Width="12" Height="12" Foreground="{StaticResource TextPlaceholderBrush}"/>
-                <TextBlock Text="Drag to rotate" FontSize="11.5" Foreground="{StaticResource TextPlaceholderBrush}"/>
-            </StackPanel>
-
-            <!-- Edit skin button -->
-            <Button Grid.Row="3" Classes="subBtn" Command="{Binding EditSkinCommand}" Padding="16,8" HorizontalAlignment="Center">
-                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                    <PathIcon Data="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" Width="12" Height="12"/>
-                    <TextBlock Text="Edit skin" FontSize="12" FontWeight="SemiBold"/>
+                <!-- Drag to rotate hint -->
+                <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="6" Margin="0,14,0,10">
+                    <PathIcon Data="M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm14 2l-5-5v3h-3v4h3v3l5-5zm-9 3h-4v3H7l5 5 5-5h-3v-3z" Width="12" Height="12" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                    <TextBlock Text="Drag to rotate" FontSize="11.5" Foreground="{StaticResource TextPlaceholderBrush}"/>
                 </StackPanel>
-            </Button>
-        </Grid>
 
-        <!-- Right Pane: Saved and Default Skins -->
-        <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
-            <StackPanel Spacing="24">
+                <!-- Edit skin button -->
+                <Button Grid.Row="2" Classes="subBtn" Command="{Binding EditSkinCommand}" Padding="18,8" HorizontalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <PathIcon Data="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" Width="12" Height="12"/>
+                        <TextBlock Text="Edit skin" FontSize="12" FontWeight="SemiBold"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
 
-                <!-- Saved skins section -->
-                <StackPanel Spacing="12">
-                    <TextBlock Text="Saved skins" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                    <WrapPanel Orientation="Horizontal">
-                        <!-- Add skin card -->
-                        <Button Command="{Binding AddSkinCommand}" Background="Transparent" BorderThickness="0" Padding="0" Margin="0,0,12,12">
-                            <Border Classes="skinCard" BorderBrush="{DynamicResource AccentDimBrush}" BorderThickness="1.5">
-                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8">
-                                    <TextBlock Text="+" FontSize="28" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="Add skin" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="Drag and drop" FontSize="10.5" Foreground="{StaticResource TextPlaceholderBrush}" HorizontalAlignment="Center"/>
-                                </StackPanel>
-                            </Border>
-                        </Button>
+            <!-- Right Pane: Saved and Default Skins -->
+            <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
+                <StackPanel Spacing="24">
 
-                        <!-- Saved skin cards -->
-                        <ItemsControl ItemsSource="{Binding SavedSkins}">
+                    <!-- Saved skins section -->
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="Saved skins" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <WrapPanel Orientation="Horizontal">
+                            <!-- Add skin card -->
+                            <Button Command="{Binding AddSkinCommand}" Background="Transparent" BorderThickness="0" Padding="0" Margin="0,0,12,12">
+                                <Border Classes="skinCard" BorderBrush="{DynamicResource AccentDimBrush}" BorderThickness="1.5">
+                                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8">
+                                        <TextBlock Text="+" FontSize="28" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="Add skin" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="Drag and drop" FontSize="10.5" Foreground="{StaticResource TextPlaceholderBrush}" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+                            </Button>
+
+                            <!-- Saved skin cards (3D busts) -->
+                            <ItemsControl ItemsSource="{Binding SavedSkins}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel Orientation="Horizontal"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="pages:SkinItem">
+                                        <Border Classes="skinCard" Classes.selected="{Binding IsSelected}" Margin="0,0,12,12"
+                                                PointerPressed="OnSkinCardPointerPressed" Tag="{Binding}">
+                                            <Panel>
+                                                <Image Source="{Binding PreviewBitmap}" Stretch="Uniform" Margin="8,8,8,26"/>
+                                                <!-- Checkmark badge if selected -->
+                                                <Border Width="20" Height="20" Background="{DynamicResource AccentBrush}" CornerRadius="10"
+                                                        HorizontalAlignment="Right" VerticalAlignment="Top" Margin="6"
+                                                        IsVisible="{Binding IsSelected}">
+                                                    <PathIcon Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" Width="10" Height="10" Foreground="{DynamicResource OnAccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                                <TextBlock Text="{Binding Name}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,8" TextTrimming="CharacterEllipsis"/>
+                                            </Panel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </WrapPanel>
+                    </StackPanel>
+
+                    <!-- Default skins section (3D busts) -->
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="Default skins" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <ItemsControl ItemsSource="{Binding DefaultSkins}">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <WrapPanel Orientation="Horizontal"/>
@@ -83,57 +129,82 @@
                                     <Border Classes="skinCard" Classes.selected="{Binding IsSelected}" Margin="0,0,12,12"
                                             PointerPressed="OnSkinCardPointerPressed" Tag="{Binding}">
                                         <Panel>
-                                            <Image Source="{Binding PreviewBitmap}" Stretch="Uniform" Margin="8"/>
+                                            <Image Source="{Binding PreviewBitmap}" Stretch="Uniform" Margin="8,8,8,26"/>
                                             <!-- Checkmark badge if selected -->
                                             <Border Width="20" Height="20" Background="{DynamicResource AccentBrush}" CornerRadius="10"
                                                     HorizontalAlignment="Right" VerticalAlignment="Top" Margin="6"
                                                     IsVisible="{Binding IsSelected}">
                                                 <PathIcon Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" Width="10" Height="10" Foreground="{DynamicResource OnAccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             </Border>
-                                            <TextBlock Text="{Binding Name}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"
-                                                       HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,6"/>
+                                            <TextBlock Text="{Binding Name}" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,8"/>
                                         </Panel>
                                     </Border>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
-                    </WrapPanel>
-                </StackPanel>
+                    </StackPanel>
 
-                <!-- Default skins section -->
-                <StackPanel Spacing="12">
-                    <TextBlock Text="Default skins" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                    <ItemsControl ItemsSource="{Binding DefaultSkins}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <WrapPanel Orientation="Horizontal"/>
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="pages:SkinItem">
-                                <Border Classes="skinCard" Classes.selected="{Binding IsSelected}" Margin="0,0,12,12"
-                                        PointerPressed="OnSkinCardPointerPressed" Tag="{Binding}">
-                                    <Panel>
-                                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8">
-                                            <Border Width="48" Height="48" Background="{StaticResource IconChipBrush}" CornerRadius="8" HorizontalAlignment="Center">
-                                                <PathIcon Data="M12 2A5 5 0 0 0 7 7C7 8.5 7.6 9.8 8.6 10.7C5.8 11.8 4 14.6 4 18V20H20V18C20 14.6 18.2 11.8 15.4 10.7C16.4 9.8 17 8.5 17 7A5 5 0 0 0 12 2Z" Width="24" Height="24" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            </Border>
-                                            <TextBlock Text="{Binding Name}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
-                                        </StackPanel>
-                                        <!-- Checkmark badge if selected -->
-                                        <Border Width="20" Height="20" Background="{DynamicResource AccentBrush}" CornerRadius="10"
-                                                HorizontalAlignment="Right" VerticalAlignment="Top" Margin="6"
-                                                IsVisible="{Binding IsSelected}">
-                                            <PathIcon Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" Width="10" Height="10" Foreground="{DynamicResource OnAccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        </Border>
-                                    </Panel>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
                 </StackPanel>
+            </ScrollViewer>
+        </Grid>
 
-            </StackPanel>
-        </ScrollViewer>
-    </Grid>
+        <!-- MODAL: Skin Customization & Options Dialog -->
+        <Border Background="{DynamicResource OverlayBrush}" IsVisible="{Binding IsSkinEditorOpen}" ZIndex="1200"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1"
+                    CornerRadius="14" Width="440" Padding="24" HorizontalAlignment="Center" VerticalAlignment="Center"
+                    BoxShadow="0 18 46 0 #55000000">
+                <StackPanel Spacing="18">
+                    <!-- Title -->
+                    <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                        <TextBlock Text="Skin Options" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <Button Grid.Column="1" Content="✕" Command="{Binding CloseSkinEditorCommand}" Classes="subBtn"
+                                Width="28" Height="28" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                    </Grid>
+
+                    <!-- Model Type Selection -->
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Model Type" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <Button Grid.Column="0" Classes="modelTypeBtn" Classes.active="{Binding IsClassicModel}"
+                                    Command="{Binding SetClassicModelCommand}" Content="Classic (4px Arms)"
+                                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                            <Button Grid.Column="1" Classes="modelTypeBtn" Classes.active="{Binding IsSlimModel}"
+                                    Command="{Binding SetSlimModelCommand}" Content="Slim (3px Arms)"
+                                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Outer Layers / Armor Toggles -->
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Skin Layers" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="6" ColumnSpacing="12">
+                            <CheckBox Grid.Row="0" Grid.Column="0" Content="Hat" IsChecked="{Binding ShowHat}"/>
+                            <CheckBox Grid.Row="0" Grid.Column="1" Content="Jacket" IsChecked="{Binding ShowJacket}"/>
+                            <CheckBox Grid.Row="1" Grid.Column="0" Content="Left Sleeve" IsChecked="{Binding ShowLeftSleeve}"/>
+                            <CheckBox Grid.Row="1" Grid.Column="1" Content="Right Sleeve" IsChecked="{Binding ShowRightSleeve}"/>
+                            <CheckBox Grid.Row="2" Grid.Column="0" Content="Left Pants" IsChecked="{Binding ShowLeftPants}"/>
+                            <CheckBox Grid.Row="2" Grid.Column="1" Content="Right Pants" IsChecked="{Binding ShowRightPants}"/>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Cape Selection -->
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Cape" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <ComboBox ItemsSource="{Binding AvailableCapes}" SelectedItem="{Binding SelectedCape}"
+                                  HorizontalAlignment="Stretch" Height="36"/>
+                    </StackPanel>
+
+                    <!-- Buttons -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,8,0,0">
+                        <Button Grid.Column="0" Classes="subBtn" Content="Cancel" Command="{Binding CloseSkinEditorCommand}"
+                                HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Height="36"/>
+                        <Button Grid.Column="1" Classes="primaryBtn" Content="Apply" Command="{Binding SaveSkinSettingsCommand}"
+                                HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Height="36"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Border>
+    </Panel>
 </UserControl>

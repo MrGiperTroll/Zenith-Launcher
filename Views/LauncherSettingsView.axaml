@@ -9,9 +9,30 @@
              x:Name="RootSettingsControl"
              x:Class="CustomMcLauncher.Views.LauncherSettingsView"
              x:DataType="pages:LauncherSettingsViewModel"
-             Background="{StaticResource BgBrush}">
+             Background="{DynamicResource BgBrush}">
 
     <UserControl.Styles>
+        <Style Selector="ScrollBar">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style Selector="ScrollBar:vertical">
+            <Setter Property="Width" Value="6"/>
+            <Setter Property="MinWidth" Value="6"/>
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="ScrollBar:vertical /template/ Thumb">
+            <Setter Property="Background" Value="{StaticResource BorderStrongBrush}"/>
+            <Setter Property="CornerRadius" Value="3"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style Selector="ScrollBar:vertical:pointerover /template/ Thumb">
+            <Setter Property="Background" Value="{DynamicResource AccentDimBrush}"/>
+        </Style>
+        <Style Selector="ScrollBar /template/ RepeatButton">
+            <Setter Property="IsVisible" Value="False"/>
+        </Style>
+
         <Style Selector="Button.sideTab">
             <Setter Property="Background" Value="{StaticResource RowHoverBrushTransparent}"/>
             <Setter Property="BorderThickness" Value="0"/>
@@ -46,7 +67,7 @@
         <Style Selector="Button.subBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
         </Style>
         <Style Selector="Button.primaryBtn">
             <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
@@ -65,13 +86,13 @@
         </Style>
 
         <Style Selector="TextBlock.groupTitle">
-            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontSize" Value="15"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
-            <Setter Property="Margin" Value="0,0,0,12"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
         </Style>
         <Style Selector="TextBlock.itemTitle">
-            <Setter Property="FontSize" Value="13.5"/>
+            <Setter Property="FontSize" Value="13"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
         </Style>
@@ -79,26 +100,30 @@
             <Setter Property="FontSize" Value="11.5"/>
             <Setter Property="Foreground" Value="{StaticResource TextPlaceholderBrush}"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
-            <Setter Property="Margin" Value="0,2,0,0"/>
+            <Setter Property="MaxWidth" Value="520"/>
         </Style>
     </UserControl.Styles>
 
     <Panel>
         <Grid ColumnDefinitions="200,*">
             <!-- Sidebar -->
-            <Border Grid.Column="0" Background="{StaticResource SidebarBgBrush}" Padding="14,16">
+            <Border Grid.Column="0" Background="{StaticResource SidebarBgBrush}" Padding="14,16"
+                    BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,1,0">
                 <Grid RowDefinitions="Auto,*,Auto">
-                    <TextBox Classes="darkInput" Text="{Binding SettingsSearchQuery}" PlaceholderText="{l10n:Tr Key=ph_search}" Padding="8,6" FontSize="11" Margin="0,0,0,12"/>
+                    <TextBox Classes="darkInput" Text="{Binding SettingsSearchQuery}" PlaceholderText="Search settings..." Padding="8,6" FontSize="11" Margin="0,0,0,12"/>
                     <StackPanel Grid.Row="1" Spacing="4">
+                        <!-- Tab 1: Minecraft (Original Globe Icon) -->
                         <Button Classes="sideTab" Classes.active="{Binding IsSettingsTabGame}" Command="{Binding SwitchSettingsTabCommand}" CommandParameter="Game"
                                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
                             <Grid ColumnDefinitions="Auto,*">
                                 <Border Width="30" Height="30" Background="{StaticResource IconChipBrush}" CornerRadius="7" VerticalAlignment="Center">
-                                    <PathIcon Data="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10 7H8v3H6v-3H3v-2h3V8h2v3h3v2zm4.5 2c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4-3c-.83 0-1.5-.67-1.5-1.5S18.67 9 19.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" Width="15" Height="15" Foreground="{Binding IsSettingsTabGame, Converter={x:Static converters:EditInstanceWindowConverters.ActiveIcon}}"/>
+                                    <PathIcon Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" Width="15" Height="15" Foreground="{Binding IsSettingsTabGame, Converter={x:Static converters:EditInstanceWindowConverters.ActiveIcon}}"/>
                                 </Border>
                                 <TextBlock Grid.Column="1" Text="Minecraft" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsSettingsTabGame, Converter={x:Static converters:EditInstanceWindowConverters.ActiveText}}"/>
                             </Grid>
                         </Button>
+
+                        <!-- Tab 2: Launcher (Original Palette Icon) -->
                         <Button Classes="sideTab" Classes.active="{Binding IsSettingsTabAppearance}" Command="{Binding SwitchSettingsTabCommand}" CommandParameter="Appearance"
                                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
                             <Grid ColumnDefinitions="Auto,*">
@@ -118,19 +143,19 @@
                 <StackPanel Spacing="24">
 
                     <!-- ========================================== -->
-                    <!-- GAME SETTINGS (Minecraft Tab)              -->
+                    <!-- MINECRAFT SETTINGS (Game Tab)              -->
                     <!-- ========================================== -->
                     <StackPanel Spacing="24" IsVisible="{Binding IsSettingsTabGame}">
 
-                        <!-- Group: Memory Allocation -->
-                        <StackPanel Spacing="8" IsVisible="{Binding IsSearchMemoryVisible}">
-                            <TextBlock Classes="groupTitle" Text="{l10n:Tr set_memory}"/>
+                        <!-- Group: Memory (RAM) -->
+                        <StackPanel Spacing="12" IsVisible="{Binding IsSearchMemoryVisible}">
+                            <TextBlock Classes="groupTitle" Text="Memory (RAM)"/>
 
                             <!-- Min RAM Row -->
                             <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                 <StackPanel Spacing="2">
-                                    <TextBlock Classes="itemTitle" Text="{l10n:Tr set_min_memory}"/>
-                                    <TextBlock Classes="itemDesc" Text="Initial amount of RAM allocated when starting Minecraft."/>
+                                    <TextBlock Classes="itemTitle" Text="Minimum Memory (RAM)"/>
+                                    <TextBlock Classes="itemDesc" Text="Initial heap size allocated when launching Minecraft (-Xms)."/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="16,0,0,0">
                                     <Button Command="{Binding StepMinRamDownCommand}" Classes="subBtn" Width="30" Height="30" Padding="0" ToolTip.Tip="Decrease RAM">
@@ -145,13 +170,13 @@
                                 </StackPanel>
                             </Grid>
 
-                            <Border Height="1" Background="{StaticResource BorderDarkBrush}" Margin="0,8"/>
+                            <Border Height="1" Background="{StaticResource BorderDarkBrush}" Margin="0,4"/>
 
                             <!-- Max RAM Row -->
                             <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                 <StackPanel Spacing="2">
-                                    <TextBlock Classes="itemTitle" Text="{l10n:Tr set_max_memory}"/>
-                                    <TextBlock Classes="itemDesc" Text="Maximum memory limit Minecraft is permitted to consume."/>
+                                    <TextBlock Classes="itemTitle" Text="Maximum Memory (RAM)"/>
+                                    <TextBlock Classes="itemDesc" Text="Maximum memory limit Minecraft is permitted to consume (-Xmx)."/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="16,0,0,0">
                                     <Button Command="{Binding StepRamDownCommand}" Classes="subBtn" Width="30" Height="30" Padding="0" ToolTip.Tip="Decrease RAM">
@@ -167,175 +192,253 @@
                             </Grid>
                         </StackPanel>
 
-                        <!-- Group: Java Runtime -->
-                        <StackPanel Spacing="8" IsVisible="{Binding IsSearchJavaVisible}">
-                            <TextBlock Classes="groupTitle" Text="{l10n:Tr set_java}"/>
+                        <!-- Group: Java installations (Versions 25, 21, 17, 8 in main list) -->
+                        <StackPanel Spacing="16" IsVisible="{Binding IsSearchJavaVisible}">
+                            <TextBlock Classes="groupTitle" Text="Java installations"/>
 
-                            <!-- Java Mode Selector -->
-                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                <StackPanel Spacing="2">
-                                    <TextBlock Classes="itemTitle" Text="{l10n:Tr set_java_mode}"/>
-                                    <TextBlock Classes="itemDesc" Text="Select whether to use the launcher recommended Java, system runtime, or a custom binary."/>
-                                </StackPanel>
-                                <ComboBox Grid.Column="1" ItemsSource="{Binding JavaModes}" SelectedItem="{Binding SelectedJavaMode}" Classes="darkCombo" Width="180" Height="32" FontSize="12" VerticalAlignment="Center" Margin="16,0,0,0"/>
-                            </Grid>
-
-                            <Border Height="1" Background="{StaticResource BorderDarkBrush}" Margin="0,8"/>
-
-                            <!-- Auto-manage Java toggle -->
-                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                <StackPanel Spacing="2">
-                                    <TextBlock Classes="itemTitle" Text="Auto-manage Java Runtimes"/>
-                                    <TextBlock Classes="itemDesc" Text="Automatically acquire and match compatible Adoptium Java versions for each Minecraft version."/>
-                                </StackPanel>
-                                <ToggleSwitch Grid.Column="1" IsChecked="{Binding AutoManageJava}" OnContent="{x:Null}" OffContent="{x:Null}" VerticalAlignment="Center" Margin="16,0,0,0"/>
-                            </Grid>
-
-                            <!-- Custom Java Path (Conditional) -->
-                            <StackPanel Spacing="8" IsVisible="{Binding IsCustomJavaMode}">
-                                <Border Height="1" Background="{StaticResource BorderDarkBrush}" Margin="0,8"/>
-                                <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                    <StackPanel Spacing="2">
-                                        <TextBlock Classes="itemTitle" Text="{l10n:Tr set_java_path}"/>
-                                        <TextBlock Classes="itemDesc" Text="Full file path to the custom javaw.exe or java binary."/>
-                                    </StackPanel>
-                                    <Button Grid.Column="1" Classes="subBtn" Command="{Binding BrowseJavaPathCommand}" Content="Browse" Padding="14,6" VerticalAlignment="Center" Margin="16,0,0,0"/>
+                            <!-- Java 25 -->
+                            <StackPanel Spacing="6">
+                                <TextBlock Classes="itemTitle" Text="Java 25 location"/>
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <Border Grid.Column="0" Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="8" Height="36" Padding="12,0">
+                                        <TextBox Classes="darkInput" Text="{Binding Java25Location, Mode=TwoWay}" PlaceholderText="/path/to/java" BorderThickness="0" Background="Transparent" VerticalAlignment="Center" FontSize="12"/>
+                                    </Border>
+                                    <Panel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
+                                        <Border Width="22" Height="22" CornerRadius="11" Background="#1810B981" BorderBrush="#10B981" BorderThickness="1.5" IsVisible="{Binding IsJava25Valid}" VerticalAlignment="Center" ToolTip.Tip="Valid Java binary found">
+                                            <PathIcon Data="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z" Width="10" Height="10" Foreground="#10B981" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <Border Width="22" Height="22" CornerRadius="11" Background="#18EF4444" BorderBrush="#EF4444" BorderThickness="1.5" IsVisible="{Binding !IsJava25Valid}" VerticalAlignment="Center" ToolTip.Tip="Java not found">
+                                            <PathIcon Data="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" Width="9" Height="9" Foreground="#EF4444" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </Panel>
                                 </Grid>
-                                <TextBox Classes="darkInput" Text="{Binding EffectiveJavaPath}" PlaceholderText="C:\Program Files\Java\jdk-21\bin\javaw.exe" Height="34" FontSize="12" Margin="0,4,0,0"/>
+                                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,2,0,8">
+                                    <Button Classes="subBtn" Command="{Binding InstallJavaCommand}" CommandParameter="25" Padding="10,5">
+                                        <TextBlock Text="Install recommended" FontSize="11.5"/>
+                                    </Button>
+                                    <Button Classes="subBtn" Command="{Binding DetectJavaCommand}" CommandParameter="25" Padding="10,5">
+                                        <TextBlock Text="Detect" FontSize="11.5"/>
+                                    </Button>
+                                    <Button Classes="subBtn" Command="{Binding BrowseJavaCommand}" CommandParameter="25" Padding="10,5">
+                                        <TextBlock Text="Browse" FontSize="11.5"/>
+                                    </Button>
+                                </StackPanel>
                             </StackPanel>
 
-                            <Border Height="1" Background="{StaticResource BorderDarkBrush}" Margin="0,8"/>
-
-                            <!-- Java Runtime Status / Installer -->
-                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                <StackPanel Spacing="2">
-                                    <TextBlock Classes="itemTitle" Text="Detected Runtime"/>
-                                    <TextBlock Classes="itemDesc" Text="{Binding CurrentJavaDisplay}"/>
+                            <!-- Java 21 -->
+                            <StackPanel Spacing="6">
+                                <TextBlock Classes="itemTitle" Text="Java 21 location"/>
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <Border Grid.Column="0" Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="8" Height="36" Padding="12,0">
+                                        <TextBox Classes="darkInput" Text="{Binding Java21Location, Mode=TwoWay}" PlaceholderText="/path/to/java" BorderThickness="0" Background="Transparent" VerticalAlignment="Center" FontSize="12"/>
+                                    </Border>
+                                    <Panel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
+                                        <Border Width="22" Height="22" CornerRadius="11" Background="#1810B981" BorderBrush="#10B981" BorderThickness="1.5" IsVisible="{Binding IsJava21Valid}" VerticalAlignment="Center" ToolTip.Tip="Valid Java binary found">
+                                            <PathIcon Data="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z" Width="10" Height="10" Foreground="#10B981" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <Border Width="22" Height="22" CornerRadius="11" Background="#18EF4444" BorderBrush="#EF4444" BorderThickness="1.5" IsVisible="{Binding !IsJava21Valid}" VerticalAlignment="Center" ToolTip.Tip="Java not found">
+                                            <PathIcon Data="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" Width="9" Height="9" Foreground="#EF4444" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </Panel>
+                                </Grid>
+                                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,2,0,8">
+                                    <Button Classes="subBtn" Command="{Binding InstallJavaCommand}" CommandParameter="21" Padding="10,5">
+                                        <TextBlock Text="Install recommended" FontSize="11.5"/>
+                                    </Button>
+                                    <Button Classes="subBtn" Command="{Binding DetectJavaCommand}" CommandParameter="21" Padding="10,5">
+                                        <TextBlock Text="Detect" FontSize="11.5"/>
+                                    </Button>
+                                    <Button Classes="subBtn" Command="{Binding BrowseJavaCommand}" CommandParameter="21" Padding="10,5">
+                                        <TextBlock Text="Browse" FontSize="11.5"/>
+                                    </Button>
                                 </StackPanel>
-                                <Button Grid.Column="1" Classes="subBtn" Command="{Binding OpenJavaInstallerCommand}" Content="Java Manager" Padding="14,6" VerticalAlignment="Center" Margin="16,0,0,0"/>
-                            </Grid>
+                            </StackPanel>
+
+                            <!-- Java 17 -->
+                            <StackPanel Spacing="6">
+                                <TextBlock Classes="itemTitle" Text="Java 17 location"/>
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <Border Grid.Column="0" Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="8" Height="36" Padding="12,0">
+                                        <TextBox Classes="darkInput" Text="{Binding Java17Location, Mode=TwoWay}" PlaceholderText="/path/to/java" BorderThickness="0" Background="Transparent" VerticalAlignment="Center" FontSize="12"/>
+                                    </Border>
+                                    <Panel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
+                                        <Border Width="22" Height="22" CornerRadius="11" Background="#1810B981" BorderBrush="#10B981" BorderThickness="1.5" IsVisible="{Binding IsJava17Valid}" VerticalAlignment="Center" ToolTip.Tip="Valid Java binary found">
+                                            <PathIcon Data="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z" Width="10" Height="10" Foreground="#10B981" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <Border Width="22" Height="22" CornerRadius="11" Background="#18EF4444" BorderBrush="#EF4444" BorderThickness="1.5" IsVisible="{Binding !IsJava17Valid}" VerticalAlignment="Center" ToolTip.Tip="Java not found">
+                                            <PathIcon Data="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" Width="9" Height="9" Foreground="#EF4444" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </Panel>
+                                </Grid>
+                                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,2,0,8">
+                                    <Button Classes="subBtn" Command="{Binding InstallJavaCommand}" CommandParameter="17" Padding="10,5">
+                                        <TextBlock Text="Install recommended" FontSize="11.5"/>
+                                    </Button>
+                                    <Button Classes="subBtn" Command="{Binding DetectJavaCommand}" CommandParameter="17" Padding="10,5">
+                                        <TextBlock Text="Detect" FontSize="11.5"/>
+                                    </Button>
+                                    <Button Classes="subBtn" Command="{Binding BrowseJavaCommand}" CommandParameter="17" Padding="10,5">
+                                        <TextBlock Text="Browse" FontSize="11.5"/>
+                                    </Button>
+                                </StackPanel>
+                            </StackPanel>
+
+                            <!-- Java 8 -->
+                            <StackPanel Spacing="6">
+                                <TextBlock Classes="itemTitle" Text="Java 8 location"/>
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <Border Grid.Column="0" Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" CornerRadius="8" Height="36" Padding="12,0">
+                                        <TextBox Classes="darkInput" Text="{Binding Java8Location, Mode=TwoWay}" PlaceholderText="/path/to/java" BorderThickness="0" Background="Transparent" VerticalAlignment="Center" FontSize="12"/>
+                                    </Border>
+                                    <Panel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
+                                        <Border Width="22" Height="22" CornerRadius="11" Background="#1810B981" BorderBrush="#10B981" BorderThickness="1.5" IsVisible="{Binding IsJava8Valid}" VerticalAlignment="Center" ToolTip.Tip="Valid Java binary found">
+                                            <PathIcon Data="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z" Width="10" Height="10" Foreground="#10B981" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <Border Width="22" Height="22" CornerRadius="11" Background="#18EF4444" BorderBrush="#EF4444" BorderThickness="1.5" IsVisible="{Binding !IsJava8Valid}" VerticalAlignment="Center" ToolTip.Tip="Java not found">
+                                            <PathIcon Data="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" Width="9" Height="9" Foreground="#EF4444" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </Panel>
+                                </Grid>
+                                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,2,0,4">
+                                    <Button Classes="subBtn" Command="{Binding InstallJavaCommand}" CommandParameter="8" Padding="10,5">
+                                        <TextBlock Text="Install recommended" FontSize="11.5"/>
+                                    </Button>
+                                    <Button Classes="subBtn" Command="{Binding DetectJavaCommand}" CommandParameter="8" Padding="10,5">
+                                        <TextBlock Text="Detect" FontSize="11.5"/>
+                                    </Button>
+                                    <Button Classes="subBtn" Command="{Binding BrowseJavaCommand}" CommandParameter="8" Padding="10,5">
+                                        <TextBlock Text="Browse" FontSize="11.5"/>
+                                    </Button>
+                                </StackPanel>
+                            </StackPanel>
                         </StackPanel>
 
-                        <!-- Group: Window Resolution -->
-                        <StackPanel Spacing="8" IsVisible="{Binding IsSearchResolutionVisible}">
-                            <TextBlock Classes="groupTitle" Text="{l10n:Tr set_resolution}"/>
+                        <!-- Group: Resolution -->
+                        <StackPanel Spacing="12" IsVisible="{Binding IsSearchResolutionVisible}">
+                            <TextBlock Classes="groupTitle" Text="Resolution"/>
 
                             <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                 <StackPanel Spacing="2">
                                     <TextBlock Classes="itemTitle" Text="Initial Window Dimensions"/>
-                                    <TextBlock Classes="itemDesc" Text="Launch resolution for Minecraft game window."/>
+                                    <TextBlock Classes="itemDesc" Text="Default width and height for the Minecraft game window."/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="16,0,0,0">
-                                    <TextBox Classes="darkInput" Text="{Binding GameWidth}" Width="68" Height="32" FontSize="12" TextAlignment="Center"/>
-                                    <TextBlock Text="✕" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}" VerticalAlignment="Center"/>
-                                    <TextBox Classes="darkInput" Text="{Binding GameHeight}" Width="68" Height="32" FontSize="12" TextAlignment="Center"/>
+                                    <TextBox Classes="darkInput" Text="{Binding GameWidth}" Width="65" Height="32" FontSize="12" HorizontalContentAlignment="Center"/>
+                                    <TextBlock Text="×" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                    <TextBox Classes="darkInput" Text="{Binding GameHeight}" Width="65" Height="32" FontSize="12" HorizontalContentAlignment="Center"/>
                                 </StackPanel>
                             </Grid>
-                        </StackPanel>
 
-                        <!-- Group: Instance Directory Strategy -->
-                        <StackPanel Spacing="8" IsVisible="{Binding IsSearchDirectoryVisible}">
-                            <TextBlock Classes="groupTitle" Text="{l10n:Tr set_directory}"/>
+                            <Border Height="1" Background="{StaticResource BorderDarkBrush}" Margin="0,4"/>
 
                             <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                 <StackPanel Spacing="2">
-                                    <TextBlock Classes="itemTitle" Text="Game Data Directory"/>
+                                    <TextBlock Classes="itemTitle" Text="Fullscreen Mode"/>
+                                    <TextBlock Classes="itemDesc" Text="Launch Minecraft in native fullscreen mode."/>
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1" IsChecked="{Binding IsFullscreen}" OnContent="{x:Null}" OffContent="{x:Null}" VerticalAlignment="Center" Margin="16,0,0,0"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Group: Game Data Directory -->
+                        <StackPanel Spacing="8" IsVisible="{Binding IsSearchDirectoryVisible}">
+                            <TextBlock Classes="groupTitle" Text="Game Data Directory"/>
+                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                <StackPanel Spacing="2">
+                                    <TextBlock Classes="itemTitle" Text="Storage Strategy"/>
                                     <TextBlock Classes="itemDesc" Text="Choose whether instances store mods and saves in separate folders or a shared directory."/>
                                 </StackPanel>
                                 <ComboBox Grid.Column="1" ItemsSource="{Binding DirectoryModes}" SelectedItem="{Binding SelectedDirectoryMode}" Classes="darkCombo" Width="260" Height="32" FontSize="12" VerticalAlignment="Center" Margin="16,0,0,0"/>
                             </Grid>
                         </StackPanel>
 
-                        <!-- Group: Advanced JVM Arguments -->
-                        <StackPanel Spacing="8" IsVisible="{Binding IsSearchJvmArgsVisible}">
-                            <TextBlock Classes="groupTitle" Text="{l10n:Tr set_jvm_args}"/>
+                        <!-- Group: Version Filters (Releases, Snapshots, Betas, Alphas, Flat list) -->
+                        <StackPanel Spacing="10" IsVisible="{Binding IsSearchVersionFiltersVisible}">
+                            <TextBlock Classes="groupTitle" Text="Version Filters"/>
+                            <TextBlock Classes="itemDesc" Text="Select which types of Minecraft versions are displayed in the profile creator."/>
+                            <StackPanel Orientation="Horizontal" Spacing="20" VerticalAlignment="Center" Margin="0,4,0,0">
+                                <CheckBox Content="Releases" IsChecked="{Binding ShowReleases}" Foreground="{StaticResource TextPrimaryBrush}" FontSize="12.5"/>
+                                <CheckBox Content="Snapshots" IsChecked="{Binding ShowSnapshots}" Foreground="{StaticResource TextPrimaryBrush}" FontSize="12.5"/>
+                                <CheckBox Content="Betas" IsChecked="{Binding ShowBetas}" Foreground="{StaticResource TextPrimaryBrush}" FontSize="12.5"/>
+                                <CheckBox Content="Alphas" IsChecked="{Binding ShowAlphas}" Foreground="{StaticResource TextPrimaryBrush}" FontSize="12.5"/>
+                            </StackPanel>
+                            <CheckBox Content="Display versions as a flat list instead of nested groups" IsChecked="{Binding UseFlatVersionList}" Margin="0,4,0,0" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12"/>
+                        </StackPanel>
 
+                        <!-- Group: Custom JVM Arguments -->
+                        <StackPanel Spacing="8" IsVisible="{Binding IsSearchJvmArgsVisible}">
+                            <TextBlock Classes="groupTitle" Text="Custom JVM Arguments"/>
                             <StackPanel Spacing="4">
-                                <TextBlock Classes="itemTitle" Text="Custom JVM Arguments"/>
                                 <TextBlock Classes="itemDesc" Text="Flags passed directly to the Java Virtual Machine on launch (e.g. -XX:+UseG1GC)."/>
-                                <TextBox Classes="darkInput" Text="{Binding JvmArgs}" PlaceholderText="-XX:+UseG1GC -Dsun.rmi.dgc.server.gcInterval=2147483646" Height="36" FontSize="12" Margin="0,6,0,0"/>
+                                <TextBox Classes="darkInput" Text="{Binding JvmArgs}" PlaceholderText="-XX:+UseG1GC -Dsun.rmi.dgc.server.gcInterval=2147483646" Height="36" FontSize="12" Margin="0,4,0,0"/>
                             </StackPanel>
                         </StackPanel>
 
                     </StackPanel>
 
-
                     <!-- ========================================== -->
-                    <!-- APPEARANCE & LAUNCHER (Launcher Tab)       -->
+                    <!-- LAUNCHER SETTINGS (Launcher Tab)           -->
                     <!-- ========================================== -->
                     <StackPanel Spacing="24" IsVisible="{Binding IsSettingsTabAppearance}">
 
                         <!-- Group: General -->
-                        <StackPanel Spacing="8">
+                        <StackPanel Spacing="12">
                             <TextBlock Classes="groupTitle" Text="General"/>
 
                             <!-- Language -->
                             <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center" IsVisible="{Binding IsSearchLanguageVisible}">
                                 <StackPanel Spacing="2">
-                                    <TextBlock Classes="itemTitle" Text="{l10n:Tr Key=settings_lang}"/>
-                                    <TextBlock Classes="itemDesc" Text="Select application interface language."/>
+                                    <TextBlock Classes="itemTitle" Text="Interface Language"/>
+                                    <TextBlock Classes="itemDesc" Text="Select the interface language for Zenith Launcher."/>
                                 </StackPanel>
                                 <ComboBox Grid.Column="1" ItemsSource="{Binding LanguageOptions}" SelectedItem="{Binding SelectedLanguage}" Classes="darkCombo" Width="180" Height="32" FontSize="12" VerticalAlignment="Center" Margin="16,0,0,0"/>
                             </Grid>
 
-                            <Border Height="1" Background="{StaticResource BorderDarkBrush}" Margin="0,8"/>
+                            <Border Height="1" Background="{StaticResource BorderDarkBrush}" Margin="0,4"/>
 
                             <!-- Discord Rich Presence -->
                             <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center" IsVisible="{Binding IsSearchDiscordVisible}">
                                 <StackPanel Spacing="2">
-                                    <TextBlock Classes="itemTitle" Text="{l10n:Tr set_discord}"/>
-                                    <TextBlock Classes="itemDesc" Text="{l10n:Tr set_discord_hint}"/>
+                                    <TextBlock Classes="itemTitle" Text="Discord Rich Presence"/>
+                                    <TextBlock Classes="itemDesc" Text="Show launcher and current game activity in your Discord status profile."/>
                                 </StackPanel>
                                 <ToggleSwitch Grid.Column="1" IsChecked="{Binding DiscordRpcEnabled}" OnContent="{x:Null}" OffContent="{x:Null}" VerticalAlignment="Center" Margin="16,0,0,0"/>
-                            </Grid>
-
-                            <Border Height="1" Background="{StaticResource BorderDarkBrush}" Margin="0,8"/>
-
-                            <!-- Flat Version List Toggle -->
-                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                <StackPanel Spacing="2">
-                                    <TextBlock Classes="itemTitle" Text="Flat Version Selector"/>
-                                    <TextBlock Classes="itemDesc" Text="Display Minecraft versions in instance creator as a flat list instead of nested groups."/>
-                                </StackPanel>
-                                <ToggleSwitch Grid.Column="1" IsChecked="{Binding UseFlatVersionList}" OnContent="{x:Null}" OffContent="{x:Null}" VerticalAlignment="Center" Margin="16,0,0,0"/>
                             </Grid>
                         </StackPanel>
 
                         <!-- Group: Appearance -->
-                        <StackPanel Spacing="8" IsVisible="{Binding IsSearchAppearanceVisible}">
+                        <StackPanel Spacing="12" IsVisible="{Binding IsSearchAppearanceVisible}">
                             <TextBlock Classes="groupTitle" Text="Appearance"/>
 
-                            <!-- Theme Customization -->
                             <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                 <StackPanel Spacing="2">
-                                    <TextBlock Classes="itemTitle" Text="{l10n:Tr Key=theme_edit}"/>
-                                    <TextBlock Classes="itemDesc" Text="{l10n:Tr Key=theme_edit_desc}"/>
+                                    <TextBlock Classes="itemTitle" Text="Theme Customization"/>
+                                    <TextBlock Classes="itemDesc" Text="Customize colors, accent highlights, and visual styling of the launcher."/>
                                 </StackPanel>
-                                <Button Grid.Column="1" Classes="primaryBtn" Content="{l10n:Tr Key=theme_customize}" Command="{Binding OpenThemeEditorCommand}" Padding="16,8" VerticalAlignment="Center" Margin="16,0,0,0"/>
+                                <Button Grid.Column="1" Classes="primaryBtn" Command="{Binding OpenThemeEditorCommand}" Content="Customize your theme" Padding="18,7" VerticalAlignment="Center" Margin="16,0,0,0"/>
                             </Grid>
 
-                            <Border Height="1" Background="{StaticResource BorderDarkBrush}" Margin="0,8"/>
+                            <Border Height="1" Background="{StaticResource BorderDarkBrush}" Margin="0,4"/>
 
-                            <!-- Launcher Scale -->
-                            <StackPanel Spacing="8">
-                                <TextBlock Classes="itemTitle" Text="{l10n:Tr Key=settings_scale}"/>
-                                <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                    <Slider Minimum="0.5" Maximum="2.0" Value="{Binding PendingLauncherScale}" TickFrequency="0.05" IsSnapToTickEnabled="True" VerticalAlignment="Center"
-                                            PointerCaptureLost="OnScaleSliderPointerCaptureLost"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding PendingLauncherScale, StringFormat='{}{0:P0}'}" Margin="14,0,0,0" VerticalAlignment="Center" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" FontSize="12.5" Width="44" TextAlignment="Right"/>
-                                </Grid>
-                            </StackPanel>
+                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                <StackPanel Spacing="2">
+                                    <TextBlock Classes="itemTitle" Text="Launcher Scale"/>
+                                    <TextBlock Classes="itemDesc" Text="Adjust UI scale percentage for high DPI monitors."/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center" Margin="16,0,0,0">
+                                    <Slider Width="140" Minimum="0.8" Maximum="1.5" SmallChange="0.05" LargeChange="0.1" Value="{Binding LauncherScale}" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding LauncherScale, StringFormat='{}{0:P0}'}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" Width="40" TextAlignment="Right"/>
+                                </StackPanel>
+                            </Grid>
                         </StackPanel>
 
                         <!-- Group: Integrations -->
                         <StackPanel Spacing="8">
                             <TextBlock Classes="groupTitle" Text="Integrations"/>
-
-                            <!-- CurseForge API Key -->
                             <StackPanel Spacing="4">
                                 <TextBlock Classes="itemTitle" Text="CurseForge API Key"/>
                                 <TextBlock Classes="itemDesc" Text="Required to browse and install Worlds and Maps from CurseForge (console.curseforge.com)."/>
-                                <TextBox Classes="darkInput" Text="{Binding CurseForgeApiKey}" PasswordChar="•" PlaceholderText="Enter your CurseForge API key" Height="36" FontSize="12" Margin="0,6,0,0"/>
+                                <TextBox Classes="darkInput" Text="{Binding CurseForgeApiKey}" PlaceholderText="Enter your CurseForge API key" Height="36" FontSize="12" Margin="0,4,0,0"/>
                             </StackPanel>
                         </StackPanel>
 
@@ -344,13 +447,14 @@
                 </StackPanel>
             </ScrollViewer>
 
-            <!-- Theme Settings Overlay Tab -->
-            <views:ThemeSettingsView Grid.Column="1" DataContext="{Binding ThemeSettingsVm}" IsVisible="{Binding $parent[UserControl].((pages:LauncherSettingsViewModel)DataContext).IsSettingsTabTheme}" Padding="28,24,32,24"/>
+            <!-- Embedded Theme Editor View -->
+            <views:ThemeSettingsView Grid.Column="1" DataContext="{Binding ThemeSettingsVm}" IsVisible="{Binding $parent[UserControl].((pages:LauncherSettingsViewModel)DataContext).IsSettingsTabTheme}"/>
+
         </Grid>
 
         <!-- MODAL: Restart Confirmation (Theme Application) -->
         <Border IsVisible="{Binding IsRestartConfirmOpen}" Background="{StaticResource OverlayBrush}" ZIndex="999">
-            <Border Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="390" Padding="22" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Border Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1" CornerRadius="12" Width="390" Padding="22" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="14">
                     <TextBlock Text="{l10n:Tr Key=dialog_restart_title}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                     <TextBlock Text="{l10n:Tr Key=dialog_restart_theme_msg}" TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" LineHeight="17"/>
@@ -364,7 +468,7 @@
 
         <!-- MODAL: Discard Changes Confirmation (Tab Switching) -->
         <Border IsVisible="{Binding IsThemeDiscardConfirmOpen}" Background="{StaticResource OverlayBrush}" ZIndex="999">
-            <Border Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="390" Padding="22" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Border Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1" CornerRadius="12" Width="390" Padding="22" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="14">
                     <TextBlock Text="{l10n:Tr Key=dialog_discard_title}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                     <TextBlock Text="{l10n:Tr Key=dialog_discard_theme_msg}" TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" LineHeight="17"/>

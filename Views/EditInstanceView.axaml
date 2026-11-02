@@ -415,13 +415,14 @@
                                          MinWidth="600"/>
                             </ScrollViewer>
 
-                            <Border HorizontalAlignment="Center" VerticalAlignment="Center" Padding="24"
-                                    Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
-                                    BorderThickness="1" CornerRadius="10" IsVisible="{Binding !LogHasContent}">
-                                <TextBlock Text="Start your instance in the top right to start receiving live logs!"
-                                           TextWrapping="Wrap" FontFamily="Consolas, Cascadia Code, Courier New"
-                                           FontSize="12" Foreground="{DynamicResource TextMutedBrush}" TextAlignment="Center"/>
-                            </Border>
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="4" IsVisible="{Binding !LogHasContent}">
+                                <TextBlock Text=" _________________________________________&#10;/ Start your instance in the top right to \&#10;| receive live logs!                      |&#10;\_________________________________________/"
+                                           FontFamily="Consolas, Cascadia Code, Courier New" FontSize="12"
+                                           Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" TextAlignment="Center"/>
+                                <TextBlock Text="    -   -&#10;   (o)--(o)&#10;  /.______.\&#10;  \________/&#10; ./        \&#10;( .        , )&#10; \ \_\\ //_/ /&#10;  ~~  ~~  ~~"
+                                           FontFamily="Consolas, Cascadia Code, Courier New" FontSize="12" FontWeight="Bold"
+                                           Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Center" TextAlignment="Center"/>
+                            </StackPanel>
                         </Panel>
                     </Border>
                 </Grid>

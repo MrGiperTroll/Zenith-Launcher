@@ -17,7 +17,9 @@
         Background="{DynamicResource BgBrush}"
         TransparencyLevelHint="None"
         TransparencyBackgroundFallback="{DynamicResource BgBrush}"
-        WindowDecorations="BorderOnly"
+        ExtendClientAreaToDecorations="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="38"
         
         
         Opacity="1">

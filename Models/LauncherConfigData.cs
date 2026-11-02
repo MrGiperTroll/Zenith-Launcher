@@ -12,6 +12,11 @@ public class LauncherConfigData
     public string SelectedDirectoryMode { get; set; } = "Separate directory for each instance";
     public string JavaMode { get; set; } = "Recommended";
     public string CustomJavaPath { get; set; } = string.Empty;
+    public string Java25Path { get; set; } = string.Empty;
+    public string Java21Path { get; set; } = string.Empty;
+    public string Java17Path { get; set; } = string.Empty;
+    public string Java8Path { get; set; } = string.Empty;
+
     public string AccentColor { get; set; } = "";
     public string SimpleAccentColor { get; set; } = "#3B82F6";
     public string BgColor { get; set; } = "#131416";
@@ -46,6 +51,19 @@ public class LauncherConfigData
     public string ParticleTexturePath { get; set; } = "";
     public double LauncherScale { get; set; } = 1.0;
     public bool IsSidebarExpanded { get; set; } = false;
+
+    // Feature & Appearance Toggles
+    public bool SyncFeaturesAcrossDevices { get; set; } = false;
+    public bool ShowWorldsTabInInstances { get; set; } = true;
+    public bool ShowFilesTabInInstances { get; set; } = true;
+    public bool ShowScreenshotsTabInInstances { get; set; } = true;
+    public bool ShowAllScreenshotsInSidebar { get; set; } = true;
+    public bool ShowSkinSelectorInSidebar { get; set; } = true;
+    public bool QuickInstancesInSidebar { get; set; } = false;
+
+    public bool SyncThemeAcrossDevices { get; set; } = false;
+    public bool AdvancedRendering { get; set; } = true;
+    public bool SystemWindowFrame { get; set; } = false;
 
     public string ThemeSubTab { get; set; } = "Simple";
 

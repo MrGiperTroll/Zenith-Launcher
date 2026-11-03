@@ -1,0 +1,87 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:CustomMcLauncher.ViewModels"
+             x:Class="CustomMcLauncher.Views.SortFilterDropdown"
+             x:DataType="vm:SortFilterViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="Button.filterDropdownBtn">
+            <Setter Property="Background" Value="{DynamicResource FieldBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderDarkBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.filterDropdownBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+
+        <Style Selector="Button.sortItemChip">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="10,7"/>
+            <Setter Property="Margin" Value="2,1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        </Style>
+        <Style Selector="Button.sortItemChip:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        </Style>
+        <Style Selector="Button.sortItemChip.selected">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
+        </Style>
+        <Style Selector="Button.sortItemChip.selected /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
+        </Style>
+        <Style Selector="Button.sortItemChip.selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource AccentBrushHover}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Button x:Name="DropdownTriggerBtn" Classes="filterDropdownBtn" VerticalAlignment="Center">
+        <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Grid.Column="0" Text="{Binding ButtonText}" FontSize="12" FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,8,0"
+                       MaxWidth="160" TextTrimming="CharacterEllipsis"/>
+            <PathIcon Grid.Column="1" Data="M7 10l5 5 5-5z" Width="10" Height="10"
+                      Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+        </Grid>
+        <Button.Flyout>
+            <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="Standard">
+                <Flyout.FlyoutPresenterTheme>
+                    <ControlTheme TargetType="FlyoutPresenter" BasedOn="{StaticResource {x:Type FlyoutPresenter}}">
+                        <Setter Property="Padding" Value="0"/>
+                        <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
+                        <Setter Property="BorderBrush" Value="{DynamicResource BorderDarkBrush}"/>
+                        <Setter Property="BorderThickness" Value="1"/>
+                        <Setter Property="CornerRadius" Value="10"/>
+                        <Setter Property="ClipToBounds" Value="True"/>
+                    </ControlTheme>
+                </Flyout.FlyoutPresenterTheme>
+                <Border Width="170" Background="{DynamicResource CardBrush}" Padding="4">
+                    <ItemsControl ItemsSource="{Binding Items}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:SortFilterItem">
+                                <Button Classes="sortItemChip" Classes.selected="{Binding IsSelected}"
+                                        Click="OnSortItemClicked"
+                                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+                                    <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" FontSize="12"/>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Border>
+            </Flyout>
+        </Button.Flyout>
+    </Button>
+</UserControl>

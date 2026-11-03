@@ -73,10 +73,11 @@ public partial class LauncherSettingsViewModel : ViewModelBase
     // --- Tabs ---
     [ObservableProperty] private string _currentSettingsTab = "Game";
     public bool IsSettingsTabGame => CurrentSettingsTab == "Game";
-    public bool IsSettingsTabGeneral => CurrentSettingsTab == "General";
-    public bool IsSettingsTabAppearance => CurrentSettingsTab is "Appearance" or "Launcher";
+    public bool IsSettingsTabJava => CurrentSettingsTab == "Java";
+    public bool IsSettingsTabGeneral => CurrentSettingsTab is "General" or "Launcher";
+    public bool IsSettingsTabAppearance => CurrentSettingsTab == "Appearance";
     public bool IsSettingsTabTheme => CurrentSettingsTab == "Theme";
-    public bool IsSettingsTabLauncher => IsSettingsTabAppearance;
+    public bool IsSettingsTabLauncher => IsSettingsTabGeneral;
 
     [RelayCommand]
     public void SwitchSettingsTab(string tab)
@@ -89,6 +90,7 @@ public partial class LauncherSettingsViewModel : ViewModelBase
 
         CurrentSettingsTab = tab;
         OnPropertyChanged(nameof(IsSettingsTabGame));
+        OnPropertyChanged(nameof(IsSettingsTabJava));
         OnPropertyChanged(nameof(IsSettingsTabGeneral));
         OnPropertyChanged(nameof(IsSettingsTabAppearance));
         OnPropertyChanged(nameof(IsSettingsTabTheme));

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 
@@ -269,6 +269,8 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
         ["set_resolution_hint"] = "Default window size.",
         ["set_fullscreen"] = "Fullscreen Mode",
         ["set_fullscreen_hint"] = "Launches the game in fullscreen.",
+        ["set_lock_aspect_ratio"] = "Lock Aspect Ratio",
+        ["set_lock_aspect_ratio_hint"] = "Automatically recalculate height to preserve window proportion.",
         ["set_java"] = "Java Runtime",
         ["set_java_browse"] = "Browse...",
         ["set_java_mode_desc"] = "Runtime environment used to execute Minecraft",
@@ -902,6 +904,8 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
         ["set_resolution_hint"] = "Размер окна по умолчанию.",
         ["set_fullscreen"] = "Полноэкранный режим",
         ["set_fullscreen_hint"] = "Запускает игру в полноэкранном режиме.",
+        ["set_lock_aspect_ratio"] = "Фиксировать пропорции",
+        ["set_lock_aspect_ratio_hint"] = "Автоматически подбирать высоту для сохранения пропорций окна.",
         ["set_java"] = "Java",
         ["set_java_browse"] = "Обзор...",
         ["set_java_mode_desc"] = "Среда выполнения, используемая для запуска Minecraft",
@@ -1503,6 +1507,8 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
         ["set_resolution_hint"] = "Розмір вікна за замовчуванням.",
         ["set_fullscreen"] = "Повноекранний режим",
         ["set_fullscreen_hint"] = "Запускає гру на весь екран.",
+        ["set_lock_aspect_ratio"] = "Фіксувати пропорції",
+        ["set_lock_aspect_ratio_hint"] = "Автоматично коригувати висоту для збереження пропорцій вікна.",
         ["set_java"] = "Java",
         ["set_java_browse"] = "Огляд...",
         ["set_java_mode_desc"] = "Середовище виконання для запуску Minecraft",
@@ -2084,6 +2090,8 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
         ["set_resolution_hint"] = "Varsayılan pencere boyutu.",
         ["set_fullscreen"] = "Tam Ekran Modu",
         ["set_fullscreen_hint"] = "Oyunu tam ekranda başlatır.",
+        ["set_lock_aspect_ratio"] = "En Boy Oranını Kilitle",
+        ["set_lock_aspect_ratio_hint"] = "Pencere oranını korumak için yüksekliği otomatik hesaplar.",
         ["set_java"] = "Java Çalışma Ortamı",
         ["set_java_browse"] = "Gözat...",
         ["set_java_mode_desc"] = "Minecraft'ı çalıştırmak için kullanılan çalışma zamanı ortamı",
@@ -2649,6 +2657,8 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
         ["set_resolution_hint"] = "Standardfenstergröße.",
         ["set_fullscreen"] = "Vollbildmodus",
         ["set_fullscreen_hint"] = "Startet das Spiel im Vollbild.",
+        ["set_lock_aspect_ratio"] = "Seitenverhältnis sperren",
+        ["set_lock_aspect_ratio_hint"] = "Berechnet die Höhe automatisch neu, um das Fensterverhältnis beizubehalten.",
         ["set_java"] = "Java-Laufzeit",
         ["set_java_browse"] = "Durchsuchen...",
         ["set_java_mode_desc"] = "Laufzeitumgebung zum Ausführen von Minecraft",
@@ -3210,6 +3220,8 @@ public sealed class L10n : System.ComponentModel.INotifyPropertyChanged
         ["set_resolution_hint"] = "Taille de fenêtre par défaut.",
         ["set_fullscreen"] = "Mode plein écran",
         ["set_fullscreen_hint"] = "Lance le jeu en plein écran.",
+        ["set_lock_aspect_ratio"] = "Verrouiller les proportions",
+        ["set_lock_aspect_ratio_hint"] = "Recalcule automatiquement la hauteur pour préserver les proportions.",
         ["set_java"] = "Environnement Java",
         ["set_java_browse"] = "Parcourir...",
         ["set_java_mode_desc"] = "Environnement d'exécution utilisé pour lancer Minecraft",

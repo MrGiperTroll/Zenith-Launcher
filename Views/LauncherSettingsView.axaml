@@ -256,8 +256,8 @@
 
                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                     <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                        <TextBlock Classes="itemTitle" Text="Lock 16:9 Aspect Ratio"/>
-                                        <TextBlock Classes="itemDesc" Text="Automatically recalculate height to preserve widescreen proportion."/>
+                                        <TextBlock Classes="itemTitle" Text="{l10n:Tr set_lock_aspect_ratio}"/>
+                                        <TextBlock Classes="itemDesc" Text="{l10n:Tr set_lock_aspect_ratio_hint}"/>
                                     </StackPanel>
                                     <ToggleSwitch Grid.Column="1" IsChecked="{Binding IsLockAspectRatio}" OnContent="{x:Null}" OffContent="{x:Null}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                 </Grid>

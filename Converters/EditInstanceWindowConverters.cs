@@ -110,8 +110,18 @@ public static class EditInstanceWindowConverters
         public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
     }
 
+    private sealed class BoolToThicknessConverter : IValueConverter
+    {
+        public static readonly BoolToThicknessConverter Instance = new();
+        public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+            => value is bool b && b ? new Avalonia.Thickness(1.5) : new Avalonia.Thickness(1);
+        public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
+    }
+
     public static IValueConverter ActiveIcon { get; } = new BoolToBrushConverter("#5A667E");
     public static IValueConverter ActiveText { get; } = new BoolToBrushConverter("#78859E");
+    public static IValueConverter ActiveBorderBrush { get; } = new BoolToBrushConverter("#202227");
+    public static IValueConverter ActiveBorderThickness { get; } = BoolToThicknessConverter.Instance;
     public static IValueConverter IsZero { get; } = BoolToZeroConverter.Instance;
     public static IValueConverter IsNonZero { get; } = BoolToNonZeroConverter.Instance;
     public static IValueConverter IsNotEmpty { get; } = StringNotEmptyConverter.Instance;

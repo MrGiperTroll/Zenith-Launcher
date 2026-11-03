@@ -5,7 +5,8 @@
              RequestedThemeVariant="Default">
 
     <Application.Resources>
-        <SolidColorBrush x:Key="AccentBrush" Color="#3B82F6"/>
+        <FontFamily x:Key="AppFontFamily">Segoe UI, Inter, -apple-system, BlinkMacSystemFont, sans-serif</FontFamily>
+        <SolidColorBrush x:Key="AccentBrush" Color="#8B5CF6"/>
         <SolidColorBrush x:Key="AccentBrushHover" Color="#60A5FA"/>
         <SolidColorBrush x:Key="AccentPressed" Color="#1D4ED8"/>
         <SolidColorBrush x:Key="OnAccentBrush" Color="#FFFFFF"/>

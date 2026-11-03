@@ -22,6 +22,7 @@
         ExtendClientAreaToDecorationsHint="True"
         ExtendClientAreaTitleBarHeightHint="38"
         WindowDecorations="None"
+        FontFamily="{DynamicResource AppFontFamily}"
         Opacity="1">
 
 <Window.Resources>

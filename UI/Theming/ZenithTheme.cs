@@ -7,9 +7,22 @@ namespace CustomMcLauncher.UI.Theming;
 
 public static class ZenithTheme
 {
-    public const string DefaultAccent = "#3B82F6";
+    public const string DefaultAccent = "#8B5CF6";
 
     public static string AccentHex { get; private set; } = DefaultAccent;
+
+    public static void ApplyFont(string? fontStyle)
+    {
+        if (Application.Current is not { } app) return;
+        var family = fontStyle switch
+        {
+            "Serif" => new FontFamily("Georgia, Cambria, 'Times New Roman', serif"),
+            "Monospace" => new FontFamily("Consolas, 'Cascadia Code', 'Courier New', monospace"),
+            "System Default" or "System" => FontFamily.Default,
+            _ => new FontFamily("Segoe UI, Inter, -apple-system, BlinkMacSystemFont, sans-serif")
+        };
+        app.Resources["AppFontFamily"] = family;
+    }
 
     public static void Apply(Models.LauncherConfigData cfg)
     {
@@ -18,20 +31,65 @@ public static class ZenithTheme
         if (Application.Current is not { } app) return;
         var r = app.Resources;
 
+        ApplyFont(cfg.FontStyle);
+
+        var themeMode = cfg.ThemeMode ?? "Dark";
+        bool isLight = string.Equals(themeMode, "Light", StringComparison.OrdinalIgnoreCase);
+        if (string.Equals(themeMode, "System", StringComparison.OrdinalIgnoreCase))
+        {
+            try
+            {
+                if (app.PlatformSettings?.GetColorValues().ThemeVariant == Avalonia.Platform.PlatformThemeVariant.Light)
+                    isLight = true;
+            }
+            catch { }
+        }
+
+        try
+        {
+            if (string.Equals(themeMode, "System", StringComparison.OrdinalIgnoreCase))
+                app.RequestedThemeVariant = Avalonia.Styling.ThemeVariant.Default;
+            else if (isLight)
+                app.RequestedThemeVariant = Avalonia.Styling.ThemeVariant.Light;
+            else
+                app.RequestedThemeVariant = Avalonia.Styling.ThemeVariant.Dark;
+        }
+        catch { }
+
         var accent = Color.Parse(AccentHex);
         var hover = Lighten(accent, 0.16f);
         var pressed = Darken(accent, 0.2f);
 
-        var bg = TryParse(cfg.BgColor) && cfg.BgColor != "#080A0F" && cfg.BgColor != "#140F0F" ? Color.Parse(cfg.BgColor) : Color.Parse("#131416");
-        var sidebarBg = TryParse(cfg.SidebarBgColor) && cfg.SidebarBgColor != "#06080D" && cfg.SidebarBgColor != "#0F0C0D" ? Color.Parse(cfg.SidebarBgColor) : Color.Parse("#101113");
-        var surface = TryParse(cfg.SurfaceColor) && cfg.SurfaceColor != "#0A0D15" && cfg.SurfaceColor != "#0D111A" && cfg.SurfaceColor != "#1F1819" ? Color.Parse(cfg.SurfaceColor) : Color.Parse("#18191C");
-        var card = TryParse(cfg.CardColor) && cfg.CardColor != "#0D111A" && cfg.CardColor != "#221919" ? Color.Parse(cfg.CardColor) : Color.Parse("#18191C");
-        var panel = TryParse(cfg.PanelColor) && cfg.PanelColor != "#151C2C" && cfg.PanelColor != "#121722" && cfg.PanelColor != "#2D2220" ? Color.Parse(cfg.PanelColor) : Color.Parse("#181A1E");
-        var borderDark = TryParse(cfg.BorderDarkColor) && cfg.BorderDarkColor != "#121622" && cfg.BorderDarkColor != "#182743" && cfg.BorderDarkColor != "#16181C" && cfg.BorderDarkColor != "#222834" ? Color.Parse(cfg.BorderDarkColor) : Color.Parse("#202227");
-        var field = TryParse(cfg.FieldColor) && cfg.FieldColor != "#121724" && cfg.FieldColor != "#292022" ? Color.Parse(cfg.FieldColor) : Color.Parse("#1B1C20");
-        var hoverTint = TryParse(cfg.HoverColor) && cfg.HoverColor != "#1B2338" && cfg.HoverColor != "#473331" ? Color.Parse(cfg.HoverColor) : Color.Parse("#222429");
-        var textPrimary = TryParse(cfg.TextPrimaryColor) ? Color.Parse(cfg.TextPrimaryColor) : Colors.White;
-        var textSecondary = TryParse(cfg.TextSecondaryColor) && cfg.TextSecondaryColor != "#C5CBD6" ? Color.Parse(cfg.TextSecondaryColor) : Color.Parse("#8E929B");
+        var bg = TryParse(cfg.BgColor) && cfg.BgColor != "#080A0F" && cfg.BgColor != "#140F0F"
+            ? Color.Parse(cfg.BgColor)
+            : (isLight ? Color.Parse("#F5F6F8") : Color.Parse("#131416"));
+        var sidebarBg = TryParse(cfg.SidebarBgColor) && cfg.SidebarBgColor != "#06080D" && cfg.SidebarBgColor != "#0F0C0D"
+            ? Color.Parse(cfg.SidebarBgColor)
+            : (isLight ? Color.Parse("#EAECEF") : Color.Parse("#101113"));
+        var surface = TryParse(cfg.SurfaceColor) && cfg.SurfaceColor != "#0A0D15" && cfg.SurfaceColor != "#0D111A" && cfg.SurfaceColor != "#1F1819"
+            ? Color.Parse(cfg.SurfaceColor)
+            : (isLight ? Color.Parse("#FFFFFF") : Color.Parse("#18191C"));
+        var card = TryParse(cfg.CardColor) && cfg.CardColor != "#0D111A" && cfg.CardColor != "#221919"
+            ? Color.Parse(cfg.CardColor)
+            : (isLight ? Color.Parse("#FFFFFF") : Color.Parse("#18191C"));
+        var panel = TryParse(cfg.PanelColor) && cfg.PanelColor != "#151C2C" && cfg.PanelColor != "#121722" && cfg.PanelColor != "#2D2220"
+            ? Color.Parse(cfg.PanelColor)
+            : (isLight ? Color.Parse("#F0F2F5") : Color.Parse("#181A1E"));
+        var borderDark = TryParse(cfg.BorderDarkColor) && cfg.BorderDarkColor != "#121622" && cfg.BorderDarkColor != "#182743" && cfg.BorderDarkColor != "#16181C" && cfg.BorderDarkColor != "#222834"
+            ? Color.Parse(cfg.BorderDarkColor)
+            : (isLight ? Color.Parse("#D1D5DB") : Color.Parse("#202227"));
+        var field = TryParse(cfg.FieldColor) && cfg.FieldColor != "#121724" && cfg.FieldColor != "#292022"
+            ? Color.Parse(cfg.FieldColor)
+            : (isLight ? Color.Parse("#F3F4F7") : Color.Parse("#1B1C20"));
+        var hoverTint = TryParse(cfg.HoverColor) && cfg.HoverColor != "#1B2338" && cfg.HoverColor != "#473331"
+            ? Color.Parse(cfg.HoverColor)
+            : (isLight ? Color.Parse("#E5E7EB") : Color.Parse("#222429"));
+        var textPrimary = TryParse(cfg.TextPrimaryColor)
+            ? Color.Parse(cfg.TextPrimaryColor)
+            : (isLight ? Color.Parse("#111827") : Colors.White);
+        var textSecondary = TryParse(cfg.TextSecondaryColor) && cfg.TextSecondaryColor != "#C5CBD6"
+            ? Color.Parse(cfg.TextSecondaryColor)
+            : (isLight ? Color.Parse("#4B5563") : Color.Parse("#8E929B"));
 
         // Surfaces
         SetBrushColor(r, "BgBrush", bg);
@@ -215,15 +273,48 @@ public static class ZenithTheme
             (byte)(fg.G * alpha + bg.G * (1 - alpha)),
             (byte)(fg.B * alpha + bg.B * (1 - alpha)));
 
-    public static Models.LauncherConfigData GenerateHarmonizedPalette(string accentHex)
+    public static Models.LauncherConfigData GenerateHarmonizedPalette(string accentHex, string themeMode = "Dark")
     {
         if (!TryParse(accentHex)) accentHex = DefaultAccent;
         var accent = Color.Parse(accentHex);
+
+        bool isLight = string.Equals(themeMode, "Light", StringComparison.OrdinalIgnoreCase);
+        if (string.Equals(themeMode, "System", StringComparison.OrdinalIgnoreCase))
+        {
+            try
+            {
+                if (Application.Current?.PlatformSettings?.GetColorValues().ThemeVariant == Avalonia.Platform.PlatformThemeVariant.Light)
+                    isLight = true;
+            }
+            catch { }
+        }
+
+        if (isLight)
+        {
+            return new Models.LauncherConfigData
+            {
+                AccentColor = accentHex,
+                SimpleAccentColor = accentHex,
+                ThemeMode = themeMode,
+                BgColor = "#F5F6F8",
+                SidebarBgColor = "#EAECEF",
+                SurfaceColor = "#FFFFFF",
+                CardColor = "#FFFFFF",
+                PanelColor = "#F0F2F5",
+                FieldColor = "#F3F4F7",
+                HoverColor = "#E5E7EB",
+                BorderDarkColor = "#D1D5DB",
+                TextPrimaryColor = "#111827",
+                TextSecondaryColor = "#4B5563"
+            };
+        }
 
         // Neutral charcoal base (Qoder design): crisp, matte, perfectly neutral borders
         return new Models.LauncherConfigData
         {
             AccentColor = accentHex,
+            SimpleAccentColor = accentHex,
+            ThemeMode = themeMode,
             BgColor = "#131416",
             SidebarBgColor = "#101113",
             SurfaceColor = "#18191C",

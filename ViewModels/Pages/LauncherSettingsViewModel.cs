@@ -2,13 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CustomMcLauncher.Models;
 using CustomMcLauncher.Services;
+using CustomMcLauncher.UI.Theming;
 using CustomMcLauncher.ViewModels.Common;
 
 namespace CustomMcLauncher.ViewModels.Pages;
@@ -76,18 +79,12 @@ public partial class LauncherSettingsViewModel : ViewModelBase
     public bool IsSettingsTabJava => CurrentSettingsTab == "Java";
     public bool IsSettingsTabGeneral => CurrentSettingsTab is "General" or "Launcher";
     public bool IsSettingsTabAppearance => CurrentSettingsTab == "Appearance";
-    public bool IsSettingsTabTheme => CurrentSettingsTab == "Theme";
+    public bool IsSettingsTabTheme => false;
     public bool IsSettingsTabLauncher => IsSettingsTabGeneral;
 
     [RelayCommand]
     public void SwitchSettingsTab(string tab)
     {
-        if (IsSettingsTabTheme && tab != "Theme" && ThemeSettingsVm.HasUnsavedThemeChanges())
-        {
-            ThemeSettingsVm.CloseThemeEditor();
-            return;
-        }
-
         CurrentSettingsTab = tab;
         OnPropertyChanged(nameof(IsSettingsTabGame));
         OnPropertyChanged(nameof(IsSettingsTabJava));
@@ -95,13 +92,6 @@ public partial class LauncherSettingsViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsSettingsTabAppearance));
         OnPropertyChanged(nameof(IsSettingsTabTheme));
         OnPropertyChanged(nameof(IsSettingsTabLauncher));
-    }
-
-    [RelayCommand]
-    public void OpenThemeEditor()
-    {
-        ThemeSettingsVm.SnapshotCurrentSavedTheme();
-        SwitchSettingsTab("Theme");
     }
 
     // --- RAM Configuration ---
@@ -578,33 +568,196 @@ public partial class LauncherSettingsViewModel : ViewModelBase
         }
     }
 
-    // --- Modals (forwarded from ThemeSettingsVm) ---
-    public bool IsRestartConfirmOpen => ThemeSettingsVm.IsRestartConfirmOpen;
-    public bool IsThemeDiscardConfirmOpen => ThemeSettingsVm.IsThemeDiscardConfirmOpen;
+    // --- Appearance & Theming ---
+    [ObservableProperty] private string _selectedThemeCardId = "purple";
+    [ObservableProperty] private bool _isCustomThemeActive = false;
+    [ObservableProperty] private string _customAccentHex = "#8B5CF6";
+    [ObservableProperty] private IBrush _customAccentBrush = new SolidColorBrush(Color.Parse("#8B5CF6"));
+    [ObservableProperty] private string _selectedThemeMode = "Dark";
+    [ObservableProperty] private ThemeModeItem? _selectedThemeModeItem;
+    [ObservableProperty] private string _selectedFontStyle = "Sans";
+
+    public ObservableCollection<ThemeCardModel> ThemeCards { get; } = new();
+    public ObservableCollection<ThemeModeItem> ThemeModes { get; } = new();
+    public string[] FontStyleOptions { get; } = { "Sans", "Serif", "Monospace", "System Default" };
+
+    public void InitAppearanceModels()
+    {
+        ThemeCards.Clear();
+        ThemeCards.Add(new ThemeCardModel
+        {
+            Id = "purple",
+            Name = "Zenith",
+            AccentHex = "#8B5CF6",
+            AccentBrush = new SolidColorBrush(Color.Parse("#8B5CF6")),
+            SoftBrush = new SolidColorBrush(Color.FromArgb(0x40, 139, 92, 246)),
+            IsSelected = true
+        });
+        ThemeCards.Add(new ThemeCardModel
+        {
+            Id = "blue",
+            Name = "Cobalt",
+            AccentHex = "#3B82F6",
+            AccentBrush = new SolidColorBrush(Color.Parse("#3B82F6")),
+            SoftBrush = new SolidColorBrush(Color.FromArgb(0x40, 59, 130, 246))
+        });
+        ThemeCards.Add(new ThemeCardModel
+        {
+            Id = "green",
+            Name = "Emerald",
+            AccentHex = "#10B981",
+            AccentBrush = new SolidColorBrush(Color.Parse("#10B981")),
+            SoftBrush = new SolidColorBrush(Color.FromArgb(0x40, 16, 185, 129))
+        });
+        ThemeCards.Add(new ThemeCardModel
+        {
+            Id = "red",
+            Name = "Crimson",
+            AccentHex = "#EF4444",
+            AccentBrush = new SolidColorBrush(Color.Parse("#EF4444")),
+            SoftBrush = new SolidColorBrush(Color.FromArgb(0x40, 239, 68, 68))
+        });
+        ThemeCards.Add(new ThemeCardModel
+        {
+            Id = "orange",
+            Name = "Amber",
+            AccentHex = "#F97316",
+            AccentBrush = new SolidColorBrush(Color.Parse("#F97316")),
+            SoftBrush = new SolidColorBrush(Color.FromArgb(0x40, 249, 115, 22))
+        });
+        ThemeCards.Add(new ThemeCardModel
+        {
+            Id = "custom",
+            Name = "Custom",
+            AccentHex = "",
+            IsCustom = true,
+            AccentBrush = new SolidColorBrush(Color.Parse("#A855F7")),
+            SoftBrush = new SolidColorBrush(Color.FromArgb(0x40, 168, 85, 247))
+        });
+
+        RefreshThemeModes();
+    }
+
+    public void RefreshThemeModes()
+    {
+        ThemeModes.Clear();
+        ThemeModes.Add(new ThemeModeItem
+        {
+            Id = "System",
+            Name = L10n.CurrentLanguage == "ru" ? "Системная" : "System",
+            IconData = "M20 3H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h6l-2 2v1h8v-1l-2-2h6c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 13H4V5h16v11z",
+            IsSelected = string.Equals(SelectedThemeMode, "System", StringComparison.OrdinalIgnoreCase)
+        });
+        ThemeModes.Add(new ThemeModeItem
+        {
+            Id = "Light",
+            Name = L10n.CurrentLanguage == "ru" ? "Светлая" : "Light",
+            IconData = "M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z",
+            IsSelected = string.Equals(SelectedThemeMode, "Light", StringComparison.OrdinalIgnoreCase)
+        });
+        ThemeModes.Add(new ThemeModeItem
+        {
+            Id = "Dark",
+            Name = L10n.CurrentLanguage == "ru" ? "Тёмная" : "Dark",
+            IconData = "M12.3 2a10 10 0 0 0-1.9 20 10 10 0 0 0 8.6-5 8 8 0 0 1-10.7-10.7A10 10 0 0 0 12.3 2z",
+            IsSelected = string.Equals(SelectedThemeMode, "Dark", StringComparison.OrdinalIgnoreCase)
+        });
+
+        SelectedThemeModeItem = ThemeModes.FirstOrDefault(m => string.Equals(m.Id, SelectedThemeMode, StringComparison.OrdinalIgnoreCase)) ?? ThemeModes.LastOrDefault();
+    }
 
     [RelayCommand]
-    private void CancelRestartConfirm() => ThemeSettingsVm.CancelRestartConfirm();
+    public void SelectThemeCard(string cardId)
+    {
+        SelectedThemeCardId = cardId;
+        foreach (var card in ThemeCards)
+        {
+            card.IsSelected = (card.Id == cardId);
+        }
+        IsCustomThemeActive = (cardId == "custom");
+
+        ApplyThemeSelection();
+    }
 
     [RelayCommand]
-    private void ConfirmRestartAndApplyTheme() => ThemeSettingsVm.ConfirmRestartAndApplyTheme();
+    public void PickQuickCustomColor(string hex)
+    {
+        CustomAccentHex = hex;
+    }
 
-    [RelayCommand]
-    private void CancelDiscardThemeChanges() => ThemeSettingsVm.CancelDiscardThemeChanges();
+    partial void OnCustomAccentHexChanged(string value)
+    {
+        if (Color.TryParse(value, out var c))
+        {
+            CustomAccentBrush = new SolidColorBrush(c);
+            var customCard = ThemeCards.FirstOrDefault(x => x.Id == "custom");
+            if (customCard != null)
+            {
+                customCard.AccentBrush = CustomAccentBrush;
+                customCard.SoftBrush = new SolidColorBrush(Color.FromArgb(0x40, c.R, c.G, c.B));
+            }
+            if (IsCustomThemeActive && !_isLoadingConfig)
+            {
+                ApplyThemeSelection();
+            }
+        }
+    }
 
-    [RelayCommand]
-    private void ConfirmDiscardThemeChanges() => ThemeSettingsVm.ConfirmDiscardThemeChanges();
+    partial void OnSelectedThemeModeItemChanged(ThemeModeItem? value)
+    {
+        if (value == null) return;
+        if (!string.Equals(SelectedThemeMode, value.Id, StringComparison.OrdinalIgnoreCase))
+        {
+            SelectedThemeMode = value.Id;
+            foreach (var mode in ThemeModes)
+                mode.IsSelected = string.Equals(mode.Id, value.Id, StringComparison.OrdinalIgnoreCase);
+
+            if (!_isLoadingConfig)
+            {
+                ApplyThemeSelection();
+            }
+        }
+    }
+
+    partial void OnSelectedFontStyleChanged(string value)
+    {
+        ZenithTheme.ApplyFont(value);
+        if (!_isLoadingConfig)
+        {
+            SaveConfigRequested?.Invoke();
+        }
+    }
+
+    private void ApplyThemeSelection()
+    {
+        if (_isLoadingConfig) return;
+
+        string accent = SelectedThemeCardId switch
+        {
+            "purple" => "#8B5CF6",
+            "blue" => "#3B82F6",
+            "green" => "#10B981",
+            "red" => "#EF4444",
+            "orange" => "#F97316",
+            "custom" => CustomAccentHex,
+            _ => "#8B5CF6"
+        };
+
+        var harmonized = ZenithTheme.GenerateHarmonizedPalette(accent, SelectedThemeMode);
+        harmonized.ThemeMode = SelectedThemeMode;
+        harmonized.FontStyle = SelectedFontStyle;
+
+        ZenithTheme.Apply(harmonized);
+        ThemeSettingsVm.SetSimpleThemePreview(accent);
+
+        SaveConfigRequested?.Invoke();
+    }
 
     public LauncherSettingsViewModel(ThemeSettingsViewModel themeSettingsVm)
     {
         ThemeSettingsVm = themeSettingsVm;
-        ThemeSettingsVm.PropertyChanged += (s, e) =>
-        {
-            if (e.PropertyName == nameof(ThemeSettingsViewModel.IsRestartConfirmOpen))
-                OnPropertyChanged(nameof(IsRestartConfirmOpen));
-            else if (e.PropertyName == nameof(ThemeSettingsViewModel.IsThemeDiscardConfirmOpen))
-                OnPropertyChanged(nameof(IsThemeDiscardConfirmOpen));
-        };
-        ThemeSettingsVm.CloseRequested = () => SwitchSettingsTab("Appearance");
+        InitAppearanceModels();
+        L10n.LanguageChanged += () => RefreshThemeModes();
     }
 
     public void LoadFromConfig(LauncherConfigData cfg)
@@ -644,6 +797,42 @@ public partial class LauncherSettingsViewModel : ViewModelBase
             if (!string.IsNullOrWhiteSpace(cfg.CurseForgeApiKey))
                 CurseForgeApiKey = cfg.CurseForgeApiKey;
 
+            SelectedThemeMode = string.IsNullOrWhiteSpace(cfg.ThemeMode) ? "Dark" : cfg.ThemeMode;
+            SelectedFontStyle = string.IsNullOrWhiteSpace(cfg.FontStyle) ? "Sans" : cfg.FontStyle;
+
+            var currentAccent = !string.IsNullOrWhiteSpace(cfg.AccentColor)
+                ? cfg.AccentColor
+                : (!string.IsNullOrWhiteSpace(cfg.SimpleAccentColor) ? cfg.SimpleAccentColor : "#8B5CF6");
+
+            CustomAccentHex = currentAccent;
+            if (Color.TryParse(currentAccent, out var cColor))
+            {
+                CustomAccentBrush = new SolidColorBrush(cColor);
+                var customCard = ThemeCards.FirstOrDefault(x => x.Id == "custom");
+                if (customCard != null)
+                {
+                    customCard.AccentBrush = CustomAccentBrush;
+                    customCard.SoftBrush = new SolidColorBrush(Color.FromArgb(0x40, cColor.R, cColor.G, cColor.B));
+                }
+            }
+
+            string matchedId = currentAccent.ToUpperInvariant() switch
+            {
+                "#8B5CF6" or "#7C3AED" => "purple",
+                "#3B82F6" or "#2563EB" => "blue",
+                "#10B981" or "#059669" => "green",
+                "#EF4444" or "#DC2626" => "red",
+                "#F97316" or "#EA580C" => "orange",
+                _ => "custom"
+            };
+
+            SelectedThemeCardId = matchedId;
+            IsCustomThemeActive = (matchedId == "custom");
+            foreach (var card in ThemeCards)
+                card.IsSelected = (card.Id == matchedId);
+
+            RefreshThemeModes();
+
             UpdateJavaDisplay();
         }
         finally
@@ -676,5 +865,50 @@ public partial class LauncherSettingsViewModel : ViewModelBase
         cfg.Java8Path = Java8Location;
     
         cfg.Language = SelectedLanguage;
+
+        cfg.ThemeMode = SelectedThemeMode;
+        cfg.FontStyle = SelectedFontStyle;
+        cfg.AccentColor = SelectedThemeCardId switch
+        {
+            "purple" => "#8B5CF6",
+            "blue" => "#3B82F6",
+            "green" => "#10B981",
+            "red" => "#EF4444",
+            "orange" => "#F97316",
+            "custom" => CustomAccentHex,
+            _ => "#8B5CF6"
+        };
+        cfg.SimpleAccentColor = cfg.AccentColor;
+    }
+}
+
+public class ThemeCardModel : ObservableObject
+{
+    public string Id { get; set; } = "";
+    public string Name { get; set; } = "";
+    public string AccentHex { get; set; } = "";
+    public IBrush AccentBrush { get; set; } = Brushes.Transparent;
+    public IBrush SoftBrush { get; set; } = Brushes.Transparent;
+    public bool IsCustom { get; set; }
+
+    private bool _isSelected;
+    public bool IsSelected
+    {
+        get => _isSelected;
+        set => SetProperty(ref _isSelected, value);
+    }
+}
+
+public class ThemeModeItem : ObservableObject
+{
+    public string Id { get; set; } = "";
+    public string Name { get; set; } = "";
+    public string IconData { get; set; } = "";
+
+    private bool _isSelected;
+    public bool IsSelected
+    {
+        get => _isSelected;
+        set => SetProperty(ref _isSelected, value);
     }
 }

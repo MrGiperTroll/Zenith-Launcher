@@ -172,7 +172,7 @@
             </Border>
 
             <!-- Main Content Area -->
-            <ScrollViewer x:Name="SettingsContentScroll" Grid.Column="1" Padding="32,24,36,28" VerticalScrollBarVisibility="Auto" IsVisible="{Binding !IsSettingsTabTheme}">
+            <ScrollViewer x:Name="SettingsContentScroll" Grid.Column="1" Padding="32,24,36,28" VerticalScrollBarVisibility="Auto">
                 <StackPanel Spacing="20">
 
                     <!-- ========================================================= -->
@@ -460,17 +460,6 @@
                                 </StackPanel>
                                 <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
 
-                                <!-- Language -->
-                                <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center" IsVisible="{Binding IsSearchLanguageVisible}">
-                                    <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                        <TextBlock Classes="itemTitle" Text="Interface Language"/>
-                                        <TextBlock Classes="itemDesc" Text="Select your preferred language for all launcher views and menus."/>
-                                    </StackPanel>
-                                    <ComboBox Grid.Column="1" ItemsSource="{Binding LanguageOptions}" SelectedItem="{Binding SelectedLanguage}" Classes="darkCombo" Width="180" Height="32" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                                </Grid>
-
-                                <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
-
                                 <!-- Discord RPC -->
                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center" IsVisible="{Binding IsSearchDiscordVisible}">
                                     <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
@@ -520,23 +509,134 @@
                     </StackPanel>
 
                     <!-- ========================================================= -->
-                    <!-- TAB 4: APPEARANCE & THEME                                 -->
+                    <!-- TAB 4: APPEARANCE                                         -->
                     <!-- ========================================================= -->
                     <StackPanel Spacing="18" IsVisible="{Binding IsSettingsTabAppearance}">
                         <Border Classes="settingsCard" IsVisible="{Binding IsSearchAppearanceVisible}">
-                            <StackPanel Spacing="14">
-                                <StackPanel Spacing="3">
-                                    <TextBlock Classes="sectionHeaderTitle" Text="Visual Theme"/>
-                                    <TextBlock Classes="sectionHeaderDesc" Text="Customize launcher colors, accent highlights, and visual elements."/>
-                                </StackPanel>
+                            <StackPanel Spacing="16">
+                                <!-- Theme Mode Header + Dropdown -->
+                                <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                    <StackPanel Spacing="3" VerticalAlignment="Center">
+                                        <TextBlock Classes="sectionHeaderTitle" Text="{l10n:Tr theme_mode}"/>
+                                        <TextBlock Classes="sectionHeaderDesc" Text="{l10n:Tr theme_mode_desc}"/>
+                                    </StackPanel>
+                                    <ComboBox Grid.Column="1" ItemsSource="{Binding ThemeModes}" SelectedItem="{Binding SelectedThemeModeItem}" Classes="darkCombo" MinWidth="130" Height="32" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate x:DataType="pages:ThemeModeItem">
+                                                <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center" Margin="2,0">
+                                                    <PathIcon Grid.Column="0" Data="{Binding IconData}" Width="13" Height="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                                    <PathIcon Grid.Column="2" Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" Width="12" Height="12" Foreground="{DynamicResource AccentBrush}" IsVisible="{Binding IsSelected}" Margin="10,0,2,0" VerticalAlignment="Center"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                </Grid>
+
+                                <!-- Theme Preview Cards Grid -->
+                                <ItemsControl ItemsSource="{Binding ThemeCards}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <UniformGrid Columns="6" Rows="1"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="pages:ThemeCardModel">
+                                            <Button Command="{Binding $parent[UserControl].((pages:LauncherSettingsViewModel)DataContext).SelectThemeCardCommand}"
+                                                    CommandParameter="{Binding Id}"
+                                                    Background="Transparent"
+                                                    BorderThickness="0"
+                                                    Padding="3"
+                                                    Cursor="Hand"
+                                                    HorizontalAlignment="Stretch"
+                                                    VerticalAlignment="Stretch">
+                                                <Button.Styles>
+                                                    <Style Selector="Button:pointerover /template/ ContentPresenter">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                    </Style>
+                                                    <Style Selector="Button:pressed /template/ ContentPresenter">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                    </Style>
+                                                </Button.Styles>
+                                                <StackPanel Spacing="6" HorizontalAlignment="Stretch">
+                                                    <Border Background="{DynamicResource FieldBrush}"
+                                                            CornerRadius="8"
+                                                            Height="68"
+                                                            Padding="10,8"
+                                                            BorderThickness="{Binding IsSelected, Converter={x:Static converters:EditInstanceWindowConverters.ActiveBorderThickness}}"
+                                                            BorderBrush="{Binding IsSelected, Converter={x:Static converters:EditInstanceWindowConverters.ActiveBorderBrush}}">
+                                                        <Grid RowDefinitions="Auto,*,Auto">
+                                                            <Grid Grid.Row="0" ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                                                <Border Width="28" Height="5" CornerRadius="2.5" Background="{Binding AccentBrush}" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                                                <Border Grid.Column="1" Width="12" Height="12" CornerRadius="6"
+                                                                        BorderBrush="{Binding IsSelected, Converter={x:Static converters:EditInstanceWindowConverters.ActiveBorderBrush}}"
+                                                                        BorderThickness="1.5" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                                                    <Border Width="6" Height="6" CornerRadius="3" Background="{Binding AccentBrush}" IsVisible="{Binding IsSelected}"/>
+                                                                </Border>
+                                                            </Grid>
+                                                            
+                                                            <StackPanel Grid.Row="2" Spacing="4" VerticalAlignment="Bottom">
+                                                                <Border Width="38" Height="4" CornerRadius="2" Background="{Binding SoftBrush}" HorizontalAlignment="Left"/>
+                                                                <Border Width="50" Height="4" CornerRadius="2" Background="{DynamicResource BorderStrongBrush}" HorizontalAlignment="Left"/>
+                                                            </StackPanel>
+                                                        </Grid>
+                                                    </Border>
+                                                    
+                                                    <TextBlock Text="{Binding Name}" FontSize="12" FontWeight="SemiBold"
+                                                               HorizontalAlignment="Center"
+                                                               Foreground="{Binding IsSelected, Converter={x:Static converters:EditInstanceWindowConverters.ActiveText}}"/>
+                                                </StackPanel>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <!-- Custom Theme Color Picker (Live Preview) -->
+                                <Border Background="{DynamicResource FieldBrush}" CornerRadius="8" Padding="14,10" IsVisible="{Binding IsCustomThemeActive}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1">
+                                    <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                        <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <TextBlock Classes="itemTitle" Text="Custom Accent Color"/>
+                                            <TextBlock Classes="itemDesc" Text="Choose a quick preset dot or enter custom hex color code."/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center" HorizontalAlignment="Right">
+                                            <!-- Quick dots -->
+                                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                                <Button Classes="subBtn" Command="{Binding PickQuickCustomColorCommand}" CommandParameter="#06B6D4" Width="20" Height="20" CornerRadius="10" Background="#06B6D4" Padding="0" BorderThickness="0"/>
+                                                <Button Classes="subBtn" Command="{Binding PickQuickCustomColorCommand}" CommandParameter="#EC4899" Width="20" Height="20" CornerRadius="10" Background="#EC4899" Padding="0" BorderThickness="0"/>
+                                                <Button Classes="subBtn" Command="{Binding PickQuickCustomColorCommand}" CommandParameter="#EAB308" Width="20" Height="20" CornerRadius="10" Background="#EAB308" Padding="0" BorderThickness="0"/>
+                                                <Button Classes="subBtn" Command="{Binding PickQuickCustomColorCommand}" CommandParameter="#14B8A6" Width="20" Height="20" CornerRadius="10" Background="#14B8A6" Padding="0" BorderThickness="0"/>
+                                                <Button Classes="subBtn" Command="{Binding PickQuickCustomColorCommand}" CommandParameter="#84CC16" Width="20" Height="20" CornerRadius="10" Background="#84CC16" Padding="0" BorderThickness="0"/>
+                                                <Button Classes="subBtn" Command="{Binding PickQuickCustomColorCommand}" CommandParameter="#6366F1" Width="20" Height="20" CornerRadius="10" Background="#6366F1" Padding="0" BorderThickness="0"/>
+                                                <Button Classes="subBtn" Command="{Binding PickQuickCustomColorCommand}" CommandParameter="#F43F5E" Width="20" Height="20" CornerRadius="10" Background="#F43F5E" Padding="0" BorderThickness="0"/>
+                                            </StackPanel>
+                                            
+                                            <!-- Swatch & Input -->
+                                            <Border Width="26" Height="26" CornerRadius="6" Background="{Binding CustomAccentBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" VerticalAlignment="Center"/>
+                                            <TextBox Classes="darkInput" Text="{Binding CustomAccentHex}" Width="85" Height="30" FontSize="11.5" VerticalAlignment="Center" TextAlignment="Center"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+
                                 <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
 
+                                <!-- Language Selector -->
                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                     <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                        <TextBlock Classes="itemTitle" Text="Theme Customizer"/>
-                                        <TextBlock Classes="itemDesc" Text="Launch interactive theme editor to pick accents, card colors, and typography."/>
+                                        <TextBlock Classes="itemTitle" Text="{l10n:Tr set_language}"/>
+                                        <TextBlock Classes="itemDesc" Text="{l10n:Tr set_language_hint}"/>
                                     </StackPanel>
-                                    <Button Grid.Column="1" Classes="primaryBtn" Command="{Binding OpenThemeEditorCommand}" Content="Customize your theme" Padding="18,7" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    <ComboBox Grid.Column="1" ItemsSource="{Binding LanguageOptions}" SelectedItem="{Binding SelectedLanguage}" Classes="darkCombo" Width="180" Height="32" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+
+                                <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
+
+                                <!-- Font Style Selector -->
+                                <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                    <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                        <TextBlock Classes="itemTitle" Text="{l10n:Tr set_font_style}"/>
+                                        <TextBlock Classes="itemDesc" Text="{l10n:Tr set_font_style_hint}"/>
+                                    </StackPanel>
+                                    <ComboBox Grid.Column="1" ItemsSource="{Binding FontStyleOptions}" SelectedItem="{Binding SelectedFontStyle}" Classes="darkCombo" Width="180" Height="32" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                 </Grid>
                             </StackPanel>
                         </Border>
@@ -545,37 +645,6 @@
                 </StackPanel>
             </ScrollViewer>
 
-            <!-- Embedded Theme Editor View -->
-            <views:ThemeSettingsView Grid.Column="1" DataContext="{Binding ThemeSettingsVm}" IsVisible="{Binding $parent[UserControl].((pages:LauncherSettingsViewModel)DataContext).IsSettingsTabTheme}"/>
-
         </Grid>
-
-        <!-- MODAL: Restart Confirmation (Theme Application) -->
-        <Border IsVisible="{Binding IsRestartConfirmOpen}" Background="{StaticResource OverlayBrush}" ZIndex="999">
-            <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="12" Width="390" Padding="22" HorizontalAlignment="Center" VerticalAlignment="Center">
-                <StackPanel Spacing="14">
-                    <TextBlock Text="{l10n:Tr Key=dialog_restart_title}" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                    <TextBlock Text="{l10n:Tr Key=dialog_restart_theme_msg}" TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" LineHeight="17"/>
-                    <Grid ColumnDefinitions="*,*" Margin="0,4,0,0">
-                        <Button Grid.Column="0" Content="{l10n:Tr Key=no}" Command="{Binding CancelRestartConfirmCommand}" Classes="subBtn" HorizontalContentAlignment="Center" Margin="0,0,6,0" Height="34"/>
-                        <Button Grid.Column="1" Classes="primaryBtn" Content="{l10n:Tr Key=yes}" Command="{Binding ConfirmRestartAndApplyThemeCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="6,0,0,0" Height="34"/>
-                    </Grid>
-                </StackPanel>
-            </Border>
-        </Border>
-
-        <!-- MODAL: Discard Changes Confirmation (Tab Switching) -->
-        <Border IsVisible="{Binding IsThemeDiscardConfirmOpen}" Background="{StaticResource OverlayBrush}" ZIndex="999">
-            <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="12" Width="390" Padding="22" HorizontalAlignment="Center" VerticalAlignment="Center">
-                <StackPanel Spacing="14">
-                    <TextBlock Text="{l10n:Tr Key=dialog_discard_title}" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                    <TextBlock Text="{l10n:Tr Key=dialog_discard_theme_msg}" TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" LineHeight="17"/>
-                    <Grid ColumnDefinitions="*,*" Margin="0,4,0,0">
-                        <Button Grid.Column="0" Content="{l10n:Tr Key=no}" Command="{Binding CancelDiscardThemeChangesCommand}" Classes="subBtn" HorizontalContentAlignment="Center" Margin="0,0,6,0" Height="34"/>
-                        <Button Grid.Column="1" Classes="primaryBtn" Content="{l10n:Tr Key=yes}" Command="{Binding ConfirmDiscardThemeChangesCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="6,0,0,0" Height="34"/>
-                    </Grid>
-                </StackPanel>
-            </Border>
-        </Border>
     </Panel>
 </UserControl>

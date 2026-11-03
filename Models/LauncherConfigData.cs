@@ -52,6 +52,8 @@ public class LauncherConfigData
     public bool IsSidebarExpanded { get; set; } = false;
 
     public string ThemeSubTab { get; set; } = "Simple";
+    public string ThemeMode { get; set; } = "Dark";
+    public string FontStyle { get; set; } = "Sans";
 
     public bool IsSetupCompleted { get; set; }
 }

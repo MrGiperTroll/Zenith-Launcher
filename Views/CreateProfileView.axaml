@@ -65,7 +65,7 @@
             <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
 
-        <!-- Compact Version Badges (Proportional & No Gray Hover Glitch) -->
+        <!-- Version Badges (Proportional & No Gray Hover Glitch) -->
         <Style Selector="Button.versionTile">
             <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
             <Setter Property="BorderBrush" Value="{DynamicResource BorderDarkBrush}"/>
@@ -77,8 +77,64 @@
             <Setter Property="FontSize" Value="11.5"/>
             <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
-        <Style Selector="Button.versionTile:pointerover">
-            <Setter Property="Opacity" Value="0.88"/>
+        <Style Selector="Button.versionTile /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderDarkBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        </Style>
+        <Style Selector="Button.versionTile:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderHoverBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        </Style>
+
+        <Style Selector="Button.versionTile.selected">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
+        </Style>
+        <Style Selector="Button.versionTile.selected /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
+        </Style>
+        <Style Selector="Button.versionTile.selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource AccentBrushHover}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrushHover}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
+        </Style>
+
+        <!-- Flat List Version Item -->
+        <Style Selector="Button.flatVersionTile">
+            <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderDarkBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        </Style>
+        <Style Selector="Button.flatVersionTile /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderDarkBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        </Style>
+        <Style Selector="Button.flatVersionTile:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderHoverBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        </Style>
+        <Style Selector="Button.flatVersionTile.selected">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
+        </Style>
+        <Style Selector="Button.flatVersionTile.selected /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
+        </Style>
+        <Style Selector="Button.flatVersionTile.selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource AccentBrushHover}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrushHover}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
         </Style>
 
         <!-- Group Header Button: No White Outline & Clean Hover -->
@@ -194,24 +250,12 @@
                                                     <DataTemplate>
                                                         <Button Classes="versionTile" Content="{Binding}" Margin="2.5" Cursor="Hand"
                                                                 Command="{Binding $parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectVersionCommand}" CommandParameter="{Binding}">
-                                                            <Button.Background>
-                                                                <MultiBinding Converter="{x:Static converters:EqualityToBrushConverter.Instance}">
+                                                            <Classes.selected>
+                                                                <MultiBinding Converter="{x:Static converters:StringEqualityToBoolConverter.Instance}">
                                                                     <Binding Path="$parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectedVersion"/>
                                                                     <Binding Path="."/>
                                                                 </MultiBinding>
-                                                            </Button.Background>
-                                                            <Button.Foreground>
-                                                                <MultiBinding Converter="{x:Static converters:EqualityToForegroundConverter.Instance}">
-                                                                    <Binding Path="$parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectedVersion"/>
-                                                                    <Binding Path="."/>
-                                                                </MultiBinding>
-                                                            </Button.Foreground>
-                                                            <Button.BorderBrush>
-                                                                <MultiBinding Converter="{x:Static converters:EqualityToBrushConverter.Instance}">
-                                                                    <Binding Path="$parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectedVersion"/>
-                                                                    <Binding Path="."/>
-                                                                </MultiBinding>
-                                                            </Button.BorderBrush>
+                                                            </Classes.selected>
                                                         </Button>
                                                     </DataTemplate>
                                                 </ItemsControl.ItemTemplate>
@@ -233,28 +277,15 @@
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="vm:FlatVersionItem">
-                                    <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                                    <Button Classes="flatVersionTile" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
                                             Padding="14,8" FontSize="12" MinHeight="36" CornerRadius="6" Cursor="Hand"
                                             Command="{Binding $parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectVersionCommand}" CommandParameter="{Binding Name}">
-                                        <Button.Background>
-                                            <MultiBinding Converter="{x:Static converters:EqualityToBrushConverter.Instance}">
+                                        <Classes.selected>
+                                            <MultiBinding Converter="{x:Static converters:StringEqualityToBoolConverter.Instance}">
                                                 <Binding Path="$parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectedVersion"/>
                                                 <Binding Path="Name"/>
                                             </MultiBinding>
-                                        </Button.Background>
-                                        <Button.Foreground>
-                                            <MultiBinding Converter="{x:Static converters:EqualityToForegroundConverter.Instance}">
-                                                <Binding Path="$parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectedVersion"/>
-                                                <Binding Path="Name"/>
-                                            </MultiBinding>
-                                        </Button.Foreground>
-                                        <Button.BorderBrush>
-                                            <MultiBinding Converter="{x:Static converters:EqualityToBrushConverter.Instance}">
-                                                <Binding Path="$parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectedVersion"/>
-                                                <Binding Path="Name"/>
-                                            </MultiBinding>
-                                        </Button.BorderBrush>
-                                        <Button.BorderThickness>1</Button.BorderThickness>
+                                        </Classes.selected>
                                         <Grid ColumnDefinitions="*,Auto">
                                             <TextBlock Grid.Column="0" Text="{Binding Name}" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center"/>
                                             <Border Grid.Column="1" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">

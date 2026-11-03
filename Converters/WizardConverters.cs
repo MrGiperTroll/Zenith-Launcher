@@ -131,6 +131,17 @@ public class EqualityToForegroundConverter : IMultiValueConverter
     }
 }
 
+public class StringEqualityToBoolConverter : IMultiValueConverter
+{
+    public static readonly StringEqualityToBoolConverter Instance = new();
+    public object? Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (values.Count >= 2 && values[0] is string a && values[1] is string b)
+            return string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
+        return false;
+    }
+}
+
 /// <summary>
 /// Returns the official loader logo bitmap (Assets/Loaders) for a loader name,
 /// or null when no official asset exists.

@@ -523,10 +523,9 @@
                                     <ComboBox Grid.Column="1" ItemsSource="{Binding ThemeModes}" SelectedItem="{Binding SelectedThemeModeItem}" Classes="darkCombo" MinWidth="130" Height="32" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center">
                                         <ComboBox.ItemTemplate>
                                             <DataTemplate x:DataType="pages:ThemeModeItem">
-                                                <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center" Margin="2,0">
+                                                <Grid ColumnDefinitions="Auto,*" VerticalAlignment="Center" Margin="2,0">
                                                     <PathIcon Grid.Column="0" Data="{Binding IconData}" Width="13" Height="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,8,0" VerticalAlignment="Center"/>
                                                     <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                                                    <PathIcon Grid.Column="2" Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" Width="12" Height="12" Foreground="{DynamicResource AccentBrush}" IsVisible="{Binding IsSelected}" Margin="10,0,2,0" VerticalAlignment="Center"/>
                                                 </Grid>
                                             </DataTemplate>
                                         </ComboBox.ItemTemplate>

@@ -95,35 +95,43 @@ public static class ZenithTheme
         SetBrushColor(r, "BgBrush", bg);
         SetBrushColor(r, "SidebarBgBrush", sidebarBg);
         SetBrushColor(r, "SurfaceBrush", surface);
-        SetBrushColor(r, "ContentSurfaceBrush", Blend(surface, bg, 0.4f));
+        SetBrushColor(r, "ContentSurfaceBrush", isLight ? Color.Parse("#F1F5F9") : Blend(surface, bg, 0.4f));
         SetBrushColor(r, "CardBrush", card);
-        SetBrushColor(r, "CardAltBrush", Blend(card, surface, 0.45f));
+        SetBrushColor(r, "CardAltBrush", isLight ? Color.Parse("#F8FAFC") : Blend(card, surface, 0.45f));
         SetBrushColor(r, "PanelBrush", panel);
         SetBrushColor(r, "PanelBrushTransparent", Color.FromArgb(0, panel.R, panel.G, panel.B));
         SetBrushColor(r, "FieldBrush", field);
-        SetBrushColor(r, "InputFocusBrush", Blend(field, bg, 0.35f));
-        SetBrushColor(r, "ChipBrush", Blend(card, panel, 0.5f));
-        SetBrushColor(r, "IconChipBrush", Blend(card, bg, 0.5f));
-        SetBrushColor(r, "LogSidebarBrush", Blend(bg, sidebarBg, 0.5f));
+        SetBrushColor(r, "InputFocusBrush", isLight ? Color.Parse("#FFFFFF") : Blend(field, bg, 0.35f));
+        SetBrushColor(r, "ChipBrush", isLight ? Color.Parse("#E2E8F0") : Blend(card, panel, 0.5f));
+        SetBrushColor(r, "IconChipBrush", isLight ? Color.Parse("#E2E8F0") : Blend(card, bg, 0.5f));
+        SetBrushColor(r, "LogSidebarBrush", isLight ? Color.Parse("#EAECEF") : Blend(bg, sidebarBg, 0.5f));
 
         // Hovers and Tabs
         SetBrushColor(r, "RowHoverBrush", hoverTint);
         SetBrushColor(r, "RowHoverBrushTransparent", Color.FromArgb(0, hoverTint.R, hoverTint.G, hoverTint.B));
-        var tabActive = Blend(accent, sidebarBg, 0.22f);
+        var tabActive = isLight ? Blend(accent, Color.Parse("#FFFFFF"), 0.16f) : Blend(accent, sidebarBg, 0.22f);
         SetBrushColor(r, "TabActiveBrush", tabActive);
         SetBrushColor(r, "TabActiveBrushTransparent", Color.FromArgb(0, tabActive.R, tabActive.G, tabActive.B));
-        SetBrushColor(r, "TabHoverBrush", Blend(accent, sidebarBg, 0.14f));
-        SetBrushColor(r, "TabPressedBrush", Blend(pressed, sidebarBg, 0.28f));
+        SetBrushColor(r, "TabHoverBrush", isLight ? Blend(accent, Color.Parse("#FFFFFF"), 0.08f) : Blend(accent, sidebarBg, 0.14f));
+        SetBrushColor(r, "TabPressedBrush", isLight ? Blend(pressed, Color.Parse("#FFFFFF"), 0.24f) : Blend(pressed, sidebarBg, 0.28f));
 
-        // Borders (Neutral Qoder style)
+        // Borders (Neutral adaptive style)
+        var borderStrong = isLight ? Color.Parse("#94A3B8") : Color.Parse("#2E3038");
+        var borderCardSoft = isLight ? Color.Parse("#E2E8F0") : Color.Parse("#26282E");
+        var borderInput = isLight ? Color.Parse("#CBD5E1") : Color.Parse("#282A30");
+        var borderHover = isLight ? Color.Parse("#64748B") : Color.Parse("#3A3D46");
+        var borderEditor = isLight ? Color.Parse("#CBD5E1") : Color.Parse("#282A30");
+        var borderIcon = isLight ? Color.Parse("#E2E8F0") : Color.Parse("#26282E");
+        var borderSoft = isLight ? Color.Parse("#E2E8F0") : Color.Parse("#222428");
+
         SetBrushColor(r, "BorderDarkBrush", borderDark);
-        SetBrushColor(r, "BorderStrongBrush", Color.Parse("#2E3038"));
-        SetBrushColor(r, "BorderCardSoftBrush", Color.Parse("#26282E"));
-        SetBrushColor(r, "BorderInputBrush", Color.Parse("#282A30"));
-        SetBrushColor(r, "BorderHoverBrush", Color.Parse("#3A3D46"));
-        SetBrushColor(r, "BorderEditorBrush", Color.Parse("#282A30"));
-        SetBrushColor(r, "BorderIconBrush", Color.Parse("#26282E"));
-        SetBrushColor(r, "BorderSoftBrush", Color.Parse("#222428"));
+        SetBrushColor(r, "BorderStrongBrush", borderStrong);
+        SetBrushColor(r, "BorderCardSoftBrush", borderCardSoft);
+        SetBrushColor(r, "BorderInputBrush", borderInput);
+        SetBrushColor(r, "BorderHoverBrush", borderHover);
+        SetBrushColor(r, "BorderEditorBrush", borderEditor);
+        SetBrushColor(r, "BorderIconBrush", borderIcon);
+        SetBrushColor(r, "BorderSoftBrush", borderSoft);
 
         // Accents
         SetBrushColor(r, "AccentBrush", accent);

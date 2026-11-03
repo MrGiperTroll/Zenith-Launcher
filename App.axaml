@@ -254,7 +254,7 @@
         <!-- Version button style (for Java installer tiles and version selectors) -->
         <Style Selector="Button.verBtn">
             <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="6"/>
@@ -265,9 +265,9 @@
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
         <Style Selector="Button.verBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
             <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
         <Style Selector="Button.verBtn:pressed /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
@@ -325,14 +325,14 @@
         </Style>
         <Style Selector="ComboBoxItem">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
             <Setter Property="Padding" Value="10,7"/>
             <Setter Property="CornerRadius" Value="7"/>
             <Setter Property="Margin" Value="2"/>
         </Style>
         <Style Selector="ComboBoxItem:pointerover">
-            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
         <Style Selector="ComboBoxItem /template/ Path#PART_CheckMark">
             <Setter Property="IsVisible" Value="False"/>
@@ -357,7 +357,7 @@
         <!-- ListBoxItem: ban system blue/cyan selection highlights, preserve dark theme palette -->
         <Style Selector="ListBoxItem">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
             <Setter Property="Padding" Value="0"/>
             <Setter Property="Margin" Value="0"/>
             <Setter Property="BorderThickness" Value="0"/>
@@ -389,7 +389,7 @@
             <Setter Property="CornerRadius" Value="7"/>
         </Style>
         <Style Selector="ListBox.selectable ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
         </Style>
         <Style Selector="ListBox.selectable ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
@@ -436,7 +436,7 @@
             <Setter Property="Margin" Value="2"/>
         </Style>
         <Style Selector="MenuItem:pointerover">
-            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
         </Style>
 
         <!-- Fixed slim scrollbars everywhere: constant size, no hover expansion -->
@@ -737,7 +737,7 @@
             </Setter>
         </Style>
         <Style Selector="Border.zenRow:pointerover">
-            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
         </Style>
 
         <!-- Modern CheckBox: colors via theme resources (CheckBoxCheckBackground*,
@@ -746,7 +746,7 @@
              PART_Border neutralized: it spans the whole row and its theme
              pointerover/pressed backgrounds flash over dark rows. -->
         <Style Selector="CheckBox">
-            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
             <Setter Property="FontSize" Value="12.5"/>
             <Setter Property="Padding" Value="8,0,0,0"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
@@ -773,7 +773,7 @@
         <!-- Modern ToggleSwitch: colors via theme resources (ToggleSwitchFill*,
              ToggleSwitchStroke*, ToggleSwitchKnobFill*), harmonized in ZenithTheme.Apply -->
         <Style Selector="ToggleSwitch">
-            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
             <Setter Property="FontSize" Value="12.5"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="OffContent" Value=""/>
@@ -934,11 +934,11 @@
             </Setter>
         </Style>
         <Style Selector="Button.authorLinkBtn:pointerover TextBlock">
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
             <Setter Property="TextDecorations" Value="Underline"/>
         </Style>
         <Style Selector="Button.authorLinkBtn:pressed TextBlock">
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
             <Setter Property="TextDecorations" Value="Underline"/>
         </Style>
 
@@ -960,11 +960,11 @@
             </Setter>
         </Style>
         <Style Selector="Button.inlineLinkBtn:pointerover TextBlock">
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
             <Setter Property="TextDecorations" Value="Underline"/>
         </Style>
         <Style Selector="Button.inlineLinkBtn:pressed TextBlock">
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
             <Setter Property="TextDecorations" Value="Underline"/>
         </Style>
 </Application.Styles>

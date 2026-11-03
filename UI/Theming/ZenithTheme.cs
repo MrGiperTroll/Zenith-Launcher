@@ -11,17 +11,63 @@ public static class ZenithTheme
 
     public static string AccentHex { get; private set; } = DefaultAccent;
 
-    public static void ApplyFont(string? fontStyle)
+    public static void ApplyFont(string? fontStyle, string? customFontPath = null)
     {
         if (Application.Current is not { } app) return;
-        var family = fontStyle switch
+        FontFamily family;
+        if (!string.IsNullOrWhiteSpace(customFontPath) && System.IO.File.Exists(customFontPath))
         {
-            "Serif" => new FontFamily("Georgia, Cambria, 'Times New Roman', serif"),
-            "Monospace" => new FontFamily("Consolas, 'Cascadia Code', 'Courier New', monospace"),
-            "System Default" or "System" => FontFamily.Default,
-            _ => new FontFamily("Segoe UI, Inter, -apple-system, BlinkMacSystemFont, sans-serif")
-        };
+            try
+            {
+                var fullPath = System.IO.Path.GetFullPath(customFontPath).Replace('\\', '/');
+                var fontName = System.IO.Path.GetFileNameWithoutExtension(customFontPath);
+                family = new FontFamily($"file:///{fullPath}#{fontName}");
+            }
+            catch
+            {
+                family = FontFamily.Default;
+            }
+        }
+        else
+        {
+            family = fontStyle switch
+            {
+                "Minecraft" => new FontFamily("avares://CustomMcLauncher/Assets/Fonts#Minecraft, Minecraft, Minecraftia, Mojangles"),
+                "Serif" => new FontFamily("Georgia, Cambria, 'Times New Roman', serif"),
+                "Monospace" => new FontFamily("Consolas, 'Cascadia Code', 'Courier New', monospace"),
+                "System Default" or "System" => FontFamily.Default,
+                _ => new FontFamily("Segoe UI, Inter, -apple-system, BlinkMacSystemFont, sans-serif")
+            };
+        }
         app.Resources["AppFontFamily"] = family;
+    }
+
+    public static void RestartLauncher()
+    {
+        try
+        {
+            var exePath = Environment.ProcessPath;
+            if (string.IsNullOrEmpty(exePath))
+                exePath = System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName;
+
+            if (!string.IsNullOrEmpty(exePath) && System.IO.File.Exists(exePath))
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = exePath,
+                    UseShellExecute = true,
+                    WorkingDirectory = System.IO.Path.GetDirectoryName(exePath)
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Error($"Failed to restart launcher: {ex.Message}");
+        }
+        finally
+        {
+            Environment.Exit(0);
+        }
     }
 
     public static void Apply(Models.LauncherConfigData cfg)
@@ -31,7 +77,7 @@ public static class ZenithTheme
         if (Application.Current is not { } app) return;
         var r = app.Resources;
 
-        ApplyFont(cfg.FontStyle);
+        ApplyFont(cfg.FontStyle, cfg.CustomFontPath);
 
         var themeMode = cfg.ThemeMode ?? "Dark";
         bool isLight = string.Equals(themeMode, "Light", StringComparison.OrdinalIgnoreCase);

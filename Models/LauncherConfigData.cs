@@ -54,6 +54,7 @@ public class LauncherConfigData
     public string ThemeSubTab { get; set; } = "Simple";
     public string ThemeMode { get; set; } = "Dark";
     public string FontStyle { get; set; } = "Sans";
+    public string CustomFontPath { get; set; } = string.Empty;
 
     public bool IsSetupCompleted { get; set; }
 }

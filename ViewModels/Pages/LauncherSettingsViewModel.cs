@@ -216,35 +216,47 @@ public partial class LauncherSettingsViewModel : ViewModelBase
     // --- Java Installations (Versions 25, 21, 17, 8) ---
     [ObservableProperty] private string _java25Location = string.Empty;
     [ObservableProperty] private bool _isJava25Valid;
+    public string Java25DownloadButtonText => IsJava25Valid ? "Redownload" : "Download";
     partial void OnJava25LocationChanged(string value)
     {
         IsJava25Valid = !string.IsNullOrWhiteSpace(value) && File.Exists(value);
+        OnPropertyChanged(nameof(Java25DownloadButtonText));
         if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
     }
+    partial void OnIsJava25ValidChanged(bool value) => OnPropertyChanged(nameof(Java25DownloadButtonText));
 
     [ObservableProperty] private string _java21Location = string.Empty;
     [ObservableProperty] private bool _isJava21Valid;
+    public string Java21DownloadButtonText => IsJava21Valid ? "Redownload" : "Download";
     partial void OnJava21LocationChanged(string value)
     {
         IsJava21Valid = !string.IsNullOrWhiteSpace(value) && File.Exists(value);
+        OnPropertyChanged(nameof(Java21DownloadButtonText));
         if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
     }
+    partial void OnIsJava21ValidChanged(bool value) => OnPropertyChanged(nameof(Java21DownloadButtonText));
 
     [ObservableProperty] private string _java17Location = string.Empty;
     [ObservableProperty] private bool _isJava17Valid;
+    public string Java17DownloadButtonText => IsJava17Valid ? "Redownload" : "Download";
     partial void OnJava17LocationChanged(string value)
     {
         IsJava17Valid = !string.IsNullOrWhiteSpace(value) && File.Exists(value);
+        OnPropertyChanged(nameof(Java17DownloadButtonText));
         if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
     }
+    partial void OnIsJava17ValidChanged(bool value) => OnPropertyChanged(nameof(Java17DownloadButtonText));
 
     [ObservableProperty] private string _java8Location = string.Empty;
     [ObservableProperty] private bool _isJava8Valid;
+    public string Java8DownloadButtonText => IsJava8Valid ? "Redownload" : "Download";
     partial void OnJava8LocationChanged(string value)
     {
         IsJava8Valid = !string.IsNullOrWhiteSpace(value) && File.Exists(value);
+        OnPropertyChanged(nameof(Java8DownloadButtonText));
         if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
     }
+    partial void OnIsJava8ValidChanged(bool value) => OnPropertyChanged(nameof(Java8DownloadButtonText));
 
     [RelayCommand]
     public void DetectJava(string versionStr)
@@ -563,16 +575,16 @@ public partial class LauncherSettingsViewModel : ViewModelBase
             DiscordRpcEnabled = cfg.DiscordRpcEnabled;
             if (cfg.LauncherScale > 0.4 && cfg.LauncherScale < 3.0) { LauncherScale = cfg.LauncherScale; PendingLauncherScale = cfg.LauncherScale; }
 
-            if (!string.IsNullOrWhiteSpace(cfg.Java25Path) && File.Exists(cfg.Java25Path)) Java25Location = cfg.Java25Path;
+            if (!string.IsNullOrWhiteSpace(cfg.Java25Path) && File.Exists(cfg.Java25Path) && (JavaVersionHelper.GetJavaMajor(cfg.Java25Path) == 25 || JavaVersionHelper.GetJavaMajor(cfg.Java25Path) == 0)) Java25Location = cfg.Java25Path;
             else { var d25 = JavaVersionHelper.FindJavaForVersion(25); if (!string.IsNullOrWhiteSpace(d25)) Java25Location = d25; }
 
-            if (!string.IsNullOrWhiteSpace(cfg.Java21Path) && File.Exists(cfg.Java21Path)) Java21Location = cfg.Java21Path;
+            if (!string.IsNullOrWhiteSpace(cfg.Java21Path) && File.Exists(cfg.Java21Path) && (JavaVersionHelper.GetJavaMajor(cfg.Java21Path) == 21 || JavaVersionHelper.GetJavaMajor(cfg.Java21Path) == 0)) Java21Location = cfg.Java21Path;
             else { var d21 = JavaVersionHelper.FindJavaForVersion(21); if (!string.IsNullOrWhiteSpace(d21)) Java21Location = d21; }
 
-            if (!string.IsNullOrWhiteSpace(cfg.Java17Path) && File.Exists(cfg.Java17Path)) Java17Location = cfg.Java17Path;
+            if (!string.IsNullOrWhiteSpace(cfg.Java17Path) && File.Exists(cfg.Java17Path) && (JavaVersionHelper.GetJavaMajor(cfg.Java17Path) == 17 || JavaVersionHelper.GetJavaMajor(cfg.Java17Path) == 0)) Java17Location = cfg.Java17Path;
             else { var d17 = JavaVersionHelper.FindJavaForVersion(17); if (!string.IsNullOrWhiteSpace(d17)) Java17Location = d17; }
 
-            if (!string.IsNullOrWhiteSpace(cfg.Java8Path) && File.Exists(cfg.Java8Path)) Java8Location = cfg.Java8Path;
+            if (!string.IsNullOrWhiteSpace(cfg.Java8Path) && File.Exists(cfg.Java8Path) && (JavaVersionHelper.GetJavaMajor(cfg.Java8Path) == 8 || JavaVersionHelper.GetJavaMajor(cfg.Java8Path) == 0)) Java8Location = cfg.Java8Path;
             else { var d8 = JavaVersionHelper.FindJavaForVersion(8); if (!string.IsNullOrWhiteSpace(d8)) Java8Location = d8; }
 
             if (!string.IsNullOrWhiteSpace(cfg.Language))

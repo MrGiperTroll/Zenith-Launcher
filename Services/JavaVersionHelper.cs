@@ -175,12 +175,22 @@ public static class JavaVersionHelper
             if (File.Exists(exePath))
             {
                 var vi = System.Diagnostics.FileVersionInfo.GetVersionInfo(exePath);
+                // Java 8 is reported as 1.8.0_xxx where ProductMajorPart is 1 and ProductMinorPart is 8
+                if (vi.ProductMajorPart == 1 && vi.ProductMinorPart == 8) return 8;
+                if (vi.FileMajorPart == 1 && vi.FileMinorPart == 8) return 8;
                 if (vi.ProductMajorPart > 0) return vi.ProductMajorPart;
                 if (vi.FileMajorPart > 0) return vi.FileMajorPart;
+
+                if (!string.IsNullOrWhiteSpace(vi.ProductVersion))
+                {
+                    var m = System.Text.RegularExpressions.Regex.Match(vi.ProductVersion, @"^(?:1\.)?(\d+)");
+                    if (m.Success && int.TryParse(m.Groups[1].Value, out var parsed))
+                        return parsed;
+                }
             }
         }
         catch { }
-        return 17;
+        return 0;
     }
 
     public static string? FindSystemJavaPath()
@@ -225,17 +235,30 @@ public static class JavaVersionHelper
             var javaDir = Path.Combine(ZenithPaths.AppDataDir, "runtime");
             if (Directory.Exists(javaDir))
             {
-                var patterns = new[] { $"jdk-{major}*", $"jdk{major}*", $"*jdk*{major}*", $"*jre*{major}*" };
+                var patterns = major == 8
+                    ? new[] { "jdk-8*", "jdk8u*", "*jdk*8*", "*jre*8*", "*8u*" }
+                    : new[] { $"jdk-{major}*", $"jdk{major}*", $"*jdk*{major}*" };
+
                 foreach (var pattern in patterns)
                 {
                     foreach (var dir in Directory.GetDirectories(javaDir, pattern, SearchOption.TopDirectoryOnly))
                     {
                         if (!IsValidJavaHome(dir)) continue;
                         var p1 = Path.Combine(dir, "bin", primaryExe);
-                        if (File.Exists(p1)) return p1;
+                        if (File.Exists(p1) && GetJavaMajor(p1) == major) return p1;
                         var p2 = Path.Combine(dir, "bin", secondaryExe);
-                        if (File.Exists(p2)) return p2;
+                        if (File.Exists(p2) && GetJavaMajor(p2) == major) return p2;
                     }
+                }
+
+                // Fallback scan across all runtime subdirectories
+                foreach (var dir in Directory.GetDirectories(javaDir, "*", SearchOption.TopDirectoryOnly))
+                {
+                    if (!IsValidJavaHome(dir)) continue;
+                    var p1 = Path.Combine(dir, "bin", primaryExe);
+                    if (File.Exists(p1) && GetJavaMajor(p1) == major) return p1;
+                    var p2 = Path.Combine(dir, "bin", secondaryExe);
+                    if (File.Exists(p2) && GetJavaMajor(p2) == major) return p2;
                 }
             }
         }
@@ -255,11 +278,13 @@ public static class JavaVersionHelper
         }
         catch { }
 
-        // 3. Check installed JDKs in Program Files with wildcards
+        // 3. Check installed JDKs in Program Files & User Profile (.jdks)
         try
         {
             var programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
             var programFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+            var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+
             var vendorBases = new[]
             {
                 Path.Combine(programFiles, "Eclipse Adoptium"),
@@ -268,11 +293,15 @@ public static class JavaVersionHelper
                 Path.Combine(programFiles, "Zulu"),
                 Path.Combine(programFiles, "BellSoft"),
                 Path.Combine(programFiles, "Microsoft"),
+                Path.Combine(programFiles, "Semeru"),
                 Path.Combine(programFilesX86, "Eclipse Adoptium"),
-                Path.Combine(programFilesX86, "Java")
+                Path.Combine(programFilesX86, "Java"),
+                Path.Combine(userProfile, ".jdks")
             };
 
-            var patterns = new[] { $"jdk-{major}*", $"jdk{major}*", $"*jdk*{major}*", $"*jre*{major}*" };
+            var patterns = major == 8
+                ? new[] { "jdk-8*", "jdk8u*", "*jdk*8*", "*jre*8*", "*8u*" }
+                : new[] { $"jdk-{major}*", $"jdk{major}*", $"*jdk*{major}*" };
 
             foreach (var vBase in vendorBases)
             {
@@ -284,18 +313,71 @@ public static class JavaVersionHelper
                         foreach (var dir in Directory.GetDirectories(vBase, pattern, SearchOption.TopDirectoryOnly))
                         {
                             var p1 = Path.Combine(dir, "bin", primaryExe);
-                            if (File.Exists(p1)) return p1;
+                            if (File.Exists(p1) && GetJavaMajor(p1) == major) return p1;
                             var p2 = Path.Combine(dir, "bin", secondaryExe);
-                            if (File.Exists(p2)) return p2;
+                            if (File.Exists(p2) && GetJavaMajor(p2) == major) return p2;
                         }
                     }
                     catch { }
+                }
+
+                // Fallback scan across all subdirectories of this vendor
+                try
+                {
+                    foreach (var dir in Directory.GetDirectories(vBase, "*", SearchOption.TopDirectoryOnly))
+                    {
+                        var p1 = Path.Combine(dir, "bin", primaryExe);
+                        if (File.Exists(p1) && GetJavaMajor(p1) == major) return p1;
+                        var p2 = Path.Combine(dir, "bin", secondaryExe);
+                        if (File.Exists(p2) && GetJavaMajor(p2) == major) return p2;
+                    }
+                }
+                catch { }
+            }
+        }
+        catch { }
+
+        // 4. Check Windows Registry (Adoptium, Oracle, Corretto, Zulu)
+        try
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                var regSubKeys = new[]
+                {
+                    $@"SOFTWARE\JavaSoft\JDK\{major}",
+                    $@"SOFTWARE\JavaSoft\Java Development Kit\{major}",
+                    $@"SOFTWARE\JavaSoft\JRE\{major}",
+                    $@"SOFTWARE\JavaSoft\Java Runtime Environment\{major}",
+                    $@"SOFTWARE\Eclipse Adoptium\JDK\{major}",
+                    $@"SOFTWARE\Eclipse Adoptium\JRE\{major}",
+                    $@"SOFTWARE\AdoptOpenJDK\JDK\{major}",
+                    $@"SOFTWARE\Microsoft\JDK\{major}"
+                };
+
+                foreach (var view in new[] { Microsoft.Win32.RegistryView.Registry64, Microsoft.Win32.RegistryView.Registry32 })
+                {
+                    using var baseKey = Microsoft.Win32.RegistryKey.OpenBaseKey(Microsoft.Win32.RegistryHive.LocalMachine, view);
+                    foreach (var sub in regSubKeys)
+                    {
+                        using var key = baseKey.OpenSubKey(sub);
+                        if (key != null)
+                        {
+                            var home = key.GetValue("JavaHome") as string ?? key.GetValue("Path") as string;
+                            if (!string.IsNullOrWhiteSpace(home))
+                            {
+                                var p1 = Path.Combine(home, "bin", primaryExe);
+                                if (File.Exists(p1) && GetJavaMajor(p1) == major) return p1;
+                                var p2 = Path.Combine(home, "bin", secondaryExe);
+                                if (File.Exists(p2) && GetJavaMajor(p2) == major) return p2;
+                            }
+                        }
+                    }
                 }
             }
         }
         catch { }
 
-        // 4. Fall back to system java path only if major version matches
+        // 5. Fall back to system java path only if major version matches
         var sys = FindSystemJavaPath();
         if (!string.IsNullOrEmpty(sys) && GetJavaMajor(sys) == major)
         {

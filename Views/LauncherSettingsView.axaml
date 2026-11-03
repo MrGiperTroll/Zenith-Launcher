@@ -141,7 +141,7 @@
                         <Button Classes="sideTab" Classes.active="{Binding IsSettingsTabJava}" Command="{Binding SwitchSettingsTabCommand}" CommandParameter="Java">
                             <Grid ColumnDefinitions="Auto,*">
                                 <Border Width="28" Height="28" Background="{DynamicResource IconChipBrush}" CornerRadius="6" VerticalAlignment="Center">
-                                    <PathIcon Data="M2,19H20V21H2V19M4,13H16V15H4V13M3,7H17V9H3V7M18,3V5H20V3H18M18,7V9H20V7H18M18,11V13H20V11H18M5,3H15V5H5V3Z" Width="14" Height="14" Foreground="{Binding IsSettingsTabJava, Converter={x:Static converters:EditInstanceWindowConverters.ActiveIcon}}"/>
+                                    <PathIcon Data="M2,21H20V19H2M20,8H18V5H20M20,3H4V13A4,4 0 0,0 8,17H14A4,4 0 0,0 18,13V10H20A2,2 0 0,0 22,8V5C22,3.89 21.1,3 20,3Z" Width="14" Height="14" Foreground="{Binding IsSettingsTabJava, Converter={x:Static converters:EditInstanceWindowConverters.ActiveIcon}}"/>
                                 </Border>
                                 <TextBlock Grid.Column="1" Text="Java Runtimes" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsSettingsTabJava, Converter={x:Static converters:EditInstanceWindowConverters.ActiveText}}"/>
                             </Grid>
@@ -342,8 +342,8 @@
                         <Border Classes="settingsCard" IsVisible="{Binding IsSearchJavaVisible}">
                             <StackPanel Spacing="14">
                                 <StackPanel Spacing="3">
-                                    <TextBlock Classes="sectionHeaderTitle" Text="Java Management &amp; Mode"/>
-                                    <TextBlock Classes="sectionHeaderDesc" Text="Control how Java runtimes are selected and managed across profiles."/>
+                                    <TextBlock Classes="sectionHeaderTitle" Text="Java Management"/>
+                                    <TextBlock Classes="sectionHeaderDesc" Text="Control how Java runtimes are managed across Minecraft versions."/>
                                 </StackPanel>
                                 <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
 
@@ -354,26 +354,6 @@
                                     </StackPanel>
                                     <ToggleSwitch Grid.Column="1" IsChecked="{Binding AutoManageJava}" OnContent="{x:Null}" OffContent="{x:Null}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                 </Grid>
-
-                                <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
-
-                                <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                    <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                        <TextBlock Classes="itemTitle" Text="Java Selection Mode"/>
-                                        <TextBlock Classes="itemDesc" Text="Recommended (auto-select per version), System (PATH), or Custom executable."/>
-                                    </StackPanel>
-                                    <ComboBox Grid.Column="1" ItemsSource="{Binding JavaModes}" SelectedItem="{Binding SelectedJavaMode}" Classes="darkCombo" Width="200" Height="32" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                                </Grid>
-
-                                <!-- Custom Java Path Input (Visible when Custom is selected) -->
-                                <StackPanel Spacing="6" IsVisible="{Binding IsCustomJavaMode}">
-                                    <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
-                                    <TextBlock Classes="itemTitle" Text="Custom Java Executable"/>
-                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                                        <TextBox Classes="darkInput" Text="{Binding CustomJavaPath}" PlaceholderText="C:\Program Files\Eclipse Adoptium\jdk-21\bin\javaw.exe" Height="34" FontSize="12"/>
-                                        <Button Grid.Column="1" Classes="subBtn" Command="{Binding BrowseJavaPathCommand}" Content="Browse..." Height="34" Padding="14,0"/>
-                                    </Grid>
-                                </StackPanel>
                             </StackPanel>
                         </Border>
 
@@ -382,7 +362,7 @@
                             <StackPanel Spacing="12">
                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                     <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                        <TextBlock Classes="itemTitle" Text="Java 25 (Latest Minecraft 1.21.5+)"/>
+                                        <TextBlock Classes="itemTitle" Text="Java 25"/>
                                         <TextBlock Classes="itemDesc" Text="Modern JDK required for cutting-edge snapshots and future releases."/>
                                     </StackPanel>
                                     <Border Grid.Column="1" CornerRadius="8" Padding="10,4" Background="{DynamicResource FieldBrush}" HorizontalAlignment="Right" VerticalAlignment="Center">
@@ -394,7 +374,7 @@
                                 </Grid>
                                 <TextBox Classes="darkInput" Text="{Binding Java25Location, Mode=TwoWay}" PlaceholderText="Auto-populated upon download or detect (/path/to/javaw.exe)" Height="34" FontSize="12"/>
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <Button Classes="primaryBtn" Command="{Binding InstallJavaCommand}" CommandParameter="25" Content="Auto Download" Padding="14,6"/>
+                                    <Button Classes="primaryBtn" Command="{Binding InstallJavaCommand}" CommandParameter="25" Content="{Binding Java25DownloadButtonText}" Padding="14,6"/>
                                     <Button Classes="subBtn" Command="{Binding DetectJavaCommand}" CommandParameter="25" Content="Detect" Padding="14,6"/>
                                     <Button Classes="subBtn" Command="{Binding BrowseJavaCommand}" CommandParameter="25" Content="Browse..." Padding="14,6"/>
                                 </StackPanel>
@@ -406,7 +386,7 @@
                             <StackPanel Spacing="12">
                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                     <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                        <TextBlock Classes="itemTitle" Text="Java 21 (Minecraft 1.20.5 – 1.21.4)"/>
+                                        <TextBlock Classes="itemTitle" Text="Java 21"/>
                                         <TextBlock Classes="itemDesc" Text="Standard LTS runtime for modern Minecraft releases."/>
                                     </StackPanel>
                                     <Border Grid.Column="1" CornerRadius="8" Padding="10,4" Background="{DynamicResource FieldBrush}" HorizontalAlignment="Right" VerticalAlignment="Center">
@@ -418,7 +398,7 @@
                                 </Grid>
                                 <TextBox Classes="darkInput" Text="{Binding Java21Location, Mode=TwoWay}" PlaceholderText="Auto-populated upon download or detect (/path/to/javaw.exe)" Height="34" FontSize="12"/>
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <Button Classes="primaryBtn" Command="{Binding InstallJavaCommand}" CommandParameter="21" Content="Auto Download" Padding="14,6"/>
+                                    <Button Classes="primaryBtn" Command="{Binding InstallJavaCommand}" CommandParameter="21" Content="{Binding Java21DownloadButtonText}" Padding="14,6"/>
                                     <Button Classes="subBtn" Command="{Binding DetectJavaCommand}" CommandParameter="21" Content="Detect" Padding="14,6"/>
                                     <Button Classes="subBtn" Command="{Binding BrowseJavaCommand}" CommandParameter="21" Content="Browse..." Padding="14,6"/>
                                 </StackPanel>
@@ -430,7 +410,7 @@
                             <StackPanel Spacing="12">
                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                     <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                        <TextBlock Classes="itemTitle" Text="Java 17 (Minecraft 1.18 – 1.20.4)"/>
+                                        <TextBlock Classes="itemTitle" Text="Java 17"/>
                                         <TextBlock Classes="itemDesc" Text="LTS runtime used for Caves &amp; Cliffs and Trails &amp; Tales."/>
                                     </StackPanel>
                                     <Border Grid.Column="1" CornerRadius="8" Padding="10,4" Background="{DynamicResource FieldBrush}" HorizontalAlignment="Right" VerticalAlignment="Center">
@@ -442,7 +422,7 @@
                                 </Grid>
                                 <TextBox Classes="darkInput" Text="{Binding Java17Location, Mode=TwoWay}" PlaceholderText="Auto-populated upon download or detect (/path/to/javaw.exe)" Height="34" FontSize="12"/>
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <Button Classes="primaryBtn" Command="{Binding InstallJavaCommand}" CommandParameter="17" Content="Auto Download" Padding="14,6"/>
+                                    <Button Classes="primaryBtn" Command="{Binding InstallJavaCommand}" CommandParameter="17" Content="{Binding Java17DownloadButtonText}" Padding="14,6"/>
                                     <Button Classes="subBtn" Command="{Binding DetectJavaCommand}" CommandParameter="17" Content="Detect" Padding="14,6"/>
                                     <Button Classes="subBtn" Command="{Binding BrowseJavaCommand}" CommandParameter="17" Content="Browse..." Padding="14,6"/>
                                 </StackPanel>
@@ -454,7 +434,7 @@
                             <StackPanel Spacing="12">
                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                     <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                        <TextBlock Classes="itemTitle" Text="Java 8 (Legacy Minecraft 1.12 – 1.16.5)"/>
+                                        <TextBlock Classes="itemTitle" Text="Java 8"/>
                                         <TextBlock Classes="itemDesc" Text="Legacy runtime essential for classic Forge modpacks and older versions."/>
                                     </StackPanel>
                                     <Border Grid.Column="1" CornerRadius="8" Padding="10,4" Background="{DynamicResource FieldBrush}" HorizontalAlignment="Right" VerticalAlignment="Center">
@@ -466,7 +446,7 @@
                                 </Grid>
                                 <TextBox Classes="darkInput" Text="{Binding Java8Location, Mode=TwoWay}" PlaceholderText="Auto-populated upon download or detect (/path/to/javaw.exe)" Height="34" FontSize="12"/>
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <Button Classes="primaryBtn" Command="{Binding InstallJavaCommand}" CommandParameter="8" Content="Auto Download" Padding="14,6"/>
+                                    <Button Classes="primaryBtn" Command="{Binding InstallJavaCommand}" CommandParameter="8" Content="{Binding Java8DownloadButtonText}" Padding="14,6"/>
                                     <Button Classes="subBtn" Command="{Binding DetectJavaCommand}" CommandParameter="8" Content="Detect" Padding="14,6"/>
                                     <Button Classes="subBtn" Command="{Binding BrowseJavaCommand}" CommandParameter="8" Content="Browse..." Padding="14,6"/>
                                 </StackPanel>
@@ -517,8 +497,13 @@
                                         <TextBlock Classes="itemDesc" Text="Adjust UI scale factor for high-resolution 2K/4K displays."/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                        <Slider Width="140" Minimum="0.8" Maximum="1.5" SmallChange="0.05" LargeChange="0.1" Value="{Binding LauncherScale}" VerticalAlignment="Center"/>
-                                        <TextBlock Text="{Binding LauncherScale, StringFormat='{}{0:P0}'}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Width="40" TextAlignment="Right"/>
+                                        <Slider Width="140" Minimum="0.8" Maximum="1.5" SmallChange="0.05" LargeChange="0.1"
+                                                Value="{Binding PendingLauncherScale, Mode=TwoWay}"
+                                                PointerCaptureLost="OnScaleSliderPointerCaptureLost"
+                                                PointerReleased="OnScaleSliderPointerReleased"
+                                                KeyUp="OnScaleSliderKeyUp"
+                                                VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding PendingLauncherScale, StringFormat='{}{0:P0}'}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Width="40" TextAlignment="Right"/>
                                     </StackPanel>
                                 </Grid>
                             </StackPanel>

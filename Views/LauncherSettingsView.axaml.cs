@@ -17,4 +17,20 @@ public partial class LauncherSettingsView : UserControl
             vm.CommitLauncherScale();
         }
     }
+
+    private void OnScaleSliderPointerReleased(object? sender, Avalonia.Input.PointerReleasedEventArgs e)
+    {
+        if (DataContext is ViewModels.Pages.LauncherSettingsViewModel vm)
+        {
+            vm.CommitLauncherScale();
+        }
+    }
+
+    private void OnScaleSliderKeyUp(object? sender, Avalonia.Input.KeyEventArgs e)
+    {
+        if (DataContext is ViewModels.Pages.LauncherSettingsViewModel vm)
+        {
+            vm.CommitLauncherScale();
+        }
+    }
 }

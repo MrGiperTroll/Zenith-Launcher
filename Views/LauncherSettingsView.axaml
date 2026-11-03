@@ -124,7 +124,7 @@
             <Border Grid.Column="0" Background="{DynamicResource SidebarBgBrush}" Padding="14,18"
                     BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="0,0,1,0">
                 <Grid RowDefinitions="Auto,*,Auto">
-                    <TextBox Classes="darkInput" Text="{Binding SettingsSearchQuery}" PlaceholderText="Search settings..." Padding="9,7" FontSize="11.5" Margin="0,0,0,14"/>
+                    <TextBox Classes="darkInput" Text="{Binding SettingsSearchQuery}" PlaceholderText="{l10n:Tr set_search_placeholder}" Padding="9,7" FontSize="11.5" Margin="0,0,0,14"/>
 
                     <StackPanel Grid.Row="1" Spacing="4">
                         <!-- Category: Minecraft -->
@@ -133,7 +133,7 @@
                                 <Border Width="28" Height="28" Background="{DynamicResource IconChipBrush}" CornerRadius="6" VerticalAlignment="Center">
                                     <PathIcon Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" Width="14" Height="14" Foreground="{Binding IsSettingsTabGame, Converter={x:Static converters:EditInstanceWindowConverters.ActiveIcon}}"/>
                                 </Border>
-                                <TextBlock Grid.Column="1" Text="Minecraft" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsSettingsTabGame, Converter={x:Static converters:EditInstanceWindowConverters.ActiveText}}"/>
+                                <TextBlock Grid.Column="1" Text="{l10n:Tr set_game}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsSettingsTabGame, Converter={x:Static converters:EditInstanceWindowConverters.ActiveText}}"/>
                             </Grid>
                         </Button>
 
@@ -143,7 +143,7 @@
                                 <Border Width="28" Height="28" Background="{DynamicResource IconChipBrush}" CornerRadius="6" VerticalAlignment="Center">
                                     <PathIcon Data="M2,21H20V19H2M20,8H18V5H20M20,3H4V13A4,4 0 0,0 8,17H14A4,4 0 0,0 18,13V10H20A2,2 0 0,0 22,8V5C22,3.89 21.1,3 20,3Z" Width="14" Height="14" Foreground="{Binding IsSettingsTabJava, Converter={x:Static converters:EditInstanceWindowConverters.ActiveIcon}}"/>
                                 </Border>
-                                <TextBlock Grid.Column="1" Text="Java Runtimes" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsSettingsTabJava, Converter={x:Static converters:EditInstanceWindowConverters.ActiveText}}"/>
+                                <TextBlock Grid.Column="1" Text="{l10n:Tr set_java}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsSettingsTabJava, Converter={x:Static converters:EditInstanceWindowConverters.ActiveText}}"/>
                             </Grid>
                         </Button>
 
@@ -153,7 +153,7 @@
                                 <Border Width="28" Height="28" Background="{DynamicResource IconChipBrush}" CornerRadius="6" VerticalAlignment="Center">
                                     <PathIcon Data="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z" Width="14" Height="14" Foreground="{Binding IsSettingsTabGeneral, Converter={x:Static converters:EditInstanceWindowConverters.ActiveIcon}}"/>
                                 </Border>
-                                <TextBlock Grid.Column="1" Text="Launcher" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsSettingsTabGeneral, Converter={x:Static converters:EditInstanceWindowConverters.ActiveText}}"/>
+                                <TextBlock Grid.Column="1" Text="{l10n:Tr set_launcher_settings}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsSettingsTabGeneral, Converter={x:Static converters:EditInstanceWindowConverters.ActiveText}}"/>
                             </Grid>
                         </Button>
 
@@ -163,7 +163,7 @@
                                 <Border Width="28" Height="28" Background="{DynamicResource IconChipBrush}" CornerRadius="6" VerticalAlignment="Center">
                                     <PathIcon Data="M7 14c-1.66 0-3 1.34-3 3 0 1.31-1.16 2-2 2 .92 1.22 2.49 2 4 2 2.21 0 4-1.79 4-4 0-1.66-1.34-3-3-3zm13.71-9.37l-1.34-1.34a2 2 0 0 0-2.83 0L9 10.83l4.17 4.17 7.54-7.54a2 2 0 0 0 0-2.83z" Width="14" Height="14" Foreground="{Binding IsSettingsTabAppearance, Converter={x:Static converters:EditInstanceWindowConverters.ActiveIcon}}"/>
                                 </Border>
-                                <TextBlock Grid.Column="1" Text="Appearance" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsSettingsTabAppearance, Converter={x:Static converters:EditInstanceWindowConverters.ActiveText}}"/>
+                                <TextBlock Grid.Column="1" Text="{l10n:Tr set_appearance}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsSettingsTabAppearance, Converter={x:Static converters:EditInstanceWindowConverters.ActiveText}}"/>
                             </Grid>
                         </Button>
                     </StackPanel>
@@ -184,16 +184,16 @@
                         <Border Classes="settingsCard" IsVisible="{Binding IsSearchMemoryVisible}">
                             <StackPanel Spacing="14">
                                 <StackPanel Spacing="3">
-                                    <TextBlock Classes="sectionHeaderTitle" Text="Memory Allocation"/>
-                                    <TextBlock Classes="sectionHeaderDesc" Text="Configure initial heap (-Xms) and maximum memory limit (-Xmx) for the game process."/>
+                                    <TextBlock Classes="sectionHeaderTitle" Text="{l10n:Tr set_memory}"/>
+                                    <TextBlock Classes="sectionHeaderDesc" Text="{l10n:Tr set_memory_hint}"/>
                                 </StackPanel>
                                 <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
 
                                 <!-- Min RAM -->
                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                     <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                        <TextBlock Classes="itemTitle" Text="Minimum Memory (-Xms)"/>
-                                        <TextBlock Classes="itemDesc" Text="Initial amount of RAM allocated when Minecraft boots up."/>
+                                        <TextBlock Classes="itemTitle" Text="{l10n:Tr set_min_memory}"/>
+                                        <TextBlock Classes="itemDesc" Text="{l10n:Tr set_min_memory_hint}"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right" VerticalAlignment="Center">
                                         <Button Command="{Binding StepMinRamDownCommand}" Classes="subBtn" Width="30" Height="30" Padding="0" ToolTip.Tip="Decrease RAM">
@@ -213,8 +213,8 @@
                                 <!-- Max RAM -->
                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                     <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                        <TextBlock Classes="itemTitle" Text="Maximum Memory (-Xmx)"/>
-                                        <TextBlock Classes="itemDesc" Text="Upper memory limit Minecraft is permitted to consume under load."/>
+                                        <TextBlock Classes="itemTitle" Text="{l10n:Tr set_max_memory}"/>
+                                        <TextBlock Classes="itemDesc" Text="{l10n:Tr set_max_memory_hint}"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right" VerticalAlignment="Center">
                                         <Button Command="{Binding StepRamDownCommand}" Classes="subBtn" Width="30" Height="30" Padding="0" ToolTip.Tip="Decrease RAM">
@@ -235,15 +235,15 @@
                         <Border Classes="settingsCard" IsVisible="{Binding IsSearchResolutionVisible}">
                             <StackPanel Spacing="14">
                                 <StackPanel Spacing="3">
-                                    <TextBlock Classes="sectionHeaderTitle" Text="Window &amp; Resolution"/>
-                                    <TextBlock Classes="sectionHeaderDesc" Text="Default window size and fullscreen behavior applied on game launch."/>
+                                    <TextBlock Classes="sectionHeaderTitle" Text="{l10n:Tr set_window_resolution}"/>
+                                    <TextBlock Classes="sectionHeaderDesc" Text="{l10n:Tr set_window_resolution_hint}"/>
                                 </StackPanel>
                                 <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
 
                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                     <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                        <TextBlock Classes="itemTitle" Text="Launch Dimensions"/>
-                                        <TextBlock Classes="itemDesc" Text="Window width and height in pixels when launched in windowed mode."/>
+                                        <TextBlock Classes="itemTitle" Text="{l10n:Tr set_resolution}"/>
+                                        <TextBlock Classes="itemDesc" Text="{l10n:Tr set_resolution_hint}"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" VerticalAlignment="Center">
                                         <TextBox Classes="darkInput" Text="{Binding GameWidth}" Width="80" Height="32" FontSize="12" VerticalAlignment="Center" TextAlignment="Center"/>
@@ -266,8 +266,8 @@
 
                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center" IsVisible="{Binding IsSearchFullscreenVisible}">
                                     <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                        <TextBlock Classes="itemTitle" Text="Launch Fullscreen"/>
-                                        <TextBlock Classes="itemDesc" Text="Start Minecraft directly in exclusive fullscreen display."/>
+                                        <TextBlock Classes="itemTitle" Text="{l10n:Tr set_fullscreen}"/>
+                                        <TextBlock Classes="itemDesc" Text="{l10n:Tr set_fullscreen_hint}"/>
                                     </StackPanel>
                                     <ToggleSwitch Grid.Column="1" IsChecked="{Binding IsFullscreen}" OnContent="{x:Null}" OffContent="{x:Null}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                 </Grid>
@@ -278,15 +278,15 @@
                         <Border Classes="settingsCard" IsVisible="{Binding IsSearchDirectoryVisible}">
                             <StackPanel Spacing="14">
                                 <StackPanel Spacing="3">
-                                    <TextBlock Classes="sectionHeaderTitle" Text="Instance Directory Strategy"/>
-                                    <TextBlock Classes="sectionHeaderDesc" Text="Select how instance files, mods, and worlds are isolated on disk."/>
+                                    <TextBlock Classes="sectionHeaderTitle" Text="{l10n:Tr set_dirstrategy}"/>
+                                    <TextBlock Classes="sectionHeaderDesc" Text="{l10n:Tr set_dirstrategy_hint}"/>
                                 </StackPanel>
                                 <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
 
                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                     <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                        <TextBlock Classes="itemTitle" Text="Directory Isolation Mode"/>
-                                        <TextBlock Classes="itemDesc" Text="Separate folder per instance prevents mod and world cross-contamination."/>
+                                        <TextBlock Classes="itemTitle" Text="{l10n:Tr set_dirstrategy}"/>
+                                        <TextBlock Classes="itemDesc" Text="{l10n:Tr set_dirstrategy_hint}"/>
                                     </StackPanel>
                                     <ComboBox Grid.Column="1" ItemsSource="{Binding DirectoryModes}" SelectedItem="{Binding SelectedDirectoryMode}" Classes="darkCombo" Width="260" Height="32" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                 </Grid>
@@ -297,24 +297,24 @@
                         <Border Classes="settingsCard" IsVisible="{Binding IsSearchVersionFiltersVisible}">
                             <StackPanel Spacing="14">
                                 <StackPanel Spacing="3">
-                                    <TextBlock Classes="sectionHeaderTitle" Text="Version Filters"/>
-                                    <TextBlock Classes="sectionHeaderDesc" Text="Choose which Minecraft build channels are offered in profile creation."/>
+                                    <TextBlock Classes="sectionHeaderTitle" Text="{l10n:Tr set_versionfilters}"/>
+                                    <TextBlock Classes="sectionHeaderDesc" Text="{l10n:Tr set_versionfilters_hint}"/>
                                 </StackPanel>
                                 <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
 
                                 <StackPanel Orientation="Horizontal" Spacing="22" VerticalAlignment="Center">
-                                    <CheckBox Content="Releases" IsChecked="{Binding ShowReleases}" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12.5"/>
-                                    <CheckBox Content="Snapshots" IsChecked="{Binding ShowSnapshots}" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12.5"/>
-                                    <CheckBox Content="Betas" IsChecked="{Binding ShowBetas}" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12.5"/>
-                                    <CheckBox Content="Alphas" IsChecked="{Binding ShowAlphas}" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12.5"/>
+                                    <CheckBox Content="{l10n:Tr Key=vf_releases}" IsChecked="{Binding ShowReleases}" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12.5"/>
+                                    <CheckBox Content="{l10n:Tr Key=vf_snapshots}" IsChecked="{Binding ShowSnapshots}" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12.5"/>
+                                    <CheckBox Content="{l10n:Tr Key=vf_betas}" IsChecked="{Binding ShowBetas}" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12.5"/>
+                                    <CheckBox Content="{l10n:Tr Key=vf_alphas}" IsChecked="{Binding ShowAlphas}" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12.5"/>
                                 </StackPanel>
 
                                 <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
 
                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                     <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                        <TextBlock Classes="itemTitle" Text="Flat Version List"/>
-                                        <TextBlock Classes="itemDesc" Text="Display all versions in a single flat list instead of nested version groups."/>
+                                        <TextBlock Classes="itemTitle" Text="{l10n:Tr set_flat_version_list}"/>
+                                        <TextBlock Classes="itemDesc" Text="{l10n:Tr set_flat_version_list_hint}"/>
                                     </StackPanel>
                                     <ToggleSwitch Grid.Column="1" IsChecked="{Binding UseFlatVersionList}" OnContent="{x:Null}" OffContent="{x:Null}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                 </Grid>
@@ -325,8 +325,8 @@
                         <Border Classes="settingsCard" IsVisible="{Binding IsSearchJvmArgsVisible}">
                             <StackPanel Spacing="12">
                                 <StackPanel Spacing="3">
-                                    <TextBlock Classes="sectionHeaderTitle" Text="Custom JVM Arguments"/>
-                                    <TextBlock Classes="sectionHeaderDesc" Text="Global flags passed directly to the Java virtual machine on game launch."/>
+                                    <TextBlock Classes="sectionHeaderTitle" Text="{l10n:Tr set_jvmargs}"/>
+                                    <TextBlock Classes="sectionHeaderDesc" Text="{l10n:Tr set_jvmargs_hint}"/>
                                 </StackPanel>
                                 <TextBox Classes="darkInput" Text="{Binding JvmArgs}" PlaceholderText="-XX:+UseG1GC -Dsun.rmi.dgc.server.gcInterval=2147483646" Height="36" FontSize="12"/>
                             </StackPanel>
@@ -342,15 +342,15 @@
                         <Border Classes="settingsCard" IsVisible="{Binding IsSearchJavaVisible}">
                             <StackPanel Spacing="14">
                                 <StackPanel Spacing="3">
-                                    <TextBlock Classes="sectionHeaderTitle" Text="Java Management"/>
-                                    <TextBlock Classes="sectionHeaderDesc" Text="Control how Java runtimes are managed across Minecraft versions."/>
+                                    <TextBlock Classes="sectionHeaderTitle" Text="{l10n:Tr set_java}"/>
+                                    <TextBlock Classes="sectionHeaderDesc" Text="{l10n:Tr set_java_mode_desc}"/>
                                 </StackPanel>
                                 <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
 
                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                     <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                        <TextBlock Classes="itemTitle" Text="Automatic Java Management"/>
-                                        <TextBlock Classes="itemDesc" Text="Zenith automatically downloads and configures the exact required JDK per version."/>
+                                        <TextBlock Classes="itemTitle" Text="{l10n:Tr set_autojava}"/>
+                                        <TextBlock Classes="itemDesc" Text="{l10n:Tr set_autojava_hint}"/>
                                     </StackPanel>
                                     <ToggleSwitch Grid.Column="1" IsChecked="{Binding AutoManageJava}" OnContent="{x:Null}" OffContent="{x:Null}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                 </Grid>
@@ -368,8 +368,8 @@
                                 <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" VerticalAlignment="Center">
                                     <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
                                         <Button Classes="primaryBtn" Command="{Binding InstallJavaCommand}" CommandParameter="25" Content="{Binding Java25DownloadButtonText}" IsEnabled="{Binding !IsJava25Downloading}" Padding="14,6"/>
-                                        <Button Classes="subBtn" Command="{Binding DetectJavaCommand}" CommandParameter="25" Content="Detect" IsEnabled="{Binding !IsJava25Downloading}" Padding="14,6"/>
-                                        <Button Classes="subBtn" Command="{Binding BrowseJavaCommand}" CommandParameter="25" Content="Browse..." IsEnabled="{Binding !IsJava25Downloading}" Padding="14,6"/>
+                                        <Button Classes="subBtn" Command="{Binding DetectJavaCommand}" CommandParameter="25" Content="{l10n:Tr Key=btn_detect}" IsEnabled="{Binding !IsJava25Downloading}" Padding="14,6"/>
+                                        <Button Classes="subBtn" Command="{Binding BrowseJavaCommand}" CommandParameter="25" Content="{l10n:Tr Key=btn_browse}" IsEnabled="{Binding !IsJava25Downloading}" Padding="14,6"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4" IsVisible="{Binding IsJava25Downloading}">
                                         <ProgressBar Value="{Binding DownloadProgress, Mode=OneWay}" Minimum="0" Maximum="1" Height="4" CornerRadius="2" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
@@ -390,8 +390,8 @@
                                 <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" VerticalAlignment="Center">
                                     <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
                                         <Button Classes="primaryBtn" Command="{Binding InstallJavaCommand}" CommandParameter="21" Content="{Binding Java21DownloadButtonText}" IsEnabled="{Binding !IsJava21Downloading}" Padding="14,6"/>
-                                        <Button Classes="subBtn" Command="{Binding DetectJavaCommand}" CommandParameter="21" Content="Detect" IsEnabled="{Binding !IsJava21Downloading}" Padding="14,6"/>
-                                        <Button Classes="subBtn" Command="{Binding BrowseJavaCommand}" CommandParameter="21" Content="Browse..." IsEnabled="{Binding !IsJava21Downloading}" Padding="14,6"/>
+                                        <Button Classes="subBtn" Command="{Binding DetectJavaCommand}" CommandParameter="21" Content="{l10n:Tr Key=btn_detect}" IsEnabled="{Binding !IsJava21Downloading}" Padding="14,6"/>
+                                        <Button Classes="subBtn" Command="{Binding BrowseJavaCommand}" CommandParameter="21" Content="{l10n:Tr Key=btn_browse}" IsEnabled="{Binding !IsJava21Downloading}" Padding="14,6"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4" IsVisible="{Binding IsJava21Downloading}">
                                         <ProgressBar Value="{Binding DownloadProgress, Mode=OneWay}" Minimum="0" Maximum="1" Height="4" CornerRadius="2" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
@@ -412,8 +412,8 @@
                                 <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" VerticalAlignment="Center">
                                     <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
                                         <Button Classes="primaryBtn" Command="{Binding InstallJavaCommand}" CommandParameter="17" Content="{Binding Java17DownloadButtonText}" IsEnabled="{Binding !IsJava17Downloading}" Padding="14,6"/>
-                                        <Button Classes="subBtn" Command="{Binding DetectJavaCommand}" CommandParameter="17" Content="Detect" IsEnabled="{Binding !IsJava17Downloading}" Padding="14,6"/>
-                                        <Button Classes="subBtn" Command="{Binding BrowseJavaCommand}" CommandParameter="17" Content="Browse..." IsEnabled="{Binding !IsJava17Downloading}" Padding="14,6"/>
+                                        <Button Classes="subBtn" Command="{Binding DetectJavaCommand}" CommandParameter="17" Content="{l10n:Tr Key=btn_detect}" IsEnabled="{Binding !IsJava17Downloading}" Padding="14,6"/>
+                                        <Button Classes="subBtn" Command="{Binding BrowseJavaCommand}" CommandParameter="17" Content="{l10n:Tr Key=btn_browse}" IsEnabled="{Binding !IsJava17Downloading}" Padding="14,6"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4" IsVisible="{Binding IsJava17Downloading}">
                                         <ProgressBar Value="{Binding DownloadProgress, Mode=OneWay}" Minimum="0" Maximum="1" Height="4" CornerRadius="2" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
@@ -434,8 +434,8 @@
                                 <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" VerticalAlignment="Center">
                                     <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
                                         <Button Classes="primaryBtn" Command="{Binding InstallJavaCommand}" CommandParameter="8" Content="{Binding Java8DownloadButtonText}" IsEnabled="{Binding !IsJava8Downloading}" Padding="14,6"/>
-                                        <Button Classes="subBtn" Command="{Binding DetectJavaCommand}" CommandParameter="8" Content="Detect" IsEnabled="{Binding !IsJava8Downloading}" Padding="14,6"/>
-                                        <Button Classes="subBtn" Command="{Binding BrowseJavaCommand}" CommandParameter="8" Content="Browse..." IsEnabled="{Binding !IsJava8Downloading}" Padding="14,6"/>
+                                        <Button Classes="subBtn" Command="{Binding DetectJavaCommand}" CommandParameter="8" Content="{l10n:Tr Key=btn_detect}" IsEnabled="{Binding !IsJava8Downloading}" Padding="14,6"/>
+                                        <Button Classes="subBtn" Command="{Binding BrowseJavaCommand}" CommandParameter="8" Content="{l10n:Tr Key=btn_browse}" IsEnabled="{Binding !IsJava8Downloading}" Padding="14,6"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4" IsVisible="{Binding IsJava8Downloading}">
                                         <ProgressBar Value="{Binding DownloadProgress, Mode=OneWay}" Minimum="0" Maximum="1" Height="4" CornerRadius="2" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
@@ -455,16 +455,16 @@
                         <Border Classes="settingsCard">
                             <StackPanel Spacing="14">
                                 <StackPanel Spacing="3">
-                                    <TextBlock Classes="sectionHeaderTitle" Text="Interface &amp; System"/>
-                                    <TextBlock Classes="sectionHeaderDesc" Text="Language, integrations, and display scaling preferences."/>
+                                    <TextBlock Classes="sectionHeaderTitle" Text="{l10n:Tr set_general}"/>
+                                    <TextBlock Classes="sectionHeaderDesc" Text="{l10n:Tr set_general_hint}"/>
                                 </StackPanel>
                                 <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
 
                                 <!-- Discord RPC -->
                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center" IsVisible="{Binding IsSearchDiscordVisible}">
                                     <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                        <TextBlock Classes="itemTitle" Text="Discord Rich Presence"/>
-                                        <TextBlock Classes="itemDesc" Text="Display launcher activity and active Minecraft instance on your Discord profile."/>
+                                        <TextBlock Classes="itemTitle" Text="{l10n:Tr set_discord}"/>
+                                        <TextBlock Classes="itemDesc" Text="{l10n:Tr set_discord_hint}"/>
                                     </StackPanel>
                                     <ToggleSwitch Grid.Column="1" IsChecked="{Binding DiscordRpcEnabled}" OnContent="{x:Null}" OffContent="{x:Null}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                 </Grid>
@@ -474,8 +474,8 @@
                                 <!-- UI Scale -->
                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                     <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                        <TextBlock Classes="itemTitle" Text="Interface Scaling"/>
-                                        <TextBlock Classes="itemDesc" Text="Adjust UI scale factor for high-resolution 2K/4K displays."/>
+                                        <TextBlock Classes="itemTitle" Text="{l10n:Tr set_ui_scale}"/>
+                                        <TextBlock Classes="itemDesc" Text="{l10n:Tr set_ui_scale_hint}"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" VerticalAlignment="Center">
                                         <Slider Width="140" Minimum="0.8" Maximum="1.5" SmallChange="0.05" LargeChange="0.1"
@@ -494,14 +494,14 @@
                         <Border Classes="settingsCard">
                             <StackPanel Spacing="14">
                                 <StackPanel Spacing="3">
-                                    <TextBlock Classes="sectionHeaderTitle" Text="External Integrations"/>
-                                    <TextBlock Classes="sectionHeaderDesc" Text="Optional developer credentials for CurseForge and external catalogs."/>
+                                    <TextBlock Classes="sectionHeaderTitle" Text="{l10n:Tr set_integrations}"/>
+                                    <TextBlock Classes="sectionHeaderDesc" Text="{l10n:Tr set_integrations_hint}"/>
                                 </StackPanel>
                                 <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
 
                                 <StackPanel Spacing="6">
-                                    <TextBlock Classes="itemTitle" Text="CurseForge API Key"/>
-                                    <TextBlock Classes="itemDesc" Text="Enables searching and downloading maps and mods directly from CurseForge."/>
+                                    <TextBlock Classes="itemTitle" Text="{l10n:Tr set_curseforge_key}"/>
+                                    <TextBlock Classes="itemDesc" Text="{l10n:Tr set_curseforge_key_hint}"/>
                                     <TextBox Classes="darkInput" Text="{Binding CurseForgeApiKey}" PlaceholderText="Enter your CurseForge API key" Height="36" FontSize="12" Margin="0,4,0,0"/>
                                 </StackPanel>
                             </StackPanel>
@@ -595,8 +595,8 @@
                                 <Border Background="{DynamicResource FieldBrush}" CornerRadius="8" Padding="14,10" IsVisible="{Binding IsCustomThemeActive}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1">
                                     <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                         <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                            <TextBlock Classes="itemTitle" Text="Custom Accent Color"/>
-                                            <TextBlock Classes="itemDesc" Text="Choose a quick preset dot or enter custom hex color code."/>
+                                            <TextBlock Classes="itemTitle" Text="{l10n:Tr set_custom_theme}"/>
+                                            <TextBlock Classes="itemDesc" Text="{l10n:Tr set_custom_theme_hint}"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center" HorizontalAlignment="Right">
                                             <!-- Quick dots -->

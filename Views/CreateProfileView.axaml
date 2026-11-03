@@ -307,7 +307,7 @@
                     <!-- CARD 1: PROFILE DETAILS (Clean, No Horizontal Line, No Duplicate Title) -->
                     <Border Classes="settingsCard">
                         <StackPanel Spacing="10">
-                            <TextBlock Classes="cardTitle" Text="Profile Details"/>
+                            <TextBlock Classes="cardTitle" Text="{l10n:Tr Key=set_profile_details}"/>
 
                             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="16" VerticalAlignment="Center">
                                 <!-- Icon Column -->
@@ -322,14 +322,14 @@
                                 <StackPanel Grid.Column="1" Spacing="8" VerticalAlignment="Center">
                                     <TextBox Classes="darkInput" Text="{Binding ProfileName}" PlaceholderText="{l10n:Tr Key=ph_profile_name}" FontSize="12.5" Height="34"/>
                                     <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                        <Button Content="Upload Icon" Command="{Binding PickCustomIconCommand}" Classes="subBtn" Padding="12,5" FontSize="11"/>
+                                        <Button Content="{l10n:Tr Key=btn_upload_icon}" Command="{Binding PickCustomIconCommand}" Classes="subBtn" Padding="12,5" FontSize="11"/>
                                         <Button Content="{l10n:Tr Key=btn_reset}" Command="{Binding ResetIconCommand}" Classes="subBtn" Padding="12,5" FontSize="11" IsVisible="{Binding IconPreview, Converter={x:Static conv:ObjectConverters.IsNotNull}}"/>
                                     </StackPanel>
                                 </StackPanel>
                             </Grid>
                             <!-- Inline Validation Errors -->
                             <TextBlock Text="{l10n:Tr Key=cp_duplicate}" FontSize="11" Foreground="{DynamicResource DangerBrush}" IsVisible="{Binding IsNameDuplicate}"/>
-                            <TextBlock Text="Invalid characters in profile name" FontSize="11" Foreground="{DynamicResource DangerBrush}" IsVisible="{Binding IsNameInvalid}"/>
+                            <TextBlock Text="{l10n:Tr Key=err_invalid_chars_name}" FontSize="11" Foreground="{DynamicResource DangerBrush}" IsVisible="{Binding IsNameInvalid}"/>
                         </StackPanel>
                     </Border>
 
@@ -345,7 +345,7 @@
                     <Border Classes="settingsCard">
                         <StackPanel Spacing="10">
                             <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                <TextBlock Classes="cardTitle" Text="Java Runtime" VerticalAlignment="Center"/>
+                                <TextBlock Classes="cardTitle" Text="{l10n:Tr Key=set_java}" VerticalAlignment="Center"/>
                                 <ComboBox Grid.Column="1" Classes="darkCombo" ItemsSource="{Binding JavaOptions}" SelectedItem="{Binding SelectedJavaOption}" MinWidth="180" Height="32" FontSize="11.5" HorizontalAlignment="Right" VerticalAlignment="Center">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate x:DataType="vm:JavaModeOption">
@@ -366,7 +366,7 @@
                     <!-- CARD 4: WINDOW & RESOLUTION (Clean, No Horizontal Divider) -->
                     <Border Classes="settingsCard">
                         <StackPanel Spacing="10">
-                            <TextBlock Classes="cardTitle" Text="Display &amp; Window"/>
+                            <TextBlock Classes="cardTitle" Text="{l10n:Tr Key=set_window_resolution}"/>
 
                             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16" VerticalAlignment="Center">
                                 <StackPanel Grid.Column="0" Spacing="4">
@@ -374,7 +374,7 @@
                                     <ComboBox Classes="darkCombo" ItemsSource="{Binding ResolutionOptions}" SelectedItem="{Binding SelectedResolution}" HorizontalAlignment="Stretch" Height="32" FontSize="11.5"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Spacing="4" HorizontalAlignment="Center">
-                                    <TextBlock Text="Fullscreen" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{l10n:Tr Key=set_fullscreen}" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
                                     <ToggleSwitch IsChecked="{Binding IsFullscreen}" OnContent="{x:Null}" OffContent="{x:Null}" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Grid>

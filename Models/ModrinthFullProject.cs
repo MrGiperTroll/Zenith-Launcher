@@ -14,7 +14,7 @@ using SkiaSharp;
 namespace CustomMcLauncher.Models;
 
 /// <summary>Full Modrinth project body returned by GET /v2/project/{id}.</summary>
-public class ModrinthFullProject
+public class ModrinthFullProject : IDisposable
 {
     public static string FormatPlatformName(string? raw) => ModrinthProjectVersion.FormatPlatformName(raw);
     public string Id { get; init; } = "";
@@ -94,6 +94,32 @@ public class ModrinthFullProject
 
     private List<Common.Utils.MarkdownBlock>? _cachedDescriptionBlocks;
     public List<Common.Utils.MarkdownBlock> DescriptionBlocks => _cachedDescriptionBlocks ??= Common.Utils.MarkdownBlockParser.Parse(Body);
+
+    public void Dispose()
+    {
+        if (_cachedDescriptionBlocks != null)
+        {
+            foreach (var b in _cachedDescriptionBlocks)
+            {
+                b.Dispose();
+            }
+            _cachedDescriptionBlocks.Clear();
+        }
+        if (Gallery != null)
+        {
+            foreach (var g in Gallery)
+            {
+                g.Dispose();
+            }
+        }
+        if (TeamMembers != null)
+        {
+            foreach (var m in TeamMembers)
+            {
+                try { m.Avatar?.Dispose(); } catch { }
+            }
+        }
+    }
 
     public static List<string> FormatGroupedVersions(IEnumerable<string>? rawVersions)
     {
@@ -235,6 +261,7 @@ public partial class ModrinthGalleryItem : ObservableObject
     public bool HasImage => Image != null;
 
     private CancellationTokenSource? _animCts;
+    private readonly List<Bitmap> _allFrames = new();
 
     public void LoadImage()
     {
@@ -251,18 +278,21 @@ public partial class ModrinthGalleryItem : ObservableObject
                     using var codec = SKCodec.Create(stream);
                     if (codec != null && codec.FrameCount > 1)
                     {
-                        var info = new SKImageInfo(codec.Info.Width, codec.Info.Height, SKColorType.Bgra8888, SKAlphaType.Premul);
+                        int targetW = Math.Min(480, codec.Info.Width);
+                        int targetH = Math.Max(1, (int)((double)codec.Info.Height * targetW / Math.Max(1, codec.Info.Width)));
+                        var info = new SKImageInfo(targetW, targetH, SKColorType.Bgra8888, SKAlphaType.Premul);
                         using var skBmp = new SKBitmap(info);
                         var frames = new List<(Bitmap bitmap, int durationMs)>();
 
-                        int step = Math.Max(1, codec.FrameCount / 60);
+                        int maxFrames = 12;
+                        int step = Math.Max(1, codec.FrameCount / maxFrames);
                         for (int i = 0; i < codec.FrameCount; i += step)
                         {
                             var opts = new SKCodecOptions(i);
                             if (codec.GetPixels(info, skBmp.GetPixels(), opts) == SKCodecResult.Success)
                             {
                                 using var img = SKImage.FromBitmap(skBmp);
-                                using var data = img.Encode(SKEncodedImageFormat.Png, 85);
+                                using var data = img.Encode(SKEncodedImageFormat.Png, 80);
                                 using var ms = new MemoryStream();
                                 data.SaveTo(ms);
                                 ms.Position = 0;
@@ -270,6 +300,7 @@ public partial class ModrinthGalleryItem : ObservableObject
                                 int dur = codec.FrameInfo[i].Duration;
                                 if (dur <= 15) dur = 80;
                                 frames.Add((bmp, dur));
+                                lock (_allFrames) { _allFrames.Add(bmp); }
                             }
                         }
 
@@ -306,11 +337,11 @@ public partial class ModrinthGalleryItem : ObservableObject
                 }
                 catch { }
 
-                // Fallback: standard static bitmap decode
+                // Fallback: standard static bitmap decode (downscaled to max 960px width to save memory)
                 try
                 {
                     using var ms = new MemoryStream(bytes);
-                    var bmp = new Bitmap(ms);
+                    var bmp = Bitmap.DecodeToWidth(ms, 960, BitmapInterpolationMode.MediumQuality);
                     Dispatcher.UIThread.Post(() =>
                     {
                         Image = bmp;
@@ -325,6 +356,22 @@ public partial class ModrinthGalleryItem : ObservableObject
     public void StopAnimation()
     {
         _animCts?.Cancel();
+    }
+
+    public void Dispose()
+    {
+        try { _animCts?.Cancel(); _animCts?.Dispose(); } catch { }
+        _animCts = null;
+        lock (_allFrames)
+        {
+            foreach (var f in _allFrames)
+            {
+                try { f?.Dispose(); } catch { }
+            }
+            _allFrames.Clear();
+        }
+        try { Image?.Dispose(); } catch { }
+        Image = null;
     }
 }
 

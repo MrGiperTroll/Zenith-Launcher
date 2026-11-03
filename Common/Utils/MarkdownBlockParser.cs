@@ -119,16 +119,24 @@ public partial class MarkdownSocialButton : ObservableObject
                 if (bytes is { Length: > 0 })
                 {
                     using var ms = new MemoryStream(bytes);
-                    var bmp = new Bitmap(ms);
+                    var bmp = Bitmap.DecodeToWidth(ms, 64, BitmapInterpolationMode.MediumQuality);
                     Dispatcher.UIThread.Post(() =>
                     {
+                        var old = IconBitmap;
                         IconBitmap = bmp;
+                        try { old?.Dispose(); } catch { }
                         OnPropertyChanged(nameof(HasIconBitmap));
                     });
                 }
             }
             catch { }
         });
+    }
+
+    public void Dispose()
+    {
+        try { IconBitmap?.Dispose(); } catch { }
+        IconBitmap = null;
     }
 }
 
@@ -179,16 +187,29 @@ public partial class MarkdownBlock : ObservableObject
                 if (bytes is { Length: > 0 })
                 {
                     using var ms = new MemoryStream(bytes);
-                    var bmp = new Bitmap(ms);
+                    var bmp = Bitmap.DecodeToWidth(ms, 720, BitmapInterpolationMode.MediumQuality);
                     Dispatcher.UIThread.Post(() =>
                     {
+                        var old = ImageBitmap;
                         ImageBitmap = bmp;
+                        try { old?.Dispose(); } catch { }
                         OnPropertyChanged(nameof(HasImageBitmap));
                     });
                 }
             }
             catch { }
         });
+    }
+
+    public void Dispose()
+    {
+        try { ImageBitmap?.Dispose(); } catch { }
+        ImageBitmap = null;
+        if (SocialButtons != null)
+        {
+            foreach (var b in SocialButtons)
+                b.Dispose();
+        }
     }
 }
 

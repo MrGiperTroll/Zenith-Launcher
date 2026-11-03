@@ -2977,8 +2977,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
 
         RebuildBreadcrumbs(entry);
-
-
+        Services.MemoryTrimmer.TrimMemory();
 
         switch (entry.Page)
 

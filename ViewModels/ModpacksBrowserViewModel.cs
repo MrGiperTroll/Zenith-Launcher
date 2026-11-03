@@ -19,7 +19,7 @@ using CustomMcLauncher.ViewModels.Items;
 
 namespace CustomMcLauncher.ViewModels;
 
-public partial class ModpacksBrowserViewModel : ObservableObject
+public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
 {
     [ObservableProperty]
     private AuthorProfileViewModel? _currentAuthorProfileVm;
@@ -160,6 +160,12 @@ public partial class ModpacksBrowserViewModel : ObservableObject
 
     [ObservableProperty]
     private Models.ModrinthFullProject? _fullProject;
+
+    partial void OnFullProjectChanging(Models.ModrinthFullProject? value)
+    {
+        try { _fullProject?.Dispose(); } catch { }
+        try { HeaderImage?.Dispose(); HeaderImage = null; } catch { }
+    }
 
     [ObservableProperty]
     private Avalonia.Media.Imaging.Bitmap? _headerImage;
@@ -1699,8 +1705,23 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     [RelayCommand]
     private void CloseDetails()
     {
+        try { FullProject?.Dispose(); FullProject = null; } catch { }
+        try { HeaderImage?.Dispose(); HeaderImage = null; } catch { }
         SelectedProject = null;
         PendingDelete = null;
+        MemoryTrimmer.TrimMemory();
+    }
+
+    public void Dispose()
+    {
+        try { FullProject?.Dispose(); FullProject = null; } catch { }
+        try { HeaderImage?.Dispose(); HeaderImage = null; } catch { }
+        foreach (var r in Results)
+        {
+            try { r.Icon?.Dispose(); } catch { }
+        }
+        Results.Clear();
+        MemoryTrimmer.TrimMemory();
     }
 
     [RelayCommand]

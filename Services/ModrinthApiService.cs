@@ -354,7 +354,7 @@ public static class ModrinthApiService
     {
         if (string.IsNullOrWhiteSpace(url)) return null;
 
-        // 1. Memory cache
+        // 1. Memory cache (only for smaller thumbnails <= 128KB to prevent heap bloat)
         if (IconMemoryCache.TryGetValue(url, out var memBytes))
             return memBytes;
 
@@ -369,9 +369,12 @@ public static class ModrinthApiService
                 var diskBytes = await File.ReadAllBytesAsync(diskPath).ConfigureAwait(false);
                 if (diskBytes.Length > 0)
                 {
-                    if (IconMemoryCache.Count >= 600)
-                        IconMemoryCache.Clear();
-                    IconMemoryCache.TryAdd(url, diskBytes);
+                    if (diskBytes.Length <= 131072)
+                    {
+                        if (IconMemoryCache.Count >= 120)
+                            IconMemoryCache.Clear();
+                        IconMemoryCache.TryAdd(url, diskBytes);
+                    }
                     return diskBytes;
                 }
             }
@@ -384,9 +387,12 @@ public static class ModrinthApiService
             var bytes = await Http.GetByteArrayAsync(url).ConfigureAwait(false);
             if (bytes != null && bytes.Length > 0)
             {
-                if (IconMemoryCache.Count >= 600)
-                    IconMemoryCache.Clear();
-                IconMemoryCache.TryAdd(url, bytes);
+                if (bytes.Length <= 131072)
+                {
+                    if (IconMemoryCache.Count >= 120)
+                        IconMemoryCache.Clear();
+                    IconMemoryCache.TryAdd(url, bytes);
+                }
 
                 _ = Task.Run(() =>
                 {

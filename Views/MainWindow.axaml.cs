@@ -91,16 +91,7 @@ private void OnTopBarDoubleTapped(object? sender, TappedEventArgs e)
 
     private static void OptimizeMemory()
     {
-        Task.Run(() =>
-        {
-            try
-            {
-                GC.Collect(2, GCCollectionMode.Aggressive, false, true);
-                GC.WaitForPendingFinalizers();
-                GC.Collect(2, GCCollectionMode.Aggressive, false, true);
-            }
-            catch { }
-        });
+        MemoryTrimmer.TrimMemory(force: true);
     }
 
     private void OnDataContextChanged(object? sender, EventArgs e)

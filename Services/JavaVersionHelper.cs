@@ -83,9 +83,17 @@ public static class JavaVersionHelper
         {
             var hasExe = File.Exists(Path.Combine(javaHomeDir, "bin", "java.exe"))
                 || File.Exists(Path.Combine(javaHomeDir, "bin", "javaw.exe"))
-                || File.Exists(Path.Combine(javaHomeDir, "bin", "java"));
+                || File.Exists(Path.Combine(javaHomeDir, "bin", "java"))
+                || File.Exists(Path.Combine(javaHomeDir, "jre", "bin", "javaw.exe"));
             if (!hasExe) return false;
-            return File.Exists(Path.Combine(javaHomeDir, "lib", "jvm.cfg"));
+
+            return File.Exists(Path.Combine(javaHomeDir, "lib", "jvm.cfg"))
+                || File.Exists(Path.Combine(javaHomeDir, "lib", "amd64", "jvm.cfg"))
+                || File.Exists(Path.Combine(javaHomeDir, "lib", "i386", "jvm.cfg"))
+                || File.Exists(Path.Combine(javaHomeDir, "lib", "rt.jar"))
+                || File.Exists(Path.Combine(javaHomeDir, "jre", "lib", "jvm.cfg"))
+                || File.Exists(Path.Combine(javaHomeDir, "jre", "lib", "amd64", "jvm.cfg"))
+                || File.Exists(Path.Combine(javaHomeDir, "jre", "lib", "rt.jar"));
         }
         catch { return false; }
     }

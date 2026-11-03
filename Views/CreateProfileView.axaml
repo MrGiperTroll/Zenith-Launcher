@@ -345,10 +345,7 @@
                     <Border Classes="settingsCard">
                         <StackPanel Spacing="10">
                             <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                <StackPanel Spacing="2" VerticalAlignment="Center">
-                                    <TextBlock Classes="cardTitle" Text="Java Runtime"/>
-                                    <TextBlock Text="JVM environment" FontSize="10.5" Foreground="{DynamicResource TextMutedBrush}"/>
-                                </StackPanel>
+                                <TextBlock Classes="cardTitle" Text="Java Runtime" VerticalAlignment="Center"/>
                                 <ComboBox Grid.Column="1" Classes="darkCombo" ItemsSource="{Binding JavaOptions}" SelectedItem="{Binding SelectedJavaOption}" MinWidth="180" Height="32" FontSize="11.5" HorizontalAlignment="Right" VerticalAlignment="Center">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate x:DataType="vm:JavaModeOption">

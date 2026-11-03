@@ -2403,21 +2403,15 @@ public partial class MainWindowViewModel : ViewModelBase
 
 
         vm.ProfileCreated += inst =>
-
         {
-
-            _instanceService.SetSelectedInstance(inst.Id);
-
             Dispatcher.UIThread.Post(() =>
-
             {
-
+                _instanceService.SetSelectedInstance(inst.Id);
+                SelectedInstanceId = inst.Id;
                 RefreshState();
-
+                SelectedInstance = Instances.FirstOrDefault(x => x.Id == inst.Id);
                 NavigateToProfiles();
-
             });
-
         };
 
 

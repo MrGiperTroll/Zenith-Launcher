@@ -9,7 +9,7 @@
              xmlns:l10n="using:CustomMcLauncher.Extensions"
              x:Class="CustomMcLauncher.Views.CreateProfileView"
              x:DataType="vm:CreateProfileViewModel"
-             Background="{DynamicResource BgBrush}">
+             Background="Transparent">
 
     <UserControl.Styles>
         <Style Selector="Button.primaryBtn">
@@ -17,7 +17,7 @@
             <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Padding" Value="20,10"/>
+            <Setter Property="Padding" Value="22,9"/>
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
         <Style Selector="Button.primaryBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
@@ -34,8 +34,8 @@
             <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
             <Setter Property="BorderBrush" Value="{DynamicResource BorderDarkBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="CornerRadius" Value="7"/>
+            <Setter Property="Padding" Value="14,8"/>
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
         <Style Selector="Button.subBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
@@ -64,345 +64,311 @@
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
-        <Style Selector="TextBlock.cardDesc">
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}"/>
-        </Style>
 
+        <!-- Compact Version Badges (Proportional & No Gray Hover Glitch) -->
         <Style Selector="Button.versionTile">
             <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
             <Setter Property="BorderBrush" Value="{DynamicResource BorderDarkBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="6"/>
-            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="CornerRadius" Value="5"/>
+            <Setter Property="Padding" Value="9,3"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="MinHeight" Value="34"/>
+            <Setter Property="MinHeight" Value="26"/>
+            <Setter Property="FontSize" Value="11.5"/>
             <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
-        <Style Selector="Button.versionTile:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource BorderHoverBrush}"/>
+        <Style Selector="Button.versionTile:pointerover">
+            <Setter Property="Opacity" Value="0.88"/>
+        </Style>
+
+        <!-- Group Header Button: No White Outline & Clean Hover -->
+        <Style Selector="Button.groupHeaderBtn">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusAdorner" Value="{x:Null}"/>
+        </Style>
+        <Style Selector="Button.groupHeaderBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+        </Style>
+        <Style Selector="Button.groupHeaderBtn:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
         </Style>
     </UserControl.Styles>
 
-    <Border Background="{DynamicResource CardAltBrush}" CornerRadius="12" ClipToBounds="True">
-        <Grid RowDefinitions="Auto,*,Auto">
-            
-            <!-- ========================================================= -->
-            <!-- COMPACT TOP HEADER BAR                                    -->
-            <!-- ========================================================= -->
-            <Border Grid.Row="0" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="0,0,0,1" Padding="24,11">
-                <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                        <PathIcon Data="{StaticResource ZenithLogoGeometry}" Width="15" Height="15" Foreground="{DynamicResource AccentBrush}"/>
-                        <TextBlock Text="New Profile" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                    </StackPanel>
+    <!-- Main Clean Container Directly on Window Surface (Zero Waste Wrappers) -->
+    <Grid RowDefinitions="*,Auto" Margin="0,0,16,16">
 
-                    <!-- Real-Time Selection Badge -->
-                    <Border Grid.Column="1" Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="8" Padding="12,6" VerticalAlignment="Center">
-                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                            <!-- Official or vector loader icon -->
-                            <Panel Width="16" Height="16" VerticalAlignment="Center">
-                                <Path Data="{Binding SelectedLoader, Converter={x:Static converters:LoaderLogoGeometryConverter.Instance}}" 
-                                      Fill="{Binding SelectedLoader, Converter={x:Static converters:LoaderLogoBrushConverter.Instance}}" 
-                                      Stretch="Uniform" Width="16" Height="16"
-                                      IsVisible="{Binding SelectedLoader, Converter={x:Static converters:LoaderOfficialIconMissingConverter.Instance}}"/>
-                                <Path Data="{Binding SelectedLoader, Converter={x:Static converters:LoaderLogoGeometryConverter.Instance}, ConverterParameter=2}" 
-                                      Fill="{Binding SelectedLoader, Converter={x:Static converters:LoaderLogoBrushConverter.Instance}, ConverterParameter=2}" 
-                                      Stretch="Uniform" Width="16" Height="16"
-                                      IsVisible="{Binding SelectedLoader, Converter={x:Static converters:LoaderOfficialIconMissingConverter.Instance}}"/>
-                                <Image Source="{Binding SelectedLoader, Converter={x:Static converters:LoaderOfficialIconConverter.Instance}}" Width="16" Height="16"/>
-                            </Panel>
-                            <TextBlock Text="{Binding SelectedLoader}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                            <TextBlock Text="•" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
-                            <TextBlock Text="{Binding SelectedVersion}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"
-                                       IsVisible="{Binding SelectedVersion, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}"/>
-                            <TextBlock Text="Select version" FontSize="11.5" FontStyle="Italic" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"
-                                       IsVisible="{Binding SelectedVersion, Converter={x:Static conv:StringConverters.IsNullOrEmpty}}"/>
-                            <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="4" Padding="6,2" VerticalAlignment="Center" IsVisible="{Binding IsLoaderBuildsVisible}">
-                                <TextBlock Text="{Binding SelectedLoaderBuild}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                            </Border>
+        <!-- ========================================================= -->
+        <!-- MAIN CONTENT AREA (2-Column Grid)                         -->
+        <!-- ========================================================= -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,470" ColumnSpacing="18">
+
+            <!-- LEFT COLUMN: GAME VERSION & MOD LOADER -->
+            <Grid Grid.Column="0" RowDefinitions="Auto,Auto,*" VerticalAlignment="Stretch">
+                
+                <!-- Toolbar: Loader, Loader Build, Search & Channel Filters -->
+                <Border Grid.Row="0" Classes="settingsCard" Padding="14,12" Margin="0,0,0,10">
+                    <StackPanel Spacing="10">
+                        <!-- Row 1: Loader selection + search -->
+                        <Grid ColumnDefinitions="150,Auto,*" ColumnSpacing="8" VerticalAlignment="Center">
+                            <!-- Loader Selector -->
+                            <ComboBox Grid.Column="0" Classes="darkCombo" ItemsSource="{Binding AvailableLoaders}" SelectedItem="{Binding SelectedLoader}" HorizontalAlignment="Stretch" VerticalAlignment="Center" Height="34" FontSize="12">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                            <Panel Width="16" Height="16" VerticalAlignment="Center">
+                                                <Path Data="{Binding Converter={x:Static converters:LoaderLogoGeometryConverter.Instance}}" Fill="{Binding Converter={x:Static converters:LoaderLogoBrushConverter.Instance}}" Stretch="Uniform" Width="16" Height="16"
+                                                      IsVisible="{Binding Converter={x:Static converters:LoaderOfficialIconMissingConverter.Instance}}"/>
+                                                <Image Source="{Binding Converter={x:Static converters:LoaderOfficialIconConverter.Instance}}" Width="16" Height="16"/>
+                                            </Panel>
+                                            <TextBlock Text="{Binding}" FontSize="12" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+
+                            <!-- Loader Build Selector (shown for non-Vanilla) -->
+                            <ComboBox Grid.Column="1" Classes="darkCombo" ItemsSource="{Binding AvailableLoaderBuilds}" SelectedItem="{Binding SelectedLoaderBuild}"
+                                      PlaceholderText="{l10n:Tr Key=cp_loader_ph}" IsVisible="{Binding IsLoaderBuildsVisible}"
+                                      MinWidth="110" MaxWidth="160" MaxDropDownHeight="240"
+                                      HorizontalAlignment="Left" VerticalAlignment="Center" Height="34" FontSize="12"/>
+
+                            <!-- Search Box -->
+                            <TextBox Grid.Column="2" Classes="darkInput" Text="{Binding VersionSearchQuery}" PlaceholderText="{l10n:Tr Key=cp_search_versions}" Height="34" FontSize="12" VerticalAlignment="Center"/>
+                        </Grid>
+
+                        <!-- Row 2: Channel Filters & Flat/Grouped toggle -->
+                        <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+                                <CheckBox Content="{l10n:Tr Key=vf_releases}" IsChecked="{Binding ShowReleases}" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <CheckBox Content="{l10n:Tr Key=vf_snapshots}" IsChecked="{Binding ShowSnapshots}" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <CheckBox Content="{l10n:Tr Key=vf_betas}" IsChecked="{Binding ShowBetas}" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <CheckBox Content="{l10n:Tr Key=vf_alphas}" IsChecked="{Binding ShowAlphas}" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            </StackPanel>
+
+                            <CheckBox Grid.Column="1" Content="Flat list" IsChecked="{Binding UseFlatVersionList}" FontSize="11.5" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Loader Error Banner -->
+                <Border Grid.Row="1" Background="{DynamicResource DangerBrush}" CornerRadius="6" Padding="12,8" Margin="0,0,0,10" IsVisible="{Binding LoaderErrorVisible}">
+                    <TextBlock Text="{Binding LoaderError}" FontSize="11.5" Foreground="#FFFFFF" TextWrapping="Wrap"/>
+                </Border>
+
+                <!-- Versions Direct Container (No Extra Outer Card) -->
+                <Panel Grid.Row="2" VerticalAlignment="Stretch">
+                    <!-- Grouped Accordion List -->
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" VerticalAlignment="Stretch" IsVisible="{Binding !UseFlatVersionList}">
+                        <ItemsControl ItemsSource="{Binding VersionGroups}" Margin="0,0,8,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:VersionGroup">
+                                    <Border Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="8" Margin="0,0,0,6" Padding="12,8">
+                                        <StackPanel Spacing="6">
+                                            <Button Classes="groupHeaderBtn" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                                                    Command="{Binding $parent[UserControl].((vm:CreateProfileViewModel)DataContext).ToggleVersionGroupCommand}" CommandParameter="{Binding}">
+                                                <Grid ColumnDefinitions="*,Auto,Auto">
+                                                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding Major}" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                                        <Border Background="{DynamicResource CardBrush}" CornerRadius="10" Padding="8,2" VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding Versions.Count, StringFormat='{}{0} versions'}" FontSize="10.5" Foreground="{DynamicResource TextMutedBrush}"/>
+                                                        </Border>
+                                                    </StackPanel>
+                                                    <!-- Minimalist Vector Chevron -->
+                                                    <PathIcon Grid.Column="2" Data="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z" Width="12" Height="12" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" IsVisible="{Binding IsExpanded}"/>
+                                                    <PathIcon Grid.Column="2" Data="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" Width="12" Height="12" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" IsVisible="{Binding !IsExpanded}"/>
+                                                </Grid>
+                                            </Button>
+
+                                            <ItemsControl IsVisible="{Binding IsExpanded}" ItemsSource="{Binding Versions}" Margin="0,4,0,0">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <WrapPanel Orientation="Horizontal"/>
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Button Classes="versionTile" Content="{Binding}" Margin="2.5" Cursor="Hand"
+                                                                Command="{Binding $parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectVersionCommand}" CommandParameter="{Binding}">
+                                                            <Button.Background>
+                                                                <MultiBinding Converter="{x:Static converters:EqualityToBrushConverter.Instance}">
+                                                                    <Binding Path="$parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectedVersion"/>
+                                                                    <Binding Path="."/>
+                                                                </MultiBinding>
+                                                            </Button.Background>
+                                                            <Button.Foreground>
+                                                                <MultiBinding Converter="{x:Static converters:EqualityToForegroundConverter.Instance}">
+                                                                    <Binding Path="$parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectedVersion"/>
+                                                                    <Binding Path="."/>
+                                                                </MultiBinding>
+                                                            </Button.Foreground>
+                                                            <Button.BorderBrush>
+                                                                <MultiBinding Converter="{x:Static converters:EqualityToBrushConverter.Instance}">
+                                                                    <Binding Path="$parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectedVersion"/>
+                                                                    <Binding Path="."/>
+                                                                </MultiBinding>
+                                                            </Button.BorderBrush>
+                                                        </Button>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+
+                    <!-- Flat List Mode -->
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" VerticalAlignment="Stretch" IsVisible="{Binding UseFlatVersionList}">
+                        <ItemsControl ItemsSource="{Binding FlatVersions}" Margin="0,0,8,0">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Spacing="4"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:FlatVersionItem">
+                                    <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                                            Padding="14,8" FontSize="12" MinHeight="36" CornerRadius="6" Cursor="Hand"
+                                            Command="{Binding $parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectVersionCommand}" CommandParameter="{Binding Name}">
+                                        <Button.Background>
+                                            <MultiBinding Converter="{x:Static converters:EqualityToBrushConverter.Instance}">
+                                                <Binding Path="$parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectedVersion"/>
+                                                <Binding Path="Name"/>
+                                            </MultiBinding>
+                                        </Button.Background>
+                                        <Button.Foreground>
+                                            <MultiBinding Converter="{x:Static converters:EqualityToForegroundConverter.Instance}">
+                                                <Binding Path="$parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectedVersion"/>
+                                                <Binding Path="Name"/>
+                                            </MultiBinding>
+                                        </Button.Foreground>
+                                        <Button.BorderBrush>
+                                            <MultiBinding Converter="{x:Static converters:EqualityToBrushConverter.Instance}">
+                                                <Binding Path="$parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectedVersion"/>
+                                                <Binding Path="Name"/>
+                                            </MultiBinding>
+                                        </Button.BorderBrush>
+                                        <Button.BorderThickness>1</Button.BorderThickness>
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <TextBlock Grid.Column="0" Text="{Binding Name}" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center"/>
+                                            <Border Grid.Column="1" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Kind}" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            </Border>
+                                        </Grid>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Panel>
+            </Grid>
+
+            <!-- RIGHT COLUMN: PROFILE IDENTITY & SETTINGS -->
+            <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel Spacing="12" Margin="0,0,4,0">
+
+                    <!-- CARD 1: PROFILE DETAILS (Clean, No Horizontal Line, No Duplicate Title) -->
+                    <Border Classes="settingsCard">
+                        <StackPanel Spacing="10">
+                            <TextBlock Classes="cardTitle" Text="Profile Details"/>
+
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="16" VerticalAlignment="Center">
+                                <!-- Icon Column -->
+                                <Border Width="64" Height="64" Classes="iconCard" ClipToBounds="True" VerticalAlignment="Center">
+                                    <Panel>
+                                        <Image Source="{Binding IconPreview}" Stretch="UniformToFill" Width="64" Height="64" IsVisible="{Binding IconPreview, Converter={x:Static conv:ObjectConverters.IsNotNull}}"/>
+                                        <Path Data="{StaticResource ZenithLogoGeometry}" Fill="{DynamicResource AccentBrush}" Stretch="Uniform" Width="32" Height="32" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding IconPreview, Converter={x:Static conv:ObjectConverters.IsNull}}"/>
+                                    </Panel>
+                                </Border>
+
+                                <!-- Name & Actions Column -->
+                                <StackPanel Grid.Column="1" Spacing="8" VerticalAlignment="Center">
+                                    <TextBox Classes="darkInput" Text="{Binding ProfileName}" PlaceholderText="{l10n:Tr Key=ph_profile_name}" FontSize="12.5" Height="34"/>
+                                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <Button Content="Upload Icon" Command="{Binding PickCustomIconCommand}" Classes="subBtn" Padding="12,5" FontSize="11"/>
+                                        <Button Content="{l10n:Tr Key=btn_reset}" Command="{Binding ResetIconCommand}" Classes="subBtn" Padding="12,5" FontSize="11" IsVisible="{Binding IconPreview, Converter={x:Static conv:ObjectConverters.IsNotNull}}"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Grid>
+                            <!-- Inline Validation Errors -->
+                            <TextBlock Text="{l10n:Tr Key=cp_duplicate}" FontSize="11" Foreground="{DynamicResource DangerBrush}" IsVisible="{Binding IsNameDuplicate}"/>
+                            <TextBlock Text="Invalid characters in profile name" FontSize="11" Foreground="{DynamicResource DangerBrush}" IsVisible="{Binding IsNameInvalid}"/>
                         </StackPanel>
                     </Border>
-                </Grid>
-            </Border>
 
-            <!-- ========================================================= -->
-            <!-- MAIN CONTENT AREA                                         -->
-            <!-- ========================================================= -->
-            <Grid Grid.Row="1" ColumnDefinitions="*,470" ColumnSpacing="20" Margin="24,16">
+                    <!-- CARD 2: RAM ALLOCATION (Direct Clean Card) -->
+                    <controls:RamCardControl Title="{l10n:Tr Key=cs_ram}"
+                                          Subtitle="{l10n:Tr Key=set_memory_hint}"
+                                          Value="{Binding SelectedRamMb}"
+                                          Maximum="{Binding MaxRamMb}"
+                                          Minimum="512"
+                                          TickFrequency="512"/>
 
-                <!-- LEFT COLUMN: GAME VERSION & MOD LOADER -->
-                <Grid Grid.Column="0" RowDefinitions="Auto,Auto,*" VerticalAlignment="Stretch">
-                    
-                    <!-- Toolbar: Loader, Loader Build, Search & Channel Filters -->
-                    <Border Grid.Row="0" Classes="settingsCard" Padding="14,12" Margin="0,0,0,12">
+                    <!-- CARD 3: JAVA RUNTIME (Shortened Subtitle, No Duplicate Heading) -->
+                    <Border Classes="settingsCard">
                         <StackPanel Spacing="10">
-                            <!-- Row 1: Loader selection + search -->
-                            <Grid ColumnDefinitions="150,Auto,*" ColumnSpacing="8" VerticalAlignment="Center">
-                                <!-- Loader Selector -->
-                                <ComboBox Grid.Column="0" Classes="darkCombo" ItemsSource="{Binding AvailableLoaders}" SelectedItem="{Binding SelectedLoader}" HorizontalAlignment="Stretch" VerticalAlignment="Center" Height="34" FontSize="12">
+                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                <StackPanel Spacing="2" VerticalAlignment="Center">
+                                    <TextBlock Classes="cardTitle" Text="Java Runtime"/>
+                                    <TextBlock Text="JVM environment" FontSize="10.5" Foreground="{DynamicResource TextMutedBrush}"/>
+                                </StackPanel>
+                                <ComboBox Grid.Column="1" Classes="darkCombo" ItemsSource="{Binding JavaOptions}" SelectedItem="{Binding SelectedJavaOption}" MinWidth="180" Height="32" FontSize="11.5" HorizontalAlignment="Right" VerticalAlignment="Center">
                                     <ComboBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                                <Panel Width="16" Height="16" VerticalAlignment="Center">
-                                                    <Path Data="{Binding Converter={x:Static converters:LoaderLogoGeometryConverter.Instance}}" Fill="{Binding Converter={x:Static converters:LoaderLogoBrushConverter.Instance}}" Stretch="Uniform" Width="16" Height="16"
-                                                          IsVisible="{Binding Converter={x:Static converters:LoaderOfficialIconMissingConverter.Instance}}"/>
-                                                    <Image Source="{Binding Converter={x:Static converters:LoaderOfficialIconConverter.Instance}}" Width="16" Height="16"/>
-                                                </Panel>
-                                                <TextBlock Text="{Binding}" FontSize="12" VerticalAlignment="Center"/>
-                                            </StackPanel>
+                                        <DataTemplate x:DataType="vm:JavaModeOption">
+                                            <TextBlock Text="{Binding DisplayName}" FontSize="11.5"/>
                                         </DataTemplate>
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
-
-                                <!-- Loader Build Selector (shown for non-Vanilla) -->
-                                <ComboBox Grid.Column="1" Classes="darkCombo" ItemsSource="{Binding AvailableLoaderBuilds}" SelectedItem="{Binding SelectedLoaderBuild}"
-                                          PlaceholderText="{l10n:Tr Key=cp_loader_ph}" IsVisible="{Binding IsLoaderBuildsVisible}"
-                                          MinWidth="110" MaxWidth="160" MaxDropDownHeight="240"
-                                          HorizontalAlignment="Left" VerticalAlignment="Center" Height="34" FontSize="12"/>
-
-                                <!-- Search Box -->
-                                <TextBox Grid.Column="2" Classes="darkInput" Text="{Binding VersionSearchQuery}" PlaceholderText="{l10n:Tr Key=cp_search_versions}" Height="34" FontSize="12" VerticalAlignment="Center"/>
                             </Grid>
 
-                            <!-- Row 2: Channel Filters & Flat/Grouped toggle -->
-                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
-                                    <CheckBox Content="{l10n:Tr Key=vf_releases}" IsChecked="{Binding ShowReleases}" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                    <CheckBox Content="{l10n:Tr Key=vf_snapshots}" IsChecked="{Binding ShowSnapshots}" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                    <CheckBox Content="{l10n:Tr Key=vf_betas}" IsChecked="{Binding ShowBetas}" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                    <CheckBox Content="{l10n:Tr Key=vf_alphas}" IsChecked="{Binding ShowAlphas}" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                </StackPanel>
-
-                                <CheckBox Grid.Column="1" Content="Flat list" IsChecked="{Binding UseFlatVersionList}" FontSize="11.5" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                            <!-- Java Path & Browse -->
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6" Margin="0,2,0,0">
+                                <TextBox Classes="darkInput" Text="{Binding EffectiveJavaPath}" PlaceholderText="C:\Path\To\javaw.exe" FontSize="11" Height="32"/>
+                                <Button Grid.Column="1" Content="{l10n:Tr Key=set_java_browse}" Command="{Binding PickCustomJavaCommand}" Classes="subBtn" Padding="14,5" FontSize="11" Height="32"/>
                             </Grid>
                         </StackPanel>
                     </Border>
 
-                    <!-- Loader Error Banner -->
-                    <Border Grid.Row="1" Background="{DynamicResource DangerBrush}" CornerRadius="6" Padding="12,8" Margin="0,0,0,10" IsVisible="{Binding LoaderErrorVisible}">
-                        <TextBlock Text="{Binding LoaderError}" FontSize="11.5" Foreground="#FFFFFF" TextWrapping="Wrap"/>
+                    <!-- CARD 4: WINDOW & RESOLUTION (Clean, No Horizontal Divider) -->
+                    <Border Classes="settingsCard">
+                        <StackPanel Spacing="10">
+                            <TextBlock Classes="cardTitle" Text="Display &amp; Window"/>
+
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16" VerticalAlignment="Center">
+                                <StackPanel Grid.Column="0" Spacing="4">
+                                    <TextBlock Text="{l10n:Tr Key=set_resolution}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <ComboBox Classes="darkCombo" ItemsSource="{Binding ResolutionOptions}" SelectedItem="{Binding SelectedResolution}" HorizontalAlignment="Stretch" Height="32" FontSize="11.5"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Spacing="4" HorizontalAlignment="Center">
+                                    <TextBlock Text="Fullscreen" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
+                                    <ToggleSwitch IsChecked="{Binding IsFullscreen}" OnContent="{x:Null}" OffContent="{x:Null}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
                     </Border>
 
-                    <!-- Versions Container Card -->
-                    <Border Grid.Row="2" Classes="settingsCard" Padding="12,10" VerticalAlignment="Stretch">
-                        <Panel VerticalAlignment="Stretch">
-                            <!-- Grouped Accordion List -->
-                            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" VerticalAlignment="Stretch" IsVisible="{Binding !UseFlatVersionList}">
-                                <ItemsControl ItemsSource="{Binding VersionGroups}" Margin="0,0,10,0">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate x:DataType="vm:VersionGroup">
-                                            <Border Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="8" Margin="0,0,0,8" Padding="12,10">
-                                                <StackPanel Spacing="6">
-                                                    <Button Background="Transparent" BorderThickness="0" Cursor="Hand" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="0"
-                                                            Command="{Binding $parent[UserControl].((vm:CreateProfileViewModel)DataContext).ToggleVersionGroupCommand}" CommandParameter="{Binding}">
-                                                        <Grid ColumnDefinitions="*,Auto,Auto">
-                                                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                                                <TextBlock Text="{Binding Major}" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                                                                <Border Background="{DynamicResource CardBrush}" CornerRadius="10" Padding="8,2" VerticalAlignment="Center">
-                                                                    <TextBlock Text="{Binding Versions.Count, StringFormat='{}{0} versions'}" FontSize="10.5" Foreground="{DynamicResource TextMutedBrush}"/>
-                                                                </Border>
-                                                            </StackPanel>
-                                                            <TextBlock Grid.Column="2" Text="▼" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" IsVisible="{Binding IsExpanded}"/>
-                                                            <TextBlock Grid.Column="2" Text="▶" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" IsVisible="{Binding !IsExpanded}"/>
-                                                        </Grid>
-                                                    </Button>
-
-                                                    <ItemsControl IsVisible="{Binding IsExpanded}" ItemsSource="{Binding Versions}" Margin="0,6,0,0">
-                                                        <ItemsControl.ItemsPanel>
-                                                            <ItemsPanelTemplate>
-                                                                <WrapPanel Orientation="Horizontal"/>
-                                                            </ItemsPanelTemplate>
-                                                        </ItemsControl.ItemsPanel>
-                                                        <ItemsControl.ItemTemplate>
-                                                            <DataTemplate>
-                                                                <Button Classes="versionTile" Content="{Binding}" Margin="3" Padding="14,7" FontSize="12" MinHeight="34" CornerRadius="6" Cursor="Hand"
-                                                                        Command="{Binding $parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectVersionCommand}" CommandParameter="{Binding}">
-                                                                    <Button.Background>
-                                                                        <MultiBinding Converter="{x:Static converters:EqualityToBrushConverter.Instance}">
-                                                                            <Binding Path="$parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectedVersion"/>
-                                                                            <Binding Path="."/>
-                                                                        </MultiBinding>
-                                                                    </Button.Background>
-                                                                    <Button.Foreground>
-                                                                        <MultiBinding Converter="{x:Static converters:EqualityToForegroundConverter.Instance}">
-                                                                            <Binding Path="$parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectedVersion"/>
-                                                                            <Binding Path="."/>
-                                                                        </MultiBinding>
-                                                                    </Button.Foreground>
-                                                                    <Button.BorderBrush>
-                                                                        <MultiBinding Converter="{x:Static converters:EqualityToBrushConverter.Instance}">
-                                                                            <Binding Path="$parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectedVersion"/>
-                                                                            <Binding Path="."/>
-                                                                        </MultiBinding>
-                                                                    </Button.BorderBrush>
-                                                                </Button>
-                                                            </DataTemplate>
-                                                        </ItemsControl.ItemTemplate>
-                                                    </ItemsControl>
-                                                </StackPanel>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </ScrollViewer>
-
-                            <!-- Flat List Mode -->
-                            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" VerticalAlignment="Stretch" IsVisible="{Binding UseFlatVersionList}">
-                                <ItemsControl ItemsSource="{Binding FlatVersions}" Margin="0,0,10,0">
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <StackPanel Spacing="4"/>
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate x:DataType="vm:FlatVersionItem">
-                                            <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
-                                                    Padding="14,8" FontSize="12" MinHeight="36" CornerRadius="6" Cursor="Hand"
-                                                    Command="{Binding $parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectVersionCommand}" CommandParameter="{Binding Name}">
-                                                <Button.Background>
-                                                    <MultiBinding Converter="{x:Static converters:EqualityToBrushConverter.Instance}">
-                                                        <Binding Path="$parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectedVersion"/>
-                                                        <Binding Path="Name"/>
-                                                    </MultiBinding>
-                                                </Button.Background>
-                                                <Button.Foreground>
-                                                    <MultiBinding Converter="{x:Static converters:EqualityToForegroundConverter.Instance}">
-                                                        <Binding Path="$parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectedVersion"/>
-                                                        <Binding Path="Name"/>
-                                                    </MultiBinding>
-                                                </Button.Foreground>
-                                                <Button.BorderBrush>
-                                                    <MultiBinding Converter="{x:Static converters:EqualityToBrushConverter.Instance}">
-                                                        <Binding Path="$parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectedVersion"/>
-                                                        <Binding Path="Name"/>
-                                                    </MultiBinding>
-                                                </Button.BorderBrush>
-                                                <Button.BorderThickness>1</Button.BorderThickness>
-                                                <Grid ColumnDefinitions="*,Auto">
-                                                    <TextBlock Grid.Column="0" Text="{Binding Name}" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center"/>
-                                                    <Border Grid.Column="1" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
-                                                        <TextBlock Text="{Binding Kind}" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                                    </Border>
-                                                </Grid>
-                                            </Button>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </ScrollViewer>
-                        </Panel>
-                    </Border>
-                </Grid>
-
-                <!-- RIGHT COLUMN: PROFILE IDENTITY & SETTINGS -->
-                <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                    <StackPanel Spacing="14" Margin="0,0,6,0">
-
-                        <!-- CARD 1: PROFILE DETAILS -->
-                        <Border Classes="settingsCard">
-                            <StackPanel Spacing="10">
-                                <TextBlock Classes="cardTitle" Text="Profile Details"/>
-                                <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
-
-                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="16" VerticalAlignment="Center">
-                                    <!-- Icon Column -->
-                                    <Border Width="64" Height="64" Classes="iconCard" ClipToBounds="True" VerticalAlignment="Center">
-                                        <Panel>
-                                            <Image Source="{Binding IconPreview}" Stretch="UniformToFill" Width="64" Height="64" IsVisible="{Binding IconPreview, Converter={x:Static conv:ObjectConverters.IsNotNull}}"/>
-                                            <Path Data="{StaticResource ZenithLogoGeometry}" Fill="{DynamicResource AccentBrush}" Stretch="Uniform" Width="32" Height="32" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding IconPreview, Converter={x:Static conv:ObjectConverters.IsNull}}"/>
-                                        </Panel>
-                                    </Border>
-
-                                    <!-- Name & Actions Column -->
-                                    <StackPanel Grid.Column="1" Spacing="8" VerticalAlignment="Center">
-                                        <TextBox Classes="darkInput" Text="{Binding ProfileName}" PlaceholderText="{l10n:Tr Key=ph_profile_name}" FontSize="12.5" Height="34"/>
-                                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                            <Button Content="Upload Icon" Command="{Binding PickCustomIconCommand}" Classes="subBtn" Padding="12,5" FontSize="11"/>
-                                            <Button Content="{l10n:Tr Key=btn_reset}" Command="{Binding ResetIconCommand}" Classes="subBtn" Padding="12,5" FontSize="11" IsVisible="{Binding IconPreview, Converter={x:Static conv:ObjectConverters.IsNotNull}}"/>
-                                        </StackPanel>
-                                    </StackPanel>
-                                </Grid>
-                                <!-- Inline Validation Errors -->
-                                <TextBlock Text="{l10n:Tr Key=cp_duplicate}" FontSize="11" Foreground="{DynamicResource DangerBrush}" IsVisible="{Binding IsNameDuplicate}"/>
-                                <TextBlock Text="Invalid characters in profile name" FontSize="11" Foreground="{DynamicResource DangerBrush}" IsVisible="{Binding IsNameInvalid}"/>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- CARD 2: RAM ALLOCATION -->
-                        <controls:RamCardControl Title="{l10n:Tr Key=cs_ram}"
-                                              Subtitle="{l10n:Tr Key=set_memory_hint}"
-                                              Value="{Binding SelectedRamMb}"
-                                              Maximum="{Binding MaxRamMb}"
-                                              Minimum="512"
-                                              TickFrequency="512"/>
-
-                        <!-- CARD 3: JAVA RUNTIME -->
-                        <Border Classes="settingsCard">
-                            <StackPanel Spacing="10">
-                                <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                    <StackPanel Spacing="2" VerticalAlignment="Center">
-                                        <TextBlock Classes="cardTitle" Text="Java Runtime"/>
-                                        <TextBlock Text="{l10n:Tr Key=set_java_mode_desc}" FontSize="10.5" Foreground="{DynamicResource TextMutedBrush}"/>
-                                    </StackPanel>
-                                    <ComboBox Grid.Column="1" Classes="darkCombo" ItemsSource="{Binding JavaOptions}" SelectedItem="{Binding SelectedJavaOption}" MinWidth="210" Height="32" FontSize="11.5" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                        <ComboBox.ItemTemplate>
-                                            <DataTemplate x:DataType="vm:JavaModeOption">
-                                                <TextBlock Text="{Binding DisplayName}" FontSize="11.5"/>
-                                            </DataTemplate>
-                                        </ComboBox.ItemTemplate>
-                                    </ComboBox>
-                                </Grid>
-
-                                <!-- Java Path & Browse -->
-                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6" Margin="0,2,0,0">
-                                    <TextBox Classes="darkInput" Text="{Binding EffectiveJavaPath}" PlaceholderText="C:\Path\To\javaw.exe" FontSize="11" Height="32"/>
-                                    <Button Grid.Column="1" Content="{l10n:Tr Key=set_java_browse}" Command="{Binding PickCustomJavaCommand}" Classes="subBtn" Padding="14,5" FontSize="11" Height="32"/>
-                                </Grid>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- CARD 4: WINDOW & RESOLUTION -->
-                        <Border Classes="settingsCard">
-                            <StackPanel Spacing="10">
-                                <TextBlock Classes="cardTitle" Text="Display &amp; Window"/>
-                                <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
-
-                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16" VerticalAlignment="Center">
-                                    <StackPanel Grid.Column="0" Spacing="4">
-                                        <TextBlock Text="{l10n:Tr Key=set_resolution}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                        <ComboBox Classes="darkCombo" ItemsSource="{Binding ResolutionOptions}" SelectedItem="{Binding SelectedResolution}" HorizontalAlignment="Stretch" Height="32" FontSize="11.5"/>
-                                    </StackPanel>
-                                    <StackPanel Grid.Column="1" Spacing="4" HorizontalAlignment="Center">
-                                        <TextBlock Text="Fullscreen" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
-                                        <ToggleSwitch IsChecked="{Binding IsFullscreen}" OnContent="{x:Null}" OffContent="{x:Null}" VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </Grid>
-                            </StackPanel>
-                        </Border>
-
-                    </StackPanel>
-                </ScrollViewer>
-            </Grid>
-
-            <!-- ========================================================= -->
-            <!-- BOTTOM FOOTER ACTION BAR                                  -->
-            <!-- ========================================================= -->
-            <Border Grid.Row="2" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="0,1,0,0" Padding="24,14">
-                <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
-                    <Button Grid.Column="0" Content="{l10n:Tr Key=btn_reset}" Command="{Binding ResetWizardCommand}" Classes="subBtn" Padding="14,8" FontSize="11" ToolTip.Tip="Reset all fields"/>
-
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                        <Button Content="{l10n:Tr Key=cancel}" Command="{Binding CancelCommand}" Classes="subBtn" Padding="18,9" FontSize="12"/>
-                        <Button Classes="primaryBtn" Command="{Binding CreateCommand}" IsEnabled="{Binding CanCreate}" Padding="22,9" FontSize="12">
-                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                <PathIcon Data="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" Width="12" Height="12" Foreground="{DynamicResource OnAccentBrush}"/>
-                                <TextBlock Text="{l10n:Tr Key=cp_create}" FontWeight="Bold"/>
-                            </StackPanel>
-                        </Button>
-                    </StackPanel>
-                </Grid>
-            </Border>
+                </StackPanel>
+            </ScrollViewer>
         </Grid>
-    </Border>
+
+        <!-- ========================================================= -->
+        <!-- BOTTOM FOOTER ACTION BAR                                  -->
+        <!-- ========================================================= -->
+        <Border Grid.Row="1" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="10" Padding="18,12" Margin="0,12,0,0">
+            <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
+                <Button Grid.Column="0" Content="{l10n:Tr Key=btn_reset}" Command="{Binding ResetWizardCommand}" Classes="subBtn" Padding="14,8" FontSize="11" ToolTip.Tip="Reset all fields"/>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <Button Content="{l10n:Tr Key=cancel}" Command="{Binding CancelCommand}" Classes="subBtn" Padding="18,9" FontSize="12"/>
+                    <Button Content="{l10n:Tr Key=cp_create}" Classes="primaryBtn" Command="{Binding CreateCommand}" IsEnabled="{Binding CanCreate}" Padding="24,9" FontSize="12"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
 </UserControl>

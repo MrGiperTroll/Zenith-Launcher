@@ -991,7 +991,6 @@ public partial class CreateProfileViewModel : ObservableObject
             }
             await _instanceService.SaveInstanceAsync(inst);
             ProfileCreated?.Invoke(inst);
-            RequestClose?.Invoke();
         }
     }
 }

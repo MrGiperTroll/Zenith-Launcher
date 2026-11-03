@@ -564,6 +564,10 @@ public partial class CreateProfileViewModel : ObservableObject
             foreach (var a in alphas.Where(a => Match(a.Name)).OrderByDescending(a => a.Date)) vg.Versions.Add(a.Name);
             VersionGroups.Add(vg);
         }
+        if (expandedKeys.Count == 0 && VersionGroups.Count > 0)
+        {
+            VersionGroups[0].IsExpanded = true;
+        }
         OnPropertyChanged(nameof(CanCreate));
         OnPropertyChanged(nameof(CanNextStep2));
     }
@@ -912,7 +916,7 @@ public partial class CreateProfileViewModel : ObservableObject
                 Directory.CreateDirectory(cacheDir);
                 var safeName = Regex.Replace(option.Name, @"[^\w]", "_");
                 var outPath = Path.Combine(cacheDir, $"{safeName}.png");
-                bmp.Save(outPath);
+                using (var fs = File.Create(outPath)) bmp.Save(fs, PngBitmapEncoderOptions.Default);
                 _pickedIconPath = outPath;
                 IconPath = outPath;
                 IconPreview?.Dispose();

@@ -13,43 +13,52 @@ public sealed partial class InstanceTargetItem : ObservableObject
     public string Name => Instance.Name;
     public string VersionDisplay => $"{Instance.Version} {Instance.LoaderType}";
     public string? IconPath => Instance.IconPath;
-    public bool HasIcon => !string.IsNullOrEmpty(IconPath) && File.Exists(IconPath);
-
-    public Avalonia.Media.Imaging.Bitmap? IconBitmap
-    {
-        get
-        {
-            if (HasIcon && File.Exists(IconPath))
-            {
-                try { return new Avalonia.Media.Imaging.Bitmap(IconPath); } catch { }
-            }
-            return null;
-        }
-    }
+    public bool HasIcon => Instance.HasCustomIcon;
+    public bool IsDatapackSelection { get; }
 
     [ObservableProperty] private bool _isInstalled;
     [ObservableProperty] private bool _isInstalling;
     [ObservableProperty] private string _buttonText = "Install";
 
-    private readonly Func<InstanceTargetItem, Task> _onInstall;
+    public bool CanClickButton => IsDatapackSelection || !IsInstalled;
 
-    public InstanceTargetItem(InstanceModel instance, bool isInstalled, Func<InstanceTargetItem, Task> onInstall)
+    private readonly Func<InstanceTargetItem, Task> _onAction;
+
+    public InstanceTargetItem(InstanceModel instance, bool isInstalled, bool isDatapack, Func<InstanceTargetItem, Task> onAction)
     {
         Instance = instance;
         _isInstalled = isInstalled;
-        _onInstall = onInstall;
-        ButtonText = isInstalled ? "Installed ✓" : "Install";
+        IsDatapackSelection = isDatapack;
+        _onAction = onAction;
+
+        if (isDatapack)
+        {
+            ButtonText = "Select World →";
+        }
+        else
+        {
+            ButtonText = isInstalled ? "Installed ✓" : "Install";
+        }
     }
 
     [RelayCommand]
     public async Task InstallAsync()
     {
-        if (IsInstalled || IsInstalling) return;
+        if (IsInstalling || (!IsDatapackSelection && IsInstalled)) return;
+
+        if (IsDatapackSelection)
+        {
+            if (_onAction != null)
+                await _onAction(this);
+            return;
+        }
+
         IsInstalling = true;
         ButtonText = "Installing...";
         try
         {
-            await _onInstall(this);
+            if (_onAction != null)
+                await _onAction(this);
             IsInstalled = true;
             ButtonText = "Installed ✓";
         }

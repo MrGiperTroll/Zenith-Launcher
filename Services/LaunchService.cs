@@ -162,8 +162,6 @@ public class LaunchService : ILaunchService
     /// <summary>Raised on a background thread when the game process exits (any exit code).</summary>
     public event Action<InstanceModel, int>? GameExited;
 
-    /// <summary>Raised on a background thread on non-zero exit with crash analysis.</summary>
-    public event Action<InstanceModel, int, CrashAnalysis>? CrashDetected;
 
     // Writes to the per-instance log file can be triggered from several background
     // threads at once (stdout reader, stderr reader, Exited handler). Synchronous
@@ -646,13 +644,7 @@ public class LaunchService : ILaunchService
 
             GameExited?.Invoke(instance, exitCode);
 
-            // Non-zero exit: analyze logs/crash-reports and surface a
-            // human-readable explanation window (the view layer subscribes).
-            if (exitCode != 0)
-            {
-                var analysis = CrashAnalyzer.Analyze(exitCode, logFilePath, basePath);
-                CrashDetected?.Invoke(instance, exitCode, analysis);
-            }
+
         };
 
         try

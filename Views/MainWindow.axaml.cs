@@ -142,12 +142,7 @@ private void OnTopBarDoubleTapped(object? sender, TappedEventArgs e)
             if (pane != null)
                 UiFx.FadeInNow(pane, 240, 4);
         }
-        else if (e.PropertyName == nameof(MainWindowViewModel.IsCrashReportOpen) && _subscribedVm!.IsCrashReportOpen)
-        {
-            var overlay = this.FindControl<Control>("CrashOverlay");
-            if (overlay != null)
-                UiFx.FadeInNow(overlay, 240, 4);
-        }
+
         else if (e.PropertyName == nameof(MainWindowViewModel.IsUpdateOpen) && _subscribedVm!.IsUpdateOpen)
         {
             var overlay = this.FindControl<Control>("UpdateOverlay");

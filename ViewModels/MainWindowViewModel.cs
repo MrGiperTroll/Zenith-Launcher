@@ -74,8 +74,6 @@ public enum LauncherNavPage
 
     CreateServer,
 
-    Skins
-
 }
 
 
@@ -2010,16 +2008,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
 
 
-    [ObservableProperty]
-
-    private bool _isCrashReportOpen;
+    
 
 
-
-    [ObservableProperty]
-
-    private Dialogs.CrashReportViewModel? _crashReportVm;
-
+    
 
 
     [ObservableProperty]
@@ -2131,7 +2123,6 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool IsCreateProfileView => CurrentPage == LauncherNavPage.CreateProfile;
 
     public bool IsCreateServerView => CurrentPage == LauncherNavPage.CreateServer;
-    public bool IsSkinsView => CurrentPage == LauncherNavPage.Skins;
 
 
 
@@ -2351,7 +2342,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
             Page = LauncherNavPage.Modpacks,
 
-            Title = L10n.T("nav_modpacks")
+            Title = L10n.T("nav_catalog")
 
         });
 
@@ -2980,7 +2971,6 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsCreateProfileView));
 
         OnPropertyChanged(nameof(IsCreateServerView));
-        OnPropertyChanged(nameof(IsSkinsView));
 
         OnPropertyChanged(nameof(IsLaunchBarVisible));
 
@@ -2994,9 +2984,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
         {
 
-            case LauncherNavPage.Skins:
-                Services.DiscordPresenceService.SetEditingInstance("Selecting Skin");
-                break;
             case LauncherNavPage.Profiles:
 
                 Services.DiscordPresenceService.SetBrowsingProfiles();
@@ -3099,7 +3086,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
                     {
 
-                        Title = L10n.T("nav_modpacks"),
+                        Title = L10n.T("nav_catalog"),
 
                         IsLast = false,
 
@@ -3173,7 +3160,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
                     {
 
-                        Title = L10n.T("nav_modpacks"),
+                        Title = L10n.T("nav_catalog"),
 
                         IsLast = true,
 
@@ -3657,20 +3644,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     }
 
-    [RelayCommand]
-    private void ShowSkins()
-    {
-        NavigateToSkins();
-    }
 
-    public void NavigateToSkins()
-    {
-        PushHistory(new HistoryEntry
-        {
-            Page = LauncherNavPage.Skins,
-            Title = "Skins"
-        });
-    }
 
 
 
@@ -3715,7 +3689,6 @@ public partial class MainWindowViewModel : ViewModelBase
     public LauncherSettingsViewModel LauncherSettingsVm { get; }
 
     public AccountsViewModel AccountsVm { get; }
-    public Pages.SkinSelectorViewModel SkinsVm { get; }
 
 
 
@@ -3802,7 +3775,6 @@ public partial class MainWindowViewModel : ViewModelBase
         _accountService = new AccountService();
 
         AccountsVm = new AccountsViewModel(_accountService);
-        SkinsVm = new Pages.SkinSelectorViewModel(_accountService);
 
         AccountsVm.AccountStateChanged += () =>
 
@@ -3819,7 +3791,6 @@ public partial class MainWindowViewModel : ViewModelBase
             OnPropertyChanged(nameof(Accounts));
 
             OnPropertyChanged(nameof(AccountRows));
-            _ = SkinsVm.LoadSavedAndAccountSkinsAsync();
 
         };
 
@@ -3939,63 +3910,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         _launchService.GameExited += (_, _) => Services.DiscordPresenceService.SetBrowsingProfiles();
 
-        _launchService.CrashDetected += (instance, exitCode, analysis) =>
-
-        {
-
-            Dispatcher.UIThread.Post(() =>
-
-            {
-
-                try
-
-                {
-
-                    CrashReportVm = new Dialogs.CrashReportViewModel(analysis, modQuery =>
-
-                    {
-
-                        IsCrashReportOpen = false;
-
-                        if (instance != null)
-
-                        {
-
-                            SelectedInstance = instance;
-
-                            OpenProfileBrowseModsCommand.Execute(null);
-
-                            if (CurrentContentBrowserVm != null)
-
-                            {
-
-                                CurrentContentBrowserVm.SearchQuery = modQuery;
-
-                                CurrentContentBrowserVm.SearchCommand.Execute(null);
-
-                                return;
-
-                            }
-
-                        }
-
-                        ModpacksBrowser.SearchQuery = modQuery;
-
-                        ModpacksBrowser.SelectProjectType("mod");
-
-                        NavigateToModpacks();
-
-                    });
-
-                    IsCrashReportOpen = true;
-
-                }
-
-                catch (Exception wex) { LauncherLog.Error("Failed to show crash report", wex); }
-
-            });
-
-        };
+        
 
 
 
@@ -6918,17 +6833,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
 
 
-    [RelayCommand]
 
-    private void CloseCrashReport()
-
-    {
-
-        IsCrashReportOpen = false;
-
-        CrashReportVm = null;
-
-    }
 
 
 

@@ -15,11 +15,10 @@
         Width="1280" Height="780"
         MinWidth="1080" MinHeight="680"
         WindowStartupLocation="CenterScreen"
-        Background="{DynamicResource BgBrush}"
-        TransparencyLevelHint="None"
+        Background="Transparent"
+        TransparencyLevelHint="Transparent"
         TransparencyBackgroundFallback="{DynamicResource BgBrush}"
-        BorderBrush="{DynamicResource AccentBrush}"
-        BorderThickness="1"
+        BorderThickness="0"
         ExtendClientAreaToDecorationsHint="True"
         ExtendClientAreaTitleBarHeightHint="38"
         WindowDecorations="None"
@@ -660,6 +659,11 @@
         </Style>
     </Window.Styles>
 
+    <Border CornerRadius="12"
+            Background="{DynamicResource BgBrush}"
+            BorderBrush="{DynamicResource BorderDarkBrush}"
+            BorderThickness="1"
+            ClipToBounds="True">
     <Panel Background="{DynamicResource BgBrush}">
         
         <LayoutTransformControl>
@@ -785,12 +789,7 @@
                                     </Grid>
                                 </Button>
 
-                                <Button Classes="discordNavBtn" Classes.active="{Binding IsSkinsView}" Command="{Binding ShowSkinsCommand}" ToolTip.Tip="Skins">
-                                    <Grid ColumnDefinitions="30,*" VerticalAlignment="Center">
-                                        <PathIcon Grid.Column="0" Data="M12 2A5 5 0 0 0 7 7C7 8.5 7.6 9.8 8.6 10.7C5.8 11.8 4 14.6 4 18V20H20V18C20 14.6 18.2 11.8 15.4 10.7C16.4 9.8 17 8.5 17 7A5 5 0 0 0 12 2Z" Width="18" Height="18" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-                                        <TextBlock Grid.Column="1" Text="Skins" FontSize="13.5" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                                    </Grid>
-                                </Button>
+
 
                                 <Border Height="1" Background="{StaticResource BorderDarkBrush}" Margin="2,8,2,8"/>
 
@@ -1074,10 +1073,7 @@
                 </Border>
             </Border>
 
-            <!-- Skins View -->
-                    <Grid IsVisible="{Binding IsSkinsView}" Classes="viewPane" Margin="0,0,16,0" x:Name="SkinsPane">
-                        <views:SkinSelectorView DataContext="{Binding SkinsVm}"/>
-                    </Grid>
+
 
                     <!-- Catalog / Modpacks View -->
                     <Grid IsVisible="{Binding IsModpacksView}" Classes="viewPane" Margin="0,0,16,0" x:Name="ModpacksPane">
@@ -1131,16 +1127,7 @@
 
                                 <!-- Filters bar: Sort, Versions, Loaders, Reset, Status -->
                                 <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto" VerticalAlignment="Center">
-                                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="0,0,10,0">
-                                        <TextBlock Text="Sort by:" FontSize="11.5" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
-                                        <ComboBox Classes="zenCombo" MinWidth="130" ItemsSource="{Binding ModpacksBrowser.AvailableSortOptions}" SelectedItem="{Binding ModpacksBrowser.SelectedSort}" FontSize="11" VerticalAlignment="Center">
-                                            <ComboBox.ItemTemplate>
-                                                <DataTemplate>
-                                                    <TextBlock Text="{Binding Converter={x:Static converters:SortDisplayConverter.Instance}}" FontSize="11"/>
-                                                </DataTemplate>
-                                            </ComboBox.ItemTemplate>
-                                        </ComboBox>
-                                    </StackPanel>
+                                    <views:SortFilterDropdown Grid.Column="0" DataContext="{Binding ModpacksBrowser.BrowserSortFilter}" Margin="0,0,10,0" VerticalAlignment="Center"/>
 
                                     <views:GameVersionFilterDropdown Grid.Column="1" DataContext="{Binding ModpacksBrowser.BrowserVersionFilter}" Margin="0,0,10,0" VerticalAlignment="Center"/>
 
@@ -1620,14 +1607,6 @@
                 </StackPanel>
             </Border>
         </Border>
-    <!-- Crash Report In-App Modal (soft fade-in via code-behind) -->
-        <Border Grid.Row="0" Grid.RowSpan="2" x:Name="CrashOverlay" Background="{StaticResource OverlayBrush}" IsVisible="{Binding IsCrashReportOpen}" ZIndex="2000"
-                HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
-            <Border Background="{StaticResource SurfaceBrush}" CornerRadius="16" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1"
-                    HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 18 46 0 #55000000" Padding="6,4">
-                <views:CrashReportView DataContext="{Binding CrashReportVm}"/>
-            </Border>
-        </Border>
     <!-- Update In-App Modal (soft fade-in via code-behind) -->
         <Border Grid.Row="0" Grid.RowSpan="2" x:Name="UpdateOverlay" Background="{StaticResource OverlayBrush}" IsVisible="{Binding IsUpdateOpen}" ZIndex="2000"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
@@ -1665,43 +1644,44 @@
     </Grid>
     </LayoutTransformControl>
     <controls:ParticleSystemControl ParticleType="{Binding SelectedParticle}" ParticleCount="{Binding ParticleCount}" ParticleScale="{Binding ParticleScale}" ParticleSpeed="{Binding ParticleSpeed}" ParticleColorHex="{Binding ParticleColorHex}" ParticleAngleDeg="{Binding ParticleAngleDeg}" ParticleTexturePath="{Binding ParticleTexturePath}" IsHitTestVisible="False"/>
-        <!-- MODAL: Add to Instance / Install Project -->
+        <!-- MODAL: Add to Instance / World Selector -->
         <Border Grid.Row="0" Grid.RowSpan="2" Background="{StaticResource OverlayBrush}"
                 IsVisible="{Binding ModpacksBrowser.IsAddToInstanceOpen}" ZIndex="1100"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-            <Border Background="{StaticResource BgBrush}" CornerRadius="14" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1"
-                    Width="520" MaxHeight="520" HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 18 46 0 #55000000" Padding="24,20,24,18">
+            <Border Background="{DynamicResource BgBrush}" CornerRadius="14" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1"
+                    Width="640" MaxHeight="620" HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 18 46 0 #55000000" Padding="26,22,26,20">
                 <Grid RowDefinitions="Auto,Auto,*,Auto">
                     <!-- Header -->
                     <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,16" VerticalAlignment="Center">
-                        <TextBlock Text="Install project" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <TextBlock Text="{Binding ModpacksBrowser.AddToInstanceModalTitle}" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         <Button Grid.Column="1" Content="✕" Command="{Binding ModpacksBrowser.CloseAddToInstanceCommand}" Classes="subBtn"
                                 Width="28" Height="28" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
                     </Grid>
 
-                    <!-- Search instance -->
-                    <TextBox Grid.Row="1" Classes="darkInput" Text="{Binding ModpacksBrowser.InstanceSearchQuery}" PlaceholderText="Search instance" Height="34" FontSize="12" Margin="0,0,0,12"/>
+                    <!-- STEP 1: Search & Instance List (Visible when !IsSelectWorldStep) -->
+                    <Grid Grid.Row="1" RowDefinitions="Auto,*" IsVisible="{Binding !ModpacksBrowser.IsSelectWorldStep}">
+                        <TextBox Classes="darkInput" Text="{Binding ModpacksBrowser.InstanceSearchQuery}" PlaceholderText="Search instance..." Height="36" FontSize="12.5" Margin="0,0,0,12"/>
+                    </Grid>
 
-                    <!-- List of Instances -->
-                    <ScrollViewer Grid.Row="2" MaxHeight="280" VerticalScrollBarVisibility="Auto">
+                    <ScrollViewer Grid.Row="2" MaxHeight="380" VerticalScrollBarVisibility="Auto" IsVisible="{Binding !ModpacksBrowser.IsSelectWorldStep}">
                         <ItemsControl ItemsSource="{Binding ModpacksBrowser.TargetInstances}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="dialogs:InstanceTargetItem">
-                                    <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,6">
-                                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalAlignment="Center">
-                                            <Border Width="32" Height="32" Background="Transparent" CornerRadius="6" VerticalAlignment="Center" ClipToBounds="True">
-                                                <Panel>
-                                                    <Image Source="{Binding IconBitmap}" Stretch="UniformToFill" IsVisible="{Binding HasIcon}"/>
-                                                    <PathIcon Data="M21 16.5C21 16.88 20.79 17.21 20.47 17.38L12.57 21.82C12.41 21.91 12.21 21.96 12 21.96C11.79 21.96 11.59 21.91 11.43 21.82L3.53 17.38C3.21 17.21 3 16.88 3 16.5V7.5C3 7.12 3.21 6.79 3.53 6.62L11.43 2.18C11.59 2.09 11.79 2.04 12 2.04C12.21 2.04 12.41 2.09 12.57 2.18L20.47 6.62C20.79 6.79 21 7.12 21 7.5V16.5Z" Width="16" Height="16" Foreground="{DynamicResource AccentBrush}" IsVisible="{Binding !HasIcon}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="10" Padding="14,12" Margin="0,0,0,8">
+                                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14" VerticalAlignment="Center">
+                                            <Border Width="42" Height="42" Background="{DynamicResource ChipBrush}" CornerRadius="8" VerticalAlignment="Center" ClipToBounds="True">
+                                                <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <Path IsVisible="{Binding !HasIcon}" Data="{StaticResource ZenithLogoGeometry}" Fill="{StaticResource SubtleEmeraldBrush}" Stretch="Uniform" Width="26" Height="26" Margin="0,2,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    <Image IsVisible="{Binding HasIcon}" Source="{Binding IconPath, Converter={x:Static converters:IconPathToBitmapConverter.Instance}}" Stretch="UniformToFill" Width="42" Height="42" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                 </Panel>
                                             </Border>
                                             <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                                <TextBlock Text="{Binding VersionDisplay}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                <TextBlock Text="{Binding Name}" FontSize="13.5" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                                <TextBlock Text="{Binding VersionDisplay}" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                             </StackPanel>
                                             <Button Grid.Column="2" Classes="primaryBtn" Classes.installed="{Binding IsInstalled}"
-                                                    Command="{Binding InstallCommand}" IsEnabled="{Binding !IsInstalled}"
-                                                    Padding="14,6" FontSize="11.5">
+                                                    Command="{Binding InstallCommand}" IsEnabled="{Binding CanClickButton}"
+                                                    Padding="16,7" FontSize="12">
                                                 <TextBlock Text="{Binding ButtonText}"/>
                                             </Button>
                                         </Grid>
@@ -1711,14 +1691,59 @@
                         </ItemsControl>
                     </ScrollViewer>
 
+                    <!-- STEP 2: World List for Datapack (Visible when IsSelectWorldStep) -->
+                    <StackPanel Grid.Row="1" Margin="0,0,0,12" Spacing="8" IsVisible="{Binding ModpacksBrowser.IsSelectWorldStep}">
+                        <Button Command="{Binding ModpacksBrowser.BackToInstancesCommand}" Classes="subBtn" Padding="10,5" HorizontalAlignment="Left">
+                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                <TextBlock Text="‹" FontSize="14" FontWeight="Bold" VerticalAlignment="Center"/>
+                                <TextBlock Text="Back to profiles" FontSize="12" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <TextBlock Text="{Binding ModpacksBrowser.SelectWorldSubtitle}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                    </StackPanel>
+
+                    <ScrollViewer Grid.Row="2" MaxHeight="380" VerticalScrollBarVisibility="Auto" IsVisible="{Binding ModpacksBrowser.IsSelectWorldStep}">
+                        <StackPanel Spacing="6">
+                            <Border IsVisible="{Binding ModpacksBrowser.HasNoWorldsFound}" Padding="20" Background="{DynamicResource CardBrush}" CornerRadius="10" HorizontalAlignment="Stretch" Margin="0,8">
+                                <TextBlock Text="No worlds found in this profile. Launch Minecraft and create a world first." Foreground="{DynamicResource TextPlaceholderBrush}" HorizontalAlignment="Center" TextAlignment="Center" FontSize="12.5"/>
+                            </Border>
+                            <ItemsControl ItemsSource="{Binding ModpacksBrowser.TargetWorlds}" IsVisible="{Binding !ModpacksBrowser.HasNoWorldsFound}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="dialogs:WorldTargetItem">
+                                        <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="10" Padding="14,12" Margin="0,0,0,8">
+                                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14" VerticalAlignment="Center">
+                                                <Border Width="42" Height="42" Background="{DynamicResource ChipBrush}" CornerRadius="8" VerticalAlignment="Center" ClipToBounds="True">
+                                                    <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                        <PathIcon IsVisible="{Binding !HasIcon}" Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" Width="20" Height="20" Foreground="{DynamicResource AccentBrush}"/>
+                                                        <Image IsVisible="{Binding HasIcon}" Source="{Binding IconBitmap}" Stretch="UniformToFill" Width="42" Height="42"/>
+                                                    </Panel>
+                                                </Border>
+                                                <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding WorldName}" FontSize="13.5" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                                    <TextBlock Text="{Binding FolderName, StringFormat='saves/{0}'}" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                </StackPanel>
+                                                <Button Grid.Column="2" Classes="primaryBtn" Classes.installed="{Binding IsInstalled}"
+                                                        Command="{Binding InstallCommand}" IsEnabled="{Binding !IsInstalled}"
+                                                        Padding="16,7" FontSize="12">
+                                                    <TextBlock Text="{Binding ButtonText}"/>
+                                                </Button>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </ScrollViewer>
+
                     <!-- Footer -->
-                    <Grid Grid.Row="3" Margin="0,14,0,0" VerticalAlignment="Center">
+                    <Grid Grid.Row="3" Margin="0,16,0,0" VerticalAlignment="Center">
                         <Button Classes="subBtn" Content="Cancel" Command="{Binding ModpacksBrowser.CloseAddToInstanceCommand}" HorizontalAlignment="Right" Padding="18,6"/>
                     </Grid>
                 </Grid>
             </Border>
         </Border>
     </Panel>
+    </Border>
 </Window>
 
 

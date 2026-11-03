@@ -289,6 +289,8 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     public GameVersionFilterViewModel BrowserVersionFilter { get; } = new();
     public LoaderFilterViewModel BrowserLoaderFilter { get; } = new();
 
+    public SortFilterViewModel BrowserSortFilter { get; } = new();
+
     [ObservableProperty]
     private string _selectedFilterGameVersion = "All versions";
 
@@ -843,6 +845,10 @@ public partial class ModpacksBrowserViewModel : ObservableObject
         {
             _ = ReloadAsync();
         };
+        BrowserSortFilter.SortChanged += (newSort) =>
+        {
+            SelectedSort = newSort;
+        };
         _ = LoadVersionsAsync();
         _ = ReloadAsync();
     }
@@ -856,6 +862,8 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     {
         AvailableCategories = new ObservableCollection<string>(new[] { "", "adventure", "cursed", "magic", "technology", "exploration", "optimization" });
         AvailableSortOptions = new ObservableCollection<string>(new[] { "Relevance", "Downloads", "Newest", "Recently Updated" });
+
+        BrowserSortFilter.SetOptions(AvailableSortOptions, SelectedSort);
         RefreshAvailableLoaders();
     }
 
@@ -962,7 +970,11 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     }
     partial void OnSelectedCategoryChanged(string value) => _ = ReloadAsync();
     partial void OnSelectedLoaderChanged(string value) => _ = ReloadAsync();
-    partial void OnSelectedSortChanged(string value) => _ = ReloadAsync();
+    partial void OnSelectedSortChanged(string value)
+    {
+        BrowserSortFilter.SetSelected(value, notifyEvent: false);
+        _ = ReloadAsync();
+    }
 
     /// <summary>
     /// Loader availability follows Minecraft history so ancient versions never
@@ -1263,18 +1275,42 @@ public partial class ModpacksBrowserViewModel : ObservableObject
     }
 
     [ObservableProperty] private bool _isAddToInstanceOpen;
+    [ObservableProperty] private bool _isSelectWorldStep;
+    [ObservableProperty] private InstanceModel? _selectedTargetInstanceForWorld;
+    [ObservableProperty] private ObservableCollection<WorldTargetItem> _targetWorlds = new();
+    [ObservableProperty] private bool _hasNoWorldsFound;
     [ObservableProperty] private string _instanceSearchQuery = "";
     [ObservableProperty] private ModrinthProjectItemViewModel? _projectForAddToInstance;
     [ObservableProperty] private ObservableCollection<InstanceTargetItem> _targetInstances = new();
 
+    public string TargetInstanceNameForWorld => SelectedTargetInstanceForWorld?.Name ?? "";
+    public string AddToInstanceModalTitle => IsSelectWorldStep ? "Select World" : "Add to Instance";
+    public string SelectWorldSubtitle => $"Select which world in '{TargetInstanceNameForWorld}' to add '{ProjectForAddToInstance?.Title}' to:";
     public int CompatibleInstanceCount => TargetInstances.Count(i => !i.IsInstalled);
+
+    partial void OnInstanceSearchQueryChanged(string value) => RefreshTargetInstances();
+
+    [RelayCommand]
+    public void BackToInstances()
+    {
+        IsSelectWorldStep = false;
+        SelectedTargetInstanceForWorld = null;
+        TargetWorlds.Clear();
+        OnPropertyChanged(nameof(AddToInstanceModalTitle));
+        OnPropertyChanged(nameof(IsSelectWorldStep));
+    }
 
     [RelayCommand]
     public void CloseAddToInstance()
     {
         IsAddToInstanceOpen = false;
+        IsSelectWorldStep = false;
+        SelectedTargetInstanceForWorld = null;
+        TargetWorlds.Clear();
         ProjectForAddToInstance = null;
         TargetInstances.Clear();
+        OnPropertyChanged(nameof(AddToInstanceModalTitle));
+        OnPropertyChanged(nameof(IsSelectWorldStep));
     }
 
     [RelayCommand]
@@ -1283,19 +1319,146 @@ public partial class ModpacksBrowserViewModel : ObservableObject
         if (project == null) return;
         ProjectForAddToInstance = project;
         InstanceSearchQuery = "";
-        TargetInstances.Clear();
+        IsSelectWorldStep = false;
+        SelectedTargetInstanceForWorld = null;
+        TargetWorlds.Clear();
+        RefreshTargetInstances();
+        OnPropertyChanged(nameof(AddToInstanceModalTitle));
+        OnPropertyChanged(nameof(IsSelectWorldStep));
+        IsAddToInstanceOpen = true;
+    }
 
+    private void RefreshTargetInstances()
+    {
+        if (ProjectForAddToInstance == null) return;
+        TargetInstances.Clear();
         var allInstances = _instanceService.GetInstances();
+        var q = InstanceSearchQuery?.Trim().ToLowerInvariant() ?? "";
+        bool isDatapack = ProjectForAddToInstance.ProjectType == "datapack";
+
         foreach (var inst in allInstances)
         {
-            bool isInst = CheckIfProjectInstalledInInstance(inst, project);
-            TargetInstances.Add(new InstanceTargetItem(inst, isInst, async (target) =>
+            if (!string.IsNullOrEmpty(q) &&
+                !inst.Name.ToLowerInvariant().Contains(q) &&
+                !(inst.Version ?? "").ToLowerInvariant().Contains(q))
+                continue;
+
+            bool isInst = isDatapack ? false : CheckIfProjectInstalledInInstance(inst, ProjectForAddToInstance);
+            TargetInstances.Add(new InstanceTargetItem(inst, isInst, isDatapack, async (target) =>
             {
-                await InstallProjectToInstanceAsync(project, target.Instance);
+                if (isDatapack)
+                {
+                    OpenSelectWorldStep(target.Instance);
+                }
+                else
+                {
+                    await InstallProjectToInstanceAsync(ProjectForAddToInstance, target.Instance);
+                }
             }));
         }
         OnPropertyChanged(nameof(CompatibleInstanceCount));
-        IsAddToInstanceOpen = true;
+    }
+
+    public void OpenSelectWorldStep(InstanceModel instance)
+    {
+        SelectedTargetInstanceForWorld = instance;
+        TargetWorlds.Clear();
+
+        var savesDir = Path.Combine(instance.Path, "saves");
+        if (Directory.Exists(savesDir))
+        {
+            var slug = ProjectForAddToInstance?.Slug?.ToLowerInvariant() ?? "";
+            var title = ProjectForAddToInstance?.Title?.ToLowerInvariant() ?? "";
+            var id = ProjectForAddToInstance?.ProjectId?.ToLowerInvariant() ?? "";
+
+            foreach (var worldDir in Directory.GetDirectories(savesDir))
+            {
+                var folderName = Path.GetFileName(worldDir);
+                string worldDisplayName = folderName;
+                try
+                {
+                    var levelDat = Path.Combine(worldDir, "level.dat");
+                    if (File.Exists(levelDat))
+                    {
+                        var data = ServersDatService.ReadNbtFile(levelDat);
+                        if (data != null)
+                        {
+                            var level = data;
+                            if (level.TryGetValue("Data", out var inner) && inner is Dictionary<string, object?> innerDict)
+                                level = innerDict;
+                            if (level.TryGetValue("LevelName", out var ln) && ln is string lns && !string.IsNullOrWhiteSpace(lns))
+                                worldDisplayName = lns;
+                        }
+                    }
+                }
+                catch { }
+
+                bool isInstalledInWorld = false;
+                var dpFolder = Path.Combine(worldDir, "datapacks");
+                if (Directory.Exists(dpFolder))
+                {
+                    foreach (var file in Directory.GetFiles(dpFolder))
+                    {
+                        var fn = Path.GetFileName(file).ToLowerInvariant();
+                        if (!string.IsNullOrEmpty(slug) && fn.Contains(slug)) { isInstalledInWorld = true; break; }
+                        if (!string.IsNullOrEmpty(id) && fn.Contains(id)) { isInstalledInWorld = true; break; }
+                        if (!string.IsNullOrEmpty(title) && fn.Contains(title.Replace(" ", "-"))) { isInstalledInWorld = true; break; }
+                    }
+                }
+
+                var worldItem = new WorldTargetItem(folderName, worldDisplayName, worldDir, isInstalledInWorld, async (w) =>
+                {
+                    if (ProjectForAddToInstance != null)
+                    {
+                        await InstallDatapackToWorldAsync(ProjectForAddToInstance, instance, w.FolderName);
+                    }
+                });
+                TargetWorlds.Add(worldItem);
+            }
+        }
+
+        HasNoWorldsFound = TargetWorlds.Count == 0;
+        IsSelectWorldStep = true;
+        OnPropertyChanged(nameof(TargetInstanceNameForWorld));
+        OnPropertyChanged(nameof(AddToInstanceModalTitle));
+        OnPropertyChanged(nameof(SelectWorldSubtitle));
+        OnPropertyChanged(nameof(IsSelectWorldStep));
+    }
+
+    private async Task InstallDatapackToWorldAsync(ModrinthProjectItemViewModel project, InstanceModel instance, string worldName)
+    {
+        var mcVer = instance.Version;
+        var loader = (instance.LoaderType ?? "").ToLowerInvariant();
+
+        var versions = await ModrinthApiService.GetProjectVersionsAsync(
+            project.ProjectId,
+            !string.IsNullOrWhiteSpace(loader) && loader != "vanilla" ? new[] { loader } : null,
+            !string.IsNullOrWhiteSpace(mcVer) ? new[] { mcVer } : null);
+
+        if (versions.Count == 0)
+        {
+            versions = await ModrinthApiService.GetProjectVersionsAsync(project.ProjectId);
+        }
+
+        var targetVer = versions.FirstOrDefault(v => v.GameVersions.Contains(mcVer)) ?? versions.FirstOrDefault();
+        if (targetVer == null || targetVer.Files == null || targetVer.Files.Count == 0)
+            throw new Exception("No compatible version found.");
+
+        var primaryFile = targetVer.Files.FirstOrDefault(f => f.IsPrimary) ?? targetVer.Files[0];
+        if (string.IsNullOrWhiteSpace(primaryFile.Url))
+            throw new Exception("No file URL.");
+
+        var data = await ModrinthApiService.DownloadAsync(primaryFile.Url);
+        if (data == null || data.Length == 0)
+            throw new Exception("Download failed.");
+
+        var targetFolder = Path.Combine(instance.Path, "saves", worldName, "datapacks");
+        Directory.CreateDirectory(targetFolder);
+        var dest = Path.Combine(targetFolder, primaryFile.Filename);
+        await File.WriteAllBytesAsync(dest, data);
+
+        StatusText = $"Added datapack '{project.Title}' to world '{worldName}' ({instance.Name})";
+        project.IsInstalled = true;
     }
 
     private async Task InstallProjectToInstanceAsync(ModrinthProjectItemViewModel project, InstanceModel instance)
@@ -1329,7 +1492,6 @@ public partial class ModpacksBrowserViewModel : ObservableObject
         {
             "resourcepack" => "resourcepacks",
             "shader" => "shaderpacks",
-            "datapack" => Path.Combine("saves", "datapacks"),
             _ => "mods"
         };
 
@@ -1339,23 +1501,42 @@ public partial class ModpacksBrowserViewModel : ObservableObject
         await File.WriteAllBytesAsync(dest, data);
 
         StatusText = $"Added {project.Title} to {instance.Name}";
+        project.IsInstalled = true;
     }
 
     private static bool CheckIfProjectInstalledInInstance(InstanceModel instance, ModrinthProjectItemViewModel project)
     {
+        var slug = project.Slug?.ToLowerInvariant() ?? "";
+        var title = project.Title?.ToLowerInvariant() ?? "";
+        var id = project.ProjectId?.ToLowerInvariant() ?? "";
+
+        if (project.ProjectType == "datapack")
+        {
+            var saves = Path.Combine(instance.Path, "saves");
+            if (!Directory.Exists(saves)) return false;
+            foreach (var worldDir in Directory.GetDirectories(saves))
+            {
+                var dpFolder = Path.Combine(worldDir, "datapacks");
+                if (!Directory.Exists(dpFolder)) continue;
+                foreach (var file in Directory.GetFiles(dpFolder))
+                {
+                    var fn = Path.GetFileName(file).ToLowerInvariant();
+                    if (!string.IsNullOrEmpty(slug) && fn.Contains(slug)) return true;
+                    if (!string.IsNullOrEmpty(id) && fn.Contains(id)) return true;
+                    if (!string.IsNullOrEmpty(title) && fn.Contains(title.Replace(" ", "-"))) return true;
+                }
+            }
+            return false;
+        }
+
         var subDir = project.ProjectType switch
         {
             "resourcepack" => "resourcepacks",
             "shader" => "shaderpacks",
-            "datapack" => Path.Combine("saves", "datapacks"),
             _ => "mods"
         };
         var folder = Path.Combine(instance.Path, subDir);
         if (!Directory.Exists(folder)) return false;
-
-        var slug = project.Slug?.ToLowerInvariant() ?? "";
-        var title = project.Title?.ToLowerInvariant() ?? "";
-        var id = project.ProjectId?.ToLowerInvariant() ?? "";
 
         foreach (var file in Directory.GetFiles(folder))
         {

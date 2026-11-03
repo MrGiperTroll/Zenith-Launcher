@@ -360,96 +360,88 @@
                         <!-- Java 25 Card -->
                         <Border Classes="settingsCard" IsVisible="{Binding IsSearchJavaVisible}">
                             <StackPanel Spacing="12">
-                                <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                    <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                        <TextBlock Classes="itemTitle" Text="Java 25"/>
-                                        <TextBlock Classes="itemDesc" Text="Modern JDK required for cutting-edge snapshots and future releases."/>
-                                    </StackPanel>
-                                    <Border Grid.Column="1" CornerRadius="8" Padding="10,4" Background="{DynamicResource FieldBrush}" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                        <Panel VerticalAlignment="Center">
-                                            <TextBlock Text="Installed &amp; Active" FontSize="11" FontWeight="SemiBold" Foreground="#10B981" IsVisible="{Binding IsJava25Valid}"/>
-                                            <TextBlock Text="Not Configured" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" IsVisible="{Binding !IsJava25Valid}"/>
-                                        </Panel>
-                                    </Border>
-                                </Grid>
-                                <TextBox Classes="darkInput" Text="{Binding Java25Location, Mode=TwoWay}" PlaceholderText="Auto-populated upon download or detect (/path/to/javaw.exe)" Height="34" FontSize="12"/>
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <Button Classes="primaryBtn" Command="{Binding InstallJavaCommand}" CommandParameter="25" Content="{Binding Java25DownloadButtonText}" Padding="14,6"/>
-                                    <Button Classes="subBtn" Command="{Binding DetectJavaCommand}" CommandParameter="25" Content="Detect" Padding="14,6"/>
-                                    <Button Classes="subBtn" Command="{Binding BrowseJavaCommand}" CommandParameter="25" Content="Browse..." Padding="14,6"/>
+                                <StackPanel Spacing="2">
+                                    <TextBlock Classes="itemTitle" Text="Java 25"/>
+                                    <TextBlock Classes="itemDesc" Text="Modern JDK required for cutting-edge snapshots and future releases."/>
                                 </StackPanel>
+                                <TextBox Classes="darkInput" Text="{Binding Java25Location, Mode=TwoWay}" PlaceholderText="Auto-populated upon download or detect (/path/to/javaw.exe)" Height="34" FontSize="12"/>
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" VerticalAlignment="Center">
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                                        <Button Classes="primaryBtn" Command="{Binding InstallJavaCommand}" CommandParameter="25" Content="{Binding Java25DownloadButtonText}" IsEnabled="{Binding !IsJava25Downloading}" Padding="14,6"/>
+                                        <Button Classes="subBtn" Command="{Binding DetectJavaCommand}" CommandParameter="25" Content="Detect" IsEnabled="{Binding !IsJava25Downloading}" Padding="14,6"/>
+                                        <Button Classes="subBtn" Command="{Binding BrowseJavaCommand}" CommandParameter="25" Content="Browse..." IsEnabled="{Binding !IsJava25Downloading}" Padding="14,6"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4" IsVisible="{Binding IsJava25Downloading}">
+                                        <ProgressBar Value="{Binding DownloadProgress, Mode=OneWay}" Minimum="0" Maximum="1" Height="4" CornerRadius="2" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding DownloadStatusText}" FontSize="11" Foreground="{DynamicResource AccentBrush}"/>
+                                    </StackPanel>
+                                </Grid>
                             </StackPanel>
                         </Border>
 
                         <!-- Java 21 Card -->
                         <Border Classes="settingsCard" IsVisible="{Binding IsSearchJavaVisible}">
                             <StackPanel Spacing="12">
-                                <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                    <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                        <TextBlock Classes="itemTitle" Text="Java 21"/>
-                                        <TextBlock Classes="itemDesc" Text="Standard LTS runtime for modern Minecraft releases."/>
-                                    </StackPanel>
-                                    <Border Grid.Column="1" CornerRadius="8" Padding="10,4" Background="{DynamicResource FieldBrush}" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                        <Panel VerticalAlignment="Center">
-                                            <TextBlock Text="Installed &amp; Active" FontSize="11" FontWeight="SemiBold" Foreground="#10B981" IsVisible="{Binding IsJava21Valid}"/>
-                                            <TextBlock Text="Not Configured" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" IsVisible="{Binding !IsJava21Valid}"/>
-                                        </Panel>
-                                    </Border>
-                                </Grid>
-                                <TextBox Classes="darkInput" Text="{Binding Java21Location, Mode=TwoWay}" PlaceholderText="Auto-populated upon download or detect (/path/to/javaw.exe)" Height="34" FontSize="12"/>
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <Button Classes="primaryBtn" Command="{Binding InstallJavaCommand}" CommandParameter="21" Content="{Binding Java21DownloadButtonText}" Padding="14,6"/>
-                                    <Button Classes="subBtn" Command="{Binding DetectJavaCommand}" CommandParameter="21" Content="Detect" Padding="14,6"/>
-                                    <Button Classes="subBtn" Command="{Binding BrowseJavaCommand}" CommandParameter="21" Content="Browse..." Padding="14,6"/>
+                                <StackPanel Spacing="2">
+                                    <TextBlock Classes="itemTitle" Text="Java 21"/>
+                                    <TextBlock Classes="itemDesc" Text="Standard LTS runtime for modern Minecraft releases."/>
                                 </StackPanel>
+                                <TextBox Classes="darkInput" Text="{Binding Java21Location, Mode=TwoWay}" PlaceholderText="Auto-populated upon download or detect (/path/to/javaw.exe)" Height="34" FontSize="12"/>
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" VerticalAlignment="Center">
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                                        <Button Classes="primaryBtn" Command="{Binding InstallJavaCommand}" CommandParameter="21" Content="{Binding Java21DownloadButtonText}" IsEnabled="{Binding !IsJava21Downloading}" Padding="14,6"/>
+                                        <Button Classes="subBtn" Command="{Binding DetectJavaCommand}" CommandParameter="21" Content="Detect" IsEnabled="{Binding !IsJava21Downloading}" Padding="14,6"/>
+                                        <Button Classes="subBtn" Command="{Binding BrowseJavaCommand}" CommandParameter="21" Content="Browse..." IsEnabled="{Binding !IsJava21Downloading}" Padding="14,6"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4" IsVisible="{Binding IsJava21Downloading}">
+                                        <ProgressBar Value="{Binding DownloadProgress, Mode=OneWay}" Minimum="0" Maximum="1" Height="4" CornerRadius="2" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding DownloadStatusText}" FontSize="11" Foreground="{DynamicResource AccentBrush}"/>
+                                    </StackPanel>
+                                </Grid>
                             </StackPanel>
                         </Border>
 
                         <!-- Java 17 Card -->
                         <Border Classes="settingsCard" IsVisible="{Binding IsSearchJavaVisible}">
                             <StackPanel Spacing="12">
-                                <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                    <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                        <TextBlock Classes="itemTitle" Text="Java 17"/>
-                                        <TextBlock Classes="itemDesc" Text="LTS runtime used for Caves &amp; Cliffs and Trails &amp; Tales."/>
-                                    </StackPanel>
-                                    <Border Grid.Column="1" CornerRadius="8" Padding="10,4" Background="{DynamicResource FieldBrush}" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                        <Panel VerticalAlignment="Center">
-                                            <TextBlock Text="Installed &amp; Active" FontSize="11" FontWeight="SemiBold" Foreground="#10B981" IsVisible="{Binding IsJava17Valid}"/>
-                                            <TextBlock Text="Not Configured" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" IsVisible="{Binding !IsJava17Valid}"/>
-                                        </Panel>
-                                    </Border>
-                                </Grid>
-                                <TextBox Classes="darkInput" Text="{Binding Java17Location, Mode=TwoWay}" PlaceholderText="Auto-populated upon download or detect (/path/to/javaw.exe)" Height="34" FontSize="12"/>
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <Button Classes="primaryBtn" Command="{Binding InstallJavaCommand}" CommandParameter="17" Content="{Binding Java17DownloadButtonText}" Padding="14,6"/>
-                                    <Button Classes="subBtn" Command="{Binding DetectJavaCommand}" CommandParameter="17" Content="Detect" Padding="14,6"/>
-                                    <Button Classes="subBtn" Command="{Binding BrowseJavaCommand}" CommandParameter="17" Content="Browse..." Padding="14,6"/>
+                                <StackPanel Spacing="2">
+                                    <TextBlock Classes="itemTitle" Text="Java 17"/>
+                                    <TextBlock Classes="itemDesc" Text="LTS runtime used for Caves &amp; Cliffs and Trails &amp; Tales."/>
                                 </StackPanel>
+                                <TextBox Classes="darkInput" Text="{Binding Java17Location, Mode=TwoWay}" PlaceholderText="Auto-populated upon download or detect (/path/to/javaw.exe)" Height="34" FontSize="12"/>
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" VerticalAlignment="Center">
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                                        <Button Classes="primaryBtn" Command="{Binding InstallJavaCommand}" CommandParameter="17" Content="{Binding Java17DownloadButtonText}" IsEnabled="{Binding !IsJava17Downloading}" Padding="14,6"/>
+                                        <Button Classes="subBtn" Command="{Binding DetectJavaCommand}" CommandParameter="17" Content="Detect" IsEnabled="{Binding !IsJava17Downloading}" Padding="14,6"/>
+                                        <Button Classes="subBtn" Command="{Binding BrowseJavaCommand}" CommandParameter="17" Content="Browse..." IsEnabled="{Binding !IsJava17Downloading}" Padding="14,6"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4" IsVisible="{Binding IsJava17Downloading}">
+                                        <ProgressBar Value="{Binding DownloadProgress, Mode=OneWay}" Minimum="0" Maximum="1" Height="4" CornerRadius="2" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding DownloadStatusText}" FontSize="11" Foreground="{DynamicResource AccentBrush}"/>
+                                    </StackPanel>
+                                </Grid>
                             </StackPanel>
                         </Border>
 
                         <!-- Java 8 Card -->
                         <Border Classes="settingsCard" IsVisible="{Binding IsSearchJavaVisible}">
                             <StackPanel Spacing="12">
-                                <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                    <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                        <TextBlock Classes="itemTitle" Text="Java 8"/>
-                                        <TextBlock Classes="itemDesc" Text="Legacy runtime essential for classic Forge modpacks and older versions."/>
-                                    </StackPanel>
-                                    <Border Grid.Column="1" CornerRadius="8" Padding="10,4" Background="{DynamicResource FieldBrush}" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                        <Panel VerticalAlignment="Center">
-                                            <TextBlock Text="Installed &amp; Active" FontSize="11" FontWeight="SemiBold" Foreground="#10B981" IsVisible="{Binding IsJava8Valid}"/>
-                                            <TextBlock Text="Not Configured" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" IsVisible="{Binding !IsJava8Valid}"/>
-                                        </Panel>
-                                    </Border>
-                                </Grid>
-                                <TextBox Classes="darkInput" Text="{Binding Java8Location, Mode=TwoWay}" PlaceholderText="Auto-populated upon download or detect (/path/to/javaw.exe)" Height="34" FontSize="12"/>
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <Button Classes="primaryBtn" Command="{Binding InstallJavaCommand}" CommandParameter="8" Content="{Binding Java8DownloadButtonText}" Padding="14,6"/>
-                                    <Button Classes="subBtn" Command="{Binding DetectJavaCommand}" CommandParameter="8" Content="Detect" Padding="14,6"/>
-                                    <Button Classes="subBtn" Command="{Binding BrowseJavaCommand}" CommandParameter="8" Content="Browse..." Padding="14,6"/>
+                                <StackPanel Spacing="2">
+                                    <TextBlock Classes="itemTitle" Text="Java 8"/>
+                                    <TextBlock Classes="itemDesc" Text="Legacy runtime essential for classic Forge modpacks and older versions."/>
                                 </StackPanel>
+                                <TextBox Classes="darkInput" Text="{Binding Java8Location, Mode=TwoWay}" PlaceholderText="Auto-populated upon download or detect (/path/to/javaw.exe)" Height="34" FontSize="12"/>
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" VerticalAlignment="Center">
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                                        <Button Classes="primaryBtn" Command="{Binding InstallJavaCommand}" CommandParameter="8" Content="{Binding Java8DownloadButtonText}" IsEnabled="{Binding !IsJava8Downloading}" Padding="14,6"/>
+                                        <Button Classes="subBtn" Command="{Binding DetectJavaCommand}" CommandParameter="8" Content="Detect" IsEnabled="{Binding !IsJava8Downloading}" Padding="14,6"/>
+                                        <Button Classes="subBtn" Command="{Binding BrowseJavaCommand}" CommandParameter="8" Content="Browse..." IsEnabled="{Binding !IsJava8Downloading}" Padding="14,6"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4" IsVisible="{Binding IsJava8Downloading}">
+                                        <ProgressBar Value="{Binding DownloadProgress, Mode=OneWay}" Minimum="0" Maximum="1" Height="4" CornerRadius="2" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding DownloadStatusText}" FontSize="11" Foreground="{DynamicResource AccentBrush}"/>
+                                    </StackPanel>
+                                </Grid>
                             </StackPanel>
                         </Border>
                     </StackPanel>

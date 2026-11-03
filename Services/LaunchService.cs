@@ -750,16 +750,19 @@ public class LaunchService : ILaunchService
     /// Explicit one-click install from the Settings "+" button. Runs regardless
     /// of the AutoManageJava toggle. Returns true when the runtime is usable.
     /// </summary>
-    public async Task<bool> DownloadJavaRuntimeAsync(int major, string zenithRoot)
+    public async Task<bool> DownloadJavaRuntimeAsync(int major, string zenithRoot, bool forceRedownload = false, IProgress<double>? progress = null)
     {
-        var found = await FindLocalJavaAsync(major, zenithRoot);
-        if (found != null)
+        if (!forceRedownload)
         {
-            LogReceived?.Invoke($"Java {major} is already installed: {found}");
-            return true;
+            var found = await FindLocalJavaAsync(major, zenithRoot);
+            if (found != null)
+            {
+                LogReceived?.Invoke($"Java {major} is already installed: {found}");
+                return true;
+            }
         }
 
-        var downloaded = await DownloadAdoptiumRuntimeAsync(major, zenithRoot);
+        var downloaded = await DownloadAdoptiumRuntimeAsync(major, zenithRoot, forceRedownload, progress);
         if (downloaded == null)
             LogReceived?.Invoke($"Failed to install Java {major}. See the log above for details.");
         else
@@ -890,18 +893,31 @@ public class LaunchService : ILaunchService
     /// Downloads the matching Adoptium JRE into &lt;zenithRoot&gt;/runtime and
     /// returns the path to javaw.exe/java.exe, or null on failure.
     /// </summary>
-    private async Task<string?> DownloadAdoptiumRuntimeAsync(int major, string zenithRoot)
+    private async Task<string?> DownloadAdoptiumRuntimeAsync(int major, string zenithRoot, bool forceRedownload = false, IProgress<double>? progress = null)
     {
         var javaDir = Path.Combine(zenithRoot, "runtime");
         Directory.CreateDirectory(javaDir);
 
-        LogReceived?.Invoke($"Java {major} not found locally. Downloading...");
+        LogReceived?.Invoke(forceRedownload ? $"Re-downloading Java {major}..." : $"Java {major} not found locally. Downloading...");
         try
         {
             var runtimeDir = Path.Combine(javaDir, $"{GetRuntimeFolderName(major)}");
             var existingPatterns = RuntimeDirPatterns(major);
-            if (!Directory.Exists(runtimeDir) &&
-                !existingPatterns.Any(p => Directory.GetDirectories(javaDir, p, SearchOption.TopDirectoryOnly).Any()))
+
+            if (forceRedownload)
+            {
+                foreach (var pattern in existingPatterns)
+                {
+                    foreach (var dir in Directory.GetDirectories(javaDir, pattern, SearchOption.TopDirectoryOnly))
+                    {
+                        try { Directory.Delete(dir, recursive: true); } catch { }
+                    }
+                }
+            }
+
+            if (forceRedownload ||
+                (!Directory.Exists(runtimeDir) &&
+                 !existingPatterns.Any(p => Directory.GetDirectories(javaDir, p, SearchOption.TopDirectoryOnly).Any())))
             {
                 // Try GA first, then JDK-image, then EA fallback.
                 // IMPORTANT: the API returns .msi installers as separate binary
@@ -955,8 +971,9 @@ public class LaunchService : ILaunchService
                 LogReceived?.Invoke($"Downloading Java {major} from Adoptium...");
                 // Resilient: retries, Range-resume and SHA-256 validation against
                 // the checksum published by the Adoptium API.
-                await ResilientDownloadService.DownloadFileAsync(new[] { link! }, temp, expectedSha256);
+                await ResilientDownloadService.DownloadFileAsync(new[] { link! }, temp, expectedSha256, progress: progress);
 
+                LogReceived?.Invoke($"Extracting Java {major}...");
                 // Overwrite existing files in case a partial/older runtime is present
                 System.IO.Compression.ZipFile.ExtractToDirectory(temp, javaDir, overwriteFiles: true);
                 File.Delete(temp);

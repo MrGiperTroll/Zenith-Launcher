@@ -25,7 +25,7 @@ public partial class LauncherSettingsViewModel : ViewModelBase
     public Action<bool>? DiscordRpcChanged { get; set; }
     public Action<double>? ScaleChanged { get; set; }
     public Action? OpenJavaInstallerRequested { get; set; }
-    public Func<int, Task<bool>>? DownloadJavaRequested { get; set; }
+    public Func<int, IProgress<double>?, Task<bool>>? DownloadJavaRequested { get; set; }
     public Func<string>? GetRecommendedJavaDisplay { get; set; }
     public Func<string>? GetWindowTitle { get; set; }
 
@@ -214,9 +214,20 @@ public partial class LauncherSettingsViewModel : ViewModelBase
 
     
     // --- Java Installations (Versions 25, 21, 17, 8) ---
+    [ObservableProperty] private int _downloadingMajor;
+    [ObservableProperty] private double _downloadProgress;
+    [ObservableProperty] private string _downloadStatusText = string.Empty;
+
+    public bool IsJava25Downloading => DownloadingMajor == 25;
+    public bool IsJava21Downloading => DownloadingMajor == 21;
+    public bool IsJava17Downloading => DownloadingMajor == 17;
+    public bool IsJava8Downloading => DownloadingMajor == 8;
+
     [ObservableProperty] private string _java25Location = string.Empty;
     [ObservableProperty] private bool _isJava25Valid;
-    public string Java25DownloadButtonText => IsJava25Valid ? "Redownload" : "Download";
+    public string Java25DownloadButtonText => IsJava25Downloading
+        ? (DownloadProgress > 0 ? $"Downloading {DownloadProgress:P0}..." : "Downloading...")
+        : (IsJava25Valid ? "Redownload" : "Download");
     partial void OnJava25LocationChanged(string value)
     {
         IsJava25Valid = !string.IsNullOrWhiteSpace(value) && File.Exists(value);
@@ -227,7 +238,9 @@ public partial class LauncherSettingsViewModel : ViewModelBase
 
     [ObservableProperty] private string _java21Location = string.Empty;
     [ObservableProperty] private bool _isJava21Valid;
-    public string Java21DownloadButtonText => IsJava21Valid ? "Redownload" : "Download";
+    public string Java21DownloadButtonText => IsJava21Downloading
+        ? (DownloadProgress > 0 ? $"Downloading {DownloadProgress:P0}..." : "Downloading...")
+        : (IsJava21Valid ? "Redownload" : "Download");
     partial void OnJava21LocationChanged(string value)
     {
         IsJava21Valid = !string.IsNullOrWhiteSpace(value) && File.Exists(value);
@@ -238,7 +251,9 @@ public partial class LauncherSettingsViewModel : ViewModelBase
 
     [ObservableProperty] private string _java17Location = string.Empty;
     [ObservableProperty] private bool _isJava17Valid;
-    public string Java17DownloadButtonText => IsJava17Valid ? "Redownload" : "Download";
+    public string Java17DownloadButtonText => IsJava17Downloading
+        ? (DownloadProgress > 0 ? $"Downloading {DownloadProgress:P0}..." : "Downloading...")
+        : (IsJava17Valid ? "Redownload" : "Download");
     partial void OnJava17LocationChanged(string value)
     {
         IsJava17Valid = !string.IsNullOrWhiteSpace(value) && File.Exists(value);
@@ -249,7 +264,9 @@ public partial class LauncherSettingsViewModel : ViewModelBase
 
     [ObservableProperty] private string _java8Location = string.Empty;
     [ObservableProperty] private bool _isJava8Valid;
-    public string Java8DownloadButtonText => IsJava8Valid ? "Redownload" : "Download";
+    public string Java8DownloadButtonText => IsJava8Downloading
+        ? (DownloadProgress > 0 ? $"Downloading {DownloadProgress:P0}..." : "Downloading...")
+        : (IsJava8Valid ? "Redownload" : "Download");
     partial void OnJava8LocationChanged(string value)
     {
         IsJava8Valid = !string.IsNullOrWhiteSpace(value) && File.Exists(value);
@@ -257,6 +274,18 @@ public partial class LauncherSettingsViewModel : ViewModelBase
         if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
     }
     partial void OnIsJava8ValidChanged(bool value) => OnPropertyChanged(nameof(Java8DownloadButtonText));
+
+    private void NotifyDownloadState()
+    {
+        OnPropertyChanged(nameof(IsJava25Downloading));
+        OnPropertyChanged(nameof(IsJava21Downloading));
+        OnPropertyChanged(nameof(IsJava17Downloading));
+        OnPropertyChanged(nameof(IsJava8Downloading));
+        OnPropertyChanged(nameof(Java25DownloadButtonText));
+        OnPropertyChanged(nameof(Java21DownloadButtonText));
+        OnPropertyChanged(nameof(Java17DownloadButtonText));
+        OnPropertyChanged(nameof(Java8DownloadButtonText));
+    }
 
     [RelayCommand]
     public void DetectJava(string versionStr)
@@ -275,26 +304,49 @@ public partial class LauncherSettingsViewModel : ViewModelBase
     public async Task InstallJavaAsync(string versionStr)
     {
         if (!int.TryParse(versionStr, out int major)) return;
+        if (DownloadingMajor != 0) return;
 
-        if (DownloadJavaRequested != null)
+        DownloadingMajor = major;
+        DownloadProgress = 0;
+        DownloadStatusText = $"Downloading Java {major}...";
+        NotifyDownloadState();
+
+        var progress = new Progress<double>(p =>
         {
-            await DownloadJavaRequested(major);
-            var detected = JavaVersionHelper.FindJavaForVersion(major);
-            if (!string.IsNullOrWhiteSpace(detected))
+            DownloadProgress = p;
+            DownloadStatusText = $"Downloading Java {major}... {p:P0}";
+            NotifyDownloadState();
+        });
+
+        try
+        {
+            if (DownloadJavaRequested != null)
             {
-                SetJavaLocation(major, detected);
+                await DownloadJavaRequested(major, progress);
+                var detected = JavaVersionHelper.FindJavaForVersion(major);
+                if (!string.IsNullOrWhiteSpace(detected))
+                {
+                    SetJavaLocation(major, detected);
+                }
+            }
+            else
+            {
+                try
+                {
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(JavaVersionHelper.AdoptiumDownloadUrl(major))
+                    {
+                        UseShellExecute = true
+                    });
+                }
+                catch { }
             }
         }
-        else
+        finally
         {
-            try
-            {
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(JavaVersionHelper.AdoptiumDownloadUrl(major))
-                {
-                    UseShellExecute = true
-                });
-            }
-            catch { }
+            DownloadingMajor = 0;
+            DownloadProgress = 0;
+            DownloadStatusText = string.Empty;
+            NotifyDownloadState();
         }
     }
 

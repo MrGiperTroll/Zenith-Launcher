@@ -837,36 +837,25 @@ public partial class MainWindowViewModel : ViewModelBase
 
 
     [RelayCommand]
+    private async Task DownloadJavaAsync(object? parameter) => await DownloadJavaCoreAsync(parameter, force: false, progress: null);
 
-    private async Task DownloadJavaAsync(object? parameter)
-
+    private async Task<bool> DownloadJavaCoreAsync(object? parameter, bool force = false, IProgress<double>? progress = null)
     {
-
-        if (!int.TryParse(parameter?.ToString(), out var major)) return;
-
-        if (IsJavaDownloading != 0) return;
-
-
+        if (!int.TryParse(parameter?.ToString(), out var major)) return false;
+        if (IsJavaDownloading != 0) return false;
 
         IsJavaDownloading = major;
-
         JavaDownloadStatus = string.Format(L10n.T("java_status_installing"), major);
+        StatusText = JavaDownloadStatus;
 
         try
-
         {
-
-            var ok = await Task.Run(() => _launchService.DownloadJavaRuntimeAsync(major, ZenithPaths.AppDataDir));
+            var ok = await Task.Run(() => _launchService.DownloadJavaRuntimeAsync(major, ZenithPaths.AppDataDir, forceRedownload: force, progress: progress));
 
             JavaDownloadStatus = ok
-
                 ? string.Format(L10n.T("java_status_installed"), major)
-
                 : string.Format(L10n.T("java_status_failed"), major);
-
             StatusText = JavaDownloadStatus;
-
-
 
             if (ok)
             {
@@ -889,29 +878,19 @@ public partial class MainWindowViewModel : ViewModelBase
                 SaveLauncherConfig();
                 LauncherSettingsVm?.UpdateJavaDisplay();
             }
-
+            return ok;
         }
-
         catch (Exception ex)
-
         {
-
-            JavaDownloadStatus = $"Java {major}: {ex.Message}";
-
-            LauncherLog.Error($"Manual Java {major} install crashed.", ex);
-
+            JavaDownloadStatus = $"Java {major} install failed: {ex.Message}";
+            StatusText = JavaDownloadStatus;
+            return false;
         }
-
         finally
-
         {
-
             IsJavaDownloading = 0;
-
             UpdateJavaDisplay();
-
         }
-
     }
 
 
@@ -3724,10 +3703,9 @@ public partial class MainWindowViewModel : ViewModelBase
             ScaleChanged = scale => LauncherScale = scale,
 
             OpenJavaInstallerRequested = () => OpenJavaInstaller(),
-            DownloadJavaRequested = async major =>
+            DownloadJavaRequested = async (major, prog) =>
             {
-                await DownloadJavaAsync(major);
-                return true;
+                return await DownloadJavaCoreAsync(major, force: true, progress: prog);
             },
 
             GetRecommendedJavaDisplay = () =>

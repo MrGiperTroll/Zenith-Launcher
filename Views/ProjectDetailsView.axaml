@@ -6,6 +6,8 @@
              xmlns:utils="using:CustomMcLauncher.Common.Utils"
              xmlns:l10n="using:CustomMcLauncher.Extensions"
              xmlns:views="using:CustomMcLauncher.Views"
+
+             xmlns:controls="using:CustomMcLauncher.Controls"
              xmlns:conv="using:Avalonia.Data.Converters"
              x:Class="CustomMcLauncher.Views.ProjectDetailsView"
              x:CompileBindings="False">
@@ -959,21 +961,12 @@
                                                     <Border Classes="changelogRow" Padding="0,4" Margin="0" Background="Transparent">
                                                         <Grid ColumnDefinitions="20,*,Auto">
                                                             <!-- Timeline: Perfectly centered node and vertical connection line -->
-                                                            <Grid Grid.Column="0" Width="20" HorizontalAlignment="Center">
-                                                                <!-- Top line segment (from row top to circle center at Y=9) -->
-                                                                <Rectangle Width="2" HorizontalAlignment="Center" VerticalAlignment="Top"
-                                                                           Height="9" Fill="{Binding TimelineColorBrush}"
-                                                                           IsVisible="{Binding ShowTopTimelineLine}"/>
-
-                                                                <!-- Bottom line segment (from circle center at Y=9 to row bottom) -->
-                                                                <Rectangle Width="2" HorizontalAlignment="Center" VerticalAlignment="Stretch"
-                                                                           Margin="0,9,0,0" Fill="{Binding TimelineColorBrush}"
-                                                                           IsVisible="{Binding ShowBottomTimelineLine}"/>
-
-                                                                <!-- Circle node: centered horizontally and vertically aligned to version title -->
-                                                                <Ellipse Width="10" Height="10" Fill="{Binding TimelineColorBrush}"
-                                                                         HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,4,0,0"/>
-                                                            </Grid>
+                                                            <controls:TimelineNodeControl Grid.Column="0" Width="20"
+                                                                                          HorizontalAlignment="Center"
+                                                                                          VerticalAlignment="Stretch"
+                                                                                          NodeBrush="{Binding TimelineColorBrush}"
+                                                                                          ShowTopLine="{Binding ShowTopTimelineLine}"
+                                                                                          ShowBottomLine="{Binding ShowBottomTimelineLine}"/>
 
                                                             <!-- Title, Author, Date & Changelog Lines -->
                                                             <StackPanel Grid.Column="1" VerticalAlignment="Top" Margin="8,0,16,10" Spacing="4">

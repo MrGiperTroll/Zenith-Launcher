@@ -89,36 +89,35 @@
         <Grid RowDefinitions="Auto,*,Auto">
             
             <!-- ========================================================= -->
-            <!-- TOP HEADER BAR                                            -->
+            <!-- COMPACT TOP HEADER BAR                                    -->
             <!-- ========================================================= -->
-            <Border Grid.Row="0" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="0,0,0,1" Padding="24,16">
+            <Border Grid.Row="0" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="0,0,0,1" Padding="24,11">
                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                    <StackPanel Spacing="3">
-                        <TextBlock Text="{l10n:Tr Key=cp_title}" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                        <TextBlock Text="Create a custom Minecraft instance with your preferred version, mod loader, and runtime settings."
-                                   FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <PathIcon Data="{StaticResource ZenithLogoGeometry}" Width="15" Height="15" Foreground="{DynamicResource AccentBrush}"/>
+                        <TextBlock Text="New Profile" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                     </StackPanel>
 
                     <!-- Real-Time Selection Badge -->
-                    <Border Grid.Column="1" Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="8" Padding="14,8" VerticalAlignment="Center">
+                    <Border Grid.Column="1" Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="8" Padding="12,6" VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                             <!-- Official or vector loader icon -->
-                            <Panel Width="18" Height="18" VerticalAlignment="Center">
+                            <Panel Width="16" Height="16" VerticalAlignment="Center">
                                 <Path Data="{Binding SelectedLoader, Converter={x:Static converters:LoaderLogoGeometryConverter.Instance}}" 
                                       Fill="{Binding SelectedLoader, Converter={x:Static converters:LoaderLogoBrushConverter.Instance}}" 
-                                      Stretch="Uniform" Width="18" Height="18"
+                                      Stretch="Uniform" Width="16" Height="16"
                                       IsVisible="{Binding SelectedLoader, Converter={x:Static converters:LoaderOfficialIconMissingConverter.Instance}}"/>
                                 <Path Data="{Binding SelectedLoader, Converter={x:Static converters:LoaderLogoGeometryConverter.Instance}, ConverterParameter=2}" 
                                       Fill="{Binding SelectedLoader, Converter={x:Static converters:LoaderLogoBrushConverter.Instance}, ConverterParameter=2}" 
-                                      Stretch="Uniform" Width="18" Height="18"
+                                      Stretch="Uniform" Width="16" Height="16"
                                       IsVisible="{Binding SelectedLoader, Converter={x:Static converters:LoaderOfficialIconMissingConverter.Instance}}"/>
-                                <Image Source="{Binding SelectedLoader, Converter={x:Static converters:LoaderOfficialIconConverter.Instance}}" Width="18" Height="18"/>
+                                <Image Source="{Binding SelectedLoader, Converter={x:Static converters:LoaderOfficialIconConverter.Instance}}" Width="16" Height="16"/>
                             </Panel>
-                            <TextBlock Text="{Binding SelectedLoader}" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding SelectedLoader}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                             <TextBlock Text="•" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
-                            <TextBlock Text="{Binding SelectedVersion}" FontSize="12.5" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"
+                            <TextBlock Text="{Binding SelectedVersion}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"
                                        IsVisible="{Binding SelectedVersion, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}"/>
-                            <TextBlock Text="Select version" FontSize="12" FontStyle="Italic" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"
+                            <TextBlock Text="Select version" FontSize="11.5" FontStyle="Italic" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"
                                        IsVisible="{Binding SelectedVersion, Converter={x:Static conv:StringConverters.IsNullOrEmpty}}"/>
                             <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="4" Padding="6,2" VerticalAlignment="Center" IsVisible="{Binding IsLoaderBuildsVisible}">
                                 <TextBlock Text="{Binding SelectedLoaderBuild}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
@@ -131,7 +130,7 @@
             <!-- ========================================================= -->
             <!-- MAIN CONTENT AREA                                         -->
             <!-- ========================================================= -->
-            <Grid Grid.Row="1" ColumnDefinitions="*,390" ColumnSpacing="20" Margin="24,18">
+            <Grid Grid.Row="1" ColumnDefinitions="*,470" ColumnSpacing="20" Margin="24,16">
 
                 <!-- LEFT COLUMN: GAME VERSION & MOD LOADER -->
                 <Grid Grid.Column="0" RowDefinitions="Auto,Auto,*" VerticalAlignment="Stretch">
@@ -300,66 +299,53 @@
                 <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel Spacing="14" Margin="0,0,6,0">
 
-                        <!-- CARD 1: PROFILE IDENTITY (Icon + Name) -->
+                        <!-- CARD 1: PROFILE DETAILS -->
                         <Border Classes="settingsCard">
-                            <StackPanel Spacing="12">
-                                <TextBlock Classes="cardTitle" Text="Profile Identity"/>
+                            <StackPanel Spacing="10">
+                                <TextBlock Classes="cardTitle" Text="Profile Details"/>
                                 <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
 
-                                <Grid ColumnDefinitions="72,*" ColumnSpacing="14" VerticalAlignment="Center">
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="16" VerticalAlignment="Center">
                                     <!-- Icon Column -->
-                                    <StackPanel Grid.Column="0" Spacing="6" HorizontalAlignment="Center">
-                                        <Border Width="64" Height="64" Classes="iconCard" ClipToBounds="True">
-                                            <Panel>
-                                                <Image Source="{Binding IconPreview}" Stretch="UniformToFill" Width="64" Height="64" IsVisible="{Binding IconPreview, Converter={x:Static conv:ObjectConverters.IsNotNull}}"/>
-                                                <Path Data="{StaticResource ZenithLogoGeometry}" Fill="{DynamicResource AccentBrush}" Stretch="Uniform" Width="32" Height="32" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding IconPreview, Converter={x:Static conv:ObjectConverters.IsNull}}"/>
-                                            </Panel>
-                                        </Border>
-                                        <Grid ColumnDefinitions="*,*" ColumnSpacing="4">
-                                            <Button Grid.Column="0" Content="Upload" Command="{Binding PickCustomIconCommand}" Classes="subBtn" Padding="4,4" FontSize="10" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
-                                            <Button Grid.Column="1" Content="{l10n:Tr Key=btn_reset}" Command="{Binding ResetIconCommand}" Classes="subBtn" Padding="4,4" FontSize="10" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
-                                        </Grid>
-                                    </StackPanel>
+                                    <Border Width="64" Height="64" Classes="iconCard" ClipToBounds="True" VerticalAlignment="Center">
+                                        <Panel>
+                                            <Image Source="{Binding IconPreview}" Stretch="UniformToFill" Width="64" Height="64" IsVisible="{Binding IconPreview, Converter={x:Static conv:ObjectConverters.IsNotNull}}"/>
+                                            <Path Data="{StaticResource ZenithLogoGeometry}" Fill="{DynamicResource AccentBrush}" Stretch="Uniform" Width="32" Height="32" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding IconPreview, Converter={x:Static conv:ObjectConverters.IsNull}}"/>
+                                        </Panel>
+                                    </Border>
 
-                                    <!-- Name Column -->
-                                    <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Center">
-                                        <TextBlock Text="{l10n:Tr Key=cp_name_label}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <!-- Name & Actions Column -->
+                                    <StackPanel Grid.Column="1" Spacing="8" VerticalAlignment="Center">
                                         <TextBox Classes="darkInput" Text="{Binding ProfileName}" PlaceholderText="{l10n:Tr Key=ph_profile_name}" FontSize="12.5" Height="34"/>
-                                        <!-- Inline Validation Errors -->
-                                        <TextBlock Text="{l10n:Tr Key=cp_duplicate}" FontSize="11" Foreground="{DynamicResource DangerBrush}" IsVisible="{Binding IsNameDuplicate}"/>
-                                        <TextBlock Text="Invalid characters in profile name" FontSize="11" Foreground="{DynamicResource DangerBrush}" IsVisible="{Binding IsNameInvalid}"/>
-                                        <TextBlock Text="{l10n:Tr Key=cp_name_hint2}" FontSize="10.5" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" IsVisible="{Binding !IsNameDuplicate}"/>
+                                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                            <Button Content="Upload Icon" Command="{Binding PickCustomIconCommand}" Classes="subBtn" Padding="12,5" FontSize="11"/>
+                                            <Button Content="{l10n:Tr Key=btn_reset}" Command="{Binding ResetIconCommand}" Classes="subBtn" Padding="12,5" FontSize="11" IsVisible="{Binding IconPreview, Converter={x:Static conv:ObjectConverters.IsNotNull}}"/>
+                                        </StackPanel>
                                     </StackPanel>
                                 </Grid>
+                                <!-- Inline Validation Errors -->
+                                <TextBlock Text="{l10n:Tr Key=cp_duplicate}" FontSize="11" Foreground="{DynamicResource DangerBrush}" IsVisible="{Binding IsNameDuplicate}"/>
+                                <TextBlock Text="Invalid characters in profile name" FontSize="11" Foreground="{DynamicResource DangerBrush}" IsVisible="{Binding IsNameInvalid}"/>
                             </StackPanel>
                         </Border>
 
                         <!-- CARD 2: RAM ALLOCATION -->
-                        <Border Classes="settingsCard">
-                            <StackPanel Spacing="10">
-                                <TextBlock Classes="cardTitle" Text="Memory Allocation"/>
-                                <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
-                                <controls:RamCardControl Title="{l10n:Tr Key=cs_ram}"
-                                                      Subtitle="{l10n:Tr Key=set_memory_hint}"
-                                                      Value="{Binding SelectedRamMb}"
-                                                      Maximum="{Binding MaxRamMb}"
-                                                      Minimum="512"
-                                                      TickFrequency="512"/>
-                            </StackPanel>
-                        </Border>
+                        <controls:RamCardControl Title="{l10n:Tr Key=cs_ram}"
+                                              Subtitle="{l10n:Tr Key=set_memory_hint}"
+                                              Value="{Binding SelectedRamMb}"
+                                              Maximum="{Binding MaxRamMb}"
+                                              Minimum="512"
+                                              TickFrequency="512"/>
 
                         <!-- CARD 3: JAVA RUNTIME -->
                         <Border Classes="settingsCard">
                             <StackPanel Spacing="10">
-                                <TextBlock Classes="cardTitle" Text="Java Runtime"/>
-                                <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
-
-                                <Grid ColumnDefinitions="*,180" ColumnSpacing="10" VerticalAlignment="Center">
-                                    <StackPanel Grid.Column="0" Spacing="2">
-                                        <TextBlock Text="{l10n:Tr Key=set_java}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                    <StackPanel Spacing="2" VerticalAlignment="Center">
+                                        <TextBlock Classes="cardTitle" Text="Java Runtime"/>
                                         <TextBlock Text="{l10n:Tr Key=set_java_mode_desc}" FontSize="10.5" Foreground="{DynamicResource TextMutedBrush}"/>
                                     </StackPanel>
-                                    <ComboBox Grid.Column="1" Classes="darkCombo" ItemsSource="{Binding JavaOptions}" SelectedItem="{Binding SelectedJavaOption}" HorizontalAlignment="Stretch" Height="32" FontSize="11.5">
+                                    <ComboBox Grid.Column="1" Classes="darkCombo" ItemsSource="{Binding JavaOptions}" SelectedItem="{Binding SelectedJavaOption}" MinWidth="210" Height="32" FontSize="11.5" HorizontalAlignment="Right" VerticalAlignment="Center">
                                         <ComboBox.ItemTemplate>
                                             <DataTemplate x:DataType="vm:JavaModeOption">
                                                 <TextBlock Text="{Binding DisplayName}" FontSize="11.5"/>
@@ -371,7 +357,7 @@
                                 <!-- Java Path & Browse -->
                                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6" Margin="0,2,0,0">
                                     <TextBox Classes="darkInput" Text="{Binding EffectiveJavaPath}" PlaceholderText="C:\Path\To\javaw.exe" FontSize="11" Height="32"/>
-                                    <Button Grid.Column="1" Content="{l10n:Tr Key=set_java_browse}" Command="{Binding PickCustomJavaCommand}" Classes="subBtn" Padding="12,5" FontSize="11" Height="32"/>
+                                    <Button Grid.Column="1" Content="{l10n:Tr Key=set_java_browse}" Command="{Binding PickCustomJavaCommand}" Classes="subBtn" Padding="14,5" FontSize="11" Height="32"/>
                                 </Grid>
                             </StackPanel>
                         </Border>
@@ -382,13 +368,13 @@
                                 <TextBlock Classes="cardTitle" Text="Display &amp; Window"/>
                                 <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
 
-                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14" VerticalAlignment="Center">
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16" VerticalAlignment="Center">
                                     <StackPanel Grid.Column="0" Spacing="4">
-                                        <TextBlock Text="{l10n:Tr Key=set_resolution}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                        <TextBlock Text="{l10n:Tr Key=set_resolution}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                         <ComboBox Classes="darkCombo" ItemsSource="{Binding ResolutionOptions}" SelectedItem="{Binding SelectedResolution}" HorizontalAlignment="Stretch" Height="32" FontSize="11.5"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Spacing="4" HorizontalAlignment="Center">
-                                        <TextBlock Text="Fullscreen" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="Fullscreen" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
                                         <ToggleSwitch IsChecked="{Binding IsFullscreen}" OnContent="{x:Null}" OffContent="{x:Null}" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Grid>

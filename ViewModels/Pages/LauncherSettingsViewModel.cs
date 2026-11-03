@@ -25,6 +25,7 @@ public partial class LauncherSettingsViewModel : ViewModelBase
     public Action<bool>? DiscordRpcChanged { get; set; }
     public Action<double>? ScaleChanged { get; set; }
     public Action? OpenJavaInstallerRequested { get; set; }
+    public Func<int, Task<bool>>? DownloadJavaRequested { get; set; }
     public Func<string>? GetRecommendedJavaDisplay { get; set; }
     public Func<string>? GetWindowTitle { get; set; }
 
@@ -257,9 +258,20 @@ public partial class LauncherSettingsViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    public void InstallJava(string versionStr)
+    public async Task InstallJavaAsync(string versionStr)
     {
-        if (int.TryParse(versionStr, out int major))
+        if (!int.TryParse(versionStr, out int major)) return;
+
+        if (DownloadJavaRequested != null)
+        {
+            await DownloadJavaRequested(major);
+            var detected = JavaVersionHelper.FindJavaForVersion(major);
+            if (!string.IsNullOrWhiteSpace(detected))
+            {
+                SetJavaLocation(major, detected);
+            }
+        }
+        else
         {
             try
             {
@@ -300,7 +312,7 @@ public partial class LauncherSettingsViewModel : ViewModelBase
         }
     }
 
-    private void SetJavaLocation(int major, string path)
+    public void SetJavaLocation(int major, string path)
     {
         switch (major)
         {
@@ -548,6 +560,18 @@ public partial class LauncherSettingsViewModel : ViewModelBase
             AutoManageJava = cfg.AutoManageJava;
             DiscordRpcEnabled = cfg.DiscordRpcEnabled;
             if (cfg.LauncherScale > 0.4 && cfg.LauncherScale < 3.0) { LauncherScale = cfg.LauncherScale; PendingLauncherScale = cfg.LauncherScale; }
+
+            if (!string.IsNullOrWhiteSpace(cfg.Java25Path) && File.Exists(cfg.Java25Path)) Java25Location = cfg.Java25Path;
+            else { var d25 = JavaVersionHelper.FindJavaForVersion(25); if (!string.IsNullOrWhiteSpace(d25)) Java25Location = d25; }
+
+            if (!string.IsNullOrWhiteSpace(cfg.Java21Path) && File.Exists(cfg.Java21Path)) Java21Location = cfg.Java21Path;
+            else { var d21 = JavaVersionHelper.FindJavaForVersion(21); if (!string.IsNullOrWhiteSpace(d21)) Java21Location = d21; }
+
+            if (!string.IsNullOrWhiteSpace(cfg.Java17Path) && File.Exists(cfg.Java17Path)) Java17Location = cfg.Java17Path;
+            else { var d17 = JavaVersionHelper.FindJavaForVersion(17); if (!string.IsNullOrWhiteSpace(d17)) Java17Location = d17; }
+
+            if (!string.IsNullOrWhiteSpace(cfg.Java8Path) && File.Exists(cfg.Java8Path)) Java8Location = cfg.Java8Path;
+            else { var d8 = JavaVersionHelper.FindJavaForVersion(8); if (!string.IsNullOrWhiteSpace(d8)) Java8Location = d8; }
 
             if (!string.IsNullOrWhiteSpace(cfg.Language))
                 SelectedLanguage = cfg.Language;

@@ -869,21 +869,25 @@ public partial class MainWindowViewModel : ViewModelBase
 
 
             if (ok)
-
             {
+                var detectedPath = JavaVersionHelper.FindJavaForVersion(major);
+                if (string.IsNullOrWhiteSpace(detectedPath))
+                {
+                    detectedPath = await _launchService.ResolveJavaForDisplayAsync(major == 8 ? "1.12.2" : major == 17 ? "1.18.2" : major == 21 ? "1.20.4" : "1.21.4");
+                }
 
-                // The freshly installed runtime becomes active immediately:
-
-                // Recommended mode auto-picks it whenever a profile needs its
-
-                // major version. Persisted right away so closing the dialog
-
-                // (or the app) keeps the choice.
+                if (!string.IsNullOrWhiteSpace(detectedPath))
+                {
+                    LauncherSettingsVm?.SetJavaLocation(major, detectedPath);
+                    if (SelectedJavaMode == "Custom" || string.IsNullOrWhiteSpace(CustomJavaPath))
+                    {
+                        CustomJavaPath = detectedPath;
+                    }
+                }
 
                 SelectedJavaMode = "Recommended";
-
                 SaveLauncherConfig();
-
+                LauncherSettingsVm?.UpdateJavaDisplay();
             }
 
         }
@@ -3726,6 +3730,11 @@ public partial class MainWindowViewModel : ViewModelBase
             ScaleChanged = scale => LauncherScale = scale,
 
             OpenJavaInstallerRequested = () => OpenJavaInstaller(),
+            DownloadJavaRequested = async major =>
+            {
+                await DownloadJavaAsync(major);
+                return true;
+            },
 
             GetRecommendedJavaDisplay = () =>
 

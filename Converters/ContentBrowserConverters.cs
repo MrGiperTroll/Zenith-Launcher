@@ -227,6 +227,12 @@ public static class ContentBrowserConverters
     public static IValueConverter VersionTypeBg => VersionTypeBgConverter.Instance;
     public static IValueConverter VersionTypeFg => VersionTypeFgConverter.Instance;
 
+    public static readonly IValueConverter ModrinthIconBrush = new FuncValueConverter<bool, IBrush>(active =>
+        active ? new SolidColorBrush(Color.Parse("#10B981")) : new SolidColorBrush(Color.Parse("#8E9297")));
+
+    public static readonly IValueConverter CurseForgeIconBrush = new FuncValueConverter<bool, IBrush>(active =>
+        active ? new SolidColorBrush(Color.Parse("#F16436")) : new SolidColorBrush(Color.Parse("#8E9297")));
+
     /// <summary>
     /// MultiValue converter: returns true when two string values are equal.
     /// Used for green highlight: compares version row Id with SelectedVersionId.

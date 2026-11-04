@@ -11,7 +11,8 @@ public enum ContentType
 
 public enum ContentSource
 {
-    Modrinth
+    Modrinth,
+    CurseForge
 }
 
 public enum ContentSortOption

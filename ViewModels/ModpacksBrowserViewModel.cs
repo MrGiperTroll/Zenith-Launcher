@@ -114,6 +114,26 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
 
     [ObservableProperty] private string _searchQuery = "";
 
+    [ObservableProperty]
+    private ContentSource _selectedSource = ContentSource.Modrinth;
+
+    public bool IsModrinthSource => SelectedSource == ContentSource.Modrinth;
+    public bool IsCurseForgeSource => SelectedSource == ContentSource.CurseForge;
+
+    [RelayCommand]
+    public void SelectSource(string source)
+    {
+        var newSource = source?.Equals("curseforge", StringComparison.OrdinalIgnoreCase) == true
+            ? ContentSource.CurseForge
+            : ContentSource.Modrinth;
+
+        if (SelectedSource == newSource) return;
+        SelectedSource = newSource;
+        OnPropertyChanged(nameof(IsModrinthSource));
+        OnPropertyChanged(nameof(IsCurseForgeSource));
+        _ = ReloadAsync();
+    }
+
     private CancellationTokenSource? _searchCts;
     private int _searchGeneration;
 
@@ -1065,15 +1085,19 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
             };
             var catSlug = SelectedCategory == "exploration" ? "adventure" : SelectedCategory;
             var categoryFilter = string.IsNullOrWhiteSpace(catSlug) ? Array.Empty<string>() : new[] { catSlug };
-            if (SelectedProjectType == "world")
+            if (SelectedSource == ContentSource.CurseForge || SelectedProjectType == "world")
             {
                 var apiKey = GetCurseForgeApiKey?.Invoke() ?? "";
-                if (string.IsNullOrWhiteSpace(apiKey))
-                {
-                    StatusText = "CurseForge API key required to browse Worlds & Maps. Add your key in Settings.";
-                    return;
-                }
-                var res = await CurseForgeApiService.SearchMapsAsync(SearchQuery, SelectedVersion, 0, PageSize, apiKey, token);
+                var res = await CurseForgeApiService.SearchProjectsAsync(
+                    SearchQuery,
+                    SelectedProjectType,
+                    SelectedVersion,
+                    SelectedLoader,
+                    0,
+                    PageSize,
+                    SelectedSort,
+                    apiKey,
+                    token);
                 if (token.IsCancellationRequested || gen != _searchGeneration) return;
                 if (res == null)
                 {
@@ -1149,11 +1173,18 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
                 "Recently Updated" => "updated",
                 _ => "relevance"
             };
-            if (SelectedProjectType == "world")
+            if (SelectedSource == ContentSource.CurseForge || SelectedProjectType == "world")
             {
                 var apiKey = GetCurseForgeApiKey?.Invoke() ?? "";
-                if (string.IsNullOrWhiteSpace(apiKey)) return;
-                var res = await CurseForgeApiService.SearchMapsAsync(SearchQuery, SelectedVersion, _offset, PageSize, apiKey);
+                var res = await CurseForgeApiService.SearchProjectsAsync(
+                    SearchQuery,
+                    SelectedProjectType,
+                    SelectedVersion,
+                    SelectedLoader,
+                    _offset,
+                    PageSize,
+                    SelectedSort,
+                    apiKey);
                 if (res != null && gen == _searchGeneration)
                 {
                     _totalHits = res.TotalHits;

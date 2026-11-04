@@ -61,21 +61,68 @@ public static class CurseForgeApiService
         int pageSize,
         string? apiKey = null,
         CancellationToken token = default)
+        => await SearchProjectsAsync(query, "world", gameVersion, null, offset, pageSize, "Downloads", apiKey, token);
+
+    public static async Task<CurseForgeSearchResult?> SearchProjectsAsync(
+        string query,
+        string? projectType,
+        string? gameVersion,
+        string? loader,
+        int offset,
+        int pageSize,
+        string? sortOption = "Relevance",
+        string? apiKey = null,
+        CancellationToken token = default)
     {
         var effectiveKey = !string.IsNullOrWhiteSpace(apiKey) ? apiKey.Trim() : DefaultApiKey?.Trim();
         if (string.IsNullOrWhiteSpace(effectiveKey) && IsDirectCurseForgeApi())
         {
-            // If calling CurseForge API directly without any key, avoid throwing hard crashes
             return new CurseForgeSearchResult(new List<ModrinthProjectItemViewModel>(), 0, offset, pageSize);
         }
 
-        var path = $"mods/search?gameId={MinecraftGameId}&classId={CustomMapsClassId}&index={offset}&pageSize={pageSize}&sortField=2&sortOrder=desc";
+        var classId = (projectType?.ToLowerInvariant()) switch
+        {
+            "modpack" => 4471,
+            "mod" => 6,
+            "resourcepack" => 12,
+            "world" => 17,
+            "shader" => 6552,
+            "plugin" => 5,
+            _ => 6
+        };
+
+        var sortField = (sortOption?.ToLowerInvariant()) switch
+        {
+            "downloads" => 2,
+            "newest" => 3,
+            "recently updated" or "updated" => 3,
+            _ => 1
+        };
+
+        var path = $"mods/search?gameId={MinecraftGameId}&classId={classId}&index={offset}&pageSize={pageSize}&sortField={sortField}&sortOrder=desc";
 
         if (!string.IsNullOrWhiteSpace(query))
             path += $"&searchFilter={Uri.EscapeDataString(query.Trim())}";
 
         if (!string.IsNullOrWhiteSpace(gameVersion) && !gameVersion.Equals("All versions", StringComparison.OrdinalIgnoreCase))
             path += $"&gameVersion={Uri.EscapeDataString(gameVersion.Trim())}";
+
+        if (!string.IsNullOrWhiteSpace(loader) && !loader.Equals("Any loader", StringComparison.OrdinalIgnoreCase))
+        {
+            var ldrLower = loader.Trim().ToLowerInvariant();
+            var modLoaderType = ldrLower switch
+            {
+                "forge" => 1,
+                "cauldron" => 2,
+                "liteloader" => 3,
+                "fabric" => 4,
+                "quilt" => 5,
+                "neoforge" or "neoforged" => 6,
+                _ => 0
+            };
+            if (modLoaderType > 0)
+                path += $"&modLoaderType={modLoaderType}";
+        }
 
         using var request = CreateRequest(HttpMethod.Get, path, apiKey);
         using var response = await Http.SendAsync(request, token).ConfigureAwait(false);
@@ -95,6 +142,8 @@ public static class CurseForgeApiService
         var totalCount = 0;
         if (root.TryGetProperty("pagination", out var pag) && pag.TryGetProperty("totalCount", out var tc))
             totalCount = tc.GetInt32();
+
+        var resolvedType = projectType ?? "mod";
 
         if (root.TryGetProperty("data", out var data) && data.ValueKind == JsonValueKind.Array)
         {
@@ -156,7 +205,7 @@ public static class CurseForgeApiService
                     GameVersions = versions.Distinct().ToArray(),
                     Categories = cats.ToArray(),
                     Updated = updated,
-                    ProjectType = "world"
+                    ProjectType = resolvedType
                 });
             }
         }
@@ -169,12 +218,37 @@ public static class CurseForgeApiService
         string? gameVersion,
         string? apiKey = null,
         CancellationToken token = default)
+        => await GetLatestProjectFileAsync(projectId, gameVersion, null, apiKey, token);
+
+    public static async Task<CurseForgeFileInfo?> GetLatestProjectFileAsync(
+        string projectId,
+        string? gameVersion,
+        string? loader,
+        string? apiKey = null,
+        CancellationToken token = default)
     {
         if (string.IsNullOrWhiteSpace(projectId)) return null;
 
-        var path = $"mods/{projectId}/files?pageSize=10";
+        var path = $"mods/{projectId}/files?pageSize=20";
         if (!string.IsNullOrWhiteSpace(gameVersion) && !gameVersion.Equals("All versions", StringComparison.OrdinalIgnoreCase))
             path += $"&gameVersion={Uri.EscapeDataString(gameVersion.Trim())}";
+
+        if (!string.IsNullOrWhiteSpace(loader) && !loader.Equals("Any loader", StringComparison.OrdinalIgnoreCase))
+        {
+            var ldrLower = loader.Trim().ToLowerInvariant();
+            var modLoaderType = ldrLower switch
+            {
+                "forge" => 1,
+                "cauldron" => 2,
+                "liteloader" => 3,
+                "fabric" => 4,
+                "quilt" => 5,
+                "neoforge" or "neoforged" => 6,
+                _ => 0
+            };
+            if (modLoaderType > 0)
+                path += $"&modLoaderType={modLoaderType}";
+        }
 
         using var request = CreateRequest(HttpMethod.Get, path, apiKey);
         using var response = await Http.SendAsync(request, token).ConfigureAwait(false);

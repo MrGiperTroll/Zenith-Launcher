@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -598,16 +599,40 @@ public partial class LauncherSettingsViewModel : ViewModelBase
         ThemeCards.Clear();
         ThemeCards.Add(new ThemeCardModel
         {
-            Id = "purple",
-            Name = "Zenith",
-            AccentHex = "#8B5CF6",
-            AccentBrush = new SolidColorBrush(Color.Parse("#8B5CF6")),
-            SoftBrush = new SolidColorBrush(Color.FromArgb(0x40, 139, 92, 246)),
+            Id = "forest",
+            Name = "Forest",
+            AccentHex = "#10B981",
+            AccentBrush = new SolidColorBrush(Color.Parse("#10B981")),
+            SoftBrush = new SolidColorBrush(Color.FromArgb(0x40, 16, 185, 129)),
             IsSelected = true
         });
         ThemeCards.Add(new ThemeCardModel
         {
-            Id = "blue",
+            Id = "mint",
+            Name = "Mint",
+            AccentHex = "#06B6D4",
+            AccentBrush = new SolidColorBrush(Color.Parse("#06B6D4")),
+            SoftBrush = new SolidColorBrush(Color.FromArgb(0x40, 6, 182, 212))
+        });
+        ThemeCards.Add(new ThemeCardModel
+        {
+            Id = "bee",
+            Name = "Bee",
+            AccentHex = "#EAB308",
+            AccentBrush = new SolidColorBrush(Color.Parse("#EAB308")),
+            SoftBrush = new SolidColorBrush(Color.FromArgb(0x40, 234, 179, 8))
+        });
+        ThemeCards.Add(new ThemeCardModel
+        {
+            Id = "parchment",
+            Name = "Parchment",
+            AccentHex = "#FB923C",
+            AccentBrush = new SolidColorBrush(Color.Parse("#FB923C")),
+            SoftBrush = new SolidColorBrush(Color.FromArgb(0x40, 251, 146, 60))
+        });
+        ThemeCards.Add(new ThemeCardModel
+        {
+            Id = "cobalt",
             Name = "Cobalt",
             AccentHex = "#3B82F6",
             AccentBrush = new SolidColorBrush(Color.Parse("#3B82F6")),
@@ -615,35 +640,19 @@ public partial class LauncherSettingsViewModel : ViewModelBase
         });
         ThemeCards.Add(new ThemeCardModel
         {
-            Id = "green",
-            Name = "Emerald",
-            AccentHex = "#10B981",
-            AccentBrush = new SolidColorBrush(Color.Parse("#10B981")),
-            SoftBrush = new SolidColorBrush(Color.FromArgb(0x40, 16, 185, 129))
-        });
-        ThemeCards.Add(new ThemeCardModel
-        {
-            Id = "red",
-            Name = "Crimson",
-            AccentHex = "#EF4444",
-            AccentBrush = new SolidColorBrush(Color.Parse("#EF4444")),
-            SoftBrush = new SolidColorBrush(Color.FromArgb(0x40, 239, 68, 68))
-        });
-        ThemeCards.Add(new ThemeCardModel
-        {
-            Id = "orange",
-            Name = "Amber",
-            AccentHex = "#F97316",
-            AccentBrush = new SolidColorBrush(Color.Parse("#F97316")),
-            SoftBrush = new SolidColorBrush(Color.FromArgb(0x40, 249, 115, 22))
+            Id = "zenith",
+            Name = "Zenith",
+            AccentHex = "#8B5CF6",
+            AccentBrush = new SolidColorBrush(Color.Parse("#8B5CF6")),
+            SoftBrush = new SolidColorBrush(Color.FromArgb(0x40, 139, 92, 246))
         });
         ThemeCards.Add(new ThemeCardModel
         {
             Id = "custom",
             Name = "Custom",
-            AccentHex = "",
+            AccentHex = CustomAccentHex,
             IsCustom = true,
-            AccentBrush = new SolidColorBrush(Color.Parse("#A855F7")),
+            AccentBrush = CustomAccentBrush,
             SoftBrush = new SolidColorBrush(Color.FromArgb(0x40, 168, 85, 247))
         });
 
@@ -678,49 +687,36 @@ public partial class LauncherSettingsViewModel : ViewModelBase
         SelectedThemeModeItem = ThemeModes.FirstOrDefault(m => string.Equals(m.Id, SelectedThemeMode, StringComparison.OrdinalIgnoreCase)) ?? ThemeModes.LastOrDefault();
     }
 
+    public void ApplyCurrentThemeLive()
+    {
+        var cfg = new LauncherConfigData();
+        ApplyToConfig(cfg);
+        ZenithTheme.Apply(cfg);
+        foreach (var card in ThemeCards)
+        {
+            card.NotifyBrushesChanged();
+        }
+    }
+
     [RelayCommand]
     public void SelectThemeCard(string cardId)
     {
-        if (cardId == SelectedThemeCardId) return;
+        SelectedThemeCardId = cardId;
+        IsCustomThemeActive = (cardId == "custom");
 
-        if (cardId == "custom")
-        {
-            SelectedThemeCardId = "custom";
-            foreach (var card in ThemeCards)
-                card.IsSelected = (card.Id == "custom");
-            IsCustomThemeActive = true;
-            return;
-        }
+        foreach (var card in ThemeCards)
+            card.IsSelected = (card.Id == cardId);
 
-        PendingThemeCardId = cardId;
-        PendingThemeMode = null;
-        IsThemeRestartDialogOpen = true;
+        ApplyCurrentThemeLive();
+        SaveConfigRequested?.Invoke();
     }
 
     [RelayCommand]
     public void ConfirmThemeRestart()
     {
-        if (!string.IsNullOrEmpty(PendingThemeCardId))
-        {
-            SelectedThemeCardId = PendingThemeCardId;
-            foreach (var card in ThemeCards)
-                card.IsSelected = (card.Id == SelectedThemeCardId);
-            IsCustomThemeActive = (SelectedThemeCardId == "custom");
-            PendingThemeCardId = null;
-        }
-
-        if (!string.IsNullOrEmpty(PendingThemeMode))
-        {
-            SelectedThemeMode = PendingThemeMode;
-            foreach (var mode in ThemeModes)
-                mode.IsSelected = string.Equals(mode.Id, SelectedThemeMode, StringComparison.OrdinalIgnoreCase);
-            SelectedThemeModeItem = ThemeModes.FirstOrDefault(m => string.Equals(m.Id, SelectedThemeMode, StringComparison.OrdinalIgnoreCase));
-            PendingThemeMode = null;
-        }
-
         IsThemeRestartDialogOpen = false;
+        ApplyCurrentThemeLive();
         SaveConfigRequested?.Invoke();
-        ZenithTheme.RestartLauncher();
     }
 
     [RelayCommand]
@@ -739,26 +735,41 @@ public partial class LauncherSettingsViewModel : ViewModelBase
         foreach (var card in ThemeCards)
             card.IsSelected = (card.Id == "custom");
         IsCustomThemeActive = true;
+        ApplyCurrentThemeLive();
         SaveConfigRequested?.Invoke();
-        ZenithTheme.RestartLauncher();
     }
 
     [RelayCommand]
     public void PickQuickCustomColor(string hex)
     {
         CustomAccentHex = hex;
+        if (IsCustomThemeActive)
+        {
+            ApplyCurrentThemeLive();
+            SaveConfigRequested?.Invoke();
+        }
     }
 
     [RelayCommand]
     public void PickQuickCustomBg(string hex)
     {
         CustomBgHex = hex;
+        if (IsCustomThemeActive)
+        {
+            ApplyCurrentThemeLive();
+            SaveConfigRequested?.Invoke();
+        }
     }
 
     [RelayCommand]
     public void PickQuickCustomCard(string hex)
     {
         CustomCardHex = hex;
+        if (IsCustomThemeActive)
+        {
+            ApplyCurrentThemeLive();
+            SaveConfigRequested?.Invoke();
+        }
     }
 
     partial void OnCustomAccentHexChanged(string value)
@@ -794,18 +805,14 @@ public partial class LauncherSettingsViewModel : ViewModelBase
     partial void OnSelectedThemeModeItemChanged(ThemeModeItem? value)
     {
         if (value == null) return;
-        if (!string.Equals(SelectedThemeMode, value.Id, StringComparison.OrdinalIgnoreCase))
+        SelectedThemeMode = value.Id;
+        foreach (var mode in ThemeModes)
+            mode.IsSelected = string.Equals(mode.Id, SelectedThemeMode, StringComparison.OrdinalIgnoreCase);
+
+        if (!_isLoadingConfig)
         {
-            if (!_isLoadingConfig)
-            {
-                PendingThemeMode = value.Id;
-                PendingThemeCardId = null;
-                IsThemeRestartDialogOpen = true;
-            }
-            else
-            {
-                SelectedThemeMode = value.Id;
-            }
+            ApplyCurrentThemeLive();
+            SaveConfigRequested?.Invoke();
         }
     }
 
@@ -939,15 +946,18 @@ public partial class LauncherSettingsViewModel : ViewModelBase
             if (Color.TryParse(CustomCardHex, out var cardC))
                 CustomCardBrush = new SolidColorBrush(cardC);
 
-            string matchedId = currentAccent.ToUpperInvariant() switch
-            {
-                "#8B5CF6" or "#7C3AED" => "purple",
-                "#3B82F6" or "#2563EB" => "blue",
-                "#10B981" or "#059669" => "green",
-                "#EF4444" or "#DC2626" => "red",
-                "#F97316" or "#EA580C" => "orange",
-                _ => "custom"
-            };
+            string matchedId = !string.IsNullOrWhiteSpace(cfg.SelectedThemeCardId)
+                ? cfg.SelectedThemeCardId
+                : (cfg.IsCustomTheme ? "custom" : (currentAccent.ToUpperInvariant() switch
+                {
+                    "#10B981" or "#059669" => "forest",
+                    "#06B6D4" or "#0891B2" => "mint",
+                    "#EAB308" or "#D97706" => "bee",
+                    "#FB923C" or "#EA580C" or "#F97316" => "parchment",
+                    "#3B82F6" or "#2563EB" => "cobalt",
+                    "#8B5CF6" or "#7C3AED" => "zenith",
+                    _ => "custom"
+                }));
 
             SelectedThemeCardId = matchedId;
             IsCustomThemeActive = (matchedId == "custom");
@@ -993,6 +1003,9 @@ public partial class LauncherSettingsViewModel : ViewModelBase
         cfg.FontStyle = SelectedFontStyle;
         cfg.CustomFontPath = CustomFontPath;
 
+        cfg.SelectedThemeCardId = SelectedThemeCardId;
+        cfg.IsCustomTheme = (SelectedThemeCardId == "custom");
+
         if (SelectedThemeCardId == "custom")
         {
             cfg.AccentColor = CustomAccentHex;
@@ -1008,12 +1021,13 @@ public partial class LauncherSettingsViewModel : ViewModelBase
         {
             cfg.AccentColor = SelectedThemeCardId switch
             {
-                "purple" => "#8B5CF6",
-                "blue" => "#3B82F6",
-                "green" => "#10B981",
-                "red" => "#EF4444",
-                "orange" => "#F97316",
-                _ => "#8B5CF6"
+                "forest" => "#10B981",
+                "mint" => "#06B6D4",
+                "bee" => "#EAB308",
+                "parchment" => "#FB923C",
+                "cobalt" => "#3B82F6",
+                "zenith" => "#8B5CF6",
+                _ => "#10B981"
             };
             cfg.SimpleAccentColor = cfg.AccentColor;
             var harmonized = ZenithTheme.GenerateHarmonizedPalette(cfg.AccentColor, SelectedThemeMode);
@@ -1040,7 +1054,63 @@ public class ThemeCardModel : ObservableObject
     public bool IsSelected
     {
         get => _isSelected;
-        set => SetProperty(ref _isSelected, value);
+        set
+        {
+            if (SetProperty(ref _isSelected, value))
+            {
+                OnPropertyChanged(nameof(CardBorderBrush));
+                OnPropertyChanged(nameof(CardBorderThickness));
+                OnPropertyChanged(nameof(RadioBorderBrush));
+                OnPropertyChanged(nameof(NameForegroundBrush));
+            }
+        }
+    }
+
+    public void NotifyBrushesChanged()
+    {
+        OnPropertyChanged(nameof(CardBorderBrush));
+        OnPropertyChanged(nameof(RadioBorderBrush));
+        OnPropertyChanged(nameof(NameForegroundBrush));
+    }
+
+    public IBrush CardBorderBrush
+    {
+        get
+        {
+            if (IsSelected) return AccentBrush;
+            return Avalonia.Application.Current?.Resources.TryGetValue("BorderDarkBrush", out var b) == true && b is IBrush br
+                ? br
+                : new SolidColorBrush(Color.Parse("#25272D"));
+        }
+    }
+
+    public Thickness CardBorderThickness => IsSelected ? new Thickness(1.5) : new Thickness(1);
+
+    public IBrush RadioBorderBrush
+    {
+        get
+        {
+            if (IsSelected) return AccentBrush;
+            return Avalonia.Application.Current?.Resources.TryGetValue("BorderDarkBrush", out var b) == true && b is IBrush br
+                ? br
+                : new SolidColorBrush(Color.Parse("#25272D"));
+        }
+    }
+
+    public IBrush NameForegroundBrush
+    {
+        get
+        {
+            if (IsSelected)
+            {
+                return Avalonia.Application.Current?.Resources.TryGetValue("TextPrimaryBrush", out var b) == true && b is IBrush br
+                    ? br
+                    : Brushes.White;
+            }
+            return Avalonia.Application.Current?.Resources.TryGetValue("TextSecondaryBrush", out var b2) == true && b2 is IBrush br2
+                ? br2
+                : new SolidColorBrush(Color.Parse("#8E929B"));
+        }
     }
 }
 

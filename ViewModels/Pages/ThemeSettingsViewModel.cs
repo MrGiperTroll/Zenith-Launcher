@@ -568,19 +568,6 @@ public partial class ThemeSettingsViewModel : ViewModelBase
 
     public void ApplyToConfig(LauncherConfigData cfg)
     {
-        cfg.AccentColor = CurrentAccentHex;
-        cfg.SimpleAccentColor = _savedSimpleAccentHex;
-        cfg.BgColor = BgHex;
-        cfg.SurfaceColor = SurfaceHex;
-        cfg.PanelColor = PanelHex;
-        cfg.SidebarBgColor = SidebarBgHex;
-        cfg.CardColor = CardHex;
-        cfg.FieldColor = FieldHex;
-        cfg.HoverColor = HoverHex;
-        cfg.TextPrimaryColor = TextPrimaryHex;
-        cfg.TextSecondaryColor = TextSecondaryHex;
-        cfg.BorderDarkColor = BorderDarkHex;
-        cfg.ThemeSubTab = ThemeSubTab;
         cfg.SelectedParticle = SelectedParticle;
         cfg.ParticleCount = ParticleCount;
         cfg.ParticleScale = ParticleScale;

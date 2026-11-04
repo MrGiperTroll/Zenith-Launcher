@@ -40,6 +40,9 @@
   </ItemGroup>
   <ItemGroup>
     <AvaloniaResource Include="Assets\Fonts\**" />
+    <Content Include="Assets\Fonts\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Update="Assets\app.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

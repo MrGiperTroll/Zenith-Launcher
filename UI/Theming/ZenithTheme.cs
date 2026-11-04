@@ -30,14 +30,29 @@ public static class ZenithTheme
         }
         else
         {
-            family = fontStyle switch
+            if (string.Equals(fontStyle, "Minecraft", StringComparison.OrdinalIgnoreCase))
             {
-                "Minecraft" => new FontFamily("avares://CustomMcLauncher/Assets/Fonts#Minecraft, Minecraft, Minecraftia, Mojangles"),
-                "Serif" => new FontFamily("Georgia, Cambria, 'Times New Roman', serif"),
-                "Monospace" => new FontFamily("Consolas, 'Cascadia Code', 'Courier New', monospace"),
-                "System Default" or "System" => FontFamily.Default,
-                _ => new FontFamily("Segoe UI, Inter, -apple-system, BlinkMacSystemFont, sans-serif")
-            };
+                var localFontFile = System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", "Fonts", "Minecraft.otf");
+                if (System.IO.File.Exists(localFontFile))
+                {
+                    var fullPath = System.IO.Path.GetFullPath(localFontFile).Replace('\\', '/');
+                    family = new FontFamily(new Uri($"file:///{fullPath}"), "Minecraft");
+                }
+                else
+                {
+                    family = new FontFamily("avares://Zenith%20Launcher/Assets/Fonts/Minecraft.otf#Minecraft, avares://Zenith Launcher/Assets/Fonts/Minecraft.otf#Minecraft, Minecraft");
+                }
+            }
+            else
+            {
+                family = fontStyle switch
+                {
+                    "Serif" => new FontFamily("Georgia, Cambria, 'Times New Roman', serif"),
+                    "Monospace" => new FontFamily("Consolas, 'Cascadia Code', 'Courier New', monospace"),
+                    "System Default" or "System" => FontFamily.Default,
+                    _ => new FontFamily("Segoe UI, Inter, -apple-system, BlinkMacSystemFont, sans-serif")
+                };
+            }
         }
         app.Resources["AppFontFamily"] = family;
     }
@@ -106,36 +121,44 @@ public static class ZenithTheme
         var hover = Lighten(accent, 0.16f);
         var pressed = Darken(accent, 0.2f);
 
-        var bg = TryParse(cfg.BgColor) && cfg.BgColor != "#080A0F" && cfg.BgColor != "#140F0F"
-            ? Color.Parse(cfg.BgColor)
-            : (isLight ? Color.Parse("#F5F6F8") : Color.Parse("#131416"));
-        var sidebarBg = TryParse(cfg.SidebarBgColor) && cfg.SidebarBgColor != "#06080D" && cfg.SidebarBgColor != "#0F0C0D"
-            ? Color.Parse(cfg.SidebarBgColor)
-            : (isLight ? Color.Parse("#EAECEF") : Color.Parse("#101113"));
-        var surface = TryParse(cfg.SurfaceColor) && cfg.SurfaceColor != "#0A0D15" && cfg.SurfaceColor != "#0D111A" && cfg.SurfaceColor != "#1F1819"
-            ? Color.Parse(cfg.SurfaceColor)
-            : (isLight ? Color.Parse("#FFFFFF") : Color.Parse("#18191C"));
-        var card = TryParse(cfg.CardColor) && cfg.CardColor != "#0D111A" && cfg.CardColor != "#221919"
-            ? Color.Parse(cfg.CardColor)
-            : (isLight ? Color.Parse("#FFFFFF") : Color.Parse("#18191C"));
-        var panel = TryParse(cfg.PanelColor) && cfg.PanelColor != "#151C2C" && cfg.PanelColor != "#121722" && cfg.PanelColor != "#2D2220"
-            ? Color.Parse(cfg.PanelColor)
-            : (isLight ? Color.Parse("#F0F2F5") : Color.Parse("#181A1E"));
-        var borderDark = TryParse(cfg.BorderDarkColor) && cfg.BorderDarkColor != "#121622" && cfg.BorderDarkColor != "#182743" && cfg.BorderDarkColor != "#16181C" && cfg.BorderDarkColor != "#222834"
-            ? Color.Parse(cfg.BorderDarkColor)
-            : (isLight ? Color.Parse("#D1D5DB") : Color.Parse("#202227"));
-        var field = TryParse(cfg.FieldColor) && cfg.FieldColor != "#121724" && cfg.FieldColor != "#292022"
-            ? Color.Parse(cfg.FieldColor)
-            : (isLight ? Color.Parse("#F3F4F7") : Color.Parse("#1B1C20"));
-        var hoverTint = TryParse(cfg.HoverColor) && cfg.HoverColor != "#1B2338" && cfg.HoverColor != "#473331"
-            ? Color.Parse(cfg.HoverColor)
-            : (isLight ? Color.Parse("#E5E7EB") : Color.Parse("#222429"));
-        var textPrimary = TryParse(cfg.TextPrimaryColor)
-            ? Color.Parse(cfg.TextPrimaryColor)
-            : (isLight ? Color.Parse("#111827") : Colors.White);
-        var textSecondary = TryParse(cfg.TextSecondaryColor) && cfg.TextSecondaryColor != "#C5CBD6"
-            ? Color.Parse(cfg.TextSecondaryColor)
-            : (isLight ? Color.Parse("#4B5563") : Color.Parse("#8E929B"));
+        bool isCustom = string.Equals(cfg.SelectedThemeCardId, "custom", StringComparison.OrdinalIgnoreCase) || cfg.IsCustomTheme;
+        Color bg, sidebarBg, surface, card, panel, field, borderDark, hoverTint, textPrimary, textSecondary;
+
+        if (isCustom && TryParse(cfg.BgColor) && TryParse(cfg.CardColor))
+        {
+            bg = Color.Parse(cfg.BgColor);
+            sidebarBg = TryParse(cfg.SidebarBgColor) ? Color.Parse(cfg.SidebarBgColor) : bg;
+            surface = TryParse(cfg.SurfaceColor) ? Color.Parse(cfg.SurfaceColor) : Color.Parse(cfg.CardColor);
+            card = Color.Parse(cfg.CardColor);
+            panel = TryParse(cfg.PanelColor) ? Color.Parse(cfg.PanelColor) : card;
+            field = TryParse(cfg.FieldColor) ? Color.Parse(cfg.FieldColor) : bg;
+
+            bool bgIsLight = (bg.R * 0.299 + bg.G * 0.587 + bg.B * 0.114) > 128;
+            try
+            {
+                app.RequestedThemeVariant = bgIsLight ? Avalonia.Styling.ThemeVariant.Light : Avalonia.Styling.ThemeVariant.Dark;
+            }
+            catch { }
+
+            borderDark = TryParse(cfg.BorderDarkColor) ? Color.Parse(cfg.BorderDarkColor) : (bgIsLight ? Color.Parse("#D1D5DB") : Color.Parse("#25272D"));
+            hoverTint = TryParse(cfg.HoverColor) ? Color.Parse(cfg.HoverColor) : (bgIsLight ? Color.Parse("#E5E7EB") : Color.Parse("#222429"));
+            textPrimary = TryParse(cfg.TextPrimaryColor) ? Color.Parse(cfg.TextPrimaryColor) : (bgIsLight ? Color.Parse("#111827") : Colors.White);
+            textSecondary = TryParse(cfg.TextSecondaryColor) ? Color.Parse(cfg.TextSecondaryColor) : (bgIsLight ? Color.Parse("#4B5563") : Color.Parse("#8E929B"));
+        }
+        else
+        {
+            var harmonized = GenerateHarmonizedPalette(AccentHex, isLight ? "Light" : "Dark");
+            bg = Color.Parse(harmonized.BgColor!);
+            sidebarBg = Color.Parse(harmonized.SidebarBgColor!);
+            surface = Color.Parse(harmonized.SurfaceColor!);
+            card = Color.Parse(harmonized.CardColor!);
+            panel = Color.Parse(harmonized.PanelColor!);
+            field = Color.Parse(harmonized.FieldColor!);
+            borderDark = Color.Parse(harmonized.BorderDarkColor!);
+            hoverTint = Color.Parse(harmonized.HoverColor!);
+            textPrimary = Color.Parse(harmonized.TextPrimaryColor!);
+            textSecondary = Color.Parse(harmonized.TextSecondaryColor!);
+        }
 
         // Surfaces
         SetBrushColor(r, "BgBrush", bg);

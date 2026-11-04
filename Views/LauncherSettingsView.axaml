@@ -507,7 +507,7 @@
                                 <ItemsControl ItemsSource="{Binding ThemeCards}">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
-                                            <UniformGrid Columns="6" Rows="1"/>
+                                            <WrapPanel Orientation="Horizontal"/>
                                         </ItemsPanelTemplate>
                                     </ItemsControl.ItemsPanel>
                                     <ItemsControl.ItemTemplate>
@@ -516,10 +516,11 @@
                                                     CommandParameter="{Binding Id}"
                                                     Background="Transparent"
                                                     BorderThickness="0"
-                                                    Padding="3"
+                                                    Padding="0"
+                                                    Margin="0,0,12,12"
                                                     Cursor="Hand"
-                                                    HorizontalAlignment="Stretch"
-                                                    VerticalAlignment="Stretch">
+                                                    HorizontalAlignment="Left"
+                                                    VerticalAlignment="Top">
                                                 <Button.Styles>
                                                     <Style Selector="Button:pointerover /template/ ContentPresenter">
                                                         <Setter Property="Background" Value="Transparent"/>
@@ -528,42 +529,42 @@
                                                         <Setter Property="Background" Value="Transparent"/>
                                                     </Style>
                                                 </Button.Styles>
-                                                <StackPanel Spacing="6" HorizontalAlignment="Stretch">
+                                                <StackPanel Spacing="7" Width="144">
                                                     <!-- Outer Card Container -->
                                                     <Border Background="{DynamicResource CardBrush}"
                                                             CornerRadius="8"
-                                                            Height="82"
-                                                            Padding="10,8"
-                                                            BorderThickness="{Binding IsSelected, Converter={x:Static converters:EditInstanceWindowConverters.ActiveBorderThickness}}"
-                                                            BorderBrush="{Binding IsSelected, Converter={x:Static converters:EditInstanceWindowConverters.ActiveBorderBrush}}">
+                                                            Height="84"
+                                                            Padding="12,10"
+                                                            BorderThickness="{Binding CardBorderThickness}"
+                                                            BorderBrush="{Binding CardBorderBrush}">
                                                         <Grid RowDefinitions="Auto,Auto,*">
                                                             <!-- Row 0: Top Accent Pill + Radio Checkmark -->
                                                             <Grid Grid.Row="0" ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                                                <Border Grid.Column="0" Width="46" Height="6" CornerRadius="3" Background="{Binding AccentBrush}" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                                                <Border Grid.Column="0" Width="48" Height="6" CornerRadius="3" Background="{Binding AccentBrush}" HorizontalAlignment="Left" VerticalAlignment="Center"/>
                                                                 <Border Grid.Column="1" Width="16" Height="16" CornerRadius="8"
-                                                                        BorderBrush="{Binding IsSelected, Converter={x:Static converters:EditInstanceWindowConverters.ActiveBorderBrush}}"
+                                                                        BorderBrush="{Binding RadioBorderBrush}"
                                                                         BorderThickness="1.5" HorizontalAlignment="Right" VerticalAlignment="Center">
                                                                     <Border Width="7" Height="7" CornerRadius="3.5" Background="{Binding AccentBrush}" IsVisible="{Binding IsSelected}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                 </Border>
                                                             </Grid>
 
                                                             <!-- Row 1: Sub line below pill -->
-                                                            <Border Grid.Row="1" Width="34" Height="4" CornerRadius="2" Background="{DynamicResource BorderStrongBrush}" HorizontalAlignment="Left" Margin="0,5,0,6"/>
+                                                            <Border Grid.Row="1" Width="36" Height="4" CornerRadius="2" Background="{DynamicResource BorderDarkBrush}" HorizontalAlignment="Left" Margin="0,5,0,6"/>
 
                                                             <!-- Row 2: Window surface with 2 mock bars -->
                                                             <Border Grid.Row="2" CornerRadius="5" Background="{DynamicResource BgBrush}" Padding="8,6" VerticalAlignment="Stretch">
                                                                 <StackPanel Spacing="4" VerticalAlignment="Center">
                                                                     <Border Width="42" Height="5" CornerRadius="2.5" Background="{Binding SoftBrush}" HorizontalAlignment="Left"/>
-                                                                    <Border Width="28" Height="5" CornerRadius="2.5" Background="{DynamicResource BorderStrongBrush}" HorizontalAlignment="Left"/>
+                                                                    <Border Width="26" Height="5" CornerRadius="2.5" Background="{DynamicResource BorderDarkBrush}" HorizontalAlignment="Left"/>
                                                                 </StackPanel>
                                                             </Border>
                                                         </Grid>
                                                     </Border>
                                                     
                                                     <!-- Theme Name Label -->
-                                                    <TextBlock Text="{Binding Name}" FontSize="12" FontWeight="SemiBold"
+                                                    <TextBlock Text="{Binding Name}" FontSize="12"
                                                                HorizontalAlignment="Center"
-                                                               Foreground="{Binding IsSelected, Converter={x:Static converters:EditInstanceWindowConverters.ActiveText}}"/>
+                                                               Foreground="{Binding NameForegroundBrush}"/>
                                                 </StackPanel>
                                             </Button>
                                         </DataTemplate>

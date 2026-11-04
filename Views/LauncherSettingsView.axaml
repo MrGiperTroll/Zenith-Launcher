@@ -173,7 +173,7 @@
 
             <!-- Main Content Area -->
             <ScrollViewer x:Name="SettingsContentScroll" Grid.Column="1" Padding="32,24,36,28" VerticalScrollBarVisibility="Visible">
-                <StackPanel Spacing="20">
+                <Panel>
 
                     <!-- ========================================================= -->
                     <!-- TAB 1: MINECRAFT & GAME                                   -->
@@ -590,7 +590,7 @@
                         </Border>
                     </StackPanel>
 
-                </StackPanel>
+                </Panel>
             </ScrollViewer>
 
         </Grid>

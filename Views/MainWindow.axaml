@@ -1147,32 +1147,8 @@
 
                                 <!-- Filters bar: Source, Sort, Versions, Loaders, Reset, Status -->
                                 <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,*,Auto" VerticalAlignment="Center">
-                                    <!-- 0. Source Switcher (Modrinth / CurseForge) -->
-                                    <Border Grid.Column="0" Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
-                                            BorderThickness="1" CornerRadius="8" Height="32" Padding="2" Margin="0,0,10,0" VerticalAlignment="Center">
-                                        <StackPanel Orientation="Horizontal" Spacing="2">
-                                            <Button Classes="sourceTabBtn" Classes.active="{Binding ModpacksBrowser.IsModrinthSource}"
-                                                    Command="{Binding ModpacksBrowser.SelectSourceCommand}" CommandParameter="modrinth"
-                                                    ToolTip.Tip="{l10n:Tr Key=source_modrinth}">
-                                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                                    <PathIcon Data="M12.252 2c-5.656 0-10.24 4.584-10.24 10.24 0 2.213.702 4.26 1.892 5.932l.024.034 4.092-4.093a3.46 3.46 0 0 1-.222-1.229c0-1.921 1.557-3.478 3.478-3.478.618 0 1.196.162 1.696.446l3.418-3.418A6.87 6.87 0 0 0 12.252 5.6c-3.667 0-6.64 2.973-6.64 6.64 0 .973.21 1.898.587 2.733l-2.073 2.073A10.18 10.18 0 0 1 2.012 12.24C2.012 6.584 6.596 2 12.252 2z"
-                                                              Width="12" Height="12"
-                                                              Foreground="{Binding ModpacksBrowser.IsModrinthSource, Converter={x:Static converters:ContentBrowserConverters.ModrinthIconBrush}}"/>
-                                                    <TextBlock Text="Modrinth" FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                                                </StackPanel>
-                                            </Button>
-                                            <Button Classes="sourceTabBtn" Classes.active="{Binding ModpacksBrowser.IsCurseForgeSource}"
-                                                    Command="{Binding ModpacksBrowser.SelectSourceCommand}" CommandParameter="curseforge"
-                                                    ToolTip.Tip="{l10n:Tr Key=source_curseforge}">
-                                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                                    <PathIcon Data="M18.8 8.4C18.4 5.3 16.2 2.8 13.3 2c-.4-.1-.7.2-.6.6.6 2.2-.4 4.5-2.4 5.6-1.5.8-2.6 2.2-3 3.9-.7 2.7.4 5.5 2.7 7 1.8 1.2 4.1 1.4 6.1.6 2.8-1.2 4.6-3.9 4.6-6.9 0-1.5-.6-3-1.9-4.4zm-4.7 9.8c-1.3.4-2.7.2-3.8-.6-1.3-.9-1.9-2.5-1.5-4 .2-1 .9-1.8 1.8-2.3 1.9-1 3.1-2.8 3.2-4.9 1.6.8 2.8 2.3 3.1 4.1.3 2-.4 4-1.9 5.3-.9.9-2 1.4-3.2 1.5z"
-                                                              Width="12" Height="12"
-                                                              Foreground="{Binding ModpacksBrowser.IsCurseForgeSource, Converter={x:Static converters:ContentBrowserConverters.CurseForgeIconBrush}}"/>
-                                                    <TextBlock Text="CurseForge" FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                                                </StackPanel>
-                                            </Button>
-                                        </StackPanel>
-                                    </Border>
+                                    <!-- 0. Source Switcher Dropdown (Modrinth / CurseForge) -->
+                                    <views:SourceFilterDropdown Grid.Column="0" DataContext="{Binding ModpacksBrowser.BrowserSourceFilter}" Margin="0,0,10,0" VerticalAlignment="Center"/>
 
                                     <views:SortFilterDropdown Grid.Column="1" DataContext="{Binding ModpacksBrowser.BrowserSortFilter}" Margin="0,0,10,0" VerticalAlignment="Center"/>
 

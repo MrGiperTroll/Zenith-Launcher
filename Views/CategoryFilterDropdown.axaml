@@ -1,7 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:CustomMcLauncher.ViewModels"
-             xmlns:l10n="using:CustomMcLauncher.Extensions"
              x:Class="CustomMcLauncher.Views.CategoryFilterDropdown"
              x:DataType="vm:CategoryFilterViewModel">
 
@@ -25,11 +24,11 @@
             <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="CornerRadius" Value="6"/>
-            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Padding" Value="10,7"/>
             <Setter Property="Margin" Value="2,1"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
-            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
         </Style>
         <Style Selector="ToggleButton.filterItemChip:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
@@ -37,28 +36,14 @@
         </Style>
         <Style Selector="ToggleButton.filterItemChip:checked">
             <Setter Property="Background" Value="{DynamicResource AccentDimBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
         </Style>
         <Style Selector="ToggleButton.filterItemChip:checked /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource AccentDimBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
         </Style>
         <Style Selector="ToggleButton.filterItemChip:checked:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-        </Style>
-
-        <Style Selector="Button.clearBtn">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="4,1"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}"/>
-        </Style>
-        <Style Selector="Button.clearBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="Transparent"/>
-        </Style>
-        <Style Selector="Button.clearBtn:pointerover">
             <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
         </Style>
     </UserControl.Styles>
@@ -67,7 +52,7 @@
         <Grid ColumnDefinitions="*,Auto">
             <TextBlock Grid.Column="0" Text="{Binding ButtonText}" FontSize="12" FontWeight="SemiBold"
                        Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,8,0"
-                       MaxWidth="140" TextTrimming="CharacterEllipsis"/>
+                       MaxWidth="130" TextTrimming="CharacterEllipsis"/>
             <PathIcon Grid.Column="1" Data="M7 10l5 5 5-5z" Width="10" Height="10"
                       Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
         </Grid>
@@ -83,35 +68,23 @@
                         <Setter Property="ClipToBounds" Value="True"/>
                     </ControlTheme>
                 </Flyout.FlyoutPresenterTheme>
-                <Border Width="200" Background="{DynamicResource CardBrush}">
-                    <Grid RowDefinitions="Auto,Auto,*">
-                        <!-- Header: Count & Clear -->
-                        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="12,10,12,6">
-                            <TextBlock Grid.Column="0" Text="{Binding SelectedText}" FontSize="11.5"
-                                       Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
-                            <Button Grid.Column="1" Classes="clearBtn" Content="{l10n:Tr Key=cb_clear}" Command="{Binding ClearCommand}"
-                                    FontSize="11.5" VerticalAlignment="Center"/>
-                        </Grid>
-
-                        <!-- Divider -->
-                        <Border Grid.Row="1" Height="1" Background="{DynamicResource BorderDarkBrush}"/>
-
-                        <!-- Items List -->
-                        <ItemsControl Grid.Row="2" ItemsSource="{Binding Items}" Margin="4,4">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="vm:CategoryFilterItem">
-                                    <ToggleButton Classes="filterItemChip" IsChecked="{Binding IsSelected}">
-                                        <Grid ColumnDefinitions="Auto,*">
-                                            <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}" IsHitTestVisible="False"
-                                                      Margin="0,0,8,0" VerticalAlignment="Center" MinWidth="16" MinHeight="16"/>
-                                            <TextBlock Grid.Column="1" Text="{Binding DisplayName}" FontSize="12"
-                                                       VerticalAlignment="Center"/>
-                                        </Grid>
-                                    </ToggleButton>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </Grid>
+                <Border Width="160" Background="{DynamicResource CardBrush}" Padding="4">
+                    <ItemsControl ItemsSource="{Binding Items}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:CategoryFilterItem">
+                                <ToggleButton Classes="filterItemChip" IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                              HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Grid.Column="0" Text="{Binding DisplayName}" FontWeight="SemiBold" FontSize="12"
+                                                   VerticalAlignment="Center"/>
+                                        <PathIcon Grid.Column="1" Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" Width="11" Height="11"
+                                                  Foreground="{DynamicResource AccentBrush}"
+                                                  IsVisible="{Binding IsSelected}" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </ToggleButton>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                 </Border>
             </Flyout>
         </Button.Flyout>

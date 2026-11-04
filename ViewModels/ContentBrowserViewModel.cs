@@ -99,6 +99,9 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
 
     public bool IsModrinthSource => SelectedSource == ContentSource.Modrinth;
     public bool IsCurseForgeSource => SelectedSource == ContentSource.CurseForge;
+    public string SourceButtonText => IsCurseForgeSource ? "CurseForge" : "Modrinth";
+
+    public SourceFilterViewModel BrowserSourceFilter { get; }
 
     [RelayCommand]
     public void SelectSource(string source)
@@ -109,8 +112,10 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
 
         if (SelectedSource == newSource) return;
         SelectedSource = newSource;
+        BrowserSourceFilter?.SetSource(newSource);
         OnPropertyChanged(nameof(IsModrinthSource));
         OnPropertyChanged(nameof(IsCurseForgeSource));
+        OnPropertyChanged(nameof(SourceButtonText));
         _ = ReloadAsync();
     }
 
@@ -883,6 +888,11 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
         if (initialType == ContentType.Shader && !HasShaderSupport)
             initialType = ContentType.ResourcePack;
         SelectedContentType = initialType;
+
+        BrowserSourceFilter = new SourceFilterViewModel(SelectedSource, s =>
+        {
+            SelectSource(s == ContentSource.CurseForge ? "curseforge" : "modrinth");
+        });
 
         RefreshWorlds();
         UpdateAvailableTags();

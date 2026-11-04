@@ -119,6 +119,9 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
 
     public bool IsModrinthSource => SelectedSource == ContentSource.Modrinth;
     public bool IsCurseForgeSource => SelectedSource == ContentSource.CurseForge;
+    public string SourceButtonText => IsCurseForgeSource ? "CurseForge" : "Modrinth";
+
+    public SourceFilterViewModel BrowserSourceFilter { get; }
 
     [RelayCommand]
     public void SelectSource(string source)
@@ -129,8 +132,10 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
 
         if (SelectedSource == newSource) return;
         SelectedSource = newSource;
+        BrowserSourceFilter?.SetSource(newSource);
         OnPropertyChanged(nameof(IsModrinthSource));
         OnPropertyChanged(nameof(IsCurseForgeSource));
+        OnPropertyChanged(nameof(SourceButtonText));
         _ = ReloadAsync();
     }
 
@@ -855,6 +860,10 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
         _instanceService = instanceService;
         _modLoaderService = modLoaderService;
         _onInstalled = onInstalled;
+        BrowserSourceFilter = new SourceFilterViewModel(SelectedSource, s =>
+        {
+            SelectSource(s == ContentSource.CurseForge ? "curseforge" : "modrinth");
+        });
         AvailableCategories = new ObservableCollection<string>(new[] { "", "adventure", "cursed", "magic", "technology", "exploration", "optimization" });
         RefreshAvailableLoaders();
         GameVersionFilter.FilterChanged += () =>

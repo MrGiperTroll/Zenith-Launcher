@@ -1087,22 +1087,22 @@
                                     <StackPanel Orientation="Horizontal" Spacing="4">
                                         <Button Classes="catalogTabBtn" Classes.active="{Binding ModpacksBrowser.IsModpacksTab}"
                                                 Command="{Binding ModpacksBrowser.SelectProjectTypeCommand}" CommandParameter="modpack"
-                                                Content="Modpacks"/>
+                                                Content="{l10n:Tr nav_modpacks}"/>
                                         <Button Classes="catalogTabBtn" Classes.active="{Binding ModpacksBrowser.IsModsTab}"
                                                 Command="{Binding ModpacksBrowser.SelectProjectTypeCommand}" CommandParameter="mod"
-                                                Content="Mods"/>
+                                                Content="{l10n:Tr tab_mods}"/>
                                         <Button Classes="catalogTabBtn" Classes.active="{Binding ModpacksBrowser.IsResourcePacksTab}"
                                                 Command="{Binding ModpacksBrowser.SelectProjectTypeCommand}" CommandParameter="resourcepack"
-                                                Content="Resource Packs"/>
+                                                Content="{l10n:Tr tab_resourcepacks}"/>
                                         <Button Classes="catalogTabBtn" Classes.active="{Binding ModpacksBrowser.IsDataPacksTab}"
                                                 Command="{Binding ModpacksBrowser.SelectProjectTypeCommand}" CommandParameter="datapack"
-                                                Content="Data Packs"/>
+                                                Content="{l10n:Tr tab_datapacks}"/>
                                         <Button Classes="catalogTabBtn" Classes.active="{Binding ModpacksBrowser.IsShadersTab}"
                                                 Command="{Binding ModpacksBrowser.SelectProjectTypeCommand}" CommandParameter="shader"
-                                                Content="Shaders"/>
+                                                Content="{l10n:Tr tab_shaders}"/>
                                         <Button Classes="catalogTabBtn" Classes.active="{Binding ModpacksBrowser.IsWorldsTab}"
                                                 Command="{Binding ModpacksBrowser.SelectProjectTypeCommand}" CommandParameter="world"
-                                                Content="Worlds"/>
+                                                Content="{l10n:Tr tab_worlds}"/>
                                     </StackPanel>
                                 </Border>
 

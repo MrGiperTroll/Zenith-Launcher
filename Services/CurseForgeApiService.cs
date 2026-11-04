@@ -25,10 +25,10 @@ public static class CurseForgeApiService
 
     /// <summary>
     /// Base API URL. Can point directly to CurseForge ("https://api.curseforge.com/v1")
-    /// or to a reverse proxy / Cloudflare Worker (e.g. "https://cf-proxy.yourname.workers.dev/v1")
+    /// or to a reverse proxy / Cloudflare Worker (e.g. "https://cf-curseforge-proxy.elijahsydorenko.workers.dev/v1")
     /// which automatically attaches the secret API key server-side.
     /// </summary>
-    public static string ApiBaseUrl { get; set; } = "https://api.curseforge.com/v1";
+    public static string ApiBaseUrl { get; set; } = "https://cf-curseforge-proxy.elijahsydorenko.workers.dev/v1";
 
     /// <summary>
     /// Default embedded API key for CurseForge if caller doesn't provide one.

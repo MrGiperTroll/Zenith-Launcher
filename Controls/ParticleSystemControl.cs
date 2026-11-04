@@ -106,6 +106,21 @@ public class ParticleSystemControl : Control
             InvalidateVisual();
             return;
         }
+        if (change.Property == IsVisibleProperty)
+        {
+            if (!IsVisible)
+            {
+                StopTimer();
+                _particles.Clear();
+            }
+            else if (ParticleType != "None" && _timer == null)
+            {
+                _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(33) };
+                _timer.Tick += OnTimerTick;
+                _timer.Start();
+            }
+            return;
+        }
         if (change.Property == ParticleTypeProperty)
         {
             _particles.Clear();
@@ -131,6 +146,8 @@ public class ParticleSystemControl : Control
         base.OnDetachedFromVisualTree(e);
         StopTimer();
         _particles.Clear();
+        try { _customTexture?.Dispose(); } catch { }
+        _customTexture = null;
     }
 
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
@@ -146,7 +163,12 @@ public class ParticleSystemControl : Control
 
     private void OnTimerTick(object? sender, EventArgs e)
     {
-        if (!IsVisible) return;
+        if (!IsVisible)
+        {
+            StopTimer();
+            _particles.Clear();
+            return;
+        }
         UpdateParticles();
     }
 

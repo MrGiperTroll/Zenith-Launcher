@@ -12,7 +12,7 @@ using CustomMcLauncher.Services;
 
 namespace CustomMcLauncher.ViewModels;
 
-public partial class IconPickerViewModel : ObservableObject
+public partial class IconPickerViewModel : ObservableObject, IDisposable
 {
     public ObservableCollection<IconOption> AllIcons { get; } = new();
     public ObservableCollection<IconOption> FilteredIcons { get; } = new();
@@ -80,4 +80,12 @@ public partial class IconPickerViewModel : ObservableObject
     }
 
     public void Refresh() => LoadIcons();
+
+    public void Dispose()
+    {
+        IconSelected = null;
+        CustomIconPicked = null;
+        AllIcons.Clear();
+        FilteredIcons.Clear();
+    }
 }

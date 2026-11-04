@@ -23,36 +23,65 @@ public static class CurseForgeApiService
     // CurseForge Worlds / Custom Maps classId
     public const int CustomMapsClassId = 17;
 
+    /// <summary>
+    /// Base API URL. Can point directly to CurseForge ("https://api.curseforge.com/v1")
+    /// or to a reverse proxy / Cloudflare Worker (e.g. "https://cf-proxy.yourname.workers.dev/v1")
+    /// which automatically attaches the secret API key server-side.
+    /// </summary>
+    public static string ApiBaseUrl { get; set; } = "https://api.curseforge.com/v1";
+
+    /// <summary>
+    /// Default embedded API key for CurseForge if caller doesn't provide one.
+    /// </summary>
+    public static string DefaultApiKey { get; set; } = "";
+
+    private static HttpRequestMessage CreateRequest(HttpMethod method, string pathAndQuery, string? callerApiKey)
+    {
+        var baseUri = ApiBaseUrl.TrimEnd('/');
+        var url = $"{baseUri}/{pathAndQuery.TrimStart('/')}";
+        var request = new HttpRequestMessage(method, url);
+        request.Headers.Add("Accept", "application/json");
+
+        var key = !string.IsNullOrWhiteSpace(callerApiKey) ? callerApiKey.Trim() : DefaultApiKey?.Trim();
+        if (!string.IsNullOrWhiteSpace(key))
+        {
+            request.Headers.Add("x-api-key", key);
+        }
+
+        return request;
+    }
+
+    private static bool IsDirectCurseForgeApi()
+        => ApiBaseUrl.Contains("api.curseforge.com", StringComparison.OrdinalIgnoreCase);
+
     public static async Task<CurseForgeSearchResult?> SearchMapsAsync(
         string query,
         string? gameVersion,
         int offset,
         int pageSize,
-        string apiKey,
+        string? apiKey = null,
         CancellationToken token = default)
     {
-        if (string.IsNullOrWhiteSpace(apiKey))
+        var effectiveKey = !string.IsNullOrWhiteSpace(apiKey) ? apiKey.Trim() : DefaultApiKey?.Trim();
+        if (string.IsNullOrWhiteSpace(effectiveKey) && IsDirectCurseForgeApi())
         {
-            throw new InvalidOperationException("CurseForge API key is required to browse Worlds & Maps from CurseForge. Set it in Settings or visit console.curseforge.com.");
+            // If calling CurseForge API directly without any key, avoid throwing hard crashes
+            return new CurseForgeSearchResult(new List<ModrinthProjectItemViewModel>(), 0, offset, pageSize);
         }
 
-        var url = $"https://api.curseforge.com/v1/mods/search?gameId={MinecraftGameId}&classId={CustomMapsClassId}" +
-                  $"&index={offset}&pageSize={pageSize}&sortField=2&sortOrder=desc";
+        var path = $"mods/search?gameId={MinecraftGameId}&classId={CustomMapsClassId}&index={offset}&pageSize={pageSize}&sortField=2&sortOrder=desc";
 
         if (!string.IsNullOrWhiteSpace(query))
-            url += $"&searchFilter={Uri.EscapeDataString(query.Trim())}";
+            path += $"&searchFilter={Uri.EscapeDataString(query.Trim())}";
 
         if (!string.IsNullOrWhiteSpace(gameVersion) && !gameVersion.Equals("All versions", StringComparison.OrdinalIgnoreCase))
-            url += $"&gameVersion={Uri.EscapeDataString(gameVersion.Trim())}";
+            path += $"&gameVersion={Uri.EscapeDataString(gameVersion.Trim())}";
 
-        using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.Add("x-api-key", apiKey.Trim());
-        request.Headers.Add("Accept", "application/json");
-
+        using var request = CreateRequest(HttpMethod.Get, path, apiKey);
         using var response = await Http.SendAsync(request, token).ConfigureAwait(false);
         if (response.StatusCode == System.Net.HttpStatusCode.Forbidden || response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
         {
-            throw new InvalidOperationException("Invalid or inactive CurseForge API key. Verify your key from console.curseforge.com.");
+            return new CurseForgeSearchResult(new List<ModrinthProjectItemViewModel>(), 0, offset, pageSize);
         }
 
         response.EnsureSuccessStatusCode();
@@ -138,19 +167,16 @@ public static class CurseForgeApiService
     public static async Task<CurseForgeFileInfo?> GetLatestMapFileAsync(
         string projectId,
         string? gameVersion,
-        string apiKey,
+        string? apiKey = null,
         CancellationToken token = default)
     {
-        if (string.IsNullOrWhiteSpace(apiKey) || string.IsNullOrWhiteSpace(projectId)) return null;
+        if (string.IsNullOrWhiteSpace(projectId)) return null;
 
-        var url = $"https://api.curseforge.com/v1/mods/{projectId}/files?pageSize=10";
+        var path = $"mods/{projectId}/files?pageSize=10";
         if (!string.IsNullOrWhiteSpace(gameVersion) && !gameVersion.Equals("All versions", StringComparison.OrdinalIgnoreCase))
-            url += $"&gameVersion={Uri.EscapeDataString(gameVersion.Trim())}";
+            path += $"&gameVersion={Uri.EscapeDataString(gameVersion.Trim())}";
 
-        using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.Add("x-api-key", apiKey.Trim());
-        request.Headers.Add("Accept", "application/json");
-
+        using var request = CreateRequest(HttpMethod.Get, path, apiKey);
         using var response = await Http.SendAsync(request, token).ConfigureAwait(false);
         if (!response.IsSuccessStatusCode) return null;
 
@@ -186,15 +212,13 @@ public static class CurseForgeApiService
 
     public static async Task<ModrinthFullProject?> GetFullProjectAsync(
         string projectId,
-        string apiKey,
+        string? apiKey = null,
         CancellationToken token = default)
     {
-        if (string.IsNullOrWhiteSpace(apiKey) || string.IsNullOrWhiteSpace(projectId)) return null;
+        if (string.IsNullOrWhiteSpace(projectId)) return null;
 
-        var url = $"https://api.curseforge.com/v1/mods/{projectId}";
-        using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.Add("x-api-key", apiKey.Trim());
-        request.Headers.Add("Accept", "application/json");
+        var path = $"mods/{projectId}";
+        using var request = CreateRequest(HttpMethod.Get, path, apiKey);
 
         using var response = await Http.SendAsync(request, token).ConfigureAwait(false);
         if (!response.IsSuccessStatusCode) return null;
@@ -227,9 +251,8 @@ public static class CurseForgeApiService
         var desc = summary;
         try
         {
-            var descUrl = $"https://api.curseforge.com/v1/mods/{projectId}/description";
-            using var descReq = new HttpRequestMessage(HttpMethod.Get, descUrl);
-            descReq.Headers.Add("x-api-key", apiKey.Trim());
+            var descPath = $"mods/{projectId}/description";
+            using var descReq = CreateRequest(HttpMethod.Get, descPath, apiKey);
             using var descResp = await Http.SendAsync(descReq, token).ConfigureAwait(false);
             if (descResp.IsSuccessStatusCode)
             {

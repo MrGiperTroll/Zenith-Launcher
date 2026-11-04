@@ -477,23 +477,6 @@
                                 </Grid>
                             </StackPanel>
                         </Border>
-
-                        <!-- Section: Integrations & API Keys -->
-                        <Border Classes="settingsCard">
-                            <StackPanel Spacing="14">
-                                <StackPanel Spacing="3">
-                                    <TextBlock Classes="sectionHeaderTitle" Text="{l10n:Tr set_integrations}"/>
-                                    <TextBlock Classes="sectionHeaderDesc" Text="{l10n:Tr set_integrations_hint}"/>
-                                </StackPanel>
-                                <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
-
-                                <StackPanel Spacing="6">
-                                    <TextBlock Classes="itemTitle" Text="{l10n:Tr set_curseforge_key}"/>
-                                    <TextBlock Classes="itemDesc" Text="{l10n:Tr set_curseforge_key_hint}"/>
-                                    <TextBox Classes="darkInput" Text="{Binding CurseForgeApiKey}" PlaceholderText="Enter your CurseForge API key" Height="36" FontSize="12" Margin="0,4,0,0"/>
-                                </StackPanel>
-                            </StackPanel>
-                        </Border>
                     </StackPanel>
 
                     <!-- ========================================================= -->

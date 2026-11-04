@@ -238,6 +238,7 @@ public static class ModrinthApiService
                 DateTime.TryParse(updatedStr, out var updated);
                 hits.Add(new ModrinthProjectItemViewModel
                 {
+                    Source = ContentSource.Modrinth,
                     ProjectId = GetString(hit, "project_id") ?? "",
                     Slug = GetString(hit, "slug") ?? "",
                     Title = GetString(hit, "title") ?? GetString(hit, "slug") ?? "",

@@ -11,6 +11,15 @@ public partial class SourceFilterDropdown : UserControl
         InitializeComponent();
     }
 
+    private void OnAllClicked(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is SourceFilterViewModel vm)
+        {
+            vm.SelectSource("all");
+            DropdownTriggerBtn.Flyout?.Hide();
+        }
+    }
+
     private void OnModrinthClicked(object? sender, RoutedEventArgs e)
     {
         if (DataContext is SourceFilterViewModel vm)

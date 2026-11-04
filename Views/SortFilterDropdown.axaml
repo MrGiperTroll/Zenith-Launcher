@@ -24,8 +24,8 @@
             <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="CornerRadius" Value="6"/>
-            <Setter Property="Padding" Value="10,7"/>
-            <Setter Property="Margin" Value="2,1"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="Margin" Value="1,1"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
@@ -64,11 +64,11 @@
                         <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
                         <Setter Property="BorderBrush" Value="{DynamicResource BorderDarkBrush}"/>
                         <Setter Property="BorderThickness" Value="1"/>
-                        <Setter Property="CornerRadius" Value="10"/>
+                        <Setter Property="CornerRadius" Value="8"/>
                         <Setter Property="ClipToBounds" Value="True"/>
                     </ControlTheme>
                 </Flyout.FlyoutPresenterTheme>
-                <Border Width="170" Background="{DynamicResource CardBrush}" Padding="4">
+                <Border Width="165" Background="{DynamicResource CardBrush}" Padding="2">
                     <ItemsControl ItemsSource="{Binding Items}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="vm:SortFilterItem">

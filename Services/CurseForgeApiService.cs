@@ -195,6 +195,7 @@ public static class CurseForgeApiService
 
                 hits.Add(new ModrinthProjectItemViewModel
                 {
+                    Source = ContentSource.CurseForge,
                     ProjectId = id,
                     Slug = slug,
                     Title = name,

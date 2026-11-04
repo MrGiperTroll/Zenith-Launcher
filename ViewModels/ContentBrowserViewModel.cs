@@ -97,26 +97,63 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private ContentSource _selectedSource = ContentSource.Modrinth;
 
+    public bool IsAllSource => SelectedSource == ContentSource.All;
     public bool IsModrinthSource => SelectedSource == ContentSource.Modrinth;
     public bool IsCurseForgeSource => SelectedSource == ContentSource.CurseForge;
-    public string SourceButtonText => IsCurseForgeSource ? "CurseForge" : "Modrinth";
+    public string SourceButtonText => SelectedSource switch
+    {
+        ContentSource.All => L10n.T("source_all"),
+        ContentSource.CurseForge => "CurseForge",
+        _ => "Modrinth"
+    };
 
     public SourceFilterViewModel BrowserSourceFilter { get; }
 
     [RelayCommand]
     public void SelectSource(string source)
     {
-        var newSource = source?.Equals("curseforge", StringComparison.OrdinalIgnoreCase) == true
-            ? ContentSource.CurseForge
-            : ContentSource.Modrinth;
+        var newSource = source?.ToLowerInvariant() switch
+        {
+            "all" or "both" => ContentSource.All,
+            "curseforge" => ContentSource.CurseForge,
+            _ => ContentSource.Modrinth
+        };
 
         if (SelectedSource == newSource) return;
         SelectedSource = newSource;
         BrowserSourceFilter?.SetSource(newSource);
+        OnPropertyChanged(nameof(IsAllSource));
         OnPropertyChanged(nameof(IsModrinthSource));
         OnPropertyChanged(nameof(IsCurseForgeSource));
         OnPropertyChanged(nameof(SourceButtonText));
         _ = ReloadAsync();
+    }
+
+    private static List<ModrinthProjectItemViewModel> MergeProjectResults(
+        IReadOnlyList<ModrinthProjectItemViewModel>? mrHits,
+        IReadOnlyList<ModrinthProjectItemViewModel>? cfHits,
+        ContentSortOption sortOption)
+    {
+        var mrList = mrHits ?? Array.Empty<ModrinthProjectItemViewModel>();
+        var cfList = cfHits ?? Array.Empty<ModrinthProjectItemViewModel>();
+
+        if (sortOption == ContentSortOption.Downloads)
+        {
+            return mrList.Concat(cfList).OrderByDescending(p => p.Downloads).ToList();
+        }
+        if (sortOption is ContentSortOption.Newest or ContentSortOption.RecentlyUpdated)
+        {
+            return mrList.Concat(cfList).OrderByDescending(p => p.Updated).ToList();
+        }
+
+        var result = new List<ModrinthProjectItemViewModel>();
+        int max = Math.Max(mrList.Count, cfList.Count);
+        for (int i = 0; i < max; i++)
+        {
+            if (i < mrList.Count) result.Add(mrList[i]);
+            if (i < cfList.Count) result.Add(cfList[i]);
+        }
+        return result;
     }
 
     public CategoryFilterViewModel CategoryFilter { get; } = new();
@@ -1102,6 +1139,59 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
                 selectedTypes = new[] { ContentType.Mod };
 
             var loaders = selectedTypes.Contains(ContentType.Mod) ? MapLoaders(_loaderType) : Array.Empty<string>();
+            var categoryTags = AvailableTags.Where(t => t.IsSelected && !t.IsReset).Select(t => t.Name).ToList();
+            var projectTypes = selectedTypes.Select(t => t.ModrinthProjectType()).Distinct().ToList();
+            var sortIndex = MapSortToModrinth(SelectedSort);
+
+            if (SelectedSource == ContentSource.All)
+            {
+                var apiKey = GetCurseForgeApiKey?.Invoke() ?? "";
+                var sortName = SelectedSort.ToString();
+                var cfHits = new List<ModrinthProjectItemViewModel>();
+                int cfTotal = 0;
+
+                foreach (var ct in selectedTypes)
+                {
+                    var projType = ct.ModrinthProjectType();
+                    var ldr = ct == ContentType.Mod ? _loaderType : null;
+                    var res = await CurseForgeApiService.SearchProjectsAsync(
+                        SearchQuery,
+                        projType,
+                        _gameVersion,
+                        ldr,
+                        0,
+                        PageSize,
+                        sortName,
+                        apiKey,
+                        token);
+
+                    if (token.IsCancellationRequested || gen != _searchGeneration) return;
+                    if (res != null)
+                    {
+                        cfTotal += res.TotalHits;
+                        cfHits.AddRange(res.Hits);
+                    }
+                }
+
+                var mrPage = await ModrinthApiService.SearchAsync(SearchQuery, _gameVersion, loaders, projectTypes, sortIndex, categoryTags, 0, PageSize, token);
+
+                if (token.IsCancellationRequested || gen != _searchGeneration) return;
+
+                var merged = MergeProjectResults(mrPage?.Hits, cfHits, SelectedSort);
+                _totalHits = (mrPage?.TotalHits ?? 0) + cfTotal;
+                _offset = merged.Count;
+
+                foreach (var p in merged.Take(PageSize))
+                {
+                    Results.Add(p);
+                    LoadIcon(p, gen);
+                }
+                UpdateInstalledFlags();
+                StatusText = Results.Count == 0
+                    ? string.Format(L10n.T("cb_status_none"), "content")
+                    : "";
+                return;
+            }
 
             if (SelectedSource == ContentSource.CurseForge || (selectedTypes.Count == 1 && selectedTypes[0] == ContentType.World))
             {
@@ -1147,9 +1237,6 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
                 return;
             }
 
-            var categoryTags = AvailableTags.Where(t => t.IsSelected && !t.IsReset).Select(t => t.Name).ToList();
-            var projectTypes = selectedTypes.Select(t => t.ModrinthProjectType()).Distinct().ToList();
-            var sortIndex = MapSortToModrinth(SelectedSort);
             var page = await ModrinthApiService.SearchAsync(SearchQuery, _gameVersion, loaders, projectTypes, sortIndex, categoryTags, 0, PageSize, token);
 
             if (token.IsCancellationRequested || gen != _searchGeneration) return;
@@ -1206,6 +1293,61 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
                 selectedTypes = new[] { ContentType.Mod };
 
             var loaders = selectedTypes.Contains(ContentType.Mod) ? MapLoaders(_loaderType) : Array.Empty<string>();
+            var categoryTags = AvailableTags.Where(t => t.IsSelected && !t.IsReset).Select(t => t.Name).ToList();
+            var projectTypes = selectedTypes.Select(t => t.ModrinthProjectType()).Distinct().ToList();
+            var sortIndex = MapSortToModrinth(SelectedSort);
+
+            if (SelectedSource == ContentSource.All)
+            {
+                var apiKey = GetCurseForgeApiKey?.Invoke() ?? "";
+                var sortName = SelectedSort.ToString();
+                var cfHits = new List<ModrinthProjectItemViewModel>();
+
+                foreach (var ct in selectedTypes)
+                {
+                    var projType = ct.ModrinthProjectType();
+                    var ldr = ct == ContentType.Mod ? _loaderType : null;
+                    var res = await CurseForgeApiService.SearchProjectsAsync(
+                        SearchQuery,
+                        projType,
+                        _gameVersion,
+                        ldr,
+                        _offset / 2,
+                        PageSize,
+                        sortName,
+                        apiKey);
+
+                    if (res != null && gen == _searchGeneration)
+                    {
+                        cfHits.AddRange(res.Hits);
+                    }
+                }
+
+                var mrPage = await ModrinthApiService.SearchAsync(SearchQuery, _gameVersion, loaders, projectTypes, sortIndex, categoryTags, _offset / 2, PageSize);
+
+                if (gen != _searchGeneration) return;
+
+                var merged = MergeProjectResults(mrPage?.Hits, cfHits, SelectedSort);
+                if (merged.Count == 0)
+                {
+                    _offset = _totalHits;
+                }
+                else
+                {
+                    _offset += merged.Count;
+                    var existing = Results.Select(r => r.ProjectId).ToHashSet();
+                    foreach (var p in merged)
+                    {
+                        if (existing.Add(p.ProjectId))
+                        {
+                            Results.Add(p);
+                            LoadIcon(p, gen);
+                        }
+                    }
+                    UpdateInstalledFlags();
+                }
+                return;
+            }
 
             if (SelectedSource == ContentSource.CurseForge || (selectedTypes.Count == 1 && selectedTypes[0] == ContentType.World))
             {
@@ -1254,9 +1396,6 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
                 return;
             }
 
-            var categoryTags = AvailableTags.Where(t => t.IsSelected && !t.IsReset).Select(t => t.Name).ToList();
-            var projectTypes = selectedTypes.Select(t => t.ModrinthProjectType()).Distinct().ToList();
-            var sortIndex = MapSortToModrinth(SelectedSort);
             var page = await ModrinthApiService.SearchAsync(SearchQuery, _gameVersion, loaders, projectTypes, sortIndex, categoryTags, _offset, PageSize);
             if (page != null && gen == _searchGeneration)
             {
@@ -1403,7 +1542,7 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
                 return;
             }
 
-            if (SelectedSource == ContentSource.CurseForge)
+            if (project.Source == ContentSource.CurseForge)
             {
                 var apiKey = GetCurseForgeApiKey?.Invoke() ?? "";
                 project.IsInstalling = true;

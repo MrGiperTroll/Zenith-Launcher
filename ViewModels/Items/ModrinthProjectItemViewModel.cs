@@ -13,6 +13,10 @@ namespace CustomMcLauncher.ViewModels.Items;
 
 public partial class ModrinthProjectItemViewModel : ViewModelBase
 {
+    public Models.ContentSource Source { get; init; } = Models.ContentSource.Modrinth;
+    public bool IsCurseForge => Source == Models.ContentSource.CurseForge;
+    public bool IsModrinth => Source == Models.ContentSource.Modrinth;
+
     public string ProjectId { get; init; } = "";
     public string Slug { get; init; } = "";
     public string Title { get; init; } = "";

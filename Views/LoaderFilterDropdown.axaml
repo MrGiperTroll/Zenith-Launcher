@@ -24,8 +24,8 @@
             <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="CornerRadius" Value="6"/>
-            <Setter Property="Padding" Value="10,6"/>
-            <Setter Property="Margin" Value="2,1"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="Margin" Value="1,1"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
@@ -78,25 +78,25 @@
                         <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
                         <Setter Property="BorderBrush" Value="{DynamicResource BorderDarkBrush}"/>
                         <Setter Property="BorderThickness" Value="1"/>
-                        <Setter Property="CornerRadius" Value="10"/>
+                        <Setter Property="CornerRadius" Value="8"/>
                         <Setter Property="ClipToBounds" Value="True"/>
                     </ControlTheme>
                 </Flyout.FlyoutPresenterTheme>
-                <Border Width="200" Background="{DynamicResource CardBrush}">
+                <Border Width="180" Background="{DynamicResource CardBrush}" Padding="2">
                     <Grid RowDefinitions="Auto,Auto,*">
                         <!-- Header: Count & Clear (Row 0) -->
-                        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="12,10,12,6">
+                        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="8,6,8,4">
                             <TextBlock Grid.Column="0" Text="{Binding SelectedText}" FontSize="11.5"
                                        Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
                             <Button Grid.Column="1" Classes="clearBtn" Content="Clear" Command="{Binding ClearCommand}"
-                                    FontSize="11.5" VerticalAlignment="Center"/>
+                                     FontSize="11.5" VerticalAlignment="Center"/>
                         </Grid>
 
                         <!-- Divider (Row 1) -->
-                        <Border Grid.Row="1" Height="1" Background="{DynamicResource BorderDarkBrush}"/>
+                        <Border Grid.Row="1" Height="1" Background="{DynamicResource BorderDarkBrush}" Margin="2,2"/>
 
                         <!-- Items List (Row 2) -->
-                        <ItemsControl Grid.Row="2" ItemsSource="{Binding Items}" Margin="4,4">
+                        <ItemsControl Grid.Row="2" ItemsSource="{Binding Items}" Margin="2,2">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="vm:LoaderFilterItem">
                                     <ToggleButton Classes="filterItemChip" IsChecked="{Binding IsSelected, Mode=TwoWay}"

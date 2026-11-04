@@ -21,7 +21,7 @@ public enum ContentSortMode
     Modified
 }
 
-public partial class FileListViewModel : ObservableObject
+public partial class FileListViewModel : ObservableObject, IDisposable
 {
     private readonly string _folder;
     private readonly bool _supportsDisable;
@@ -685,5 +685,25 @@ public partial class FileListViewModel : ObservableObject
             File.Copy(file, Path.Combine(dest, Path.GetFileName(file)), true);
         foreach (var dir in Directory.GetDirectories(source))
             CopyDirectoryRecursive(dir, Path.Combine(dest, Path.GetFileName(dir)));
+    }
+
+    public void Dispose()
+    {
+        try { _filterCts?.Cancel(); _filterCts?.Dispose(); } catch { }
+        _filterCts = null;
+        OpenProjectDetails = null;
+
+        foreach (var entry in _all)
+        {
+            entry.Dispose();
+        }
+        _all.Clear();
+
+        foreach (var entry in Entries)
+        {
+            entry.Dispose();
+        }
+        Entries.Clear();
+        SelectedEntry = null;
     }
 }

@@ -180,6 +180,16 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
         _logTimer.Stop();
         _host.PropertyChanged -= OnHostPropertyChanged;
         Instance.PropertyChanged -= OnInstancePropertyChanged;
+
+        try { ModList?.Dispose(); } catch { }
+        try { ResourcePackList?.Dispose(); } catch { }
+        try { ShaderList?.Dispose(); } catch { }
+        try { WorldList?.Dispose(); } catch { }
+        try { ScreenshotList?.Dispose(); } catch { }
+
+        LogText = string.Empty;
+        LogHasContent = false;
+        MemoryTrimmer.TrimMemory();
         GC.SuppressFinalize(this);
     }
 

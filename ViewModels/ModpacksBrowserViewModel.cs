@@ -87,13 +87,13 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
 
     public string SearchPlaceholder => SelectedProjectType switch
     {
-        "mod" => "Search mods...",
-        "resourcepack" => "Search resource packs...",
-        "datapack" => "Search data packs...",
-        "shader" => "Search shaders...",
-        "plugin" => "Search servers & plugins...",
-        "world" => "Search worlds & maps...",
-        _ => "Search modpacks..."
+        "mod" => L10n.T("ph_search_mods"),
+        "resourcepack" => L10n.T("ph_search_resourcepacks"),
+        "datapack" => L10n.T("ph_search_datapacks"),
+        "shader" => L10n.T("ph_search_shaders"),
+        "plugin" => L10n.T("ph_search_plugins"),
+        "world" => L10n.T("ph_search_worlds"),
+        _ => L10n.T("ph_search_modpacks")
     };
 
     [RelayCommand]
@@ -855,6 +855,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
         {
             SelectedSort = newSort;
         };
+        L10n.LanguageChanged += () => OnPropertyChanged(nameof(SearchPlaceholder));
         _ = LoadVersionsAsync();
         _ = ReloadAsync();
     }
@@ -871,6 +872,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
 
         BrowserSortFilter.SetOptions(AvailableSortOptions, SelectedSort);
         RefreshAvailableLoaders();
+        OnPropertyChanged(nameof(SearchPlaceholder));
     }
 
     /// <summary>

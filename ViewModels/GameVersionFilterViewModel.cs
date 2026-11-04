@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CustomMcLauncher.Services;
 
 namespace CustomMcLauncher.ViewModels;
 
@@ -33,7 +34,7 @@ public partial class GameVersionFilterViewModel : ObservableObject
     private bool _showAllVersions;
 
     public int SelectedCount => Items.Count(i => i.IsSelected);
-    public string SelectedText => $"{SelectedCount} selected";
+    public string SelectedText => string.Format(L10n.T("filter_selected"), SelectedCount);
     public bool HasSelection => SelectedCount > 0;
 
     public string ButtonText
@@ -41,15 +42,24 @@ public partial class GameVersionFilterViewModel : ObservableObject
         get
         {
             var selected = Items.Where(i => i.IsSelected).Select(i => i.Name).ToList();
-            if (selected.Count == 0) return "Game version";
+            if (selected.Count == 0) return L10n.T("filter_game_version");
             if (selected.Count == 1) return selected[0];
-            return $"Game version ({selected.Count})";
+            return $"{L10n.T("filter_game_version")} ({selected.Count})";
         }
     }
 
     public IReadOnlyList<string> SelectedVersions => Items.Where(i => i.IsSelected).Select(i => i.Name).ToList();
 
     public event Action? FilterChanged;
+
+    public GameVersionFilterViewModel()
+    {
+        L10n.LanguageChanged += () =>
+        {
+            OnPropertyChanged(nameof(ButtonText));
+            OnPropertyChanged(nameof(SelectedText));
+        };
+    }
 
     partial void OnSearchTextChanged(string value) => ApplyFilter();
 

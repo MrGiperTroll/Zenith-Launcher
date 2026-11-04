@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CustomMcLauncher.Services;
 
 namespace CustomMcLauncher.ViewModels;
 
@@ -22,7 +23,7 @@ public partial class LoaderFilterViewModel : ObservableObject
     public ObservableCollection<LoaderFilterItem> Items { get; } = new();
 
     public int SelectedCount => Items.Count(i => i.IsSelected);
-    public string SelectedText => $"{SelectedCount} selected";
+    public string SelectedText => string.Format(L10n.T("filter_selected"), SelectedCount);
     public bool HasSelection => SelectedCount > 0;
 
     public string ButtonText
@@ -30,15 +31,24 @@ public partial class LoaderFilterViewModel : ObservableObject
         get
         {
             var selected = Items.Where(i => i.IsSelected).Select(i => i.DisplayName).ToList();
-            if (selected.Count == 0) return "Any loader";
+            if (selected.Count == 0) return L10n.T("filter_any_loader");
             if (selected.Count == 1) return selected[0];
-            return $"Loaders ({selected.Count})";
+            return $"{L10n.T("filter_loaders")} ({selected.Count})";
         }
     }
 
     public IReadOnlyList<string> SelectedLoaders => Items.Where(i => i.IsSelected).Select(i => i.Id).ToList();
 
     public event Action? FilterChanged;
+
+    public LoaderFilterViewModel()
+    {
+        L10n.LanguageChanged += () =>
+        {
+            OnPropertyChanged(nameof(ButtonText));
+            OnPropertyChanged(nameof(SelectedText));
+        };
+    }
 
     [RelayCommand]
     public void Clear()

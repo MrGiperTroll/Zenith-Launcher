@@ -5,6 +5,7 @@ using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CustomMcLauncher.Converters;
+using CustomMcLauncher.Services;
 
 namespace CustomMcLauncher.ViewModels;
 
@@ -46,7 +47,8 @@ public sealed partial class SortFilterViewModel : ObservableObject
         {
             var item = Items.FirstOrDefault(i => i.Id.Equals(SelectedSort, StringComparison.OrdinalIgnoreCase));
             var name = item?.DisplayName ?? (string?)SortDisplayConverter.Instance.Convert(SelectedSort, typeof(string), null, System.Globalization.CultureInfo.InvariantCulture) ?? SelectedSort;
-            return $"Sort by: {name}";
+            var prefix = L10n.T("sort_by");
+            return $"{prefix}{name}";
         }
     }
 
@@ -55,6 +57,11 @@ public sealed partial class SortFilterViewModel : ObservableObject
     public SortFilterViewModel()
     {
         SetOptions(new[] { "Relevance", "Downloads", "Newest", "Recently Updated" }, "Relevance");
+        L10n.LanguageChanged += () =>
+        {
+            SetOptions(new[] { "Relevance", "Downloads", "Newest", "Recently Updated" }, SelectedSort);
+            OnPropertyChanged(nameof(ButtonText));
+        };
     }
 
     public void SetOptions(IEnumerable<string> options, string? selected = null)

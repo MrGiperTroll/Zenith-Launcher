@@ -188,6 +188,7 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
         try { ScreenshotList?.Dispose(); } catch { }
 
         LogText = string.Empty;
+        _cachedFilteredLogText = string.Empty;
         LogHasContent = false;
         MemoryTrimmer.TrimMemory();
         GC.SuppressFinalize(this);
@@ -615,7 +616,15 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
                 try
                 {
                     using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+                    if (!fullJava && fs.Length > 256 * 1024)
+                    {
+                        fs.Seek(fs.Length - 256 * 1024, SeekOrigin.Begin);
+                    }
                     using var reader = new StreamReader(fs, Encoding.UTF8);
+                    if (!fullJava && fs.Position > 0)
+                    {
+                        reader.ReadLine(); // discard partial line
+                    }
                     var lines = new List<string>();
                     string? l;
                     while ((l = reader.ReadLine()) != null)
@@ -671,7 +680,15 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
             try
             {
                 using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+                if (fs.Length > 512 * 1024)
+                {
+                    fs.Seek(fs.Length - 512 * 1024, SeekOrigin.Begin);
+                }
                 using var reader = new StreamReader(fs, Encoding.UTF8);
+                if (fs.Position > 0)
+                {
+                    reader.ReadLine(); // discard partial line
+                }
                 var allLines = new List<string>();
                 string? line;
                 while ((line = reader.ReadLine()) != null)

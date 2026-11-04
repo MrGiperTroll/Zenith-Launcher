@@ -63,7 +63,9 @@ public static class ModrinthApiService
         }
     };
 
-    private static readonly ConcurrentDictionary<string, byte[]> IconMemoryCache = new();
+    private static readonly CustomMcLauncher.Common.Utils.LruCache<string, byte[]> IconMemoryCache = new(40, comparer: StringComparer.OrdinalIgnoreCase);
+
+    public static void ClearMemoryCache() => IconMemoryCache.Clear();
     private static readonly string IconDiskCacheDir = Path.Combine(ZenithPaths.AppDataDir, "cache", "icons");
 
     public static async Task<ModrinthSearchPage?> SearchAsync(
@@ -370,7 +372,7 @@ public static class ModrinthApiService
         if (string.IsNullOrWhiteSpace(url)) return null;
 
         // 1. Memory cache (only for smaller thumbnails <= 128KB to prevent heap bloat)
-        if (IconMemoryCache.TryGetValue(url, out var memBytes))
+        if (IconMemoryCache.TryGet(url, out var memBytes))
             return memBytes;
 
         // 2. Disk cache
@@ -386,9 +388,9 @@ public static class ModrinthApiService
                 {
                     if (diskBytes.Length <= 131072)
                     {
-                        if (IconMemoryCache.Count >= 120)
-                            IconMemoryCache.Clear();
-                        IconMemoryCache.TryAdd(url, diskBytes);
+
+
+                        IconMemoryCache.Set(url, diskBytes);
                     }
                     return diskBytes;
                 }
@@ -404,9 +406,9 @@ public static class ModrinthApiService
             {
                 if (bytes.Length <= 131072)
                 {
-                    if (IconMemoryCache.Count >= 120)
-                        IconMemoryCache.Clear();
-                    IconMemoryCache.TryAdd(url, bytes);
+
+
+                        IconMemoryCache.Set(url, bytes);
                 }
 
                 _ = Task.Run(() =>

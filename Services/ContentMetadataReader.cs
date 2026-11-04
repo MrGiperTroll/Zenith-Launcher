@@ -395,7 +395,7 @@ public static class ContentMetadataReader
         if (string.IsNullOrEmpty(path) || !File.Exists(path)) return;
         try
         {
-            entry.SetPreview(File.ReadAllBytes(path), 400);
+            entry.SetPreview(File.ReadAllBytes(path), 200);
             var size = new FileInfo(path).Length;
             entry.Meta = size > 1024 * 1024 ? $"{size / 1024d / 1024d:F1} MB" : $"{Math.Max(1, size / 1024)} KB";
         }

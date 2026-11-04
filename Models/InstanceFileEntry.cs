@@ -17,7 +17,7 @@ public enum InstanceFileKind
     DataPack
 }
 
-public partial class InstanceFileEntry : ObservableObject
+public partial class InstanceFileEntry : ObservableObject, IDisposable
 {
     public string Name { get; init; } = "";
     public string FullPath { get; init; } = "";
@@ -96,10 +96,46 @@ public partial class InstanceFileEntry : ObservableObject
 
     public void SetPreview(byte[]? bytes, int decodeWidth = 64, bool allowDirectory = false)
     {
-        _ = decodeWidth;
         if (bytes is { Length: > 0 } && (!IsDirectory || allowDirectory))
         {
-            PreviewBytes = bytes;
+            if (bytes.Length > 65536)
+            {
+                try
+                {
+                    using var stream = new MemoryStream(bytes);
+                    using var codec = SkiaSharp.SKCodec.Create(stream);
+                    if (codec != null)
+                    {
+                        int targetW = Math.Clamp(decodeWidth, 32, 256);
+                        int targetH = Math.Max(1, (int)((double)codec.Info.Height * targetW / Math.Max(1, codec.Info.Width)));
+                        var info = new SkiaSharp.SKImageInfo(targetW, targetH, SkiaSharp.SKColorType.Bgra8888, SkiaSharp.SKAlphaType.Premul);
+                        using var skBmp = new SkiaSharp.SKBitmap(info);
+                        var opts = new SkiaSharp.SKCodecOptions(0);
+                        if (codec.GetPixels(info, skBmp.GetPixels(), opts) == SkiaSharp.SKCodecResult.Success)
+                        {
+                            using var img = SkiaSharp.SKImage.FromBitmap(skBmp);
+                            using var data = img.Encode(SkiaSharp.SKEncodedImageFormat.Jpeg, 75);
+                            PreviewBytes = data.ToArray();
+                        }
+                        else
+                        {
+                            PreviewBytes = bytes;
+                        }
+                    }
+                    else
+                    {
+                        PreviewBytes = bytes;
+                    }
+                }
+                catch
+                {
+                    PreviewBytes = bytes;
+                }
+            }
+            else
+            {
+                PreviewBytes = bytes;
+            }
         }
         else
         {
@@ -107,5 +143,10 @@ public partial class InstanceFileEntry : ObservableObject
         }
 
         OnPropertyChanged(nameof(HasPreview));
+    }
+
+    public void Dispose()
+    {
+        PreviewBytes = null;
     }
 }

@@ -5,6 +5,8 @@ namespace CustomMcLauncher.Views;
 
 public partial class LauncherSettingsView : UserControl
 {
+    private LauncherSettingsViewModel? _boundVm;
+
     public LauncherSettingsView()
     {
         InitializeComponent();
@@ -13,9 +15,15 @@ public partial class LauncherSettingsView : UserControl
 
     private void OnViewDataContextChanged(object? sender, System.EventArgs e)
     {
+        if (_boundVm != null)
+        {
+            _boundVm.PropertyChanged -= OnVmPropertyChanged;
+            _boundVm = null;
+        }
+
         if (DataContext is LauncherSettingsViewModel vm)
         {
-            vm.PropertyChanged -= OnVmPropertyChanged;
+            _boundVm = vm;
             vm.PropertyChanged += OnVmPropertyChanged;
         }
     }

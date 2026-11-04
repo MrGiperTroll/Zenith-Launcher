@@ -14,6 +14,7 @@ namespace CustomMcLauncher.Views;
 public partial class EditInstanceView : UserControl
 {
     private bool _followBottom = true;
+    private EditInstanceViewModel? _boundVm;
 
     public EditInstanceView()
     {
@@ -24,9 +25,15 @@ public partial class EditInstanceView : UserControl
 
     private void OnDataContextChanged(object? sender, EventArgs e)
     {
+        if (_boundVm != null)
+        {
+            _boundVm.PropertyChanged -= OnVmPropertyChanged;
+            _boundVm = null;
+        }
+
         if (DataContext is EditInstanceViewModel vm)
         {
-            vm.PropertyChanged -= OnVmPropertyChanged;
+            _boundVm = vm;
             vm.PropertyChanged += OnVmPropertyChanged;
         }
     }

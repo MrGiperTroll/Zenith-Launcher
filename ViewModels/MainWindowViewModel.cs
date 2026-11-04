@@ -3972,7 +3972,19 @@ public partial class MainWindowViewModel : ViewModelBase
 
             Services.DiscordPresenceService.SetPlaying(instance.Name, instance.Version, accountType, DateTime.UtcNow);
 
-        _launchService.GameExited += (_, _) => Services.DiscordPresenceService.SetBrowsingProfiles();
+        _launchService.GameExited += (_, _) =>
+        {
+            Services.DiscordPresenceService.SetBrowsingProfiles();
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                if (!IsConsoleDialogOpen)
+                {
+                    ConsoleLogs = string.Empty;
+                    while (_consolePending.TryDequeue(out _)) { }
+                }
+                Services.MemoryTrimmer.TrimMemory(force: true);
+            });
+        };
 
         
 
@@ -6078,11 +6090,12 @@ public partial class MainWindowViewModel : ViewModelBase
 
         {
 
+            const int maxChars = 40_000;
             var newText = ConsoleLogs + sb;
 
-            if (newText.Length > 800_000)
+            if (newText.Length > maxChars)
 
-                newText = newText.Substring(newText.Length - 800_000);
+                newText = newText.Substring(newText.Length - maxChars);
 
             ConsoleLogs = newText;
 
@@ -6124,7 +6137,16 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [RelayCommand]
 
-    private void CloseConsoleDialog() => IsConsoleDialogOpen = false;
+    private void CloseConsoleDialog()
+    {
+        IsConsoleDialogOpen = false;
+        if (!Instances.Any(i => i.IsRunning || i.IsLaunching || _launchingInstanceIds.Contains(i.Id)))
+        {
+            ConsoleLogs = string.Empty;
+            while (_consolePending.TryDequeue(out _)) { }
+            Services.MemoryTrimmer.TrimMemory();
+        }
+    }
 
 
 

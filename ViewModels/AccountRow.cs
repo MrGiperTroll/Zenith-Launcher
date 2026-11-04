@@ -13,8 +13,9 @@ using CustomMcLauncher.Services;
 
 namespace CustomMcLauncher.ViewModels;
 
-public partial class AccountRow : ObservableObject
+public partial class AccountRow : ObservableObject, IDisposable
 {
+    public static void ClearMemoryCache() => MemoryCache.Clear();
     private static readonly HttpClient Http = new()
     {
         Timeout = TimeSpan.FromSeconds(10)
@@ -146,5 +147,15 @@ public partial class AccountRow : ObservableObject
             sb.Append(char.IsLetterOrDigit(c) || c == '-' || c == '_' ? c : '_');
         var hash = SHA256.HashData(Encoding.UTF8.GetBytes(username));
         return Path.Combine(DiskCacheDir, $"{sb}_{Convert.ToHexString(hash)[..8].ToLowerInvariant()}.png");
+    }
+
+    public void Dispose()
+    {
+        try
+        {
+            HeadImage?.Dispose();
+            HeadImage = null;
+        }
+        catch { }
     }
 }

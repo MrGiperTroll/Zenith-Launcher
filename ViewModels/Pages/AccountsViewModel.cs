@@ -12,7 +12,7 @@ using CustomMcLauncher.ViewModels.Common;
 
 namespace CustomMcLauncher.ViewModels.Pages;
 
-public partial class AccountsViewModel : ViewModelBase
+public partial class AccountsViewModel : ViewModelBase, IDisposable
 {
     private readonly IAccountService _accountService;
     private CancellationTokenSource? _authCts;
@@ -108,6 +108,10 @@ public partial class AccountsViewModel : ViewModelBase
         ActiveAccountType = activeAcc?.Type.ToString() ?? "Offline";
         SelectedAccount = activeAcc;
 
+        foreach (var r in AccountRows)
+        {
+            r.Dispose();
+        }
         AccountRows.Clear();
         foreach (var acc in allAccs)
         {
@@ -258,5 +262,15 @@ public partial class AccountsViewModel : ViewModelBase
             if (ReferenceEquals(_authCts, cts)) _authCts = null;
             IsAccountsBusy = false;
         }
+    }
+
+    public void Dispose()
+    {
+        try { _authCts?.Cancel(); _authCts?.Dispose(); } catch { }
+        _authCts = null;
+        foreach (var r in AccountRows)
+            r.Dispose();
+        AccountRows.Clear();
+        Accounts.Clear();
     }
 }

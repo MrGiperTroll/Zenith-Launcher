@@ -33,6 +33,7 @@ public static class MemoryTrimmer
                 IconPathToBitmapConverter.ClearCache();
                 BytesToBitmapConverter.ClearCache();
                 ModrinthApiService.ClearMemoryCache();
+                CustomMcLauncher.ViewModels.AccountRow.ClearMemoryCache();
 
                 // Instruct GC to compact Large Object Heap (LOH) on this pass to prevent fragmentation from image buffers
                 GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;

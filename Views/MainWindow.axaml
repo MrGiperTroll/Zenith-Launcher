@@ -1668,25 +1668,42 @@
                         <ItemsControl ItemsSource="{Binding ModpacksBrowser.TargetInstances}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="dialogs:InstanceTargetItem">
-                                    <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="10" Padding="14,12" Margin="0,0,0,8">
-                                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14" VerticalAlignment="Center">
-                                            <Border Width="42" Height="42" Background="{DynamicResource ChipBrush}" CornerRadius="8" VerticalAlignment="Center" ClipToBounds="True">
-                                                <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                    <Path IsVisible="{Binding !HasIcon}" Data="{StaticResource ZenithLogoGeometry}" Fill="{StaticResource SubtleEmeraldBrush}" Stretch="Uniform" Width="26" Height="26" Margin="0,2,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                    <Image IsVisible="{Binding HasIcon}" Source="{Binding IconPath, Converter={x:Static converters:IconPathToBitmapConverter.Instance}}" Stretch="UniformToFill" Width="42" Height="42" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                </Panel>
-                                            </Border>
-                                            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding Name}" FontSize="13.5" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                                <TextBlock Text="{Binding VersionDisplay}" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                            </StackPanel>
-                                            <Button Grid.Column="2" Classes="primaryBtn" Classes.installed="{Binding IsInstalled}"
-                                                    Command="{Binding InstallCommand}" IsEnabled="{Binding CanClickButton}"
-                                                    Padding="16,7" FontSize="12">
-                                                <TextBlock Text="{Binding ButtonText}"/>
-                                            </Button>
-                                        </Grid>
-                                    </Border>
+                                    <Button Command="{Binding InstallCommand}" Background="Transparent" BorderThickness="0" Padding="0"
+                                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Cursor="Hand">
+                                        <Button.Styles>
+                                            <Style Selector="Button:pointerover /template/ ContentPresenter">
+                                                <Setter Property="Background" Value="Transparent"/>
+                                            </Style>
+                                            <Style Selector="Button:pressed /template/ ContentPresenter">
+                                                <Setter Property="Background" Value="Transparent"/>
+                                            </Style>
+                                        </Button.Styles>
+                                        <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="10" Padding="14,12" Margin="0,0,0,8">
+                                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14" VerticalAlignment="Center">
+                                                <Border Width="42" Height="42" Background="{DynamicResource ChipBrush}" CornerRadius="8" VerticalAlignment="Center" ClipToBounds="True">
+                                                    <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                        <Path IsVisible="{Binding !HasIcon}" Data="{StaticResource ZenithLogoGeometry}" Fill="{StaticResource SubtleEmeraldBrush}" Stretch="Uniform" Width="26" Height="26" Margin="0,2,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <Image IsVisible="{Binding HasIcon}" Source="{Binding IconPath, Converter={x:Static converters:IconPathToBitmapConverter.Instance}}" Stretch="UniformToFill" Width="42" Height="42" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Panel>
+                                                </Border>
+                                                <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding Name}" FontSize="13.5" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                                    <TextBlock Text="{Binding VersionDisplay}" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                </StackPanel>
+                                                <!-- If NOT datapack: show standard Install button -->
+                                                <Button Grid.Column="2" Classes="primaryBtn" Classes.installed="{Binding IsInstalled}"
+                                                        Command="{Binding InstallCommand}" IsEnabled="{Binding CanClickButton}"
+                                                        IsVisible="{Binding !IsDatapackSelection}"
+                                                        Padding="16,7" FontSize="12">
+                                                    <TextBlock Text="{Binding ButtonText}"/>
+                                                </Button>
+                                                <!-- If datapack: show chevron icon to indicate opening world list -->
+                                                <Border Grid.Column="2" IsVisible="{Binding IsDatapackSelection}" Width="28" Height="28" CornerRadius="14" Background="{DynamicResource ChipBrush}" VerticalAlignment="Center">
+                                                    <PathIcon Data="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" Width="12" Height="12" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                    </Button>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>

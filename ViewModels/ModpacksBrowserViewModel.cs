@@ -1340,7 +1340,8 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
         TargetInstances.Clear();
         var allInstances = _instanceService.GetInstances();
         var q = InstanceSearchQuery?.Trim().ToLowerInvariant() ?? "";
-        bool isDatapack = ProjectForAddToInstance.ProjectType == "datapack";
+        bool isDatapack = SelectedProjectType == "datapack" ||
+                          string.Equals(ProjectForAddToInstance.ProjectType, "datapack", StringComparison.OrdinalIgnoreCase);
 
         foreach (var inst in allInstances)
         {
@@ -1884,6 +1885,11 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
     private async Task InstallSpecificVersionAsync(ModrinthProjectItemViewModel project, Models.ModrinthProjectVersion version)
     {
         if (project == null || project.IsInstalling) return;
+        if (IsDataPacksTab || string.Equals(project.ProjectType, "datapack", StringComparison.OrdinalIgnoreCase))
+        {
+            OpenAddToInstanceModal(project);
+            return;
+        }
         var file = version.Files.FirstOrDefault(f => f.IsPrimary) ?? version.Files.FirstOrDefault();
         if (file == null || string.IsNullOrWhiteSpace(file.Url)) return;
         var cts = new CancellationTokenSource();
@@ -2342,6 +2348,12 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
         if (SelectedProject.IsInstalling)
         {
             CancelInstall(SelectedProject);
+            return;
+        }
+
+        if (IsDataPacksTab || string.Equals(SelectedProject.ProjectType, "datapack", StringComparison.OrdinalIgnoreCase))
+        {
+            OpenAddToInstanceModal(SelectedProject);
             return;
         }
 

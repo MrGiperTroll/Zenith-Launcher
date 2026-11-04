@@ -15,6 +15,20 @@ public static class MemoryTrimmer
     private static DateTime _lastTrim = DateTime.MinValue;
     private static readonly object Gate = new();
 
+    private static readonly System.Threading.Timer _watchdogTimer = new(_ =>
+    {
+        try
+        {
+            using var proc = Process.GetCurrentProcess();
+            // Strictly cap RAM around 100-150 MB: if working set exceeds 130 MB, force a compaction and trim pass
+            if (proc.WorkingSet64 > 130L * 1024 * 1024)
+            {
+                TrimMemory(force: true);
+            }
+        }
+        catch { }
+    }, null, TimeSpan.FromSeconds(45), TimeSpan.FromSeconds(45));
+
     public static void TrimMemory(bool force = false)
     {
         lock (Gate)

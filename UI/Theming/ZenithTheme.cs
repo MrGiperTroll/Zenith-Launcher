@@ -85,26 +85,9 @@ public static class ZenithTheme
 
         ApplyFont(cfg.FontStyle, cfg.CustomFontPath);
 
-        var themeMode = cfg.ThemeMode ?? "Dark";
-        bool isLight = string.Equals(themeMode, "Light", StringComparison.OrdinalIgnoreCase);
-        if (string.Equals(themeMode, "System", StringComparison.OrdinalIgnoreCase))
-        {
-            try
-            {
-                if (app.PlatformSettings?.GetColorValues().ThemeVariant == Avalonia.Platform.PlatformThemeVariant.Light)
-                    isLight = true;
-            }
-            catch { }
-        }
-
         try
         {
-            if (string.Equals(themeMode, "System", StringComparison.OrdinalIgnoreCase))
-                app.RequestedThemeVariant = Avalonia.Styling.ThemeVariant.Default;
-            else if (isLight)
-                app.RequestedThemeVariant = Avalonia.Styling.ThemeVariant.Light;
-            else
-                app.RequestedThemeVariant = Avalonia.Styling.ThemeVariant.Dark;
+            app.RequestedThemeVariant = Avalonia.Styling.ThemeVariant.Dark;
         }
         catch { }
 
@@ -112,77 +95,50 @@ public static class ZenithTheme
         var hover = Lighten(accent, 0.16f);
         var pressed = Darken(accent, 0.2f);
 
-        bool isCustom = string.Equals(cfg.SelectedThemeCardId, "custom", StringComparison.OrdinalIgnoreCase) || cfg.IsCustomTheme;
-        Color bg, sidebarBg, surface, card, panel, field, borderDark, hoverTint, textPrimary, textSecondary;
-
-        if (isCustom && TryParse(cfg.BgColor) && TryParse(cfg.CardColor))
-        {
-            bg = Color.Parse(cfg.BgColor);
-            sidebarBg = TryParse(cfg.SidebarBgColor) ? Color.Parse(cfg.SidebarBgColor) : bg;
-            surface = TryParse(cfg.SurfaceColor) ? Color.Parse(cfg.SurfaceColor) : Color.Parse(cfg.CardColor);
-            card = Color.Parse(cfg.CardColor);
-            panel = TryParse(cfg.PanelColor) ? Color.Parse(cfg.PanelColor) : card;
-            field = TryParse(cfg.FieldColor) ? Color.Parse(cfg.FieldColor) : bg;
-
-            bool bgIsLight = (bg.R * 0.299 + bg.G * 0.587 + bg.B * 0.114) > 128;
-            try
-            {
-                app.RequestedThemeVariant = bgIsLight ? Avalonia.Styling.ThemeVariant.Light : Avalonia.Styling.ThemeVariant.Dark;
-            }
-            catch { }
-
-            borderDark = TryParse(cfg.BorderDarkColor) ? Color.Parse(cfg.BorderDarkColor) : (bgIsLight ? Color.Parse("#D1D5DB") : Color.Parse("#25272D"));
-            hoverTint = TryParse(cfg.HoverColor) ? Color.Parse(cfg.HoverColor) : (bgIsLight ? Color.Parse("#E5E7EB") : Color.Parse("#222429"));
-            textPrimary = TryParse(cfg.TextPrimaryColor) ? Color.Parse(cfg.TextPrimaryColor) : (bgIsLight ? Color.Parse("#111827") : Colors.White);
-            textSecondary = TryParse(cfg.TextSecondaryColor) ? Color.Parse(cfg.TextSecondaryColor) : (bgIsLight ? Color.Parse("#4B5563") : Color.Parse("#8E929B"));
-        }
-        else
-        {
-            var harmonized = GenerateHarmonizedPalette(AccentHex, isLight ? "Light" : "Dark");
-            bg = Color.Parse(harmonized.BgColor!);
-            sidebarBg = Color.Parse(harmonized.SidebarBgColor!);
-            surface = Color.Parse(harmonized.SurfaceColor!);
-            card = Color.Parse(harmonized.CardColor!);
-            panel = Color.Parse(harmonized.PanelColor!);
-            field = Color.Parse(harmonized.FieldColor!);
-            borderDark = Color.Parse(harmonized.BorderDarkColor!);
-            hoverTint = Color.Parse(harmonized.HoverColor!);
-            textPrimary = Color.Parse(harmonized.TextPrimaryColor!);
-            textSecondary = Color.Parse(harmonized.TextSecondaryColor!);
-        }
+        var harmonized = GenerateHarmonizedPalette(AccentHex, "Dark");
+        var bg = Color.Parse(harmonized.BgColor!);
+        var sidebarBg = Color.Parse(harmonized.SidebarBgColor!);
+        var surface = Color.Parse(harmonized.SurfaceColor!);
+        var card = Color.Parse(harmonized.CardColor!);
+        var panel = Color.Parse(harmonized.PanelColor!);
+        var field = Color.Parse(harmonized.FieldColor!);
+        var borderDark = Color.Parse(harmonized.BorderDarkColor!);
+        var hoverTint = Color.Parse(harmonized.HoverColor!);
+        var textPrimary = Color.Parse(harmonized.TextPrimaryColor!);
+        var textSecondary = Color.Parse(harmonized.TextSecondaryColor!);
 
         // Surfaces
         SetBrushColor(r, "BgBrush", bg);
         SetBrushColor(r, "SidebarBgBrush", sidebarBg);
         SetBrushColor(r, "SurfaceBrush", surface);
-        SetBrushColor(r, "ContentSurfaceBrush", isLight ? Color.Parse("#F1F5F9") : Blend(surface, bg, 0.4f));
+        SetBrushColor(r, "ContentSurfaceBrush", Blend(surface, bg, 0.4f));
         SetBrushColor(r, "CardBrush", card);
-        SetBrushColor(r, "CardAltBrush", isLight ? Color.Parse("#F8FAFC") : Blend(card, surface, 0.45f));
+        SetBrushColor(r, "CardAltBrush", Blend(card, surface, 0.45f));
         SetBrushColor(r, "PanelBrush", panel);
         SetBrushColor(r, "PanelBrushTransparent", Color.FromArgb(0, panel.R, panel.G, panel.B));
         SetBrushColor(r, "FieldBrush", field);
-        SetBrushColor(r, "InputFocusBrush", isLight ? Color.Parse("#FFFFFF") : Blend(field, bg, 0.35f));
-        SetBrushColor(r, "ChipBrush", isLight ? Color.Parse("#E2E8F0") : Blend(card, panel, 0.5f));
-        SetBrushColor(r, "IconChipBrush", isLight ? Color.Parse("#E2E8F0") : Blend(card, bg, 0.5f));
-        SetBrushColor(r, "LogSidebarBrush", isLight ? Color.Parse("#EAECEF") : Blend(bg, sidebarBg, 0.5f));
+        SetBrushColor(r, "InputFocusBrush", Blend(field, bg, 0.35f));
+        SetBrushColor(r, "ChipBrush", Blend(card, panel, 0.5f));
+        SetBrushColor(r, "IconChipBrush", Blend(card, bg, 0.5f));
+        SetBrushColor(r, "LogSidebarBrush", Blend(bg, sidebarBg, 0.5f));
 
         // Hovers and Tabs
         SetBrushColor(r, "RowHoverBrush", hoverTint);
         SetBrushColor(r, "RowHoverBrushTransparent", Color.FromArgb(0, hoverTint.R, hoverTint.G, hoverTint.B));
-        var tabActive = isLight ? Blend(accent, Color.Parse("#FFFFFF"), 0.16f) : Blend(accent, sidebarBg, 0.22f);
+        var tabActive = Blend(accent, sidebarBg, 0.22f);
         SetBrushColor(r, "TabActiveBrush", tabActive);
         SetBrushColor(r, "TabActiveBrushTransparent", Color.FromArgb(0, tabActive.R, tabActive.G, tabActive.B));
-        SetBrushColor(r, "TabHoverBrush", isLight ? Blend(accent, Color.Parse("#FFFFFF"), 0.08f) : Blend(accent, sidebarBg, 0.14f));
-        SetBrushColor(r, "TabPressedBrush", isLight ? Blend(pressed, Color.Parse("#FFFFFF"), 0.24f) : Blend(pressed, sidebarBg, 0.28f));
+        SetBrushColor(r, "TabHoverBrush", Blend(accent, sidebarBg, 0.14f));
+        SetBrushColor(r, "TabPressedBrush", Blend(pressed, sidebarBg, 0.28f));
 
-        // Borders (Neutral adaptive style)
-        var borderStrong = isLight ? Color.Parse("#94A3B8") : Color.Parse("#2E3038");
-        var borderCardSoft = isLight ? Color.Parse("#E2E8F0") : Color.Parse("#26282E");
-        var borderInput = isLight ? Color.Parse("#CBD5E1") : Color.Parse("#282A30");
-        var borderHover = isLight ? Color.Parse("#64748B") : Color.Parse("#3A3D46");
-        var borderEditor = isLight ? Color.Parse("#CBD5E1") : Color.Parse("#282A30");
-        var borderIcon = isLight ? Color.Parse("#E2E8F0") : Color.Parse("#26282E");
-        var borderSoft = isLight ? Color.Parse("#E2E8F0") : Color.Parse("#222428");
+        // Borders (Neutral dark style)
+        var borderStrong = Color.Parse("#2E3038");
+        var borderCardSoft = Color.Parse("#26282E");
+        var borderInput = Color.Parse("#282A30");
+        var borderHover = Color.Parse("#3A3D46");
+        var borderEditor = Color.Parse("#282A30");
+        var borderIcon = Color.Parse("#26282E");
+        var borderSoft = Color.Parse("#222428");
 
         SetBrushColor(r, "BorderDarkBrush", borderDark);
         SetBrushColor(r, "BorderStrongBrush", borderStrong);
@@ -344,45 +300,13 @@ public static class ZenithTheme
     public static Models.LauncherConfigData GenerateHarmonizedPalette(string accentHex, string themeMode = "Dark")
     {
         if (!TryParse(accentHex)) accentHex = DefaultAccent;
-        var accent = Color.Parse(accentHex);
 
-        bool isLight = string.Equals(themeMode, "Light", StringComparison.OrdinalIgnoreCase);
-        if (string.Equals(themeMode, "System", StringComparison.OrdinalIgnoreCase))
-        {
-            try
-            {
-                if (Application.Current?.PlatformSettings?.GetColorValues().ThemeVariant == Avalonia.Platform.PlatformThemeVariant.Light)
-                    isLight = true;
-            }
-            catch { }
-        }
-
-        if (isLight)
-        {
-            return new Models.LauncherConfigData
-            {
-                AccentColor = accentHex,
-                SimpleAccentColor = accentHex,
-                ThemeMode = themeMode,
-                BgColor = "#F5F6F8",
-                SidebarBgColor = "#EAECEF",
-                SurfaceColor = "#FFFFFF",
-                CardColor = "#FFFFFF",
-                PanelColor = "#F0F2F5",
-                FieldColor = "#F3F4F7",
-                HoverColor = "#E5E7EB",
-                BorderDarkColor = "#D1D5DB",
-                TextPrimaryColor = "#111827",
-                TextSecondaryColor = "#4B5563"
-            };
-        }
-
-        // Neutral charcoal base (Qoder design): crisp, matte, perfectly neutral borders
+        // Neutral charcoal dark base: crisp, matte, perfectly neutral dark borders
         return new Models.LauncherConfigData
         {
             AccentColor = accentHex,
             SimpleAccentColor = accentHex,
-            ThemeMode = themeMode,
+            ThemeMode = "Dark",
             BgColor = "#131416",
             SidebarBgColor = "#101113",
             SurfaceColor = "#18191C",
@@ -400,17 +324,14 @@ public static class ZenithTheme
 
     public static readonly ThemePreset[] Presets =
     {
-        new("blue", "Blue", "Синий", "#3B82F6"),
-        new("green", "Green", "Зелёный", "#10B981"),
-        new("purple", "Purple", "Фиолетовый", "#8B5CF6"),
-        new("dark_purple", "Dark Purple", "Тёмно-фиолетовый", "#6D28D9"),
-        new("pink", "Pink", "Розовый", "#EC4899"),
-        new("orange", "Orange", "Оранжевый", "#F97316"),
-        new("cyan", "Cyan", "Бирюзовый", "#06B6D4"),
-        new("red", "Red", "Красный", "#EF4444"),
-        new("yellow", "Yellow", "Жёлтый", "#F59E0B"),
-        new("sky", "Sky Blue", "Голубой", "#0284C7"),
-        new("custom", "Custom", "Свой", "", true)
+        new("zenith", "Zenith", "Zenith", "#8B5CF6"),
+        new("cobalt", "Cobalt", "Кобальт", "#3B82F6"),
+        new("forest", "Forest", "Лес", "#10B981"),
+        new("mint", "Mint", "Мята", "#06B6D4"),
+        new("bee", "Bee", "Пчела", "#EAB308"),
+        new("parchment", "Parchment", "Пергамент", "#FB923C"),
+        new("crimson", "Crimson", "Багрянец", "#E11D48"),
+        new("rose", "Rose", "Роза", "#EC4899")
     };
 }
 
@@ -431,8 +352,6 @@ public class ThemePreset
         NameRu = nameRu;
         HexColor = hexColor;
         IsCustomPicker = isCustomPicker;
-        ColorBrush = isCustomPicker
-            ? Brushes.Transparent
-            : new SolidColorBrush(Color.Parse(hexColor));
+        ColorBrush = isCustomPicker ? Brushes.Transparent : new SolidColorBrush(Color.Parse(hexColor));
     }
 }

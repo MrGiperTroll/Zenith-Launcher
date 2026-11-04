@@ -928,7 +928,7 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
 
         BrowserSourceFilter = new SourceFilterViewModel(SelectedSource, s =>
         {
-            SelectSource(s == ContentSource.CurseForge ? "curseforge" : "modrinth");
+            SelectSource(s switch { ContentSource.All => "all", ContentSource.CurseForge => "curseforge", _ => "modrinth" });
         });
 
         RefreshWorlds();

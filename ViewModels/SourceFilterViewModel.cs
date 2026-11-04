@@ -1,8 +1,6 @@
 using System;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using CustomMcLauncher.Models;
-using CustomMcLauncher.Services;
 
 namespace CustomMcLauncher.ViewModels;
 
@@ -13,53 +11,97 @@ public sealed partial class SourceFilterViewModel : ObservableObject
     [ObservableProperty]
     private ContentSource _selectedSource = ContentSource.Modrinth;
 
-    public bool IsAllSource => SelectedSource == ContentSource.All;
-    public bool IsModrinthSource => SelectedSource == ContentSource.Modrinth;
-    public bool IsCurseForgeSource => SelectedSource == ContentSource.CurseForge;
+    [ObservableProperty]
+    private bool _isModrinthSelected = true;
 
-    public string ButtonText => SelectedSource switch
+    [ObservableProperty]
+    private bool _isCurseForgeSelected = false;
+
+    public bool IsAllSource => IsModrinthSelected && IsCurseForgeSelected;
+    public bool IsModrinthOnly => IsModrinthSelected && !IsCurseForgeSelected;
+    public bool IsCurseForgeOnly => !IsModrinthSelected && IsCurseForgeSelected;
+
+    public string ButtonText => (IsModrinthSelected, IsCurseForgeSelected) switch
     {
-        ContentSource.All => L10n.T("source_all"),
-        ContentSource.CurseForge => "CurseForge",
+        (true, true) => "Modrinth, CurseForge",
+        (false, true) => "CurseForge",
         _ => "Modrinth"
     };
 
     public SourceFilterViewModel(ContentSource initial, Action<ContentSource> onSourceChanged)
     {
-        _selectedSource = initial;
         _onSourceChanged = onSourceChanged;
-        L10n.LanguageChanged += NotifyStateChanged;
+        _selectedSource = initial;
+        _isModrinthSelected = initial is ContentSource.Modrinth or ContentSource.All;
+        _isCurseForgeSelected = initial is ContentSource.CurseForge or ContentSource.All;
     }
 
-    [RelayCommand]
-    public void SelectSource(string source)
+    partial void OnIsModrinthSelectedChanged(bool value)
     {
-        var newSource = source?.ToLowerInvariant() switch
+        if (!value && !IsCurseForgeSelected)
         {
-            "all" or "both" => ContentSource.All,
-            "curseforge" => ContentSource.CurseForge,
+            // Do not allow deselecting both: at least one source must remain active
+            IsModrinthSelected = true;
+            return;
+        }
+
+        SyncSource();
+    }
+
+    partial void OnIsCurseForgeSelectedChanged(bool value)
+    {
+        if (!value && !IsModrinthSelected)
+        {
+            // Do not allow deselecting both: at least one source must remain active
+            IsCurseForgeSelected = true;
+            return;
+        }
+
+        SyncSource();
+    }
+
+    private void SyncSource()
+    {
+        var newSource = (IsModrinthSelected, IsCurseForgeSelected) switch
+        {
+            (true, true) => ContentSource.All,
+            (false, true) => ContentSource.CurseForge,
             _ => ContentSource.Modrinth
         };
 
-        if (SelectedSource == newSource) return;
-
-        SelectedSource = newSource;
-        NotifyStateChanged();
-        _onSourceChanged(newSource);
+        if (SelectedSource != newSource)
+        {
+            SelectedSource = newSource;
+            NotifyStateChanged();
+            _onSourceChanged(newSource);
+        }
+        else
+        {
+            NotifyStateChanged();
+        }
     }
 
     public void SetSource(ContentSource source)
     {
-        if (SelectedSource == source) return;
+        bool modrinth = source is ContentSource.Modrinth or ContentSource.All;
+        bool curseforge = source is ContentSource.CurseForge or ContentSource.All;
+
+        if (IsModrinthSelected == modrinth && IsCurseForgeSelected == curseforge && SelectedSource == source)
+            return;
+
+        IsModrinthSelected = modrinth;
+        IsCurseForgeSelected = curseforge;
         SelectedSource = source;
+
         NotifyStateChanged();
     }
 
     public void NotifyStateChanged()
     {
+        OnPropertyChanged(nameof(SelectedSource));
         OnPropertyChanged(nameof(IsAllSource));
-        OnPropertyChanged(nameof(IsModrinthSource));
-        OnPropertyChanged(nameof(IsCurseForgeSource));
+        OnPropertyChanged(nameof(IsModrinthOnly));
+        OnPropertyChanged(nameof(IsCurseForgeOnly));
         OnPropertyChanged(nameof(ButtonText));
     }
 }

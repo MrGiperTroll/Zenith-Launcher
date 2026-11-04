@@ -1,10 +1,10 @@
 using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Globalization;
-using System.Runtime.CompilerServices;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using CustomMcLauncher.Common.Utils;
 
 namespace CustomMcLauncher.Converters;
 
@@ -12,9 +12,11 @@ public class IconPathToBitmapConverter : IValueConverter
 {
     public static readonly IconPathToBitmapConverter Instance = new();
 
-    // Path -> decoded bitmap. Bounded; bitmaps die with the cache entry,
-    // re-evaluation reuses instead of decoding again.
-    private static readonly ConcurrentDictionary<string, (Bitmap Bmp, DateTime WriteUtc)> _cache = new();
+    // Path -> decoded bitmap bounded with LRU eviction. Disposes bitmaps on eviction or clear.
+    private static readonly LruCache<string, (Bitmap Bmp, DateTime WriteUtc)> _cache =
+        new(40, entry => { try { entry.Bmp?.Dispose(); } catch { } }, StringComparer.OrdinalIgnoreCase);
+
+    public static void ClearCache() => _cache.Clear();
 
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
@@ -23,14 +25,15 @@ public class IconPathToBitmapConverter : IValueConverter
             try
             {
                 var writeUtc = System.IO.File.GetLastWriteTimeUtc(path);
-                if (_cache.TryGetValue(path, out var hit) && hit.WriteUtc == writeUtc)
+                if (_cache.TryGet(path, out var hit) && hit.WriteUtc == writeUtc)
                     return hit.Bmp;
+
                 var info = new System.IO.FileInfo(path);
                 if (info.Length > 8 * 1024 * 1024) return null;
-                if (_cache.Count >= 200) _cache.Clear();
+
                 using var fs = System.IO.File.OpenRead(path);
                 var bmp = Bitmap.DecodeToWidth(fs, 96);
-                _cache[path] = (bmp, writeUtc);
+                _cache.Set(path, (bmp, writeUtc));
                 return bmp;
             }
             catch { return null; }
@@ -72,8 +75,11 @@ public class BytesToBitmapConverter : IValueConverter
 {
     public static readonly BytesToBitmapConverter Instance = new();
 
-    // Bitmap lives exactly as long as its source bytes: re-evaluation reuses it.
-    private static readonly ConditionalWeakTable<byte[], Bitmap> _cache = new();
+    // Bounded LRU cache for decoded byte previews, ensuring evicted bitmaps are disposed immediately.
+    private static readonly LruCache<byte[], Bitmap> _cache =
+        new(48, bmp => { try { bmp?.Dispose(); } catch { } }, ReferenceEqualityComparer.Instance);
+
+    public static void ClearCache() => _cache.Clear();
 
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
@@ -81,11 +87,12 @@ public class BytesToBitmapConverter : IValueConverter
         {
             try
             {
-                if (_cache.TryGetValue(bytes, out var hit))
+                if (_cache.TryGet(bytes, out var hit))
                     return hit;
+
                 using var ms = new System.IO.MemoryStream(bytes);
                 var bmp = Bitmap.DecodeToWidth(ms, 128);
-                _cache.Add(bytes, bmp);
+                _cache.Set(bytes, bmp);
                 return bmp;
             }
             catch

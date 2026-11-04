@@ -53,7 +53,7 @@ public class LauncherConfigData
 
     public string ThemeSubTab { get; set; } = "Simple";
     public string ThemeMode { get; set; } = "Dark";
-    public string SelectedThemeCardId { get; set; } = "forest";
+    public string SelectedThemeCardId { get; set; } = "zenith";
     public bool IsCustomTheme { get; set; } = false;
     public string FontStyle { get; set; } = "Sans";
     public string CustomFontPath { get; set; } = string.Empty;

@@ -570,7 +570,7 @@ public partial class LauncherSettingsViewModel : ViewModelBase
     }
 
     // --- Appearance & Theming ---
-    [ObservableProperty] private string _selectedThemeCardId = "purple";
+    [ObservableProperty] private string _selectedThemeCardId = "zenith";
     [ObservableProperty] private bool _isCustomThemeActive = false;
     [ObservableProperty] private string _customAccentHex = "#8B5CF6";
     [ObservableProperty] private IBrush _customAccentBrush = new SolidColorBrush(Color.Parse("#8B5CF6"));
@@ -599,12 +599,28 @@ public partial class LauncherSettingsViewModel : ViewModelBase
         ThemeCards.Clear();
         ThemeCards.Add(new ThemeCardModel
         {
+            Id = "zenith",
+            Name = "Zenith",
+            AccentHex = "#8B5CF6",
+            AccentBrush = new SolidColorBrush(Color.Parse("#8B5CF6")),
+            SoftBrush = new SolidColorBrush(Color.FromArgb(0x40, 139, 92, 246)),
+            IsSelected = true
+        });
+        ThemeCards.Add(new ThemeCardModel
+        {
+            Id = "cobalt",
+            Name = "Cobalt",
+            AccentHex = "#3B82F6",
+            AccentBrush = new SolidColorBrush(Color.Parse("#3B82F6")),
+            SoftBrush = new SolidColorBrush(Color.FromArgb(0x40, 59, 130, 246))
+        });
+        ThemeCards.Add(new ThemeCardModel
+        {
             Id = "forest",
             Name = "Forest",
             AccentHex = "#10B981",
             AccentBrush = new SolidColorBrush(Color.Parse("#10B981")),
-            SoftBrush = new SolidColorBrush(Color.FromArgb(0x40, 16, 185, 129)),
-            IsSelected = true
+            SoftBrush = new SolidColorBrush(Color.FromArgb(0x40, 16, 185, 129))
         });
         ThemeCards.Add(new ThemeCardModel
         {
@@ -629,22 +645,6 @@ public partial class LauncherSettingsViewModel : ViewModelBase
             AccentHex = "#FB923C",
             AccentBrush = new SolidColorBrush(Color.Parse("#FB923C")),
             SoftBrush = new SolidColorBrush(Color.FromArgb(0x40, 251, 146, 60))
-        });
-        ThemeCards.Add(new ThemeCardModel
-        {
-            Id = "cobalt",
-            Name = "Cobalt",
-            AccentHex = "#3B82F6",
-            AccentBrush = new SolidColorBrush(Color.Parse("#3B82F6")),
-            SoftBrush = new SolidColorBrush(Color.FromArgb(0x40, 59, 130, 246))
-        });
-        ThemeCards.Add(new ThemeCardModel
-        {
-            Id = "zenith",
-            Name = "Zenith",
-            AccentHex = "#8B5CF6",
-            AccentBrush = new SolidColorBrush(Color.Parse("#8B5CF6")),
-            SoftBrush = new SolidColorBrush(Color.FromArgb(0x40, 139, 92, 246))
         });
         ThemeCards.Add(new ThemeCardModel
         {
@@ -701,22 +701,46 @@ public partial class LauncherSettingsViewModel : ViewModelBase
     [RelayCommand]
     public void SelectThemeCard(string cardId)
     {
-        SelectedThemeCardId = cardId;
-        IsCustomThemeActive = (cardId == "custom");
+        if (cardId == "custom")
+        {
+            SelectedThemeCardId = "custom";
+            foreach (var card in ThemeCards)
+                card.IsSelected = (card.Id == "custom");
+            IsCustomThemeActive = true;
+            return;
+        }
 
-        foreach (var card in ThemeCards)
-            card.IsSelected = (card.Id == cardId);
+        if (cardId == SelectedThemeCardId) return;
 
-        ApplyCurrentThemeLive();
-        SaveConfigRequested?.Invoke();
+        PendingThemeCardId = cardId;
+        PendingThemeMode = null;
+        IsThemeRestartDialogOpen = true;
     }
 
     [RelayCommand]
     public void ConfirmThemeRestart()
     {
+        if (!string.IsNullOrEmpty(PendingThemeCardId))
+        {
+            SelectedThemeCardId = PendingThemeCardId;
+            foreach (var card in ThemeCards)
+                card.IsSelected = (card.Id == SelectedThemeCardId);
+            IsCustomThemeActive = (SelectedThemeCardId == "custom");
+            PendingThemeCardId = null;
+        }
+
+        if (!string.IsNullOrEmpty(PendingThemeMode))
+        {
+            SelectedThemeMode = PendingThemeMode;
+            foreach (var mode in ThemeModes)
+                mode.IsSelected = string.Equals(mode.Id, SelectedThemeMode, StringComparison.OrdinalIgnoreCase);
+            SelectedThemeModeItem = ThemeModes.FirstOrDefault(m => string.Equals(m.Id, SelectedThemeMode, StringComparison.OrdinalIgnoreCase));
+            PendingThemeMode = null;
+        }
+
         IsThemeRestartDialogOpen = false;
-        ApplyCurrentThemeLive();
         SaveConfigRequested?.Invoke();
+        ZenithTheme.RestartLauncher();
     }
 
     [RelayCommand]
@@ -726,17 +750,52 @@ public partial class LauncherSettingsViewModel : ViewModelBase
         PendingThemeMode = null;
         IsThemeRestartDialogOpen = false;
         SelectedThemeModeItem = ThemeModes.FirstOrDefault(m => string.Equals(m.Id, SelectedThemeMode, StringComparison.OrdinalIgnoreCase));
+        foreach (var card in ThemeCards)
+            card.IsSelected = (card.Id == SelectedThemeCardId);
     }
 
     [RelayCommand]
     public void ApplyCustomTheme()
     {
-        SelectedThemeCardId = "custom";
-        foreach (var card in ThemeCards)
-            card.IsSelected = (card.Id == "custom");
-        IsCustomThemeActive = true;
-        ApplyCurrentThemeLive();
-        SaveConfigRequested?.Invoke();
+        PendingThemeCardId = "custom";
+        PendingThemeMode = null;
+        IsThemeRestartDialogOpen = true;
+    }
+
+    [RelayCommand]
+    public void ResetCustomTheme()
+    {
+        CustomAccentHex = "#8B5CF6";
+        CustomBgHex = "#131416";
+        CustomCardHex = "#18191C";
+    }
+
+    [RelayCommand]
+    public void AutoHarmonizeCustomPalette()
+    {
+        var harmonized = ZenithTheme.GenerateHarmonizedPalette(CustomAccentHex, SelectedThemeMode);
+        CustomBgHex = harmonized.BgColor ?? "#131416";
+        CustomCardHex = harmonized.CardColor ?? "#18191C";
+    }
+
+    [RelayCommand]
+    public void SetCustomBaseTone(string tone)
+    {
+        if (string.Equals(tone, "Light", StringComparison.OrdinalIgnoreCase))
+        {
+            CustomBgHex = "#F5F6F8";
+            CustomCardHex = "#FFFFFF";
+        }
+        else if (string.Equals(tone, "Oled", StringComparison.OrdinalIgnoreCase))
+        {
+            CustomBgHex = "#0A0B0E";
+            CustomCardHex = "#121316";
+        }
+        else
+        {
+            CustomBgHex = "#131416";
+            CustomCardHex = "#18191C";
+        }
     }
 
     [RelayCommand]
@@ -805,14 +864,18 @@ public partial class LauncherSettingsViewModel : ViewModelBase
     partial void OnSelectedThemeModeItemChanged(ThemeModeItem? value)
     {
         if (value == null) return;
-        SelectedThemeMode = value.Id;
-        foreach (var mode in ThemeModes)
-            mode.IsSelected = string.Equals(mode.Id, SelectedThemeMode, StringComparison.OrdinalIgnoreCase);
-
-        if (!_isLoadingConfig)
+        if (!string.Equals(SelectedThemeMode, value.Id, StringComparison.OrdinalIgnoreCase))
         {
-            ApplyCurrentThemeLive();
-            SaveConfigRequested?.Invoke();
+            if (!_isLoadingConfig)
+            {
+                PendingThemeMode = value.Id;
+                PendingThemeCardId = null;
+                IsThemeRestartDialogOpen = true;
+            }
+            else
+            {
+                SelectedThemeMode = value.Id;
+            }
         }
     }
 

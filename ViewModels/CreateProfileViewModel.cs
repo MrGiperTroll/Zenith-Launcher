@@ -27,7 +27,7 @@ public partial class VersionGroup : ObservableObject
 /// <summary>One row of the flat version list: version id plus its type tag.</summary>
 public sealed record FlatVersionItem(string Name, string Kind);
 
-public partial class CreateProfileViewModel : ObservableObject
+public partial class CreateProfileViewModel : ObservableObject, IDisposable
 {
     private readonly IInstanceService _instanceService;
     private readonly ModLoaderService _modLoaderService;
@@ -992,6 +992,14 @@ public partial class CreateProfileViewModel : ObservableObject
             await _instanceService.SaveInstanceAsync(inst);
             ProfileCreated?.Invoke(inst);
         }
+    }
+
+    public void Dispose()
+    {
+        try { IconPreview?.Dispose(); } catch { }
+        IconPreview = null;
+        AvailableIcons.Clear();
+        _cachedVersions.Clear();
     }
 }
 

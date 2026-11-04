@@ -26,7 +26,7 @@ public partial class ServerItemEntry : ObservableObject
     [ObservableProperty] private string _subtitle = "Local Server";
 }
 
-public partial class CreateServerViewModel : ObservableObject
+public partial class CreateServerViewModel : ObservableObject, IDisposable
 {
     private readonly ServerCreatorService _serverService = new();
     private readonly MainWindowViewModel _host;
@@ -476,6 +476,8 @@ public partial class CreateServerViewModel : ObservableObject
     }
 
     /// <summary>Stops timers and releases bitmaps/process handles held by this VM.</summary>
+    public void Dispose() => Teardown();
+
     public void Teardown()
     {
         try { _uptimeTimer.Stop(); } catch { }
@@ -494,7 +496,11 @@ public partial class CreateServerViewModel : ObservableObject
             foreach (var entry in ExistingServersList)
                 entry.IconBitmap?.Dispose();
             ServerIconBitmap?.Dispose();
+            ServerIconBitmap = null;
             WorldIconBitmap?.Dispose();
+
+
+            WorldIconBitmap = null;
         }
         catch { }
     }
@@ -2553,6 +2559,10 @@ public partial class CreateServerViewModel : ObservableObject
         if (!Directory.Exists(worldDir))
         {
             WorldIconBitmap?.Dispose();
+
+
+            WorldIconBitmap = null;
+
             WorldIconBitmap = null;
             HasWorldIcon = false;
             WorldSizeDisplay = "Not generated yet";

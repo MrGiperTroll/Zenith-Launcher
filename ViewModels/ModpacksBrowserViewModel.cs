@@ -1526,12 +1526,21 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
 
     partial void OnInstanceSearchQueryChanged(string value) => RefreshTargetInstances();
 
+    private void ClearTargetWorlds()
+    {
+        foreach (var w in TargetWorlds)
+        {
+            w.Dispose();
+        }
+        TargetWorlds.Clear();
+    }
+
     [RelayCommand]
     public void BackToInstances()
     {
         IsSelectWorldStep = false;
         SelectedTargetInstanceForWorld = null;
-        TargetWorlds.Clear();
+        ClearTargetWorlds();
         OnPropertyChanged(nameof(AddToInstanceModalTitle));
         OnPropertyChanged(nameof(IsSelectWorldStep));
     }
@@ -1542,7 +1551,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
         IsAddToInstanceOpen = false;
         IsSelectWorldStep = false;
         SelectedTargetInstanceForWorld = null;
-        TargetWorlds.Clear();
+        ClearTargetWorlds();
         ProjectForAddToInstance = null;
         TargetInstances.Clear();
         OnPropertyChanged(nameof(AddToInstanceModalTitle));
@@ -1557,7 +1566,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
         InstanceSearchQuery = "";
         IsSelectWorldStep = false;
         SelectedTargetInstanceForWorld = null;
-        TargetWorlds.Clear();
+        ClearTargetWorlds();
         RefreshTargetInstances();
         OnPropertyChanged(nameof(AddToInstanceModalTitle));
         OnPropertyChanged(nameof(IsSelectWorldStep));
@@ -1599,7 +1608,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
     public void OpenSelectWorldStep(InstanceModel instance)
     {
         SelectedTargetInstanceForWorld = instance;
-        TargetWorlds.Clear();
+        ClearTargetWorlds();
 
         var savesDir = Path.Combine(instance.Path, "saves");
         if (Directory.Exists(savesDir))
@@ -1952,6 +1961,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
             try { r.Icon?.Dispose(); } catch { }
         }
         Results.Clear();
+        ClearTargetWorlds();
         MemoryTrimmer.TrimMemory();
     }
 

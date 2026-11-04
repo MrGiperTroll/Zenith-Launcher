@@ -7,7 +7,7 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace CustomMcLauncher.ViewModels.Dialogs;
 
-public sealed partial class WorldTargetItem : ObservableObject
+public sealed partial class WorldTargetItem : ObservableObject, IDisposable
 {
     public string FolderName { get; }
     public string WorldName { get; }
@@ -62,5 +62,10 @@ public sealed partial class WorldTargetItem : ObservableObject
         {
             IsInstalling = false;
         }
+    }
+
+    public void Dispose()
+    {
+        try { IconBitmap?.Dispose(); } catch { }
     }
 }

@@ -120,6 +120,25 @@
             <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
         </Style>
+
+        <Style Selector="Button.sourceTabBtn">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="8,0"/>
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Button.sourceTabBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        </Style>
+        <Style Selector="Button.sourceTabBtn.active /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource AccentDimBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        </Style>
         <!-- Tag chips: /template/ setters are required because the Fluent theme
              overrides the ContentPresenter background on :pointerover, which would
              otherwise wash out inline backgrounds. Selected chips stay green on hover. -->
@@ -228,59 +247,73 @@
 
     <Panel>
     <Grid RowDefinitions="Auto,*" Margin="14">
-        <!-- Header: Unified Seamless Filter Bar -->
-        <Border Grid.Row="0" Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
-                BorderThickness="1" CornerRadius="8" Height="36" Margin="0,0,0,16" Padding="0"
-                IsVisible="{Binding !IsDetailsOpen}">
-            <Grid ColumnDefinitions="140,1,*,1,130,1,36" VerticalAlignment="Center">
-                <!-- 1. Category Dropdown -->
-                <ComboBox Grid.Column="0" Classes="toolbarCombo" Height="34" ItemsSource="{Binding AvailableContentTypes}" SelectedItem="{Binding SelectedContentType}" VerticalAlignment="Center">
-                    <ComboBox.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding Converter={x:Static converters:ContentBrowserConverters.ContentTypeDisplay}}"/>
-                        </DataTemplate>
-                    </ComboBox.ItemTemplate>
-                </ComboBox>
+        <!-- Top Toolbar & Filters Section -->
+        <StackPanel Grid.Row="0" Spacing="10" Margin="0,0,0,16" IsVisible="{Binding !IsDetailsOpen}">
+            <!-- 1. Search Box -->
+            <TextBox Classes="darkInput" Height="40"
+                     Text="{Binding SearchQuery}"
+                     PlaceholderText="{l10n:Tr Key=ph_search_content}"
+                     FontSize="12.5" VerticalAlignment="Center">
+                <TextBox.KeyBindings>
+                    <KeyBinding Gesture="Enter" Command="{Binding SearchCommand}"/>
+                </TextBox.KeyBindings>
+                <TextBox.InnerLeftContent>
+                    <PathIcon Data="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
+                              Width="14" Height="14" Foreground="{DynamicResource TextPlaceholderBrush}" Margin="12,0,4,0"/>
+                </TextBox.InnerLeftContent>
+                <TextBox.InnerRightContent>
+                    <Button Command="{Binding ClearSearchCommand}"
+                            IsVisible="{Binding SearchQuery, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}"
+                            Background="Transparent" BorderThickness="0" Padding="8,0" Cursor="Hand" Content="✕"
+                            Foreground="{DynamicResource TextPlaceholderBrush}"/>
+                </TextBox.InnerRightContent>
+            </TextBox>
 
-                <Rectangle Grid.Column="1" Width="1" Fill="{DynamicResource BorderDarkBrush}" VerticalAlignment="Stretch" Margin="0,6"/>
+            <!-- 2. Filters Bar: Source, Categories, Sort, Reset, Status -->
+            <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto" VerticalAlignment="Center">
+                <!-- 2.1 Source Switcher (Modrinth / CurseForge) in the far-left corner -->
+                <Border Grid.Column="0" Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
+                        BorderThickness="1" CornerRadius="8" Height="32" Padding="2" Margin="0,0,10,0" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="2">
+                        <Button Classes="sourceTabBtn" Classes.active="{Binding IsModrinthSource}"
+                                Command="{Binding SelectSourceCommand}" CommandParameter="modrinth"
+                                ToolTip.Tip="{l10n:Tr Key=source_modrinth}">
+                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                <PathIcon Data="M12.252 2c-5.656 0-10.24 4.584-10.24 10.24 0 2.213.702 4.26 1.892 5.932l.024.034 4.092-4.093a3.46 3.46 0 0 1-.222-1.229c0-1.921 1.557-3.478 3.478-3.478.618 0 1.196.162 1.696.446l3.418-3.418A6.87 6.87 0 0 0 12.252 5.6c-3.667 0-6.64 2.973-6.64 6.64 0 .973.21 1.898.587 2.733l-2.073 2.073A10.18 10.18 0 0 1 2.012 12.24C2.012 6.584 6.596 2 12.252 2z"
+                                          Width="12" Height="12"
+                                          Foreground="{Binding IsModrinthSource, Converter={x:Static converters:ContentBrowserConverters.ModrinthIconBrush}}"/>
+                                <TextBlock Text="Modrinth" FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Classes="sourceTabBtn" Classes.active="{Binding IsCurseForgeSource}"
+                                Command="{Binding SelectSourceCommand}" CommandParameter="curseforge"
+                                ToolTip.Tip="{l10n:Tr Key=source_curseforge}">
+                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                <PathIcon Data="M18.8 8.4C18.4 5.3 16.2 2.8 13.3 2c-.4-.1-.7.2-.6.6.6 2.2-.4 4.5-2.4 5.6-1.5.8-2.6 2.2-3 3.9-.7 2.7.4 5.5 2.7 7 1.8 1.2 4.1 1.4 6.1.6 2.8-1.2 4.6-3.9 4.6-6.9 0-1.5-.6-3-1.9-4.4zm-4.7 9.8c-1.3.4-2.7.2-3.8-.6-1.3-.9-1.9-2.5-1.5-4 .2-1 .9-1.8 1.8-2.3 1.9-1 3.1-2.8 3.2-4.9 1.6.8 2.8 2.3 3.1 4.1.3 2-.4 4-1.9 5.3-.9.9-2 1.4-3.2 1.5z"
+                                          Width="12" Height="12"
+                                          Foreground="{Binding IsCurseForgeSource, Converter={x:Static converters:ContentBrowserConverters.CurseForgeIconBrush}}"/>
+                                <TextBlock Text="CurseForge" FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Border>
 
-                <!-- 2. Search Box -->
-                <TextBox Grid.Column="2" Classes="toolbarInput" Height="34" Text="{Binding SearchQuery}" PlaceholderText="{l10n:Tr Key=cb_search}" FontSize="12" VerticalAlignment="Center">
-                    <TextBox.KeyBindings>
-                        <KeyBinding Gesture="Enter" Command="{Binding SearchCommand}"/>
-                    </TextBox.KeyBindings>
-                    <TextBox.InnerLeftContent>
-                        <PathIcon Data="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
-                                  Width="13" Height="13" Foreground="{DynamicResource TextPlaceholderBrush}" Margin="10,0,4,0" VerticalAlignment="Center"/>
-                    </TextBox.InnerLeftContent>
-                    <TextBox.InnerRightContent>
-                        <Button Command="{Binding ClearSearchCommand}"
-                                IsVisible="{Binding SearchQuery, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}"
-                                Background="Transparent" BorderThickness="0" Padding="8,0" Cursor="Hand" Content="✕"
-                                Foreground="{DynamicResource TextPlaceholderBrush}"/>
-                    </TextBox.InnerRightContent>
-                </TextBox>
+                <!-- 2.2 Categories Dropdown (Multi-select) -->
+                <views:CategoryFilterDropdown Grid.Column="1" DataContext="{Binding CategoryFilter}" Margin="0,0,10,0" VerticalAlignment="Center"/>
 
-                <Rectangle Grid.Column="3" Width="1" Fill="{DynamicResource BorderDarkBrush}" VerticalAlignment="Stretch" Margin="0,6"/>
+                <!-- 2.3 Sort Dropdown -->
+                <views:SortFilterDropdown Grid.Column="2" DataContext="{Binding BrowserSortFilter}" Margin="0,0,10,0" VerticalAlignment="Center"/>
 
-                <!-- 3. Sort Dropdown -->
-                <ComboBox Grid.Column="4" Classes="toolbarCombo" Height="34" ItemsSource="{Binding SortOptions}" SelectedItem="{Binding SelectedSortDisplay}" VerticalAlignment="Center" FontSize="11">
-                    <ComboBox.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding Converter={x:Static converters:SortDisplayConverter.Instance}}" FontSize="11"/>
-                        </DataTemplate>
-                    </ComboBox.ItemTemplate>
-                </ComboBox>
-
-                <Rectangle Grid.Column="5" Width="1" Fill="{DynamicResource BorderDarkBrush}" VerticalAlignment="Stretch" Margin="0,6"/>
-
-                <!-- 4. Refresh Button -->
-                <Button Grid.Column="6" Classes="toolbarBtn" Command="{Binding ResetFiltersCommand}" ToolTip.Tip="{l10n:Tr Key=cb_clear}"
-                        Width="36" Height="34" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" VerticalAlignment="Center">
+                <!-- 2.4 Refresh Button -->
+                <Button Grid.Column="3" Classes="subBtn" Command="{Binding ResetFiltersCommand}" ToolTip.Tip="{l10n:Tr Key=cb_clear}"
+                        Width="32" Height="32" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" VerticalAlignment="Center">
                     <PathIcon Data="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" Width="13" Height="13" Foreground="{DynamicResource TextSecondaryBrush}"/>
                 </Button>
+
+                <!-- 2.5 Status Text -->
+                <TextBlock Grid.Column="5" Text="{Binding StatusText}" FontSize="11" Foreground="{DynamicResource TextCaptionBrush}" VerticalAlignment="Center"/>
             </Grid>
-        </Border>
+        </StackPanel>
 
         <!-- Main catalog (hidden when details page is open) -->
         <Grid Grid.Row="1" ColumnDefinitions="*,300" ColumnSpacing="12" IsVisible="{Binding !IsDetailsOpen}">

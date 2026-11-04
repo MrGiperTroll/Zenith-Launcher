@@ -94,6 +94,29 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private ContentType _selectedContentType = ContentType.Mod;
 
+    [ObservableProperty]
+    private ContentSource _selectedSource = ContentSource.Modrinth;
+
+    public bool IsModrinthSource => SelectedSource == ContentSource.Modrinth;
+    public bool IsCurseForgeSource => SelectedSource == ContentSource.CurseForge;
+
+    [RelayCommand]
+    public void SelectSource(string source)
+    {
+        var newSource = source?.Equals("curseforge", StringComparison.OrdinalIgnoreCase) == true
+            ? ContentSource.CurseForge
+            : ContentSource.Modrinth;
+
+        if (SelectedSource == newSource) return;
+        SelectedSource = newSource;
+        OnPropertyChanged(nameof(IsModrinthSource));
+        OnPropertyChanged(nameof(IsCurseForgeSource));
+        _ = ReloadAsync();
+    }
+
+    public CategoryFilterViewModel CategoryFilter { get; } = new();
+    public SortFilterViewModel BrowserSortFilter { get; } = new();
+
     private ContentSortOption _selectedSort = ContentSortOption.Relevance;
     public ContentSortOption SelectedSort
     {
@@ -863,6 +886,20 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
 
         RefreshWorlds();
         UpdateAvailableTags();
+        CategoryFilter.FilterChanged += () =>
+        {
+            _ = ReloadAsync();
+        };
+        BrowserSortFilter.SortChanged += (newSort) =>
+        {
+            SelectedSort = newSort switch
+            {
+                "Downloads" => ContentSortOption.Downloads,
+                "Newest" => ContentSortOption.Newest,
+                "Recently Updated" => ContentSortOption.RecentlyUpdated,
+                _ => ContentSortOption.Relevance
+            };
+        };
         GameVersionFilter.FilterChanged += () =>
         {
             CurrentVersionPage = 1;
@@ -1014,6 +1051,8 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
         foreach (var t in AvailableTags) t.IsSelected = t.IsReset;
         SelectedSort = ContentSortOption.Relevance;
         SelectedSortDisplay = "Relevance";
+        BrowserSortFilter.SelectedSort = "Relevance";
+        CategoryFilter.PopulateItems();
         _ = ReloadAsync();
     }
 
@@ -1048,40 +1087,60 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
         _totalHits = 0;
         try
         {
-            if (SelectedContentType == ContentType.World)
+            var selectedTypes = CategoryFilter.SelectedTypes;
+            if (selectedTypes.Count == 0)
+                selectedTypes = new[] { ContentType.Mod };
+
+            var loaders = selectedTypes.Contains(ContentType.Mod) ? MapLoaders(_loaderType) : Array.Empty<string>();
+
+            if (SelectedSource == ContentSource.CurseForge || (selectedTypes.Count == 1 && selectedTypes[0] == ContentType.World))
             {
                 var apiKey = GetCurseForgeApiKey?.Invoke() ?? "";
-                if (string.IsNullOrWhiteSpace(apiKey))
+                var sortName = SelectedSort.ToString();
+                var hits = new List<ModrinthProjectItemViewModel>();
+                int totalCount = 0;
+
+                foreach (var ct in selectedTypes)
                 {
-                    StatusText = "CurseForge API key required to browse Worlds & Maps. Add your key in Settings.";
-                    return;
+                    var projType = ct.ModrinthProjectType();
+                    var ldr = ct == ContentType.Mod ? _loaderType : null;
+                    var res = await CurseForgeApiService.SearchProjectsAsync(
+                        SearchQuery,
+                        projType,
+                        _gameVersion,
+                        ldr,
+                        0,
+                        PageSize,
+                        sortName,
+                        apiKey,
+                        token);
+
+                    if (token.IsCancellationRequested || gen != _searchGeneration) return;
+                    if (res != null)
+                    {
+                        totalCount += res.TotalHits;
+                        hits.AddRange(res.Hits);
+                    }
                 }
-                var res = await CurseForgeApiService.SearchMapsAsync(SearchQuery, _gameVersion, 0, PageSize, apiKey, token);
-                if (token.IsCancellationRequested || gen != _searchGeneration) return;
-                if (res == null)
-                {
-                    StatusText = L10n.T("mp_status_unreachable");
-                    return;
-                }
-                _totalHits = res.TotalHits;
-                _offset = res.Limit;
-                foreach (var p in res.Hits)
+
+                _totalHits = totalCount;
+                _offset = hits.Count;
+                foreach (var p in hits.Take(PageSize))
                 {
                     Results.Add(p);
                     LoadIcon(p, gen);
                 }
                 UpdateInstalledFlags();
-                StatusText = res.TotalHits == 0
-                    ? string.Format(L10n.T("cb_status_none"), "worlds")
+                StatusText = Results.Count == 0
+                    ? string.Format(L10n.T("cb_status_none"), "content")
                     : "";
                 return;
             }
 
             var categoryTags = AvailableTags.Where(t => t.IsSelected && !t.IsReset).Select(t => t.Name).ToList();
-            var loaders = SelectedContentType == ContentType.Mod ? MapLoaders(_loaderType) : Array.Empty<string>();
-            var projectType = SelectedContentType.ModrinthProjectType();
+            var projectTypes = selectedTypes.Select(t => t.ModrinthProjectType()).Distinct().ToList();
             var sortIndex = MapSortToModrinth(SelectedSort);
-            var page = await ModrinthApiService.SearchAsync(SearchQuery, _gameVersion, loaders, projectType, sortIndex, categoryTags, 0, PageSize, token);
+            var page = await ModrinthApiService.SearchAsync(SearchQuery, _gameVersion, loaders, projectTypes, sortIndex, categoryTags, 0, PageSize, token);
 
             if (token.IsCancellationRequested || gen != _searchGeneration) return;
 
@@ -1099,7 +1158,7 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
             }
             UpdateInstalledFlags();
             StatusText = page.TotalHits == 0
-                ? string.Format(L10n.T("cb_status_none"), SelectedContentType.DisplayName().ToLower())
+                ? string.Format(L10n.T("cb_status_none"), "content")
                 : "";
         }
         catch (OperationCanceledException)
@@ -1132,40 +1191,63 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
         var gen = _searchGeneration;
         try
         {
-            if (SelectedContentType == ContentType.World)
+            var selectedTypes = CategoryFilter.SelectedTypes;
+            if (selectedTypes.Count == 0)
+                selectedTypes = new[] { ContentType.Mod };
+
+            var loaders = selectedTypes.Contains(ContentType.Mod) ? MapLoaders(_loaderType) : Array.Empty<string>();
+
+            if (SelectedSource == ContentSource.CurseForge || (selectedTypes.Count == 1 && selectedTypes[0] == ContentType.World))
             {
                 var apiKey = GetCurseForgeApiKey?.Invoke() ?? "";
-                if (!string.IsNullOrWhiteSpace(apiKey))
+                var sortName = SelectedSort.ToString();
+                var hits = new List<ModrinthProjectItemViewModel>();
+
+                foreach (var ct in selectedTypes)
                 {
-                    var res = await CurseForgeApiService.SearchMapsAsync(SearchQuery, _gameVersion, _offset, PageSize, apiKey);
+                    var projType = ct.ModrinthProjectType();
+                    var ldr = ct == ContentType.Mod ? _loaderType : null;
+                    var res = await CurseForgeApiService.SearchProjectsAsync(
+                        SearchQuery,
+                        projType,
+                        _gameVersion,
+                        ldr,
+                        _offset,
+                        PageSize,
+                        sortName,
+                        apiKey);
+
                     if (res != null && gen == _searchGeneration)
                     {
-                        if (res.Hits.Count == 0) _offset = _totalHits;
-                        else
+                        hits.AddRange(res.Hits);
+                    }
+                }
+
+                if (hits.Count == 0)
+                {
+                    _offset = _totalHits;
+                }
+                else
+                {
+                    _offset += hits.Count;
+                    var existing = Results.Select(r => r.ProjectId).ToHashSet();
+                    foreach (var p in hits)
+                    {
+                        if (existing.Add(p.ProjectId))
                         {
-                            _offset += res.Limit;
-                            _totalHits = res.TotalHits;
-                            var existing = Results.Select(r => r.ProjectId).ToHashSet();
-                            foreach (var p in res.Hits)
-                            {
-                                if (existing.Add(p.ProjectId))
-                                {
-                                    Results.Add(p);
-                                    LoadIcon(p, gen);
-                                }
-                            }
-                            UpdateInstalledFlags();
+                            Results.Add(p);
+                            LoadIcon(p, gen);
                         }
                     }
+                    UpdateInstalledFlags();
                 }
                 return;
             }
 
             var categoryTags = AvailableTags.Where(t => t.IsSelected && !t.IsReset).Select(t => t.Name).ToList();
-            var loaders = SelectedContentType == ContentType.Mod ? MapLoaders(_loaderType) : Array.Empty<string>();
-            var projectType = SelectedContentType.ModrinthProjectType();
+            var projectTypes = selectedTypes.Select(t => t.ModrinthProjectType()).Distinct().ToList();
             var sortIndex = MapSortToModrinth(SelectedSort);
-            var page = await ModrinthApiService.SearchAsync(SearchQuery, _gameVersion, loaders, projectType, sortIndex, categoryTags, _offset, PageSize);
+            var page = await ModrinthApiService.SearchAsync(SearchQuery, _gameVersion, loaders, projectTypes, sortIndex, categoryTags, _offset, PageSize);
             if (page != null && gen == _searchGeneration)
             {
                 if (page.Hits.Count == 0)
@@ -1237,7 +1319,17 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
         var token = cts.Token;
         try
         {
-            if (SelectedContentType == ContentType.World)
+            var itemType = project.ProjectType?.ToLowerInvariant() switch
+            {
+                "mod" => ContentType.Mod,
+                "resourcepack" => ContentType.ResourcePack,
+                "shader" => ContentType.Shader,
+                "datapack" => ContentType.DataPack,
+                "world" => ContentType.World,
+                _ => SelectedContentType
+            };
+
+            if (itemType == ContentType.World)
             {
                 var apiKey = GetCurseForgeApiKey?.Invoke() ?? "";
                 project.IsInstalling = true;
@@ -1296,6 +1388,42 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
                 project.IsInstalled = true;
                 UpdateInstalledFlags();
                 StatusText = $"Installed {project.Title} into worlds!";
+                FlashInstalledFeedback();
+                _refreshAll?.Invoke();
+                return;
+            }
+
+            if (SelectedSource == ContentSource.CurseForge)
+            {
+                var apiKey = GetCurseForgeApiKey?.Invoke() ?? "";
+                project.IsInstalling = true;
+                StatusText = $"Fetching {project.Title} details...";
+                var fileInfo = await CurseForgeApiService.GetLatestProjectFileAsync(project.ProjectId, _gameVersion, _loaderType, apiKey, token);
+                if (fileInfo == null || string.IsNullOrWhiteSpace(fileInfo.DownloadUrl))
+                {
+                    StatusText = $"No downloadable file found for {project.Title}";
+                    project.IsInstalling = false;
+                    return;
+                }
+
+                StatusText = string.Format(L10n.T("mi_installing"));
+                var targetDir = itemType.InstallFolder(_instancePath, SelectedWorld);
+                Directory.CreateDirectory(targetDir);
+                var destPath = Path.Combine(targetDir, fileInfo.FileName);
+
+                var fileBytes = await CurseForgeApiService.DownloadAsync(fileInfo.DownloadUrl, token);
+                if (fileBytes == null || fileBytes.Length == 0)
+                {
+                    StatusText = $"Failed to download {project.Title}";
+                    project.IsInstalling = false;
+                    return;
+                }
+                await File.WriteAllBytesAsync(destPath, fileBytes, token);
+
+                MarkInstalled(project.ProjectId, fileInfo.FileName);
+                project.IsInstalled = true;
+                UpdateInstalledFlags();
+                StatusText = $"Installed {project.Title}!";
                 FlashInstalledFeedback();
                 _refreshAll?.Invoke();
                 return;

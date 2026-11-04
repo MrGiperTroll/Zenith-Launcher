@@ -76,6 +76,10 @@ public static class ModrinthApiService
 
     public static async Task<ModrinthSearchPage?> SearchAsync(
         string query, string gameVersion, IReadOnlyList<string> loaderFacets, string? projectType, string sortIndex, IReadOnlyList<string> categoryTags, int offset, int limit = 20, CancellationToken cancellationToken = default, IReadOnlyList<string>? gameVersions = null)
+        => await SearchAsync(query, gameVersion, loaderFacets, !string.IsNullOrWhiteSpace(projectType) ? new[] { projectType } : null, sortIndex, categoryTags, offset, limit, cancellationToken, gameVersions);
+
+    public static async Task<ModrinthSearchPage?> SearchAsync(
+        string query, string gameVersion, IReadOnlyList<string> loaderFacets, IReadOnlyList<string>? projectTypes, string sortIndex, IReadOnlyList<string> categoryTags, int offset, int limit = 20, CancellationToken cancellationToken = default, IReadOnlyList<string>? gameVersions = null)
     {
         var facets = new List<string[]>();
         if (gameVersions != null && gameVersions.Count > 0)
@@ -103,8 +107,15 @@ public static class ModrinthApiService
             if (cleanLoaders.Length > 0)
                 facets.Add(cleanLoaders);
         }
-        if (!string.IsNullOrWhiteSpace(projectType))
-            facets.Add(new[] { $"project_type:{projectType}" });
+        if (projectTypes != null && projectTypes.Count > 0)
+        {
+            var cleanTypes = projectTypes.Where(pt => !string.IsNullOrWhiteSpace(pt))
+                .Select(pt => $"project_type:{pt.Trim()}")
+                .Distinct()
+                .ToArray();
+            if (cleanTypes.Length > 0)
+                facets.Add(cleanTypes);
+        }
         var resTags = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "16x", "32x", "48x", "64x", "128x", "256x", "512x+", "8x-"
@@ -137,10 +148,13 @@ public static class ModrinthApiService
                 facets.Add(resList.Select(r => $"categories:{r}").Distinct().ToArray());
             }
 
+            bool isModpack = projectTypes != null && projectTypes.Contains("modpack");
+            bool isShader = projectTypes != null && projectTypes.Contains("shader");
+
             // General category tags: each category is its own facet (or grouped OR facet for aliases)
             foreach (var cat in otherList.Distinct())
             {
-                if (projectType == "modpack")
+                if (isModpack)
                 {
                     if (cat == "exploration")
                     {
@@ -148,7 +162,7 @@ public static class ModrinthApiService
                         continue;
                     }
                 }
-                else if (projectType == "shader")
+                else if (isShader)
                 {
                     switch (cat)
                     {

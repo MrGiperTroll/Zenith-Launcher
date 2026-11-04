@@ -2237,6 +2237,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
         {
 
+            if (_historyIndex >= 0 && _historyIndex < _navHistory.Count)
+                DisposeHistoryEntry(_navHistory[_historyIndex]);
             _historyIndex--;
 
             ApplyHistoryEntry(_navHistory[_historyIndex]);
@@ -2273,6 +2275,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
         {
 
+            if (_historyIndex >= 0 && _historyIndex < _navHistory.Count)
+                DisposeHistoryEntry(_navHistory[_historyIndex]);
             _historyIndex++;
 
             ApplyHistoryEntry(_navHistory[_historyIndex]);
@@ -2748,8 +2752,14 @@ public partial class MainWindowViewModel : ViewModelBase
         // Break event roots (timers, host/instance subscriptions) so GC can reclaim the page.
 
         try { (entry.EditInstanceVm as IDisposable)?.Dispose(); } catch { }
-
+        entry.EditInstanceVm = null;
         try { (entry.ContentBrowserVm as IDisposable)?.Dispose(); } catch { }
+        entry.ContentBrowserVm = null;
+        try { (entry.CreateServerVm as IDisposable)?.Dispose(); } catch { }
+        entry.CreateServerVm = null;
+        try { (entry.CreateProfileVm as IDisposable)?.Dispose(); } catch { }
+        entry.CreateProfileVm = null;
+        entry.ServerManagerVm = null;
 
     }
 
@@ -2787,11 +2797,16 @@ public partial class MainWindowViewModel : ViewModelBase
 
 
 
+        if (_historyIndex >= 0 && _historyIndex < _navHistory.Count)
+        {
+            DisposeHistoryEntry(_navHistory[_historyIndex]);
+        }
+
         _navHistory.Add(entry);
 
 
 
-        while (_navHistory.Count > 20)
+        while (_navHistory.Count > 10)
 
         {
 
@@ -2817,58 +2832,127 @@ public partial class MainWindowViewModel : ViewModelBase
 
     {
 
-        if (CurrentPage == LauncherNavPage.Settings && entry.Page != LauncherNavPage.Settings)
-
+        var prevPage = CurrentPage;
+        if (prevPage != entry.Page)
         {
+            if (prevPage == LauncherNavPage.Settings)
+            {
+                SaveLauncherConfig();
+            }
+            else if (prevPage == LauncherNavPage.Accounts)
+            {
+                AccountsVm.ResetAuthUiState();
+            }
+            else if (prevPage == LauncherNavPage.ServerManager)
+            {
+                CurrentEditInstanceVm?.RefreshServers();
+                try { (CurrentServerManagerVm as IDisposable)?.Dispose(); } catch { }
+                CurrentServerManagerVm = null;
+            }
+            else if (prevPage == LauncherNavPage.Modpacks)
+            {
+                try { ModpacksBrowser?.Dispose(); } catch { }
+            }
+            else if (prevPage == LauncherNavPage.ContentBrowser)
+            {
+                try { CurrentContentBrowserVm?.Dispose(); } catch { }
+                CurrentContentBrowserVm = null;
+            }
+            else if (prevPage == LauncherNavPage.EditInstance)
+            {
+                try { CurrentEditInstanceVm?.Dispose(); } catch { }
+                CurrentEditInstanceVm = null;
+            }
+            else if (prevPage == LauncherNavPage.CreateServer)
+            {
+                try { CreateServerVm?.Dispose(); } catch { }
+                CreateServerVm = null;
+            }
+            else if (prevPage == LauncherNavPage.CreateProfile)
+            {
+                try { CreateProfileVm?.Dispose(); } catch { }
+                CreateProfileVm = null;
+            }
 
-            SaveLauncherConfig();
-
+            Services.MemoryTrimmer.TrimMemory(force: true);
         }
 
-
-
-        if (CurrentPage == LauncherNavPage.Accounts && entry.Page != LauncherNavPage.Accounts)
-
+        // Recreate or restore view models for entering page if disposed
+        if (entry.Page == LauncherNavPage.EditInstance)
         {
-
-            AccountsVm.ResetAuthUiState();
-
+            if (entry.EditInstanceVm == null && entry.Instance != null)
+            {
+                entry.EditInstanceVm = new EditInstanceViewModel(entry.Instance, this, _instanceService);
+                if (!string.IsNullOrEmpty(entry.SubTitle))
+                    entry.EditInstanceVm.SelectTab(entry.SubTitle);
+            }
         }
-
-
-
-        if (CurrentPage == LauncherNavPage.ServerManager && entry.Page != LauncherNavPage.ServerManager)
-
+        else if (entry.Page == LauncherNavPage.Modpacks)
         {
-
-            CurrentEditInstanceVm?.RefreshServers();
-
+            if (ModpacksBrowser != null && ModpacksBrowser.Results.Count == 0)
+            {
+                _ = ModpacksBrowser.ReloadAsync();
+            }
         }
-
-
-
-        // Force-reclaim LOH (image/log buffers) when leaving heavy pages.
-
-        // Polite background collects are skipped by the runtime while LOH grows,
-
-        // so do a throttled blocking Gen2 here instead of on every navigation.
-
-        if ((CurrentPage == LauncherNavPage.CreateServer
-
-                || CurrentPage == LauncherNavPage.ContentBrowser
-
-                || CurrentPage == LauncherNavPage.EditInstance)
-
-            && entry.Page != CurrentPage
-
-            && (DateTime.UtcNow - _lastForcedGc).TotalSeconds > 30)
-
+        else if (entry.Page == LauncherNavPage.ContentBrowser)
         {
-
-            _lastForcedGc = DateTime.UtcNow;
-
-            try { GC.Collect(2, GCCollectionMode.Forced, true); } catch { }
-
+            if (entry.ContentBrowserVm == null && entry.Instance != null)
+            {
+                var editVm = entry.EditInstanceVm ?? CurrentEditInstanceVm;
+                var contentType = entry.SubTitle switch
+                {
+                    "Resource Packs" => Models.ContentType.ResourcePack,
+                    "Shader Packs" => Models.ContentType.Shader,
+                    "Data Packs" => Models.ContentType.DataPack,
+                    _ => Models.ContentType.Mod
+                };
+                entry.ContentBrowserVm = new ContentBrowserViewModel(
+                    entry.Instance.Version,
+                    entry.Instance.LoaderType,
+                    entry.Instance.Path,
+                    msg => StatusText = msg,
+                    () => editVm?.RefreshFileLists(),
+                    () => editVm?.HasModsSupport ?? true,
+                    contentType)
+                {
+                    GetCurseForgeApiKey = () => LauncherSettingsVm?.CurseForgeApiKey ?? ""
+                };
+            }
+        }
+        else if (entry.Page == LauncherNavPage.ServerManager)
+        {
+            if (entry.ServerManagerVm == null && entry.Instance != null)
+            {
+                entry.ServerManagerVm = new ServerManagerViewModel(Path.Combine(entry.Instance.Path, "servers.dat"));
+            }
+        }
+        else if (entry.Page == LauncherNavPage.CreateProfile)
+        {
+            if (entry.CreateProfileVm == null)
+            {
+                var vm = new CreateProfileViewModel(_instanceService, _modLoaderService,
+                    UseFlatVersionList, ShowReleases, ShowSnapshots, ShowBetas, ShowAlphas);
+                vm.ProfileCreated += inst =>
+                {
+                    Dispatcher.UIThread.Post(() =>
+                    {
+                        _instanceService.SetSelectedInstance(inst.Id);
+                        SelectedInstanceId = inst.Id;
+                        RefreshState();
+                        SelectedInstance = Instances.FirstOrDefault(x => x.Id == inst.Id);
+                        NavigateToProfiles();
+                    });
+                };
+                vm.RequestClose += () =>
+                {
+                    Dispatcher.UIThread.Post(() =>
+                    {
+                        if (CanGoBack) GoBack();
+                        else NavigateToProfiles();
+                    });
+                };
+                entry.CreateProfileVm = vm;
+            }
         }
 
 

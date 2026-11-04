@@ -32,16 +32,7 @@ public static class ZenithTheme
         {
             if (string.Equals(fontStyle, "Minecraft", StringComparison.OrdinalIgnoreCase))
             {
-                var localFontFile = System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", "Fonts", "Minecraft.otf");
-                if (System.IO.File.Exists(localFontFile))
-                {
-                    var fullPath = System.IO.Path.GetFullPath(localFontFile).Replace('\\', '/');
-                    family = new FontFamily(new Uri($"file:///{fullPath}"), "Minecraft");
-                }
-                else
-                {
-                    family = new FontFamily("avares://Zenith%20Launcher/Assets/Fonts/Minecraft.otf#Minecraft, avares://Zenith Launcher/Assets/Fonts/Minecraft.otf#Minecraft, Minecraft");
-                }
+                family = new FontFamily("avares://Zenith Launcher/Assets/Fonts#Minecraft, avares://Zenith%20Launcher/Assets/Fonts#Minecraft, Minecraft");
             }
             else
             {

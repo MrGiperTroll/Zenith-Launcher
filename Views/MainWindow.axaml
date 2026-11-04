@@ -673,7 +673,7 @@
             </LayoutTransformControl.LayoutTransform>
             <Grid RowDefinitions="38,*">
                 <!-- Unified Top Header (Row 0) -->
-                <Grid Grid.Row="0" Height="38" Background="{StaticResource SidebarBgBrush}"
+                <Grid Grid.Row="0" Height="38" Background="{DynamicResource SidebarBgBrush}"
                       ColumnDefinitions="220,*,Auto"
                       PointerPressed="OnTopBarPointerPressed"
                       DoubleTapped="OnTopBarDoubleTapped">
@@ -695,7 +695,7 @@
                                     </Flyout.FlyoutPresenterTheme>
                                     <StackPanel Spacing="2" MinWidth="170">
                                         <TextBlock Text="{Binding VersionLabel, StringFormat='Version {0}'}"
-                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   Foreground="{DynamicResource TextMutedBrush}"
                                                    FontSize="11.5"
                                                    FontWeight="SemiBold"
                                                    Padding="10,6"
@@ -764,7 +764,7 @@
                 <Grid Grid.Row="1" ColumnDefinitions="220,*">
 
                     <!-- Discord-Style Left Sidebar (Width 220) -->
-                    <Border Grid.Column="0" Width="220" Background="{StaticResource SidebarBgBrush}"
+                    <Border Grid.Column="0" Width="220" Background="{DynamicResource SidebarBgBrush}"
                             BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,1,0" Padding="0">
                         <Grid RowDefinitions="*,Auto">
                             <!-- Nav items (Profiles, Modpacks, Servers, Directory, Settings) -->
@@ -792,7 +792,7 @@
 
 
 
-                                <Border Height="1" Background="{StaticResource BorderDarkBrush}" Margin="2,8,2,8"/>
+                                <Border Height="1" Background="{DynamicResource BorderDarkBrush}" Margin="2,8,2,8"/>
 
                                 <Button Classes="discordNavBtn" Command="{Binding OpenRootDirectoryCommand}" ToolTip.Tip="{l10n:Tr Key=nav_dir}">
                                     <Grid ColumnDefinitions="30,*" VerticalAlignment="Center">
@@ -810,8 +810,8 @@
                             </StackPanel>
 
                             <!-- Row 1: Pinned Discord User Account Bar (flush at bottom) -->
-                            <Border Grid.Row="1" Height="52" Background="{StaticResource CardBrush}"
-                                    BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,1,0,0"
+                            <Border Grid.Row="1" Height="52" Background="{DynamicResource CardBrush}"
+                                    BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="0,1,0,0"
                                     CornerRadius="0" Padding="8,0">
                                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6" VerticalAlignment="Center">
                                     <!-- User info (Click opens accounts) -->
@@ -819,11 +819,11 @@
                                             Background="Transparent" BorderThickness="0" Padding="4,4" Cursor="Hand"
                                             HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
                                         <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                            <Border Width="32" Height="32" Background="{StaticResource IconChipBrush}" CornerRadius="16" ClipToBounds="True">
+                                            <Border Width="32" Height="32" Background="{DynamicResource IconChipBrush}" CornerRadius="16" ClipToBounds="True">
                                                 <Panel>
                                                     <Image Source="{Binding ActiveAccountRow.HeadImage}" Stretch="UniformToFill" IsVisible="{Binding ActiveAccountRow.HasHead}"/>
                                                     <PathIcon Data="M12 4A4 4 0 0 1 16 8A4 4 0 0 1 12 12A4 4 0 0 1 8 8A4 4 0 0 1 12 4ZM4 20C4 16.69 7.58 14 12 14C16.42 14 20 16.69 20 20V21H4V20Z"
-                                                              Width="15" Height="15" Foreground="{StaticResource TextSecondaryBrush}"
+                                                              Width="15" Height="15" Foreground="{DynamicResource TextSecondaryBrush}"
                                                               HorizontalAlignment="Center" VerticalAlignment="Center"
                                                               IsVisible="{Binding !ActiveAccountRow.HasHead}"/>
                                                 </Panel>
@@ -832,7 +832,7 @@
                                                 <TextBlock Text="{Binding ActiveAccountName}" FontWeight="Bold" FontSize="12.5"
                                                            Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" MaxWidth="110"/>
                                                 <TextBlock Text="{Binding ActiveAccountType}" FontSize="10.5"
-                                                           Foreground="{StaticResource TextMutedBrush}"/>
+                                                           Foreground="{DynamicResource TextMutedBrush}"/>
                                             </StackPanel>
                                         </StackPanel>
                                     </Button>
@@ -841,7 +841,7 @@
                                     <Button Grid.Column="1" Classes="gearSettingsBtn" Command="{Binding OpenAccountsDialogCommand}"
                                             ToolTip.Tip="Account Settings">
                                         <PathIcon Data="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"
-                                                  Width="16" Height="16" Foreground="{StaticResource TextSecondaryBrush}"
+                                                  Width="16" Height="16" Foreground="{DynamicResource TextSecondaryBrush}"
                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Button>
                                 </Grid>
@@ -938,7 +938,7 @@
                     </ScrollViewer>
 
                     <!-- Right Sidebar: Instance Details -->
-                    <Border Grid.Column="1" IsVisible="False" Width="300" Opacity="0" Background="{StaticResource SidebarBgBrush}" Padding="16,8,16,16"
+                    <Border Grid.Column="1" IsVisible="False" Width="300" Opacity="0" Background="{DynamicResource SidebarBgBrush}" Padding="16,8,16,16"
                             x:Name="InstanceDetailsSidebar">
 
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
@@ -986,7 +986,7 @@
 
                                         <!-- Версия профиля -->
                                         <Border Background="{StaticResource ChipBrush}" CornerRadius="4" Padding="6,2" HorizontalAlignment="Center">
-                                            <TextBlock Text="{Binding SelectedInstanceDetails}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                            <TextBlock Text="{Binding SelectedInstanceDetails}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" FontWeight="SemiBold" HorizontalAlignment="Center"/>
                                         </Border>
                                     </StackPanel>
                                 </Border>
@@ -1048,18 +1048,18 @@
                     <StackPanel Spacing="14">
                         <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                             <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                                <Border Width="30" Height="30" Background="{StaticResource IconChipBrush}" CornerRadius="6" VerticalAlignment="Center">
+                                <Border Width="30" Height="30" Background="{DynamicResource IconChipBrush}" CornerRadius="6" VerticalAlignment="Center">
                                     <PathIcon Data="M20 13H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1v-6c0-.55-.45-1-1-1zM7 19c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM20 3H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1zM7 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" Width="14" Height="14" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
                                 </Border>
                                 <TextBlock Text="Серверы" FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
-                            <Button Grid.Column="1" Command="{Binding CloseDialogsCommand}" Background="Transparent" BorderThickness="0" Padding="4" Cursor="Hand" Foreground="{StaticResource TextMutedBrush}">
+                            <Button Grid.Column="1" Command="{Binding CloseDialogsCommand}" Background="Transparent" BorderThickness="0" Padding="4" Cursor="Hand" Foreground="{DynamicResource TextMutedBrush}">
                                 <PathIcon Data="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" Width="12" Height="12"/>
                             </Button>
                         </Grid>
 
                         <TextBlock Text="Сейчас создание сервера было перенесено в разработку. Вы можете открыть папку всех ранее созданных серверов."
-                                   Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" TextWrapping="Wrap" LineHeight="18"/>
+                                   Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" TextWrapping="Wrap" LineHeight="18"/>
 
                         <Grid ColumnDefinitions="*,Auto" Margin="0,6,0,0">
                             <Button Grid.Column="0" Classes="primaryBtn" Command="{Binding OpenServersDirectoryCommand}" Padding="16,8" Margin="0,0,8,0">
@@ -1285,7 +1285,7 @@
                 </Grid>
 
                 <!-- Full-Width Bottom Launch Bar -->
-                <Border Grid.Row="1" Height="76" IsVisible="{Binding IsLaunchBarVisible}" Background="{StaticResource SidebarBgBrush}">
+                <Border Grid.Row="1" Height="76" IsVisible="{Binding IsLaunchBarVisible}" Background="{DynamicResource SidebarBgBrush}">
                     <Grid ColumnDefinitions="*,280" VerticalAlignment="Center">
                         <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="24,0,16,0">
                             <TextBlock Text="{Binding SelectedInstanceName}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
@@ -1311,7 +1311,7 @@
                     <TextBlock Text="{l10n:Tr Key=cp_title}" FontSize="17" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
 
 <StackPanel Spacing="4">
-                        <TextBlock Text="{l10n:Tr Key=cp_name_label}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                        <TextBlock Text="{l10n:Tr Key=cp_name_label}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
                         <TextBox Classes="darkInput" Text="{Binding NewInstanceName}" PlaceholderText="{l10n:Tr Key=ph_profile_name}">
                             <TextBox.Styles>
                                 <Style Selector="TextBox.darkInput" x:DataType="vm:MainWindowViewModel">
@@ -1322,7 +1322,7 @@
                     </StackPanel>
 
 <StackPanel Spacing="4">
-                        <TextBlock Text="{l10n:Tr Key=cp_step_version}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                        <TextBlock Text="{l10n:Tr Key=cp_step_version}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
                         <Grid ColumnDefinitions="*,Auto">
                             <ComboBox Classes="zenCombo" ItemsSource="{Binding AvailableVersions}" SelectedItem="{Binding SelectedVersion}" HorizontalAlignment="Stretch"
                                       PlaceholderText="{l10n:Tr Key=none_select_version}"/>
@@ -1331,7 +1331,7 @@
                     </StackPanel>
 
                     <StackPanel Spacing="4">
-                        <TextBlock Text="{l10n:Tr Key=set_loader}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                        <TextBlock Text="{l10n:Tr Key=set_loader}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
                         <Grid ColumnDefinitions="*,Auto">
                             <ComboBox Grid.Column="0" Classes="zenCombo" ItemsSource="{Binding AvailableLoaders}" SelectedItem="{Binding SelectedLoader}"
                                       HorizontalAlignment="Stretch" IsVisible="{Binding IsLoaderTypesVisible}"/>
@@ -1339,7 +1339,7 @@
                                       HorizontalAlignment="Stretch" IsVisible="{Binding IsLoaderBuildsVisible}"/>
                             <Button Grid.Column="1" Content="⇄" Command="{Binding ToggleLoaderBuildsCommand}"
                                     Width="32" Height="32" Padding="0" Margin="6,0,0,0"
-                                    Background="{StaticResource FieldBrush}" Foreground="{StaticResource TextMutedBrush}"
+                                    Background="{StaticResource FieldBrush}" Foreground="{DynamicResource TextMutedBrush}"
                                     BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"
                                     CornerRadius="8" Cursor="Hand" FontSize="14"
                                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
@@ -1382,7 +1382,7 @@
                         <Button Grid.Column="2" Content="✕" Command="{Binding CloseConsoleDialogCommand}" Background="Transparent" Foreground="{StaticResource TextPlaceholderBrush}" Padding="4" Cursor="Hand"/>
                     </Grid>
 
-                    <Border Grid.Row="1" Background="{StaticResource SidebarBgBrush}" CornerRadius="6" Padding="10">
+                    <Border Grid.Row="1" Background="{DynamicResource SidebarBgBrush}" CornerRadius="6" Padding="10">
                         <TextBox Text="{Binding ConsoleLogs}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap" ScrollViewer.HorizontalScrollBarVisibility="Auto" Background="Transparent" Foreground="{StaticResource TextSoftBrush}" FontFamily="Consolas, Cascadia Code, Courier New" FontSize="11" BorderThickness="0"/>
                     </Border>
 
@@ -1399,7 +1399,7 @@
             <Border Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="380" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="14">
                     <TextBlock Text="{l10n:Tr Key=dialog_delete_title}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource DangerBrush}"/>
-                    <TextBlock Text="{Binding PendingDeleteInstance.Name, Converter={x:Static converters:L10nFormatConverter.Instance}, ConverterParameter=dialog_delete_confirm}" TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" LineHeight="17"/>
+                    <TextBlock Text="{Binding PendingDeleteInstance.Name, Converter={x:Static converters:L10nFormatConverter.Instance}, ConverterParameter=dialog_delete_confirm}" TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" LineHeight="17"/>
                     <Grid ColumnDefinitions="*,*" Margin="0,4,0,0">
                         <Button Grid.Column="0" Content="{l10n:Tr Key=cancel}" Command="{Binding CancelDeleteProfileCommand}" Classes="subBtn" HorizontalContentAlignment="Center" Margin="0,0,6,0"/>
                         <Button Grid.Column="1" Classes="dangerBtn" Content="{l10n:Tr Key=delete}" Command="{Binding ConfirmDeleteProfileCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="6,0,0,0" Background="{StaticResource DangerBorderBrush}"/>
@@ -1413,7 +1413,7 @@
             <Border Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="400" Padding="22" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="14">
                     <TextBlock Text="{l10n:Tr Key=dialog_restart_title}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                    <TextBlock Text="{l10n:Tr Key=dialog_restart_theme_msg}" TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12.5" LineHeight="18"/>
+                    <TextBlock Text="{l10n:Tr Key=dialog_restart_theme_msg}" TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12.5" LineHeight="18"/>
                     <Grid ColumnDefinitions="*,*" Margin="0,4,0,0">
                         <Button Grid.Column="0" Content="{l10n:Tr Key=no}" Command="{Binding CancelRestartConfirmCommand}" Classes="subBtn" HorizontalContentAlignment="Center" Margin="0,0,6,0" Height="36"/>
                         <Button Grid.Column="1" Classes="primaryBtn" Content="{l10n:Tr Key=yes}" Command="{Binding ConfirmRestartAndApplyThemeCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="6,0,0,0" Height="36"/>
@@ -1427,7 +1427,7 @@
             <Border Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="400" Padding="22" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="14">
                     <TextBlock Text="{l10n:Tr Key=dialog_discard_title}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                    <TextBlock Text="{l10n:Tr Key=dialog_discard_theme_msg}" TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12.5" LineHeight="18"/>
+                    <TextBlock Text="{l10n:Tr Key=dialog_discard_theme_msg}" TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12.5" LineHeight="18"/>
                     <Grid ColumnDefinitions="*,*" Margin="0,4,0,0">
                         <Button Grid.Column="0" Content="{l10n:Tr Key=no}" Command="{Binding CancelDiscardThemeChangesCommand}" Classes="subBtn" HorizontalContentAlignment="Center" Margin="0,0,6,0" Height="36"/>
                         <Button Grid.Column="1" Classes="primaryBtn" Content="{l10n:Tr Key=yes}" Command="{Binding ConfirmDiscardThemeChangesCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="6,0,0,0" Height="36"/>
@@ -1443,7 +1443,7 @@
                 <StackPanel Spacing="12">
                     <TextBlock Text="{l10n:Tr Key=cb_delete_title}" FontSize="17" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
                     <TextBlock Text="{Binding ModpacksBrowser.DeleteItemName}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextLabelBrush}" TextWrapping="Wrap" TextTrimming="CharacterEllipsis"/>
-                    <TextBlock Text="{l10n:Tr Key=cb_delete_question}" FontSize="12.5" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="18"/>
+                    <TextBlock Text="{l10n:Tr Key=cb_delete_question}" FontSize="12.5" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="18"/>
                     <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" Margin="0,8,0,0">
                         <Button Content="{l10n:Tr Key=no}" Command="{Binding ModpacksBrowser.CancelDeleteCommand}" Classes="dialogBtn"
                                 Width="90" Height="34" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
@@ -1459,7 +1459,7 @@
             <Border Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="420" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="14">
                     <TextBlock Text="{l10n:Tr Key=dialog_connection}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource DangerBrush}"/>
-                    <TextBlock Text="{Binding ElyByErrorMessage}" TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" LineHeight="17"/>
+                    <TextBlock Text="{Binding ElyByErrorMessage}" TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" LineHeight="17"/>
                     <Grid ColumnDefinitions="*,*">
                         <Button Grid.Column="0" Content="{l10n:Tr Key=close}" Command="{Binding CloseDialogsCommand}" Classes="subBtn" HorizontalContentAlignment="Center" Margin="0,0,6,0"/>
                         <Button Grid.Column="1" Classes="primaryBtn" Content="{l10n:Tr Key=btn_switch_offline}" Command="{Binding SwitchToOfflineAccountCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="6,0,0,0"/>
@@ -1480,7 +1480,7 @@
                             <TextBlock Text="{l10n:Tr Key=java_installer_title}" FontSize="15" FontWeight="Bold"
                                        Foreground="{StaticResource TextPrimaryBrush}"/>
                             <TextBlock Text="{l10n:Tr Key=java_installer_hint}" FontSize="11"
-                                       Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"/>
+                                       Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"/>
                         </StackPanel>
                         <Button Grid.Column="1" Content="✕" Command="{Binding CloseJavaInstallerCommand}" Classes="subBtn"
                                 Width="28" Height="28" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
@@ -1531,7 +1531,7 @@
                                 IsEnabled="{Binding CanDownloadJava}">
                             <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
                                 <TextBlock Text="Java 25" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                                <TextBlock Text="{l10n:Tr Key=java_tag_new}" FontSize="9" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Text="{l10n:Tr Key=java_tag_new}" FontSize="9" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                     </UniformGrid>
@@ -1570,7 +1570,7 @@
                     <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Padding="14">
                         <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalAlignment="Center">
                             <!-- Official Prism Launcher mark, rasterized from github.com/PrismLauncher/PrismLauncher (CC BY-SA 4.0) -->
-                            <Border Width="40" Height="40" Background="{StaticResource IconChipBrush}" CornerRadius="10" VerticalAlignment="Center">
+                            <Border Width="40" Height="40" Background="{DynamicResource IconChipBrush}" CornerRadius="10" VerticalAlignment="Center">
                                 <Image Source="{Binding PrismImportIcon}" Width="32" Height="32" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
                             <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
@@ -1595,7 +1595,7 @@
                     </Border>
                     <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Padding="14">
                         <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" VerticalAlignment="Center">
-                            <Border Width="40" Height="40" Background="{StaticResource IconChipBrush}" CornerRadius="10" VerticalAlignment="Center">
+                            <Border Width="40" Height="40" Background="{DynamicResource IconChipBrush}" CornerRadius="10" VerticalAlignment="Center">
                                 <PathIcon Data="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="20" Height="20" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
                             <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">

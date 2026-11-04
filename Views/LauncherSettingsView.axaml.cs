@@ -8,6 +8,24 @@ public partial class LauncherSettingsView : UserControl
     public LauncherSettingsView()
     {
         InitializeComponent();
+        DataContextChanged += OnViewDataContextChanged;
+    }
+
+    private void OnViewDataContextChanged(object? sender, System.EventArgs e)
+    {
+        if (DataContext is LauncherSettingsViewModel vm)
+        {
+            vm.PropertyChanged -= OnVmPropertyChanged;
+            vm.PropertyChanged += OnVmPropertyChanged;
+        }
+    }
+
+    private void OnVmPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(LauncherSettingsViewModel.CurrentSettingsTab))
+        {
+            SettingsContentScroll?.ScrollToHome();
+        }
     }
 
     private void OnScaleSliderPointerCaptureLost(object? sender, Avalonia.Input.PointerCaptureLostEventArgs e)

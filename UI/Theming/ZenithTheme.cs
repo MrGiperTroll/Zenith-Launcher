@@ -32,7 +32,7 @@ public static class ZenithTheme
         {
             if (string.Equals(fontStyle, "Minecraft", StringComparison.OrdinalIgnoreCase))
             {
-                family = new FontFamily("avares://Zenith Launcher/Assets/Fonts#Minecraft, avares://Zenith%20Launcher/Assets/Fonts#Minecraft, Minecraft");
+                family = new FontFamily("avares://Zenith Launcher/Assets/Fonts#Monocraft, avares://Zenith Launcher/Assets/Fonts#Minecraft, avares://Zenith%20Launcher/Assets/Fonts#Monocraft, avares://Zenith%20Launcher/Assets/Fonts#Minecraft, Monocraft, Minecraft, Segoe UI, sans-serif");
             }
             else
             {

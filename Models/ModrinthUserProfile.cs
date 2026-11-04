@@ -8,7 +8,7 @@ using CustomMcLauncher.Services;
 
 namespace CustomMcLauncher.Models;
 
-public partial class ModrinthUserProfile : ObservableObject
+public partial class ModrinthUserProfile : ObservableObject, IDisposable
 {
     public string Id { get; init; } = "";
     public string Username { get; init; } = "";
@@ -72,15 +72,24 @@ public partial class ModrinthUserProfile : ObservableObject
                 if (bytes is { Length: > 0 })
                 {
                     using var ms = new MemoryStream(bytes);
-                    var bmp = new Bitmap(ms);
+                    var bmp = Bitmap.DecodeToWidth(ms, 96, BitmapInterpolationMode.MediumQuality);
                     Dispatcher.UIThread.Post(() =>
                     {
+                        var old = AvatarBitmap;
                         AvatarBitmap = bmp;
+                        try { old?.Dispose(); } catch { }
                         OnPropertyChanged(nameof(HasAvatar));
                     });
                 }
             }
             catch { }
         });
+    }
+
+    public void Dispose()
+    {
+        try { AvatarBitmap?.Dispose(); } catch { }
+        AvatarBitmap = null;
+        OnPropertyChanged(nameof(HasAvatar));
     }
 }

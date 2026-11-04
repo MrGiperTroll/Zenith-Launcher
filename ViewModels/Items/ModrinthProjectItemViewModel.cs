@@ -11,7 +11,7 @@ using CustomMcLauncher.ViewModels.Common;
 
 namespace CustomMcLauncher.ViewModels.Items;
 
-public partial class ModrinthProjectItemViewModel : ViewModelBase
+public partial class ModrinthProjectItemViewModel : ViewModelBase, IDisposable
 {
     public Models.ContentSource Source { get; init; } = Models.ContentSource.Modrinth;
     public bool IsCurseForge => Source == Models.ContentSource.CurseForge;
@@ -214,5 +214,12 @@ public partial class ModrinthProjectItemViewModel : ViewModelBase
             }
             catch { }
         });
+    }
+
+    public void Dispose()
+    {
+        try { Icon?.Dispose(); } catch { }
+        Icon = null;
+        OnPropertyChanged(nameof(HasIcon));
     }
 }

@@ -24,6 +24,11 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private AuthorProfileViewModel? _currentAuthorProfileVm;
 
+    partial void OnCurrentAuthorProfileVmChanging(AuthorProfileViewModel? value)
+    {
+        _currentAuthorProfileVm?.Dispose();
+    }
+
     public bool IsAuthorProfileOpen => CurrentAuthorProfileVm != null;
 
     public Action<bool>? OnAuthorProfileChanged { get; set; }
@@ -82,10 +87,12 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
         if (_disposed) return;
         _disposed = true;
         try { _searchCts?.Cancel(); } catch { }
-        try { _searchCts?.Dispose(); } catch { }
+        try { _searchCts?.Dispose(); _searchCts = null; } catch { }
+        try { CurrentAuthorProfileVm?.Dispose(); CurrentAuthorProfileVm = null; } catch { }
         try { FullProject?.Dispose(); FullProject = null; } catch { }
         try { HeaderImage?.Dispose(); HeaderImage = null; } catch { }
-        foreach (var r in Results) { try { r.Icon?.Dispose(); } catch { } }
+        SelectedProject = null;
+        foreach (var r in Results) { try { r.Dispose(); } catch { } }
         Results.Clear();
         MemoryTrimmer.TrimMemory();
         GC.SuppressFinalize(this);

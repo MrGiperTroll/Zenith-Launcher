@@ -24,6 +24,11 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private AuthorProfileViewModel? _currentAuthorProfileVm;
 
+    partial void OnCurrentAuthorProfileVmChanging(AuthorProfileViewModel? value)
+    {
+        _currentAuthorProfileVm?.Dispose();
+    }
+
     public bool IsAuthorProfileOpen => CurrentAuthorProfileVm != null;
 
     public Action<bool>? OnAuthorProfileChanged { get; set; }
@@ -56,6 +61,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
     [RelayCommand]
     public void CloseAuthorProfile()
     {
+        CurrentAuthorProfileVm?.Dispose();
         CurrentAuthorProfileVm = null;
         OnPropertyChanged(nameof(IsAuthorProfileOpen));
         OnAuthorProfileChanged?.Invoke(false);
@@ -1954,11 +1960,16 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
 
     public void Dispose()
     {
+        try { _searchCts?.Cancel(); _searchCts?.Dispose(); _searchCts = null; } catch { }
+        try { _reinstallCts?.Cancel(); _reinstallCts?.Dispose(); _reinstallCts = null; } catch { }
+        try { CurrentAuthorProfileVm?.Dispose(); CurrentAuthorProfileVm = null; } catch { }
         try { FullProject?.Dispose(); FullProject = null; } catch { }
         try { HeaderImage?.Dispose(); HeaderImage = null; } catch { }
+        SelectedProject = null;
+        PendingDelete = null;
         foreach (var r in Results)
         {
-            try { r.Icon?.Dispose(); } catch { }
+            try { r.Dispose(); } catch { }
         }
         Results.Clear();
         ClearTargetWorlds();

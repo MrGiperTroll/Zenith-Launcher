@@ -12,7 +12,7 @@ using CustomMcLauncher.ViewModels.Items;
 
 namespace CustomMcLauncher.ViewModels;
 
-public partial class AuthorProfileViewModel : ViewModelBase
+public partial class AuthorProfileViewModel : ViewModelBase, IDisposable
 {
     [ObservableProperty]
     private ModrinthUserProfile? _profile;
@@ -140,5 +140,19 @@ public partial class AuthorProfileViewModel : ViewModelBase
             }
             catch { }
         }
+    }
+
+    public void Dispose()
+    {
+        Profile?.Dispose();
+        Profile = null;
+        foreach (var p in AllProjects)
+        {
+            p.Dispose();
+        }
+        AllProjects.Clear();
+        FilteredProjects.Clear();
+        OnOpenProjectRequested = null;
+        OnCloseRequested = null;
     }
 }

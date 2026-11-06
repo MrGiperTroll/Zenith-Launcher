@@ -677,6 +677,32 @@
         <Style Selector="Button.gearSettingsBtn:pointerover PathIcon">
             <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
+
+        <!-- Profile Flyout Menu Items -->
+        <Style Selector="Button.profileMenuItem">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="Padding" Value="10,0"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.profileMenuItem /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="10,0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        </Style>
+        <Style Selector="Button.profileMenuItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+        </Style>
+        <Style Selector="Button.profileDeleteMenuItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#22EF4444"/>
+        </Style>
     </Window.Styles>
 
     <Border CornerRadius="12"
@@ -833,14 +859,92 @@
                                     BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="0,1,0,0"
                                     CornerRadius="0" Padding="8,0">
                                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6" VerticalAlignment="Center">
-                                    <!-- User info (Click opens accounts) -->
-                                    <Button Grid.Column="0" Command="{Binding OpenAccountsDialogCommand}"
+                                    <!-- User info (Click opens Discord-like Profile Popover) -->
+                                    <Button x:Name="ProfileAccountBtn" Grid.Column="0"
                                             Background="Transparent" BorderThickness="0" Padding="4,4" Cursor="Hand"
                                             HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+                                        <Button.Flyout>
+                                            <Flyout Placement="TopEdgeAlignedLeft" ShowMode="Standard">
+                                                <Flyout.FlyoutPresenterTheme>
+                                                    <ControlTheme TargetType="FlyoutPresenter" BasedOn="{StaticResource {x:Type FlyoutPresenter}}">
+                                                        <Setter Property="Padding" Value="0"/>
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="BorderThickness" Value="0"/>
+                                                        <Setter Property="CornerRadius" Value="14"/>
+                                                    </ControlTheme>
+                                                </Flyout.FlyoutPresenterTheme>
+                                                <Border Width="240" Background="{DynamicResource CardBrush}"
+                                                        BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1"
+                                                        CornerRadius="14" Padding="14">
+                                                    <StackPanel Spacing="0">
+                                                        <!-- Top: Avatar & User Info (Discord-like header) -->
+                                                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" Margin="0,2,0,12" VerticalAlignment="Center">
+                                                            <!-- Head Avatar -->
+                                                            <Border Grid.Column="0" Width="44" Height="44" CornerRadius="10"
+                                                                    Background="{DynamicResource IconChipBrush}" ClipToBounds="True"
+                                                                    BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1">
+                                                                <Panel>
+                                                                    <Image Source="{Binding ActiveAccountRow.HeadImage}" Stretch="UniformToFill"
+                                                                           RenderOptions.BitmapInterpolationMode="None"
+                                                                           IsVisible="{Binding ActiveAccountRow.HasHead}"/>
+                                                                    <PathIcon Data="M12 4A4 4 0 0 1 16 8A4 4 0 0 1 12 12A4 4 0 0 1 8 8A4 4 0 0 1 12 4ZM4 20C4 16.69 7.58 14 12 14C16.42 14 20 16.69 20 20V21H4V20Z"
+                                                                              Width="18" Height="18" Foreground="{DynamicResource TextSecondaryBrush}"
+                                                                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                              IsVisible="{Binding !ActiveAccountRow.HasHead}"/>
+                                                                </Panel>
+                                                            </Border>
+
+                                                            <!-- Username & Account type -->
+                                                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                                                <TextBlock Text="{Binding ActiveAccountName}" FontWeight="Bold" FontSize="14.5"
+                                                                           Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                                                <TextBlock Text="{Binding ActiveAccountType}" FontSize="11"
+                                                                           Foreground="{DynamicResource TextMutedBrush}" TextTrimming="CharacterEllipsis"/>
+                                                            </StackPanel>
+                                                        </Grid>
+
+                                                        <!-- Divider -->
+                                                        <Border Height="1" Background="{DynamicResource BorderDarkBrush}" Margin="0,0,0,8"/>
+
+                                                        <!-- Action items list -->
+                                                        <StackPanel Spacing="2">
+                                                            <!-- Switch Accounts -->
+                                                            <Button Classes="profileMenuItem" Command="{Binding OpenAccountsDialogCommand}" Click="OnProfileFlyoutActionClick">
+                                                                <Grid ColumnDefinitions="20,*" ColumnSpacing="10" VerticalAlignment="Center">
+                                                                    <PathIcon Grid.Column="0" Data="M16 17v2H2v-2s0-4 7-4 7 4 7 4m-3.5-9.5A3.5 3.5 0 1 0 9 11a3.5 3.5 0 0 0 3.5-3.5m3.44 5.5A5.32 5.32 0 0 1 18 17v2h4v-2s0-3.63-6.06-4M15.46 4a3.67 3.67 0 0 1 0 7 4.8 4.8 0 0 0 0-7z"
+                                                                              Width="15" Height="15" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                                                    <TextBlock Grid.Column="1" Text="Switch Accounts" FontSize="12.5" FontWeight="Medium" VerticalAlignment="Center" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                                                </Grid>
+                                                            </Button>
+
+                                                            <!-- Copy Username -->
+                                                            <Button Classes="profileMenuItem" Command="{Binding CopyActiveUsernameCommand}" Click="OnProfileFlyoutActionClick">
+                                                                <Grid ColumnDefinitions="20,*" ColumnSpacing="10" VerticalAlignment="Center">
+                                                                    <PathIcon Grid.Column="0" Data="M16 1H4C2.9 1 2 1.9 2 3v14h2V3h12V1zm3 4H8C6.9 5 6 5.9 6 7v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"
+                                                                              Width="14" Height="14" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                                                    <TextBlock Grid.Column="1" Text="Copy Username" FontSize="12.5" FontWeight="Medium" VerticalAlignment="Center" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                                                </Grid>
+                                                            </Button>
+
+                                                            <!-- Delete Profile -->
+                                                            <Button Classes="profileMenuItem profileDeleteMenuItem" Command="{Binding DeleteActiveAccountCommand}" Click="OnProfileFlyoutActionClick">
+                                                                <Grid ColumnDefinitions="20,*" ColumnSpacing="10" VerticalAlignment="Center">
+                                                                    <PathIcon Grid.Column="0" Data="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                                                                              Width="14" Height="14" Foreground="#EF4444" VerticalAlignment="Center"/>
+                                                                    <TextBlock Grid.Column="1" Text="Delete Profile" FontSize="12.5" FontWeight="Medium" VerticalAlignment="Center" Foreground="#EF4444"/>
+                                                                </Grid>
+                                                            </Button>
+                                                        </StackPanel>
+                                                    </StackPanel>
+                                                </Border>
+                                            </Flyout>
+                                        </Button.Flyout>
                                         <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                             <Border Width="32" Height="32" Background="{DynamicResource IconChipBrush}" CornerRadius="16" ClipToBounds="True">
                                                 <Panel>
-                                                    <Image Source="{Binding ActiveAccountRow.HeadImage}" Stretch="UniformToFill" IsVisible="{Binding ActiveAccountRow.HasHead}"/>
+                                                    <Image Source="{Binding ActiveAccountRow.HeadImage}" Stretch="UniformToFill"
+                                                           RenderOptions.BitmapInterpolationMode="None"
+                                                           IsVisible="{Binding ActiveAccountRow.HasHead}"/>
                                                     <PathIcon Data="M12 4A4 4 0 0 1 16 8A4 4 0 0 1 12 12A4 4 0 0 1 8 8A4 4 0 0 1 12 4ZM4 20C4 16.69 7.58 14 12 14C16.42 14 20 16.69 20 20V21H4V20Z"
                                                               Width="15" Height="15" Foreground="{DynamicResource TextSecondaryBrush}"
                                                               HorizontalAlignment="Center" VerticalAlignment="Center"

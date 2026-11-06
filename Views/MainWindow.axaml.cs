@@ -72,6 +72,12 @@ public partial class MainWindow : Window
         Close();
     }
 
+    private void OnProfileFlyoutActionClick(object? sender, RoutedEventArgs e)
+    {
+        var btn = this.FindControl<Button>("ProfileAccountBtn");
+        btn?.Flyout?.Hide();
+    }
+
     private void UpdateMaximizeIcon()
     {
         var icon = this.FindControl<PathIcon>("MaximizeButtonIcon");

@@ -6148,6 +6148,37 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
+    [RelayCommand]
+    private async Task CopyActiveUsernameAsync()
+    {
+        if (string.IsNullOrWhiteSpace(ActiveAccountName)) return;
+        if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime { MainWindow: { } window })
+        {
+            var clipboard = Avalonia.Controls.TopLevel.GetTopLevel(window)?.Clipboard;
+            if (clipboard != null)
+            {
+                var transfer = new DataTransfer();
+                transfer.Add(DataTransferItem.CreateText(ActiveAccountName));
+                await clipboard.SetDataAsync(transfer);
+                StatusText = $"Copied '{ActiveAccountName}' to clipboard";
+            }
+        }
+    }
+
+    [RelayCommand]
+    private void DeleteActiveAccount()
+    {
+        var active = ActiveAccountRow?.Model;
+        if (active != null)
+        {
+            AccountsVm.DeleteAccount(active);
+            RefreshState();
+            OnPropertyChanged(nameof(ActiveAccountName));
+            OnPropertyChanged(nameof(ActiveAccountType));
+            OnPropertyChanged(nameof(ActiveAccountRow));
+        }
+    }
+
 
 
     [RelayCommand]

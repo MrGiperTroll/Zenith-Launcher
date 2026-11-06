@@ -883,7 +883,7 @@
                                             Background="Transparent" BorderThickness="0" Padding="4,4" Cursor="Hand"
                                             HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
                                         <Button.Flyout>
-                                            <Flyout Placement="TopEdgeAlignedLeft" ShowMode="Standard" Closed="OnProfileFlyoutClosed">
+                                            <Flyout Placement="TopEdgeAlignedLeft" VerticalOffset="-16" ShowMode="Standard" Closed="OnProfileFlyoutClosed">
                                                 <Flyout.FlyoutPresenterTheme>
                                                     <ControlTheme TargetType="FlyoutPresenter" BasedOn="{StaticResource {x:Type FlyoutPresenter}}">
                                                         <Setter Property="Padding" Value="0"/>

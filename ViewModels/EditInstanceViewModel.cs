@@ -227,6 +227,13 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
         else
         {
             if (_logTimer.IsEnabled) _logTimer.Stop();
+            // Free log string buffers and layout objects immediately when leaving the tab
+            LogText = string.Empty;
+            _cachedFilteredLogText = string.Empty;
+            LogHasContent = false;
+            _lastLogModifiedUtc = default;
+            _lastLogLength = 0;
+            MemoryTrimmer.TrimMemory(force: true);
         }
 
         // Only refresh what the newly visible tab shows — rescanning every folder
@@ -467,7 +474,7 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
     private bool _logsFollowOutput = true;
 
     [ObservableProperty]
-    private bool _logsWrapLines = true;
+    private bool _logsWrapLines;
 
     [ObservableProperty]
     private bool _logsShowSystemMessages = true;
@@ -616,12 +623,12 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
                 try
                 {
                     using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
-                    if (!fullJava && fs.Length > 256 * 1024)
+                    if (fs.Length > 96 * 1024)
                     {
-                        fs.Seek(fs.Length - 256 * 1024, SeekOrigin.Begin);
+                        fs.Seek(fs.Length - 96 * 1024, SeekOrigin.Begin);
                     }
                     using var reader = new StreamReader(fs, Encoding.UTF8);
-                    if (!fullJava && fs.Position > 0)
+                    if (fs.Position > 0)
                     {
                         reader.ReadLine(); // discard partial line
                     }
@@ -635,7 +642,8 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
 
                     if (lines.Count > 0)
                     {
-                        var tail = fullJava ? lines : lines.Skip(Math.Max(0, lines.Count - 1000));
+                        const int maxDisplayLines = 300;
+                        var tail = lines.Skip(Math.Max(0, lines.Count - maxDisplayLines));
                         foreach (var line in tail) sb.AppendLine(line);
                     }
                 }
@@ -673,16 +681,16 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
 
     private static void AppendGameJavaLogs(StringBuilder sb, string instancePath)
     {
-        foreach (var fileName in new[] { "debug.log", "latest.log" })
+        var logFiles = new[] { Path.Combine(instancePath, "logs", "latest.log"), Path.Combine(instancePath, "logs", "debug.log") };
+        foreach (var path in logFiles)
         {
-            var path = Path.Combine(instancePath, "logs", fileName);
             if (!File.Exists(path)) continue;
             try
             {
                 using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
-                if (fs.Length > 512 * 1024)
+                if (fs.Length > 64 * 1024)
                 {
-                    fs.Seek(fs.Length - 512 * 1024, SeekOrigin.Begin);
+                    fs.Seek(fs.Length - 64 * 1024, SeekOrigin.Begin);
                 }
                 using var reader = new StreamReader(fs, Encoding.UTF8);
                 if (fs.Position > 0)
@@ -696,11 +704,13 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
 
                 if (allLines.Count == 0) continue;
 
+                var fileName = Path.GetFileName(path);
                 sb.AppendLine();
-                sb.AppendLine($"----- {fileName} ({allLines.Count} lines) -----");
-                var tail = allLines.Skip(Math.Max(0, allLines.Count - 5000));
+                sb.AppendLine($"----- {fileName} (latest {Math.Min(150, allLines.Count)} lines) -----");
+                var tail = allLines.Skip(Math.Max(0, allLines.Count - 150));
                 foreach (var l in tail)
                     sb.AppendLine(l);
+                break;
             }
             catch { }
         }

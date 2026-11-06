@@ -21,13 +21,13 @@ public static class MemoryTrimmer
         {
             using var proc = Process.GetCurrentProcess();
             // Strictly cap RAM around 100-150 MB: if working set exceeds 130 MB, force a compaction and trim pass
-            if (proc.WorkingSet64 > 130L * 1024 * 1024)
+            if (proc.WorkingSet64 > 115L * 1024 * 1024)
             {
                 TrimMemory(force: true);
             }
         }
         catch { }
-    }, null, TimeSpan.FromSeconds(45), TimeSpan.FromSeconds(45));
+    }, null, TimeSpan.FromSeconds(25), TimeSpan.FromSeconds(25));
 
     public static void TrimMemory(bool force = false)
     {

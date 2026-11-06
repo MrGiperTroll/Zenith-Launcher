@@ -6209,7 +6209,7 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task CopyActiveUsernameAsync()
+    public async Task CopyActiveUsernameAsync()
     {
         if (string.IsNullOrWhiteSpace(ActiveAccountName)) return;
         try
@@ -6237,10 +6237,20 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private AccountModel? _pendingDeleteAccount;
 
     [RelayCommand]
-    private void RequestDeleteActiveAccount()
+    public void RequestDeleteActiveAccount()
     {
-        var active = ActiveAccountRow?.Model;
-        if (active == null) return;
+        var active = ActiveAccountRow?.Model
+            ?? AccountsVm.SelectedAccount
+            ?? _accountService.GetActiveAccount()
+            ?? _accountService.GetAccounts().FirstOrDefault(a => a.Username == ActiveAccountName)
+            ?? _accountService.GetAccounts().FirstOrDefault();
+
+        if (active == null)
+        {
+            ShowToast("Нет активного аккаунта для удаления");
+            return;
+        }
+
         PendingDeleteAccount = active;
         PendingDeleteAccountName = active.Username;
         IsDeleteAccountConfirmOpen = true;

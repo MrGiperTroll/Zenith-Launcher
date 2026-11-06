@@ -86,6 +86,14 @@ public partial class MainWindow : Window
         }
     }
 
+    private void OnSwitchAccountsClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm)
+        {
+            vm.IsSwitchAccountsMenuOpen = !vm.IsSwitchAccountsMenuOpen;
+        }
+    }
+
     private void OnOtherProfileButtonPointerEntered(object? sender, PointerEventArgs e)
     {
         if (DataContext is MainWindowViewModel vm)
@@ -99,6 +107,54 @@ public partial class MainWindow : Window
         if (DataContext is MainWindowViewModel vm)
         {
             vm.IsSwitchAccountsMenuOpen = false;
+        }
+    }
+
+    private void OnAccountRowClick(object? sender, RoutedEventArgs e)
+    {
+        var btn = this.FindControl<Button>("ProfileAccountBtn");
+        btn?.Flyout?.Hide();
+
+        if (sender is Button { Tag: AccountRow row } && DataContext is MainWindowViewModel vm)
+        {
+            vm.SwitchAccount(row.Model);
+        }
+        else if (sender is Button { DataContext: AccountRow row2 } && DataContext is MainWindowViewModel vm2)
+        {
+            vm2.SwitchAccount(row2.Model);
+        }
+    }
+
+    private void OnManageAccountsClick(object? sender, RoutedEventArgs e)
+    {
+        var btn = this.FindControl<Button>("ProfileAccountBtn");
+        btn?.Flyout?.Hide();
+
+        if (DataContext is MainWindowViewModel vm)
+        {
+            vm.OpenAccountsDialogCommand.Execute(null);
+        }
+    }
+
+    private async void OnCopyUsernameClick(object? sender, RoutedEventArgs e)
+    {
+        var btn = this.FindControl<Button>("ProfileAccountBtn");
+        btn?.Flyout?.Hide();
+
+        if (DataContext is MainWindowViewModel vm)
+        {
+            await vm.CopyActiveUsernameAsync();
+        }
+    }
+
+    private void OnDeleteProfileClick(object? sender, RoutedEventArgs e)
+    {
+        var btn = this.FindControl<Button>("ProfileAccountBtn");
+        btn?.Flyout?.Hide();
+
+        if (DataContext is MainWindowViewModel vm)
+        {
+            vm.RequestDeleteActiveAccount();
         }
     }
 

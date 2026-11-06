@@ -6148,35 +6148,128 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
+    [ObservableProperty] private bool _isToastVisible;
+    [ObservableProperty] private string _toastMessage = string.Empty;
+    private System.Threading.CancellationTokenSource? _toastCts;
+
+    public void ShowToast(string message)
+    {
+        _toastCts?.Cancel();
+        _toastCts?.Dispose();
+        _toastCts = new System.Threading.CancellationTokenSource();
+        var token = _toastCts.Token;
+
+        ToastMessage = message;
+        IsToastVisible = true;
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await Task.Delay(2500, token);
+                if (!token.IsCancellationRequested)
+                {
+                    Dispatcher.UIThread.Post(() =>
+                    {
+                        if (!token.IsCancellationRequested)
+                        {
+                            IsToastVisible = false;
+                        }
+                    });
+                }
+            }
+            catch (TaskCanceledException)
+            {
+                // Ignored - superseded by subsequent toast
+            }
+        });
+    }
+
+    [ObservableProperty] private bool _isSwitchAccountsMenuOpen;
+
+    [RelayCommand]
+    public void OpenSwitchAccountsMenu() => IsSwitchAccountsMenuOpen = true;
+
+    [RelayCommand]
+    public void CloseSwitchAccountsMenu() => IsSwitchAccountsMenuOpen = false;
+
+    [RelayCommand]
+    public void ToggleSwitchAccountsMenu() => IsSwitchAccountsMenuOpen = !IsSwitchAccountsMenuOpen;
+
+    [RelayCommand]
+    public void SwitchAccount(AccountModel? account)
+    {
+        if (account == null) return;
+        AccountsVm.SwitchAccount(account);
+        RefreshState();
+        OnPropertyChanged(nameof(ActiveAccountName));
+        OnPropertyChanged(nameof(ActiveAccountType));
+        OnPropertyChanged(nameof(ActiveAccountRow));
+        ShowToast($"Вы переключились на '{account.Username}'");
+    }
+
     [RelayCommand]
     private async Task CopyActiveUsernameAsync()
     {
         if (string.IsNullOrWhiteSpace(ActiveAccountName)) return;
-        if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime { MainWindow: { } window })
+        try
         {
-            var clipboard = Avalonia.Controls.TopLevel.GetTopLevel(window)?.Clipboard;
-            if (clipboard != null)
+            if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime { MainWindow: { } window })
             {
-                var transfer = new DataTransfer();
-                transfer.Add(DataTransferItem.CreateText(ActiveAccountName));
-                await clipboard.SetDataAsync(transfer);
-                StatusText = $"Copied '{ActiveAccountName}' to clipboard";
+                var topLevel = Avalonia.Controls.TopLevel.GetTopLevel(window);
+                if (topLevel?.Clipboard != null)
+                {
+                    var transfer = new DataTransfer();
+                    transfer.Add(DataTransferItem.CreateText(ActiveAccountName));
+                    await topLevel.Clipboard.SetDataAsync(transfer);
+                    ShowToast($"Никнейм '{ActiveAccountName}' скопирован");
+                }
             }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Failed to copy username: {ex.Message}");
         }
     }
 
+    [ObservableProperty] private bool _isDeleteAccountConfirmOpen;
+    [ObservableProperty] private string _pendingDeleteAccountName = string.Empty;
+    [ObservableProperty] private AccountModel? _pendingDeleteAccount;
+
     [RelayCommand]
-    private void DeleteActiveAccount()
+    private void RequestDeleteActiveAccount()
     {
         var active = ActiveAccountRow?.Model;
-        if (active != null)
+        if (active == null) return;
+        PendingDeleteAccount = active;
+        PendingDeleteAccountName = active.Username;
+        IsDeleteAccountConfirmOpen = true;
+    }
+
+    [RelayCommand]
+    private void CancelDeleteAccountConfirm()
+    {
+        IsDeleteAccountConfirmOpen = false;
+        PendingDeleteAccount = null;
+        PendingDeleteAccountName = string.Empty;
+    }
+
+    [RelayCommand]
+    private void ConfirmDeleteAccount()
+    {
+        if (PendingDeleteAccount != null)
         {
-            AccountsVm.DeleteAccount(active);
+            var name = PendingDeleteAccount.Username;
+            AccountsVm.DeleteAccount(PendingDeleteAccount);
             RefreshState();
             OnPropertyChanged(nameof(ActiveAccountName));
             OnPropertyChanged(nameof(ActiveAccountType));
             OnPropertyChanged(nameof(ActiveAccountRow));
+            ShowToast($"Аккаунт '{name}' удален");
         }
+        IsDeleteAccountConfirmOpen = false;
+        PendingDeleteAccount = null;
+        PendingDeleteAccountName = string.Empty;
     }
 
 

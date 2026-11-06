@@ -78,6 +78,30 @@ public partial class MainWindow : Window
         btn?.Flyout?.Hide();
     }
 
+    private void OnSwitchAccountsPointerEntered(object? sender, PointerEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm)
+        {
+            vm.IsSwitchAccountsMenuOpen = true;
+        }
+    }
+
+    private void OnOtherProfileButtonPointerEntered(object? sender, PointerEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm)
+        {
+            vm.IsSwitchAccountsMenuOpen = false;
+        }
+    }
+
+    private void OnProfileFlyoutClosed(object? sender, EventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm)
+        {
+            vm.IsSwitchAccountsMenuOpen = false;
+        }
+    }
+
     private void UpdateMaximizeIcon()
     {
         var icon = this.FindControl<PathIcon>("MaximizeButtonIcon");

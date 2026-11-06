@@ -685,7 +685,7 @@
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Height" Value="36"/>
-            <Setter Property="Padding" Value="8,0"/>
+            <Setter Property="Padding" Value="10,0"/>
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -694,13 +694,13 @@
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Padding" Value="10,0"/>
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
         </Style>
         <Style Selector="Button.profileMenuItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
         </Style>
-        <Style Selector="Button.profileActiveMenuItem /template/ ContentPresenter#PART_ContentPresenter">
+        <Style Selector="Button.profileMenuItem.active /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
         </Style>
         <Style Selector="Button.profileDeleteMenuItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
@@ -942,7 +942,7 @@
                                                             <!-- Action items list -->
                                                             <StackPanel Spacing="2">
                                                                 <!-- Switch Accounts -->
-                                                                <Button Classes="profileMenuItem profileActiveMenuItem"
+                                                                <Button Classes="profileMenuItem" Classes.active="{Binding IsSwitchAccountsMenuOpen}"
                                                                         PointerEntered="OnSwitchAccountsPointerEntered"
                                                                         Click="OnSwitchAccountsClick">
                                                                     <Grid ColumnDefinitions="22,*,Auto" ColumnSpacing="10" VerticalAlignment="Center" HorizontalAlignment="Stretch">
@@ -983,7 +983,7 @@
                                                     </Border>
 
                                                     <!-- Col 1: Switch Accounts Sub-Menu (on completely transparent background) -->
-                                                    <Border Grid.Column="1" Width="230" VerticalAlignment="Bottom" Margin="0"
+                                                    <Border Grid.Column="1" Width="210" VerticalAlignment="Bottom" Margin="0"
                                                             Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1"
                                                             CornerRadius="12" ClipToBounds="True" Padding="6"
                                                             IsVisible="{Binding IsSwitchAccountsMenuOpen}">
@@ -994,8 +994,8 @@
                                                                         <Button Classes="profileMenuItem"
                                                                                 Tag="{Binding}"
                                                                                 Click="OnAccountRowClick">
-                                                                            <Grid ColumnDefinitions="26,*,Auto" ColumnSpacing="10" VerticalAlignment="Center" HorizontalAlignment="Stretch">
-                                                                                <Border Grid.Column="0" Width="26" Height="26" CornerRadius="13"
+                                                                            <Grid ColumnDefinitions="24,*,Auto" ColumnSpacing="8" VerticalAlignment="Center" HorizontalAlignment="Stretch">
+                                                                                <Border Grid.Column="0" Width="24" Height="24" CornerRadius="12"
                                                                                         Background="{DynamicResource IconChipBrush}" ClipToBounds="True">
                                                                                     <Panel>
                                                                                         <Image Source="{Binding HeadImage}" Stretch="UniformToFill"
@@ -1010,20 +1010,14 @@
                                                                                 <TextBlock Grid.Column="1" Text="{Binding Username}" FontSize="12.5" FontWeight="Medium"
                                                                                            Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"
                                                                                            TextTrimming="CharacterEllipsis"/>
-                                                                                <!-- Checkmark circle with rounded stroke adapting to theme AccentBrush -->
+                                                                                <!-- Checkmark circle adapting to theme AccentBrush -->
                                                                                 <Border Grid.Column="2" Width="18" Height="18" CornerRadius="9"
                                                                                         Background="{DynamicResource AccentBrush}"
                                                                                         ClipToBounds="True"
-                                                                                        VerticalAlignment="Center"
-                                                                                        Margin="0,0,4,0"
-                                                                                        IsVisible="{Binding IsActive}">
-                                                                                    <Path Data="M4 9L7.5 12.5L14 5"
-                                                                                          Stroke="{DynamicResource OnAccentBrush}"
-                                                                                          StrokeThickness="2"
-                                                                                          StrokeLineCap="Round"
-                                                                                          StrokeJoin="Round"
-                                                                                          HorizontalAlignment="Center"
-                                                                                          VerticalAlignment="Center"/>
+                                                                                        VerticalAlignment="Center" IsVisible="{Binding IsActive}">
+                                                                                    <PathIcon Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" Width="10" Height="10"
+                                                                                              Foreground="White"
+                                                                                              HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                                 </Border>
                                                                             </Grid>
                                                                         </Button>

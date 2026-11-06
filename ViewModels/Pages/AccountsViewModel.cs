@@ -209,15 +209,10 @@ public partial class AccountsViewModel : ViewModelBase, IDisposable
         CancelAuth();
     }
 
-    [RelayCommand]
+    [RelayCommand(AllowConcurrentExecutions = true)]
     public async Task LoginElyByAsync()
     {
-        if (IsAccountsBusy)
-        {
-            OnStatusMessage?.Invoke(L10n.T("mw_status_signin_busy"));
-            return;
-        }
-        IsAccountsBusy = true;
+        try { _authCts?.Cancel(); } catch { }
         AuthErrorText = "";
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(90));
         _authCts = cts;
@@ -230,9 +225,7 @@ public partial class AccountsViewModel : ViewModelBase, IDisposable
         }
         catch (OperationCanceledException)
         {
-            var msg = L10n.T("mw_status_signin_timeout");
-            OnStatusMessage?.Invoke(msg);
-            AuthErrorText = msg;
+            // Canceled by new login attempt or user
         }
         catch (InvalidOperationException ex)
         {
@@ -261,15 +254,10 @@ public partial class AccountsViewModel : ViewModelBase, IDisposable
         }
     }
 
-    [RelayCommand]
+    [RelayCommand(AllowConcurrentExecutions = true)]
     public async Task LoginMicrosoftAsync()
     {
-        if (IsAccountsBusy)
-        {
-            OnStatusMessage?.Invoke(L10n.T("mw_status_signin_busy"));
-            return;
-        }
-        IsAccountsBusy = true;
+        try { _authCts?.Cancel(); } catch { }
         AuthErrorText = "";
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(90));
         _authCts = cts;
@@ -283,9 +271,7 @@ public partial class AccountsViewModel : ViewModelBase, IDisposable
         }
         catch (OperationCanceledException)
         {
-            var msg = L10n.T("mw_status_signin_timeout");
-            OnStatusMessage?.Invoke(msg);
-            AuthErrorText = msg;
+            // Canceled by new login attempt or user
         }
         catch (InvalidOperationException ex)
         {

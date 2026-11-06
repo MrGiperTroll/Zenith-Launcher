@@ -112,17 +112,30 @@ public partial class MainWindow : Window
 
     private void OnAccountRowClick(object? sender, RoutedEventArgs e)
     {
+        AccountModel? targetModel = null;
+        if (sender is Control ctrl)
+        {
+            if (ctrl.Tag is AccountRow r1) targetModel = r1.Model;
+            else if (ctrl.Tag is AccountModel m1) targetModel = m1;
+            else if (ctrl.DataContext is AccountRow r2) targetModel = r2.Model;
+            else if (ctrl.DataContext is AccountModel m2) targetModel = m2;
+        }
+
+        if (targetModel == null && e.Source is Control sourceCtrl)
+        {
+            if (sourceCtrl.Tag is AccountRow r1) targetModel = r1.Model;
+            else if (sourceCtrl.Tag is AccountModel m1) targetModel = m1;
+            else if (sourceCtrl.DataContext is AccountRow r2) targetModel = r2.Model;
+            else if (sourceCtrl.DataContext is AccountModel m2) targetModel = m2;
+        }
+
+        if (targetModel != null && DataContext is MainWindowViewModel vm)
+        {
+            vm.SwitchAccount(targetModel);
+        }
+
         var btn = this.FindControl<Button>("ProfileAccountBtn");
         btn?.Flyout?.Hide();
-
-        if (sender is Button { Tag: AccountRow row } && DataContext is MainWindowViewModel vm)
-        {
-            vm.SwitchAccount(row.Model);
-        }
-        else if (sender is Button { DataContext: AccountRow row2 } && DataContext is MainWindowViewModel vm2)
-        {
-            vm2.SwitchAccount(row2.Model);
-        }
     }
 
     private void OnManageAccountsClick(object? sender, RoutedEventArgs e)

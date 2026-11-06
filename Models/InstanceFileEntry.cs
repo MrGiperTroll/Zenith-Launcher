@@ -19,13 +19,17 @@ public enum InstanceFileKind
 
 public partial class InstanceFileEntry : ObservableObject, IDisposable
 {
-    public string Name { get; init; } = "";
-    public string FullPath { get; init; } = "";
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DisplayName))]
+    private string _name = "";
+
+    public string FullPath { get; set; } = "";
     public bool IsDirectory { get; init; }
     public DateTime ModifiedAt { get; init; } = DateTime.MinValue;
     public InstanceFileKind Kind { get; set; } = InstanceFileKind.Generic;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DisplayName))]
     private bool _isEnabled = true;
 
     // Rich card metadata (populated by ContentMetadataReader / servers reader)

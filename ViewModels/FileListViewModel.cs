@@ -285,33 +285,49 @@ public partial class FileListViewModel : ObservableObject, IDisposable
         if (entry == null) return;
         try
         {
-            if (!entry.IsEnabled)
+            string currentPath = entry.FullPath;
+            bool isCurrentlyDisabled = currentPath.EndsWith(".disabled", StringComparison.OrdinalIgnoreCase);
+
+            if (!isCurrentlyDisabled && !File.Exists(currentPath) && !Directory.Exists(currentPath))
             {
-                if (entry.FullPath.EndsWith(".disabled", StringComparison.OrdinalIgnoreCase))
+                if (File.Exists(currentPath + ".disabled") || Directory.Exists(currentPath + ".disabled"))
                 {
-                    var target = entry.FullPath[..^9];
-                    if (!File.Exists(target) && !Directory.Exists(target))
-                    {
-                        if (Directory.Exists(entry.FullPath)) Directory.Move(entry.FullPath, target);
-                        else File.Move(entry.FullPath, target);
-                        entry.IsEnabled = true;
-                    }
+                    isCurrentlyDisabled = true;
+                    currentPath += ".disabled";
                 }
+            }
+
+            if (isCurrentlyDisabled)
+            {
+                var target = currentPath[..^9];
+                if (!File.Exists(target) && !Directory.Exists(target))
+                {
+                    if (Directory.Exists(currentPath)) Directory.Move(currentPath, target);
+                    else File.Move(currentPath, target);
+                }
+                entry.FullPath = target;
+                entry.Name = Path.GetFileName(target);
+                entry.IsEnabled = true;
             }
             else if (_supportsDisable)
             {
-                var target = entry.FullPath + ".disabled";
+                var target = currentPath + ".disabled";
                 if (!File.Exists(target) && !Directory.Exists(target))
                 {
-                    if (Directory.Exists(entry.FullPath)) Directory.Move(entry.FullPath, target);
-                    else File.Move(entry.FullPath, target);
-                    entry.IsEnabled = false;
+                    if (Directory.Exists(currentPath)) Directory.Move(currentPath, target);
+                    else File.Move(currentPath, target);
                 }
+                entry.FullPath = target;
+                entry.Name = Path.GetFileName(target);
+                entry.IsEnabled = false;
             }
+
         }
         catch (Exception ex)
         {
             _reportError($"Failed to toggle {entry.Name}: {ex.Message}");
+            bool onDiskEnabled = !entry.FullPath.EndsWith(".disabled", StringComparison.OrdinalIgnoreCase);
+            entry.IsEnabled = onDiskEnabled;
         }
         ApplyFilter();
     }

@@ -193,34 +193,8 @@ private void OnTopBarDoubleTapped(object? sender, TappedEventArgs e)
 
     private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(MainWindowViewModel.IsModpacksView))
-        {
-            var pane = _subscribedVm!.IsModpacksView
-                ? this.FindControl<Control>("ModpacksPane")
-                : this.FindControl<Control>("ProfilesPane");
-            if (pane != null)
-                UiFx.FadeInNow(pane, 240, 4);
-        }
-        else if (e.PropertyName == nameof(MainWindowViewModel.CurrentPage))
-        {
-            Control? pane = _subscribedVm!.CurrentPage switch
-            {
-                LauncherNavPage.Profiles => this.FindControl<Control>("ProfilesPane"),
-                LauncherNavPage.Modpacks => this.FindControl<Control>("ModpacksPane"),
-                LauncherNavPage.EditInstance => this.FindControl<Panel>("EditInstancePane"),
-                LauncherNavPage.ContentBrowser => this.FindControl<Panel>("ContentBrowserPane"),
-                LauncherNavPage.Settings => null, // Instantly displayed without micro-animation / slide
-                LauncherNavPage.ServerManager => this.FindControl<Panel>("ServerManagerPane"),
-                LauncherNavPage.Accounts => this.FindControl<Panel>("AccountsPane"),
-                LauncherNavPage.CreateProfile => this.FindControl<Panel>("CreateProfilePane"),
-                LauncherNavPage.CreateServer => this.FindControl<Panel>("CreateServerPane"),
-                _ => null
-            };
-            if (pane != null)
-                UiFx.FadeInNow(pane, 240, 4);
-        }
-
-        else if (e.PropertyName == nameof(MainWindowViewModel.IsUpdateOpen) && _subscribedVm!.IsUpdateOpen)
+        // Tab switching is instantaneous and static with zero jitter or layout shift
+        if (e.PropertyName == nameof(MainWindowViewModel.IsUpdateOpen) && _subscribedVm!.IsUpdateOpen)
         {
             var overlay = this.FindControl<Control>("UpdateOverlay");
             if (overlay != null)

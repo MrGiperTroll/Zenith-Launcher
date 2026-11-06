@@ -122,7 +122,7 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
         HasModsSupport = IsLoaderWithModsSupport(instance.LoaderType);
         HasShaderSupport = HasShaderSupportFor(instance.LoaderType);
 
-        _logTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(1000) };
+        _logTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(2000) };
         _logTimer.Tick += OnLogTimerTick;
         if (SelectedTab == "Logs")
         {
@@ -233,7 +233,7 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
             LogHasContent = false;
             _lastLogModifiedUtc = default;
             _lastLogLength = 0;
-            MemoryTrimmer.TrimMemory(force: true);
+            MemoryTrimmer.TrimMemory();
         }
 
         // Only refresh what the newly visible tab shows — rescanning every folder

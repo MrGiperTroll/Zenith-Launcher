@@ -14,7 +14,7 @@ public class IconPathToBitmapConverter : IValueConverter
 
     // Path -> decoded bitmap bounded with LRU eviction. Disposes bitmaps on eviction or clear.
     private static readonly LruCache<string, (Bitmap Bmp, DateTime WriteUtc)> _cache =
-        new(40, entry => { try { entry.Bmp?.Dispose(); } catch { } }, StringComparer.OrdinalIgnoreCase);
+        new(40, null, StringComparer.OrdinalIgnoreCase);
 
     public static void ClearCache() => _cache.Clear();
 
@@ -77,7 +77,7 @@ public class BytesToBitmapConverter : IValueConverter
 
     // Bounded LRU cache for decoded byte previews, ensuring evicted bitmaps are disposed immediately.
     private static readonly LruCache<byte[], Bitmap> _cache =
-        new(48, bmp => { try { bmp?.Dispose(); } catch { } }, ReferenceEqualityComparer.Instance);
+        new(48, null, ReferenceEqualityComparer.Instance);
 
     public static void ClearCache() => _cache.Clear();
 

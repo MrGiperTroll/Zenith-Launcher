@@ -350,7 +350,7 @@
                 </ScrollViewer>
 
                 <!-- Logs (Redesigned matching Modrinth style) -->
-                <Grid IsVisible="{Binding IsLogsTab}" RowDefinitions="Auto,Auto,*" Margin="16,14,16,14">
+                <Grid IsVisible="{Binding IsLogsTab}" RowDefinitions="Auto,Auto,*" Margin="14,10">
                     <!-- Row 0: Search input & Live Log dropdown -->
                     <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center" Margin="0,0,0,10">
                         <Border Grid.Column="0" Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"

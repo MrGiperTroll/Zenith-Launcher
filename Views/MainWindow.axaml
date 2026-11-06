@@ -1078,10 +1078,10 @@
                         <!-- Center Workspace Content (Row 0) -->
                         <Grid Grid.Row="0" Margin="0">
                     <!-- Profiles View -->
-                    <Grid IsVisible="{Binding IsProfilesView}" ColumnDefinitions="*,Auto" x:Name="ProfilesPane" Classes="viewPane" Margin="24,14,0,0">
-                        <ScrollViewer Grid.Column="0" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Hidden" Padding="0,0,16,16">
+                    <Grid IsVisible="{Binding IsProfilesView}" ColumnDefinitions="*,Auto" x:Name="ProfilesPane" Classes="viewPane" Margin="24,14,16,0">
+                        <ScrollViewer Grid.Column="0" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Hidden" Padding="0,0,0,16">
                             <StackPanel Spacing="14">
-                                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" Margin="0,2,0,6">
+                                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" Margin="0,0,0,8">
                                     <Panel Grid.Column="0"/>
                                     <Button Grid.Column="1" Classes="subBtn" Command="{Binding ImportInstancesCommand}" Padding="14,7">
                                         <TextBlock Text="{l10n:Tr Key=profile_import}" FontSize="12" FontWeight="SemiBold"/>

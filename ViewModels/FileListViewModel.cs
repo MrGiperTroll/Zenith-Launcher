@@ -45,13 +45,13 @@ public partial class FileListViewModel : ObservableObject, IDisposable
 
     public ObservableCollection<string> SortOptions { get; } = new()
     {
-        "Enabled first",
         "Name",
+        "Enabled first",
         "Last modified"
     };
 
     [ObservableProperty]
-    private string _selectedSortOption = "Enabled first";
+    private string _selectedSortOption = "Name";
 
     partial void OnSelectedSortOptionChanged(string value) => ApplyFilter();
 

@@ -11,6 +11,7 @@
              xmlns:l10n="using:CustomMcLauncher.Extensions"
 
              xmlns:pages="using:CustomMcLauncher.ViewModels.Pages"
+             xmlns:converters="using:CustomMcLauncher.Converters"
 
              x:Class="CustomMcLauncher.Views.AccountsView"
 
@@ -311,7 +312,7 @@
 
                                             <!-- Delete Button (no tooltip duplicate) -->
                                             <Button Grid.Column="1" Classes="delAccBtn"
-                                                    Command="{Binding $parent[UserControl].((pages:AccountsViewModel)DataContext).DeleteAccountCommand}"
+                                                    Command="{Binding $parent[UserControl].((pages:AccountsViewModel)DataContext).RequestDeleteAccountCommand}"
                                                     CommandParameter="{Binding Model}"
                                                     Margin="0,0,10,0">
                                                 <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
@@ -350,6 +351,16 @@
                     <!-- Clean action buttons (Qoder style: no instruction walls) -->
 
                     <StackPanel IsVisible="{Binding !IsOfflinePanelOpen}" Spacing="8">
+                        <!-- Sign-in In Progress & Cancel Action -->
+                        <Border IsVisible="{Binding IsAccountsBusy}" Background="{StaticResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="10" Padding="12,10" Margin="0,0,0,6">
+                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                    <ProgressBar IsIndeterminate="True" Width="16" Height="16" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{l10n:Tr Key=acc_ms_hint}" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                                <Button Grid.Column="1" Classes="subBtn" Command="{Binding CancelAuthCommand}" Content="{l10n:Tr Key=acc_cancel_signin}" Padding="10,4" FontSize="11"/>
+                            </Grid>
+                        </Border>
 
                         <Button Classes="methodBtn" Command="{Binding LoginMicrosoftCommand}">
 
@@ -455,6 +466,20 @@
 
     </Grid>
     <Canvas x:Name="DragOverlayPanel" IsHitTestVisible="False" ClipToBounds="False" ZIndex="9999"/>
+
+    <!-- MODAL: Delete Account Confirmation in AccountsView -->
+    <Border IsVisible="{Binding IsDeleteConfirmOpen}" Background="{DynamicResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="10000">
+        <Border Background="{DynamicResource CardAltBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="380" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <StackPanel Spacing="14">
+                <TextBlock Text="{l10n:Tr Key=acc_delete_title}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource DangerBrush}"/>
+                <TextBlock Text="{Binding PendingDeleteAccountName, Converter={x:Static converters:L10nFormatConverter.Instance}, ConverterParameter=acc_delete_confirm}" TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12.5" LineHeight="17"/>
+                <Grid ColumnDefinitions="*,*" Margin="0,4,0,0">
+                    <Button Grid.Column="0" Content="{l10n:Tr Key=cancel}" Command="{Binding CancelDeleteAccountCommand}" Classes="subBtn" HorizontalContentAlignment="Center" Margin="0,0,6,0"/>
+                    <Button Grid.Column="1" Classes="dangerBtn" Content="{l10n:Tr Key=delete}" Command="{Binding ConfirmDeleteAccountCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="6,0,0,0" Background="{DynamicResource DangerBorderBrush}"/>
+                </Grid>
+            </StackPanel>
+        </Border>
+    </Border>
 </Panel></UserControl>
 
 

@@ -946,7 +946,7 @@
                                                                     <Grid ColumnDefinitions="22,*,Auto" ColumnSpacing="10" VerticalAlignment="Center" HorizontalAlignment="Stretch">
                                                                         <PathIcon Grid.Column="0" Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"
                                                                                   Width="16" Height="16" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                                                                        <TextBlock Grid.Column="1" Text="Switch Accounts" FontSize="12.5" FontWeight="Medium" VerticalAlignment="Center" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                                                        <TextBlock Grid.Column="1" Text="{l10n:Tr Key=acc_switch_accounts}" FontSize="12.5" FontWeight="Medium" VerticalAlignment="Center" Foreground="{StaticResource TextPrimaryBrush}"/>
                                                                         <!-- Right arrow on far right -->
                                                                         <PathIcon Grid.Column="2" Data="M8.59 16.59L13.17 12L8.59 7.41L10 6L16 12L10 18L8.59 16.59Z"
                                                                                   Width="13" Height="13" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
@@ -960,7 +960,7 @@
                                                                     <Grid ColumnDefinitions="22,*" ColumnSpacing="10" VerticalAlignment="Center" HorizontalAlignment="Stretch">
                                                                         <PathIcon Grid.Column="0" Data="M16 1H4C2.9 1 2 1.9 2 3v14h2V3h12V1zm3 4H8C6.9 5 6 5.9 6 7v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"
                                                                                   Width="15" Height="15" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                                                                        <TextBlock Grid.Column="1" Text="Copy Username" FontSize="12.5" FontWeight="Medium" VerticalAlignment="Center" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                                                        <TextBlock Grid.Column="1" Text="{l10n:Tr Key=acc_copy_username}" FontSize="12.5" FontWeight="Medium" VerticalAlignment="Center" Foreground="{StaticResource TextPrimaryBrush}"/>
                                                                     </Grid>
                                                                 </Button>
 
@@ -974,7 +974,7 @@
                                                                     <Grid ColumnDefinitions="22,*" ColumnSpacing="10" VerticalAlignment="Center" HorizontalAlignment="Stretch">
                                                                         <PathIcon Grid.Column="0" Data="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
                                                                                   Width="15" Height="15" Foreground="#EF4444" VerticalAlignment="Center"/>
-                                                                        <TextBlock Grid.Column="1" Text="Delete Profile" FontSize="12.5" FontWeight="Medium" VerticalAlignment="Center" Foreground="#EF4444"/>
+                                                                        <TextBlock Grid.Column="1" Text="{l10n:Tr Key=acc_delete_profile}" FontSize="12.5" FontWeight="Medium" VerticalAlignment="Center" Foreground="#EF4444"/>
                                                                     </Grid>
                                                                 </Button>
                                                             </StackPanel>
@@ -1619,8 +1619,8 @@
         <Border Grid.Row="0" Grid.RowSpan="2" IsVisible="{Binding IsDeleteAccountConfirmOpen}" Background="{StaticResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1000">
             <Border Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="380" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="14">
-                    <TextBlock Text="Удалить аккаунт" FontSize="16" FontWeight="Bold" Foreground="{StaticResource DangerBrush}"/>
-                    <TextBlock Text="{Binding PendingDeleteAccountName, StringFormat='Вы точно уверены, что хотите удалить аккаунт {0}?'}" TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12.5" LineHeight="17"/>
+                    <TextBlock Text="{l10n:Tr Key=acc_delete_title}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource DangerBrush}"/>
+                    <TextBlock Text="{Binding PendingDeleteAccountName, Converter={x:Static converters:L10nFormatConverter.Instance}, ConverterParameter=acc_delete_confirm}" TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12.5" LineHeight="17"/>
                     <Grid ColumnDefinitions="*,*" Margin="0,4,0,0">
                         <Button Grid.Column="0" Content="{l10n:Tr Key=cancel}" Command="{Binding CancelDeleteAccountConfirmCommand}" Classes="subBtn" HorizontalContentAlignment="Center" Margin="0,0,6,0"/>
                         <Button Grid.Column="1" Classes="dangerBtn" Content="{l10n:Tr Key=delete}" Command="{Binding ConfirmDeleteAccountCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="6,0,0,0" Background="{StaticResource DangerBorderBrush}"/>

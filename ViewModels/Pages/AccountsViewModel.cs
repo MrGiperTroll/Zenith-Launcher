@@ -160,10 +160,53 @@ public partial class AccountsViewModel : ViewModelBase, IDisposable
         }
     }
 
-    public void ResetAuthUiState()
+    [ObservableProperty] private bool _isDeleteConfirmOpen;
+    [ObservableProperty] private AccountModel? _pendingDeleteAccount;
+    public string PendingDeleteAccountName => PendingDeleteAccount?.Username ?? string.Empty;
+
+    [RelayCommand]
+    public void RequestDeleteAccount(AccountModel? account)
     {
+        if (account == null) return;
+        PendingDeleteAccount = account;
+        OnPropertyChanged(nameof(PendingDeleteAccountName));
+        IsDeleteConfirmOpen = true;
+    }
+
+    [RelayCommand]
+    public void CancelDeleteAccount()
+    {
+        IsDeleteConfirmOpen = false;
+        PendingDeleteAccount = null;
+        OnPropertyChanged(nameof(PendingDeleteAccountName));
+    }
+
+    [RelayCommand]
+    public void ConfirmDeleteAccount()
+    {
+        if (PendingDeleteAccount != null)
+        {
+            var acc = PendingDeleteAccount;
+            _accountService.RemoveAccount(acc.Id);
+            RefreshAccounts();
+        }
+        IsDeleteConfirmOpen = false;
+        PendingDeleteAccount = null;
+        OnPropertyChanged(nameof(PendingDeleteAccountName));
+    }
+
+    [RelayCommand]
+    public void CancelAuth()
+    {
+        try { _authCts?.Cancel(); } catch { }
+        _authCts = null;
         IsAccountsBusy = false;
         AuthErrorText = "";
+    }
+
+    public void ResetAuthUiState()
+    {
+        CancelAuth();
     }
 
     [RelayCommand]
@@ -176,7 +219,7 @@ public partial class AccountsViewModel : ViewModelBase, IDisposable
         }
         IsAccountsBusy = true;
         AuthErrorText = "";
-        using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(90));
         _authCts = cts;
         try
         {
@@ -228,7 +271,7 @@ public partial class AccountsViewModel : ViewModelBase, IDisposable
         }
         IsAccountsBusy = true;
         AuthErrorText = "";
-        using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(90));
         _authCts = cts;
         try
         {

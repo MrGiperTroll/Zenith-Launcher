@@ -6205,7 +6205,7 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(ActiveAccountName));
         OnPropertyChanged(nameof(ActiveAccountType));
         OnPropertyChanged(nameof(ActiveAccountRow));
-        ShowToast($"Вы переключились на '{account.Username}'");
+        ShowToast(string.Format(L10n.T("acc_switched_toast"), account.Username));
     }
 
     [RelayCommand]
@@ -6222,7 +6222,7 @@ public partial class MainWindowViewModel : ViewModelBase
                     var transfer = new DataTransfer();
                     transfer.Add(DataTransferItem.CreateText(ActiveAccountName));
                     await topLevel.Clipboard.SetDataAsync(transfer);
-                    ShowToast($"Никнейм '{ActiveAccountName}' скопирован");
+                    ShowToast(string.Format(L10n.T("acc_copied_toast"), ActiveAccountName));
                 }
             }
         }
@@ -6247,7 +6247,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         if (active == null)
         {
-            ShowToast("Нет активного аккаунта для удаления");
+            ShowToast(L10n.T("acc_no_active_toast"));
             return;
         }
 
@@ -6275,7 +6275,7 @@ public partial class MainWindowViewModel : ViewModelBase
             OnPropertyChanged(nameof(ActiveAccountName));
             OnPropertyChanged(nameof(ActiveAccountType));
             OnPropertyChanged(nameof(ActiveAccountRow));
-            ShowToast($"Аккаунт '{name}' удален");
+            ShowToast(string.Format(L10n.T("acc_deleted_toast"), name));
         }
         IsDeleteAccountConfirmOpen = false;
         PendingDeleteAccount = null;

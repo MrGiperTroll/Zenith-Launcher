@@ -262,7 +262,7 @@
                 <Grid x:Name="TabContentGrid">
                 <!-- Overview / Dashboard -->
                 <ScrollViewer IsVisible="{Binding IsOverviewTab}" VerticalScrollBarVisibility="Auto">
-                    <StackPanel Spacing="16" Margin="24,20,24,24">
+                    <StackPanel Spacing="16" Margin="14,10,14,24">
                                                 <!-- Instance Hero Card -->
                         <Border Classes="zenSection">
                             <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8" VerticalAlignment="Center">

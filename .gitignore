@@ -50,6 +50,8 @@ dist/
 # ===== Aider / AI tooling =====
 .aider*
 .aider.tags.cache.v4/
+.agents/
+.rules
 
 # ===== OS junk =====
 Thumbs.db

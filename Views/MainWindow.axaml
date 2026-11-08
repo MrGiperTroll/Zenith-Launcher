@@ -891,6 +891,9 @@
                                                         <Setter Property="BorderThickness" Value="0"/>
                                                         <Setter Property="BorderBrush" Value="Transparent"/>
                                                         <Setter Property="CornerRadius" Value="0"/>
+                                                        <Setter Property="MaxWidth" Value="1000"/>
+                                                        <Setter Property="MaxHeight" Value="800"/>
+                                                        <Setter Property="ClipToBounds" Value="False"/>
                                                         <Setter Property="Template">
                                                             <ControlTemplate>
                                                                 <ContentPresenter Name="PART_ContentPresenter"
@@ -898,6 +901,9 @@
                                                                                   BorderBrush="Transparent"
                                                                                   BorderThickness="0"
                                                                                   Padding="0"
+                                                                                  MaxWidth="1000"
+                                                                                  MaxHeight="800"
+                                                                                  ClipToBounds="False"
                                                                                   Content="{TemplateBinding Content}"
                                                                                   ContentTemplate="{TemplateBinding ContentTemplate}"
                                                                                   HorizontalContentAlignment="Stretch"
@@ -906,14 +912,15 @@
                                                         </Setter>
                                                     </ControlTheme>
                                                 </Flyout.FlyoutPresenterTheme>
-                                                <Grid ColumnDefinitions="250,Auto" ColumnSpacing="8" Background="Transparent">
+                                                <Grid ColumnDefinitions="250,Auto" ColumnSpacing="8" Background="Transparent" VerticalAlignment="Bottom">
                                                     <!-- Col 0: Main Profile Card (Monolithic Background) -->
                                                     <Border Grid.Column="0" Width="250" MinHeight="195" Background="{DynamicResource CardBrush}"
                                                             BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1"
-                                                            CornerRadius="14" Padding="14">
+                                                            CornerRadius="14" Padding="14" VerticalAlignment="Bottom">
                                                         <StackPanel Spacing="0">
                                                             <!-- Top: Avatar & User Info on monolithic card -->
-                                                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" Margin="0,0,0,12" VerticalAlignment="Center">
+                                                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" Margin="0,0,0,12" VerticalAlignment="Center"
+                                                                  PointerEntered="OnOtherProfileButtonPointerEntered">
                                                                 <!-- Head Avatar -->
                                                                 <Border Grid.Column="0" Width="44" Height="44" CornerRadius="10"
                                                                         Background="{DynamicResource IconChipBrush}" ClipToBounds="True">
@@ -988,42 +995,50 @@
                                                             CornerRadius="12" ClipToBounds="True" Padding="6"
                                                             IsVisible="{Binding IsSwitchAccountsMenuOpen}">
                                                         <StackPanel Spacing="2">
-                                                            <ItemsControl ItemsSource="{Binding AccountRows}">
-                                                                <ItemsControl.ItemTemplate>
-                                                                    <DataTemplate x:DataType="vm:AccountRow">
-                                                                        <Button Classes="profileMenuItem"
-                                                                                Tag="{Binding}"
-                                                                                Click="OnAccountRowClick">
-                                                                            <Grid ColumnDefinitions="24,*,Auto" ColumnSpacing="8" VerticalAlignment="Center" HorizontalAlignment="Stretch">
-                                                                                <Border Grid.Column="0" Width="24" Height="24" CornerRadius="12"
-                                                                                        Background="{DynamicResource IconChipBrush}" ClipToBounds="True">
-                                                                                    <Panel>
-                                                                                        <Image Source="{Binding HeadImage}" Stretch="UniformToFill"
-                                                                                               RenderOptions.BitmapInterpolationMode="None"
-                                                                                               IsVisible="{Binding HasHead}"/>
-                                                                                        <PathIcon Data="M12 4A4 4 0 0 1 16 8A4 4 0 0 1 12 12A4 4 0 0 1 8 8A4 4 0 0 1 12 4ZM4 20C4 16.69 7.58 14 12 14C16.42 14 20 16.69 20 20V21H4V20Z"
-                                                                                                  Width="13" Height="13" Foreground="{DynamicResource TextSecondaryBrush}"
-                                                                                                  HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                                                                  IsVisible="{Binding !HasHead}"/>
-                                                                                    </Panel>
-                                                                                </Border>
-                                                                                <TextBlock Grid.Column="1" Text="{Binding Username}" FontSize="12.5" FontWeight="Medium"
-                                                                                           Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"
-                                                                                           TextTrimming="CharacterEllipsis"/>
-                                                                                <!-- Checkmark circle adapting to theme AccentBrush -->
-                                                                                <Border Grid.Column="2" Width="18" Height="18" CornerRadius="9"
-                                                                                        Background="{DynamicResource AccentBrush}"
-                                                                                        ClipToBounds="True"
-                                                                                        VerticalAlignment="Center" IsVisible="{Binding IsActive}">
-                                                                                    <PathIcon Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" Width="10" Height="10"
-                                                                                              Foreground="White"
-                                                                                              HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                                                </Border>
-                                                                            </Grid>
-                                                                        </Button>
-                                                                    </DataTemplate>
-                                                                </ItemsControl.ItemTemplate>
-                                                            </ItemsControl>
+                                                            <ScrollViewer MaxHeight="240" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                                                <ItemsControl ItemsSource="{Binding AccountRows}">
+                                                                    <ItemsControl.ItemTemplate>
+                                                                        <DataTemplate x:DataType="vm:AccountRow">
+                                                                            <Button Classes="profileMenuItem"
+                                                                                    Tag="{Binding}"
+                                                                                    Click="OnAccountRowClick">
+                                                                                <Grid ColumnDefinitions="24,*,Auto" ColumnSpacing="8" VerticalAlignment="Center" HorizontalAlignment="Stretch">
+                                                                                    <Border Grid.Column="0" Width="24" Height="24" CornerRadius="12"
+                                                                                            Background="{DynamicResource IconChipBrush}" ClipToBounds="True">
+                                                                                        <Panel>
+                                                                                            <Image Source="{Binding HeadImage}" Stretch="UniformToFill"
+                                                                                                   RenderOptions.BitmapInterpolationMode="None"
+                                                                                                   IsVisible="{Binding HasHead}"/>
+                                                                                            <PathIcon Data="M12 4A4 4 0 0 1 16 8A4 4 0 0 1 12 12A4 4 0 0 1 8 8A4 4 0 0 1 12 4ZM4 20C4 16.69 7.58 14 12 14C16.42 14 20 16.69 20 20V21H4V20Z"
+                                                                                                      Width="13" Height="13" Foreground="{DynamicResource TextSecondaryBrush}"
+                                                                                                      HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                                                      IsVisible="{Binding !HasHead}"/>
+                                                                                        </Panel>
+                                                                                    </Border>
+                                                                                    <TextBlock Grid.Column="1" Text="{Binding Username}" FontSize="12.5" FontWeight="Medium"
+                                                                                               Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"
+                                                                                               TextTrimming="CharacterEllipsis"/>
+                                                                                    <!-- Checkmark circle adapting to theme AccentBrush -->
+                                                                                    <Border Grid.Column="2" Width="18" Height="18" CornerRadius="9"
+                                                                                            Background="{DynamicResource AccentBrush}"
+                                                                                            ClipToBounds="True"
+                                                                                            VerticalAlignment="Center"
+                                                                                            Margin="0,0,2,0"
+                                                                                            IsVisible="{Binding IsActive}">
+                                                                                        <Path Data="M4 9.5 L7.5 13 L14 5.5"
+                                                                                              Stroke="{DynamicResource OnAccentBrush}"
+                                                                                              StrokeThickness="2"
+                                                                                              StrokeLineCap="Round"
+                                                                                              StrokeJoin="Round"
+                                                                                              HorizontalAlignment="Center"
+                                                                                              VerticalAlignment="Center"/>
+                                                                                    </Border>
+                                                                                </Grid>
+                                                                            </Button>
+                                                                        </DataTemplate>
+                                                                    </ItemsControl.ItemTemplate>
+                                                                </ItemsControl>
+                                                            </ScrollViewer>
 
                                                             <Button Classes="profileMenuItem" Click="OnManageAccountsClick">
                                                                 <TextBlock Text="Manage Accounts" FontSize="12" FontWeight="Bold"

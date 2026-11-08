@@ -1679,6 +1679,29 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
 
     private async Task InstallDatapackToWorldAsync(ModrinthProjectItemViewModel project, InstanceModel instance, string worldName)
     {
+        if (project.Source == ContentSource.CurseForge)
+        {
+            var apiKey = GetCurseForgeApiKey?.Invoke() ?? "";
+            var fileInfo = await CurseForgeApiService.GetLatestProjectFileAsync(project.ProjectId, instance.Version, null, apiKey);
+            if (fileInfo == null || string.IsNullOrWhiteSpace(fileInfo.DownloadUrl))
+                fileInfo = await CurseForgeApiService.GetLatestProjectFileAsync(project.ProjectId, null, null, apiKey);
+            if (fileInfo == null || string.IsNullOrWhiteSpace(fileInfo.DownloadUrl))
+                throw new Exception("No downloadable file found on CurseForge.");
+
+            var cfData = await CurseForgeApiService.DownloadAsync(fileInfo.DownloadUrl);
+            if (cfData == null || cfData.Length == 0)
+                throw new Exception("Download failed.");
+
+            var cfTargetFolder = Path.Combine(instance.Path, "saves", worldName, "datapacks");
+            Directory.CreateDirectory(cfTargetFolder);
+            var cfDest = Path.Combine(cfTargetFolder, fileInfo.FileName);
+            await File.WriteAllBytesAsync(cfDest, cfData);
+
+            StatusText = $"Added datapack '{project.Title}' to world '{worldName}' ({instance.Name})";
+            project.IsInstalled = true;
+            return;
+        }
+
         var mcVer = instance.Version;
         var loader = (instance.LoaderType ?? "").ToLowerInvariant();
 
@@ -1715,6 +1738,39 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
 
     private async Task InstallProjectToInstanceAsync(ModrinthProjectItemViewModel project, InstanceModel instance)
     {
+        if (project.Source == ContentSource.CurseForge)
+        {
+            var apiKey = GetCurseForgeApiKey?.Invoke() ?? "";
+            var fileInfo = await CurseForgeApiService.GetLatestProjectFileAsync(project.ProjectId, instance.Version, instance.LoaderType, apiKey);
+            if (fileInfo == null || string.IsNullOrWhiteSpace(fileInfo.DownloadUrl))
+                fileInfo = await CurseForgeApiService.GetLatestProjectFileAsync(project.ProjectId, instance.Version, null, apiKey);
+            if (fileInfo == null || string.IsNullOrWhiteSpace(fileInfo.DownloadUrl))
+                fileInfo = await CurseForgeApiService.GetLatestProjectFileAsync(project.ProjectId, null, null, apiKey);
+            if (fileInfo == null || string.IsNullOrWhiteSpace(fileInfo.DownloadUrl))
+                throw new Exception($"No downloadable file found on CurseForge for {project.Title}.");
+
+            var cfData = await CurseForgeApiService.DownloadAsync(fileInfo.DownloadUrl);
+            if (cfData == null || cfData.Length == 0)
+                throw new Exception("Download failed.");
+
+            var cfSubDir = (project.ProjectType ?? SelectedProjectType) switch
+            {
+                "resourcepack" => "resourcepacks",
+                "shader" => "shaderpacks",
+                "datapack" => Path.Combine("saves", "datapacks"),
+                _ => "mods"
+            };
+
+            var cfTargetFolder = Path.Combine(instance.Path, cfSubDir);
+            Directory.CreateDirectory(cfTargetFolder);
+            var cfDest = Path.Combine(cfTargetFolder, fileInfo.FileName);
+            await File.WriteAllBytesAsync(cfDest, cfData);
+
+            StatusText = $"Added {project.Title} to {instance.Name}";
+            project.IsInstalled = true;
+            return;
+        }
+
         var mcVer = instance.Version;
         var loader = (instance.LoaderType ?? "").ToLowerInvariant();
 
@@ -1808,53 +1864,163 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
         var token = cts.Token;
         try
         {
-            if (project.ProjectType == "world" || SelectedProjectType == "world")
+            if (project.Source == ContentSource.CurseForge)
             {
                 var apiKey = GetCurseForgeApiKey?.Invoke() ?? "";
                 project.IsInstalling = true;
-                StatusText = "Fetching map details...";
-                var fileInfo = await CurseForgeApiService.GetLatestMapFileAsync(project.ProjectId, SelectedVersion, apiKey, token);
-                if (fileInfo == null || string.IsNullOrWhiteSpace(fileInfo.DownloadUrl))
+                OnPropertyChanged(nameof(ReinstallText));
+
+                if (project.ProjectType == "world" || SelectedProjectType == "world")
                 {
-                    StatusText = $"No downloadable map file found for {project.Title}";
+                    StatusText = "Fetching map details...";
+                    var fileInfo = await CurseForgeApiService.GetLatestMapFileAsync(project.ProjectId, SelectedVersion, apiKey, token);
+                    if (fileInfo == null || string.IsNullOrWhiteSpace(fileInfo.DownloadUrl))
+                    {
+                        StatusText = $"No downloadable map file found for {project.Title}";
+                        project.IsInstalling = false;
+                        return;
+                    }
+                    StatusText = "Downloading map...";
+                    var targetInstance = _instanceService.GetSelectedInstance();
+                    if (targetInstance == null)
+                    {
+                        StatusText = "Please create or select a profile first.";
+                        project.IsInstalling = false;
+                        return;
+                    }
+                    var savesDir = Path.Combine(targetInstance.Path, "saves");
+                    Directory.CreateDirectory(savesDir);
+                    var tempZip = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}_{fileInfo.FileName}");
+                    var mapData = await CurseForgeApiService.DownloadAsync(fileInfo.DownloadUrl, token);
+                    if (mapData is not { Length: > 0 })
+                    {
+                        StatusText = "Download failed.";
+                        project.IsInstalling = false;
+                        return;
+                    }
+                    await File.WriteAllBytesAsync(tempZip, mapData, token);
+                    StatusText = "Extracting map...";
+                    try
+                    {
+                        System.IO.Compression.ZipFile.ExtractToDirectory(tempZip, savesDir, overwriteFiles: true);
+                    }
+                    catch (Exception ex)
+                    {
+                        LauncherLog.Error("Failed to extract map", ex);
+                    }
+                    finally
+                    {
+                        try { File.Delete(tempZip); } catch { }
+                    }
                     project.IsInstalling = false;
+                    project.IsInstalled = true;
+                    StatusText = $"Installed map {project.Title} to {targetInstance.Name}";
                     return;
                 }
-                StatusText = "Downloading map...";
-                var targetInstance = _instanceService.GetSelectedInstance();
-                if (targetInstance == null)
+                else if (project.ProjectType == "modpack" || SelectedProjectType == "modpack")
                 {
-                    StatusText = "Please create or select a profile first.";
-                    project.IsInstalling = false;
+                    StatusText = $"Fetching {project.Title} modpack details...";
+                    var fileInfo = await CurseForgeApiService.GetLatestProjectFileAsync(project.ProjectId, SelectedVersion, null, apiKey, token);
+                    if (fileInfo == null || string.IsNullOrWhiteSpace(fileInfo.DownloadUrl))
+                    {
+                        fileInfo = await CurseForgeApiService.GetLatestProjectFileAsync(project.ProjectId, null, null, apiKey, token);
+                    }
+                    if (fileInfo == null || string.IsNullOrWhiteSpace(fileInfo.DownloadUrl))
+                    {
+                        StatusText = $"No downloadable file found for {project.Title}";
+                        project.IsInstalling = false;
+                        return;
+                    }
+
+                    StatusText = $"Downloading modpack {fileInfo.FileName}...";
+                    var cfTempDir = Path.Combine(Path.GetTempPath(), $"zenith_modpack_{Guid.NewGuid():N}");
+                    Directory.CreateDirectory(cfTempDir);
+                    var cfZipPath = Path.Combine(cfTempDir, fileInfo.FileName);
+
+                    var cfData = await CurseForgeApiService.DownloadAsync(fileInfo.DownloadUrl, token);
+                    if (token.IsCancellationRequested) return;
+                    if (cfData is not { Length: > 0 })
+                    {
+                        StatusText = "Download failed.";
+                        project.IsInstalling = false;
+                        return;
+                    }
+                    await File.WriteAllBytesAsync(cfZipPath, cfData, token);
+
+                    var cfInstance = await InstallModpackFromZipAsync(project, cfZipPath, cfTempDir, fileInfo.FileName, token);
+                    if (cfInstance != null)
+                    {
+                        project.IsInstalled = true;
+                        StatusText = $"Installed {project.Title}";
+                        UpdateInstalledFlags();
+                        _onInstalled?.Invoke();
+                    }
                     return;
                 }
-                var savesDir = Path.Combine(targetInstance.Path, "saves");
-                Directory.CreateDirectory(savesDir);
-                var tempZip = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}_{fileInfo.FileName}");
-                var mapData = await CurseForgeApiService.DownloadAsync(fileInfo.DownloadUrl, token);
-                if (mapData is not { Length: > 0 })
+                else
                 {
-                    StatusText = "Download failed.";
+                    var targetInstance = _instanceService.GetSelectedInstance();
+                    if (targetInstance == null)
+                    {
+                        StatusText = "Please create or select a profile first.";
+                        project.IsInstalling = false;
+                        return;
+                    }
+
+                    StatusText = $"Fetching {project.Title} details...";
+                    var fileInfo = await CurseForgeApiService.GetLatestProjectFileAsync(project.ProjectId, targetInstance.Version, targetInstance.LoaderType, apiKey, token);
+                    if (fileInfo == null || string.IsNullOrWhiteSpace(fileInfo.DownloadUrl))
+                    {
+                        fileInfo = await CurseForgeApiService.GetLatestProjectFileAsync(project.ProjectId, targetInstance.Version, null, apiKey, token);
+                    }
+                    if (fileInfo == null || string.IsNullOrWhiteSpace(fileInfo.DownloadUrl))
+                    {
+                        fileInfo = await CurseForgeApiService.GetLatestProjectFileAsync(project.ProjectId, null, null, apiKey, token);
+                    }
+                    if (fileInfo == null || string.IsNullOrWhiteSpace(fileInfo.DownloadUrl))
+                    {
+                        StatusText = $"No compatible file found for {project.Title}";
+                        project.IsInstalling = false;
+                        return;
+                    }
+
+                    StatusText = $"Downloading {fileInfo.FileName}...";
+                    var cfSubDir = (project.ProjectType ?? SelectedProjectType) switch
+                    {
+                        "resourcepack" => "resourcepacks",
+                        "shader" => "shaderpacks",
+                        "datapack" => Path.Combine("saves", "datapacks"),
+                        _ => "mods"
+                    };
+                    var cfTargetDir = Path.Combine(targetInstance.Path, cfSubDir);
+                    Directory.CreateDirectory(cfTargetDir);
+                    var cfDestPath = Path.Combine(cfTargetDir, fileInfo.FileName);
+
+                    var cfItemData = await CurseForgeApiService.DownloadAsync(fileInfo.DownloadUrl, token);
+                    if (token.IsCancellationRequested) return;
+                    if (cfItemData is not { Length: > 0 })
+                    {
+                        StatusText = "Download failed.";
+                        project.IsInstalling = false;
+                        return;
+                    }
+                    await File.WriteAllBytesAsync(cfDestPath, cfItemData, token);
                     project.IsInstalling = false;
+                    project.IsInstalled = true;
+                    StatusText = $"Installed {project.Title} to {targetInstance.Name}";
                     return;
                 }
-                await File.WriteAllBytesAsync(tempZip, mapData, token);
-                StatusText = "Extracting map...";
-                try
+            }
+
+            if (project.ProjectType == "world" || SelectedProjectType == "world")
+            {
+                // Fallback for Modrinth worlds if any
+                var worldVersion = await ModrinthApiService.GetLatestVersionAsync(project.ProjectId, SelectedVersion, Array.Empty<string>(), token);
+                if (worldVersion == null)
                 {
-                    System.IO.Compression.ZipFile.ExtractToDirectory(tempZip, savesDir, overwriteFiles: true);
+                    StatusText = $"No compatible version found for {project.Title}";
+                    return;
                 }
-                catch (Exception ex)
-                {
-                    LauncherLog.Error("Failed to extract map", ex);
-                }
-                finally
-                {
-                    try { File.Delete(tempZip); } catch { }
-                }
-                project.IsInstalling = false;
-                project.IsInstalled = true;
-                StatusText = $"Installed map {project.Title} to {targetInstance.Name}";
                 return;
             }
             var version = await ModrinthApiService.GetLatestVersionAsync(project.ProjectId, SelectedVersion, Array.Empty<string>(), token);
@@ -2000,6 +2166,62 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
                 OnPropertyChanged(nameof(CleanBody));
                 OnPropertyChanged(nameof(GalleryItems));
                 OnPropertyChanged(nameof(HasGalleryItems));
+
+                _allVersions = await CurseForgeApiService.GetProjectVersionsAsync(project.ProjectId, apiKey);
+                if (cfProject != null)
+                {
+                    cfProject.Versions = _allVersions;
+                    var actualVersions = (_allVersions.Count > 0
+                        ? _allVersions.SelectMany(v => v.GameVersions ?? Array.Empty<string>())
+                        : (cfProject.GameVersions ?? Array.Empty<string>()))
+                        .Where(v => !string.IsNullOrWhiteSpace(v))
+                        .Distinct();
+                    FilterGameVersions = SortGameVersionsDesc(actualVersions);
+                    GameVersionFilter.SetVersions(actualVersions);
+
+                    var actualLoaders = (_allVersions.Count > 0
+                        ? _allVersions.SelectMany(v => v.Loaders ?? Array.Empty<string>())
+                        : (cfProject.Loaders ?? Array.Empty<string>()))
+                        .Select(Models.ModrinthProjectVersion.FormatPlatformName)
+                        .Where(p => !string.IsNullOrWhiteSpace(p) && !p.Equals("All platforms", StringComparison.OrdinalIgnoreCase))
+                        .Distinct()
+                        .OrderBy(p => p)
+                        .ToList();
+
+                    var platforms = new List<string> { "All platforms" };
+                    platforms.AddRange(actualLoaders);
+                    FilterPlatforms = platforms;
+                    SelectedFilterGameVersion = "All versions";
+                    SelectedFilterPlatform = "All platforms";
+
+                    PlatformFilterItems.Clear();
+                    foreach (var p in actualLoaders)
+                    {
+                        var item = new Models.FilterCheckItem { Name = p, IsSelected = false };
+                        item.PropertyChanged += (s, e) =>
+                        {
+                            if (e.PropertyName == nameof(Models.FilterCheckItem.IsSelected))
+                            {
+                                OnPropertyChanged(nameof(PlatformFilterButtonText));
+                                OnPropertyChanged(nameof(IsAllPlatformsSelected));
+                                CurrentVersionPage = 1;
+                                RefreshPagination();
+                            }
+                        };
+                        PlatformFilterItems.Add(item);
+                    }
+                    OnPropertyChanged(nameof(PlatformFilterButtonText));
+                    OnPropertyChanged(nameof(IsAllPlatformsSelected));
+
+                    CurrentVersionPage = 1;
+                    RefreshPagination();
+                    OnPropertyChanged(nameof(VersionSelectorProject));
+                    OnPropertyChanged(nameof(CompatibilityVersions));
+
+                    if (SelectedVersionForDetails == null && VersionList.Count > 0)
+                        SelectedVersionForDetails = VersionList[0];
+                }
+
                 FullProjectBusy = false;
                 return;
             }
@@ -2154,7 +2376,9 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
             var tempDir = Path.Combine(Path.GetTempPath(), $"zenith_modpack_{Guid.NewGuid():N}");
             Directory.CreateDirectory(tempDir);
             var zipPath = Path.Combine(tempDir, file.Filename);
-            var data = await ModrinthApiService.DownloadAsync(file.Url, token);
+            var data = project.Source == ContentSource.CurseForge
+                ? await CurseForgeApiService.DownloadAsync(file.Url, token)
+                : await ModrinthApiService.DownloadAsync(file.Url, token);
             if (token.IsCancellationRequested) return;
             if (data is not { Length: > 0 })
             {

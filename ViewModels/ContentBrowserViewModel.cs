@@ -1697,7 +1697,9 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
             OnPropertyChanged(nameof(ReinstallText));
             StatusText = string.Format(L10n.T("mi_installing"));
 
-            var data = await ModrinthApiService.DownloadAsync(file.Url, token);
+            var data = project.Source == ContentSource.CurseForge
+                ? await CurseForgeApiService.DownloadAsync(file.Url, token)
+                : await ModrinthApiService.DownloadAsync(file.Url, token);
             if (token.IsCancellationRequested) return;
             if (data is not { Length: > 0 })
             {
@@ -1762,6 +1764,12 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
     private async Task InstallAsync(ModrinthProjectItemViewModel project)
     {
         if (project == null || project.IsInstalling) return;
+
+        if (project.Source == ContentSource.CurseForge)
+        {
+            await InstallLatestAsync(project);
+            return;
+        }
 
         if (SelectedContentType == ContentType.DataPack && string.IsNullOrWhiteSpace(SelectedWorld))
         {
@@ -2131,6 +2139,74 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
         FullProjectBusy = true;
         try
         {
+            if (project.Source == ContentSource.CurseForge)
+            {
+                var apiKey = GetCurseForgeApiKey?.Invoke() ?? "";
+                var cf = await CurseForgeApiService.GetFullProjectAsync(project.ProjectId, apiKey);
+                FullProject = cf;
+                HeaderImage = null;
+                OnPropertyChanged(nameof(CleanBody));
+                OnPropertyChanged(nameof(GalleryItems));
+                OnPropertyChanged(nameof(HasGalleryItems));
+
+                _allVersions = await CurseForgeApiService.GetProjectVersionsAsync(project.ProjectId, apiKey);
+                if (cf != null)
+                {
+                    cf.Versions = _allVersions;
+                    var actualVersions = (_allVersions.Count > 0
+                        ? _allVersions.SelectMany(v => v.GameVersions ?? Array.Empty<string>())
+                        : (cf.GameVersions ?? Array.Empty<string>()))
+                        .Where(v => !string.IsNullOrWhiteSpace(v))
+                        .Distinct();
+                    FilterGameVersions = SortGameVersionsDesc(actualVersions);
+                    GameVersionFilter.SetVersions(actualVersions);
+
+                    var actualLoaders = (_allVersions.Count > 0
+                        ? _allVersions.SelectMany(v => v.Loaders ?? Array.Empty<string>())
+                        : (cf.Loaders ?? Array.Empty<string>()))
+                        .Select(Models.ModrinthProjectVersion.FormatPlatformName)
+                        .Where(p => !string.IsNullOrWhiteSpace(p) && !p.Equals("All platforms", StringComparison.OrdinalIgnoreCase))
+                        .Distinct()
+                        .OrderBy(p => p)
+                        .ToList();
+
+                    var platforms = new List<string> { "All platforms" };
+                    platforms.AddRange(actualLoaders);
+                    FilterPlatforms = platforms;
+                    SelectedFilterGameVersion = "All versions";
+                    SelectedFilterPlatform = "All platforms";
+
+                    PlatformFilterItems.Clear();
+                    foreach (var p in actualLoaders)
+                    {
+                        var item = new Models.FilterCheckItem { Name = p, IsSelected = false };
+                        item.PropertyChanged += (s, e) =>
+                        {
+                            if (e.PropertyName == nameof(Models.FilterCheckItem.IsSelected))
+                            {
+                                OnPropertyChanged(nameof(PlatformFilterButtonText));
+                                OnPropertyChanged(nameof(IsAllPlatformsSelected));
+                                CurrentVersionPage = 1;
+                                RefreshPagination();
+                            }
+                        };
+                        PlatformFilterItems.Add(item);
+                    }
+                    OnPropertyChanged(nameof(PlatformFilterButtonText));
+                    OnPropertyChanged(nameof(IsAllPlatformsSelected));
+
+                    CurrentVersionPage = 1;
+                    RefreshPagination();
+                    OnPropertyChanged(nameof(VersionSelectorProject));
+                    OnPropertyChanged(nameof(CompatibilityVersions));
+
+                    if (SelectedVersionForDetails == null && VersionList.Count > 0)
+                        SelectedVersionForDetails = VersionList[0];
+                }
+                FullProjectBusy = false;
+                return;
+            }
+
             var full = await ModrinthApiService.GetFullProjectAsync(project.ProjectId);
             FullProject = full;
             HeaderImage = null;

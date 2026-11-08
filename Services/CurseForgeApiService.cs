@@ -15,7 +15,7 @@ public static class CurseForgeApiService
 {
     private static readonly HttpClient Http = new()
     {
-        Timeout = TimeSpan.FromSeconds(20)
+        Timeout = TimeSpan.FromMinutes(5)
     };
 
     // Standard CurseForge Minecraft GameId
@@ -230,6 +230,25 @@ public static class CurseForgeApiService
     {
         if (string.IsNullOrWhiteSpace(projectId)) return null;
 
+        var file = await FetchLatestFileInternalAsync(projectId, gameVersion, loader, apiKey, token);
+        if (file == null && !string.IsNullOrWhiteSpace(loader) && !loader.Equals("Any loader", StringComparison.OrdinalIgnoreCase))
+        {
+            file = await FetchLatestFileInternalAsync(projectId, gameVersion, null, apiKey, token);
+        }
+        if (file == null && !string.IsNullOrWhiteSpace(gameVersion) && !gameVersion.Equals("All versions", StringComparison.OrdinalIgnoreCase))
+        {
+            file = await FetchLatestFileInternalAsync(projectId, null, null, apiKey, token);
+        }
+        return file;
+    }
+
+    private static async Task<CurseForgeFileInfo?> FetchLatestFileInternalAsync(
+        string projectId,
+        string? gameVersion,
+        string? loader,
+        string? apiKey,
+        CancellationToken token)
+    {
         var path = $"mods/{projectId}/files?pageSize=20";
         if (!string.IsNullOrWhiteSpace(gameVersion) && !gameVersion.Equals("All versions", StringComparison.OrdinalIgnoreCase))
             path += $"&gameVersion={Uri.EscapeDataString(gameVersion.Trim())}";
@@ -276,6 +295,95 @@ public static class CurseForgeApiService
             }
         }
         return null;
+    }
+
+    public static async Task<List<ModrinthProjectVersion>> GetProjectVersionsAsync(
+        string projectId,
+        string? apiKey = null,
+        CancellationToken token = default)
+    {
+        if (string.IsNullOrWhiteSpace(projectId)) return new();
+
+        var path = $"mods/{projectId}/files?pageSize=50";
+        using var request = CreateRequest(HttpMethod.Get, path, apiKey);
+        using var response = await Http.SendAsync(request, token).ConfigureAwait(false);
+        if (!response.IsSuccessStatusCode) return new();
+
+        using var stream = await response.Content.ReadAsStreamAsync(token).ConfigureAwait(false);
+        using var doc = await JsonDocument.ParseAsync(stream, cancellationToken: token).ConfigureAwait(false);
+
+        var list = new List<ModrinthProjectVersion>();
+        if (doc.RootElement.TryGetProperty("data", out var data) && data.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var f in data.EnumerateArray())
+            {
+                var fileId = f.TryGetProperty("id", out var fid) ? fid.GetInt64() : 0;
+                var fileName = f.TryGetProperty("fileName", out var fn) ? fn.GetString() ?? "" : "";
+                var displayName = f.TryGetProperty("displayName", out var dn) ? dn.GetString() ?? fileName : fileName;
+                var dlUrl = f.TryGetProperty("downloadUrl", out var du) ? du.GetString() ?? "" : "";
+                if (string.IsNullOrWhiteSpace(dlUrl) && fileId > 0 && !string.IsNullOrWhiteSpace(fileName))
+                {
+                    dlUrl = $"https://edge.forgecdn.net/files/{fileId / 1000}/{fileId % 1000}/{Uri.EscapeDataString(fileName)}";
+                }
+                var fileLength = f.TryGetProperty("fileLength", out var fl) ? fl.GetInt64() : 0;
+                var downloads = f.TryGetProperty("downloadCount", out var dc) ? dc.GetInt64() : 0;
+                var relType = f.TryGetProperty("releaseType", out var rt) ? rt.GetInt32() : 1;
+                var verType = relType switch { 1 => "release", 2 => "beta", 3 => "alpha", _ => "release" };
+                var fileDateStr = f.TryGetProperty("fileDate", out var fd) ? fd.GetString() ?? "" : "";
+                _ = DateTime.TryParse(fileDateStr, out var publishedDate);
+
+                var gameVers = new List<string>();
+                var loaders = new List<string>();
+                if (f.TryGetProperty("gameVersions", out var gvArr) && gvArr.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var gv in gvArr.EnumerateArray())
+                    {
+                        var s = gv.GetString();
+                        if (string.IsNullOrWhiteSpace(s)) continue;
+                        if (s.Equals("Client", StringComparison.OrdinalIgnoreCase) || s.Equals("Server", StringComparison.OrdinalIgnoreCase)) continue;
+                        if (s.Equals("Forge", StringComparison.OrdinalIgnoreCase) ||
+                            s.Equals("Fabric", StringComparison.OrdinalIgnoreCase) ||
+                            s.Equals("NeoForge", StringComparison.OrdinalIgnoreCase) ||
+                            s.Equals("Quilt", StringComparison.OrdinalIgnoreCase) ||
+                            s.Equals("LiteLoader", StringComparison.OrdinalIgnoreCase))
+                        {
+                            loaders.Add(s);
+                        }
+                        else
+                        {
+                            gameVers.Add(s);
+                        }
+                    }
+                }
+
+                var files = new List<ModrinthVersionFile>();
+                if (!string.IsNullOrWhiteSpace(dlUrl))
+                {
+                    files.Add(new ModrinthVersionFile
+                    {
+                        Url = dlUrl,
+                        Filename = fileName,
+                        FileSize = fileLength,
+                        IsPrimary = true
+                    });
+                }
+
+                list.Add(new ModrinthProjectVersion
+                {
+                    Id = fileId.ToString(),
+                    ProjectId = projectId,
+                    Name = displayName,
+                    VersionNumber = displayName,
+                    VersionType = verType,
+                    DatePublished = publishedDate,
+                    Downloads = downloads,
+                    GameVersions = gameVers.Distinct().ToArray(),
+                    Loaders = loaders.Distinct().ToArray(),
+                    Files = files
+                });
+            }
+        }
+        return list;
     }
 
     public static async Task<byte[]?> DownloadAsync(string url, CancellationToken token = default)
@@ -351,6 +459,21 @@ public static class CurseForgeApiService
             }
         }
 
+        var pType = "mod";
+        if (item.TryGetProperty("classId", out var cidProp))
+        {
+            pType = cidProp.GetInt32() switch
+            {
+                4471 => "modpack",
+                6 => "mod",
+                12 => "resourcepack",
+                6552 => "shader",
+                17 => "world",
+                6945 => "datapack",
+                _ => "mod"
+            };
+        }
+
         return new ModrinthFullProject
         {
             Id = id,
@@ -358,7 +481,7 @@ public static class CurseForgeApiService
             Title = name,
             Description = summary,
             Body = desc,
-            ProjectType = "world",
+            ProjectType = pType,
             Author = authorName,
             Downloads = dl,
             IconUrl = iconUrl,

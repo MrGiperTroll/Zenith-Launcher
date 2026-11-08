@@ -24,6 +24,7 @@ public partial class ModrinthProjectItemViewModel : ViewModelBase, IDisposable
     public string Description { get; init; } = "";
     public long Downloads { get; init; }
     public long Follows { get; init; }
+    public bool ShowLikes => Source != Models.ContentSource.CurseForge && Follows > 0;
     public string IconUrl { get; init; } = "";
     public string[] GameVersions { get; init; } = Array.Empty<string>();
 

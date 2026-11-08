@@ -1766,6 +1766,23 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
             var cfDest = Path.Combine(cfTargetFolder, fileInfo.FileName);
             await File.WriteAllBytesAsync(cfDest, cfData);
 
+            if (!string.IsNullOrWhiteSpace(project.IconUrl))
+            {
+                try
+                {
+                    var iconBytes = await ModrinthApiService.GetIconAsync(project.IconUrl);
+                    if (iconBytes is { Length: > 0 })
+                    {
+                        var cacheDir = Path.Combine(ZenithPaths.AppDataDir, "cache", "icons");
+                        Directory.CreateDirectory(cacheDir);
+                        await File.WriteAllBytesAsync(Path.Combine(cacheDir, Path.GetFileNameWithoutExtension(cfDest) + ".png"), iconBytes);
+                        await File.WriteAllBytesAsync(Path.Combine(cacheDir, Path.GetFileName(cfDest) + ".png"), iconBytes);
+                        await File.WriteAllBytesAsync(Path.Combine(cacheDir, $"{project.ProjectId}.png"), iconBytes);
+                    }
+                }
+                catch { }
+            }
+
             StatusText = $"Added {project.Title} to {instance.Name}";
             project.IsInstalled = true;
             return;
@@ -2005,6 +2022,24 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
                         return;
                     }
                     await File.WriteAllBytesAsync(cfDestPath, cfItemData, token);
+
+                    if (!string.IsNullOrWhiteSpace(project.IconUrl))
+                    {
+                        try
+                        {
+                            var iconBytes = await ModrinthApiService.GetIconAsync(project.IconUrl);
+                            if (iconBytes is { Length: > 0 })
+                            {
+                                var cacheDir = Path.Combine(ZenithPaths.AppDataDir, "cache", "icons");
+                                Directory.CreateDirectory(cacheDir);
+                                await File.WriteAllBytesAsync(Path.Combine(cacheDir, Path.GetFileNameWithoutExtension(cfDestPath) + ".png"), iconBytes, token);
+                                await File.WriteAllBytesAsync(Path.Combine(cacheDir, Path.GetFileName(cfDestPath) + ".png"), iconBytes, token);
+                                await File.WriteAllBytesAsync(Path.Combine(cacheDir, $"{project.ProjectId}.png"), iconBytes, token);
+                            }
+                        }
+                        catch { }
+                    }
+
                     project.IsInstalling = false;
                     project.IsInstalled = true;
                     StatusText = $"Installed {project.Title} to {targetInstance.Name}";
@@ -2748,6 +2783,44 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
             ? installedVersion
             : (manifest.TryGetProperty("version", out var vProp) ? vProp.GetString() ?? "" : "");
 
+        // Download and set modpack icon
+        if (!string.IsNullOrWhiteSpace(project.IconUrl))
+        {
+            try
+            {
+                var iconBytes = await ModrinthApiService.GetIconAsync(project.IconUrl);
+                if (iconBytes is { Length: > 0 })
+                {
+                    var iconPath = Path.Combine(inst.Path, "icon.png");
+                    await File.WriteAllBytesAsync(iconPath, iconBytes, token);
+                    inst.IconPath = iconPath;
+
+                    var cacheDir = Path.Combine(ZenithPaths.AppDataDir, "cache", "icons");
+                    Directory.CreateDirectory(cacheDir);
+                    await File.WriteAllBytesAsync(Path.Combine(cacheDir, $"{inst.Name}.png"), iconBytes, token);
+                    await File.WriteAllBytesAsync(Path.Combine(cacheDir, $"{project.ProjectId}.png"), iconBytes, token);
+                }
+            }
+            catch { }
+        }
+
+        if (string.IsNullOrWhiteSpace(inst.IconPath) || !File.Exists(inst.IconPath))
+        {
+            var localIcon = Directory.GetFiles(extractDir, "*icon*.png", SearchOption.AllDirectories)
+                .Concat(Directory.GetFiles(extractDir, "*logo*.png", SearchOption.AllDirectories))
+                .FirstOrDefault();
+            if (localIcon != null && File.Exists(localIcon))
+            {
+                var destIcon = Path.Combine(inst.Path, "icon.png");
+                try
+                {
+                    File.Copy(localIcon, destIcon, true);
+                    inst.IconPath = destIcon;
+                }
+                catch { }
+            }
+        }
+
         var baseDir = Path.GetDirectoryName(manifestPath) ?? extractDir;
         var overridesDir = Path.Combine(baseDir, "overrides");
         if (manifest.TryGetProperty("overrides", out var ovProp) && !string.IsNullOrWhiteSpace(ovProp.GetString()))
@@ -2755,6 +2828,57 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
 
         if (Directory.Exists(overridesDir))
             CopyDirectoryRecursive(overridesDir, inst.Path);
+
+        // Download mod files from manifest.json
+        if (manifest.TryGetProperty("files", out var filesProp) && filesProp.ValueKind == System.Text.Json.JsonValueKind.Array)
+        {
+            var fileIds = new List<long>();
+            foreach (var f in filesProp.EnumerateArray())
+            {
+                if (f.TryGetProperty("fileID", out var fid) && fid.GetInt64() is long id && id > 0)
+                    fileIds.Add(id);
+            }
+
+            if (fileIds.Count > 0)
+            {
+                StatusText = $"Fetching modpack files ({fileIds.Count} mods)...";
+                var apiKey = GetCurseForgeApiKey?.Invoke() ?? "";
+                var filesInfo = await CurseForgeApiService.GetModFilesBatchAsync(fileIds, apiKey, token);
+                var modsDir = Path.Combine(inst.Path, "mods");
+                Directory.CreateDirectory(modsDir);
+
+                int total = filesInfo.Count;
+                int done = 0;
+                StatusText = $"Downloading mods (0/{total})...";
+
+                using var sem = new System.Threading.SemaphoreSlim(6);
+                var tasks = filesInfo.Select(async info =>
+                {
+                    await sem.WaitAsync(token);
+                    try
+                    {
+                        token.ThrowIfCancellationRequested();
+                        var destFile = Path.Combine(modsDir, info.FileName);
+                        if (!File.Exists(destFile))
+                        {
+                            var data = await CurseForgeApiService.DownloadAsync(info.DownloadUrl, token);
+                            if (data is { Length: > 0 })
+                            {
+                                await File.WriteAllBytesAsync(destFile, data, token);
+                            }
+                        }
+                        var count = System.Threading.Interlocked.Increment(ref done);
+                        StatusText = $"Downloading mods ({count}/{total})...";
+                    }
+                    finally
+                    {
+                        sem.Release();
+                    }
+                });
+
+                await Task.WhenAll(tasks);
+            }
+        }
 
         await _instanceService.SaveInstanceAsync(inst);
         return inst;

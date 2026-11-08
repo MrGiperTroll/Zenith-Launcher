@@ -73,7 +73,24 @@ public partial class InstanceModel : ObservableObject
     private double _launchProgressPercent;
 
     [JsonIgnore]
-    public bool HasCustomIcon => !string.IsNullOrEmpty(IconPath) && File.Exists(IconPath);
+    public bool HasCustomIcon
+    {
+        get
+        {
+            if (!string.IsNullOrEmpty(IconPath) && File.Exists(IconPath))
+                return true;
+            if (!string.IsNullOrEmpty(Path))
+            {
+                var localIcon = System.IO.Path.Combine(Path, "icon.png");
+                if (File.Exists(localIcon))
+                {
+                    IconPath = localIcon;
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
 
     [JsonIgnore]
     public bool HasModsSupport

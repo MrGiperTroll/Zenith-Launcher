@@ -1019,19 +1019,17 @@
                                                                                                Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"
                                                                                                TextTrimming="CharacterEllipsis"/>
                                                                                     <!-- Checkmark circle adapting to theme AccentBrush -->
-                                                                                    <Border Grid.Column="2" Width="18" Height="18" CornerRadius="9"
+                                                                                    <Border Grid.Column="2" Width="16" Height="16" CornerRadius="8"
                                                                                             Background="{DynamicResource AccentBrush}"
-                                                                                            ClipToBounds="True"
                                                                                             VerticalAlignment="Center"
-                                                                                            Margin="0,0,2,0"
+                                                                                            HorizontalAlignment="Center"
+                                                                                            Margin="0,0,4,0"
                                                                                             IsVisible="{Binding IsActive}">
-                                                                                        <Path Data="M4 9.5 L7.5 13 L14 5.5"
-                                                                                              Stroke="{DynamicResource OnAccentBrush}"
-                                                                                              StrokeThickness="2"
-                                                                                              StrokeLineCap="Round"
-                                                                                              StrokeJoin="Round"
-                                                                                              HorizontalAlignment="Center"
-                                                                                              VerticalAlignment="Center"/>
+                                                                                        <PathIcon Data="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"
+                                                                                                  Width="8.5" Height="8.5"
+                                                                                                  Foreground="{DynamicResource OnAccentBrush}"
+                                                                                                  HorizontalAlignment="Center"
+                                                                                                  VerticalAlignment="Center"/>
                                                                                     </Border>
                                                                                 </Grid>
                                                                             </Button>
@@ -1041,7 +1039,7 @@
                                                             </ScrollViewer>
 
                                                             <Button Classes="profileMenuItem" Click="OnManageAccountsClick">
-                                                                <TextBlock Text="Manage Accounts" FontSize="12" FontWeight="Bold"
+                                                                <TextBlock Text="{l10n:Tr Key=acc_manage}" FontSize="12" FontWeight="SemiBold"
                                                                            Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                                                             </Button>
                                                         </StackPanel>
@@ -1442,7 +1440,7 @@
                                                                 <TextBlock Text="{Binding DownloadsLabel}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
                                                             </StackPanel>
                                                             <!-- Likes / Follows -->
-                                                            <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                                            <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center" IsVisible="{Binding ShowLikes}">
                                                                 <PathIcon Data="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" Width="11" Height="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
                                                                 <TextBlock Text="{Binding FollowsLabel}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
                                                             </StackPanel>

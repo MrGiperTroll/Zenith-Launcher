@@ -99,6 +99,23 @@ public static class ContentMetadataReader
                 if (f != null) iconBytes = ExtractEntry(zip, f.FullName);
             }
             iconBytes ??= ExtractFirstNamedImage(zip, "icon.png");
+            if (iconBytes == null)
+            {
+                var sidecars = new[]
+                {
+                    Path.Combine(ZenithPaths.AppDataDir, "cache", "icons", Path.GetFileNameWithoutExtension(path) + ".png"),
+                    Path.Combine(ZenithPaths.AppDataDir, "cache", "icons", Path.GetFileName(path) + ".png"),
+                    Path.Combine(ZenithPaths.AppDataDir, "cache", "previews", Path.GetFileNameWithoutExtension(path) + ".png"),
+                    Path.Combine(ZenithPaths.AppDataDir, "cache", "previews", Path.GetFileName(path) + ".png")
+                };
+                foreach (var sc in sidecars)
+                {
+                    if (File.Exists(sc))
+                    {
+                        try { iconBytes = File.ReadAllBytes(sc); if (iconBytes != null) break; } catch { }
+                    }
+                }
+            }
             if (iconBytes != null) entry.SetPreview(iconBytes, 64);
         }
         catch (Exception ex)

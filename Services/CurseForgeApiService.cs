@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -295,6 +297,56 @@ public static class CurseForgeApiService
             }
         }
         return null;
+    }
+
+    public static async Task<List<CurseForgeFileInfo>> GetModFilesBatchAsync(
+        IEnumerable<long> fileIds,
+        string? apiKey = null,
+        CancellationToken token = default)
+    {
+        var result = new List<CurseForgeFileInfo>();
+        var idsList = fileIds.Distinct().Where(id => id > 0).ToList();
+        if (idsList.Count == 0) return result;
+
+        foreach (var chunk in idsList.Chunk(50))
+        {
+            try
+            {
+                using var request = CreateRequest(HttpMethod.Post, "mods/files", apiKey);
+                var payload = JsonSerializer.Serialize(new { fileIds = chunk });
+                request.Content = new StringContent(payload, Encoding.UTF8, MediaTypeHeaderValue.Parse("application/json"));
+
+                using var response = await Http.SendAsync(request, token).ConfigureAwait(false);
+                if (!response.IsSuccessStatusCode) continue;
+
+                using var stream = await response.Content.ReadAsStreamAsync(token).ConfigureAwait(false);
+                using var doc = await JsonDocument.ParseAsync(stream, cancellationToken: token).ConfigureAwait(false);
+
+                if (doc.RootElement.TryGetProperty("data", out var data) && data.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var f in data.EnumerateArray())
+                    {
+                        var fileId = f.TryGetProperty("id", out var fid) ? fid.GetInt64() : 0;
+                        var fileName = f.TryGetProperty("fileName", out var fn) ? fn.GetString() ?? "" : "";
+                        var dlUrl = f.TryGetProperty("downloadUrl", out var du) ? du.GetString() ?? "" : "";
+                        if (string.IsNullOrWhiteSpace(dlUrl) && fileId > 0 && !string.IsNullOrWhiteSpace(fileName))
+                        {
+                            dlUrl = $"https://edge.forgecdn.net/files/{fileId / 1000}/{fileId % 1000}/{Uri.EscapeDataString(fileName)}";
+                        }
+                        if (fileId > 0 && !string.IsNullOrWhiteSpace(fileName) && !string.IsNullOrWhiteSpace(dlUrl))
+                        {
+                            result.Add(new CurseForgeFileInfo(fileId, fileName, dlUrl));
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LauncherLog.Warn($"Failed to fetch CurseForge files batch: {ex.Message}");
+            }
+        }
+
+        return result;
     }
 
     public static async Task<List<ModrinthProjectVersion>> GetProjectVersionsAsync(

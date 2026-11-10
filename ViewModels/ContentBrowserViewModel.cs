@@ -98,6 +98,8 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
         GC.SuppressFinalize(this);
     }
 
+    private ContentType _initialType = ContentType.Mod;
+
     [ObservableProperty]
     private ContentType _selectedContentType = ContentType.Mod;
 
@@ -931,7 +933,10 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
             initialType = ContentType.ResourcePack;
         if (initialType == ContentType.Shader && !HasShaderSupport)
             initialType = ContentType.ResourcePack;
+        _initialType = initialType;
         SelectedContentType = initialType;
+
+        CategoryFilter.PopulateItems(initialType, HasModsSupport, HasShaderSupport);
 
         BrowserSourceFilter = new SourceFilterViewModel(SelectedSource, s =>
         {
@@ -942,6 +947,17 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
         UpdateAvailableTags();
         CategoryFilter.FilterChanged += () =>
         {
+            if (CategoryFilter.SelectedTypes.Count == 1)
+            {
+                var single = CategoryFilter.SelectedTypes[0];
+                if (_selectedContentType != single)
+                {
+                    _selectedContentType = single;
+                    UpdateAvailableTags();
+                    OnPropertyChanged(nameof(SelectedContentType));
+                    OnPropertyChanged(nameof(IsDataPackSelected));
+                }
+            }
             _ = ReloadAsync();
         };
         BrowserSortFilter.SortChanged += (newSort) =>
@@ -1034,6 +1050,7 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
         if (type == ContentType.Mod && !HasModsSupport) type = ContentType.ResourcePack;
         if (type == ContentType.Shader && !HasShaderSupport) type = ContentType.ResourcePack;
         SelectedContentType = type;
+        CategoryFilter.SetSingleType(type);
     }
 
     private void UpdateAvailableTags()
@@ -1106,7 +1123,8 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
         SelectedSort = ContentSortOption.Relevance;
         SelectedSortDisplay = "Relevance";
         BrowserSortFilter.SelectedSort = "Relevance";
-        CategoryFilter.PopulateItems();
+        CategoryFilter.PopulateItems(_initialType, HasModsSupport, HasShaderSupport);
+        SelectedContentType = _initialType;
         _ = ReloadAsync();
     }
 
@@ -1143,7 +1161,7 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
         {
             var selectedTypes = CategoryFilter.SelectedTypes;
             if (selectedTypes.Count == 0)
-                selectedTypes = new[] { ContentType.Mod };
+                selectedTypes = new[] { SelectedContentType };
 
             var loaders = selectedTypes.Contains(ContentType.Mod) ? MapLoaders(_loaderType) : Array.Empty<string>();
             var categoryTags = AvailableTags.Where(t => t.IsSelected && !t.IsReset).Select(t => t.Name).ToList();
@@ -1297,7 +1315,7 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
         {
             var selectedTypes = CategoryFilter.SelectedTypes;
             if (selectedTypes.Count == 0)
-                selectedTypes = new[] { ContentType.Mod };
+                selectedTypes = new[] { SelectedContentType };
 
             var loaders = selectedTypes.Contains(ContentType.Mod) ? MapLoaders(_loaderType) : Array.Empty<string>();
             var categoryTags = AvailableTags.Where(t => t.IsSelected && !t.IsReset).Select(t => t.Name).ToList();

@@ -69,14 +69,23 @@ public sealed partial class CategoryFilterViewModel : ObservableObject
         };
     }
 
-    public void PopulateItems()
+    public void PopulateItems(ContentType selectedType = ContentType.Mod, bool hasModsSupport = true, bool hasShaderSupport = true)
     {
         Items.Clear();
-        Items.Add(new CategoryFilterItem(ContentType.Mod, L10n.T("tab_mods"), true, OnItemChanged));
-        Items.Add(new CategoryFilterItem(ContentType.ResourcePack, L10n.T("tab_resourcepacks"), false, OnItemChanged));
-        Items.Add(new CategoryFilterItem(ContentType.DataPack, L10n.T("tab_datapacks"), false, OnItemChanged));
-        Items.Add(new CategoryFilterItem(ContentType.Shader, L10n.T("tab_shaders"), false, OnItemChanged));
-        Items.Add(new CategoryFilterItem(ContentType.World, L10n.T("tab_worlds"), false, OnItemChanged));
+        if (hasModsSupport)
+            Items.Add(new CategoryFilterItem(ContentType.Mod, L10n.T("tab_mods"), selectedType == ContentType.Mod, OnItemChanged));
+        Items.Add(new CategoryFilterItem(ContentType.ResourcePack, L10n.T("tab_resourcepacks"), selectedType == ContentType.ResourcePack, OnItemChanged));
+        Items.Add(new CategoryFilterItem(ContentType.DataPack, L10n.T("tab_datapacks"), selectedType == ContentType.DataPack, OnItemChanged));
+        if (hasShaderSupport)
+            Items.Add(new CategoryFilterItem(ContentType.Shader, L10n.T("tab_shaders"), selectedType == ContentType.Shader, OnItemChanged));
+        Items.Add(new CategoryFilterItem(ContentType.World, L10n.T("tab_worlds"), selectedType == ContentType.World, OnItemChanged));
+        NotifySelectionState();
+    }
+
+    public void SetSingleType(ContentType type)
+    {
+        foreach (var item in Items)
+            item.IsSelected = (item.Type == type);
         NotifySelectionState();
     }
 

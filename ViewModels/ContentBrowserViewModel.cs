@@ -80,6 +80,9 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
     public ObservableCollection<ModrinthProjectItemViewModel> Results { get; } = new();
     public ObservableCollection<BrowserTag> AvailableTags { get; } = new();
 
+    [ObservableProperty]
+    private TagFilterViewModel _browserTagFilter = new();
+
     private bool _disposed;
 
     public void Dispose()
@@ -988,6 +991,8 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
 
         RefreshWorlds();
         UpdateAvailableTags();
+        UpdateAvailableTagFilter();
+        BrowserTagFilter.TagChanged += selectedTag => { _ = ReloadAsync(); };
         CategoryFilter.FilterChanged += () =>
         {
             if (CategoryFilter.SelectedTypes.Count == 1)
@@ -997,6 +1002,7 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
                 {
                     _selectedContentType = single;
                     UpdateAvailableTags();
+                    UpdateAvailableTagFilter();
                     OnPropertyChanged(nameof(SelectedContentType));
                     OnPropertyChanged(nameof(IsDataPackSelected));
                 }
@@ -1093,7 +1099,31 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
         if (type == ContentType.Mod && !HasModsSupport) type = ContentType.ResourcePack;
         if (type == ContentType.Shader && !HasShaderSupport) type = ContentType.ResourcePack;
         SelectedContentType = type;
+        UpdateAvailableTagFilter();
         CategoryFilter.SetSingleType(type);
+    }
+
+    private void UpdateAvailableTagFilter()
+    {
+        var tags = SelectedContentType switch
+        {
+            ContentType.Mod => new[] { "All", "adventure", "magic", "technology", "utility", "library", "optimization", "worldgen", "equipment" },
+            ContentType.ResourcePack => new[] { "All", "16x", "32x", "48x", "64x", "128x", "256x", "512x+", "8x-", "realistic", "themed", "vanilla-like", "simplistic", "tweaks", "utility", "decoration" },
+            ContentType.Shader => new[] { "All", "realistic", "fantasy", "vanilla", "vibrant", "soft", "performance" },
+            ContentType.DataPack => new[] { "All", "utility", "adventure", "magic", "game-mechanics", "mobs", "optimization" },
+            _ => new[] { "All" }
+        };
+        BrowserTagFilter.SetOptions(tags, "All");
+    }
+
+    private List<string> GetActiveCategoryTags()
+    {
+        var tag = BrowserTagFilter.SelectedTag;
+        if (!string.IsNullOrWhiteSpace(tag) && !tag.Equals("All", StringComparison.OrdinalIgnoreCase))
+        {
+            return new List<string> { tag };
+        }
+        return new List<string>();
     }
 
     private void UpdateAvailableTags()
@@ -1162,6 +1192,7 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
     private void ResetFilters()
     {
         SearchQuery = "";
+        BrowserTagFilter.SetSelected("All", notifyEvent: false);
         foreach (var t in AvailableTags) t.IsSelected = t.IsReset;
         SelectedSort = ContentSortOption.Relevance;
         SelectedSortDisplay = "Relevance";
@@ -1207,7 +1238,7 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
                 selectedTypes = new[] { SelectedContentType };
 
             var loaders = selectedTypes.Contains(ContentType.Mod) ? MapLoaders(_loaderType) : Array.Empty<string>();
-            var categoryTags = AvailableTags.Where(t => t.IsSelected && !t.IsReset).Select(t => t.Name).ToList();
+            var categoryTags = GetActiveCategoryTags();
             var projectTypes = selectedTypes.Select(t => t.ModrinthProjectType()).Distinct().ToList();
             var sortIndex = MapSortToModrinth(SelectedSort);
 
@@ -1361,7 +1392,7 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
                 selectedTypes = new[] { SelectedContentType };
 
             var loaders = selectedTypes.Contains(ContentType.Mod) ? MapLoaders(_loaderType) : Array.Empty<string>();
-            var categoryTags = AvailableTags.Where(t => t.IsSelected && !t.IsReset).Select(t => t.Name).ToList();
+            var categoryTags = GetActiveCategoryTags();
             var projectTypes = selectedTypes.Select(t => t.ModrinthProjectType()).Distinct().ToList();
             var sortIndex = MapSortToModrinth(SelectedSort);
 

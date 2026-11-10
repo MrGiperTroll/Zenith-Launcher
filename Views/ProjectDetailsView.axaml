@@ -317,6 +317,16 @@
         <Style Selector="Button.authorLinkBtn:pointerover TextBlock">
             <Setter Property="TextDecorations" Value="Underline"/>
         </Style>
+        <Style Selector="Button.badgeBtn">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.badgeBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Opacity" Value="0.85"/>
+        </Style>
 </UserControl.Styles>
 
     <Panel>
@@ -649,6 +659,13 @@
                                                     <utils:MarkdownParagraphControl Spans="{Binding Spans}" Text="{Binding Text}" FontSize="12.5"
                                                                                      TextWrapping="Wrap" LineHeight="20" Margin="0,0,0,6"
                                                                                      IsVisible="{Binding IsParagraph}"/>
+
+                                                                                                        <!-- Blockquote with subtle left accent line -->
+                                                    <Border BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="3,0,0,0"
+                                                            Padding="12,4,4,4" Margin="0,3,0,6" IsVisible="{Binding IsBlockquote}">
+                                                        <utils:MarkdownParagraphControl Spans="{Binding Spans}" Text="{Binding Text}" FontSize="12.5"
+                                                                                        TextWrapping="Wrap" LineHeight="20"/>
+                                                    </Border>
 
                                                     <!-- Table -->
                                                     <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}"

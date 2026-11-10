@@ -28,7 +28,8 @@ public enum MarkdownBlockType
     Header3,
     Paragraph,
     Bullet,
-    Table
+    Table,
+    Blockquote
 }
 
 public class MarkdownSpan
@@ -36,6 +37,7 @@ public class MarkdownSpan
     public string Text { get; init; } = "";
     public bool IsBold { get; init; }
     public bool IsCode { get; init; }
+    public string? LinkUrl { get; init; }
 }
 
 public class MarkdownParagraphControl : TextBlock
@@ -119,7 +121,7 @@ public partial class MarkdownSocialButton : ObservableObject
                 if (bytes is { Length: > 0 })
                 {
                     using var ms = new MemoryStream(bytes);
-                    var bmp = Bitmap.DecodeToWidth(ms, 64, BitmapInterpolationMode.MediumQuality);
+                    var bmp = new Bitmap(ms);
                     Dispatcher.UIThread.Post(() =>
                     {
                         var old = IconBitmap;
@@ -145,6 +147,7 @@ public partial class MarkdownBlock : ObservableObject
     public MarkdownBlockType Type { get; init; }
     public string Text { get; init; } = "";
     public string ImageUrl { get; init; } = "";
+    public string LinkUrl { get; init; } = "";
     public MarkdownTableData? Table { get; init; }
     public List<MarkdownSpan> Spans { get; init; } = new();
     public List<MarkdownSocialButton> SocialButtons { get; init; } = new();
@@ -166,6 +169,7 @@ public partial class MarkdownBlock : ObservableObject
     public bool IsParagraph => Type == MarkdownBlockType.Paragraph;
     public bool IsBullet => Type == MarkdownBlockType.Bullet;
     public bool IsTable => Type == MarkdownBlockType.Table && Table != null;
+    public bool IsBlockquote => Type == MarkdownBlockType.Blockquote;
 
     public void LoadImages()
     {
@@ -221,7 +225,7 @@ public static class MarkdownBlockParser
     private static readonly Regex SocialRowRegex = new(@"<a\s+[^>]*href=[""']([^""']+)[""'][^>]*>\s*<img\s+[^>]*src=[""']([^""']+)[""'][^>]*alt=[""']([^""']*)[""']", RegexOptions.IgnoreCase | RegexOptions.Compiled);
     private static readonly Regex MarkdownBadgeRegex = new(@"\[!\[(.*?)\]\((https?://[^\)]+)\)\]\((https?://[^\)]+)\)", RegexOptions.Compiled);
     private static readonly Regex BulletRegex = new(@"^[\-\*\+]\s+(.+)$", RegexOptions.Compiled);
-    private static readonly Regex InlineBoldRegex = new(@"(?:\*\*(.+?)\*\*|__(.+?)__|<b>(.*?)</b>|<strong>(.*?)</strong>|<code>(.*?)</code>)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static readonly Regex InlineTokenRegex = new(@"(?:\[([^\]]+)\]\((https?:\/\/[^\)]+)\)|\*\*(.+?)\*\*|__(.+?)__|<b>(.*?)<\/b>|<strong>(.*?)<\/strong>|<code>(.*?)<\/code>)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     public static List<MarkdownBlock> Parse(string? raw)
     {
@@ -235,6 +239,36 @@ public static class MarkdownBlockParser
             processed = Regex.Replace(processed, @"</?(?:p|h[1-6]|ul|ol|li|hr|table|tr|blockquote|div|center)[^>]*>", "\n$0\n", RegexOptions.IgnoreCase);
         }
 
+                // 1. Resolve reference-style link definitions: [id]: url
+        var linkDefinitions = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var refDefRegex = new Regex(@"^\s*\[([^\]]+)\]:\s*(\S+)", RegexOptions.Multiline);
+        foreach (Match m in refDefRegex.Matches(processed))
+        {
+            var key = m.Groups[1].Value.Trim();
+            var url = m.Groups[2].Value.Trim();
+            linkDefinitions[key] = url;
+        }
+        processed = refDefRegex.Replace(processed, "");
+
+        // 2. Resolve image reference links: [![alt](img)][ref] -> [![alt](img)](url)
+        processed = Regex.Replace(processed, @"\[!\[(.*?)\]\((https?:\/\/[^\)]+)\)\]\[([^\]]+)\]", m =>
+        {
+            var refKey = m.Groups[3].Value.Trim();
+            if (linkDefinitions.TryGetValue(refKey, out var url))
+                return $"[![" + m.Groups[1].Value + "](" + m.Groups[2].Value + ")](" + url + ")";
+            return m.Value;
+        });
+
+        // 3. Resolve inline text reference links: [text][ref] -> [text](url)
+        processed = Regex.Replace(processed, @"\[([^\]]+)\]\[([^\]]+)\]", m =>
+        {
+            var text = m.Groups[1].Value;
+            var refKey = m.Groups[2].Value.Trim();
+            if (linkDefinitions.TryGetValue(refKey, out var url))
+                return "[" + text + "](" + url + ")";
+            return "[" + text + "]";
+        });
+
         var lines = processed.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n');
         var blocks = new List<MarkdownBlock>();
         int i = 0;
@@ -246,6 +280,54 @@ public static class MarkdownBlockParser
             if (string.IsNullOrWhiteSpace(line))
             {
                 i++;
+                continue;
+            }
+
+                        // 0. Blockquote: lines starting with >
+            if (line.StartsWith('>'))
+            {
+                var quoteText = line.TrimStart('>', ' ').Trim();
+                if (!string.IsNullOrWhiteSpace(quoteText))
+                {
+                    blocks.Add(new MarkdownBlock
+                    {
+                        Type = MarkdownBlockType.Blockquote,
+                        Text = CleanText(quoteText),
+                        Spans = ParseSpans(quoteText)
+                    });
+                }
+                i++;
+                continue;
+            }
+
+            // 0b. Markdown badge links: collect consecutive badge lines [![...](...)](...)
+            if (MarkdownBadgeRegex.IsMatch(line))
+            {
+                var buttons = new List<MarkdownSocialButton>();
+                while (i < lines.Length && MarkdownBadgeRegex.IsMatch(lines[i].Trim()))
+                {
+                    var curLine = lines[i].Trim();
+                    foreach (Match m in MarkdownBadgeRegex.Matches(curLine))
+                    {
+                        buttons.Add(new MarkdownSocialButton
+                        {
+                            Alt = m.Groups[1].Value,
+                            ImageUrl = m.Groups[2].Value,
+                            LinkUrl = m.Groups[3].Value
+                        });
+                    }
+                    i++;
+                }
+                if (buttons.Count > 0)
+                {
+                    var block = new MarkdownBlock
+                    {
+                        Type = MarkdownBlockType.SocialButtons,
+                        SocialButtons = buttons
+                    };
+                    block.LoadImages();
+                    blocks.Add(block);
+                }
                 continue;
             }
 
@@ -631,20 +713,33 @@ public static class MarkdownBlockParser
         if (string.IsNullOrWhiteSpace(line)) return spans;
 
         int lastIdx = 0;
-        foreach (Match m in InlineBoldRegex.Matches(line))
+        foreach (Match m in InlineTokenRegex.Matches(line))
         {
             if (m.Index > lastIdx)
             {
                 var normal = CleanText(line[lastIdx..m.Index]);
                 if (!string.IsNullOrEmpty(normal)) spans.Add(new MarkdownSpan { Text = normal, IsBold = false });
             }
-            var bold = CleanText(m.Groups[1].Success ? m.Groups[1].Value :
-                                 m.Groups[2].Success ? m.Groups[2].Value :
-                                 m.Groups[3].Success ? m.Groups[3].Value :
-                                 m.Groups[4].Success ? m.Groups[4].Value :
-                                 m.Groups[5].Value);
-            bool isCode = m.Groups[5].Success;
-            if (!string.IsNullOrEmpty(bold)) spans.Add(new MarkdownSpan { Text = bold, IsBold = true, IsCode = isCode });
+
+            if (m.Groups[1].Success) // Link: [Text](Url)
+            {
+                var linkText = CleanText(m.Groups[1].Value);
+                var linkUrl = m.Groups[2].Value.Trim();
+                if (!string.IsNullOrEmpty(linkText))
+                {
+                    spans.Add(new MarkdownSpan { Text = linkText, LinkUrl = linkUrl, IsBold = false });
+                }
+            }
+            else // Bold / Code
+            {
+                var bold = CleanText(m.Groups[3].Success ? m.Groups[3].Value :
+                                     m.Groups[4].Success ? m.Groups[4].Value :
+                                     m.Groups[5].Success ? m.Groups[5].Value :
+                                     m.Groups[6].Success ? m.Groups[6].Value :
+                                     m.Groups[7].Value);
+                bool isCode = m.Groups[7].Success;
+                if (!string.IsNullOrEmpty(bold)) spans.Add(new MarkdownSpan { Text = bold, IsBold = true, IsCode = isCode });
+            }
             lastIdx = m.Index + m.Length;
         }
 
@@ -662,6 +757,7 @@ public static class MarkdownBlockParser
         if (string.IsNullOrWhiteSpace(s)) return "";
         s = Regex.Replace(s, @"<[^>]+>", " ");
         s = Regex.Replace(s, @"\[([^\]]+)\]\([^)]*\)", "$1");
+        s = Regex.Replace(s, @"\[([^\]]+)\]\[[^\]]*\]", "$1");
         s = s.Replace("&nbsp;", " ")
              .Replace("&amp;", "&")
              .Replace("&lt;", "<")

@@ -216,6 +216,9 @@
         <Style Selector="Button:pressed">
             <Setter Property="RenderTransform" Value="scale(0.982)"/>
         </Style>
+        <Style Selector="Button.sideTab:pressed, Button.catalogTabBtn:pressed, Button.sourceTabBtn:pressed, Button.railBtn:pressed, Button.navBtn:pressed, Button.discordNavBtn:pressed, Button.menuBarBtn:pressed, Button.captionBtn:pressed, Button.gearSettingsBtn:pressed, Button.profileMenuItem:pressed, Button.filterDropdownBtn:pressed">
+            <Setter Property="RenderTransform" Value="none"/>
+        </Style>
         <!-- Global Button Hover Brightening: only illuminate background, do NOT touch Foreground here
              (specific classes like railBtn, sideTab, primaryBtn, dangerBtn manage their own Foreground) -->
         <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">

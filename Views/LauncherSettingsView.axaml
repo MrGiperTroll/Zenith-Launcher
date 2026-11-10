@@ -9,7 +9,8 @@
              x:Name="RootSettingsControl"
              x:Class="CustomMcLauncher.Views.LauncherSettingsView"
              x:DataType="pages:LauncherSettingsViewModel"
-             Background="{DynamicResource BgBrush}">
+             Background="{DynamicResource BgBrush}"
+             UseLayoutRounding="True">
 
     <UserControl.Styles>
         <Style Selector="ScrollBar">
@@ -172,7 +173,7 @@
             </Border>
 
             <!-- Main Content Area -->
-            <ScrollViewer x:Name="SettingsContentScroll" Grid.Column="1" Padding="32,24,36,28" VerticalScrollBarVisibility="Visible">
+            <ScrollViewer x:Name="SettingsContentScroll" Grid.Column="1" Padding="32,24,36,28" VerticalScrollBarVisibility="Visible" UseLayoutRounding="True">
                 <Panel>
 
                     <!-- ========================================================= -->

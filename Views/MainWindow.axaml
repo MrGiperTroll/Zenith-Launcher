@@ -23,6 +23,7 @@
         ExtendClientAreaTitleBarHeightHint="38"
         WindowDecorations="None"
         FontFamily="{DynamicResource AppFontFamily}"
+        UseLayoutRounding="True"
         Opacity="1">
 
 <Window.Resources>
@@ -741,14 +742,15 @@
             Background="{DynamicResource BgBrush}"
             BorderBrush="{DynamicResource BorderDarkBrush}"
             BorderThickness="1"
-            ClipToBounds="True">
+            ClipToBounds="True"
+            UseLayoutRounding="True">
     <Panel Background="{DynamicResource BgBrush}">
         
-        <LayoutTransformControl>
+        <LayoutTransformControl UseLayoutRounding="True">
             <LayoutTransformControl.LayoutTransform>
                 <ScaleTransform ScaleX="{Binding LauncherScale}" ScaleY="{Binding LauncherScale}"/>
             </LayoutTransformControl.LayoutTransform>
-            <Grid RowDefinitions="38,*">
+            <Grid RowDefinitions="38,*" UseLayoutRounding="True">
                 <!-- Unified Top Header (Row 0) -->
                 <Grid Grid.Row="0" Height="38" Background="{DynamicResource SidebarBgBrush}"
                       ColumnDefinitions="220,*,Auto"
@@ -1321,7 +1323,7 @@
 
 
                     <!-- Catalog / Modpacks View -->
-                    <Grid IsVisible="{Binding IsModpacksView}" Classes="viewPane" Margin="24,14,16,0" x:Name="ModpacksPane">
+                    <Grid IsVisible="{Binding IsModpacksView}" Classes="viewPane" Margin="24,14,16,0" x:Name="ModpacksPane" UseLayoutRounding="True">
                         <Grid RowDefinitions="Auto,*" IsVisible="{Binding !ModpacksBrowser.IsDetailsOpen}">
                             <!-- Header: Type Tabs, Search Bar, and Filter Controls -->
                             <StackPanel Grid.Row="0" Spacing="10" Margin="0,0,0,12">
@@ -1390,7 +1392,7 @@
 
                             <!-- Results list matching media_1793574109804_ca3d7d5e.png -->
                             <Grid Grid.Row="1" RowDefinitions="*,Auto">
-                                <ListBox x:Name="ModpacksList" ItemsSource="{Binding ModpacksBrowser.Results}" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" AttachedToVisualTree="OnModpacksListAttached">
+                                <ListBox x:Name="ModpacksList" ItemsSource="{Binding ModpacksBrowser.Results}" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible" AttachedToVisualTree="OnModpacksListAttached">
                                     <ListBox.ItemContainerTheme>
                                         <ControlTheme TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
                                             <Setter Property="Background" Value="Transparent"/>
@@ -1498,7 +1500,7 @@
                                     <TextBlock Text="{l10n:Tr Key=mp_loading}" IsVisible="{Binding ModpacksBrowser.IsBusy}" HorizontalAlignment="Center" Margin="0,12" Foreground="{DynamicResource TextMutedBrush}"/>
                                     <TextBlock Text="{l10n:Tr Key=mp_empty}" IsVisible="{Binding ModpacksBrowser.IsEmpty}" HorizontalAlignment="Center" Margin="0,12" Foreground="{DynamicResource TextPlaceholderBrush}"/>
                                 </StackPanel>
-                                <TextBlock Grid.Row="1" Text="{Binding ModpacksBrowser.StatusText}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="4,8,0,0" TextWrapping="Wrap" IsVisible="{Binding ModpacksBrowser.StatusText, Converter={x:Static conv:ObjectConverters.IsNotNull}}"/>
+                                <TextBlock Grid.Row="1" Text="{Binding ModpacksBrowser.StatusText}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="4,8,0,0" TextWrapping="Wrap" IsVisible="{Binding ModpacksBrowser.StatusText, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
                             </Grid>
                         </Grid>
 
@@ -1514,17 +1516,17 @@
                     </Grid>
 
                     <!-- In-Window Edit Instance View -->
-                    <Panel x:Name="EditInstancePane" Classes="viewPane" IsVisible="{Binding IsEditInstanceView}" Margin="0">
+                    <Panel x:Name="EditInstancePane" Classes="viewPane" IsVisible="{Binding IsEditInstanceView}" Margin="0" UseLayoutRounding="True">
                         <views:EditInstanceView DataContext="{Binding CurrentEditInstanceVm}"/>
                     </Panel>
 
                     <!-- In-Window Content Browser View -->
-                    <Panel x:Name="ContentBrowserPane" Classes="viewPane" IsVisible="{Binding IsContentBrowserView}" Margin="24,14,16,0">
+                    <Panel x:Name="ContentBrowserPane" Classes="viewPane" IsVisible="{Binding IsContentBrowserView}" Margin="24,14,16,0" UseLayoutRounding="True">
                         <views:ContentBrowserView DataContext="{Binding CurrentContentBrowserVm}"/>
                     </Panel>
 
                     <!-- In-Window Launcher Settings View -->
-                    <Panel x:Name="SettingsPane" Classes="viewPane" IsVisible="{Binding IsSettingsView}" Margin="0">
+                    <Panel x:Name="SettingsPane" Classes="viewPane" IsVisible="{Binding IsSettingsView}" Margin="0" UseLayoutRounding="True">
                         <views:LauncherSettingsView DataContext="{Binding LauncherSettingsVm}"/>
                     </Panel>
 

@@ -8,7 +8,8 @@
         xmlns:l10n="using:CustomMcLauncher.Extensions"
         x:Class="CustomMcLauncher.Views.EditInstanceView"
         x:DataType="vm:EditInstanceViewModel"
-        Background="{StaticResource BgBrush}">
+        Background="{StaticResource BgBrush}"
+        UseLayoutRounding="True">
 
     <UserControl.Resources>
     </UserControl.Resources>

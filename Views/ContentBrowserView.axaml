@@ -9,7 +9,8 @@
         xmlns:conv="using:Avalonia.Data.Converters"
         x:Class="CustomMcLauncher.Views.ContentBrowserView"
         x:DataType="vm:ContentBrowserViewModel"
-        Background="{StaticResource BgBrush}">
+        Background="{StaticResource BgBrush}"
+        UseLayoutRounding="True">
 
     <UserControl.Styles>
         <Style Selector="Button.primaryBtn">
@@ -293,7 +294,7 @@
             <!-- Left: results -->
             <Border Background="Transparent" Padding="0">
                 <Grid RowDefinitions="*,Auto">
-                    <ListBox x:Name="ResultsList" ItemsSource="{Binding Results}" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListBox x:Name="ResultsList" ItemsSource="{Binding Results}" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible">
                         <ListBox.ItemContainerTheme>
                             <ControlTheme TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
                                 <Setter Property="Background" Value="Transparent"/>

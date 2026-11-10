@@ -32,10 +32,10 @@ public partial class LauncherSettingsView : UserControl
     {
         if (e.PropertyName == nameof(LauncherSettingsViewModel.CurrentSettingsTab))
         {
-            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            if (SettingsContentScroll != null)
             {
-                SettingsContentScroll?.ScrollToHome();
-            }, Avalonia.Threading.DispatcherPriority.Loaded);
+                SettingsContentScroll.Offset = Avalonia.Vector.Zero;
+            }
         }
     }
 

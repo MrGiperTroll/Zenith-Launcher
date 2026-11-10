@@ -19,7 +19,7 @@
             <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
         </Style>
 
-        <Style Selector="ToggleButton.filterItemChip">
+        <Style Selector="Button.filterItemChip">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
@@ -30,25 +30,25 @@
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
         </Style>
-        <Style Selector="ToggleButton.filterItemChip:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Style Selector="Button.filterItemChip:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
             <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
-        <Style Selector="ToggleButton.filterItemChip:checked">
+        <Style Selector="Button.filterItemChip.selected">
             <Setter Property="Background" Value="{DynamicResource AccentDimBrush}"/>
             <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
         </Style>
-        <Style Selector="ToggleButton.filterItemChip:checked /template/ ContentPresenter#PART_ContentPresenter">
+        <Style Selector="Button.filterItemChip.selected /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource AccentDimBrush}"/>
             <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
         </Style>
-        <Style Selector="ToggleButton.filterItemChip:checked:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Style Selector="Button.filterItemChip.selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
             <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
         </Style>
     </UserControl.Styles>
 
-    <Button Classes="filterDropdownBtn" VerticalAlignment="Center">
+    <Button x:Name="DropdownTriggerBtn" Classes="filterDropdownBtn" VerticalAlignment="Center">
         <Grid ColumnDefinitions="*,Auto">
             <TextBlock Grid.Column="0" Text="{Binding ButtonText}" FontSize="12" FontWeight="SemiBold"
                        Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,8,0"
@@ -72,8 +72,9 @@
                     <ItemsControl ItemsSource="{Binding Items}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="vm:CategoryFilterItem">
-                                <ToggleButton Classes="filterItemChip" IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                                              HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+                                <Button Classes="filterItemChip" Classes.selected="{Binding IsSelected}"
+                                        Click="OnCategoryItemClicked"
+                                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
                                     <Grid ColumnDefinitions="*,Auto">
                                         <TextBlock Grid.Column="0" Text="{Binding DisplayName}" FontWeight="SemiBold" FontSize="12"
                                                    VerticalAlignment="Center"/>
@@ -81,7 +82,7 @@
                                                   Foreground="{DynamicResource AccentBrush}"
                                                   IsVisible="{Binding IsSelected}" VerticalAlignment="Center"/>
                                     </Grid>
-                                </ToggleButton>
+                                </Button>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>

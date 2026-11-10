@@ -1035,6 +1035,32 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
         return string.IsNullOrWhiteSpace(clean) ? "WorldMap" : clean;
     }
 
+    private static bool MatchesCurseForgeCategory(ModrinthProjectItemViewModel project, IReadOnlyList<string> categoryTags)
+    {
+        if (categoryTags == null || categoryTags.Count == 0) return true;
+        if (categoryTags.All(t => string.Equals(t, "All", StringComparison.OrdinalIgnoreCase))) return true;
+        if (project.Categories == null || project.Categories.Length == 0) return false;
+
+        foreach (var tag in categoryTags)
+        {
+            if (string.IsNullOrWhiteSpace(tag) || string.Equals(tag, "All", StringComparison.OrdinalIgnoreCase)) continue;
+            var cleanTag = tag.Trim().ToLowerInvariant();
+
+            foreach (var c in project.Categories)
+            {
+                var cleanC = c.Trim().ToLowerInvariant();
+                if (cleanC.Contains(cleanTag) || cleanTag.Contains(cleanC)) return true;
+
+                if (cleanTag == "realistic" && (cleanC.Contains("photo") || cleanC.Contains("realistic"))) return true;
+                if (cleanTag is "vanilla" or "vanilla-like" && cleanC.Contains("vanilla")) return true;
+                if (cleanTag == "performance" && (cleanC.Contains("performance") || cleanC.Contains("optimiz"))) return true;
+                if (cleanTag == "utility" && (cleanC.Contains("utility") || cleanC.Contains("tool") || cleanC.Contains("addon"))) return true;
+                if (cleanTag == "tweaks" && (cleanC.Contains("tweak") || cleanC.Contains("misc"))) return true;
+            }
+        }
+        return false;
+    }
+
     private static string[] MapLoaders(string loader) => loader.Trim().ToLowerInvariant() switch
     {
         "fabric" => new[] { "fabric" },
@@ -1073,6 +1099,7 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
     partial void OnSelectedContentTypeChanged(ContentType value)
     {
         UpdateAvailableTags();
+        UpdateAvailableTagFilter();
         OnPropertyChanged(nameof(IsDataPackSelected));
         _ = ReloadAsync();
     }
@@ -1272,6 +1299,11 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
                     }
                 }
 
+                if (categoryTags.Count > 0)
+                {
+                    cfHits = cfHits.Where(p => MatchesCurseForgeCategory(p, categoryTags)).ToList();
+                }
+
                 var mrPage = await ModrinthApiService.SearchAsync(SearchQuery, _gameVersion, loaders, projectTypes, sortIndex, categoryTags, 0, PageSize, token);
 
                 if (token.IsCancellationRequested || gen != _searchGeneration) return;
@@ -1320,6 +1352,12 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
                         totalCount += res.TotalHits;
                         hits.AddRange(res.Hits);
                     }
+                }
+
+                if (categoryTags.Count > 0)
+                {
+                    hits = hits.Where(p => MatchesCurseForgeCategory(p, categoryTags)).ToList();
+                    totalCount = hits.Count;
                 }
 
                 _totalHits = totalCount;

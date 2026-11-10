@@ -214,18 +214,12 @@ public static class ModrinthApiService
         var offset = root.TryGetProperty("offset", out var off) ? off.GetInt32() : 0;
         var limit = root.TryGetProperty("limit", out var lim) ? lim.GetInt32() : 20;
 
-        if (root.TryGetProperty("hits", out var hitsArr))
+        if (root.TryGetProperty("hits", out var hitsArr) && hitsArr.ValueKind == JsonValueKind.Array)
         {
             foreach (var hit in hitsArr.EnumerateArray())
             {
-                var cats = hit.TryGetProperty("categories", out var catsArr)
-                    ? catsArr.EnumerateArray().Select(c => c.GetString() ?? "").Where(c => !string.IsNullOrWhiteSpace(c)).ToArray()
-                    : Array.Empty<string>();
-
-                var addCats = hit.TryGetProperty("additional_categories", out var addCatsArr)
-                    ? addCatsArr.EnumerateArray().Select(c => c.GetString() ?? "").Where(c => !string.IsNullOrWhiteSpace(c)).ToArray()
-                    : Array.Empty<string>();
-
+                var cats = GetStringArray(hit, "categories");
+                var addCats = GetStringArray(hit, "additional_categories");
                 var allCats = cats.Concat(addCats).ToArray();
 
                 if (selectedResolutions.Count > 0 &&

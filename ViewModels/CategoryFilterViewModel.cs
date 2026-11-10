@@ -19,19 +19,11 @@ public sealed partial class CategoryFilterItem : ObservableObject
     [ObservableProperty]
     private bool _isSelected;
 
-    private readonly Action? _onChanged;
-
-    public CategoryFilterItem(ContentType type, string displayName, bool isSelected, Action? onChanged = null)
+    public CategoryFilterItem(ContentType type, string displayName, bool isSelected)
     {
         Type = type;
         DisplayName = displayName;
         _isSelected = isSelected;
-        _onChanged = onChanged;
-    }
-
-    partial void OnIsSelectedChanged(bool value)
-    {
-        _onChanged?.Invoke();
     }
 }
 
@@ -47,10 +39,8 @@ public sealed partial class CategoryFilterViewModel : ObservableObject
     {
         get
         {
-            var selected = Items.Where(i => i.IsSelected).ToList();
-            if (selected.Count == 0) return L10n.T("filter_categories");
-            if (selected.Count == 1) return selected[0].DisplayName;
-            return string.Format(L10n.T("filter_categories_count"), selected.Count);
+            var selected = Items.FirstOrDefault(i => i.IsSelected);
+            return selected?.DisplayName ?? L10n.T("filter_categories");
         }
     }
 
@@ -73,13 +63,19 @@ public sealed partial class CategoryFilterViewModel : ObservableObject
     {
         Items.Clear();
         if (hasModsSupport)
-            Items.Add(new CategoryFilterItem(ContentType.Mod, L10n.T("tab_mods"), selectedType == ContentType.Mod, OnItemChanged));
-        Items.Add(new CategoryFilterItem(ContentType.ResourcePack, L10n.T("tab_resourcepacks"), selectedType == ContentType.ResourcePack, OnItemChanged));
-        Items.Add(new CategoryFilterItem(ContentType.DataPack, L10n.T("tab_datapacks"), selectedType == ContentType.DataPack, OnItemChanged));
+            Items.Add(new CategoryFilterItem(ContentType.Mod, L10n.T("tab_mods"), selectedType == ContentType.Mod));
+        Items.Add(new CategoryFilterItem(ContentType.ResourcePack, L10n.T("tab_resourcepacks"), selectedType == ContentType.ResourcePack));
+        Items.Add(new CategoryFilterItem(ContentType.DataPack, L10n.T("tab_datapacks"), selectedType == ContentType.DataPack));
         if (hasShaderSupport)
-            Items.Add(new CategoryFilterItem(ContentType.Shader, L10n.T("tab_shaders"), selectedType == ContentType.Shader, OnItemChanged));
-        Items.Add(new CategoryFilterItem(ContentType.World, L10n.T("tab_worlds"), selectedType == ContentType.World, OnItemChanged));
+            Items.Add(new CategoryFilterItem(ContentType.Shader, L10n.T("tab_shaders"), selectedType == ContentType.Shader));
+        Items.Add(new CategoryFilterItem(ContentType.World, L10n.T("tab_worlds"), selectedType == ContentType.World));
         NotifySelectionState();
+    }
+
+    public void SelectItem(CategoryFilterItem item)
+    {
+        SetSingleType(item.Type);
+        FilterChanged?.Invoke();
     }
 
     public void SetSingleType(ContentType type)
@@ -103,12 +99,6 @@ public sealed partial class CategoryFilterViewModel : ObservableObject
                 _ => item.Type.ToString()
             };
         }
-    }
-
-    private void OnItemChanged()
-    {
-        NotifySelectionState();
-        FilterChanged?.Invoke();
     }
 
     [RelayCommand]

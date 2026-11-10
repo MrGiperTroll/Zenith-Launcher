@@ -2,7 +2,7 @@
 #  Zenith Launcher - Release installer build script
 #  Steps:
 #    1. Publish self-contained single-file win-x64 Release
-#    2. Compile the Inno Setup installer -> Output\ZenithLauncher_Setup_v1.0.4.exe
+#    2. Compile the Inno Setup installer -> Output\ZenithLauncher_Setup_v1.0.9.exe
 #
 #  Usage:
 #     powershell -ExecutionPolicy Bypass -File installer\Build-Installer.ps1
@@ -36,7 +36,7 @@ try {
 } finally { Pop-Location }
 
 # --- 2. Compile the installer -------------------------------------------------
-Write-Host "`n[2/2] Compiling installer -> Output\ZenithLauncher_Setup_v1.0.4.exe`n" -ForegroundColor Cyan
+Write-Host "`n[2/2] Compiling installer -> Output\ZenithLauncher_Setup_v1.0.9.exe`n" -ForegroundColor Cyan
 # ISCC uses its own working directory; run from the installer folder so relative
 # Source paths in setup.iss resolve against the installer\ directory.
 Push-Location $PSScriptRoot
@@ -45,7 +45,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "ISCC compilation failed (exit $LASTEXITCODE)" }
 } finally { Pop-Location }
 
-$exe = Join-Path $outputDir 'ZenithLauncher_Setup_v1.0.4.exe'
+$exe = Join-Path $outputDir 'ZenithLauncher_Setup_v1.0.9.exe'
 if (Test-Path -LiteralPath $exe) {
     $mb = [math]::Round((Get-Item -LiteralPath $exe).Length / 1MB, 2)
     Write-Host "`nDONE: $exe ($mb MB)" -ForegroundColor Green

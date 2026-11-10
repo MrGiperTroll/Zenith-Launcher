@@ -5,6 +5,24 @@ All notable changes to Zenith Launcher will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.9] - 2026-11-10
+
+### Fixed
+- Fixed category filtering for resource packs, shaders, and mods across Modrinth and CurseForge
+- Fixed vertical layout jitter during tab switching and content loading
+- Fixed gray hover state regression on primary buttons
+- Fixed content duplication when searching both Modrinth and CurseForge simultaneously
+- Fixed crash when navigating to content browser from instance resource packs
+
+### Changed
+- Replaced category sidebar with a compact dropdown filter in the content browser toolbar
+- Compacted Add to Instance dialog layout and improved click targets
+- Moved Modrinth/CurseForge source badge to the right of the action button
+
+### Performance
+- Optimized startup time: asynchronous Discord RPC initialization and deferred background checks
+- Reduced memory footprint with aggressive garbage collection on window minimization
+
 ## [1.0.5] - 2026-10-11
 
 ### Added

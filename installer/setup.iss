@@ -9,7 +9,7 @@
 ; =============================================================================
 
 #define MyAppName "Zenith Launcher"
-#define MyAppVersion "1.0.4"
+#define MyAppVersion "1.0.9"
 #define MyAppPublisher "Zenith"
 #define MyAppExeName "Zenith Launcher.exe"
 ; Fixed installer GUID (do not change once published, used for clean removal)

@@ -99,7 +99,7 @@
             <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
         <Style Selector="TextBlock.sectionHeaderDesc">
-            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="FontSize" Value="12"/>
             <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
             <Setter Property="Margin" Value="0,2,0,0"/>
         </Style>
@@ -173,7 +173,7 @@
             </Border>
 
             <!-- Main Content Area -->
-            <ScrollViewer x:Name="SettingsContentScroll" Grid.Column="1" Padding="32,24,36,28" VerticalScrollBarVisibility="Visible" UseLayoutRounding="True">
+            <ScrollViewer x:Name="SettingsContentScroll" Grid.Column="1" Padding="32,24,36,28" VerticalScrollBarVisibility="Visible" UseLayoutRounding="True" Focusable="False">
                 <Panel>
 
                     <!-- ========================================================= -->

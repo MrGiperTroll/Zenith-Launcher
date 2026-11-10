@@ -20,7 +20,7 @@
         TransparencyBackgroundFallback="{DynamicResource BgBrush}"
         BorderThickness="0"
         ExtendClientAreaToDecorationsHint="True"
-        ExtendClientAreaTitleBarHeightHint="38"
+        ExtendClientAreaTitleBarHeightHint="40"
         WindowDecorations="None"
         FontFamily="{DynamicResource AppFontFamily}"
         UseLayoutRounding="True"
@@ -301,7 +301,7 @@
             <Setter Property="CornerRadius" Value="14"/>
             <Setter Property="Padding" Value="14,6"/>
             <Setter Property="FontSize" Value="12"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
         <Style Selector="Button.catalogTabBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
@@ -750,9 +750,9 @@
             <LayoutTransformControl.LayoutTransform>
                 <ScaleTransform ScaleX="{Binding LauncherScale}" ScaleY="{Binding LauncherScale}"/>
             </LayoutTransformControl.LayoutTransform>
-            <Grid RowDefinitions="38,*" UseLayoutRounding="True">
+            <Grid RowDefinitions="40,*" UseLayoutRounding="True">
                 <!-- Unified Top Header (Row 0) -->
-                <Grid Grid.Row="0" Height="38" Background="{DynamicResource SidebarBgBrush}"
+                <Grid Grid.Row="0" Height="40" Background="{DynamicResource SidebarBgBrush}"
                       ColumnDefinitions="220,*,Auto"
                       PointerPressed="OnTopBarPointerPressed"
                       DoubleTapped="OnTopBarDoubleTapped">
@@ -1100,7 +1100,7 @@
                         <!-- Center Workspace Content (Row 0) -->
                         <Grid Grid.Row="0" Margin="0">
                     <!-- Profiles View -->
-                    <Grid IsVisible="{Binding IsProfilesView}" ColumnDefinitions="*,Auto" x:Name="ProfilesPane" Classes="viewPane" Margin="24,14,0,0">
+                    <Grid IsVisible="{Binding IsProfilesView}" ColumnDefinitions="*,Auto" x:Name="ProfilesPane" Classes="viewPane" Margin="24,16,0,0">
                         <ScrollViewer Grid.Column="0" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Hidden" Padding="0,0,16,16">
                             <StackPanel Spacing="14">
                                 <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" Margin="0,0,0,8">
@@ -1323,7 +1323,7 @@
 
 
                     <!-- Catalog / Modpacks View -->
-                    <Grid IsVisible="{Binding IsModpacksView}" Classes="viewPane" Margin="24,14,16,0" x:Name="ModpacksPane" UseLayoutRounding="True">
+                    <Grid IsVisible="{Binding IsModpacksView}" Classes="viewPane" Margin="24,16,16,0" x:Name="ModpacksPane" UseLayoutRounding="True">
                         <Grid RowDefinitions="Auto,*" IsVisible="{Binding !ModpacksBrowser.IsDetailsOpen}">
                             <!-- Header: Type Tabs, Search Bar, and Filter Controls -->
                             <StackPanel Grid.Row="0" Spacing="10" Margin="0,0,0,12">
@@ -1391,7 +1391,7 @@
                             </StackPanel>
 
                             <!-- Results list matching media_1793574109804_ca3d7d5e.png -->
-                            <Grid Grid.Row="1" RowDefinitions="*,Auto">
+                            <Grid Grid.Row="1">
                                 <ListBox x:Name="ModpacksList" ItemsSource="{Binding ModpacksBrowser.Results}" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible" AttachedToVisualTree="OnModpacksListAttached">
                                     <ListBox.ItemContainerTheme>
                                         <ControlTheme TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
@@ -1496,11 +1496,11 @@
                                         </DataTemplate>
                                     </ListBox.ItemTemplate>
                                 </ListBox>
-                                <StackPanel Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Center" IsHitTestVisible="False">
+                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" IsHitTestVisible="False">
                                     <TextBlock Text="{l10n:Tr Key=mp_loading}" IsVisible="{Binding ModpacksBrowser.IsBusy}" HorizontalAlignment="Center" Margin="0,12" Foreground="{DynamicResource TextMutedBrush}"/>
                                     <TextBlock Text="{l10n:Tr Key=mp_empty}" IsVisible="{Binding ModpacksBrowser.IsEmpty}" HorizontalAlignment="Center" Margin="0,12" Foreground="{DynamicResource TextPlaceholderBrush}"/>
                                 </StackPanel>
-                                <TextBlock Grid.Row="1" Text="{Binding ModpacksBrowser.StatusText}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="4,8,0,0" TextWrapping="Wrap" IsVisible="{Binding ModpacksBrowser.StatusText, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
+                                <TextBlock VerticalAlignment="Bottom" HorizontalAlignment="Left" Text="{Binding ModpacksBrowser.StatusText}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="4,0,0,4" TextWrapping="Wrap" IsVisible="{Binding ModpacksBrowser.StatusText, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
                             </Grid>
                         </Grid>
 
@@ -1521,7 +1521,7 @@
                     </Panel>
 
                     <!-- In-Window Content Browser View -->
-                    <Panel x:Name="ContentBrowserPane" Classes="viewPane" IsVisible="{Binding IsContentBrowserView}" Margin="24,14,16,0" UseLayoutRounding="True">
+                    <Panel x:Name="ContentBrowserPane" Classes="viewPane" IsVisible="{Binding IsContentBrowserView}" Margin="24,16,16,0" UseLayoutRounding="True">
                         <views:ContentBrowserView DataContext="{Binding CurrentContentBrowserVm}"/>
                     </Panel>
 
@@ -1536,17 +1536,17 @@
                     </Panel>
 
                     <!-- In-Window Accounts View -->
-                    <Panel x:Name="AccountsPane" Classes="viewPane" IsVisible="{Binding IsAccountsView}" Margin="24,14,16,0">
+                    <Panel x:Name="AccountsPane" Classes="viewPane" IsVisible="{Binding IsAccountsView}" Margin="24,16,16,0">
                         <views:AccountsView DataContext="{Binding AccountsVm}"/>
                     </Panel>
 
                     <!-- In-Window Create Profile View -->
-                    <Panel x:Name="CreateProfilePane" Classes="viewPane" IsVisible="{Binding IsCreateProfileView}" Margin="24,14,16,0">
+                    <Panel x:Name="CreateProfilePane" Classes="viewPane" IsVisible="{Binding IsCreateProfileView}" Margin="24,16,16,0">
                         <views:CreateProfileView DataContext="{Binding CreateProfileVm}"/>
                     </Panel>
 
                     <!-- In-Window Create Server View -->
-                    <Panel x:Name="CreateServerPane" Classes="viewPane" IsVisible="{Binding IsCreateServerView}" Margin="24,14,16,0">
+                    <Panel x:Name="CreateServerPane" Classes="viewPane" IsVisible="{Binding IsCreateServerView}" Margin="24,16,16,0">
                         <views:CreateServerView DataContext="{Binding CreateServerVm}"/>
                     </Panel>
                 </Grid>

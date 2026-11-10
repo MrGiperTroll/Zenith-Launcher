@@ -369,6 +369,11 @@
 
                                         <!-- Right: Source Icon & Install button -->
                                         <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" HorizontalAlignment="Right">
+                                            <Button Classes="subBtn installedBtn" Classes.installed="{Binding IsInstalled}" Classes.installing="{Binding IsInstalling}" Width="114" Height="30" HorizontalAlignment="Right" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                                    Content="{Binding InstallButtonText}"
+                                                    PointerEntered="OnInstalledButtonHover" PointerExited="OnInstalledButtonHoverOut"
+                                                    Tapped="OnInstallButtonTapped"
+                                                    Command="{Binding $parent[views:ContentBrowserView].((vm:ContentBrowserViewModel)DataContext).DeleteOrInstallCommand}" CommandParameter="{Binding}"/>
                                             <!-- Modrinth Icon -->
                                             <Border ToolTip.Tip="Modrinth" IsVisible="{Binding IsModrinth}"
                                                     Width="26" Height="26" CornerRadius="6"
@@ -387,11 +392,6 @@
                                                           Width="13" Height="13" Foreground="#F16436"
                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             </Border>
-                                            <Button Classes="subBtn installedBtn" Classes.installed="{Binding IsInstalled}" Classes.installing="{Binding IsInstalling}" Width="114" Height="30" HorizontalAlignment="Right" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                                    Content="{Binding InstallButtonText}"
-                                                    PointerEntered="OnInstalledButtonHover" PointerExited="OnInstalledButtonHoverOut"
-                                                    Tapped="OnInstallButtonTapped"
-                                                    Command="{Binding $parent[views:ContentBrowserView].((vm:ContentBrowserViewModel)DataContext).DeleteOrInstallCommand}" CommandParameter="{Binding}"/>
                                         </StackPanel>
                                     </Grid>
                                 </Border>

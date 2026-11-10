@@ -1467,7 +1467,12 @@
 
                                                     <!-- Right: Source Icon & Install Button -->
                                                     <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" HorizontalAlignment="Right">
-                                                        <!-- Modrinth Icon -->
+                                            <Button Classes="subBtn installedBtn" Classes.installed="{Binding IsInstalled}" Classes.installing="{Binding IsInstalling}"
+                                                                Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ModpacksBrowser.DeleteOrInstallCommand}" CommandParameter="{Binding}"
+                                                                PointerEntered="OnModpackButtonHover" PointerExited="OnModpackButtonHoverOut" Tapped="OnModpackButtonTapped"
+                                                                VerticalAlignment="Center" HorizontalAlignment="Right"
+                                                                Content="{Binding InstallButtonText}"/>
+                                            <!-- Modrinth Icon -->
                                                         <Border ToolTip.Tip="Modrinth" IsVisible="{Binding IsModrinth}"
                                                                 Width="26" Height="26" CornerRadius="6"
                                                                 Background="#1400AF5C" BorderBrush="#3300AF5C" BorderThickness="1"
@@ -1485,12 +1490,7 @@
                                                                       Width="13" Height="13" Foreground="#F16436"
                                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                         </Border>
-                                                        <Button Classes="subBtn installedBtn" Classes.installed="{Binding IsInstalled}" Classes.installing="{Binding IsInstalling}"
-                                                                Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ModpacksBrowser.DeleteOrInstallCommand}" CommandParameter="{Binding}"
-                                                                PointerEntered="OnModpackButtonHover" PointerExited="OnModpackButtonHoverOut" Tapped="OnModpackButtonTapped"
-                                                                VerticalAlignment="Center" HorizontalAlignment="Right"
-                                                                Content="{Binding InstallButtonText}"/>
-                                                    </StackPanel>
+                                        </StackPanel>
                                                 </Grid>
                                             </Border>
                                         </DataTemplate>

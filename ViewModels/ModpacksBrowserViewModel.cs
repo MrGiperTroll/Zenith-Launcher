@@ -155,6 +155,45 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
         _ = ReloadAsync();
     }
 
+    private static string NormalizeKey(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return string.Empty;
+        var cleaned = System.Text.RegularExpressions.Regex.Replace(text, @"\s*[\(\[].*?[\)\]]", "");
+        var chars = cleaned.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).ToArray();
+        return new string(chars);
+    }
+
+    private static List<ModrinthProjectItemViewModel> DeduplicateProjects(IEnumerable<ModrinthProjectItemViewModel> items)
+    {
+        var result = new List<ModrinthProjectItemViewModel>();
+        var seenTitles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var seenSlugs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var seenIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var p in items)
+        {
+            if (p == null) continue;
+            var titleKey = NormalizeKey(p.Title);
+            var slugKey = NormalizeKey(p.Slug);
+
+            if (!string.IsNullOrEmpty(p.ProjectId) && !seenIds.Add(p.ProjectId))
+                continue;
+
+            bool duplicate = false;
+            if (!string.IsNullOrEmpty(titleKey) && !seenTitles.Add(titleKey))
+                duplicate = true;
+
+            if (!string.IsNullOrEmpty(slugKey) && !seenSlugs.Add(slugKey))
+                duplicate = true;
+
+            if (!duplicate)
+            {
+                result.Add(p);
+            }
+        }
+        return result;
+    }
+
     private static List<ModrinthProjectItemViewModel> MergeProjectResults(
         IReadOnlyList<ModrinthProjectItemViewModel>? mrHits,
         IReadOnlyList<ModrinthProjectItemViewModel>? cfHits,
@@ -163,24 +202,28 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
         var mrList = mrHits ?? Array.Empty<ModrinthProjectItemViewModel>();
         var cfList = cfHits ?? Array.Empty<ModrinthProjectItemViewModel>();
 
+        List<ModrinthProjectItemViewModel> combined;
         if (string.Equals(sortOption, "Downloads", StringComparison.OrdinalIgnoreCase))
         {
-            return mrList.Concat(cfList).OrderByDescending(p => p.Downloads).ToList();
+            combined = mrList.Concat(cfList).OrderByDescending(p => p.Downloads).ToList();
         }
-        if (string.Equals(sortOption, "Newest", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(sortOption, "Recently Updated", StringComparison.OrdinalIgnoreCase))
+        else if (string.Equals(sortOption, "Newest", StringComparison.OrdinalIgnoreCase) ||
+                 string.Equals(sortOption, "Recently Updated", StringComparison.OrdinalIgnoreCase))
         {
-            return mrList.Concat(cfList).OrderByDescending(p => p.Updated).ToList();
+            combined = mrList.Concat(cfList).OrderByDescending(p => p.Updated).ToList();
+        }
+        else
+        {
+            combined = new List<ModrinthProjectItemViewModel>();
+            int max = Math.Max(mrList.Count, cfList.Count);
+            for (int i = 0; i < max; i++)
+            {
+                if (i < mrList.Count) combined.Add(mrList[i]);
+                if (i < cfList.Count) combined.Add(cfList[i]);
+            }
         }
 
-        var result = new List<ModrinthProjectItemViewModel>();
-        int max = Math.Max(mrList.Count, cfList.Count);
-        for (int i = 0; i < max; i++)
-        {
-            if (i < mrList.Count) result.Add(mrList[i]);
-            if (i < cfList.Count) result.Add(cfList[i]);
-        }
-        return result;
+        return DeduplicateProjects(combined);
     }
 
     private CancellationTokenSource? _searchCts;
@@ -1222,10 +1265,16 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
                 {
                     _offset += merged.Count;
                     _totalHits = (mrPage?.TotalHits ?? 0) + (cfRes?.TotalHits ?? 0);
-                    var existing = Results.Select(r => r.ProjectId).ToHashSet();
+                    var existingIds = Results.Select(r => r.ProjectId).ToHashSet(StringComparer.OrdinalIgnoreCase);
+                    var existingTitles = Results.Select(r => NormalizeKey(r.Title)).Where(k => !string.IsNullOrEmpty(k)).ToHashSet(StringComparer.OrdinalIgnoreCase);
+                    var existingSlugs = Results.Select(r => NormalizeKey(r.Slug)).Where(k => !string.IsNullOrEmpty(k)).ToHashSet(StringComparer.OrdinalIgnoreCase);
                     foreach (var p in merged)
                     {
-                        if (existing.Add(p.ProjectId))
+                        var tKey = NormalizeKey(p.Title);
+                        var sKey = NormalizeKey(p.Slug);
+                        if (existingIds.Add(p.ProjectId) &&
+                            (string.IsNullOrEmpty(tKey) || existingTitles.Add(tKey)) &&
+                            (string.IsNullOrEmpty(sKey) || existingSlugs.Add(sKey)))
                         {
                             Results.Add(p);
                             LoadIcon(p, gen);
@@ -1362,10 +1411,16 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
                 {
                     _offset += merged.Count;
                     _totalHits = (mrPage?.TotalHits ?? 0) + (cfRes?.TotalHits ?? 0);
-                    var existing = Results.Select(r => r.ProjectId).ToHashSet();
+                    var existingIds = Results.Select(r => r.ProjectId).ToHashSet(StringComparer.OrdinalIgnoreCase);
+                    var existingTitles = Results.Select(r => NormalizeKey(r.Title)).Where(k => !string.IsNullOrEmpty(k)).ToHashSet(StringComparer.OrdinalIgnoreCase);
+                    var existingSlugs = Results.Select(r => NormalizeKey(r.Slug)).Where(k => !string.IsNullOrEmpty(k)).ToHashSet(StringComparer.OrdinalIgnoreCase);
                     foreach (var p in merged)
                     {
-                        if (existing.Add(p.ProjectId))
+                        var tKey = NormalizeKey(p.Title);
+                        var sKey = NormalizeKey(p.Slug);
+                        if (existingIds.Add(p.ProjectId) &&
+                            (string.IsNullOrEmpty(tKey) || existingTitles.Add(tKey)) &&
+                            (string.IsNullOrEmpty(sKey) || existingSlugs.Add(sKey)))
                         {
                             Results.Add(p);
                             LoadIcon(p, gen);

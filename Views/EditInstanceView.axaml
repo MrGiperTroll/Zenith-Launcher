@@ -300,14 +300,8 @@
                                              DoubleTapped="OnTitleDoubleTapped"
                           LostFocus="OnInstanceNameLostFocus"
                                              ToolTip.Tip="Double-click to rename"/>
-                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <Border Background="{StaticResource ChipBrush}" CornerRadius="6" Padding="8,4">
-                                            <TextBlock Text="{Binding Instance.DisplayVersion}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                        </Border>
-                                        <Border Background="{DynamicResource AccentDimBrush}" BorderBrush="{DynamicResource AccentBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="8,4" IsVisible="{Binding Instance.LoaderType, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}">
-                                            <TextBlock Text="{Binding Instance.LoaderType}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/>
-                                        </Border>
-                                    </StackPanel>
+                                    <TextBlock Text="{Binding Instance.DisplayVersion}" FontSize="12" FontWeight="SemiBold"
+                                               Foreground="{StaticResource TextSecondaryBrush}" Margin="0,2,0,0" HorizontalAlignment="Left"/>
                                 </StackPanel>
 
                                 <!-- Single Clean Open Folder Button next to instance details -->

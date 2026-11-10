@@ -352,6 +352,30 @@ private void OnTopBarDoubleTapped(object? sender, TappedEventArgs e)
         e.Handled = true;
     }
 
+    private void OnInstanceTargetCardTapped(object? sender, TappedEventArgs e)
+    {
+        if (e.Source is Visual v && v.FindAncestorOfType<Button>(includeSelf: true) != null)
+        {
+            return;
+        }
+        if (sender is Control { DataContext: ViewModels.Dialogs.InstanceTargetItem item } && item.CanClickButton)
+        {
+            item.InstallCommand.Execute(null);
+        }
+    }
+
+    private void OnWorldTargetCardTapped(object? sender, TappedEventArgs e)
+    {
+        if (e.Source is Visual v && v.FindAncestorOfType<Button>(includeSelf: true) != null)
+        {
+            return;
+        }
+        if (sender is Control { DataContext: ViewModels.Dialogs.WorldTargetItem item } && !item.IsInstalled)
+        {
+            item.InstallCommand.Execute(null);
+        }
+    }
+
     private bool _modpacksScrollAttached;
 
     private void OnModpacksListAttached(object? sender, VisualTreeAttachmentEventArgs e)

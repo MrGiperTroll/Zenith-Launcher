@@ -220,8 +220,10 @@
         <Style Selector="Button.primaryBtn">
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
-            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -233,8 +235,19 @@
             </Setter>
         </Style>
         <Style Selector="Button.primaryBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource AccentBrushHover}"/>
-            <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource AccentBrushHover}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+        </Style>
+        <Style Selector="Button.primaryBtn:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+        </Style>
+        <Style Selector="Border.targetInstanceCard:pointerover">
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderHoverBrush}"/>
         </Style>
 
         <!-- Secondary Buttons -->
@@ -1915,100 +1928,89 @@
         <Border Grid.Row="0" Grid.RowSpan="2" Background="{StaticResource OverlayBrush}"
                 IsVisible="{Binding ModpacksBrowser.IsAddToInstanceOpen}" ZIndex="1100"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-            <Border Background="{DynamicResource BgBrush}" CornerRadius="14" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1"
-                    Width="640" MaxHeight="620" HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 18 46 0 #55000000" Padding="26,22,26,20">
+            <Border Background="{DynamicResource BgBrush}" CornerRadius="12" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1"
+                    Width="490" MaxHeight="520" HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 18 46 0 #55000000" Padding="18,16,18,14">
                 <Grid RowDefinitions="Auto,Auto,*,Auto">
                     <!-- Header -->
-                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,16" VerticalAlignment="Center">
-                        <TextBlock Text="{Binding ModpacksBrowser.AddToInstanceModalTitle}" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,12" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding ModpacksBrowser.AddToInstanceModalTitle}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         <Button Grid.Column="1" Content="✕" Command="{Binding ModpacksBrowser.CloseAddToInstanceCommand}" Classes="subBtn"
-                                Width="28" Height="28" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                                Width="26" Height="26" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
                     </Grid>
 
                     <!-- STEP 1: Search & Instance List (Visible when !IsSelectWorldStep) -->
                     <Grid Grid.Row="1" RowDefinitions="Auto,*" IsVisible="{Binding !ModpacksBrowser.IsSelectWorldStep}">
-                        <TextBox Classes="darkInput" Text="{Binding ModpacksBrowser.InstanceSearchQuery}" PlaceholderText="Search instance..." Height="36" FontSize="12.5" Margin="0,0,0,12"/>
+                        <TextBox Classes="darkInput" Text="{Binding ModpacksBrowser.InstanceSearchQuery}" PlaceholderText="Search instance..." Height="32" FontSize="12" Margin="0,0,0,8"/>
                     </Grid>
 
-                    <ScrollViewer Grid.Row="2" MaxHeight="380" VerticalScrollBarVisibility="Auto" IsVisible="{Binding !ModpacksBrowser.IsSelectWorldStep}">
+                    <ScrollViewer Grid.Row="2" MaxHeight="320" VerticalScrollBarVisibility="Auto" IsVisible="{Binding !ModpacksBrowser.IsSelectWorldStep}">
                         <ItemsControl ItemsSource="{Binding ModpacksBrowser.TargetInstances}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="dialogs:InstanceTargetItem">
-                                    <Button Command="{Binding InstallCommand}" Background="Transparent" BorderThickness="0" Padding="0"
-                                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Cursor="Hand">
-                                        <Button.Styles>
-                                            <Style Selector="Button:pointerover /template/ ContentPresenter">
-                                                <Setter Property="Background" Value="Transparent"/>
-                                            </Style>
-                                            <Style Selector="Button:pressed /template/ ContentPresenter">
-                                                <Setter Property="Background" Value="Transparent"/>
-                                            </Style>
-                                        </Button.Styles>
-                                        <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="10" Padding="14,12" Margin="0,0,0,8">
-                                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14" VerticalAlignment="Center">
-                                                <Border Width="42" Height="42" Background="{DynamicResource ChipBrush}" CornerRadius="8" VerticalAlignment="Center" ClipToBounds="True">
-                                                    <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                        <Path IsVisible="{Binding !HasIcon}" Data="{StaticResource ZenithLogoGeometry}" Fill="{StaticResource SubtleEmeraldBrush}" Stretch="Uniform" Width="26" Height="26" Margin="0,2,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                        <Image IsVisible="{Binding HasIcon}" Source="{Binding IconPath, Converter={x:Static converters:IconPathToBitmapConverter.Instance}}" Stretch="UniformToFill" Width="42" Height="42" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                    </Panel>
-                                                </Border>
-                                                <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                                                    <TextBlock Text="{Binding Name}" FontSize="13.5" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                                    <TextBlock Text="{Binding VersionDisplay}" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                                </StackPanel>
-                                                <!-- If NOT datapack: show standard Install button -->
-                                                <Button Grid.Column="2" Classes="primaryBtn" Classes.installed="{Binding IsInstalled}"
-                                                        Command="{Binding InstallCommand}" IsEnabled="{Binding CanClickButton}"
-                                                        IsVisible="{Binding !IsDatapackSelection}"
-                                                        Padding="16,7" FontSize="12">
-                                                    <TextBlock Text="{Binding ButtonText}"/>
-                                                </Button>
-                                                <!-- If datapack: show chevron icon to indicate opening world list -->
-                                                <Border Grid.Column="2" IsVisible="{Binding IsDatapackSelection}" Width="28" Height="28" CornerRadius="14" Background="{DynamicResource ChipBrush}" VerticalAlignment="Center">
-                                                    <PathIcon Data="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" Width="12" Height="12" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                </Border>
-                                            </Grid>
-                                        </Border>
-                                    </Button>
+                                    <Border Classes="targetInstanceCard" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,0,0,6" Tapped="OnInstanceTargetCardTapped" Cursor="Hand">
+                                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalAlignment="Center">
+                                            <Border Width="36" Height="36" Background="{DynamicResource ChipBrush}" CornerRadius="8" VerticalAlignment="Center" ClipToBounds="True">
+                                                <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <Path IsVisible="{Binding !HasIcon}" Data="{StaticResource ZenithLogoGeometry}" Fill="{StaticResource SubtleEmeraldBrush}" Stretch="Uniform" Width="22" Height="22" Margin="0,2,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    <Image IsVisible="{Binding HasIcon}" Source="{Binding IconPath, Converter={x:Static converters:IconPathToBitmapConverter.Instance}}" Stretch="UniformToFill" Width="36" Height="36" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Panel>
+                                            </Border>
+                                            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Text="{Binding VersionDisplay}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            </StackPanel>
+                                            <!-- If NOT datapack: show standard Install button -->
+                                            <Button Grid.Column="2" Classes="primaryBtn" Classes.installed="{Binding IsInstalled}"
+                                                    Command="{Binding InstallCommand}" IsEnabled="{Binding CanClickButton}"
+                                                    IsVisible="{Binding !IsDatapackSelection}"
+                                                    Padding="14,6" FontSize="11.5">
+                                                <TextBlock Text="{Binding ButtonText}"/>
+                                            </Button>
+                                            <!-- If datapack: show chevron icon to indicate opening world list -->
+                                            <Border Grid.Column="2" IsVisible="{Binding IsDatapackSelection}" Width="26" Height="26" CornerRadius="13" Background="{DynamicResource ChipBrush}" VerticalAlignment="Center">
+                                                <PathIcon Data="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" Width="10" Height="10" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </Grid>
+                                    </Border>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </ScrollViewer>
 
                     <!-- STEP 2: World List for Datapack (Visible when IsSelectWorldStep) -->
-                    <StackPanel Grid.Row="1" Margin="0,0,0,12" Spacing="8" IsVisible="{Binding ModpacksBrowser.IsSelectWorldStep}">
-                        <Button Command="{Binding ModpacksBrowser.BackToInstancesCommand}" Classes="subBtn" Padding="10,5" HorizontalAlignment="Left">
+                    <StackPanel Grid.Row="1" Margin="0,0,0,10" Spacing="6" IsVisible="{Binding ModpacksBrowser.IsSelectWorldStep}">
+                        <Button Command="{Binding ModpacksBrowser.BackToInstancesCommand}" Classes="subBtn" Padding="8,4" HorizontalAlignment="Left">
                             <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                <TextBlock Text="‹" FontSize="14" FontWeight="Bold" VerticalAlignment="Center"/>
-                                <TextBlock Text="Back to profiles" FontSize="12" VerticalAlignment="Center"/>
+                                <TextBlock Text="‹" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"/>
+                                <TextBlock Text="Back to profiles" FontSize="11.5" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                        <TextBlock Text="{Binding ModpacksBrowser.SelectWorldSubtitle}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                        <TextBlock Text="{Binding ModpacksBrowser.SelectWorldSubtitle}" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                     </StackPanel>
 
-                    <ScrollViewer Grid.Row="2" MaxHeight="380" VerticalScrollBarVisibility="Auto" IsVisible="{Binding ModpacksBrowser.IsSelectWorldStep}">
+                    <ScrollViewer Grid.Row="2" MaxHeight="320" VerticalScrollBarVisibility="Auto" IsVisible="{Binding ModpacksBrowser.IsSelectWorldStep}">
                         <StackPanel Spacing="6">
-                            <Border IsVisible="{Binding ModpacksBrowser.HasNoWorldsFound}" Padding="20" Background="{DynamicResource CardBrush}" CornerRadius="10" HorizontalAlignment="Stretch" Margin="0,8">
-                                <TextBlock Text="No worlds found in this profile. Launch Minecraft and create a world first." Foreground="{DynamicResource TextPlaceholderBrush}" HorizontalAlignment="Center" TextAlignment="Center" FontSize="12.5"/>
+                            <Border IsVisible="{Binding ModpacksBrowser.HasNoWorldsFound}" Padding="16" Background="{DynamicResource CardBrush}" CornerRadius="8" HorizontalAlignment="Stretch" Margin="0,6">
+                                <TextBlock Text="No worlds found in this profile. Launch Minecraft and create a world first." Foreground="{DynamicResource TextPlaceholderBrush}" HorizontalAlignment="Center" TextAlignment="Center" FontSize="12"/>
                             </Border>
                             <ItemsControl ItemsSource="{Binding ModpacksBrowser.TargetWorlds}" IsVisible="{Binding !ModpacksBrowser.HasNoWorldsFound}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate x:DataType="dialogs:WorldTargetItem">
-                                        <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="10" Padding="14,12" Margin="0,0,0,8">
-                                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14" VerticalAlignment="Center">
-                                                <Border Width="42" Height="42" Background="{DynamicResource ChipBrush}" CornerRadius="8" VerticalAlignment="Center" ClipToBounds="True">
+                                        <Border Classes="targetInstanceCard" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,0,0,6" Tapped="OnWorldTargetCardTapped" Cursor="Hand">
+                                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalAlignment="Center">
+                                                <Border Width="36" Height="36" Background="{DynamicResource ChipBrush}" CornerRadius="8" VerticalAlignment="Center" ClipToBounds="True">
                                                     <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                        <PathIcon IsVisible="{Binding !HasIcon}" Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" Width="20" Height="20" Foreground="{DynamicResource AccentBrush}"/>
-                                                        <Image IsVisible="{Binding HasIcon}" Source="{Binding IconBitmap}" Stretch="UniformToFill" Width="42" Height="42"/>
+                                                        <PathIcon IsVisible="{Binding !HasIcon}" Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" Width="18" Height="18" Foreground="{DynamicResource AccentBrush}"/>
+                                                        <Image IsVisible="{Binding HasIcon}" Source="{Binding IconBitmap}" Stretch="UniformToFill" Width="36" Height="36"/>
                                                     </Panel>
                                                 </Border>
                                                 <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                                                    <TextBlock Text="{Binding WorldName}" FontSize="13.5" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                                    <TextBlock Text="{Binding FolderName, StringFormat='saves/{0}'}" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                    <TextBlock Text="{Binding WorldName}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                                    <TextBlock Text="{Binding FolderName, StringFormat='saves/{0}'}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                                 </StackPanel>
                                                 <Button Grid.Column="2" Classes="primaryBtn" Classes.installed="{Binding IsInstalled}"
                                                         Command="{Binding InstallCommand}" IsEnabled="{Binding !IsInstalled}"
-                                                        Padding="16,7" FontSize="12">
+                                                        Padding="14,6" FontSize="11.5">
                                                     <TextBlock Text="{Binding ButtonText}"/>
                                                 </Button>
                                             </Grid>
@@ -2020,8 +2022,8 @@
                     </ScrollViewer>
 
                     <!-- Footer -->
-                    <Grid Grid.Row="3" Margin="0,16,0,0" VerticalAlignment="Center">
-                        <Button Classes="subBtn" Content="Cancel" Command="{Binding ModpacksBrowser.CloseAddToInstanceCommand}" HorizontalAlignment="Right" Padding="18,6"/>
+                    <Grid Grid.Row="3" Margin="0,12,0,0" VerticalAlignment="Center">
+                        <Button Classes="subBtn" Content="Cancel" Command="{Binding ModpacksBrowser.CloseAddToInstanceCommand}" HorizontalAlignment="Right" Padding="16,6" FontSize="12"/>
                     </Grid>
                 </Grid>
             </Border>

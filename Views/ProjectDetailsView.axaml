@@ -320,7 +320,7 @@
 </UserControl.Styles>
 
     <Panel>
-        <Grid RowDefinitions="Auto,Auto,*">
+        <Grid RowDefinitions="Auto,*">
 
             <!-- ========== TOP HEADER ========== -->
             <Border Grid.Row="0" Background="Transparent" Padding="0,8,0,14">
@@ -371,26 +371,8 @@
                 </Grid>
             </Border>
 
-            <!-- ========== TABS ========== -->
-            <Border Grid.Row="1" Background="{StaticResource FieldBrush}" CornerRadius="20" Padding="3" HorizontalAlignment="Left" Margin="0,0,0,14">
-                <StackPanel Orientation="Horizontal" Spacing="2">
-                    <Button Classes="tabBtn" Classes.active="{Binding IsDescriptionTab}"
-                            Content="{l10n:Tr Key=cb_description}"
-                            Command="{Binding SelectTabCommand}" CommandParameter="description"/>
-                    <Button Classes="tabBtn" Classes.active="{Binding IsGalleryTab}"
-                            Content="{l10n:Tr Key=cb_gallery}"
-                            Command="{Binding SelectTabCommand}" CommandParameter="gallery"/>
-                    <Button Classes="tabBtn" Classes.active="{Binding IsChangelogTab}"
-                            Content="{l10n:Tr Key=cb_changelog}"
-                            Command="{Binding SelectTabCommand}" CommandParameter="changelog"/>
-                    <Button Classes="tabBtn" Classes.active="{Binding IsVersionsTab}"
-                            Content="{l10n:Tr Key=cb_versions}"
-                            Command="{Binding SelectTabCommand}" CommandParameter="versions"/>
-                </StackPanel>
-            </Border>
-
             <!-- ========== TWO-COLUMN BODY ========== -->
-            <Grid Grid.Row="2" Margin="0,0,0,16">
+            <Grid Grid.Row="1" Margin="0,0,0,16">
                 <Grid>
                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" AllowAutoHide="True" Padding="0,0,10,0">
                         <StackPanel>
@@ -578,6 +560,23 @@
                             <Grid IsVisible="{Binding IsDescriptionTab}" ColumnDefinitions="*,270" ColumnSpacing="16">
                                 <!-- LEFT: Description Content -->
                                 <StackPanel Grid.Column="0" Spacing="10">
+            <!-- Segmented Navigation Tabs -->
+            <Border Background="{StaticResource FieldBrush}" CornerRadius="20" Padding="3" HorizontalAlignment="Left" Margin="0,0,0,14">
+                <StackPanel Orientation="Horizontal" Spacing="2">
+                    <Button Classes="tabBtn" Classes.active="{Binding IsDescriptionTab}"
+                            Content="{l10n:Tr Key=cb_description}"
+                            Command="{Binding SelectTabCommand}" CommandParameter="description"/>
+                    <Button Classes="tabBtn" Classes.active="{Binding IsGalleryTab}"
+                            Content="{l10n:Tr Key=cb_gallery}"
+                            Command="{Binding SelectTabCommand}" CommandParameter="gallery"/>
+                    <Button Classes="tabBtn" Classes.active="{Binding IsChangelogTab}"
+                            Content="{l10n:Tr Key=cb_changelog}"
+                            Command="{Binding SelectTabCommand}" CommandParameter="changelog"/>
+                    <Button Classes="tabBtn" Classes.active="{Binding IsVersionsTab}"
+                            Content="{l10n:Tr Key=cb_versions}"
+                            Command="{Binding SelectTabCommand}" CommandParameter="versions"/>
+                </StackPanel>
+            </Border>
 
                                     <ItemsControl ItemsSource="{Binding FullProject.DescriptionBlocks}">
                                         <ItemsControl.ItemTemplate>
@@ -870,7 +869,25 @@
                 </StackPanel>
                             </Grid>
 
-                                <!-- GALLERY TAB -->
+                                <StackPanel IsVisible="{Binding !IsDescriptionTab}">
+            <!-- Segmented Navigation Tabs -->
+            <Border Background="{StaticResource FieldBrush}" CornerRadius="20" Padding="3" HorizontalAlignment="Left" Margin="0,0,0,14">
+                <StackPanel Orientation="Horizontal" Spacing="2">
+                    <Button Classes="tabBtn" Classes.active="{Binding IsDescriptionTab}"
+                            Content="{l10n:Tr Key=cb_description}"
+                            Command="{Binding SelectTabCommand}" CommandParameter="description"/>
+                    <Button Classes="tabBtn" Classes.active="{Binding IsGalleryTab}"
+                            Content="{l10n:Tr Key=cb_gallery}"
+                            Command="{Binding SelectTabCommand}" CommandParameter="gallery"/>
+                    <Button Classes="tabBtn" Classes.active="{Binding IsChangelogTab}"
+                            Content="{l10n:Tr Key=cb_changelog}"
+                            Command="{Binding SelectTabCommand}" CommandParameter="changelog"/>
+                    <Button Classes="tabBtn" Classes.active="{Binding IsVersionsTab}"
+                            Content="{l10n:Tr Key=cb_versions}"
+                            Command="{Binding SelectTabCommand}" CommandParameter="versions"/>
+                </StackPanel>
+            </Border>
+<!-- GALLERY TAB -->
                                 <StackPanel IsVisible="{Binding IsGalleryTab}" Spacing="14">
                                     <ItemsControl ItemsSource="{Binding GalleryItems}">
                                         <ItemsControl.ItemsPanel>
@@ -1128,6 +1145,7 @@
                                     <TextBlock Text="{l10n:Tr Key=cb_no_versions}" FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}" Margin="0,4"
                                                IsVisible="{Binding VersionList, Converter={x:Static converters:EditInstanceWindowConverters.IsCollectionEmpty}}"/>
                                 </StackPanel>
+                            </StackPanel>
 
                             </StackPanel>
 

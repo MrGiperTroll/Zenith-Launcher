@@ -2333,6 +2333,14 @@ public partial class MainWindowViewModel : ViewModelBase
 
         });
 
+        if (ModpacksBrowser != null && ModpacksBrowser.Results.Count == 0 && !ModpacksBrowser.IsBusy)
+
+        {
+
+            _ = ModpacksBrowser.ReloadAsync();
+
+        }
+
     }
 
 
@@ -3962,11 +3970,20 @@ public partial class MainWindowViewModel : ViewModelBase
 
 
 
-        // Discord Rich Presence lifecycle
+        // Discord Rich Presence lifecycle - initialize in background to avoid UI thread pipe blocking
 
-        Services.DiscordPresenceService.Initialize(DiscordRpcEnabled);
-
-        Services.DiscordPresenceService.SetBrowsingProfiles();
+        Task.Run(() =>
+        {
+            try
+            {
+                Services.DiscordPresenceService.Initialize(DiscordRpcEnabled);
+                Services.DiscordPresenceService.SetBrowsingProfiles();
+            }
+            catch (Exception ex)
+            {
+                LauncherLog.Error("Discord RPC background init failed", ex);
+            }
+        });
 
         _launchService.GameLaunched += (instance, accountType) =>
 
@@ -4005,6 +4022,8 @@ public partial class MainWindowViewModel : ViewModelBase
             try
 
             {
+
+                await Task.Delay(3000).ConfigureAwait(false);
 
                 var renewed = await _accountService.RefreshAllSessionsAsync().ConfigureAwait(false);
 
@@ -4306,9 +4325,14 @@ public partial class MainWindowViewModel : ViewModelBase
 
     {
 
-        await _modLoaderService.InitializeDatabaseAsync();
+        await Task.Delay(2000).ConfigureAwait(false);
 
-        await UpdateAvailableLoadersAsync(SelectedVersion);
+        await _modLoaderService.InitializeDatabaseAsync().ConfigureAwait(false);
+
+        await Dispatcher.UIThread.InvokeAsync(async () =>
+        {
+            await UpdateAvailableLoadersAsync(SelectedVersion);
+        });
 
     }
 
@@ -5371,118 +5395,69 @@ public partial class MainWindowViewModel : ViewModelBase
 
 
     public async Task LoadMojangVersionsAsync()
-
     {
+        var cachePath = Path.Combine(ZenithPaths.AppDataDir, "versions_cache.json");
+        if (_cachedVersions.Count == 0 && File.Exists(cachePath))
+        {
+            try
+            {
+                var cached = System.Text.Json.JsonSerializer.Deserialize<List<(string Name, string Type)>>(File.ReadAllText(cachePath));
+                if (cached != null && cached.Count > 0)
+                {
+                    _cachedVersions.AddRange(cached);
+                    FilterVersions();
+                }
+            }
+            catch { }
+        }
 
         try
-
         {
-
             var path = new MinecraftPath(ZenithPaths.AppDataDir);
-
             var launcher = new MinecraftLauncher(path);
+            var versions = await LaunchService.WithManifestRetryAsync(() => launcher.GetAllVersionsAsync().AsTask()).ConfigureAwait(false);
 
-            var versions = await LaunchService.WithManifestRetryAsync(() => launcher.GetAllVersionsAsync().AsTask());
-
-
-
-            _cachedVersions.Clear();
-
+            var fresh = new List<(string Name, string Type)>();
             foreach (var v in versions)
-
             {
-
-                // Never force a type on local entries - unknown types are filtered
-
-                // downstream; forcing "release" leaked modloader profiles into the list.
-
                 if (ModLoaderService.IsLoaderProfileId(v.Name)) continue;
-
-                _cachedVersions.Add((v.Name, v.Type ?? ""));
-
+                fresh.Add((v.Name, v.Type ?? ""));
             }
 
-
-
-            var cachePath = Path.Combine(ZenithPaths.AppDataDir, "versions_cache.json");
-
-            try { File.WriteAllText(cachePath, System.Text.Json.JsonSerializer.Serialize(_cachedVersions)); } catch { }
-
-
-
-            FilterVersions();
-
-        }
-
-        catch (Exception ex)
-
-        {
-
-            LauncherLog.Error("Failed to fetch Mojang version list, falling back to cache", ex);
-
-            // Try cache fallback
-
-            var cachePath = Path.Combine(ZenithPaths.AppDataDir, "versions_cache.json");
-
-            _cachedVersions.Clear();
-
-            if (File.Exists(cachePath))
-
+            if (fresh.Count > 0)
             {
-
-                try
-
+                await Dispatcher.UIThread.InvokeAsync(() =>
                 {
-
-                    var cached = System.Text.Json.JsonSerializer.Deserialize<List<(string Name, string Type)>>(File.ReadAllText(cachePath));
-
-                    if (cached != null && cached.Count > 0)
-
-                        _cachedVersions.AddRange(cached);
-
-                }
-
-                catch { }
-
+                    _cachedVersions.Clear();
+                    _cachedVersions.AddRange(fresh);
+                    FilterVersions();
+                    if (!AvailableVersions.Contains(SelectedVersion) && AvailableVersions.Count > 0)
+                        SelectedVersion = AvailableVersions.First();
+                });
+                try { File.WriteAllText(cachePath, System.Text.Json.JsonSerializer.Serialize(fresh)); } catch { }
             }
-
-            if (_cachedVersions.Count == 0)
-
-            {
-
-                _cachedVersions.Add(("1.21.1", "release"));
-
-                _cachedVersions.Add(("1.20.4", "release"));
-
-                _cachedVersions.Add(("1.20.1", "release"));
-
-                _cachedVersions.Add(("1.16.5", "release"));
-
-                _cachedVersions.Add(("1.8.9", "release"));
-
-                _cachedVersions.Add(("1.7.10", "release"));
-
-                _cachedVersions.Add(("1.0", "release"));
-
-            }
-
-            FilterVersions();
-
         }
-
-        finally
-
+        catch (Exception ex)
         {
-
-            if (!AvailableVersions.Contains(SelectedVersion) && AvailableVersions.Count > 0)
-
-                SelectedVersion = AvailableVersions.First();
-
+            LauncherLog.Error("Failed to fetch Mojang version list in background", ex);
+            if (_cachedVersions.Count == 0)
+            {
+                _cachedVersions.Add(("1.21.1", "release"));
+                _cachedVersions.Add(("1.20.4", "release"));
+                _cachedVersions.Add(("1.20.1", "release"));
+                _cachedVersions.Add(("1.16.5", "release"));
+                _cachedVersions.Add(("1.8.9", "release"));
+                _cachedVersions.Add(("1.7.10", "release"));
+                _cachedVersions.Add(("1.0", "release"));
+                FilterVersions();
+            }
         }
-
+        finally
+        {
+            if (!AvailableVersions.Contains(SelectedVersion) && AvailableVersions.Count > 0)
+                SelectedVersion = AvailableVersions.First();
+        }
     }
-
-
 
     public void FilterVersions()
 

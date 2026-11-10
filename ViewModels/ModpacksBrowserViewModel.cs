@@ -973,7 +973,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
         };
         L10n.LanguageChanged += () => OnPropertyChanged(nameof(SearchPlaceholder));
         _ = LoadVersionsAsync();
-        _ = ReloadAsync();
+        // Defer catalog search until navigated to (prevents startup freeze/network traffic)
     }
 
     /// <summary>

@@ -15,27 +15,23 @@ public static class MemoryTrimmer
         lock (Gate)
         {
             var now = DateTime.UtcNow;
-            if (!force && (now - _lastTrim).TotalSeconds < 5)
+            if (!force && (now - _lastTrim).TotalSeconds < 3)
                 return;
             _lastTrim = now;
         }
 
-        // Run non-blocking garbage collection on a background pool thread
-        // Never call SetProcessWorkingSetSize as it forces page faults and UI thread freezes.
+        // Run non-blocking garbage collection and LOH compaction on a background pool thread
         Task.Run(() =>
         {
             try
             {
-                var wsMb = Process.GetCurrentProcess().WorkingSet64 / (1024 * 1024);
-                if (force || wsMb > 160)
-                {
-                    GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
-                    GC.Collect(2, GCCollectionMode.Default, false);
-                }
-                else
-                {
-                    GC.Collect(1, GCCollectionMode.Default, false);
-                }
+                // Clear any in-memory icon caches
+                ModrinthApiService.ClearMemoryCache();
+
+                GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
+                GC.Collect(2, GCCollectionMode.Aggressive, blocking: true, compacting: true);
+                GC.WaitForPendingFinalizers();
+                GC.Collect(2, GCCollectionMode.Aggressive, blocking: true, compacting: true);
             }
             catch
             {

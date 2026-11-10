@@ -204,7 +204,7 @@ public partial class ModrinthProjectItemViewModel : ViewModelBase, IDisposable
             try
             {
                 using var ms = new MemoryStream(bytes);
-                var bmp = Bitmap.DecodeToWidth(ms, 96, BitmapInterpolationMode.MediumQuality);
+                var bmp = Bitmap.DecodeToWidth(ms, 72, BitmapInterpolationMode.MediumQuality);
                 Dispatcher.UIThread.Post(() =>
                 {
                     var old = Icon;

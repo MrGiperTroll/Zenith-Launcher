@@ -20,6 +20,10 @@
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <NoWarn>AVLN3001</NoWarn>
+    <!-- GC and Memory Optimization -->
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
+    <RetainVM>false</RetainVM>
   </PropertyGroup>
 
   <ItemGroup>

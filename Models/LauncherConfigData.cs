@@ -59,4 +59,5 @@ public class LauncherConfigData
     public string CustomFontPath { get; set; } = string.Empty;
 
     public bool IsSetupCompleted { get; set; }
+    public string Channel { get; set; } = "stable";
 }

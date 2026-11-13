@@ -125,11 +125,8 @@ public partial class UpdateNotificationViewModel : ObservableObject
     {
         if (IsDownloading) return;
 
-        // Non-installer asset (e.g. portable zip, standalone exe, web fallback): open it in browser instead of running InnoSetup silent install
-        var isSetupInstaller = _update.DownloadUrl.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) &&
-                               _update.DownloadUrl.Contains("Setup", StringComparison.OrdinalIgnoreCase);
-
-        if (!isSetupInstaller)
+        // Non-installer asset (e.g. a web fallback URL): open it instead of downloading junk.
+        if (!_update.DownloadUrl.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
         {
             try
             {

@@ -454,13 +454,74 @@ public partial class LauncherSettingsViewModel : ViewModelBase
 
     // --- Launch Behavior ---
     public ObservableCollection<string> LaunchBehaviors { get; } =
-        new(new[] { "KeepOpen", "HideAndReopen", "CloseOnLaunch" });
+        new(new[] { "KeepOpen", "Hide", "Close" });
 
     [ObservableProperty] private string _selectedLaunchBehavior = "KeepOpen";
 
     partial void OnSelectedLaunchBehaviorChanged(string value)
     {
         if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
+    }
+
+    // --- System & Tray & Hardware Accel ---
+    [ObservableProperty] private bool _minimizeToTrayOnClose;
+    [ObservableProperty] private bool _hardwareAcceleration = true;
+    [ObservableProperty] private string _cacheStatusText = string.Empty;
+    [ObservableProperty] private bool _isClearingCache;
+
+    partial void OnMinimizeToTrayOnCloseChanged(bool value)
+    {
+        if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
+    }
+
+    partial void OnHardwareAccelerationChanged(bool value)
+    {
+        if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
+    }
+
+    [RelayCommand]
+    public async Task ClearCacheAsync()
+    {
+        if (IsClearingCache) return;
+        IsClearingCache = true;
+        CacheStatusText = string.Empty;
+        long bytesFreed = 0;
+
+        await Task.Run(() =>
+        {
+            var targetDirs = new[]
+            {
+                Path.Combine(ZenithPaths.AppDataDir, "cache"),
+                Path.Combine(ZenithPaths.AppDataDir, "temp"),
+                Path.Combine(ZenithPaths.AppDataDir, "logs")
+            };
+
+            foreach (var dir in targetDirs)
+            {
+                if (!Directory.Exists(dir)) continue;
+                try
+                {
+                    var di = new DirectoryInfo(dir);
+                    foreach (var file in di.GetFiles("*", SearchOption.AllDirectories))
+                    {
+                        try
+                        {
+                            if (file.Name.Equals("launcher.log", StringComparison.OrdinalIgnoreCase)) continue;
+                            bytesFreed += file.Length;
+                            file.Delete();
+                        }
+                        catch { }
+                    }
+                }
+                catch { }
+            }
+        });
+
+        IsClearingCache = false;
+        var mb = Math.Max(0.1, Math.Round(bytesFreed / (1024.0 * 1024.0), 1));
+        CacheStatusText = bytesFreed > 0
+            ? $"{L10n.T("cache_cleared")} ({mb:0.#} MB)"
+            : L10n.T("cache_cleared");
     }
 
     // --- Directory Strategy ---
@@ -825,6 +886,8 @@ public partial class LauncherSettingsViewModel : ViewModelBase
             UseFlatVersionList = cfg.UseFlatVersionList;
             AutoManageJava = cfg.AutoManageJava;
             DiscordRpcEnabled = cfg.DiscordRpcEnabled;
+            MinimizeToTrayOnClose = cfg.MinimizeToTrayOnClose;
+            HardwareAcceleration = cfg.HardwareAcceleration;
             if (cfg.LauncherScale > 0.4 && cfg.LauncherScale < 3.0)
             {
                 LauncherScale = cfg.LauncherScale;
@@ -904,6 +967,8 @@ public partial class LauncherSettingsViewModel : ViewModelBase
         cfg.UseFlatVersionList = UseFlatVersionList;
         cfg.AutoManageJava = AutoManageJava;
         cfg.DiscordRpcEnabled = DiscordRpcEnabled;
+        cfg.MinimizeToTrayOnClose = MinimizeToTrayOnClose;
+        cfg.HardwareAcceleration = HardwareAcceleration;
         cfg.CurseForgeApiKey = CurseForgeApiKey;
         cfg.LauncherScale = LauncherScale;
         

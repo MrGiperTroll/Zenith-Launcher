@@ -64,6 +64,42 @@ public partial class MainWindow : Window
         UpdateMaximizeIcon();
     }
 
+    private bool _isExplicitExit;
+
+    public void ForceClose()
+    {
+        _isExplicitExit = true;
+        Close();
+    }
+
+    public void ShowAndActivate()
+    {
+        if (!IsVisible) Show();
+        WindowState = WindowState == WindowState.Minimized ? WindowState.Normal : WindowState;
+        Activate();
+        Focus();
+    }
+
+    protected override void OnClosing(WindowClosingEventArgs e)
+    {
+        if (!_isExplicitExit)
+        {
+            try
+            {
+                var cfg = LauncherConfigData.Load();
+                if (cfg.MinimizeToTrayOnClose)
+                {
+                    e.Cancel = true;
+                    Hide();
+                    OptimizeMemory();
+                    return;
+                }
+            }
+            catch { }
+        }
+        base.OnClosing(e);
+    }
+
     private void OnCloseButtonClick(object? sender, RoutedEventArgs e)
     {
         Close();

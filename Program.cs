@@ -84,8 +84,25 @@ class Program
     }
 
     public static AppBuilder BuildAvaloniaApp()
-        => AppBuilder.Configure<App>()
+    {
+        var builder = AppBuilder.Configure<App>()
             .UsePlatformDetect()
             .WithInterFont()
             .LogToTrace();
+
+        try
+        {
+            var cfg = Models.LauncherConfigData.Load();
+            if (!cfg.HardwareAcceleration && OperatingSystem.IsWindows())
+            {
+                builder = builder.With(new Win32PlatformOptions
+                {
+                    RenderingMode = new[] { Win32RenderingMode.Software }
+                });
+            }
+        }
+        catch { }
+
+        return builder;
+    }
 }

@@ -93,6 +93,18 @@ public partial class FileListViewModel : ObservableObject, IDisposable
 
     public bool IsDetailsOpen => SelectedEntry != null;
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasPrimaryAction))]
+    private string _primaryActionText = string.Empty;
+
+    [ObservableProperty]
+    private System.Windows.Input.ICommand? _primaryActionCommand;
+
+    [ObservableProperty]
+    private object? _primaryActionCommandParameter;
+
+    public bool HasPrimaryAction => !string.IsNullOrWhiteSpace(PrimaryActionText);
+
     partial void OnSelectedEntryChanged(InstanceFileEntry? value)
     {
         OnPropertyChanged(nameof(IsDetailsOpen));

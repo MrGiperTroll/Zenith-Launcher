@@ -73,6 +73,8 @@ public partial class App : Application
                     DataContext = vm,
                 };
 
+                SetupTrayIcon(desktop);
+
                 // Handle command-line launch for desktop shortcuts
                 if (wantsDirectLaunch)
                 {
@@ -86,6 +88,73 @@ public partial class App : Application
         {
             try { System.IO.File.AppendAllText(ZenithPaths.CrashLogPath, $"[FRAMEWORK INIT EXCEPTION] {ex}\n"); } catch { }
             throw;
+        }
+    }
+
+    private void SetupTrayIcon(IClassicDesktopStyleApplicationLifetime desktop)
+    {
+        try
+        {
+            var icons = TrayIcon.GetIcons(this);
+            if (icons == null)
+            {
+                icons = new TrayIcons();
+                TrayIcon.SetIcons(this, icons);
+            }
+
+            var trayIcon = new TrayIcon
+            {
+                ToolTipText = "Zenith Launcher",
+                IsVisible = true,
+            };
+
+            try
+            {
+                trayIcon.Icon = new WindowIcon(Avalonia.Platform.AssetLoader.Open(new Uri("avares://ZenithLauncher/Assets/app.ico")));
+            }
+            catch { }
+
+            trayIcon.Clicked += (_, _) =>
+            {
+                if (desktop.MainWindow is MainWindow mainWin)
+                {
+                    mainWin.ShowAndActivate();
+                }
+            };
+
+            var menu = new NativeMenu();
+            var openItem = new NativeMenuItem(L10n.T("tray_open"));
+            openItem.Click += (_, _) =>
+            {
+                if (desktop.MainWindow is MainWindow mainWin)
+                {
+                    mainWin.ShowAndActivate();
+                }
+            };
+
+            var exitItem = new NativeMenuItem(L10n.T("tray_exit"));
+            exitItem.Click += (_, _) =>
+            {
+                if (desktop.MainWindow is MainWindow mainWin)
+                {
+                    mainWin.ForceClose();
+                }
+                else
+                {
+                    desktop.Shutdown();
+                }
+            };
+
+            menu.Items.Add(openItem);
+            menu.Items.Add(new NativeMenuItemSeparator());
+            menu.Items.Add(exitItem);
+
+            trayIcon.Menu = menu;
+            icons.Add(trayIcon);
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Warn($"Tray icon initialization skipped or failed: {ex.Message}");
         }
     }
 }

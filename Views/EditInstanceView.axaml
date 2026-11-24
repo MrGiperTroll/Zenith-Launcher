@@ -313,12 +313,7 @@
 
                                 <!-- Single Clean Open Folder Button next to instance details -->
                                 <Button Grid.Column="2" Classes="primaryBtn" Command="{Binding LaunchCommand}" IsEnabled="{Binding CanLaunch}" Content="{l10n:Tr Key=btn_launch}" Padding="18,9" VerticalAlignment="Center"/>
-                                <Button Grid.Column="3" Classes="subBtn" Command="{Binding OpenInstanceFolderCommand}" Padding="16,9" VerticalAlignment="Center" ToolTip.Tip="{l10n:Tr Key=btn_open_folder}">
-                                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                        <PathIcon Data="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="14" Height="14" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
-                                        <TextBlock Text="{l10n:Tr Key=btn_open_folder}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </Button>
+                                <Button Grid.Column="3" Classes="subBtn" Command="{Binding OpenInstanceFolderCommand}" Content="{l10n:Tr Key=btn_open_folder}" Padding="16,9" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" ToolTip.Tip="{l10n:Tr Key=btn_open_folder}"/>
                             </Grid>
                         </Border>
 
@@ -386,24 +381,9 @@
                         </StackPanel>
 
                         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                            <Button Classes="subBtn" Command="{Binding OpenLogFileCommand}" Padding="10,5" FontSize="11" ToolTip.Tip="Open log file">
-                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                    <PathIcon Data="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z" Width="12" Height="12"/>
-                                    <TextBlock Text="{l10n:Tr Key=fl_open}" FontSize="11"/>
-                                </StackPanel>
-                            </Button>
-                            <Button Classes="subBtn" Command="{Binding CopyLogsCommand}" Padding="10,5" FontSize="11" ToolTip.Tip="{l10n:Tr Key=btn_copy_logs}">
-                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                    <PathIcon Data="M16 1H4C2.9 1 2 1.9 2 3v14h2V3h12V1zm3 4H8C6.9 5 6 5.9 6 7v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" Width="12" Height="12"/>
-                                    <TextBlock Text="{l10n:Tr Key=btn_copy_logs}" FontSize="11"/>
-                                </StackPanel>
-                            </Button>
-                            <Button Classes="subBtn" Command="{Binding ToggleLogExpandCommand}" Padding="10,5" FontSize="11">
-                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                    <PathIcon Data="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" Width="12" Height="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                    <TextBlock Text="{Binding LogExpandText}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                </StackPanel>
-                            </Button>
+                            <Button Classes="subBtn" Command="{Binding OpenLogFileCommand}" Content="{l10n:Tr Key=fl_open}" Padding="12,5" FontSize="11" ToolTip.Tip="Open log file"/>
+                            <Button Classes="subBtn" Command="{Binding CopyLogsCommand}" Content="{l10n:Tr Key=btn_copy_logs}" Padding="12,5" FontSize="11" ToolTip.Tip="{l10n:Tr Key=btn_copy_logs}"/>
+                            <Button Classes="subBtn" Command="{Binding ToggleLogExpandCommand}" Content="{Binding LogExpandText}" Padding="12,5" FontSize="11"/>
                         </StackPanel>
                     </Grid>
 
@@ -434,48 +414,33 @@
                 </Grid>
 
                 <!-- Mods -->
-                <Grid IsVisible="{Binding IsModsTab}" RowDefinitions="Auto,*" Margin="14,10">
-                    <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,8">
-                        <Button Classes="primaryBtn" Content="{l10n:Tr Key=btn_browse_mods}" Command="{Binding OpenContentBrowserCommand}" CommandParameter="Mods" Padding="14,7" FontSize="12"/>
-                    </StackPanel>
-                    <views:FileListView Grid.Row="1" x:Name="ModView" DataContext="{Binding ModList}"/>
+                <Grid IsVisible="{Binding IsModsTab}" Margin="14,10">
+                    <views:FileListView x:Name="ModView" DataContext="{Binding ModList}"/>
                 </Grid>
 
                 <!-- Resource Packs -->
-                <Grid IsVisible="{Binding IsResourcePacksTab}" RowDefinitions="Auto,*" Margin="14,10">
-                    <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,8">
-                        <Button Classes="primaryBtn" Content="{l10n:Tr Key=btn_browse_packs}" Command="{Binding OpenContentBrowserCommand}" CommandParameter="Resource Packs" Padding="14,7" FontSize="12"/>
-                    </StackPanel>
-                    <views:FileListView Grid.Row="1" x:Name="ResourceView" DataContext="{Binding ResourcePackList}"/>
+                <Grid IsVisible="{Binding IsResourcePacksTab}" Margin="14,10">
+                    <views:FileListView x:Name="ResourceView" DataContext="{Binding ResourcePackList}"/>
                 </Grid>
 
                 <!-- Shader Packs -->
-                <Grid IsVisible="{Binding IsShaderPacksTab}" RowDefinitions="Auto,*" Margin="14,10">
-                    <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,8">
-                        <Button Classes="primaryBtn" Content="{l10n:Tr Key=btn_browse_shaders}" Command="{Binding OpenContentBrowserCommand}" CommandParameter="Shader Packs" Padding="14,7" FontSize="12"/>
-                    </StackPanel>
-                    <views:FileListView Grid.Row="1" x:Name="ShaderView" DataContext="{Binding ShaderList}"/>
+                <Grid IsVisible="{Binding IsShaderPacksTab}" Margin="14,10">
+                    <views:FileListView x:Name="ShaderView" DataContext="{Binding ShaderList}"/>
                 </Grid>
 
                 <!-- Data Packs -->
                 <Grid IsVisible="{Binding IsDataPacksTab}" RowDefinitions="Auto,*,Auto" Margin="14,10">
-                    <StackPanel Grid.Row="0" Spacing="10" Margin="0,0,0,8">
-                        <Grid ColumnDefinitions="*,Auto">
-                            <StackPanel Spacing="2" VerticalAlignment="Center">
-                                
-                            </StackPanel>
-                            <Button Grid.Column="1" Classes="primaryBtn" Content="{l10n:Tr Key=btn_browse_datapacks}" Command="{Binding OpenContentBrowserCommand}" CommandParameter="Data Packs" Padding="14,7" FontSize="12" VerticalAlignment="Center" IsEnabled="{Binding AvailableWorlds.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsNonZero}}"/>
-                        </Grid>
-                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8" VerticalAlignment="Center">
-                            <TextBlock Text="{l10n:Tr Key=lbl_world}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                            <ComboBox Grid.Column="1" Classes="zenCombo" ItemsSource="{Binding AvailableWorlds}" SelectedItem="{Binding SelectedWorld}" PlaceholderText="{l10n:Tr Key=w_select_world}" FontSize="11" Padding="10,6" MinWidth="200" VerticalAlignment="Center"/>
-                            <Button Grid.Column="2" Classes="subBtn" Content="{l10n:Tr Key=btn_open_folder}" Command="{Binding OpenDataPackFolderCommand}" Padding="12,6" FontSize="11" VerticalAlignment="Center" IsEnabled="{Binding SelectedWorld, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
-                        </Grid>
-                        <TextBlock Text="{l10n:Tr Key=w_no_worlds}" FontSize="11" Foreground="{DynamicResource TextPlaceholderBrush}" IsVisible="{Binding AvailableWorlds.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}"/>
-                    </StackPanel>
+                    <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8" Margin="0,0,0,10" VerticalAlignment="Center">
+                        <TextBlock Grid.Column="0" Text="{l10n:Tr Key=lbl_world}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <ComboBox Grid.Column="1" Classes="zenCombo" ItemsSource="{Binding AvailableWorlds}" SelectedItem="{Binding SelectedWorld}" PlaceholderText="{l10n:Tr Key=w_select_world}" FontSize="11" Padding="10,6" HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <Button Classes="subBtn" Content="{l10n:Tr Key=btn_open_folder}" Command="{Binding OpenDataPackFolderCommand}" Padding="12,5" FontSize="11" VerticalAlignment="Center" IsEnabled="{Binding SelectedWorld, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
+                            <Button Classes="primaryBtn" Content="{l10n:Tr Key=btn_browse_datapacks}" Command="{Binding OpenContentBrowserCommand}" CommandParameter="Data Packs" Padding="14,5" FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center" IsEnabled="{Binding AvailableWorlds.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsNonZero}}"/>
+                        </StackPanel>
+                    </Grid>
                     <Border Grid.Row="1" Background="Transparent" Padding="4">
                         <Grid>
-                            <ListBox ItemsSource="{Binding DataPacks}" Background="Transparent" BorderThickness="0" Padding="6">
+                            <ListBox ItemsSource="{Binding DataPacks}" Background="Transparent" BorderThickness="0" Padding="6" IsVisible="{Binding HasDataPacks}">
                                 <ListBox.Styles>
                                     <Style Selector="ListBoxItem">
                                         <Setter Property="Padding" Value="0"/>
@@ -511,8 +476,9 @@
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
                             </ListBox>
-                            <TextBlock Text="{l10n:Tr Key=w_none}" Foreground="{DynamicResource TextPlaceholderBrush}" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding DataPacks.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}"/>
-                            <TextBlock Text="{l10n:Tr Key=w_pick_hint}" Foreground="{DynamicResource TextPlaceholderBrush}" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding SelectedWorld, Converter={x:Static converters:EditInstanceWindowConverters.IsEmpty}}"/>
+                            <TextBlock Text="{l10n:Tr Key=w_no_worlds}" Foreground="{DynamicResource TextPlaceholderBrush}" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding HasNoWorlds}"/>
+                            <TextBlock Text="{l10n:Tr Key=w_pick_hint}" Foreground="{DynamicResource TextPlaceholderBrush}" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding HasNoSelectedWorld}"/>
+                            <TextBlock Text="{l10n:Tr Key=w_none}" Foreground="{DynamicResource TextPlaceholderBrush}" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding HasEmptyDataPacks}"/>
                         </Grid>
                     </Border>
                     <TextBlock Grid.Row="2" Text="{l10n:Tr Key=w_tip}" FontSize="10" Foreground="{DynamicResource TextCaptionBrush}" Margin="2,8,0,0"/>
@@ -521,20 +487,14 @@
                 <Grid IsVisible="{Binding IsWorldsTab}" RowDefinitions="Auto,*" Margin="14,10">
                     <!-- Top bar: search/count + import button -->
                     <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,10">
-                        <Panel/>
+                        <TextBox Grid.Column="0" Classes="darkInput" Text="{Binding WorldList.SearchQuery}"
+                                 PlaceholderText="{l10n:Tr Key=ph_search}" FontSize="11" Padding="10,6"
+                                 HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="0,0,10,0"/>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
-                            <Button Classes="subBtn" Command="{Binding WorldList.ImportFilesCommand}" FontSize="11" Padding="12,5">
-                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                    <PathIcon Data="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5v-2z" Width="12" Height="12" Foreground="{DynamicResource AccentBrush}"/>
-                                    <TextBlock Text="{l10n:Tr Key=fl_import}" FontSize="11"/>
-                                </StackPanel>
-                            </Button>
-                            <Button Classes="subBtn" Command="{Binding WorldList.OpenFolderCommand}" FontSize="11" Padding="12,5">
-                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                    <PathIcon Data="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="12" Height="12" Foreground="{DynamicResource AccentBrush}"/>
-                                    <TextBlock Text="{l10n:Tr Key=btn_open_folder}" FontSize="11"/>
-                                </StackPanel>
-                            </Button>
+                            <Button Classes="subBtn" Command="{Binding WorldList.OpenFolderCommand}"
+                                    Content="{l10n:Tr Key=btn_open_folder}" FontSize="11" Padding="12,5" VerticalAlignment="Center"/>
+                            <Button Classes="primaryBtn" Command="{Binding WorldList.ImportFilesCommand}"
+                                    Content="{l10n:Tr Key=fl_import}" FontSize="11.5" FontWeight="SemiBold" Padding="14,5" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Grid>
 

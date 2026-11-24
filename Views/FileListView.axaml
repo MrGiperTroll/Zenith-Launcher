@@ -27,14 +27,14 @@
 
     <Grid RowDefinitions="Auto,*">
         <Border Grid.Row="0" Padding="0,0,0,8">
-            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
-                <!-- Search box anchored strictly on the left -->
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                <!-- Search box stretched across the left side -->
                 <TextBox Grid.Column="0" x:Name="SearchBox" Classes="darkInput" Text="{Binding SearchQuery}"
-                         PlaceholderText="{l10n:Tr Key=ph_search}" Width="180" FontSize="11" Padding="8,5"
-                         HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                         PlaceholderText="{l10n:Tr Key=ph_search}" FontSize="11" Padding="10,6"
+                         HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
 
-                <!-- Right toolbar: Sort, Batch Actions, Refresh, Open Folder -->
-                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <!-- Right toolbar: Sort, Batch Actions, Refresh, Open Folder, Primary Action -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right" VerticalAlignment="Center">
                     <ComboBox Classes="zenCombo" ItemsSource="{Binding SortOptions}" SelectedItem="{Binding SelectedSortOption}"
                               FontSize="11" Padding="8,4" Width="118" VerticalAlignment="Center">
                         <ComboBox.ItemTemplate>
@@ -51,12 +51,12 @@
                             IsVisible="{Binding SupportsDisable}"/>
                     <Button Classes="subBtn" Command="{Binding RefreshListCommand}"
                             Content="{l10n:Tr Key=fl_refresh}" FontSize="11" Padding="10,5" VerticalAlignment="Center"/>
-                    <Button Classes="subBtn" Command="{Binding OpenFolderCommand}" FontSize="11" Padding="10,5" VerticalAlignment="Center" ToolTip.Tip="{l10n:Tr Key=btn_open_folder}">
-                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                            <PathIcon Data="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="12" Height="12" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
-                            <TextBlock Text="{l10n:Tr Key=btn_open_folder}" FontSize="11" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
+                    <Button Classes="subBtn" Command="{Binding OpenFolderCommand}"
+                            Content="{l10n:Tr Key=btn_open_folder}" FontSize="11" Padding="10,5" VerticalAlignment="Center"
+                            ToolTip.Tip="{l10n:Tr Key=btn_open_folder}"/>
+                    <Button Classes="primaryBtn" Command="{Binding PrimaryActionCommand}" CommandParameter="{Binding PrimaryActionCommandParameter}"
+                            Content="{Binding PrimaryActionText}" FontSize="11.5" FontWeight="SemiBold" Padding="14,5" VerticalAlignment="Center"
+                            IsVisible="{Binding HasPrimaryAction}"/>
                 </StackPanel>
             </Grid>
         </Border>

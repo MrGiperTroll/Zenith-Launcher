@@ -398,8 +398,8 @@ public class LaunchBehaviorDisplayConverter : IValueConverter
         if (value is not string s || string.IsNullOrWhiteSpace(s)) return "";
         return s switch
         {
-            "Hide" => L10n.T("lb_minimize"),
-            "Close" => L10n.T("lb_close"),
+            "Hide" or "HideAndReopen" => L10n.T("lb_minimize"),
+            "Close" or "CloseOnLaunch" => L10n.T("lb_close"),
             _ => L10n.T("lb_keep_open")
         };
     }

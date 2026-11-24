@@ -15,6 +15,7 @@
         x:Class="ZenithLauncher.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="Zenith Launcher"
+        Icon="/Assets/app.ico"
         Width="1280" Height="780"
         MinWidth="1080" MinHeight="680"
         WindowStartupLocation="CenterScreen"

@@ -41,6 +41,9 @@ public class LauncherConfigData
     public string Language { get; set; } = "";
     public string CurseForgeApiKey { get; set; } = string.Empty;
 
+    public bool MinimizeToTrayOnClose { get; set; } = false;
+    public bool HardwareAcceleration { get; set; } = true;
+
     public string SelectedParticle { get; set; } = "None";
     public int ParticleCount { get; set; } = 50;
     public double ParticleScale { get; set; } = 1.0;
@@ -59,4 +62,19 @@ public class LauncherConfigData
     public string CustomFontPath { get; set; } = string.Empty;
 
     public bool IsSetupCompleted { get; set; }
+
+    public static LauncherConfigData Load()
+    {
+        try
+        {
+            var path = ZenithLauncher.Services.ZenithPaths.ConfigFilePath;
+            if (System.IO.File.Exists(path))
+            {
+                var json = System.IO.File.ReadAllText(path);
+                return System.Text.Json.JsonSerializer.Deserialize<LauncherConfigData>(json) ?? new LauncherConfigData();
+            }
+        }
+        catch { }
+        return new LauncherConfigData();
+    }
 }

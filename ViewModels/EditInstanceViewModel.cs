@@ -115,6 +115,18 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
         ScreenshotList = new FileListViewModel("Screenshots", Path.Combine(instance.Path, "screenshots"), false,
             L10n.T("fl_empty_screenshots"), ReportError, new[] { ".png", ".jpg", ".jpeg" }, kind: InstanceFileKind.Screenshot, instancePath: instance.Path);
 
+        ModList.PrimaryActionText = L10n.T("btn_browse_mods");
+        ModList.PrimaryActionCommand = OpenContentBrowserCommand;
+        ModList.PrimaryActionCommandParameter = "Mods";
+
+        ResourcePackList.PrimaryActionText = L10n.T("btn_browse_packs");
+        ResourcePackList.PrimaryActionCommand = OpenContentBrowserCommand;
+        ResourcePackList.PrimaryActionCommandParameter = "Resource Packs";
+
+        ShaderList.PrimaryActionText = L10n.T("btn_browse_shaders");
+        ShaderList.PrimaryActionCommand = OpenContentBrowserCommand;
+        ShaderList.PrimaryActionCommandParameter = "Shader Packs";
+
         ModList.OpenProjectDetails = null;
         ResourcePackList.OpenProjectDetails = null;
         ShaderList.OpenProjectDetails = null;
@@ -861,10 +873,27 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
     public ObservableCollection<string> AvailableWorlds { get; } = new();
     public ObservableCollection<InstanceFileEntry> DataPacks { get; } = new();
 
+    public bool HasNoWorlds => AvailableWorlds.Count == 0;
+    public bool HasNoSelectedWorld => AvailableWorlds.Count > 0 && string.IsNullOrWhiteSpace(SelectedWorld);
+    public bool HasEmptyDataPacks => !string.IsNullOrWhiteSpace(SelectedWorld) && DataPacks.Count == 0;
+    public bool HasDataPacks => !string.IsNullOrWhiteSpace(SelectedWorld) && DataPacks.Count > 0;
+
+    private void NotifyDataPackStates()
+    {
+        OnPropertyChanged(nameof(HasNoWorlds));
+        OnPropertyChanged(nameof(HasNoSelectedWorld));
+        OnPropertyChanged(nameof(HasEmptyDataPacks));
+        OnPropertyChanged(nameof(HasDataPacks));
+    }
+
     [ObservableProperty]
     private string _selectedWorld = "";
 
-    partial void OnSelectedWorldChanged(string value) => RefreshDataPacks();
+    partial void OnSelectedWorldChanged(string value)
+    {
+        RefreshDataPacks();
+        NotifyDataPackStates();
+    }
 
     // ----- Launch / download progress (mirrored from MainWindow host) -----
     public double LaunchProgress => _host.LaunchProgress;
@@ -911,6 +940,8 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
             SelectedWorld = AvailableWorlds[0];
         else if (AvailableWorlds.Count == 0)
             SelectedWorld = "";
+
+        NotifyDataPackStates();
     }
 
     private void RefreshDataPacks()
@@ -960,6 +991,10 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
         catch (Exception ex)
         {
             LauncherLog.Error("Failed to read datapacks", ex);
+        }
+        finally
+        {
+            NotifyDataPackStates();
         }
     }
 

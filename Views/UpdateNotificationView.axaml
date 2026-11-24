@@ -61,9 +61,7 @@
     <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="12" Width="400">
         <!-- Header: logo, title, version flow, close -->
         <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalAlignment="Center">
-            <Border Grid.Column="0" Width="40" Height="40" CornerRadius="10" Background="{DynamicResource AccentSoftBrush}" VerticalAlignment="Center">
-                <Path Data="{StaticResource ZenithLogoGeometry}" Fill="{DynamicResource AccentBrush}" Stretch="Uniform" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </Border>
+            <Path Grid.Column="0" Data="{StaticResource ZenithLogoGeometry}" Fill="{DynamicResource AccentBrush}" Stretch="Uniform" Width="36" Height="36" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
                 <TextBlock Classes="sectionTitle" Text="{Binding TitleText}"/>
                 <TextBlock FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center">

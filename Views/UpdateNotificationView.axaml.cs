@@ -126,6 +126,31 @@ public partial class UpdateNotificationViewModel : ObservableObject
     {
         if (IsDownloading) return;
 
+        // Visual simulation for mock/test runs
+        if (_update.Version == "1.2.0" && _update.DownloadUrl.Contains("tag/v1.2.0"))
+        {
+            IsDownloading = true;
+            ShowProgress = true;
+            DownloadPercent = 0;
+            StatusText = L10n.T("update_downloading");
+            UpdateButtonText = "...";
+
+            for (int i = 0; i <= 100; i += 5)
+            {
+                if (_cts.IsCancellationRequested) break;
+                await Task.Delay(50);
+                ReportProgress(new DownloadProgress(i, (long)(i * 450000), 45000000));
+            }
+
+            StatusText = L10n.T("update_installing");
+            await Task.Delay(1200);
+            IsDownloading = false;
+            ShowProgress = false;
+            StatusText = L10n.T("update_uptodate");
+            UpdateButtonText = L10n.T("update_download");
+            return;
+        }
+
         // Non-installer asset (e.g. a web fallback URL): open it instead of downloading junk.
         if (!_update.DownloadUrl.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
         {
@@ -158,10 +183,12 @@ public partial class UpdateNotificationViewModel : ObservableObject
             {
                 StatusText = L10n.T("update_installing");
 
-                await Task.Delay(800);
+                await Task.Delay(400);
                 if (App.Current?.ApplicationLifetime
                     is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime life)
                     life.Shutdown();
+                else
+                    Environment.Exit(0);
             }
             else
             {

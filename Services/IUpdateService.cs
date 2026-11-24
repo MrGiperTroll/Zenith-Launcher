@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -60,11 +61,17 @@ public sealed class GitHubUpdateService : IUpdateService
     {
         try
         {
-            using var response = await SharedHttp
-                .GetAsync($"https://api.github.com/repos/{Owner}/{Repo}/releases/latest", ct)
-                .ConfigureAwait(false);
+            using var req = new HttpRequestMessage(HttpMethod.Get, $"https://api.github.com/repos/{Owner}/{Repo}/releases/latest");
+            req.Headers.UserAgent.ParseAdd("ZenithLauncher");
+            req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
+            req.Headers.CacheControl = new CacheControlHeaderValue { NoCache = true, NoStore = true };
+
+            using var response = await SharedHttp.SendAsync(req, ct).ConfigureAwait(false);
             if (!response.IsSuccessStatusCode)
+            {
+                LauncherLog.Warn($"Update check returned HTTP {response.StatusCode}");
                 return null;
+            }
 
             var json = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
             using var doc = JsonDocument.Parse(json);
@@ -79,6 +86,8 @@ public sealed class GitHubUpdateService : IUpdateService
 
             string? assetUrl = null;
             if (root.TryGetProperty("assets", out var assets) && assets.ValueKind == JsonValueKind.Array)
+            {
+                // Priority 1: .exe asset with Setup or Installer in name
                 foreach (var asset in assets.EnumerateArray())
                 {
                     if (asset.TryGetProperty("name", out var nameEl) &&
@@ -86,7 +95,8 @@ public sealed class GitHubUpdateService : IUpdateService
                     {
                         var name = nameEl.GetString() ?? "";
                         if (name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) &&
-                            name.Contains("Setup", StringComparison.OrdinalIgnoreCase))
+                            (name.Contains("Setup", StringComparison.OrdinalIgnoreCase) ||
+                             name.Contains("Installer", StringComparison.OrdinalIgnoreCase)))
                         {
                             assetUrl = url.GetString();
                             break;
@@ -94,9 +104,30 @@ public sealed class GitHubUpdateService : IUpdateService
                     }
                 }
 
+                // Priority 2: any .exe asset
+                if (assetUrl == null)
+                {
+                    foreach (var asset in assets.EnumerateArray())
+                    {
+                        if (asset.TryGetProperty("name", out var nameEl) &&
+                            asset.TryGetProperty("browser_download_url", out var url))
+                        {
+                            var name = nameEl.GetString() ?? "";
+                            if (name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+                            {
+                                assetUrl = url.GetString();
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            var fallbackUrl = $"https://github.com/{Owner}/{Repo}/releases/download/{tagName}/ZenithLauncher_Setup_{tagName}.exe";
+
             return new UpdateCheckResult(
                 Version: tagName,
-                DownloadUrl: assetUrl ?? $"https://github.com/{Owner}/{Repo}/releases/latest",
+                DownloadUrl: assetUrl ?? fallbackUrl,
                 ReleaseNotes: root.TryGetProperty("body", out var body) ? body.GetString() ?? "" : "",
                 IsNewerThanCurrent: isNewer);
         }
@@ -112,39 +143,84 @@ public sealed class GitHubUpdateService : IUpdateService
     {
         try
         {
-            var tempPath = Path.Combine(Path.GetTempPath(), $"ZenithLauncher_Setup_{update.Version}.exe");
+            var cleanVersion = update.Version.Trim().TrimStart('v', 'V');
+            var tempFile = Path.Combine(Path.GetTempPath(), $"Zenith_Setup_{cleanVersion}_{Guid.NewGuid():N}.exe");
 
-            // Use a dedicated HttpClient with no timeout for large downloads
-            using var dlHttp = new HttpClient();
+            var handler = new HttpClientHandler
+            {
+                AllowAutoRedirect = true,
+                AutomaticDecompression = System.Net.DecompressionMethods.All
+            };
+
+            using var dlHttp = new HttpClient(handler) { Timeout = TimeSpan.FromMinutes(10) };
             dlHttp.DefaultRequestHeaders.UserAgent.ParseAdd("ZenithLauncher");
+            dlHttp.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue { NoCache = true, NoStore = true };
 
             using (var response = await dlHttp.GetAsync(update.DownloadUrl, HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false))
             {
                 response.EnsureSuccessStatusCode();
                 var total = response.Content.Headers.ContentLength ?? -1L;
-                await using var fs = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None);
-                await using var stream = await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
-                var buffer = new byte[81920];
-                long downloaded = 0;
-                int read;
-                while ((read = await stream.ReadAsync(buffer.AsMemory(0, buffer.Length), ct).ConfigureAwait(false)) > 0)
+                await using (var fs = new FileStream(tempFile, FileMode.Create, FileAccess.Write, FileShare.None))
+                await using (var stream = await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false))
                 {
-                    await fs.WriteAsync(buffer.AsMemory(0, read), ct).ConfigureAwait(false);
-                    downloaded += read;
-                    if (progress != null && total > 0)
-                        progress.Report(new DownloadProgress(100.0 * downloaded / total, downloaded, total));
+                    var buffer = new byte[81920];
+                    long downloaded = 0;
+                    int read;
+                    while ((read = await stream.ReadAsync(buffer.AsMemory(0, buffer.Length), ct).ConfigureAwait(false)) > 0)
+                    {
+                        await fs.WriteAsync(buffer.AsMemory(0, read), ct).ConfigureAwait(false);
+                        downloaded += read;
+                        if (progress != null && total > 0)
+                            progress.Report(new DownloadProgress(100.0 * downloaded / total, downloaded, total));
+                    }
+                    if (progress != null)
+                        progress.Report(new DownloadProgress(100, downloaded, total > 0 ? total : downloaded));
                 }
-                if (progress != null)
-                    progress.Report(new DownloadProgress(100, downloaded, total > 0 ? total : downloaded));
             }
 
-            LauncherLog.Info($"Update downloaded to {tempPath}. Starting silent install...");
+            if (!File.Exists(tempFile) || new FileInfo(tempFile).Length == 0)
+            {
+                LauncherLog.Error("Downloaded setup file is missing or empty.");
+                return false;
+            }
+
+            LauncherLog.Info($"Update downloaded successfully to {tempFile}. Preparing silent installer runner...");
+
+            var currentPid = Environment.ProcessId;
+            var appDir = AppContext.BaseDirectory.TrimEnd('\\', '/');
+            var exeName = Path.GetFileName(Environment.ProcessPath ?? "Zenith Launcher.exe");
+            var exePath = Path.Combine(appDir, exeName);
+            if (!File.Exists(exePath))
+            {
+                exePath = Path.Combine(appDir, "Zenith Launcher.exe");
+            }
+
+            var helperScript = Path.Combine(Path.GetTempPath(), $"zenith_updater_{Guid.NewGuid():N}.cmd");
+            var scriptContent = $@"@echo off
+timeout /t 1 /nobreak >nul
+:wait_proc
+tasklist /fi ""PID eq {currentPid}"" 2>nul | find ""{currentPid}"" >nul
+if not errorlevel 1 (
+    timeout /t 1 /nobreak >nul
+    goto wait_proc
+)
+start """" /wait ""{tempFile}"" /VERYSILENT /SUPPRESSMSGBOXES /SP- /NORESTART /DIR=""{appDir}""
+timeout /t 1 /nobreak >nul
+start """" ""{exePath}""
+timeout /t 2 /nobreak >nul
+del /f /q ""{tempFile}"" 2>nul
+del /f /q ""%~f0"" 2>nul
+";
+
+            await File.WriteAllTextAsync(helperScript, scriptContent, ct).ConfigureAwait(false);
 
             var psi = new System.Diagnostics.ProcessStartInfo
             {
-                FileName = tempPath,
-                Arguments = "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP- /CLOSEAPPLICATIONS /RESTARTAPPLICATIONS",
-                UseShellExecute = true
+                FileName = "cmd.exe",
+                Arguments = $"/c \"\"{helperScript}\"\"",
+                CreateNoWindow = true,
+                UseShellExecute = false,
+                WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden
             };
             System.Diagnostics.Process.Start(psi);
 

@@ -298,7 +298,8 @@ public partial class NavigationViewModel : ViewModelBase
             GetShowReleases?.Invoke() ?? true,
             GetShowSnapshots?.Invoke() ?? false,
             GetShowBetas?.Invoke() ?? false,
-            GetShowAlphas?.Invoke() ?? false);
+            GetShowAlphas?.Invoke() ?? false,
+            GetDefaultRamMb);
 
         var defaultRam = GetDefaultRamMb?.Invoke() ?? 4096;
         if (defaultRam > 0)
@@ -622,6 +623,7 @@ public partial class NavigationViewModel : ViewModelBase
         }
         else if (entry.Page == LauncherNavPage.CreateProfile)
         {
+            var defaultRam = GetDefaultRamMb?.Invoke() ?? 4096;
             if (entry.CreateProfileVm == null)
             {
                 var vm = new CreateProfileViewModel(
@@ -631,9 +633,9 @@ public partial class NavigationViewModel : ViewModelBase
                     GetShowReleases?.Invoke() ?? true,
                     GetShowSnapshots?.Invoke() ?? false,
                     GetShowBetas?.Invoke() ?? false,
-                    GetShowAlphas?.Invoke() ?? false);
+                    GetShowAlphas?.Invoke() ?? false,
+                    GetDefaultRamMb);
 
-                var defaultRam = GetDefaultRamMb?.Invoke() ?? 4096;
                 if (defaultRam > 0)
                 {
                     vm.SelectedRamMb = defaultRam;
@@ -660,6 +662,10 @@ public partial class NavigationViewModel : ViewModelBase
                     });
                 };
                 entry.CreateProfileVm = vm;
+            }
+            else if (defaultRam > 0)
+            {
+                entry.CreateProfileVm.RefreshDefaultRam(defaultRam);
             }
         }
 

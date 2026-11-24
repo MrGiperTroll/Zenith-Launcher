@@ -65,7 +65,7 @@
                     Maximum="32768"
                     Value="4096"
                     TickFrequency="512"
-                    IsSnapToTickEnabled="True"
+                    IsSnapToTickEnabled="False"
                     Margin="0,2,0,0"/>
         </StackPanel>
     </Border>

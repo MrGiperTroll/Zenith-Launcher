@@ -120,9 +120,12 @@ public partial class CreateProfileViewModel : ObservableObject, IDisposable
     public event Action<InstanceModel>? ProfileCreated;
     public event Action? RequestClose;
 
+    private readonly Func<int>? _getDefaultRamMb;
+
     public CreateProfileViewModel(IInstanceService instanceService, ModLoaderService modLoaderService,
         bool flatVersionList = false, bool showReleases = true, bool showSnapshots = false,
-        bool showBetas = false, bool showAlphas = false)
+        bool showBetas = false, bool showAlphas = false,
+        Func<int>? getDefaultRamMb = null)
     {
         _instanceService = instanceService;
         _modLoaderService = modLoaderService;
@@ -131,6 +134,12 @@ public partial class CreateProfileViewModel : ObservableObject, IDisposable
         _showSnapshots = showSnapshots;
         _showBetas = showBetas;
         _showAlphas = showAlphas;
+        _getDefaultRamMb = getDefaultRamMb;
+        if (_getDefaultRamMb != null)
+        {
+            var defRam = _getDefaultRamMb();
+            if (defRam > 0) SelectedRamMb = defRam;
+        }
         ProfileName = GenerateUniqueProfileName();
         // Seed synchronously so the ComboBox has "Vanilla" at binding time and
         // renders it preselected on first open instead of an empty box.
@@ -783,6 +792,15 @@ public partial class CreateProfileViewModel : ObservableObject, IDisposable
         if (CurrentStep > 1) CurrentStep--;
     }
 
+    public void RefreshDefaultRam(int? explicitRam = null)
+    {
+        var ram = explicitRam ?? _getDefaultRamMb?.Invoke();
+        if (ram.HasValue && ram.Value > 0)
+        {
+            SelectedRamMb = ram.Value;
+        }
+    }
+
     [RelayCommand]
     private void ResetWizard()
     {
@@ -795,6 +813,7 @@ public partial class CreateProfileViewModel : ObservableObject, IDisposable
         _pickedIconPath = null;
         VersionSearchQuery = "";
         CurrentStep = 1;
+        RefreshDefaultRam();
     }
 
     [RelayCommand]

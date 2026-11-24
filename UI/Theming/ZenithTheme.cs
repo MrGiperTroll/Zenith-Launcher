@@ -161,6 +161,9 @@ public static class ZenithTheme
         SetBrushColor(r, "AccentBorderBrush", Blend(accent, borderDark, 0.55f));
         SetBrushColor(r, "AccentTranslucentBrush", Color.FromArgb(0x22, accent.R, accent.G, accent.B));
 
+        // Overlays
+        SetBrushColor(r, "OverlayBrush", Color.FromArgb(205, bg.R, bg.G, bg.B));
+
         // Text
         SetBrushColor(r, "TextPrimaryBrush", textPrimary);
         SetBrushColor(r, "TextSecondaryBrush", textSecondary);

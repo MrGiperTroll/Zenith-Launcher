@@ -1193,7 +1193,7 @@ public partial class MainWindowViewModel : ViewModelBase
             GetShowSnapshots = () => ShowSnapshots,
             GetShowBetas = () => ShowBetas,
             GetShowAlphas = () => ShowAlphas,
-            GetDefaultRamMb = () => Launch?.RamMb > 0 ? Launch.RamMb : 4096,
+            GetDefaultRamMb = () => LauncherSettingsVm?.RamMb > 0 ? LauncherSettingsVm.RamMb : (Launch?.RamMb > 0 ? Launch.RamMb : 4096),
             GetInstances = () => Instances,
             SetSelectedInstance = inst => SelectedInstance = inst,
             SetSelectedInstanceId = id => SelectedInstanceId = id
@@ -1711,6 +1711,12 @@ public partial class MainWindowViewModel : ViewModelBase
                 IsSidebarExpanded = IsSidebarExpanded
             };
 
+            if (Launch != null && LauncherSettingsVm != null)
+            {
+                Launch.RamMb = LauncherSettingsVm.RamMb;
+                Launch.MinRamMb = LauncherSettingsVm.MinRamMb;
+            }
+
             Launch?.ApplyToConfig(configData);
             LauncherSettingsVm?.ApplyToConfig(configData);
             ThemeSettingsVm?.ApplyToConfig(configData);
@@ -1741,6 +1747,12 @@ public partial class MainWindowViewModel : ViewModelBase
             Language = SelectedLanguage,
             IsSidebarExpanded = IsSidebarExpanded
         };
+
+        if (Launch != null && LauncherSettingsVm != null)
+        {
+            Launch.RamMb = LauncherSettingsVm.RamMb;
+            Launch.MinRamMb = LauncherSettingsVm.MinRamMb;
+        }
 
         Launch?.ApplyToConfig(snapshot);
         LauncherSettingsVm?.ApplyToConfig(snapshot);

@@ -399,4 +399,77 @@ public static class JavaVersionHelper
 
         return null;
     }
+
+    /// <summary>
+    /// Checks whether a given Java executable is vulnerable to CVE-2026-114938 (Java4Shell).
+    /// Affects Java 17 (< 17.0.21.1), Java 21 (< 21.0.13.1), Java 25 (< 25.0.5.1), Java 27 (< 27.0.1.1) on x86-64.
+    /// </summary>
+    public static bool IsVulnerableToJava4Shell(string exePath, out int major, out string currentVer, out string minSafeVer)
+    {
+        major = 0;
+        currentVer = "unknown";
+        minSafeVer = "";
+
+        if (string.IsNullOrWhiteSpace(exePath) || !File.Exists(exePath))
+            return false;
+
+        try
+        {
+            var vi = System.Diagnostics.FileVersionInfo.GetVersionInfo(exePath);
+            major = GetJavaMajor(exePath);
+
+            minSafeVer = major switch
+            {
+                17 => "17.0.21.1",
+                21 => "21.0.13.1",
+                25 => "25.0.5.1",
+                27 => "27.0.1.1",
+                _ => ""
+            };
+
+            if (string.IsNullOrEmpty(minSafeVer))
+                return false;
+
+            var verStr = !string.IsNullOrWhiteSpace(vi.ProductVersion) ? vi.ProductVersion : vi.FileVersion;
+            if (!string.IsNullOrWhiteSpace(verStr))
+            {
+                currentVer = verStr.Trim();
+                return IsVersionLowerThan(currentVer, minSafeVer);
+            }
+            else if (vi.FileMajorPart > 0)
+            {
+                currentVer = $"{vi.FileMajorPart}.{vi.FileMinorPart}.{vi.FileBuildPart}.{vi.FilePrivatePart}";
+                return IsVersionLowerThan(currentVer, minSafeVer);
+            }
+        }
+        catch { }
+
+        return false;
+    }
+
+    private static bool IsVersionLowerThan(string current, string target)
+    {
+        try
+        {
+            var cleanCurrent = System.Text.RegularExpressions.Regex.Replace(current, @"[+\-].*$", "").Trim();
+            var currentNums = cleanCurrent.Split(new[] { '.', '_' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(p => int.TryParse(p, out var v) ? v : 0)
+                .ToList();
+
+            var targetNums = target.Split(new[] { '.', '_' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(p => int.TryParse(p, out var v) ? v : 0)
+                .ToList();
+
+            var maxLen = Math.Max(currentNums.Count, targetNums.Count);
+            for (int i = 0; i < maxLen; i++)
+            {
+                var c = i < currentNums.Count ? currentNums[i] : 0;
+                var t = i < targetNums.Count ? targetNums[i] : 0;
+                if (c < t) return true;
+                if (c > t) return false;
+            }
+        }
+        catch { }
+        return false;
+    }
 }

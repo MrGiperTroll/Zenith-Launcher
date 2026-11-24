@@ -79,6 +79,8 @@ public class LaunchService : ILaunchService
     [
         new MArgument("-XX:+UseG1GC"),
         new MArgument("-Dlog4j2.formatMsgNoLookups=true"),
+        new MArgument("-Dsun.java2d.noddraw=true"),
+        new MArgument("-Dsun.java2d.d3d=false"),
     ];
 
     private static IEnumerable<MArgument> SanitizeJvmArgs(IEnumerable<MArgument> args, int javaMajor)
@@ -106,6 +108,8 @@ public class LaunchService : ILaunchService
             "-XX:+UseShenandoahGC",
         };
 
+        var seenFlags = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
         foreach (var arg in args)
         {
             var val = arg.ToString()?.Trim() ?? "";
@@ -126,6 +130,23 @@ public class LaunchService : ILaunchService
                 {
                     continue;
                 }
+
+                if (javaMajor <= 8)
+                {
+                    // -XX:+DisableExplicitGC breaks off-heap DirectByteBuffer reclamation in LWJGL 2, causing Display initialization to fail (white screen)
+                    if (val.Equals("-XX:+DisableExplicitGC", StringComparison.OrdinalIgnoreCase) ||
+                        val.Equals("-XX:+UnlockExperimentalVMOptions", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+                }
+            }
+
+            // Deduplicate exact flags like -XX:+UseG1GC, -Dlog4j2..., -XX:-UseBASE64Intrinsics
+            if (val.StartsWith("-XX:") || val.StartsWith("-D"))
+            {
+                if (!seenFlags.Add(val))
+                    continue;
             }
 
             yield return arg;
@@ -539,7 +560,27 @@ public class LaunchService : ILaunchService
         {
             if (string.IsNullOrWhiteSpace(customJava) || !File.Exists(customJava))
                 throw new InvalidOperationException("Custom Java path is not set or file does not exist. Configure it in Settings.");
-            launchOption.JavaPath = customJava;
+
+            var customMajor = JavaVersionHelper.GetJavaMajor(customJava);
+            if (requiredJava <= 8 && customMajor > 8)
+            {
+                // Minecraft 1.8.9 and legacy versions cannot run on modern Java 9+ (LWJGL 2 display creation fails).
+                LogReceived?.Invoke($"[WARN] Configured custom Java ({customJava}, Java {customMajor}) is incompatible with Minecraft {instance.Version} (requires Java 8). Resolving Java 8 runtime...");
+                var fallbackJava = await ResolveJavaAsync(8, zenithRoot);
+                if (fallbackJava != null)
+                {
+                    launchOption.JavaPath = fallbackJava;
+                    LogReceived?.Invoke($"Using compatible Java 8: {fallbackJava}");
+                }
+                else
+                {
+                    launchOption.JavaPath = customJava;
+                }
+            }
+            else
+            {
+                launchOption.JavaPath = customJava;
+            }
         }
         else if (javaMode == "Recommended")
         {
@@ -554,6 +595,17 @@ public class LaunchService : ILaunchService
 
         if (string.IsNullOrEmpty(launchOption.JavaPath))
             throw new InvalidOperationException("No suitable Java runtime found. Please install Java or set a custom path in Settings.");
+
+        // Check for Java4Shell (CVE-2026-114938)
+        if (JavaVersionHelper.IsVulnerableToJava4Shell(launchOption.JavaPath, out var vulnMajor, out var currVer, out var minSafeVer))
+        {
+            LogReceived?.Invoke($"[SECURITY WARN] Java runtime ({currVer}) is vulnerable to CVE-2026-114938 (Java4Shell). Minimum safe version: {minSafeVer}.");
+            if (Environment.Is64BitOperatingSystem)
+            {
+                LogReceived?.Invoke("[SECURITY] Applying HotSpot Base64 intrinsics mitigation: -XX:-UseBASE64Intrinsics");
+                jvmArgs.Add(new MArgument("-XX:-UseBASE64Intrinsics"));
+            }
+        }
 
         var targetJavaMajor = requiredJava;
         var safeArgs = targetJavaMajor <= 11 ? LegacySafeJvmArgs : ModernSafeJvmArgs;
@@ -732,7 +784,20 @@ public class LaunchService : ILaunchService
     private async Task<string?> ResolveJavaAsync(int major, string zenithRoot)
     {
         var found = await FindLocalJavaAsync(major, zenithRoot);
-        if (found != null) return found;
+        if (found != null)
+        {
+            if (JavaVersionHelper.IsVulnerableToJava4Shell(found, out var vMaj, out var cVer, out var minSafe))
+            {
+                var cfgLocal = GetConfig();
+                if (cfgLocal == null || cfgLocal.AutoManageJava)
+                {
+                    LogReceived?.Invoke($"[SECURITY] Local Java {major} ({cVer}) is vulnerable to CVE-2026-114938 (Java4Shell). Enforcing update to patched build ({minSafe})...");
+                    var updated = await DownloadAdoptiumRuntimeAsync(major, zenithRoot, forceRedownload: true);
+                    if (updated != null) return updated;
+                }
+            }
+            return found;
+        }
 
         // Automatic download is a user-visible setting; explicit downloads
         // (the "+" button in Settings) bypass this gate.
@@ -757,8 +822,16 @@ public class LaunchService : ILaunchService
             var found = await FindLocalJavaAsync(major, zenithRoot);
             if (found != null)
             {
-                LogReceived?.Invoke($"Java {major} is already installed: {found}");
-                return true;
+                if (JavaVersionHelper.IsVulnerableToJava4Shell(found, out var vMaj, out var cVer, out var minSafe))
+                {
+                    LogReceived?.Invoke($"[SECURITY] Local Java {major} ({cVer}) is vulnerable to CVE-2026-114938 (Java4Shell). Enforcing update to patched build ({minSafe})...");
+                    forceRedownload = true;
+                }
+                else
+                {
+                    LogReceived?.Invoke($"Java {major} is already installed: {found}");
+                    return true;
+                }
             }
         }
 
@@ -1225,6 +1298,7 @@ public class LaunchService : ILaunchService
         try
         {
             Directory.CreateDirectory(nativesDir);
+            var isLegacyVersion = JavaVersionHelper.InferRequiredJavaMajor(gameVersion) <= 8;
 
             // 1. Copy from existing versions/.../natives directories if available
             var candidateNativeDirs = new[]
@@ -1283,19 +1357,54 @@ public class LaunchService : ILaunchService
                 }
             }
 
-            // 3. Heuristic fallback for legacy Minecraft (1.12.2, 1.7.10, etc.):
-            // If lwjgl.dll / lwjgl64.dll is still missing, search for lwjgl-platform native jars in libraries
+            // 3. Fallback for legacy Minecraft (1.12.2, 1.8.9, 1.7.10, etc.):
+            // If lwjgl.dll / lwjgl64.dll is still missing, search strictly for lwjgl-platform native jars
             var hasLwjgl = File.Exists(Path.Combine(nativesDir, "lwjgl64.dll")) || File.Exists(Path.Combine(nativesDir, "lwjgl.dll"));
             if (!hasLwjgl)
             {
                 var librariesDir = Path.Combine(zenithRoot, "libraries");
                 if (Directory.Exists(librariesDir))
                 {
-                    var lwjglJars = Directory.EnumerateFiles(librariesDir, "*natives-windows*.jar", SearchOption.AllDirectories);
+                    var pattern = isLegacyVersion ? "*lwjgl-platform*natives-windows*.jar" : "*natives-windows*.jar";
+                    var lwjglJars = Directory.EnumerateFiles(librariesDir, pattern, SearchOption.AllDirectories);
                     foreach (var jar in lwjglJars)
                     {
                         ExtractDllsFromJar(jar, nativesDir);
                     }
+                }
+            }
+
+            // 4. For legacy Minecraft (Java 8 / LWJGL 2), purge modern LWJGL 3 binaries that cause white screen display failures
+            if (isLegacyVersion)
+            {
+                var modernDlls = new[]
+                {
+                    "glfw.dll", "glfw32.dll", "jemalloc.dll", "jemalloc32.dll",
+                    "lwjgl_opengl.dll", "lwjgl_stb.dll", "lwjgl_tinyfd.dll"
+                };
+                foreach (var mDll in modernDlls)
+                {
+                    var path = Path.Combine(nativesDir, mDll);
+                    if (File.Exists(path))
+                    {
+                        try { File.Delete(path); } catch { }
+                    }
+                }
+
+                // If 64-bit lwjgl64.dll exists, check if lwjgl.dll is actually a modern 64-bit LWJGL 3 dll (> 350KB)
+                var lwjgl64Path = Path.Combine(nativesDir, "lwjgl64.dll");
+                var lwjglPath = Path.Combine(nativesDir, "lwjgl.dll");
+                if (File.Exists(lwjgl64Path) && File.Exists(lwjglPath))
+                {
+                    try
+                    {
+                        var fi = new FileInfo(lwjglPath);
+                        if (fi.Length > 350_000)
+                        {
+                            File.Delete(lwjglPath);
+                        }
+                    }
+                    catch { }
                 }
             }
 

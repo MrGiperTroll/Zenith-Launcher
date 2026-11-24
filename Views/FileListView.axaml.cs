@@ -71,7 +71,7 @@ public partial class FileListView : UserControl
         if (sender is Control { DataContext: Models.InstanceFileEntry entry } && DataContext is FileListViewModel vm)
         {
             if (vm.IsGalleryMode)
-                vm.OpenFileCommand.Execute(entry);
+                vm.OpenLightboxCommand.Execute(entry);
             else
                 vm.ShowDetailsCommand.Execute(entry);
         }
@@ -81,7 +81,29 @@ public partial class FileListView : UserControl
     private void OnGalleryItemDoubleTapped(object? sender, TappedEventArgs e)
     {
         if (sender is Control { DataContext: Models.InstanceFileEntry entry } && DataContext is FileListViewModel vm)
-            vm.OpenFileCommand.Execute(entry);
+            vm.OpenLightboxCommand.Execute(entry);
         e.Handled = true;
+    }
+
+    private void OnKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (DataContext is FileListViewModel { IsLightboxOpen: true } vm)
+        {
+            if (e.Key == Key.Escape)
+            {
+                vm.CloseLightboxCommand.Execute(null);
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Left)
+            {
+                vm.PrevLightboxCommand.Execute(null);
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Right)
+            {
+                vm.NextLightboxCommand.Execute(null);
+                e.Handled = true;
+            }
+        }
     }
 }

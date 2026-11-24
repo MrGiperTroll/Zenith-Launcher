@@ -110,7 +110,7 @@ public partial class InstanceFileEntry : ObservableObject, IDisposable
                     using var codec = SkiaSharp.SKCodec.Create(stream);
                     if (codec != null)
                     {
-                        int targetW = Math.Clamp(decodeWidth, 32, 256);
+                        int targetW = Math.Clamp(decodeWidth, 32, 800);
                         int targetH = Math.Max(1, (int)((double)codec.Info.Height * targetW / Math.Max(1, codec.Info.Width)));
                         var info = new SkiaSharp.SKImageInfo(targetW, targetH, SkiaSharp.SKColorType.Bgra8888, SkiaSharp.SKAlphaType.Premul);
                         using var skBmp = new SkiaSharp.SKBitmap(info);
@@ -118,7 +118,7 @@ public partial class InstanceFileEntry : ObservableObject, IDisposable
                         if (codec.GetPixels(info, skBmp.GetPixels(), opts) == SkiaSharp.SKCodecResult.Success)
                         {
                             using var img = SkiaSharp.SKImage.FromBitmap(skBmp);
-                            using var data = img.Encode(SkiaSharp.SKEncodedImageFormat.Jpeg, 75);
+                            using var data = img.Encode(SkiaSharp.SKEncodedImageFormat.Jpeg, 95);
                             PreviewBytes = data.ToArray();
                         }
                         else

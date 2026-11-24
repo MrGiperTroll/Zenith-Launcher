@@ -485,7 +485,7 @@ public partial class FileListViewModel : ObservableObject, IDisposable
 
         if (_kind == InstanceFileKind.Screenshot)
         {
-            OpenFile(entry);
+            OpenLightbox(entry);
             return;
         }
 
@@ -496,6 +496,54 @@ public partial class FileListViewModel : ObservableObject, IDisposable
         }
 
         SelectedEntry = entry;
+    }
+
+    [ObservableProperty] private bool _isLightboxOpen;
+    [ObservableProperty] private InstanceFileEntry? _currentLightboxEntry;
+
+    [RelayCommand]
+    public void OpenLightbox(InstanceFileEntry? entry)
+    {
+        if (entry == null) return;
+        CurrentLightboxEntry = entry;
+        IsLightboxOpen = true;
+    }
+
+    [RelayCommand]
+    public void CloseLightbox()
+    {
+        IsLightboxOpen = false;
+        CurrentLightboxEntry = null;
+    }
+
+    [RelayCommand]
+    public void NextLightbox()
+    {
+        if (CurrentLightboxEntry == null || Entries.Count == 0) return;
+        var idx = Entries.IndexOf(CurrentLightboxEntry);
+        if (idx >= 0 && idx < Entries.Count - 1)
+        {
+            CurrentLightboxEntry = Entries[idx + 1];
+        }
+        else if (Entries.Count > 0)
+        {
+            CurrentLightboxEntry = Entries[0];
+        }
+    }
+
+    [RelayCommand]
+    public void PrevLightbox()
+    {
+        if (CurrentLightboxEntry == null || Entries.Count == 0) return;
+        var idx = Entries.IndexOf(CurrentLightboxEntry);
+        if (idx > 0)
+        {
+            CurrentLightboxEntry = Entries[idx - 1];
+        }
+        else if (Entries.Count > 0)
+        {
+            CurrentLightboxEntry = Entries[Entries.Count - 1];
+        }
     }
 
     [RelayCommand]

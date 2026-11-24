@@ -90,8 +90,12 @@ public class BytesToBitmapConverter : IValueConverter
                 if (_cache.TryGet(bytes, out var hit))
                     return hit;
 
+                int decodeWidth = 400;
+                if (parameter is int pInt) decodeWidth = pInt;
+                else if (parameter is string pStr && int.TryParse(pStr, out var pParsed)) decodeWidth = pParsed;
+
                 using var ms = new System.IO.MemoryStream(bytes);
-                var bmp = Bitmap.DecodeToWidth(ms, 128);
+                var bmp = decodeWidth > 0 ? Bitmap.DecodeToWidth(ms, decodeWidth) : new Bitmap(ms);
                 _cache.Set(bytes, bmp);
                 return bmp;
             }
@@ -102,5 +106,26 @@ public class BytesToBitmapConverter : IValueConverter
         }
         return null;
     }
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
+}
+
+public class FullImageConverter : IValueConverter
+{
+    public static readonly FullImageConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is string path && !string.IsNullOrWhiteSpace(path) && System.IO.File.Exists(path))
+        {
+            try
+            {
+                using var fs = System.IO.File.OpenRead(path);
+                return new Bitmap(fs);
+            }
+            catch { return null; }
+        }
+        return null;
+    }
+
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
 }

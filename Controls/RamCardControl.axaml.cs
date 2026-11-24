@@ -75,6 +75,23 @@ public partial class RamCardControl : UserControl
         set => SetValue(IsGbModeProperty, value);
     }
 
+    private static readonly int[] RamSnapPoints =
+    [
+        1024, 2048, 3072, 4096, 6144, 8192, 10240, 12288, 16384, 20480, 24576, 32768
+    ];
+
+    public static int SnapRamValue(int val)
+    {
+        foreach (var snap in RamSnapPoints)
+        {
+            if (Math.Abs(val - snap) <= 140)
+            {
+                return snap;
+            }
+        }
+        return val;
+    }
+
     public RamCardControl()
     {
         InitializeComponent();
@@ -87,7 +104,14 @@ public partial class RamCardControl : UserControl
         {
             if (e.Property == Slider.ValueProperty && !_isUpdatingFromSlider)
             {
-                var val = (int)Math.Round(RamSlider.Value);
+                var raw = (int)Math.Round(RamSlider.Value);
+                var val = SnapRamValue(raw);
+                if (val != raw)
+                {
+                    _isUpdatingFromSlider = true;
+                    RamSlider.Value = val;
+                    _isUpdatingFromSlider = false;
+                }
                 if (val != Value)
                 {
                     _isUpdatingFromSlider = true;
@@ -119,7 +143,7 @@ public partial class RamCardControl : UserControl
             if (!_isUpdatingFromSlider)
             {
                 _isUpdatingFromSlider = true;
-                RamSlider.Value = Value;
+                RamSlider.Value = SnapRamValue(Value);
                 _isUpdatingFromSlider = false;
             }
         }

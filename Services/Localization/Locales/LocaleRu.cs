@@ -18,6 +18,7 @@ internal static class LocaleRu
         ["sv_add_server"] = "+ Добавить сервер",
 
         ["tab_overview"] = "Обзор",
+        ["logs_empty_hint"] = "Логи пока отсутствуют. Запустите инстанс для просмотра вывода.",
         ["stat_playtime"] = "Общее время в игре",
         ["stat_last_played"] = "Последний запуск",
         ["stat_created"] = "Дата создания",

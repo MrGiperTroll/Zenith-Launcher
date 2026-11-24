@@ -18,6 +18,7 @@ internal static class LocaleEn
         ["sv_add_server"] = "+ Add Server",
 
         ["tab_overview"] = "Overview",
+        ["logs_empty_hint"] = "No logs available yet. Start the instance to see live output.",
         ["stat_playtime"] = "Total Playtime",
         ["stat_last_played"] = "Last Played",
         ["stat_created"] = "Created",

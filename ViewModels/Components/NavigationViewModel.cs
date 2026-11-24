@@ -996,7 +996,7 @@ public partial class NavigationViewModel : ViewModelBase
         "Worlds" => L10n.T("tab_worlds"),
         "Servers" => L10n.T("tab_servers"),
         "Screenshots" => L10n.T("tab_screenshots"),
-        "Settings" or "General" => L10n.T("set_general"),
+        "Settings" or "General" => L10n.T("tab_settings"),
         _ => tab
     };
 

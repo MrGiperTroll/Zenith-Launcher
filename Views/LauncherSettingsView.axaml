@@ -473,7 +473,20 @@
                                                 PointerReleased="OnScaleSliderPointerReleased"
                                                 KeyUp="OnScaleSliderKeyUp"
                                                 VerticalAlignment="Center"/>
-                                        <TextBlock Text="{Binding PendingLauncherScale, StringFormat='{}{0:P0}'}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Width="40" TextAlignment="Right"/>
+                                        <Border Background="{DynamicResource FieldBrush}"
+                                                BorderBrush="{DynamicResource BorderDarkBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="6"
+                                                Height="24"
+                                                Padding="8,0"
+                                                VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding PendingLauncherScale, StringFormat='{}{0:P0}'}"
+                                                       FontSize="11.5"
+                                                       FontWeight="Bold"
+                                                       Foreground="{DynamicResource AccentBrush}"
+                                                       VerticalAlignment="Center"
+                                                       HorizontalAlignment="Center"/>
+                                        </Border>
                                     </StackPanel>
                                 </Grid>
                             </StackPanel>

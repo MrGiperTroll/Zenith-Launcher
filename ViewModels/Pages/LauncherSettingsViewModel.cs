@@ -122,16 +122,33 @@ public partial class LauncherSettingsViewModel : ViewModelBase
         MinRamMb = Math.Clamp(MinRamMb + 512, 512, MaxRamMb);
     }
 
+    private static readonly int[] RamSnapPoints =
+    [
+        1024, 2048, 3072, 4096, 6144, 8192, 10240, 12288, 16384, 20480, 24576, 32768
+    ];
+
+    private static int SnapRam(int val)
+    {
+        foreach (var snap in RamSnapPoints)
+        {
+            if (Math.Abs(val - snap) <= 140)
+                return snap;
+        }
+        return val;
+    }
+
     [RelayCommand]
     private void StepRamDown()
     {
-        RamMb = Math.Clamp(RamMb - 512, 512, MaxRamMb);
+        var target = SnapRam(RamMb - 512);
+        RamMb = Math.Clamp(target, 512, MaxRamMb);
     }
 
     [RelayCommand]
     private void StepRamUp()
     {
-        RamMb = Math.Clamp(RamMb + 512, 512, MaxRamMb);
+        var target = SnapRam(RamMb + 512);
+        RamMb = Math.Clamp(target, 512, MaxRamMb);
     }
 
     // --- Resolution & Display ---
@@ -535,6 +552,20 @@ public partial class LauncherSettingsViewModel : ViewModelBase
     [ObservableProperty] private double _pendingLauncherScale = 1.0;
     [ObservableProperty] private string _curseForgeApiKey = string.Empty;
 
+    private static readonly double[] ScaleSnapPoints = [0.75, 0.80, 0.90, 1.00, 1.10, 1.25, 1.40, 1.50];
+
+    partial void OnPendingLauncherScaleChanged(double value)
+    {
+        foreach (var snap in ScaleSnapPoints)
+        {
+            if (Math.Abs(value - snap) <= 0.025 && Math.Abs(value - snap) > 0.0001)
+            {
+                PendingLauncherScale = snap;
+                return;
+            }
+        }
+    }
+
     partial void OnCurseForgeApiKeyChanged(string value)
     {
         if (!_isLoadingConfig)
@@ -545,6 +576,17 @@ public partial class LauncherSettingsViewModel : ViewModelBase
 
     public void CommitLauncherScale()
     {
+        var finalScale = PendingLauncherScale;
+        foreach (var snap in ScaleSnapPoints)
+        {
+            if (Math.Abs(finalScale - snap) <= 0.025)
+            {
+                finalScale = snap;
+                break;
+            }
+        }
+        PendingLauncherScale = finalScale;
+
         if (Math.Abs(LauncherScale - PendingLauncherScale) > 0.001)
         {
             LauncherScale = PendingLauncherScale;

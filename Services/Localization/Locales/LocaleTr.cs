@@ -18,6 +18,7 @@ internal static class LocaleTr
         ["sv_add_server"] = "+ Sunucu Ekle",
 
         ["tab_overview"] = "Genel Bakış",
+        ["logs_empty_hint"] = "Henüz günlük yok. Canlı çıktıyı görmek için örneği başlatın.",
         ["stat_playtime"] = "Toplam Oynama Süresi",
         ["stat_last_played"] = "Son Oynama",
         ["stat_created"] = "Oluşturulma Tarihi",

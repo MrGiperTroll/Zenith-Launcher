@@ -18,6 +18,7 @@ internal static class LocaleDe
         ["sv_add_server"] = "+ Server hinzufugen",
 
         ["tab_overview"] = "Übersicht",
+        ["logs_empty_hint"] = "Noch keine Logs verfügbar. Starten Sie die Instanz, um die Ausgabe zu sehen.",
         ["stat_playtime"] = "Gesamte Spielzeit",
         ["stat_last_played"] = "Zuletzt gespielt",
         ["stat_created"] = "Erstellungsdatum",

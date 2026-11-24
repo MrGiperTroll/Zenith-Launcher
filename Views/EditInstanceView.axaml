@@ -154,12 +154,19 @@
             <Setter Property="VerticalContentAlignment" Value="Center"/>
         </Style>
         <Style Selector="Button.sideTab:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
         </Style>
         <Style Selector="Button.sideTab.active /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource AccentDimBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource AccentDimBrush}"/>
         </Style>
 
+        <Style Selector="Border.settingsCard">
+            <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderDarkBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="18,16"/>
+        </Style>
     </UserControl.Styles>
 
     <Grid RowDefinitions="*,Auto">
@@ -192,7 +199,7 @@
                             <Button Classes="sideTab" Classes.active="{Binding IsModsTab}" Command="{Binding SelectTabCommand}" CommandParameter="Mods" IsVisible="{Binding HasModsSupport}">
                                 <Grid ColumnDefinitions="Auto,*">
                                     <Border Width="30" Height="30" Background="{StaticResource IconChipBrush}" CornerRadius="7" VerticalAlignment="Center">
-                                        <PathIcon Data="M20.5 11H19V7c0-1.1-.9-2-2-2h-4V3.5a2.5 2.5 0 0 0-5 0V5H4c-1.1 0-1.99.9-1.99 2v3.8H3.5a2.5 2.5 0 0 1 0 5H2v4c0 1.1.9 2 2 2h3.8v1.5a2.5 2.5 0 0 0 5 0V21H17c1.1 0 2-.9 2-2v-4h1.5a2.5 2.5 0 0 0 0-5z" Width="15" Height="15" Foreground="{Binding IsModsTab, Converter={x:Static converters:EditInstanceWindowConverters.ActiveIcon}}"/>
+                                        <PathIcon Data="M20.5 11H19V7c0-1.1-.9-2-2-2h-4V3.5a2.5 2.5 0 0 0-5 0V5H4c-1.1 0-1.99.9-1.99 2v3.8H3.5a2.5 2.5 0 0 1 0 5H2v4c0 1.1.9 2 2 2h3.8v1.5a2.5 2.5 0 0 0 5 0V21H17c1.1 0 2-.9 2-2v-4h1.5a2.5 2.5 0 0 0 0-5z" Width="17" Height="15" Foreground="{Binding IsModsTab, Converter={x:Static converters:EditInstanceWindowConverters.ActiveIcon}}"/>
                                     </Border>
                                     <TextBlock Grid.Column="1" Text="{l10n:Tr Key=tab_mods}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsModsTab, Converter={x:Static converters:EditInstanceWindowConverters.ActiveText}}"/>
                                 </Grid>
@@ -398,25 +405,23 @@
                     <Border Grid.Row="2" Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
                             BorderThickness="1" CornerRadius="10" ClipToBounds="True" Padding="14,10">
                         <Panel>
-                            <ScrollViewer x:Name="LogScroll" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
-                                          ScrollChanged="OnLogScrollChanged" IsVisible="{Binding LogHasContent}">
-                                <TextBox Text="{Binding FilteredLogText, Mode=OneWay}" IsReadOnly="True"
-                                         TextWrapping="{Binding LogTextWrapping}"
-                                         FontFamily="Consolas, Cascadia Code, Courier New" FontSize="11.5"
-                                         Background="Transparent" BorderThickness="0" Padding="0"
-                                         Foreground="{DynamicResource TextSoftBrush}"
-                                         SelectionBrush="{DynamicResource AccentBrush}"
-                                         SelectionForegroundBrush="{DynamicResource OnAccentBrush}"
-                                         MinWidth="600"/>
-                            </ScrollViewer>
+                            <TextBox x:Name="LogTextBox" Text="{Binding FilteredLogText, Mode=OneWay}" IsReadOnly="True"
+                                     AcceptsReturn="True"
+                                     ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                     ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                     TextWrapping="{Binding LogTextWrapping}"
+                                     FontFamily="Consolas, Cascadia Code, Courier New" FontSize="11.5"
+                                     Background="Transparent" BorderThickness="0" Padding="0"
+                                     Foreground="{DynamicResource TextSoftBrush}"
+                                     SelectionBrush="{DynamicResource AccentBrush}"
+                                     SelectionForegroundBrush="{DynamicResource OnAccentBrush}"
+                                     IsVisible="{Binding LogHasContent}"/>
 
-                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="4" IsVisible="{Binding !LogHasContent}">
-                                <TextBlock Text=" _________________________________________&#10;/ Start your instance in the top right to \&#10;| receive live logs!                      |&#10;\_________________________________________/"
-                                           FontFamily="Consolas, Cascadia Code, Courier New" FontSize="12"
-                                           Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" TextAlignment="Center"/>
-                                <TextBlock Text="    -   -&#10;   (o)--(o)&#10;  /.______.\&#10;  \________/&#10; ./        \&#10;( .        , )&#10; \ \_\\ //_/ /&#10;  ~~  ~~  ~~"
-                                           FontFamily="Consolas, Cascadia Code, Courier New" FontSize="12" FontWeight="Bold"
-                                           Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Center" TextAlignment="Center"/>
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6" IsVisible="{Binding !LogHasContent}">
+                                <TextBlock Text="{l10n:Tr Key=logs_empty_hint}"
+                                           FontSize="12.5"
+                                           Foreground="{DynamicResource TextMutedBrush}"
+                                           HorizontalAlignment="Center" TextAlignment="Center"/>
                             </StackPanel>
                         </Panel>
                     </Border>
@@ -563,10 +568,7 @@
                                                         <Button Classes="worldPlayBtn"
                                                                 Command="{Binding $parent[views:EditInstanceView].((vm:EditInstanceViewModel)DataContext).LaunchWorldCommand}"
                                                                 CommandParameter="{Binding}">
-                                                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                                                <PathIcon Data="M8 5v14l11-7z" Width="11" Height="11" Foreground="{DynamicResource OnAccentBrush}"/>
-                                                                <TextBlock Text="{l10n:Tr Key=btn_play}" FontWeight="Bold" FontSize="12.5" Foreground="{DynamicResource OnAccentBrush}"/>
-                                                            </StackPanel>
+                                                            <TextBlock Text="{l10n:Tr Key=btn_play}" FontWeight="Bold" FontSize="12.5" Foreground="{DynamicResource OnAccentBrush}"/>
                                                         </Button>
 
                                                         <!-- 3-Dots Button with Flyout -->
@@ -668,10 +670,7 @@
                                                         <Button Classes="worldPlayBtn"
                                                                 Command="{Binding $parent[views:EditInstanceView].((vm:EditInstanceViewModel)DataContext).LaunchServerCommand}"
                                                                 CommandParameter="{Binding}">
-                                                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                                                <PathIcon Data="M8 5v14l11-7z" Width="11" Height="11" Foreground="{DynamicResource OnAccentBrush}"/>
-                                                                <TextBlock Text="{l10n:Tr Key=btn_play}" FontWeight="Bold" FontSize="12.5" Foreground="{DynamicResource OnAccentBrush}"/>
-                                                            </StackPanel>
+                                                            <TextBlock Text="{l10n:Tr Key=btn_play}" FontWeight="Bold" FontSize="12.5" Foreground="{DynamicResource OnAccentBrush}"/>
                                                         </Button>
 
                                                         <!-- Delete Button -->
@@ -712,61 +711,92 @@
                                               TickFrequency="512"/>
 
                         <!-- Resolution & Display Card -->
-                        <Border Classes="zenSection">
-                            <StackPanel Spacing="10">
-                                <Grid ColumnDefinitions="*,Auto">
-                                    <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=set_resolution}" VerticalAlignment="Center"/>
-                                    <Button Grid.Column="1" Classes="resetBtn" Content="{l10n:Tr Key=btn_reset}" Command="{Binding ResetWindowCommand}" IsVisible="{Binding CanResetWindow}" FontSize="11" Padding="10,4" VerticalAlignment="Center"/>
-                                </Grid>
-                                <Grid ColumnDefinitions="Auto,70,14,70,14,Auto" VerticalAlignment="Center">
-                                    <TextBlock Text="W" FontSize="12" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,4,0"/>
-                                    <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding GameWidth}" FontSize="12" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="26"/>
-                                    <TextBlock Grid.Column="2" Text="×" FontSize="14" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                    <TextBox Grid.Column="3" Classes="darkInput" Text="{Binding GameHeight}" FontSize="12" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="26"/>
-                                    <TextBlock Grid.Column="4" Text="H" FontSize="12" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
-                                </Grid>
+                        <Border Classes="settingsCard">
+                            <StackPanel Spacing="14">
+                                <StackPanel Spacing="3">
+                                    <TextBlock FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Text="{l10n:Tr Key=set_resolution}"/>
+                                    <TextBlock FontSize="11.5" Foreground="{DynamicResource TextMutedBrush}" Text="{l10n:Tr Key=set_window_resolution_hint}"/>
+                                </StackPanel>
+                                <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
+
                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                    <TextBlock Classes="rowTitle" Text="{l10n:Tr Key=set_fullscreen}" VerticalAlignment="Center"/>
-                                    <ToggleSwitch Grid.Column="1" IsChecked="{Binding IsFullscreen}" VerticalAlignment="Center"/>
+                                    <StackPanel Spacing="2">
+                                        <TextBlock FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Text="{l10n:Tr Key=set_resolution}"/>
+                                        <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" Text="{l10n:Tr Key=set_resolution_hint}"/>
+                                    </StackPanel>
+                                    <Grid Grid.Column="1" ColumnDefinitions="Auto,70,14,70,14,Auto" VerticalAlignment="Center">
+                                        <TextBlock Text="W" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                        <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding GameWidth}" FontSize="12" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="28"/>
+                                        <TextBlock Grid.Column="2" Text="×" FontSize="14" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                        <TextBox Grid.Column="3" Classes="darkInput" Text="{Binding GameHeight}" FontSize="12" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="28"/>
+                                        <TextBlock Grid.Column="4" Text="H" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                    </Grid>
+                                </Grid>
+
+                                <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                    <StackPanel Spacing="2">
+                                        <TextBlock FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Text="{l10n:Tr Key=set_fullscreen}"/>
+                                        <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" Text="{l10n:Tr Key=set_fullscreen_hint}"/>
+                                    </StackPanel>
+                                    <ToggleSwitch Grid.Column="1" IsChecked="{Binding IsFullscreen}" OnContent="{x:Null}" OffContent="{x:Null}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                 </Grid>
                             </StackPanel>
                         </Border>
 
                         <!-- Java Runtime Card -->
-                        <Border Classes="zenSection">
-                            <StackPanel Spacing="10">
-                                <Grid ColumnDefinitions="*,Auto">
-                                    <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=set_java}" VerticalAlignment="Center"/>
-                                    <Button Grid.Column="1" Classes="resetBtn" Content="{l10n:Tr Key=btn_reset}" Command="{Binding ResetJavaCommand}" IsVisible="{Binding CanResetJava}" FontSize="11" Padding="10,4" VerticalAlignment="Center"/>
+                        <Border Classes="settingsCard">
+                            <StackPanel Spacing="14">
+                                <StackPanel Spacing="3">
+                                    <TextBlock FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Text="{l10n:Tr Key=set_java}"/>
+                                    <TextBlock FontSize="11.5" Foreground="{DynamicResource TextMutedBrush}" Text="{l10n:Tr Key=set_java_mode_desc}"/>
+                                </StackPanel>
+                                <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
+
+                                <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                    <StackPanel Spacing="2">
+                                        <TextBlock FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Text="{l10n:Tr Key=set_java_mode}"/>
+                                        <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" Text="{l10n:Tr Key=set_java_mode_desc}"/>
+                                    </StackPanel>
+                                    <ComboBox Grid.Column="1" Classes="zenCombo" Width="220" ItemsSource="{Binding JavaModes}" SelectedItem="{Binding SelectedJavaMode}">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Converter={x:Static converters:JavaModeDisplayConverter.Instance}}"/>
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
                                 </Grid>
-                                <TextBox Classes="darkInput" Text="{Binding JavaDisplayPath, Mode=OneWay}" IsReadOnly="True" FontSize="11" Padding="8,5" ToolTip.Tip="{l10n:Tr Key=custom_java_hint}"/>
-                                <ComboBox Classes="zenCombo" ItemsSource="{Binding JavaModes}" SelectedItem="{Binding SelectedJavaMode}" HorizontalAlignment="Stretch">
-                                    <ComboBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding Converter={x:Static converters:JavaModeDisplayConverter.Instance}}"/>
-                                        </DataTemplate>
-                                    </ComboBox.ItemTemplate>
-                                </ComboBox>
-                                <Grid ColumnDefinitions="*,Auto">
-                                    <TextBox Classes="darkInput" Text="{Binding CustomJavaPath}" PlaceholderText="{l10n:Tr Key=custom_java_hint}" FontSize="11" Padding="8,5"/>
-                                    <Button Grid.Column="1" Classes="subBtn" Content="{l10n:Tr Key=browse}" Command="{Binding PickCustomJavaCommand}" Margin="6,0,0,0" Padding="10,5" FontSize="11"/>
+
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10" VerticalAlignment="Center">
+                                    <TextBox Classes="darkInput" Text="{Binding CustomJavaPath}" PlaceholderText="{l10n:Tr Key=custom_java_hint}" FontSize="12" Height="34"/>
+                                    <Button Grid.Column="1" Classes="subBtn" Content="{l10n:Tr Key=btn_browse}" Command="{Binding PickCustomJavaCommand}" Padding="14,6"/>
                                 </Grid>
+
+                                <Border Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="8" Padding="12,10">
+                                    <Grid ColumnDefinitions="Auto,*">
+                                        <TextBlock Text="{l10n:Tr Key=custom_java_active}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding JavaDisplayPath, Mode=OneWay}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
                             </StackPanel>
                         </Border>
 
                         <!-- JVM Arguments Card -->
-                        <Border Classes="zenSection">
-                            <StackPanel Spacing="10">
+                        <Border Classes="settingsCard">
+                            <StackPanel Spacing="14">
                                 <Grid ColumnDefinitions="*,Auto">
-                                    <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=set_jvmargs}" VerticalAlignment="Center"/>
-                                    <Button Grid.Column="1" Classes="resetBtn" Content="{l10n:Tr Key=btn_reset}" Command="{Binding ResetJvmArgsCommand}" IsVisible="{Binding CanResetJvmArgs}" FontSize="11" Padding="10,4" VerticalAlignment="Center"/>
+                                    <StackPanel Spacing="3">
+                                        <TextBlock FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Text="{l10n:Tr Key=set_jvmargs}"/>
+                                        <TextBlock FontSize="11.5" Foreground="{DynamicResource TextMutedBrush}" Text="{l10n:Tr Key=set_jvmargs_hint}"/>
+                                    </StackPanel>
+                                    <Button Grid.Column="1" Classes="subBtn" Content="{l10n:Tr Key=btn_reset}" Command="{Binding ResetJvmArgsCommand}" IsVisible="{Binding CanResetJvmArgs}" FontSize="11" Padding="10,4" VerticalAlignment="Center"/>
                                 </Grid>
-                                <TextBox Classes="darkInput" Text="{Binding JvmArgs}" PlaceholderText="-XX:+UseG1GC ..." Padding="8,6" FontSize="12" AcceptsReturn="True" Height="48" TextWrapping="Wrap"/>
-                                <Border Background="{StaticResource DangerBgBrush}" BorderBrush="{StaticResource DangerBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,6,0,0" IsVisible="{Binding HasJvmArgsWarning}">
+                                <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
+                                <TextBox Classes="darkInput" Text="{Binding JvmArgs}" PlaceholderText="-XX:+UseG1GC ..." Padding="10,8" FontSize="12" AcceptsReturn="True" Height="64" TextWrapping="Wrap"/>
+                                <Border Background="{DynamicResource DangerBgBrush}" BorderBrush="{DynamicResource DangerBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12" IsVisible="{Binding HasJvmArgsWarning}">
                                     <Grid ColumnDefinitions="*,Auto">
                                         <StackPanel Spacing="4">
-                                            <TextBlock Text="{l10n:Tr Key=jvm_warn_title}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource DangerBrush}"/>
-                                            <TextBlock Text="{Binding JvmArgsWarningMessage}" FontSize="11" Foreground="{StaticResource DangerLightBrush}" TextWrapping="Wrap"/>
+                                            <TextBlock Text="{l10n:Tr Key=jvm_warn_title}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource DangerBrush}"/>
+                                            <TextBlock Text="{Binding JvmArgsWarningMessage}" FontSize="11" Foreground="{DynamicResource DangerLightBrush}" TextWrapping="Wrap"/>
                                         </StackPanel>
                                         <Button Grid.Column="1" Classes="dangerBtn" Content="{l10n:Tr Key=btn_clean_jvm_flags}" Command="{Binding CleanIncompatibleJvmArgsCommand}" FontSize="11" Padding="12,6" VerticalAlignment="Center" Margin="12,0,0,0"/>
                                     </Grid>
@@ -781,16 +811,16 @@
         </Grid>
 
         <!-- Bottom control bar -->
-        <Border Grid.Row="1" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,1,0,0" Padding="16,10">
+        <Border Grid.Row="1" Background="{DynamicResource SidebarBgBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="0,1,0,0" Padding="16,10">
             <StackPanel Spacing="8">
                 <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding IsDownloading}">
-                    <ProgressBar Value="{Binding LaunchProgress}" Height="4" Foreground="{StaticResource AccentBrush}"
+                    <ProgressBar Value="{Binding LaunchProgress}" Height="4" Foreground="{DynamicResource AccentBrush}"
                                  VerticalAlignment="Center" Width="160"/>
-                    <TextBlock Text="{Binding DownloadStatus}" FontSize="11" Foreground="{StaticResource AccentBrush}"
+                    <TextBlock Text="{Binding DownloadStatus}" FontSize="11" Foreground="{DynamicResource AccentBrush}"
                                VerticalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="520"/>
                 </StackPanel>
                 <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto" VerticalAlignment="Center" ColumnSpacing="8">
-                    <TextBlock Text="{Binding Instance.Path}" FontSize="11" Foreground="{StaticResource TextCaptionBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Text="{Binding Instance.Path}" FontSize="11" Foreground="{DynamicResource TextCaptionBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                     <Border Grid.Column="1" IsVisible="{Binding IsRunning}" Background="{DynamicResource ChipBrush}" CornerRadius="4" Padding="8,4" VerticalAlignment="Center" Margin="0,0,8,0">
                         <TextBlock Text="{l10n:Tr Key=status_running}" FontSize="11" Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold" VerticalAlignment="Center"/>
                     </Border>

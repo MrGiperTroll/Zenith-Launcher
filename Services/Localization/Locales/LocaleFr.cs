@@ -18,6 +18,7 @@ internal static class LocaleFr
         ["sv_add_server"] = "+ Ajouter un serveur",
 
         ["tab_overview"] = "Aperçu",
+        ["logs_empty_hint"] = "Aucun journal disponible pour l'instant. Démarrez l'instance pour voir la sortie.",
         ["stat_playtime"] = "Temps de jeu total",
         ["stat_last_played"] = "Dernier lancement",
         ["stat_created"] = "Date de création",

@@ -46,7 +46,7 @@ public partial class EditInstanceView : UserControl
         }
         else if (e.PropertyName == nameof(EditInstanceViewModel.LogText))
         {
-            if (_followBottom && LogScroll != null)
+            if (_followBottom && LogTextBox != null)
             {
                 Dispatcher.UIThread.Post(() => ScrollToEnd());
             }
@@ -55,22 +55,9 @@ public partial class EditInstanceView : UserControl
 
     private void ScrollToEnd()
     {
-        if (LogScroll == null) return;
-        var maxY = Math.Max(0, LogScroll.Extent.Height - LogScroll.Viewport.Height);
-        LogScroll.Offset = new Vector(LogScroll.Offset.X, maxY);
-    }
-
-    private void OnLogScrollChanged(object? sender, ScrollChangedEventArgs e)
-    {
-        if (LogScroll == null) return;
-        var atBottom = LogScroll.Extent.Height - LogScroll.Offset.Y - LogScroll.Viewport.Height < 40;
-        if (atBottom)
+        if (LogTextBox?.Text != null)
         {
-            _followBottom = true;
-        }
-        else if (e.OffsetDelta.Y < 0)
-        {
-            _followBottom = false;
+            LogTextBox.CaretIndex = LogTextBox.Text.Length;
         }
     }
 

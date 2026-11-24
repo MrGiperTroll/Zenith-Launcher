@@ -18,6 +18,7 @@ internal static class LocaleUk
         ["sv_add_server"] = "+ Додати сервер",
 
         ["tab_overview"] = "Огляд",
+        ["logs_empty_hint"] = "Логи поки відсутні. Запустіть інстанс для перегляду виводу.",
         ["stat_playtime"] = "Загальний час у грі",
         ["stat_last_played"] = "Останній запуск",
         ["stat_created"] = "Дата створення",

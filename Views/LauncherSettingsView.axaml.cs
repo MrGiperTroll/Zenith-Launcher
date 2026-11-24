@@ -1,4 +1,6 @@
-﻿using Avalonia.Controls;
+﻿using System;
+using System.Linq;
+using Avalonia.Controls;
 using ZenithLauncher.ViewModels.Pages;
 
 namespace ZenithLauncher.Views;
@@ -60,6 +62,36 @@ public partial class LauncherSettingsView : UserControl
         if (DataContext is ViewModels.Pages.LauncherSettingsViewModel vm)
         {
             vm.CommitLauncherScale();
+        }
+    }
+
+    private void OnScaleInputKeyDown(object? sender, Avalonia.Input.KeyEventArgs e)
+    {
+        if (e.Key == Avalonia.Input.Key.Enter)
+        {
+            if (DataContext is LauncherSettingsViewModel vm && sender is TextBox tb)
+            {
+                vm.ApplyScalePercentInput(tb.Text);
+            }
+            TopLevel.GetTopLevel(this)?.FocusManager?.Focus(null);
+            e.Handled = true;
+        }
+        else if (e.Key == Avalonia.Input.Key.Escape)
+        {
+            if (DataContext is LauncherSettingsViewModel vm)
+            {
+                vm.ScalePercentText = Math.Round(vm.PendingLauncherScale * 100).ToString("0");
+            }
+            TopLevel.GetTopLevel(this)?.FocusManager?.Focus(null);
+            e.Handled = true;
+        }
+    }
+
+    private void OnScaleInputLostFocus(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (DataContext is LauncherSettingsViewModel vm && sender is TextBox tb)
+        {
+            vm.ApplyScalePercentInput(tb.Text);
         }
     }
 }

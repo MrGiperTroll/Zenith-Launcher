@@ -71,7 +71,7 @@ public partial class LauncherSettingsViewModel : ViewModelBase
         IsSearchJvmArgsVisible = "jvm arguments flags аргументы jvm".Contains(q);
         IsSearchLanguageVisible = "language localization english russian язык".Contains(q);
         IsSearchDiscordVisible = "discord rich presence rpc дискорд статус".Contains(q);
-        IsSearchAppearanceVisible = "appearance theme color accent name branding внешний вид тема цвет акцент оформление launcher лаунчер настройки".Contains(q);
+        IsSearchAppearanceVisible = "appearance theme color accent name branding внешний вид тема цвет акцент оформление launcher лаунчер настройки scale масштаб интерфейс".Contains(q);
     }
 
     // --- Tabs ---
@@ -533,11 +533,40 @@ public partial class LauncherSettingsViewModel : ViewModelBase
     [ObservableProperty] private bool _discordRpcEnabled = true;
     [ObservableProperty] private double _launcherScale = 1.0;
     [ObservableProperty] private double _pendingLauncherScale = 1.0;
+    [ObservableProperty] private string _scalePercentText = "100";
     [ObservableProperty] private string _curseForgeApiKey = string.Empty;
 
     partial void OnPendingLauncherScaleChanged(double value)
     {
-        // Smooth scaling: allow fine-grained user adjustment (e.g. 98%, 99%, 101%)
+        var percent = (int)Math.Round(value * 100);
+        var text = percent.ToString();
+        if (_scalePercentText != text)
+        {
+            _scalePercentText = text;
+            OnPropertyChanged(nameof(ScalePercentText));
+        }
+    }
+
+    public void ApplyScalePercentInput(string? input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            ScalePercentText = Math.Round(PendingLauncherScale * 100).ToString("0");
+            return;
+        }
+
+        var digits = new string(input.Where(char.IsDigit).ToArray());
+        if (int.TryParse(digits, out var percent))
+        {
+            percent = Math.Clamp(percent, 80, 150);
+            PendingLauncherScale = percent / 100.0;
+            CommitLauncherScale();
+            ScalePercentText = percent.ToString();
+        }
+        else
+        {
+            ScalePercentText = Math.Round(PendingLauncherScale * 100).ToString("0");
+        }
     }
 
     partial void OnCurseForgeApiKeyChanged(string value)
@@ -796,7 +825,12 @@ public partial class LauncherSettingsViewModel : ViewModelBase
             UseFlatVersionList = cfg.UseFlatVersionList;
             AutoManageJava = cfg.AutoManageJava;
             DiscordRpcEnabled = cfg.DiscordRpcEnabled;
-            if (cfg.LauncherScale > 0.4 && cfg.LauncherScale < 3.0) { LauncherScale = cfg.LauncherScale; PendingLauncherScale = cfg.LauncherScale; }
+            if (cfg.LauncherScale > 0.4 && cfg.LauncherScale < 3.0)
+            {
+                LauncherScale = cfg.LauncherScale;
+                PendingLauncherScale = cfg.LauncherScale;
+                ScalePercentText = Math.Round(cfg.LauncherScale * 100).ToString("0");
+            }
 
             if (!string.IsNullOrWhiteSpace(cfg.Java25Path) && File.Exists(cfg.Java25Path) && (JavaVersionHelper.GetJavaMajor(cfg.Java25Path) == 25 || JavaVersionHelper.GetJavaMajor(cfg.Java25Path) == 0)) Java25Location = cfg.Java25Path;
             else { var d25 = JavaVersionHelper.FindJavaForVersion(25); if (!string.IsNullOrWhiteSpace(d25)) Java25Location = d25; }

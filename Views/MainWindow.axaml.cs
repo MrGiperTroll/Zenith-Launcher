@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
@@ -24,14 +24,11 @@ namespace ZenithLauncher.Views;
 
 public partial class MainWindow : Window
 {
-    private MainWindowViewModel? _subscribedVm;
-
     public MainWindow()
     {
         InitializeComponent();
         Opacity = 1.0;
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
-        DataContextChanged += OnDataContextChanged;
         
         // RAM optimization: when the window is minimized or deactivated, collect GC generation and release unneeded working set
         PropertyChanged += (s, e) =>
@@ -94,36 +91,7 @@ private void OnTopBarDoubleTapped(object? sender, TappedEventArgs e)
         MemoryTrimmer.TrimMemory(force: true);
     }
 
-    private void OnDataContextChanged(object? sender, EventArgs e)
-    {
-        if (_subscribedVm != null)
-            _subscribedVm.PropertyChanged -= OnVmPropertyChanged;
-        _subscribedVm = null;
 
-        if (DataContext is not MainWindowViewModel vm) return;
-        _subscribedVm = vm;
-        vm.PropertyChanged += OnVmPropertyChanged;
-    }
-
-    private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        // Tab switching is instantaneous and static with zero jitter or layout shift
-        if (e.PropertyName == nameof(MainWindowViewModel.IsUpdateOpen) && _subscribedVm!.IsUpdateOpen)
-        {
-            var overlay = this.FindControl<Control>("UpdateOverlay");
-            if (overlay != null)
-                UiFx.FadeInNow(overlay, 240, 4);
-        }
-        else if (e.PropertyName == nameof(MainWindowViewModel.IsJavaInstallerOpen))
-        {
-            if (_subscribedVm!.IsJavaInstallerOpen)
-            {
-                var card = this.FindControl<Border>("JavaInstallerCard");
-                if (card != null)
-                    UiFx.FadeInNow(card, 240, 6);
-            }
-        }
-    }
 
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
@@ -146,27 +114,5 @@ private void OnTopBarDoubleTapped(object? sender, TappedEventArgs e)
         }
     }
 
-    private void OnInstanceTargetCardTapped(object? sender, TappedEventArgs e)
-    {
-        if (e.Source is Visual v && v.FindAncestorOfType<Button>(includeSelf: true) != null)
-        {
-            return;
-        }
-        if (sender is Control { DataContext: ViewModels.Dialogs.InstanceTargetItem item } && item.CanClickButton)
-        {
-            item.InstallCommand.Execute(null);
-        }
-    }
 
-    private void OnWorldTargetCardTapped(object? sender, TappedEventArgs e)
-    {
-        if (e.Source is Visual v && v.FindAncestorOfType<Button>(includeSelf: true) != null)
-        {
-            return;
-        }
-        if (sender is Control { DataContext: ViewModels.Dialogs.WorldTargetItem item } && !item.IsInstalled)
-        {
-            item.InstallCommand.Execute(null);
-        }
-    }
 }

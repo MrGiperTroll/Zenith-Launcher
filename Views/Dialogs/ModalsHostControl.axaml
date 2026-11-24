@@ -1,0 +1,498 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:ZenithLauncher.ViewModels"
+             xmlns:converters="using:ZenithLauncher.Converters"
+             xmlns:dialogs="using:ZenithLauncher.ViewModels.Dialogs"
+             xmlns:views="using:ZenithLauncher.Views"
+             xmlns:l10n="using:ZenithLauncher.Extensions"
+             mc:Ignorable="d" d:DesignWidth="1280" d:DesignHeight="780"
+             x:Class="ZenithLauncher.Views.Dialogs.ModalsHostControl"
+             x:DataType="vm:MainWindowViewModel">
+
+    <Panel>
+        <!-- Server Under Development Dialog -->
+        <Border IsVisible="{Binding IsServerUnderDevDialogOpen}" Background="{DynamicResource OverlayBrush}" ZIndex="150"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="22" Width="440" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel Spacing="14">
+                    <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                            <Border Width="30" Height="30" Background="{DynamicResource IconChipBrush}" CornerRadius="6" VerticalAlignment="Center">
+                                <PathIcon Data="M20 13H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1v-6c0-.55-.45-1-1-1zM7 19c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM20 3H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1zM7 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" Width="14" Height="14" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Серверы" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <Button Grid.Column="1" Command="{Binding CloseDialogsCommand}" Background="Transparent" BorderThickness="0" Padding="4" Cursor="Hand" Foreground="{DynamicResource TextMutedBrush}">
+                            <PathIcon Data="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" Width="12" Height="12"/>
+                        </Button>
+                    </Grid>
+
+                    <TextBlock Text="Сейчас создание сервера было перенесено в разработку. Вы можете открыть папку всех ранее созданных серверов."
+                               Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" TextWrapping="Wrap" LineHeight="18"/>
+
+                    <Grid ColumnDefinitions="*,Auto" Margin="0,6,0,0">
+                        <Button Grid.Column="0" Classes="primaryBtn" Command="{Binding OpenServersDirectoryCommand}" Padding="16,8" Margin="0,0,8,0">
+                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                <PathIcon Data="M10 4H4C2.89 4 2 4.89 2 6V18A2 2 0 0 0 4 20H20A2 2 0 0 0 22 18V8C22 6.89 21.1 6 20 6H12L10 4Z" Width="13" Height="13" Foreground="{DynamicResource OnAccentBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Text="Открыть папку серверов" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Grid.Column="1" Classes="subBtn" Command="{Binding CloseDialogsCommand}" Content="Закрыть" Padding="14,8" FontSize="12"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Border>
+
+        <!-- MODAL: Create Profile -->
+        <Border IsVisible="{Binding IsCreateDialogOpen}" Background="{DynamicResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1000">
+            <Border Background="{DynamicResource CardAltBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="440" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="{l10n:Tr Key=cp_title}" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{l10n:Tr Key=cp_name_label}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
+                        <TextBox Classes="darkInput" Text="{Binding NewInstanceName}" PlaceholderText="{l10n:Tr Key=ph_profile_name}">
+                            <TextBox.Styles>
+                                <Style Selector="TextBox.darkInput" x:DataType="vm:MainWindowViewModel">
+                                    <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}"/>
+                                </Style>
+                            </TextBox.Styles>
+                        </TextBox>
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{l10n:Tr Key=cp_step_version}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
+                        <Grid ColumnDefinitions="*,Auto">
+                            <ComboBox Classes="zenCombo" ItemsSource="{Binding AvailableVersions}" SelectedItem="{Binding SelectedVersion}" HorizontalAlignment="Stretch"
+                                      PlaceholderText="{l10n:Tr Key=none_select_version}"/>
+                            <Button Grid.Column="1" Content="✕" Command="{Binding ClearVersionCommand}" Background="Transparent" Foreground="{DynamicResource TextPlaceholderBrush}" Padding="6,0" Cursor="Hand" FontSize="12" Margin="4,0,0,0"/>
+                        </Grid>
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{l10n:Tr Key=set_loader}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
+                        <Grid ColumnDefinitions="*,Auto">
+                            <ComboBox Grid.Column="0" Classes="zenCombo" ItemsSource="{Binding AvailableLoaders}" SelectedItem="{Binding SelectedLoader}"
+                                      HorizontalAlignment="Stretch" IsVisible="{Binding IsLoaderTypesVisible}"/>
+                            <ComboBox Grid.Column="0" Classes="zenCombo" ItemsSource="{Binding AvailableLoaderBuilds}" SelectedItem="{Binding SelectedLoaderBuild}"
+                                      HorizontalAlignment="Stretch" IsVisible="{Binding IsLoaderBuildsVisible}"/>
+                            <Button Grid.Column="1" Content="⇄" Command="{Binding ToggleLoaderBuildsCommand}"
+                                    Width="32" Height="32" Padding="0" Margin="6,0,0,0"
+                                    Background="{DynamicResource FieldBrush}" Foreground="{DynamicResource TextMutedBrush}"
+                                    BorderBrush="{DynamicResource BorderEditorBrush}" BorderThickness="1"
+                                    CornerRadius="8" Cursor="Hand" FontSize="14"
+                                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                    IsEnabled="{Binding CanSwapLoader}"
+                                    ToolTip.Tip="{l10n:Tr Key=tip_switch_loader}">
+                                <Button.Styles>
+                                    <Style Selector="Button:pointerover">
+                                        <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+                                        <Setter Property="BorderBrush" Value="{DynamicResource BorderHoverBrush}"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                                    </Style>
+                                    <Style Selector="Button:pressed">
+                                        <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+                                        <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
+                                    </Style>
+                                </Button.Styles>
+                            </Button>
+                        </Grid>
+                        <TextBlock Text="{Binding LoaderError}" FontSize="11" Foreground="{DynamicResource DangerStrongBrush}" TextWrapping="Wrap"
+                                   IsVisible="{Binding LoaderErrorVisible}" Margin="0,2,0,0"/>
+                    </StackPanel>
+
+                    <Grid ColumnDefinitions="*,*" Margin="0,8,0,0">
+                        <Button Grid.Column="0" Content="{l10n:Tr Key=cancel}" Command="{Binding CloseDialogsCommand}" Classes="subBtn" HorizontalContentAlignment="Center" Margin="0,0,6,0"/>
+                        <Button Grid.Column="1" Classes="primaryBtn" Content="{l10n:Tr Key=create}" Command="{Binding ConfirmCreateInstanceCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="6,0,0,0"
+                                IsEnabled="{Binding CanCreateInstance}"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Border>
+
+        <!-- MODAL: Delete Account Confirmation -->
+        <Border IsVisible="{Binding IsDeleteAccountConfirmOpen}" Background="{DynamicResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1000">
+            <Border Background="{DynamicResource CardAltBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="380" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel Spacing="14">
+                    <TextBlock Text="{l10n:Tr Key=acc_delete_title}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource DangerBrush}"/>
+                    <TextBlock Text="{Binding PendingDeleteAccountName, Converter={x:Static converters:L10nFormatConverter.Instance}, ConverterParameter=acc_delete_confirm}" TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12.5" LineHeight="17"/>
+                    <Grid ColumnDefinitions="*,*" Margin="0,4,0,0">
+                        <Button Grid.Column="0" Content="{l10n:Tr Key=cancel}" Command="{Binding CancelDeleteAccountConfirmCommand}" Classes="subBtn" HorizontalContentAlignment="Center" Margin="0,0,6,0"/>
+                        <Button Grid.Column="1" Classes="dangerBtn" Content="{l10n:Tr Key=delete}" Command="{Binding ConfirmDeleteAccountCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="6,0,0,0" Background="{DynamicResource DangerBorderBrush}"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Border>
+
+        <!-- MODAL: Delete Confirmation -->
+        <Border IsVisible="{Binding IsDeleteConfirmOpen}" Background="{DynamicResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1000">
+            <Border Background="{DynamicResource CardAltBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="380" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel Spacing="14">
+                    <TextBlock Text="{l10n:Tr Key=dialog_delete_title}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource DangerBrush}"/>
+                    <TextBlock Text="{Binding PendingDeleteInstance.Name, Converter={x:Static converters:L10nFormatConverter.Instance}, ConverterParameter=dialog_delete_confirm}" TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" LineHeight="17"/>
+                    <Grid ColumnDefinitions="*,*" Margin="0,4,0,0">
+                        <Button Grid.Column="0" Content="{l10n:Tr Key=cancel}" Command="{Binding CancelDeleteProfileCommand}" Classes="subBtn" HorizontalContentAlignment="Center" Margin="0,0,6,0"/>
+                        <Button Grid.Column="1" Classes="dangerBtn" Content="{l10n:Tr Key=delete}" Command="{Binding ConfirmDeleteProfileCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="6,0,0,0" Background="{DynamicResource DangerBorderBrush}"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Border>
+
+        <!-- MODAL: Restart Confirmation (Theme Application) -->
+        <Border IsVisible="{Binding IsRestartConfirmOpen}" Background="{DynamicResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1000">
+            <Border Background="{DynamicResource CardAltBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="400" Padding="22" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel Spacing="14">
+                    <TextBlock Text="{l10n:Tr Key=dialog_restart_title}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Text="{l10n:Tr Key=dialog_restart_theme_msg}" TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12.5" LineHeight="18"/>
+                    <Grid ColumnDefinitions="*,*" Margin="0,4,0,0">
+                        <Button Grid.Column="0" Content="{l10n:Tr Key=no}" Command="{Binding CancelRestartConfirmCommand}" Classes="subBtn" HorizontalContentAlignment="Center" Margin="0,0,6,0" Height="36"/>
+                        <Button Grid.Column="1" Classes="primaryBtn" Content="{l10n:Tr Key=yes}" Command="{Binding ConfirmRestartAndApplyThemeCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="6,0,0,0" Height="36"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Border>
+
+        <!-- MODAL: Discard Changes Confirmation (Theme Tab Switch) -->
+        <Border IsVisible="{Binding IsThemeDiscardConfirmOpen}" Background="{DynamicResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1000">
+            <Border Background="{DynamicResource CardAltBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="400" Padding="22" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel Spacing="14">
+                    <TextBlock Text="{l10n:Tr Key=dialog_discard_title}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Text="{l10n:Tr Key=dialog_discard_theme_msg}" TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12.5" LineHeight="18"/>
+                    <Grid ColumnDefinitions="*,*" Margin="0,4,0,0">
+                        <Button Grid.Column="0" Content="{l10n:Tr Key=no}" Command="{Binding CancelDiscardThemeChangesCommand}" Classes="subBtn" HorizontalContentAlignment="Center" Margin="0,0,6,0" Height="36"/>
+                        <Button Grid.Column="1" Classes="primaryBtn" Content="{l10n:Tr Key=yes}" Command="{Binding ConfirmDiscardThemeChangesCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="6,0,0,0" Height="36"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Border>
+
+        <!-- MODAL: Modpack Delete Confirmation -->
+        <Border IsVisible="{Binding ModpacksBrowser.IsDeleteConfirmOpen}" Background="{DynamicResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1000">
+            <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1"
+                    CornerRadius="12" MaxWidth="360" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="{l10n:Tr Key=cb_delete_title}" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    <TextBlock Text="{Binding ModpacksBrowser.DeleteItemName}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextLabelBrush}" TextWrapping="Wrap" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Text="{l10n:Tr Key=cb_delete_question}" FontSize="12.5" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="18"/>
+                    <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" Margin="0,8,0,0">
+                        <Button Content="{l10n:Tr Key=no}" Command="{Binding ModpacksBrowser.CancelDeleteCommand}" Classes="dialogBtn"
+                                Width="90" Height="34" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                        <Button Content="{l10n:Tr Key=yes}" Command="{Binding ModpacksBrowser.ConfirmDeleteCommand}" Classes="dialogBtn dialogDanger"
+                                Width="90" Height="34" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Border>
+
+        <!-- MODAL: Ely.by Error -->
+        <Border IsVisible="{Binding IsElyByErrorOpen}" Background="{DynamicResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1000">
+            <Border Background="{DynamicResource CardAltBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="420" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel Spacing="14">
+                    <TextBlock Text="{l10n:Tr Key=dialog_connection}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource DangerBrush}"/>
+                    <TextBlock Text="{Binding ElyByErrorMessage}" TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" LineHeight="17"/>
+                    <Grid ColumnDefinitions="*,*">
+                        <Button Grid.Column="0" Content="{l10n:Tr Key=close}" Command="{Binding CloseDialogsCommand}" Classes="subBtn" HorizontalContentAlignment="Center" Margin="0,0,6,0"/>
+                        <Button Grid.Column="1" Classes="primaryBtn" Content="{l10n:Tr Key=btn_switch_offline}" Command="{Binding SwitchToOfflineAccountCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="6,0,0,0"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Border>
+
+        <!-- Java Runtime Installer In-App Modal -->
+        <Border Background="{DynamicResource OverlayBrush}" IsVisible="{Binding IsJavaInstallerOpen}" ZIndex="1000"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Border x:Name="JavaInstallerCard" Background="{DynamicResource SurfaceBrush}" CornerRadius="14" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1"
+                    Width="420" HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 18 46 0 #55000000" Padding="24,20,24,18">
+                <Grid RowDefinitions="Auto,Auto,Auto,Auto">
+                    <!-- Header -->
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="{l10n:Tr Key=java_installer_title}" FontSize="15" FontWeight="Bold"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="{l10n:Tr Key=java_installer_hint}" FontSize="11"
+                                       Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="✕" Command="{Binding CloseJavaInstallerCommand}" Classes="subBtn"
+                                Width="28" Height="28" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                VerticalAlignment="Top" Margin="8,0,0,0"/>
+                    </Grid>
+
+                    <!-- Version tiles -->
+                    <UniformGrid Grid.Row="1" Columns="2" Rows="3" Margin="0,0,0,10">
+                        <Button Classes="verBtn" Margin="0,0,4,6"
+                                Command="{Binding DownloadJavaCommand}" CommandParameter="8"
+                                IsEnabled="{Binding CanDownloadJava}">
+                            <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                                <TextBlock Text="Java 8" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <TextBlock Text="{l10n:Tr Key=java_tag_old}" FontSize="9" Foreground="{DynamicResource WarningBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Classes="verBtn" Margin="4,0,0,6"
+                                Command="{Binding DownloadJavaCommand}" CommandParameter="11"
+                                IsEnabled="{Binding CanDownloadJava}">
+                            <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                                <TextBlock Text="Java 11" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <TextBlock Text="LTS" FontSize="9" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Classes="verBtn" Margin="0,0,4,6"
+                                Command="{Binding DownloadJavaCommand}" CommandParameter="16"
+                                IsEnabled="{Binding CanDownloadJava}">
+                            <TextBlock Text="Java 16" FontSize="12" FontWeight="SemiBold"/>
+                        </Button>
+                        <Button Classes="verBtn" Margin="4,0,0,6"
+                                Command="{Binding DownloadJavaCommand}" CommandParameter="17"
+                                IsEnabled="{Binding CanDownloadJava}">
+                            <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                                <TextBlock Text="Java 17" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <TextBlock Text="LTS" FontSize="9" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Classes="verBtn" Margin="0,0,4,0"
+                                Command="{Binding DownloadJavaCommand}" CommandParameter="21"
+                                IsEnabled="{Binding CanDownloadJava}">
+                            <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                                <TextBlock Text="Java 21" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <TextBlock Text="LTS" FontSize="9" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Classes="verBtn" Margin="4,0,0,0"
+                                Command="{Binding DownloadJavaCommand}" CommandParameter="25"
+                                IsEnabled="{Binding CanDownloadJava}">
+                            <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                                <TextBlock Text="Java 25" FontSize="12" FontWeight="SemiBold"/>
+                                <TextBlock Text="{l10n:Tr Key=java_tag_new}" FontSize="9" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </UniformGrid>
+
+                    <!-- Status -->
+                    <TextBlock Grid.Row="2" Text="{Binding JavaDownloadStatus}" FontSize="11"
+                               Foreground="{DynamicResource WarningBrush}" TextWrapping="Wrap"
+                               VerticalAlignment="Center" Margin="2,4,2,8"
+                               IsVisible="{Binding JavaDownloadStatus, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
+
+                    <!-- Footer -->
+                    <Grid Grid.Row="3" ColumnDefinitions="*,96" Margin="0,6,0,0">
+                        <Button Grid.Column="0" Classes="subBtn" Content="{l10n:Tr Key=java_pick_manual}"
+                                Command="{Binding PickCustomJavaCommand}" HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Center"/>
+                        <Button Grid.Column="1" Classes="subBtn" Content="{l10n:Tr Key=close}"
+                                Command="{Binding CloseJavaInstallerCommand}" Margin="8,0,0,0"/>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Border>
+
+        <!-- Import Picker In-App Modal -->
+        <Border Background="{DynamicResource OverlayBrush}" IsVisible="{Binding IsImportPickerOpen}" ZIndex="1000"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Border Background="{DynamicResource BgBrush}" CornerRadius="14" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1"
+                    Width="460" HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 18 46 0 #55000000" Padding="24,20,24,18">
+                <StackPanel Spacing="14">
+                    <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                        <StackPanel Spacing="4" VerticalAlignment="Center">
+                            <TextBlock Text="{l10n:Tr Key=imp_title}" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="✕" Command="{Binding CloseImportPickerCommand}" Classes="subBtn"
+                                Width="28" Height="28" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                VerticalAlignment="Top" Margin="8,0,0,0"/>
+                    </Grid>
+                    <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Padding="14">
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalAlignment="Center">
+                            <!-- Official Prism Launcher mark, rasterized from github.com/PrismLauncher/PrismLauncher (CC BY-SA 4.0) -->
+                            <Border Width="40" Height="40" Background="{DynamicResource IconChipBrush}" CornerRadius="10" VerticalAlignment="Center">
+                                <Image Source="{Binding PrismImportIcon}" Width="32" Height="32" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                <TextBlock Classes="rowTitle" Text="{l10n:Tr Key=imp_prism_t}"/>
+                                <TextBlock Classes="rowHint" Text="{l10n:Tr Key=imp_prism_d}"/>
+                            </StackPanel>
+                            <Button Grid.Column="2" Classes="subBtn" Content="{l10n:Tr Key=imp_choose}" Command="{Binding PickImportFolderCommand}" CommandParameter="Prism" VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+                    <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Padding="14">
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalAlignment="Center">
+                            <!-- Official MultiMC mark (github.com/MultiMC/MultiMC) -->
+                            <Border Width="40" Height="40" CornerRadius="10" VerticalAlignment="Center" ClipToBounds="True">
+                                <Image Source="{Binding MultiMCImportIcon}" Width="40" Height="40" Stretch="UniformToFill" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                <TextBlock Classes="rowTitle" Text="{l10n:Tr Key=imp_mmc_t}"/>
+                                <TextBlock Classes="rowHint" Text="{l10n:Tr Key=imp_mmc_d}"/>
+                            </StackPanel>
+                            <Button Grid.Column="2" Classes="subBtn" Content="{l10n:Tr Key=imp_choose}" Command="{Binding PickImportFolderCommand}" CommandParameter="MultiMC" VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+                    <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Padding="14">
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" VerticalAlignment="Center">
+                            <Border Width="40" Height="40" Background="{DynamicResource IconChipBrush}" CornerRadius="10" VerticalAlignment="Center">
+                                <PathIcon Data="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="20" Height="20" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                <TextBlock Classes="rowTitle" Text="{l10n:Tr Key=imp_single_t}"/>
+                                <TextBlock Classes="rowHint" Text="Any archive (.zip, .mrpack) or custom instance/version folder"/>
+                            </StackPanel>
+                            <Button Grid.Column="2" Classes="subBtn" Content="{l10n:Tr Key=imp_choose}" Command="{Binding PickImportSingleCommand}" VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+            </Border>
+        </Border>
+
+        <!-- Update In-App Modal (soft fade-in via code-behind) -->
+        <Border x:Name="UpdateOverlay" Background="{DynamicResource OverlayBrush}" IsVisible="{Binding IsUpdateOpen}" ZIndex="2000"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="16" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1"
+                    HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 18 46 0 #55000000" Padding="24,20">
+                <views:UpdateNotificationView DataContext="{Binding UpdateVm}"/>
+            </Border>
+        </Border>
+
+        <!-- Info Dialog Modal (Updates / Alerts) -->
+        <Border IsVisible="{Binding IsInfoDialogOpen}" Background="{DynamicResource OverlayBrush}" ZIndex="2100"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderCardSoftBrush}" BorderThickness="1"
+                    CornerRadius="12" Padding="24" Width="400" HorizontalAlignment="Center" VerticalAlignment="Center"
+                    BoxShadow="0 18 46 0 #55000000">
+                <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="16">
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                        <Border Width="32" Height="32" Background="{DynamicResource IconChipBrush}" CornerRadius="8" VerticalAlignment="Center">
+                            <PathIcon Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
+                                      Width="16" Height="16" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="{Binding InfoDialogTitle}" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <TextBlock Grid.Row="1" Text="{Binding InfoDialogMessage}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12.5" TextWrapping="Wrap" LineHeight="19"/>
+
+                    <Button Grid.Row="2" Classes="primaryBtn" Content="OK" Command="{Binding CloseInfoDialogCommand}"
+                            HorizontalAlignment="Right" Width="96" Height="34" Padding="0"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                            Margin="0,4,0,0"/>
+                </Grid>
+            </Border>
+        </Border>
+
+        <!-- MODAL: Add to Instance / World Selector -->
+        <Border Background="{DynamicResource OverlayBrush}"
+                IsVisible="{Binding ModpacksBrowser.IsAddToInstanceOpen}" ZIndex="1100"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Border Background="{DynamicResource BgBrush}" CornerRadius="12" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1"
+                    Width="490" MaxHeight="520" HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 18 46 0 #55000000" Padding="18,16,18,14">
+                <Grid RowDefinitions="Auto,Auto,*,Auto">
+                    <!-- Header -->
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,12" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding ModpacksBrowser.AddToInstanceModalTitle}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <Button Grid.Column="1" Content="✕" Command="{Binding ModpacksBrowser.CloseAddToInstanceCommand}" Classes="subBtn"
+                                Width="26" Height="26" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                    </Grid>
+
+                    <!-- STEP 1: Search & Instance List (Visible when !IsSelectWorldStep) -->
+                    <Grid Grid.Row="1" RowDefinitions="Auto,*" IsVisible="{Binding !ModpacksBrowser.IsSelectWorldStep}">
+                        <TextBox Classes="darkInput" Text="{Binding ModpacksBrowser.InstanceSearchQuery}" PlaceholderText="Search instance..." Height="32" FontSize="12" Margin="0,0,0,8"/>
+                    </Grid>
+
+                    <ScrollViewer Grid.Row="2" MaxHeight="320" VerticalScrollBarVisibility="Auto" IsVisible="{Binding !ModpacksBrowser.IsSelectWorldStep}">
+                        <ItemsControl ItemsSource="{Binding ModpacksBrowser.TargetInstances}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="dialogs:InstanceTargetItem">
+                                    <Border Classes="targetInstanceCard" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,0,0,6" Tapped="OnInstanceTargetCardTapped" Cursor="Hand">
+                                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalAlignment="Center">
+                                            <Border Width="36" Height="36" Background="{DynamicResource ChipBrush}" CornerRadius="8" VerticalAlignment="Center" ClipToBounds="True">
+                                                <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <Path IsVisible="{Binding !HasIcon}" Data="{StaticResource ZenithLogoGeometry}" Fill="{DynamicResource SubtleEmeraldBrush}" Stretch="Uniform" Width="22" Height="22" Margin="0,2,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    <Image IsVisible="{Binding HasIcon}" Source="{Binding IconPath, Converter={x:Static converters:IconPathToBitmapConverter.Instance}}" Stretch="UniformToFill" Width="36" Height="36" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Panel>
+                                            </Border>
+                                            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Text="{Binding VersionDisplay}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            </StackPanel>
+                                            <!-- If NOT datapack: show standard Install button -->
+                                            <Button Grid.Column="2" Classes="primaryBtn" Classes.installed="{Binding IsInstalled}"
+                                                    Command="{Binding InstallCommand}" IsEnabled="{Binding CanClickButton}"
+                                                    IsVisible="{Binding !IsDatapackSelection}"
+                                                    Padding="14,6" FontSize="11.5">
+                                                <TextBlock Text="{Binding ButtonText}"/>
+                                            </Button>
+                                            <!-- If datapack: show chevron icon to indicate opening world list -->
+                                            <Border Grid.Column="2" IsVisible="{Binding IsDatapackSelection}" Width="26" Height="26" CornerRadius="13" Background="{DynamicResource ChipBrush}" VerticalAlignment="Center">
+                                                <PathIcon Data="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" Width="10" Height="10" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+
+                    <!-- STEP 2: World List for Datapack (Visible when IsSelectWorldStep) -->
+                    <StackPanel Grid.Row="1" Margin="0,0,0,10" Spacing="6" IsVisible="{Binding ModpacksBrowser.IsSelectWorldStep}">
+                        <Button Command="{Binding ModpacksBrowser.BackToInstancesCommand}" Classes="subBtn" Padding="8,4" HorizontalAlignment="Left">
+                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                <TextBlock Text="‹" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"/>
+                                <TextBlock Text="Back to profiles" FontSize="11.5" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <TextBlock Text="{Binding ModpacksBrowser.SelectWorldSubtitle}" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                    </StackPanel>
+
+                    <ScrollViewer Grid.Row="2" MaxHeight="320" VerticalScrollBarVisibility="Auto" IsVisible="{Binding ModpacksBrowser.IsSelectWorldStep}">
+                        <StackPanel Spacing="6">
+                            <Border IsVisible="{Binding ModpacksBrowser.HasNoWorldsFound}" Padding="16" Background="{DynamicResource CardBrush}" CornerRadius="8" HorizontalAlignment="Stretch" Margin="0,6">
+                                <TextBlock Text="No worlds found in this profile. Launch Minecraft and create a world first." Foreground="{DynamicResource TextPlaceholderBrush}" HorizontalAlignment="Center" TextAlignment="Center" FontSize="12"/>
+                            </Border>
+                            <ItemsControl ItemsSource="{Binding ModpacksBrowser.TargetWorlds}" IsVisible="{Binding !ModpacksBrowser.HasNoWorldsFound}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="dialogs:WorldTargetItem">
+                                        <Border Classes="targetInstanceCard" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,0,0,6" Tapped="OnWorldTargetCardTapped" Cursor="Hand">
+                                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalAlignment="Center">
+                                                <Border Width="36" Height="36" Background="{DynamicResource ChipBrush}" CornerRadius="8" VerticalAlignment="Center" ClipToBounds="True">
+                                                    <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                        <PathIcon IsVisible="{Binding !HasIcon}" Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" Width="18" Height="18" Foreground="{DynamicResource AccentBrush}"/>
+                                                        <Image IsVisible="{Binding HasIcon}" Source="{Binding IconBitmap}" Stretch="UniformToFill" Width="36" Height="36"/>
+                                                    </Panel>
+                                                </Border>
+                                                <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding WorldName}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                                    <TextBlock Text="{Binding FolderName, StringFormat='saves/{0}'}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                </StackPanel>
+                                                <Button Grid.Column="2" Classes="primaryBtn" Classes.installed="{Binding IsInstalled}"
+                                                        Command="{Binding InstallCommand}" IsEnabled="{Binding !IsInstalled}"
+                                                        Padding="14,6" FontSize="11.5">
+                                                    <TextBlock Text="{Binding ButtonText}"/>
+                                                </Button>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- Footer -->
+                    <Grid Grid.Row="3" Margin="0,12,0,0" VerticalAlignment="Center">
+                        <Button Classes="subBtn" Content="Cancel" Command="{Binding ModpacksBrowser.CloseAddToInstanceCommand}" HorizontalAlignment="Right" Padding="16,6" FontSize="12"/>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Border>
+
+        <!-- Toast Notification (Bottom Center) -->
+        <Border Classes="toastNotification" Classes.visible="{Binding IsToastVisible}"
+                HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                Margin="0,0,0,36" ZIndex="3000" IsHitTestVisible="False">
+            <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1"
+                    CornerRadius="20" Padding="16,8" BoxShadow="0 4 16 0 #40000000">
+                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <PathIcon Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" Width="14" Height="14" Foreground="{DynamicResource SuccessBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding ToastMessage}" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+        </Border>
+    </Panel>
+</UserControl>

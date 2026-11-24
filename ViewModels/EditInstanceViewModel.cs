@@ -81,7 +81,7 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
         MaxRamMb = _host.MaxRamMb > 0 ? _host.MaxRamMb : 16384;
 
         SelectedJavaMode = instance.JavaMode ?? _globalConfig.JavaMode ?? "Recommended";
-        CustomJavaPath = instance.CustomJavaPath ?? _globalConfig.CustomJavaPath ?? "";
+        CustomJavaPath = instance.CustomJavaPath ?? "";
         JvmArgs = instance.JvmArgs ?? _globalConfig.JvmArgs ?? "";
         RamMb = instance.RamMb ?? EffectiveGlobalRamMb(_globalConfig);
         GameWidth = instance.GameWidth ?? (_globalConfig.GameWidth > 0 ? _globalConfig.GameWidth : 1280);
@@ -589,13 +589,29 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
     private async void RefreshLogs()
     {
         if (SelectedTab != "Logs" || _isRefreshingLogs) return;
-        var path = LogFilePath;
-        if (!File.Exists(path))
+
+        var isLive = SelectedLogSource == "Live Log";
+        if (isLive && !Instance.HasLaunchedInCurrentSession && !Instance.IsRunning)
         {
-            LogText = "No logs yet. Launch the instance to see output here.";
+            LogText = string.Empty;
             LogHasContent = false;
             _lastLogLength = 0;
             _lastLogModifiedUtc = default;
+            UpdateFilteredLogText();
+            return;
+        }
+
+        var path = isLive
+            ? LogFilePath
+            : Path.Combine(Instance.Path, "logs", "latest.log");
+
+        if (!File.Exists(path))
+        {
+            LogText = string.Empty;
+            LogHasContent = false;
+            _lastLogLength = 0;
+            _lastLogModifiedUtc = default;
+            UpdateFilteredLogText();
             return;
         }
 
@@ -614,7 +630,7 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
             _lastLogLength = len;
 
             bool showSys = LogsShowSystemMessages;
-            bool fullJava = LogsFullJava;
+            bool fullJava = LogsFullJava && isLive;
             string instPath = Instance.Path;
 
             var (text, hasContent) = await Task.Run(() =>
@@ -655,7 +671,7 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
                 }
 
                 var res = sb.ToString().TrimEnd('\r', '\n');
-                return (res.Length == 0 ? "No logs yet. Launch the instance to see output here." : res, res.Length > 0);
+                return (res, res.Length > 0);
             });
 
             LogText = text;
@@ -667,6 +683,28 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
         {
             _isRefreshingLogs = false;
         }
+    }
+
+    [RelayCommand]
+    private void OpenLogFile()
+    {
+        try
+        {
+            var latestLog = Path.Combine(Instance.Path, "logs", "latest.log");
+            var liveLog = LogFilePath;
+            var target = File.Exists(latestLog) ? latestLog : (File.Exists(liveLog) ? liveLog : null);
+            if (target != null)
+            {
+                Process.Start(new ProcessStartInfo(target) { UseShellExecute = true });
+            }
+            else
+            {
+                var logsFolder = Path.Combine(Instance.Path, "logs");
+                Directory.CreateDirectory(logsFolder);
+                Process.Start(new ProcessStartInfo(logsFolder) { UseShellExecute = true });
+            }
+        }
+        catch { }
     }
 
     private static bool IsSystemMessage(string line)
@@ -1459,7 +1497,12 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
     private bool _isFullscreen;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(JavaPlaceholderPath))]
     private string _javaDisplayPath = "Recommended";
+
+    public int RequiredJavaMajor => JavaVersionHelper.InferRequiredJavaMajor(Instance.Version);
+    public string JavaCardTitle => $"Java {RequiredJavaMajor}";
+    public string JavaPlaceholderPath => string.IsNullOrWhiteSpace(JavaDisplayPath) ? "javaw.exe" : JavaDisplayPath;
 
     partial void OnSelectedJavaModeChanged(string value)
     {
@@ -1595,10 +1638,12 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
     {
         // Only store an override if the user explicitly enabled it for that block;
         // otherwise keep null so the launcher inherits the global setting.
-        Instance.JavaMode = _javaDirty ? SelectedJavaMode : null;
-        Instance.CustomJavaPath = _javaDirty && SelectedJavaMode == "Custom" && !string.IsNullOrWhiteSpace(CustomJavaPath)
-            ? CustomJavaPath
+        Instance.CustomJavaPath = !string.IsNullOrWhiteSpace(CustomJavaPath)
+            ? CustomJavaPath.Trim()
             : null;
+        Instance.JavaMode = !string.IsNullOrWhiteSpace(Instance.CustomJavaPath)
+            ? "Custom"
+            : (_javaDirty ? SelectedJavaMode : null);
         Instance.JvmArgs = _jvmArgsDirty ? (string.IsNullOrWhiteSpace(JvmArgs) ? null : JvmArgs) : null;
         Instance.RamMb = _memoryDirty ? RamMb : null;
         Instance.GameWidth = _windowDirty ? GameWidth : null;

@@ -8,7 +8,7 @@
         xmlns:l10n="using:ZenithLauncher.Extensions"
         x:Class="ZenithLauncher.Views.EditInstanceView"
         x:DataType="vm:EditInstanceViewModel"
-        Background="{StaticResource BgBrush}"
+        Background="{DynamicResource BgBrush}"
         UseLayoutRounding="True">
 
     <UserControl.Resources>
@@ -19,7 +19,7 @@
             <Setter Property="Width" Value="5"/>
         </Style>
         <Style Selector="ScrollBar:vertical /template/ Thumb">
-            <Setter Property="Background" Value="{StaticResource BorderStrongBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource BorderStrongBrush}"/>
             <Setter Property="CornerRadius" Value="3"/>
         </Style>
         <Style Selector="ScrollBar /template/ RepeatButton">
@@ -85,8 +85,8 @@
         </Style>
 
         <Style Selector="Button.primaryBtn">
-            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -94,14 +94,14 @@
 
         </Style>
         <Style Selector="Button.primaryBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource AccentBrushHover}"/>
-            <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource AccentBrushHover}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
         </Style>
 
         <Style Selector="Button.subBtn">
-            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderEditorBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource FieldBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderEditorBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Padding" Value="14,9"/>
@@ -109,38 +109,38 @@
 
         </Style>
         <Style Selector="Button.subBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderHoverBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
 
         <Style Selector="Button.dangerBtn">
-            <Setter Property="Background" Value="{StaticResource DangerBgBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource DangerBorderBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource DangerBgBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource DangerBorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Padding" Value="14,9"/>
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
         <Style Selector="Button.dangerBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource DangerBgDeepBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource DangerLightBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource DangerBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource DangerBgDeepBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource DangerLightBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}"/>
         </Style>
 
         <Style Selector="Button.resetBtn">
-            <Setter Property="Background" Value="{StaticResource TabHoverBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource WarningBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource WarningBorderBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource TabHoverBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource WarningBorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Padding" Value="12,5"/>
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
         <Style Selector="Button.resetBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource TabPressedBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource WarningBrightBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource TabPressedBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource WarningBrightBrush}"/>
         </Style>
 
         <Style Selector="Button.sideTab">
@@ -173,13 +173,13 @@
         <!-- Main: Sidebar + Content -->
         <Grid Grid.Row="0" ColumnDefinitions="Auto,*">
             <!-- Sidebar -->
-            <Border Grid.Column="0" Width="210" Background="{StaticResource SidebarBgBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,1,0" Padding="10" IsVisible="{Binding !IsLogExpanded}">
+            <Border Grid.Column="0" Width="210" Background="{DynamicResource SidebarBgBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="0,0,1,0" Padding="10" IsVisible="{Binding !IsLogExpanded}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Spacing="2">
 
                         <Button Classes="sideTab" Classes.active="{Binding IsOverviewTab}" Command="{Binding SelectTabCommand}" CommandParameter="Overview">
                             <Grid ColumnDefinitions="Auto,*">
-                                <Border Width="30" Height="30" Background="{StaticResource IconChipBrush}" CornerRadius="7" VerticalAlignment="Center">
+                                <Border Width="30" Height="30" Background="{DynamicResource IconChipBrush}" CornerRadius="7" VerticalAlignment="Center">
                                     <PathIcon Data="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" Width="15" Height="15" Foreground="{Binding IsOverviewTab, Converter={x:Static converters:EditInstanceWindowConverters.ActiveIcon}}"/>
                                 </Border>
                                 <TextBlock Grid.Column="1" Text="{l10n:Tr Key=tab_overview}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsOverviewTab, Converter={x:Static converters:EditInstanceWindowConverters.ActiveText}}"/>
@@ -188,7 +188,7 @@
 
                         <Button Classes="sideTab" Classes.active="{Binding IsLogsTab}" Command="{Binding SelectTabCommand}" CommandParameter="Logs">
                             <Grid ColumnDefinitions="Auto,*">
-                                <Border Width="30" Height="30" Background="{StaticResource IconChipBrush}" CornerRadius="7" VerticalAlignment="Center">
+                                <Border Width="30" Height="30" Background="{DynamicResource IconChipBrush}" CornerRadius="7" VerticalAlignment="Center">
                                     <PathIcon Data="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8h16v10zm-12-7l3 3-3 3-1.4-1.4L8.2 13l-1.6-1.6L8 11zm5 5h5v2h-5v-2z" Width="15" Height="15" Foreground="{Binding IsLogsTab, Converter={x:Static converters:EditInstanceWindowConverters.ActiveIcon}}"/>
                                 </Border>
                                 <TextBlock Grid.Column="1" Text="{l10n:Tr Key=tab_logs}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsLogsTab, Converter={x:Static converters:EditInstanceWindowConverters.ActiveText}}"/>
@@ -198,7 +198,7 @@
                         <StackPanel>
                             <Button Classes="sideTab" Classes.active="{Binding IsModsTab}" Command="{Binding SelectTabCommand}" CommandParameter="Mods" IsVisible="{Binding HasModsSupport}">
                                 <Grid ColumnDefinitions="Auto,*">
-                                    <Border Width="30" Height="30" Background="{StaticResource IconChipBrush}" CornerRadius="7" VerticalAlignment="Center">
+                                    <Border Width="30" Height="30" Background="{DynamicResource IconChipBrush}" CornerRadius="7" VerticalAlignment="Center">
                                         <PathIcon Data="M20.5 11H19V7c0-1.1-.9-2-2-2h-4V3.5a2.5 2.5 0 0 0-5 0V5H4c-1.1 0-1.99.9-1.99 2v3.8H3.5a2.5 2.5 0 0 1 0 5H2v4c0 1.1.9 2 2 2h3.8v1.5a2.5 2.5 0 0 0 5 0V21H17c1.1 0 2-.9 2-2v-4h1.5a2.5 2.5 0 0 0 0-5z" Width="17" Height="15" Foreground="{Binding IsModsTab, Converter={x:Static converters:EditInstanceWindowConverters.ActiveIcon}}"/>
                                     </Border>
                                     <TextBlock Grid.Column="1" Text="{l10n:Tr Key=tab_mods}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsModsTab, Converter={x:Static converters:EditInstanceWindowConverters.ActiveText}}"/>
@@ -206,7 +206,7 @@
                             </Button>
                             <Button Classes="sideTab" Classes.active="{Binding IsResourcePacksTab}" Command="{Binding SelectTabCommand}" CommandParameter="Resource Packs">
                                 <Grid ColumnDefinitions="Auto,*">
-                                    <Border Width="30" Height="30" Background="{StaticResource IconChipBrush}" CornerRadius="7" VerticalAlignment="Center">
+                                    <Border Width="30" Height="30" Background="{DynamicResource IconChipBrush}" CornerRadius="7" VerticalAlignment="Center">
                                         <PathIcon Data="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-5.04-6.71l-2.75 3.54-1.96-2.36L6.5 17h11l-3.54-4.71zM9 9a2 2 0 1 1-4 0 2 2 0 0 1 4 0z" Width="15" Height="15" Foreground="{Binding IsResourcePacksTab, Converter={x:Static converters:EditInstanceWindowConverters.ActiveIcon}}"/>
                                     </Border>
                                     <TextBlock Grid.Column="1" Text="{l10n:Tr Key=tab_resourcepacks}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsResourcePacksTab, Converter={x:Static converters:EditInstanceWindowConverters.ActiveText}}"/>
@@ -214,7 +214,7 @@
                             </Button>
                             <Button Classes="sideTab" Classes.active="{Binding IsShaderPacksTab}" Command="{Binding SelectTabCommand}" CommandParameter="Shader Packs" IsVisible="{Binding HasShaderSupport}">
                                 <Grid ColumnDefinitions="Auto,*">
-                                    <Border Width="30" Height="30" Background="{StaticResource IconChipBrush}" CornerRadius="7" VerticalAlignment="Center">
+                                    <Border Width="30" Height="30" Background="{DynamicResource IconChipBrush}" CornerRadius="7" VerticalAlignment="Center">
                                         <PathIcon Data="M10.5 2L12.2 7.7 18 9.5 12.2 11.3 10.5 17 8.8 11.3 3 9.5 8.8 7.7 10.5 2zm7.5 10l1 3.2 3.2 1-3.2 1-1 3.2-1-3.2-3.2-1 3.2-1 1-3.2z" Width="15" Height="15" Foreground="{Binding IsShaderPacksTab, Converter={x:Static converters:EditInstanceWindowConverters.ActiveIcon}}"/>
                                     </Border>
                                     <TextBlock Grid.Column="1" Text="{l10n:Tr Key=tab_shaders}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsShaderPacksTab, Converter={x:Static converters:EditInstanceWindowConverters.ActiveText}}"/>
@@ -222,7 +222,7 @@
                             </Button>
                             <Button Classes="sideTab" Classes.active="{Binding IsDataPacksTab}" Command="{Binding SelectTabCommand}" CommandParameter="Data Packs">
                                 <Grid ColumnDefinitions="Auto,*">
-                                    <Border Width="30" Height="30" Background="{StaticResource IconChipBrush}" CornerRadius="7" VerticalAlignment="Center">
+                                    <Border Width="30" Height="30" Background="{DynamicResource IconChipBrush}" CornerRadius="7" VerticalAlignment="Center">
                                         <PathIcon Data="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-2 10H6v-2h12v2zm0-4H6v-2h12v2z" Width="15" Height="15" Foreground="{Binding IsDataPacksTab, Converter={x:Static converters:EditInstanceWindowConverters.ActiveIcon}}"/>
                                     </Border>
                                     <TextBlock Grid.Column="1" Text="{l10n:Tr Key=tab_datapacks}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsDataPacksTab, Converter={x:Static converters:EditInstanceWindowConverters.ActiveText}}"/>
@@ -230,7 +230,7 @@
                             </Button>
                             <Button Classes="sideTab" Classes.active="{Binding IsWorldsTab}" Command="{Binding SelectTabCommand}" CommandParameter="Worlds">
                                 <Grid ColumnDefinitions="Auto,*">
-                                    <Border Width="30" Height="30" Background="{StaticResource IconChipBrush}" CornerRadius="7" VerticalAlignment="Center">
+                                    <Border Width="30" Height="30" Background="{DynamicResource IconChipBrush}" CornerRadius="7" VerticalAlignment="Center">
                                         <PathIcon Data="M12 2A10 10 0 1 0 22 12 10 10 0 0 0 12 2zm6.93 6h-3.3a14.7 14.7 0 0 0-1.63-4.32A8.04 8.04 0 0 1 18.93 8zM12 4.07c.88 1.07 1.6 2.58 2.04 3.93H9.96c.44-1.35 1.16-2.86 2.04-3.93zM4.26 14A8.03 8.03 0 0 1 4 12c0-.69.09-1.36.26-2h3.9c-.11.65-.16 1.32-.16 2 0 .68.05 1.35.16 2zm.81 2h3.3c.4 1.63 1 3.12 1.63 4.32A8.04 8.04 0 0 1 5.07 16zm3.3-8H5.07a8.04 8.04 0 0 1 4.93-4.32A14.7 14.7 0 0 0 8.37 8zm3.63 11.93c-.88-1.07-1.6-2.58-2.04-3.93h4.08c-.44 1.35-1.16 2.86-2.04 3.93zM10.04 14c-.13-.65-.2-1.31-.2-2 0-.69.07-1.35.2-2h3.92c.13.65.2 1.31.2 2 0 .69-.07 1.35-.2 2zm4.33 6.32c.63-1.2 1.23-2.69 1.63-4.32h3.3a8.04 8.04 0 0 1-4.93 4.32zM15.84 14c.11-.65.16-1.32.16-2 0-.68-.05-1.35-.16-2h3.9c.17.64.26 1.31.26 2 0 .69-.09 1.36-.26 2z" Width="15" Height="15" Foreground="{Binding IsWorldsTab, Converter={x:Static converters:EditInstanceWindowConverters.ActiveIcon}}"/>
                                     </Border>
                                     <TextBlock Grid.Column="1" Text="{l10n:Tr Key=tab_worlds}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsWorldsTab, Converter={x:Static converters:EditInstanceWindowConverters.ActiveText}}"/>
@@ -238,7 +238,7 @@
                             </Button>
                             <Button Classes="sideTab" Classes.active="{Binding IsServersTab}" Command="{Binding SelectTabCommand}" CommandParameter="Servers">
                                 <Grid ColumnDefinitions="Auto,*">
-                                    <Border Width="30" Height="30" Background="{StaticResource IconChipBrush}" CornerRadius="7" VerticalAlignment="Center">
+                                    <Border Width="30" Height="30" Background="{DynamicResource IconChipBrush}" CornerRadius="7" VerticalAlignment="Center">
                                         <PathIcon Data="M4 4h16a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm2 3a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm4 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm-6 6h16a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2zm2 3a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm4 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" Width="15" Height="15" Foreground="{Binding IsServersTab, Converter={x:Static converters:EditInstanceWindowConverters.ActiveIcon}}"/>
                                     </Border>
                                     <TextBlock Grid.Column="1" Text="{l10n:Tr Key=tab_servers}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsServersTab, Converter={x:Static converters:EditInstanceWindowConverters.ActiveText}}"/>
@@ -246,7 +246,7 @@
                             </Button>
                             <Button Classes="sideTab" Classes.active="{Binding IsScreenshotsTab}" Command="{Binding SelectTabCommand}" CommandParameter="Screenshots">
                                 <Grid ColumnDefinitions="Auto,*">
-                                    <Border Width="30" Height="30" Background="{StaticResource IconChipBrush}" CornerRadius="7" VerticalAlignment="Center">
+                                    <Border Width="30" Height="30" Background="{DynamicResource IconChipBrush}" CornerRadius="7" VerticalAlignment="Center">
                                         <PathIcon Data="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" Width="15" Height="15" Foreground="{Binding IsScreenshotsTab, Converter={x:Static converters:EditInstanceWindowConverters.ActiveIcon}}"/>
                                     </Border>
                                     <TextBlock Grid.Column="1" Text="{l10n:Tr Key=tab_screenshots}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsScreenshotsTab, Converter={x:Static converters:EditInstanceWindowConverters.ActiveText}}"/>
@@ -254,7 +254,7 @@
                             </Button>
                             <Button Classes="sideTab" Classes.active="{Binding IsSettingsTab}" Command="{Binding SelectTabCommand}" CommandParameter="Settings">
                                 <Grid ColumnDefinitions="Auto,*">
-                                    <Border Width="30" Height="30" Background="{StaticResource IconChipBrush}" CornerRadius="7" VerticalAlignment="Center">
+                                    <Border Width="30" Height="30" Background="{DynamicResource IconChipBrush}" CornerRadius="7" VerticalAlignment="Center">
                                         <PathIcon Data="M19.14 12.94C19.18 12.64 19.2 12.33 19.2 12C19.2 11.68 19.18 11.36 19.13 11.06L21.16 9.5C21.34 9.36 21.39 9.11 21.28 8.9L19.36 5.55C19.24 5.33 18.99 5.25 18.77 5.33L16.38 6.29C15.88 5.9 15.34 5.58 14.76 5.35L14.4 2.81C14.36 2.57 14.16 2.4 13.91 2.4H10.09C9.84 2.4 9.64 2.57 9.6 2.81L9.24 5.35C8.66 5.58 8.12 5.9 7.62 6.29L5.23 5.33C5.01 5.25 4.76 5.33 4.64 5.55L2.72 8.9C2.61 9.11 2.66 9.37 2.84 9.5L4.87 11.06C4.82 11.36 4.8 11.68 4.8 12C4.8 12.32 4.82 12.64 4.87 12.94L2.84 14.5C2.66 14.64 2.61 14.88 2.72 15.1L4.64 18.45C4.76 18.67 5.01 18.75 5.23 18.67L7.62 17.71C8.12 18.1 8.66 18.42 9.24 18.65L9.6 21.19C9.64 21.43 9.84 21.6 10.09 21.6H13.91C14.16 21.6 14.36 21.43 14.4 21.19L14.76 18.65C15.34 18.42 15.88 18.1 16.38 17.71L18.77 18.67C18.99 18.75 19.24 18.67 19.36 18.45L21.28 15.1C21.39 14.89 21.34 14.64 21.16 14.5L19.13 12.94ZM12 15.5C10.1 15.5 8.5 13.9 8.5 12C8.5 10.1 10.1 8.5 12 8.5C13.9 8.5 15.5 10.1 15.5 12C15.5 13.9 13.9 15.5 12 15.5Z" Width="15" Height="15" Foreground="{Binding IsSettingsTab, Converter={x:Static converters:EditInstanceWindowConverters.ActiveIcon}}"/>
                                     </Border>
                                     <TextBlock Grid.Column="1" Text="{l10n:Tr Key=tab_settings}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsSettingsTab, Converter={x:Static converters:EditInstanceWindowConverters.ActiveText}}"/>
@@ -266,7 +266,7 @@
             </Border>
 
             <!-- Content -->
-            <Border Grid.Column="1" Background="{StaticResource LogSidebarBrush}">
+            <Border Grid.Column="1" Background="{DynamicResource LogSidebarBrush}">
                 <Grid x:Name="TabContentGrid">
                 <!-- Overview / Dashboard -->
                 <ScrollViewer IsVisible="{Binding IsOverviewTab}" VerticalScrollBarVisibility="Auto">
@@ -276,7 +276,7 @@
                             <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8" VerticalAlignment="Center">
                                 <!-- Instance Icon (Clickable, no border) -->
                                 <Button Command="{Binding ChangeIconCommand}" Cursor="Hand" Padding="0" Background="Transparent" BorderThickness="0" CornerRadius="16" ToolTip.Tip="{l10n:Tr Key=mi_change_icon}">
-                                    <Border Width="72" Height="72" CornerRadius="16" ClipToBounds="True" Background="{StaticResource ChipBrush}" BorderThickness="0">
+                                    <Border Width="72" Height="72" CornerRadius="16" ClipToBounds="True" Background="{DynamicResource ChipBrush}" BorderThickness="0">
                                         <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
                                             <Path IsVisible="{Binding !Instance.HasCustomIcon}"
                                                   Data="{StaticResource ZenithLogoGeometry}"
@@ -308,7 +308,7 @@
                           LostFocus="OnInstanceNameLostFocus"
                                              ToolTip.Tip="Double-click to rename"/>
                                     <TextBlock Text="{Binding Instance.DisplayVersion}" FontSize="12" FontWeight="SemiBold"
-                                               Foreground="{StaticResource TextSecondaryBrush}" Margin="0,2,0,0" HorizontalAlignment="Left"/>
+                                               Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0" HorizontalAlignment="Left"/>
                                 </StackPanel>
 
                                 <!-- Single Clean Open Folder Button next to instance details -->
@@ -386,6 +386,12 @@
                         </StackPanel>
 
                         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <Button Classes="subBtn" Command="{Binding OpenLogFileCommand}" Padding="10,5" FontSize="11" ToolTip.Tip="Open log file">
+                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                    <PathIcon Data="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z" Width="12" Height="12"/>
+                                    <TextBlock Text="{l10n:Tr Key=fl_open}" FontSize="11"/>
+                                </StackPanel>
+                            </Button>
                             <Button Classes="subBtn" Command="{Binding CopyLogsCommand}" Padding="10,5" FontSize="11" ToolTip.Tip="{l10n:Tr Key=btn_copy_logs}">
                                 <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                                     <PathIcon Data="M16 1H4C2.9 1 2 1.9 2 3v14h2V3h12V1zm3 4H8C6.9 5 6 5.9 6 7v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" Width="12" Height="12"/>
@@ -461,11 +467,11 @@
                             <Button Grid.Column="1" Classes="primaryBtn" Content="{l10n:Tr Key=btn_browse_datapacks}" Command="{Binding OpenContentBrowserCommand}" CommandParameter="Data Packs" Padding="14,7" FontSize="12" VerticalAlignment="Center" IsEnabled="{Binding AvailableWorlds.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsNonZero}}"/>
                         </Grid>
                         <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8" VerticalAlignment="Center">
-                            <TextBlock Text="{l10n:Tr Key=lbl_world}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <TextBlock Text="{l10n:Tr Key=lbl_world}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,6,0"/>
                             <ComboBox Grid.Column="1" Classes="zenCombo" ItemsSource="{Binding AvailableWorlds}" SelectedItem="{Binding SelectedWorld}" PlaceholderText="{l10n:Tr Key=w_select_world}" FontSize="11" Padding="10,6" MinWidth="200" VerticalAlignment="Center"/>
                             <Button Grid.Column="2" Classes="subBtn" Content="{l10n:Tr Key=btn_open_folder}" Command="{Binding OpenDataPackFolderCommand}" Padding="12,6" FontSize="11" VerticalAlignment="Center" IsEnabled="{Binding SelectedWorld, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
                         </Grid>
-                        <TextBlock Text="{l10n:Tr Key=w_no_worlds}" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding AvailableWorlds.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}"/>
+                        <TextBlock Text="{l10n:Tr Key=w_no_worlds}" FontSize="11" Foreground="{DynamicResource TextPlaceholderBrush}" IsVisible="{Binding AvailableWorlds.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}"/>
                     </StackPanel>
                     <Border Grid.Row="1" Background="Transparent" Padding="4">
                         <Grid>
@@ -477,39 +483,39 @@
                                         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
                                     </Style>
                                     <Style Selector="ListBoxItem:selected">
-                                        <Setter Property="Background" Value="{StaticResource PanelBrush}"/>
+                                        <Setter Property="Background" Value="{DynamicResource PanelBrush}"/>
                                     </Style>
                                 </ListBox.Styles>
                                 <ListBox.ItemTemplate>
                                     <DataTemplate x:DataType="models:InstanceFileEntry">
                                         <Grid ColumnDefinitions="48,*,Auto" MinHeight="52" Margin="4,6,4,6">
-                                            <Border Width="40" Height="40" Background="{StaticResource IconChipBrush}" CornerRadius="8" ClipToBounds="True" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <Border Width="40" Height="40" Background="{DynamicResource IconChipBrush}" CornerRadius="8" ClipToBounds="True" HorizontalAlignment="Left" VerticalAlignment="Center">
                                                 <Panel>
                                                     <Image Source="{Binding PreviewBytes, Converter={x:Static converters:BytesToBitmapConverter.Instance}}" Stretch="UniformToFill" Width="40" Height="40" IsVisible="{Binding HasPreview}"/>
-                                                    <Path Data="M14 2H6A2 2 0 0 0 4 4V20A2 2 0 0 0 6 22H18A2 2 0 0 0 20 20V6L14 2Z" Width="20" Height="20" Stretch="Uniform" Fill="{StaticResource TextPlaceholderBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding !HasPreview}"/>
+                                                    <Path Data="M14 2H6A2 2 0 0 0 4 4V20A2 2 0 0 0 6 22H18A2 2 0 0 0 20 20V6L14 2Z" Width="20" Height="20" Stretch="Uniform" Fill="{DynamicResource TextPlaceholderBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding !HasPreview}"/>
                                                 </Panel>
                                             </Border>
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1" Margin="0,0,8,0">
-                                                <TextBlock Text="{Binding Title}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
-                                                <TextBlock Text="{Binding ModifiedAt, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}" FontSize="10" Foreground="{StaticResource TextCaptionBrush}"/>
+                                                <TextBlock Text="{Binding Title}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Text="{Binding ModifiedAt, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}" FontSize="10" Foreground="{DynamicResource TextCaptionBrush}"/>
                                             </StackPanel>
                                             <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
-                                                <Button Command="{Binding $parent[Window].((vm:EditInstanceViewModel)DataContext).OpenDataPackCommand}" CommandParameter="{Binding}" Background="Transparent" Foreground="{StaticResource TextPlaceholderBrush}" Padding="4,1" Cursor="Hand" ToolTip.Tip="Open" VerticalAlignment="Center">
-                                                    <PathIcon Data="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="14" Height="14" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                                                <Button Command="{Binding $parent[Window].((vm:EditInstanceViewModel)DataContext).OpenDataPackCommand}" CommandParameter="{Binding}" Background="Transparent" Foreground="{DynamicResource TextPlaceholderBrush}" Padding="4,1" Cursor="Hand" ToolTip.Tip="Open" VerticalAlignment="Center">
+                                                    <PathIcon Data="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="14" Height="14" Foreground="{DynamicResource TextPlaceholderBrush}"/>
                                                 </Button>
-                                                <Button Command="{Binding $parent[Window].((vm:EditInstanceViewModel)DataContext).DeleteDataPackCommand}" CommandParameter="{Binding}" Background="Transparent" Foreground="{StaticResource TextPlaceholderBrush}" Padding="4,1" Cursor="Hand" ToolTip.Tip="Delete" VerticalAlignment="Center">
-                                                    <PathIcon Data="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" Width="13" Height="13" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                                                <Button Command="{Binding $parent[Window].((vm:EditInstanceViewModel)DataContext).DeleteDataPackCommand}" CommandParameter="{Binding}" Background="Transparent" Foreground="{DynamicResource TextPlaceholderBrush}" Padding="4,1" Cursor="Hand" ToolTip.Tip="Delete" VerticalAlignment="Center">
+                                                    <PathIcon Data="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" Width="13" Height="13" Foreground="{DynamicResource TextPlaceholderBrush}"/>
                                                 </Button>
                                             </StackPanel>
                                         </Grid>
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
                             </ListBox>
-                            <TextBlock Text="{l10n:Tr Key=w_none}" Foreground="{StaticResource TextPlaceholderBrush}" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding DataPacks.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}"/>
-                            <TextBlock Text="{l10n:Tr Key=w_pick_hint}" Foreground="{StaticResource TextPlaceholderBrush}" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding SelectedWorld, Converter={x:Static converters:EditInstanceWindowConverters.IsEmpty}}"/>
+                            <TextBlock Text="{l10n:Tr Key=w_none}" Foreground="{DynamicResource TextPlaceholderBrush}" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding DataPacks.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}"/>
+                            <TextBlock Text="{l10n:Tr Key=w_pick_hint}" Foreground="{DynamicResource TextPlaceholderBrush}" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding SelectedWorld, Converter={x:Static converters:EditInstanceWindowConverters.IsEmpty}}"/>
                         </Grid>
                     </Border>
-                    <TextBlock Grid.Row="2" Text="{l10n:Tr Key=w_tip}" FontSize="10" Foreground="{StaticResource TextCaptionBrush}" Margin="2,8,0,0"/>
+                    <TextBlock Grid.Row="2" Text="{l10n:Tr Key=w_tip}" FontSize="10" Foreground="{DynamicResource TextCaptionBrush}" Margin="2,8,0,0"/>
                 </Grid>
                 <!-- Worlds (Matches Modrinth/Zenith Clean Card Layout) -->
                 <Grid IsVisible="{Binding IsWorldsTab}" RowDefinitions="Auto,*" Margin="14,10">
@@ -745,60 +751,33 @@
 
                         <!-- Java Runtime Card -->
                         <Border Classes="settingsCard">
-                            <StackPanel Spacing="14">
-                                <StackPanel Spacing="3">
-                                    <TextBlock FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Text="{l10n:Tr Key=set_java}"/>
-                                    <TextBlock FontSize="11.5" Foreground="{DynamicResource TextMutedBrush}" Text="{l10n:Tr Key=set_java_mode_desc}"/>
-                                </StackPanel>
-                                <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
-
-                                <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                    <StackPanel Spacing="2">
-                                        <TextBlock FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Text="{l10n:Tr Key=set_java_mode}"/>
-                                        <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" Text="{l10n:Tr Key=set_java_mode_desc}"/>
-                                    </StackPanel>
-                                    <ComboBox Grid.Column="1" Classes="zenCombo" Width="220" ItemsSource="{Binding JavaModes}" SelectedItem="{Binding SelectedJavaMode}">
-                                        <ComboBox.ItemTemplate>
-                                            <DataTemplate>
-                                                <TextBlock Text="{Binding Converter={x:Static converters:JavaModeDisplayConverter.Instance}}"/>
-                                            </DataTemplate>
-                                        </ComboBox.ItemTemplate>
-                                    </ComboBox>
-                                </Grid>
-
+                            <StackPanel Spacing="12">
+                                <TextBlock Text="{Binding JavaCardTitle}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10" VerticalAlignment="Center">
-                                    <TextBox Classes="darkInput" Text="{Binding CustomJavaPath}" PlaceholderText="{l10n:Tr Key=custom_java_hint}" FontSize="12" Height="34"/>
-                                    <Button Grid.Column="1" Classes="subBtn" Content="{l10n:Tr Key=btn_browse}" Command="{Binding PickCustomJavaCommand}" Padding="14,6"/>
+                                    <TextBox Grid.Column="0" Classes="darkInput" Text="{Binding CustomJavaPath, Mode=TwoWay}" PlaceholderText="{Binding JavaPlaceholderPath}" FontSize="12" Height="34"/>
+                                    <Button Grid.Column="1" Classes="subBtn" Content="{l10n:Tr Key=btn_browse}" Command="{Binding PickCustomJavaCommand}" Padding="14,6" Height="34"/>
                                 </Grid>
-
-                                <Border Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="8" Padding="12,10">
-                                    <Grid ColumnDefinitions="Auto,*">
-                                        <TextBlock Text="{l10n:Tr Key=custom_java_active}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                        <TextBlock Grid.Column="1" Text="{Binding JavaDisplayPath, Mode=OneWay}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
-                                    </Grid>
-                                </Border>
                             </StackPanel>
                         </Border>
 
                         <!-- JVM Arguments Card -->
                         <Border Classes="settingsCard">
-                            <StackPanel Spacing="14">
+                            <StackPanel Spacing="10">
                                 <Grid ColumnDefinitions="*,Auto">
-                                    <StackPanel Spacing="3">
-                                        <TextBlock FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Text="{l10n:Tr Key=set_jvmargs}"/>
-                                        <TextBlock FontSize="11.5" Foreground="{DynamicResource TextMutedBrush}" Text="{l10n:Tr Key=set_jvmargs_hint}"/>
+                                    <StackPanel Spacing="2">
+                                        <TextBlock FontSize="13.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Text="{l10n:Tr Key=set_jvmargs}"/>
+                                        <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" Text="{l10n:Tr Key=set_jvmargs_hint}"/>
                                     </StackPanel>
                                     <Button Grid.Column="1" Classes="subBtn" Content="{l10n:Tr Key=btn_reset}" Command="{Binding ResetJvmArgsCommand}" IsVisible="{Binding CanResetJvmArgs}" FontSize="11" Padding="10,4" VerticalAlignment="Center"/>
                                 </Grid>
-                                <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
-                                <TextBox Classes="darkInput" Text="{Binding JvmArgs}" PlaceholderText="-XX:+UseG1GC ..." Padding="10,8" FontSize="12" AcceptsReturn="True" Height="64" TextWrapping="Wrap"/>
-                                <Border Background="{DynamicResource DangerBgBrush}" BorderBrush="{DynamicResource DangerBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12" IsVisible="{Binding HasJvmArgsWarning}">
+                                <TextBox Classes="darkInput" Text="{Binding JvmArgs}" PlaceholderText="-XX:+UseG1GC ..." Padding="10,6" FontSize="12" Height="34"/>
+                                <Border Background="{DynamicResource DangerBgBrush}" BorderBrush="{DynamicResource DangerBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="10" IsVisible="{Binding HasJvmArgsWarning}">
                                     <Grid ColumnDefinitions="*,Auto">
-                                        <StackPanel Spacing="4">
+                                        <StackPanel Spacing="3">
                                             <TextBlock Text="{l10n:Tr Key=jvm_warn_title}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource DangerBrush}"/>
                                             <TextBlock Text="{Binding JvmArgsWarningMessage}" FontSize="11" Foreground="{DynamicResource DangerLightBrush}" TextWrapping="Wrap"/>
                                         </StackPanel>
-                                        <Button Grid.Column="1" Classes="dangerBtn" Content="{l10n:Tr Key=btn_clean_jvm_flags}" Command="{Binding CleanIncompatibleJvmArgsCommand}" FontSize="11" Padding="12,6" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                                        <Button Grid.Column="1" Classes="dangerBtn" Content="{l10n:Tr Key=btn_clean_jvm_flags}" Command="{Binding CleanIncompatibleJvmArgsCommand}" FontSize="11" Padding="10,5" VerticalAlignment="Center" Margin="10,0,0,0"/>
                                     </Grid>
                                 </Border>
                             </StackPanel>
@@ -831,7 +810,7 @@
             </StackPanel>
         </Border>
         <!-- Delete World Confirmation Overlay -->
-        <Border Grid.Row="0" Grid.RowSpan="2" Background="#99000000" IsVisible="{Binding IsDeleteWorldConfirmOpen}"
+        <Border Grid.Row="0" Grid.RowSpan="2" Background="{DynamicResource OverlayBrush}" IsVisible="{Binding IsDeleteWorldConfirmOpen}"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="110">
             <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
                     BorderThickness="1" CornerRadius="12" Padding="24"
@@ -855,7 +834,7 @@
         </Border>
 
         <!-- Edit World Dialog Overlay -->
-        <Border Grid.Row="0" Grid.RowSpan="2" Background="#99000000" IsVisible="{Binding IsEditWorldOpen}"
+        <Border Grid.Row="0" Grid.RowSpan="2" Background="{DynamicResource OverlayBrush}" IsVisible="{Binding IsEditWorldOpen}"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="110">
             <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
                     BorderThickness="1" CornerRadius="12" Padding="24"
@@ -878,7 +857,7 @@
             </Border>
         </Border>
         <!-- Delete Server Confirmation Overlay -->
-        <Border Grid.Row="0" Grid.RowSpan="2" Background="#99000000" IsVisible="{Binding IsDeleteServerConfirmOpen}"
+        <Border Grid.Row="0" Grid.RowSpan="2" Background="{DynamicResource OverlayBrush}" IsVisible="{Binding IsDeleteServerConfirmOpen}"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="110">
             <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
                     BorderThickness="1" CornerRadius="12" Padding="24"
@@ -902,7 +881,7 @@
         </Border>
 
         <!-- Add Server Dialog Overlay -->
-        <Border Grid.Row="0" Grid.RowSpan="2" Background="#99000000" IsVisible="{Binding IsAddServerOpen}"
+        <Border Grid.Row="0" Grid.RowSpan="2" Background="{DynamicResource OverlayBrush}" IsVisible="{Binding IsAddServerOpen}"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="110">
             <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
                     BorderThickness="1" CornerRadius="12" Padding="24"
@@ -931,7 +910,7 @@
             </Border>
         </Border>
         <!-- Mod Conflicts Resolution Overlay -->
-        <Border Grid.Row="0" Grid.RowSpan="2" Background="#99000000" IsVisible="{Binding IsConflictDialogOpen}"
+        <Border Grid.Row="0" Grid.RowSpan="2" Background="{DynamicResource OverlayBrush}" IsVisible="{Binding IsConflictDialogOpen}"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="110">
             <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
                     BorderThickness="1" CornerRadius="12" Padding="24"

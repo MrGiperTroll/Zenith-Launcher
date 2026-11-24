@@ -130,6 +130,10 @@ public partial class InstanceModel : ObservableObject
 
     [JsonIgnore]
     [ObservableProperty]
+    private bool _hasLaunchedInCurrentSession;
+
+    [JsonIgnore]
+    [ObservableProperty]
     private bool _isEditingName;
 
     [JsonIgnore]

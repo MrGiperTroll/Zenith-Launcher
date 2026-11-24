@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.VisualTree;
 using ZenithLauncher.Models;
 using ZenithLauncher.ViewModels;
 
@@ -7,7 +8,7 @@ namespace ZenithLauncher.Views.Components;
 
 public partial class InstanceGridControl : UserControl
 {
-    private bool _suppressNextTap;
+    public bool SuppressNextTap { get; set; }
 
     public InstanceGridControl()
     {
@@ -16,14 +17,25 @@ public partial class InstanceGridControl : UserControl
 
     private void OnInstanceCardPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        // Routed to parent for reordering
+        if (sender is Border border && border.DataContext is InstanceModel instance)
+        {
+            this.FindAncestorOfType<Pages.ProfilesView>()?.StartDrag(border, instance, e);
+        }
     }
 
     private void OnInstanceCardTapped(object? sender, TappedEventArgs e)
     {
-        if (_suppressNextTap)
+        var profilesView = this.FindAncestorOfType<Pages.ProfilesView>();
+        if (profilesView != null && profilesView.SuppressNextTap)
         {
-            _suppressNextTap = false;
+            profilesView.SuppressNextTap = false;
+            e.Handled = true;
+            return;
+        }
+
+        if (SuppressNextTap)
+        {
+            SuppressNextTap = false;
             e.Handled = true;
             return;
         }

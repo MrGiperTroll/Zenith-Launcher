@@ -1,0 +1,125 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:ZenithLauncher.ViewModels"
+             xmlns:components="using:ZenithLauncher.Views.Components"
+             xmlns:converters="using:ZenithLauncher.Converters"
+             xmlns:l10n="using:ZenithLauncher.Extensions"
+             x:Class="ZenithLauncher.Views.Pages.ProfilesView"
+             x:DataType="vm:MainWindowViewModel"
+             mc:Ignorable="d">
+    <Panel>
+        <Grid ColumnDefinitions="*,Auto" Margin="24,16,0,0">
+            <components:InstanceGridControl Grid.Column="0" />
+
+            <!-- Right Sidebar: Instance Details -->
+            <Border Grid.Column="1" IsVisible="False" Width="300" Opacity="0" Background="{DynamicResource SidebarBgBrush}" Padding="16,8,16,16"
+                    x:Name="InstanceDetailsSidebar">
+
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Spacing="12">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Text="{l10n:Tr Key=mw_instance_details}" FontWeight="Bold" FontSize="15" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            <Button Grid.Column="1" Content="✕" Command="{Binding CloseRightSidebarCommand}" Background="Transparent" Foreground="{DynamicResource TextPlaceholderBrush}" Padding="6,2" Cursor="Hand"/>
+                        </Grid>
+
+                        <!-- Profile Preview Box -->
+                        <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="16,14">
+                            <StackPanel HorizontalAlignment="Center" Spacing="0">
+                                <!-- Иконка профиля -->
+                                <Button Classes="iconChangeBtn" Command="{Binding ChangeInstanceIconCommand}" CommandParameter="{Binding SelectedInstance}"
+                                        Background="Transparent" BorderThickness="0" Padding="0" Margin="0,0,0,16" Cursor="Hand"
+                                        ToolTip.Tip="{l10n:Tr Key=icon_change_tip}"
+                                        HorizontalAlignment="Center">
+                                    <Border Width="72" Height="72" Background="{DynamicResource ChipBrush}" BorderBrush="{DynamicResource BorderIconBrush}" BorderThickness="1" CornerRadius="16" ClipToBounds="True" HorizontalAlignment="Center">
+                                        <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <Path IsVisible="{Binding !SelectedInstance.HasCustomIcon}" 
+                                                  Data="{StaticResource ZenithLogoGeometry}" 
+                                                  Fill="{DynamicResource SubtleEmeraldBrush}" 
+                                                  Stretch="Uniform" 
+                                                  Width="42" Height="42" 
+                                                  Margin="0,3.5,0,0" 
+                                                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            <Image IsVisible="{Binding SelectedInstance.HasCustomIcon}" 
+                                                   Source="{Binding SelectedInstance.IconPath, Converter={x:Static converters:IconPathToBitmapConverter.Instance}}" 
+                                                   Stretch="UniformToFill" 
+                                                   Width="72" Height="72" 
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Panel>
+                                    </Border>
+                                </Button>
+
+                                <!-- Имя профиля: компактный однострочный бейдж -->
+                                <Border Background="{DynamicResource ChipBrush}" CornerRadius="4" Padding="8,0" Margin="0,4,0,4" HorizontalAlignment="Center" Height="22">
+                                    <TextBox Classes="titleInput" Text="{Binding SelectedInstance.Name, Mode=TwoWay}"
+                                             FontWeight="Bold" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}"
+                                             VerticalAlignment="Center" VerticalContentAlignment="Center"
+                                             HorizontalAlignment="Center" TextAlignment="Center" MinWidth="24" MaxWidth="180"
+                                             DoubleTapped="OnInstanceNameDoubleTapped"
+                                             LostFocus="OnInstanceNameLostFocus"/>
+                                </Border>
+
+                                <!-- Версия профиля -->
+                                <Border Background="{DynamicResource ChipBrush}" CornerRadius="4" Padding="6,2" HorizontalAlignment="Center">
+                                    <TextBlock Text="{Binding SelectedInstanceDetails}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Кнопки действий -->
+                        <StackPanel Spacing="8">
+                            <Button Classes="primaryBtn" Command="{Binding LaunchOrCancelCommand}" IsEnabled="{Binding CanLaunchOrCancel}"
+                                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Height="42">
+                                <TextBlock Text="{Binding LaunchButtonText}" FontSize="14" FontWeight="Bold"/>
+                            </Button>
+
+                            <Button Classes="dangerBtn" Command="{Binding KillInstanceCommand}" CommandParameter="{Binding SelectedInstance}"
+                                    IsEnabled="{Binding SelectedInstance.IsRunning}" Height="38"
+                                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                                <TextBlock Text="{l10n:Tr Key=btn_kill}" FontSize="12" FontWeight="Bold"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Button>
+
+                            <Button Classes="subBtn" Command="{Binding EditInstanceCommand}" CommandParameter="{Binding SelectedInstance}" Height="38">
+                                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                                    <PathIcon Data="M3 17.25V21H6.75L17.81 9.94L14.06 6.19L3 17.25ZM20.71 7.04C21.1 6.65 21.1 6.02 20.71 5.63L18.37 3.29C17.98 2.9 17.35 2.9 16.96 3.29L15.13 5.12L18.88 8.87L20.71 7.04Z" Width="12" Height="12"/>
+                                    <TextBlock Text="{l10n:Tr Key=btn_edit_instance}" FontSize="12" FontWeight="SemiBold"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button Classes="subBtn" Command="{Binding OpenProfileFolderCommand}" CommandParameter="{Binding SelectedInstance}" Height="38">
+                                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                                    <PathIcon Data="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="13" Height="13"/>
+                                    <TextBlock Text="{l10n:Tr Key=btn_open_folder}" FontSize="12" FontWeight="SemiBold"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button Classes="subBtn" Command="{Binding OpenCopyDialogCommand}" CommandParameter="{Binding SelectedInstance}" Height="38">
+                                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                                    <PathIcon Data="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" Width="12" Height="12"/>
+                                    <TextBlock Text="{l10n:Tr Key=btn_clone_profile}" FontSize="12" FontWeight="SemiBold"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button Classes="subBtn" Command="{Binding CreateDesktopShortcutCommand}" CommandParameter="{Binding SelectedInstance}" Height="38">
+                                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                                    <PathIcon Data="M3 4H15V6H5V18H17V11H19V19C19 19.55 18.55 20 18 20H4C3.45 20 3 19.55 3 19V5C3 4.45 3.45 4 3 4ZM14 6V4H21V11H19V7.41L10.17 16.24L8.76 14.83L17.59 6H14Z" Width="13" Height="13" Margin="0,-1,0,0"/>
+                                    <TextBlock Text="{l10n:Tr Key=btn_shortcut}" FontSize="12" FontWeight="SemiBold"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button Classes="dangerBtn" Command="{Binding RequestDeleteProfileCommand}" CommandParameter="{Binding SelectedInstance}"
+                                    Background="{DynamicResource DangerDimBrush}" BorderBrush="{DynamicResource DangerBorderBrush}" BorderThickness="1" HorizontalContentAlignment="Center" Margin="0,2,0,0">
+                                <TextBlock Text="{l10n:Tr Key=btn_delete_profile}" FontSize="12" FontWeight="Bold"/>
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <!-- DragOverlayPanel: topmost layer for drag ghost rendering -->
+        <Canvas x:Name="DragOverlayPanel" IsHitTestVisible="False" ClipToBounds="False" ZIndex="9999"/>
+    </Panel>
+</UserControl>

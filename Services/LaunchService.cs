@@ -553,37 +553,18 @@ public class LaunchService : ILaunchService
                 requiredJava = parsed;
         }
 
-        // Java resolution
-        var javaMode = instance.JavaMode ?? config?.JavaMode ?? "Recommended";
-        var customJava = !string.IsNullOrWhiteSpace(instance.CustomJavaPath) ? instance.CustomJavaPath : (config?.CustomJavaPath ?? "");
-        if (javaMode == "Custom")
+        // Java resolution: user-specified instance Java MUST be honored without overrides
+        if (!string.IsNullOrWhiteSpace(instance.CustomJavaPath))
         {
-            if (string.IsNullOrWhiteSpace(customJava) || !File.Exists(customJava))
-                throw new InvalidOperationException("Custom Java path is not set or file does not exist. Configure it in Settings.");
+            if (!File.Exists(instance.CustomJavaPath))
+                throw new InvalidOperationException($"Custom Java path for instance '{instance.Name}' does not exist: {instance.CustomJavaPath}");
 
-            var customMajor = JavaVersionHelper.GetJavaMajor(customJava);
-            if (requiredJava <= 8 && customMajor > 8)
-            {
-                // Minecraft 1.8.9 and legacy versions cannot run on modern Java 9+ (LWJGL 2 display creation fails).
-                LogReceived?.Invoke($"[WARN] Configured custom Java ({customJava}, Java {customMajor}) is incompatible with Minecraft {instance.Version} (requires Java 8). Resolving Java 8 runtime...");
-                var fallbackJava = await ResolveJavaAsync(8, zenithRoot);
-                if (fallbackJava != null)
-                {
-                    launchOption.JavaPath = fallbackJava;
-                    LogReceived?.Invoke($"Using compatible Java 8: {fallbackJava}");
-                }
-                else
-                {
-                    launchOption.JavaPath = customJava;
-                }
-            }
-            else
-            {
-                launchOption.JavaPath = customJava;
-            }
+            launchOption.JavaPath = instance.CustomJavaPath;
+            LogReceived?.Invoke($"Using user-specified instance Java: {instance.CustomJavaPath}");
         }
-        else if (javaMode == "Recommended")
+        else
         {
+            // Auto-select suitable Java version for this instance
             LogReceived?.Invoke($"Required Java version: {requiredJava}");
             var found = await ResolveJavaAsync(requiredJava, zenithRoot);
             if (found != null)
@@ -591,10 +572,22 @@ public class LaunchService : ILaunchService
                 launchOption.JavaPath = found;
                 LogReceived?.Invoke($"Using Java: {found}");
             }
+            else
+            {
+                var globalCustom = config?.CustomJavaPath;
+                if (!string.IsNullOrWhiteSpace(globalCustom) && File.Exists(globalCustom))
+                {
+                    launchOption.JavaPath = globalCustom;
+                    LogReceived?.Invoke($"Using global custom Java: {globalCustom}");
+                }
+            }
         }
 
         if (string.IsNullOrEmpty(launchOption.JavaPath))
             throw new InvalidOperationException("No suitable Java runtime found. Please install Java or set a custom path in Settings.");
+
+        var actualJavaMajor = JavaVersionHelper.GetJavaMajor(launchOption.JavaPath);
+        var targetJavaMajor = actualJavaMajor > 0 ? actualJavaMajor : requiredJava;
 
         // Check for Java4Shell (CVE-2026-114938)
         if (JavaVersionHelper.IsVulnerableToJava4Shell(launchOption.JavaPath, out var vulnMajor, out var currVer, out var minSafeVer))
@@ -607,7 +600,6 @@ public class LaunchService : ILaunchService
             }
         }
 
-        var targetJavaMajor = requiredJava;
         var safeArgs = targetJavaMajor <= 11 ? LegacySafeJvmArgs : ModernSafeJvmArgs;
 
         // Get version-specific JVM args (from version.json), filter bad flags
@@ -863,16 +855,26 @@ public class LaunchService : ILaunchService
         Directory.CreateDirectory(javaDir);
 
         // Any already-downloaded runtime matching jdk-{major}* or jdk{major}u*?
-        // (folder names look like jdk-17.0.20+8-jre or legacy jdk8u452-b05-jre)
+        // (folder names look like jdk-17.0.21.1+2-jre, jdk-25.0.5.1+2-jre or legacy jdk8u452-b05-jre)
+        var candidates = new List<string>();
         foreach (var pattern in RuntimeDirPatterns(major))
         {
             foreach (var dir in Directory.GetDirectories(javaDir, pattern, SearchOption.TopDirectoryOnly))
             {
                 var javaw = Path.Combine(dir, "bin", "javaw.exe");
-                if (File.Exists(javaw)) return javaw;
+                if (File.Exists(javaw) && !candidates.Contains(javaw)) candidates.Add(javaw);
                 var javaExe = Path.Combine(dir, "bin", "java.exe");
-                if (File.Exists(javaExe)) return javaExe;
+                if (File.Exists(javaExe) && !candidates.Contains(javaExe)) candidates.Add(javaExe);
             }
+        }
+
+        if (candidates.Count > 0)
+        {
+            var best = candidates
+                .OrderBy(c => JavaVersionHelper.IsVulnerableToJava4Shell(c, out _, out _, out _) ? 1 : 0)
+                .ThenByDescending(c => JavaVersionHelper.GetJavaFileVersion(c), Comparer<string>.Create(JavaVersionHelper.CompareVersions))
+                .FirstOrDefault();
+            if (best != null) return best;
         }
 
         // First check JAVA_HOME
@@ -1052,10 +1054,23 @@ public class LaunchService : ILaunchService
                 File.Delete(temp);
             }
 
-            // Find extracted JDK folder (name varies: jdk-25.0.1+9, jdk8u452-b05-jre, ...)
+            // Find extracted JDK folder, prioritizing non-vulnerable / highest version builds
             var extracted = RuntimeDirPatterns(major)
                 .SelectMany(p => Directory.GetDirectories(javaDir, p, SearchOption.TopDirectoryOnly))
-                .OrderByDescending(d => d).FirstOrDefault();
+                .Distinct()
+                .OrderBy(d =>
+                {
+                    var exe = Path.Combine(d, "bin", "javaw.exe");
+                    if (!File.Exists(exe)) exe = Path.Combine(d, "bin", "java.exe");
+                    return File.Exists(exe) && JavaVersionHelper.IsVulnerableToJava4Shell(exe, out _, out _, out _) ? 1 : 0;
+                })
+                .ThenByDescending(d =>
+                {
+                    var exe = Path.Combine(d, "bin", "javaw.exe");
+                    if (!File.Exists(exe)) exe = Path.Combine(d, "bin", "java.exe");
+                    return File.Exists(exe) ? JavaVersionHelper.GetJavaFileVersion(exe) : d;
+                }, Comparer<string>.Create(JavaVersionHelper.CompareVersions))
+                .FirstOrDefault();
             if (extracted == null) extracted = runtimeDir;
 
             // Refuse half-extracted runtimes: without lib/jvm.cfg java.exe dies

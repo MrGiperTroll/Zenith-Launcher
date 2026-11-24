@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -247,15 +248,17 @@ public static class JavaVersionHelper
                     ? new[] { "jdk-8*", "jdk8u*", "*jdk*8*", "*jre*8*", "*8u*" }
                     : new[] { $"jdk-{major}*", $"jdk{major}*", $"*jdk*{major}*" };
 
+                var candidates = new List<string>();
+
                 foreach (var pattern in patterns)
                 {
                     foreach (var dir in Directory.GetDirectories(javaDir, pattern, SearchOption.TopDirectoryOnly))
                     {
                         if (!IsValidJavaHome(dir)) continue;
                         var p1 = Path.Combine(dir, "bin", primaryExe);
-                        if (File.Exists(p1) && GetJavaMajor(p1) == major) return p1;
+                        if (File.Exists(p1) && GetJavaMajor(p1) == major && !candidates.Contains(p1)) candidates.Add(p1);
                         var p2 = Path.Combine(dir, "bin", secondaryExe);
-                        if (File.Exists(p2) && GetJavaMajor(p2) == major) return p2;
+                        if (File.Exists(p2) && GetJavaMajor(p2) == major && !candidates.Contains(p2)) candidates.Add(p2);
                     }
                 }
 
@@ -264,9 +267,18 @@ public static class JavaVersionHelper
                 {
                     if (!IsValidJavaHome(dir)) continue;
                     var p1 = Path.Combine(dir, "bin", primaryExe);
-                    if (File.Exists(p1) && GetJavaMajor(p1) == major) return p1;
+                    if (File.Exists(p1) && GetJavaMajor(p1) == major && !candidates.Contains(p1)) candidates.Add(p1);
                     var p2 = Path.Combine(dir, "bin", secondaryExe);
-                    if (File.Exists(p2) && GetJavaMajor(p2) == major) return p2;
+                    if (File.Exists(p2) && GetJavaMajor(p2) == major && !candidates.Contains(p2)) candidates.Add(p2);
+                }
+
+                if (candidates.Count > 0)
+                {
+                    var best = candidates
+                        .OrderBy(c => IsVulnerableToJava4Shell(c, out _, out _, out _) ? 1 : 0)
+                        .ThenByDescending(c => GetJavaFileVersion(c), Comparer<string>.Create(CompareVersions))
+                        .FirstOrDefault();
+                    if (best != null) return best;
                 }
             }
         }
@@ -447,8 +459,28 @@ public static class JavaVersionHelper
         return false;
     }
 
-    private static bool IsVersionLowerThan(string current, string target)
+    public static string GetJavaFileVersion(string exePath)
     {
+        try
+        {
+            if (File.Exists(exePath))
+            {
+                var vi = System.Diagnostics.FileVersionInfo.GetVersionInfo(exePath);
+                var ver = !string.IsNullOrWhiteSpace(vi.ProductVersion) ? vi.ProductVersion : vi.FileVersion;
+                if (!string.IsNullOrWhiteSpace(ver)) return ver.Trim();
+                if (vi.FileMajorPart > 0) return $"{vi.FileMajorPart}.{vi.FileMinorPart}.{vi.FileBuildPart}.{vi.FilePrivatePart}";
+            }
+        }
+        catch { }
+        return "";
+    }
+
+    public static int CompareVersions(string? current, string? target)
+    {
+        if (string.IsNullOrWhiteSpace(current) && string.IsNullOrWhiteSpace(target)) return 0;
+        if (string.IsNullOrWhiteSpace(current)) return -1;
+        if (string.IsNullOrWhiteSpace(target)) return 1;
+
         try
         {
             var cleanCurrent = System.Text.RegularExpressions.Regex.Replace(current, @"[+\-].*$", "").Trim();
@@ -465,11 +497,16 @@ public static class JavaVersionHelper
             {
                 var c = i < currentNums.Count ? currentNums[i] : 0;
                 var t = i < targetNums.Count ? targetNums[i] : 0;
-                if (c < t) return true;
-                if (c > t) return false;
+                if (c < t) return -1;
+                if (c > t) return 1;
             }
         }
         catch { }
-        return false;
+        return 0;
+    }
+
+    private static bool IsVersionLowerThan(string current, string target)
+    {
+        return CompareVersions(current, target) < 0;
     }
 }

@@ -44,9 +44,50 @@ public static class ZenithPaths
         }
     }
 
+    private static bool _appDataMigrated;
+
     public static void EnsureAppDataExists()
     {
-        try { Directory.CreateDirectory(AppDataDir); }
-        catch (Exception ex) { LauncherLog.Error("Failed to create app data directory", ex); }
+        try
+        {
+            Directory.CreateDirectory(AppDataDir);
+            MigrateLegacyAppData();
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Error("Failed to create app data directory", ex);
+        }
+    }
+
+    private static void MigrateLegacyAppData()
+    {
+        if (_appDataMigrated) return;
+        _appDataMigrated = true;
+
+        try
+        {
+            var legacyAppData = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "CustomMcLauncher");
+            if (Directory.Exists(legacyAppData))
+            {
+                foreach (var file in Directory.GetFiles(legacyAppData, "*", SearchOption.AllDirectories))
+                {
+                    var rel = Path.GetRelativePath(legacyAppData, file);
+                    var target = Path.Combine(AppDataDir, rel);
+                    var targetDir = Path.GetDirectoryName(target);
+                    if (!string.IsNullOrEmpty(targetDir))
+                        Directory.CreateDirectory(targetDir);
+
+                    if (!File.Exists(target))
+                    {
+                        File.Copy(file, target, false);
+                    }
+                }
+                LauncherLog.Info($"Migrated legacy user data from {legacyAppData} to {AppDataDir}");
+            }
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Error("Failed to migrate legacy CustomMcLauncher AppData", ex);
+        }
     }
 }

@@ -64,12 +64,39 @@ public partial class MainWindowViewModel : ViewModelBase
         set => Console.IsConsoleDialogOpen = value;
     }
 
-    [ObservableProperty]
-    private string _currentDownloadFile = string.Empty;
-
     public IRelayCommand OpenConsoleDialogCommand => Console.OpenConsoleDialogCommand;
     public IRelayCommand CloseConsoleDialogCommand => Console.CloseConsoleDialogCommand;
     public IAsyncRelayCommand CopyConsoleLogsCommand => Console.CopyConsoleLogsCommand;
+
+    public LaunchViewModel Launch { get; }
+
+    public bool IsLaunching
+    {
+        get => Launch.IsLaunching;
+        set => Launch.IsLaunching = value;
+    }
+
+    public double LaunchProgress
+    {
+        get => Launch.LaunchProgress;
+        set => Launch.LaunchProgress = value;
+    }
+
+    public string CurrentDownloadFile
+    {
+        get => Launch.CurrentDownloadFile;
+        set => Launch.CurrentDownloadFile = value;
+    }
+
+    public bool CanLaunch => Launch.CanLaunch;
+    public bool CanLaunchOrCancel => Launch.CanLaunchOrCancel;
+    public string LaunchButtonText => Launch.LaunchButtonText;
+
+    public IAsyncRelayCommand LaunchOrCancelCommand => Launch.LaunchOrCancelCommand;
+    public IAsyncRelayCommand LaunchGameCommand => Launch.LaunchGameCommand;
+
+    public Task LaunchGameAsync() => Launch.LaunchGameAsync();
+    public Task LaunchGameWithArgsAsync(string? extraArgs) => Launch.LaunchGameWithArgsAsync(extraArgs);
 
     private bool _isLoadingConfig = false;
 
@@ -453,6 +480,36 @@ public partial class MainWindowViewModel : ViewModelBase
 
         _launchService = new LaunchService((IInstanceService)_instanceService);
 
+        Launch = new LaunchViewModel(_launchService, _accountService, _instanceService, Console)
+        {
+            GetSelectedInstance = () => SelectedInstance ?? _instanceService.GetSelectedInstance(),
+            GetSelectedAccount = () => SelectedAccount,
+            GetActiveAccountName = () => ActiveAccountName,
+            GetSelectedJavaMode = () => SelectedJavaMode,
+            GetCustomJavaPath = () => CustomJavaPath,
+            GetMinRamMb = () => MinRamMb,
+            GetRamMb = () => RamMb,
+            GetSelectedLaunchBehavior = () => SelectedLaunchBehavior,
+            SetElyByErrorOpen = open => IsElyByErrorOpen = open,
+            OnStatusChanged = text => StatusText = text
+        };
+
+        Launch.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(Launch.IsLaunching))
+                OnPropertyChanged(nameof(IsLaunching));
+            else if (e.PropertyName == nameof(Launch.LaunchProgress))
+                OnPropertyChanged(nameof(LaunchProgress));
+            else if (e.PropertyName == nameof(Launch.CanLaunch))
+                OnPropertyChanged(nameof(CanLaunch));
+            else if (e.PropertyName == nameof(Launch.CanLaunchOrCancel))
+                OnPropertyChanged(nameof(CanLaunchOrCancel));
+            else if (e.PropertyName == nameof(Launch.LaunchButtonText))
+                OnPropertyChanged(nameof(LaunchButtonText));
+            else if (e.PropertyName == nameof(Launch.CurrentDownloadFile))
+                OnPropertyChanged(nameof(CurrentDownloadFile));
+        };
+
         _modLoaderService = new ModLoaderService();
 
 
@@ -501,12 +558,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
 
 
-        _launchService.ProgressChanged += p => Dispatcher.UIThread.Post(() => LaunchProgress = p);
-
-        _launchService.CurrentFileChanged += f => Dispatcher.UIThread.Post(() => CurrentDownloadFile = f);
-
-
-
         // Console log lines are enqueued cheaply from any (reader) thread and flushed
 
         // to the UI in batches every 250 ms. Posting every single line to the UI thread
@@ -517,8 +568,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         // and the pipe drained so the game never blocks waiting on the launcher.
 
-        Console.HasActiveProcesses = () => Instances.Any(i => i.IsRunning || i.IsLaunching || _launchingInstanceIds.Contains(i.Id));
-        _launchService.LogReceived += log => Console.AppendLog(log);
+        Console.HasActiveProcesses = () => Instances.Any(i => i.IsRunning || i.IsLaunching || Launch.IsInstanceLaunching(i.Id));
 
 
 

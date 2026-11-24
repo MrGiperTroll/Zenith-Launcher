@@ -99,7 +99,9 @@ public partial class MainWindowViewModel
 
         OnPropertyChanged(nameof(LaunchButtonText));
 
-        IsLaunching = value != null && _launchingInstanceIds.Contains(value.Id);
+        IsLaunching = value != null && Launch.IsInstanceLaunching(value.Id);
+
+        Launch.NotifyInstanceChanged();
 
         UpdateJavaDisplay();
 
@@ -129,9 +131,11 @@ public partial class MainWindowViewModel
 
     {
 
-        if (e.PropertyName == nameof(InstanceModel.IsRunning))
+        if (e.PropertyName == nameof(InstanceModel.IsRunning) || e.PropertyName == nameof(InstanceModel.IsLaunching))
 
         {
+
+            Launch.NotifyInstanceChanged();
 
             OnPropertyChanged(nameof(CanLaunch));
 
@@ -139,19 +143,7 @@ public partial class MainWindowViewModel
 
             OnPropertyChanged(nameof(LaunchButtonText));
 
-        }
-
-        if (e.PropertyName == nameof(InstanceModel.IsLaunching))
-
-        {
-
-            OnPropertyChanged(nameof(CanLaunch));
-
-            OnPropertyChanged(nameof(CanLaunchOrCancel));
-
-            OnPropertyChanged(nameof(LaunchButtonText));
-
-            if (ReferenceEquals(sender, SelectedInstance))
+            if (e.PropertyName == nameof(InstanceModel.IsLaunching) && ReferenceEquals(sender, SelectedInstance))
 
                 IsLaunching = SelectedInstance!.IsLaunching;
 
@@ -1155,7 +1147,7 @@ public partial class MainWindowViewModel
 
     {
 
-        if (instance == null || instance.IsRunning || instance.IsLaunching || _launchingInstanceIds.Contains(instance.Id)) return;
+        if (instance == null || instance.IsRunning || instance.IsLaunching || Launch.IsInstanceLaunching(instance.Id)) return;
 
         instance.IsEditingName = true;
 

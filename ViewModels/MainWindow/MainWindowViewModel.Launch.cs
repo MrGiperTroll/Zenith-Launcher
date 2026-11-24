@@ -298,61 +298,7 @@ public partial class MainWindowViewModel
 
 
 
-    // Launch & Logs
 
-    private readonly HashSet<string> _launchingInstanceIds = new();
-
-
-
-    public bool CanLaunch => SelectedInstance == null || (!SelectedInstance.IsRunning && !_launchingInstanceIds.Contains(SelectedInstance.Id));
-
-
-
-    [ObservableProperty]
-
-    private bool _isLaunching;
-
-
-
-    partial void OnIsLaunchingChanged(bool value)
-
-    {
-
-        OnPropertyChanged(nameof(LaunchButtonText));
-
-        OnPropertyChanged(nameof(CanLaunchOrCancel));
-
-    }
-
-
-
-    public bool CanLaunchOrCancel => CanLaunch || IsLaunching;
-
-
-
-    public string LaunchButtonText
-
-    {
-
-        get
-
-        {
-
-            if (IsLaunching) return L10n.T("cancel");
-
-            if (SelectedInstance?.IsRunning == true) return L10n.T("status_running");
-
-            return L10n.T("btn_launch_game");
-
-        }
-
-    }
-
-
-
-    [ObservableProperty]
-
-    private double _launchProgress;
 
 
 
@@ -695,7 +641,7 @@ public partial class MainWindowViewModel
 
         SelectInstance(match);
 
-        await LaunchGameAsync();
+        await Launch.LaunchGameAsync();
 
         return match.IsRunning;
 
@@ -733,7 +679,7 @@ public partial class MainWindowViewModel
 
         SelectInstance(inst);
 
-        await LaunchGameWithArgsAsync(extraArgs);
+        await Launch.LaunchGameWithArgsAsync(extraArgs);
 
     }
 
@@ -745,23 +691,7 @@ public partial class MainWindowViewModel
 
     {
 
-        var inst = instance ?? SelectedInstance;
-
-        if (inst == null) return;
-
-        _launchingInstanceIds.Remove(inst.Id);
-
-        inst.IsLaunching = false;
-
-        _launchService.KillProcess(inst.Id);
-
-        inst.IsRunning = false;
-
-        OnPropertyChanged(nameof(CanLaunch));
-
-        if (ReferenceEquals(SelectedInstance, inst))
-
-            IsLaunching = false;
+        Launch.StopInstance(instance ?? SelectedInstance);
 
     }
 
@@ -797,155 +727,7 @@ public partial class MainWindowViewModel
 
 
 
-    [RelayCommand]
 
-    private async Task LaunchGameAsync()
-
-    {
-
-        await LaunchGameWithArgsAsync(null);
-
-    }
-
-
-
-    public async Task LaunchGameWithArgsAsync(string? extraArgs)
-
-    {
-
-        var instance = SelectedInstance ?? _instanceService.GetSelectedInstance();
-
-
-
-        if (instance == null) return;
-
-        if (instance.IsRunning || _launchingInstanceIds.Contains(instance.Id)) return;
-
-
-
-        if (instance.MinRamMb == null || instance.MinRamMb <= 0)
-
-            instance.MinRamMb = MinRamMb;
-
-        instance.MaxMemoryMb = instance.RamMb ?? RamMb;
-
-
-
-        // Mark launching BEFORE any awaits so Cancel is clickable from second one.
-
-        _launchingInstanceIds.Add(instance.Id);
-
-        instance.IsLaunching = true;
-
-        if (ReferenceEquals(SelectedInstance, instance))
-
-            IsLaunching = true;
-
-        OnPropertyChanged(nameof(CanLaunch));
-
-        OnPropertyChanged(nameof(CanLaunchOrCancel));
-
-        OnPropertyChanged(nameof(LaunchButtonText));
-
-        LaunchProgress = 0;
-
-        Services.DiscordPresenceService.SetLaunchingGame(instance.Name);
-
-
-
-        try
-
-        {
-
-            var account = _accountService.GetActiveAccount() ?? await _accountService.AddOfflineAccountAsync(ActiveAccountName);
-
-            if (SelectedJavaMode == "Custom" && (string.IsNullOrWhiteSpace(CustomJavaPath) || !File.Exists(CustomJavaPath)))
-
-            {
-
-                StatusText = L10n.T("mw_status_java_invalid");
-
-                return;
-
-            }
-
-
-
-            var process = await Task.Run(() => _launchService.LaunchAsync(instance, account, extraArgs));
-
-            StatusText = string.Format(L10n.T("mw_status_launched"), instance.Name);
-
-            ApplyLaunchBehavior(process);
-
-        }
-
-        catch (HttpRequestException ex)
-
-        {
-
-            if (SelectedAccount?.Type == Models.AccountType.ElyBy)
-
-            {
-
-                IsElyByErrorOpen = true;
-
-                StatusText = L10n.T("mw_status_conn_error");
-
-                return;
-
-            }
-
-            StatusText = string.Format(L10n.T("mw_status_http_error"), ex.Message);
-
-        }
-
-        catch (InvalidOperationException ex)
-
-        {
-
-            ConsoleLogs += $"[ERROR] {ex.Message}\n";
-
-            ConsoleLogs += $"[ERROR] Stack: {ex}\n";
-
-            StatusText = ex.Message;
-
-        }
-
-        catch (Exception ex)
-
-        {
-
-            LauncherLog.Error("Launch failed", ex);
-
-            ConsoleLogs += $"[CRITICAL ERROR] {ex}\n";
-
-            StatusText = string.Format(L10n.T("mw_status_launch_failed"), ex.Message);
-
-        }
-
-        finally
-
-        {
-
-            _launchingInstanceIds.Remove(instance.Id);
-
-            instance.IsLaunching = false;
-
-            if (ReferenceEquals(SelectedInstance, instance))
-
-                IsLaunching = false;
-
-            OnPropertyChanged(nameof(CanLaunch));
-
-            // Launch aborted before the process started - return to browsing.
-
-            if (!instance.IsRunning)
-
-                Services.DiscordPresenceService.SetBrowsingProfiles();
-
-        }
-
-    }
 
 
 
@@ -1002,143 +784,5 @@ public partial class MainWindowViewModel
     }
 
 
-
-    [RelayCommand]
-
-    private async Task LaunchOrCancelAsync()
-
-    {
-
-        if (IsLaunching)
-
-        {
-
-            var instance = SelectedInstance ?? _instanceService.GetSelectedInstance();
-
-            if (instance != null)
-
-            {
-
-                _launchingInstanceIds.Remove(instance.Id);
-
-                instance.IsLaunching = false;
-
-                _launchService.KillProcess(instance.Id);
-
-                instance.IsRunning = false;
-
-            }
-
-            IsLaunching = false;
-
-            StatusText = L10n.T("mw_status_launch_cancelled");
-
-        }
-
-        else
-
-        {
-
-            await LaunchGameAsync();
-
-        }
-
-    }
-
-
-
-    private void ApplyLaunchBehavior(Process? process)
-
-    {
-
-        if (Avalonia.Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop || desktop.MainWindow == null)
-
-            return;
-
-
-
-        var behavior = SelectedLaunchBehavior;
-
-        if (string.Equals(behavior, "Hide", StringComparison.OrdinalIgnoreCase))
-
-        {
-
-            Dispatcher.UIThread.Post(() =>
-
-            {
-
-                if (desktop.MainWindow != null)
-
-                {
-
-                    desktop.MainWindow.WindowState = Avalonia.Controls.WindowState.Minimized;
-
-                }
-
-            });
-
-
-
-            if (process != null)
-
-            {
-
-                try
-
-                {
-
-                    process.EnableRaisingEvents = true;
-
-                    process.Exited += (_, _) =>
-
-                    {
-
-                        Dispatcher.UIThread.Post(() =>
-
-                        {
-
-                            if (desktop.MainWindow != null)
-
-                            {
-
-                                desktop.MainWindow.WindowState = Avalonia.Controls.WindowState.Normal;
-
-                                desktop.MainWindow.Activate();
-
-                            }
-
-                        });
-
-                    };
-
-                }
-
-                catch (Exception ex)
-
-                {
-
-                    LauncherLog.Error("Failed to hook Exited event for launch behavior restore", ex);
-
-                }
-
-            }
-
-        }
-
-        else if (string.Equals(behavior, "Close", StringComparison.OrdinalIgnoreCase))
-
-        {
-
-            Dispatcher.UIThread.Post(() =>
-
-            {
-
-                desktop.MainWindow?.Close();
-
-            });
-
-        }
-
-    }
 
 }

@@ -9,7 +9,7 @@
 ; ============================================
 
 #ifndef MyAppVersion
-  #define MyAppVersion "1.0.9"
+  #define MyAppVersion "1.1.0"
 #endif
 #define MyAppName      "Zenith Launcher"
 #define MyAppPublisher "Zenith Launcher Team"

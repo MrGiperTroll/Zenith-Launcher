@@ -1,184 +1,22 @@
-﻿<Application xmlns="https://github.com/avaloniaui"
+<Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             Name="Zenith Launcher"
+             xmlns:local="using:ZenithLauncher"
              x:Class="ZenithLauncher.App"
-             RequestedThemeVariant="Default">
-
+             RequestedThemeVariant="Dark">
     <Application.Resources>
-        <FontFamily x:Key="AppFontFamily">Segoe UI, Inter, -apple-system, BlinkMacSystemFont, sans-serif</FontFamily>
-        <SolidColorBrush x:Key="AccentBrush" Color="#8B5CF6"/>
-        <SolidColorBrush x:Key="AccentBrushHover" Color="#60A5FA"/>
-        <SolidColorBrush x:Key="AccentPressed" Color="#1D4ED8"/>
-        <SolidColorBrush x:Key="OnAccentBrush" Color="#FFFFFF"/>
-        <SolidColorBrush x:Key="AccentSoftBrush" Color="#1E293B"/>
-        <SolidColorBrush x:Key="AccentDimBrush" Color="#0F172A"/>
-        <SolidColorBrush x:Key="AccentBorderBrush" Color="#2563EB"/>
-        <SolidColorBrush x:Key="AccentTranslucentBrush" Color="#223B82F6"/>
-
-        <Color x:Key="AccentGradientStart">#60A5FA</Color>
-        <Color x:Key="AccentGradientMid">#3B82F6</Color>
-        <Color x:Key="AccentGradientEnd">#1D4ED8</Color>
-
-        <Geometry x:Key="ZenithLogoGeometry">M558.344 400.366C571.623 396.064 583.658 391.147 596.643 386.115L637.625 370.625C666.622 359.837 696.309 350.113 724.897 338.366C711.898 350.999 699.747 364.104 687.038 376.719L556.158 505.636C528.781 532.184 499.524 557.819 471.784 584.055L472.073 585.667C476.856 583.156 484.671 580.042 489.84 577.808L518.249 565.513C554.358 550.211 585.042 537.696 622.348 525.143C627.132 534.236 632.665 542.719 638.059 551.443C646.7 565.735 655.599 579.868 664.753 593.837C684.178 624.592 703.87 655.179 723.825 685.593C671.712 673.401 619.504 661.62 567.205 650.251C523.932 640.119 480.502 630.67 436.931 621.909L303.856 685C318.881 668.775 337.163 651.35 352.875 635.346C390.704 596.217 429.114 557.655 468.092 519.67L513.838 474.463C528.25 459.985 544.85 442.908 560.302 429.712C517.215 444.062 474.236 458.735 431.37 473.73C410.21 481.268 388.993 488.646 367.72 495.861C348.57 502.154 326.751 508.351 307.223 514.086C305.97 514.433 305.093 514.578 303.819 514.805L303.707 514.31L306.212 512.571L391.909 457.609C402.704 450.675 415.614 441.623 426.327 435.161C417.499 427.886 408.138 420.933 399.024 413.993C375.58 396.139 352.079 378.374 328.775 360.334C319.433 353.102 309.717 346.407 300.549 338.932C348.224 351.261 396.066 362.933 444.063 373.946L526.132 392.828C536.8 395.328 547.762 397.627 558.344 400.366Z</Geometry>
-
-        <!-- Surfaces (Qoder Neutral Graphite/Charcoal Palette) -->
-        <SolidColorBrush x:Key="BgBrush" Color="#131416"/>
-        <SolidColorBrush x:Key="SidebarBgBrush" Color="#101113"/>
-        <SolidColorBrush x:Key="SurfaceBrush" Color="#18191C"/>
-        <SolidColorBrush x:Key="ContentSurfaceBrush" Color="#141518"/>
-        <SolidColorBrush x:Key="CardBrush" Color="#18191C"/>
-        <SolidColorBrush x:Key="CardAltBrush" Color="#1E2024"/>
-        <SolidColorBrush x:Key="PanelBrush" Color="#181A1E"/>
-        <SolidColorBrush x:Key="PanelBrushTransparent" Color="#00181A1E"/>
-        <SolidColorBrush x:Key="RowHoverBrushTransparent" Color="#00222429"/>
-        <SolidColorBrush x:Key="ChipBrush" Color="#1F2126"/>
-        <SolidColorBrush x:Key="IconChipBrush" Color="#1B1C20"/>
-        <SolidColorBrush x:Key="FieldBrush" Color="#1B1C20"/>
-        <SolidColorBrush x:Key="RowHoverBrush" Color="#222429"/>
-        <SolidColorBrush x:Key="TabActiveBrush" Color="#22252B"/>
-        <SolidColorBrush x:Key="TabActiveBrushTransparent" Color="#0022252B"/>
-        <SolidColorBrush x:Key="TabHoverBrush" Color="#1E2025"/>
-        <SolidColorBrush x:Key="TabPressedBrush" Color="#282B33"/>
-        <SolidColorBrush x:Key="InputFocusBrush" Color="#1E2024"/>
-        <SolidColorBrush x:Key="LogSidebarBrush" Color="#121315"/>
-
-        <!-- Borders (Clean, 100% Neutral, No Cold Tint) -->
-        <SolidColorBrush x:Key="BorderDarkBrush" Color="#25272D"/>
-        <SolidColorBrush x:Key="BorderCardSoftBrush" Color="#2E3139"/>
-        <SolidColorBrush x:Key="BorderInputBrush" Color="#2D3038"/>
-        <SolidColorBrush x:Key="BorderStrongBrush" Color="#383C46"/>
-        <SolidColorBrush x:Key="BorderHoverBrush" Color="#484C58"/>
-        <SolidColorBrush x:Key="BorderEditorBrush" Color="#2D3038"/>
-        <SolidColorBrush x:Key="BorderIconBrush" Color="#2E3139"/>
-        <SolidColorBrush x:Key="BorderSoftBrush" Color="#26282E"/>
-
-        <!-- Expander Theme Brushes (Neutral Gray, No Black Border on PointerOver) -->
-        <SolidColorBrush x:Key="ExpanderBorderBrush" Color="#2E3139"/>
-        <SolidColorBrush x:Key="ExpanderBorderBrushPointerOver" Color="#2E3139"/>
-        <SolidColorBrush x:Key="ExpanderBorderBrushPressed" Color="#2E3139"/>
-        <SolidColorBrush x:Key="ExpanderHeaderBorderBrushPointerOver" Color="Transparent"/>
-        <SolidColorBrush x:Key="ExpanderHeaderBorderBrushPressed" Color="Transparent"/>
-        <SolidColorBrush x:Key="ExpanderHeaderBackground" Color="#181A1F"/>
-        <SolidColorBrush x:Key="ExpanderHeaderBackgroundPointerOver" Color="#222429"/>
-        <SolidColorBrush x:Key="ExpanderHeaderBackgroundPressed" Color="#1E2024"/>
-        <SolidColorBrush x:Key="ExpanderBackground" Color="#181A1F"/>
-        <SolidColorBrush x:Key="ExpanderBackgroundPointerOver" Color="#181A1F"/>
-        <SolidColorBrush x:Key="ExpanderBackgroundPressed" Color="#181A1F"/>
-
-        <!-- Danger / Warning -->
-        <SolidColorBrush x:Key="DangerBrush" Color="#EF4444"/>
-        <SolidColorBrush x:Key="DangerLightBrush" Color="#F87171"/>
-        <SolidColorBrush x:Key="DangerStrongBrush" Color="#E5534B"/>
-        <SolidColorBrush x:Key="DangerBgBrush" Color="#221316"/>
-        <SolidColorBrush x:Key="DangerBgDeepBrush" Color="#35161B"/>
-        <SolidColorBrush x:Key="DangerDimBrush" Color="#1A0F12"/>
-        <SolidColorBrush x:Key="DangerBorderBrush" Color="#3B191D"/>
-        <SolidColorBrush x:Key="DangerSoftBrush" Color="#2D1215"/>
-        <SolidColorBrush x:Key="DangerTranslucentBrush" Color="#22E5484D"/>
-        <SolidColorBrush x:Key="WarningBrush" Color="#FBBF24"/>
-        <SolidColorBrush x:Key="WarningBrightBrush" Color="#FCD34D"/>
-        <SolidColorBrush x:Key="WarningBorderBrush" Color="#3A3320"/>
-        <SolidColorBrush x:Key="WarningSoftBrush" Color="#2D2612"/>
-        <SolidColorBrush x:Key="WarningBgBrush" Color="#221A12"/>
-
-        <!-- Success -->
-        <SolidColorBrush x:Key="SuccessBrush" Color="#34D399"/>
-        <SolidColorBrush x:Key="SuccessBgBrush" Color="#12211A"/>
-
-        <!-- Inputs -->
-        <SolidColorBrush x:Key="InputBrush" Color="#121724"/>
-
-        <!-- Logo gradient (harmonized at runtime by ZenithTheme; fallback here) -->
-        <LinearGradientBrush x:Key="SubtleEmeraldBrush" StartPoint="0%,0%" EndPoint="100%,100%">
-            <GradientStop Offset="0" Color="#34D399"/>
-            <GradientStop Offset="1" Color="#10B981"/>
-        </LinearGradientBrush>
-
-        <!-- Text (Neutral Grey Hierarchy) -->
-        <SolidColorBrush x:Key="TextPrimaryBrush" Color="#FFFFFF"/>
-        <SolidColorBrush x:Key="TextSecondaryBrush" Color="#8E929B"/>
-        <SolidColorBrush x:Key="TextSoftBrush" Color="#A0A5B0"/>
-        <SolidColorBrush x:Key="TextLabelBrush" Color="#8E929B"/>
-        <SolidColorBrush x:Key="TextMutedBrush" Color="#636773"/>
-        <SolidColorBrush x:Key="TextSubtleBrush" Color="#555963"/>
-        <SolidColorBrush x:Key="TextFaintBrush" Color="#444750"/>
-        <SolidColorBrush x:Key="TextPlaceholderBrush" Color="#50545E"/>
-        <SolidColorBrush x:Key="TextCaptionBrush" Color="#383B44"/>
-        <SolidColorBrush x:Key="TextDisabledBrush" Color="#40434B"/>
-
-        <!-- Overlays -->
-        <SolidColorBrush x:Key="OverlayBrush" Color="#C8000000"/>
-
-        <!-- Override Fluent list selection highlights to completely eliminate system blue/cyan -->
-        <SolidColorBrush x:Key="SystemControlHighlightListAccentLowBrush" Color="Transparent"/>
-        <SolidColorBrush x:Key="SystemControlHighlightListAccentMediumBrush" Color="Transparent"/>
-        <SolidColorBrush x:Key="SystemControlHighlightListAccentHighBrush" Color="Transparent"/>
-        <SolidColorBrush x:Key="SystemControlHighlightListLowBrush" Color="Transparent"/>
-        <SolidColorBrush x:Key="SystemControlHighlightListMediumBrush" Color="Transparent"/>
-
-        <!-- Slider Theme Brush Overrides -->
-        <SolidColorBrush x:Key="SliderTrackFill" Color="#3B82F6"/>
-        <SolidColorBrush x:Key="SliderTrackFillPointerOver" Color="#60A5FA"/>
-        <SolidColorBrush x:Key="SliderTrackFillPressed" Color="#1D4ED8"/>
-        <SolidColorBrush x:Key="SliderThumbBackground" Color="#FFFFFF"/>
-        <SolidColorBrush x:Key="SliderThumbBackgroundPointerOver" Color="#FFFFFF"/>
-        <SolidColorBrush x:Key="SliderThumbBackgroundPressed" Color="#FFFFFF"/>
-        <!-- Zenith control theming: Fluent template parts carry local values, so custom
-             colors go through theme resource overrides (harmonized in ZenithTheme.Apply) -->
-        <SolidColorBrush x:Key="SliderTrackValueFill" Color="#3B82F6"/>
-        <SolidColorBrush x:Key="SliderTrackValueFillPointerOver" Color="#60A5FA"/>
-        <SolidColorBrush x:Key="SliderTrackValueFillPressed" Color="#1D4ED8"/>
-        <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillUnchecked" Color="#121724"/>
-        <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeUnchecked" Color="#3F4C66"/>
-        <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillUncheckedPointerOver" Color="#121724"/>
-        <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeUncheckedPointerOver" Color="#3B82F6"/>
-        <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillUncheckedPressed" Color="#121724"/>
-        <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeUncheckedPressed" Color="#3B82F6"/>
-        <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillChecked" Color="#3B82F6"/>
-        <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedPointerOver" Color="#60A5FA"/>
-        <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedPressed" Color="#3B82F6"/>
-        <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundChecked" Color="#FFFFFF"/>
-        <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPointerOver" Color="#FFFFFF"/>
-        <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPressed" Color="#FFFFFF"/>
-        <SolidColorBrush x:Key="ToggleSwitchFillOff" Color="#121724"/>
-        <SolidColorBrush x:Key="ToggleSwitchStrokeOff" Color="#3F4C66"/>
-        <SolidColorBrush x:Key="ToggleSwitchFillOffPointerOver" Color="#121724"/>
-        <SolidColorBrush x:Key="ToggleSwitchStrokeOffPointerOver" Color="#3B82F6"/>
-        <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="#3B82F6"/>
-        <SolidColorBrush x:Key="ToggleSwitchStrokeOn" Color="#3B82F6"/>
-        <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="#60A5FA"/>
-        <SolidColorBrush x:Key="ToggleSwitchStrokeOnPointerOver" Color="#60A5FA"/>
-        <SolidColorBrush x:Key="ToggleSwitchKnobFillOff" Color="#FFFFFF"/>
-        <SolidColorBrush x:Key="ToggleSwitchKnobFillOffPointerOver" Color="#FFFFFF"/>
-        <SolidColorBrush x:Key="ToggleSwitchKnobFillOn" Color="#FFFFFF"/>
-        <SolidColorBrush x:Key="ToggleSwitchKnobFillOnPointerOver" Color="#FFFFFF"/>
-        <!-- Text Selection Highlight Overrides -->
-        <Color x:Key="TextControlSelectionHighlightColor">#3B82F6</Color>
-        <SolidColorBrush x:Key="TextControlSelectionHighlightBrush" Color="#3B82F6"/>
-        <SolidColorBrush x:Key="TextControlSelectionHighlightColorBrush" Color="#3B82F6"/>
-        <SolidColorBrush x:Key="TextSelectionHighlightColor" Color="#3B82F6"/>
-        <SolidColorBrush x:Key="TextSelectionBackground" Color="#3B82F6"/>
-        <!-- Flyout / Popup surface resources -->
-        <SolidColorBrush x:Key="FlyoutPresenterBackground" Color="#1E1E22"/>
-        <SolidColorBrush x:Key="FlyoutPresenterBorderBrush" Color="#2A2A30"/>
-        <!-- ComboBox Theme Overrides (Bans white top line, light highlights, and bright borders) -->
-        <SolidColorBrush x:Key="ComboBoxDropDownBackground" Color="#1E1E22"/>
-        <SolidColorBrush x:Key="ComboBoxDropDownBorderBrush" Color="#2A2A30"/>
-        <SolidColorBrush x:Key="ComboBoxDropDownBorderBrushPointerOver" Color="#2A2A30"/>
-        <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="#2A2A30"/>
-        <SolidColorBrush x:Key="ComboBoxBorderBrushPointerOver" Color="#3A3A42"/>
-        <SolidColorBrush x:Key="ComboBoxBorderBrushPressed" Color="#3B82F6"/>
-        <SolidColorBrush x:Key="ComboBoxBorderBrushFocused" Color="#3B82F6"/>
-        <SolidColorBrush x:Key="ComboBoxBackground" Color="#161618"/>
-        <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="#1E1E22"/>
-        <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="#1E1E22"/>
-        <Thickness x:Key="ComboBoxDropdownBorderThickness">1</Thickness>
-        <Thickness x:Key="ComboBoxBorderThemeThickness">1</Thickness>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="/Themes/Brushes.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </Application.Resources>
 
     <Application.Styles>
         <FluentTheme />
         <StyleInclude Source="avares://Avalonia.Controls.ColorPicker/Themes/Fluent/Fluent.xaml" />
+        <StyleInclude Source="/Themes/Controls/Buttons.axaml" />
+        <StyleInclude Source="/Themes/Controls/Inputs.axaml" />
+
         <Style Selector="TextBlock">
             <Setter Property="FontFamily" Value="{DynamicResource AppFontFamily}"/>
         </Style>
@@ -194,61 +32,9 @@
         <Style Selector="ComboBox">
             <Setter Property="FontFamily" Value="{DynamicResource AppFontFamily}"/>
         </Style>
-        <!-- Remove default focus adorners — no ugly square borders on icons/buttons -->
-        <Style Selector="Button /template/ ContentPresenter">
-            <Setter Property="FocusAdorner" Value="{x:Null}"/>
-        </Style>
+
         <Style Selector="Border">
             <Setter Property="FocusAdorner" Value="{x:Null}"/>
-        </Style>
-        <!-- Utilitarian tactile micro-interactions: crisp press feedback without layout thrashing -->
-        <Style Selector="Button">
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-        </Style>
-        <Style Selector="Button /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-        </Style>
-        <Style Selector="Button ContentPresenter TextBlock">
-            <Setter Property="VerticalAlignment" Value="Center"/>
-        </Style>
-        <Style Selector="Button:pressed">
-            <Setter Property="RenderTransform" Value="none"/>
-        </Style>
-        <Style Selector="Button.sideTab:pressed, Button.catalogTabBtn:pressed, Button.sourceTabBtn:pressed, Button.railBtn:pressed, Button.navBtn:pressed, Button.discordNavBtn:pressed, Button.menuBarBtn:pressed, Button.captionBtn:pressed, Button.gearSettingsBtn:pressed, Button.profileMenuItem:pressed, Button.filterDropdownBtn:pressed">
-            <Setter Property="RenderTransform" Value="none"/>
-        </Style>
-        <!-- Global Button Hover Brightening: only illuminate background, do NOT touch Foreground here
-             (specific classes like railBtn, sideTab, primaryBtn, dangerBtn manage their own Foreground) -->
-        <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource BorderHoverBrush}"/>
-        </Style>
-        <Style Selector="Button:pointerover PathIcon">
-            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
-        </Style>
-        <Style Selector="Button.primaryBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource AccentBrushHover}"/>
-            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="BorderBrush" Value="Transparent"/>
-        </Style>
-        <Style Selector="Button.subBtn PathIcon">
-            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-        </Style>
-        <Style Selector="Button.subBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource BorderHoverBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-        </Style>
-        <Style Selector="Button.subBtn:pointerover PathIcon">
-            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
-        </Style>
-        <Style Selector="Button.dangerBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource DangerBgDeepBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource DangerLightBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource DangerBrush}"/>
         </Style>
 
         <Style Selector="Border[Cursor=Hand]:pointerover">
@@ -271,112 +57,6 @@
             <Setter Property="Opacity" Value="0.0"/>
         </Style>
 
-        <!-- Version button style (for Java installer tiles and version selectors) -->
-        <Style Selector="Button.verBtn">
-            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="6"/>
-            <Setter Property="Padding" Value="8,5"/>
-            <Setter Property="MinHeight" Value="34"/>
-            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
-        <Style Selector="Button.verBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-        </Style>
-        <Style Selector="Button.verBtn:pressed /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
-        </Style>
-        <Style Selector="Button.verBtn:disabled">
-            <Setter Property="Opacity" Value="0.45"/>
-        </Style>
-
-        <!-- View Pane instant switching (no jerky transitions) -->
-        <!-- Clean instant popup -->
-        <Style Selector="ComboBox:open /template/ Popup">
-            <Setter Property="Opacity" Value="1"/>
-            <Setter Property="RenderTransform" Value="translateY(0px)"/>
-        </Style>
-        <Style Selector="ComboBox /template/ Border#HighlightBorder">
-            <Setter Property="IsVisible" Value="False"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Opacity" Value="0"/>
-        </Style>
-        <Style Selector="ComboBox:open /template/ Border#HighlightBorder">
-            <Setter Property="IsVisible" Value="False"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Opacity" Value="0"/>
-        </Style>
-        <Style Selector="ComboBox:focus /template/ Border#HighlightBorder">
-            <Setter Property="IsVisible" Value="False"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Opacity" Value="0"/>
-        </Style>
-        <Style Selector="ComboBox /template/ Border#DropDownOverlay">
-            <Setter Property="IsVisible" Value="False"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Opacity" Value="0"/>
-        </Style>
-        <Style Selector="ComboBox:open /template/ Border#DropDownOverlay">
-            <Setter Property="IsVisible" Value="False"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Opacity" Value="0"/>
-        </Style>
-        <Style Selector="ComboBox /template/ Popup Border#PopupBorder">
-            <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource BorderDarkBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="BoxShadow" Value="0 10 32 0 #50000000"/>
-            <Setter Property="Padding" Value="4"/>
-            <Setter Property="Margin" Value="0,4,0,4"/>
-        </Style>
-        <Style Selector="ComboBox /template/ Popup Border">
-            <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource BorderDarkBrush}"/>
-        </Style>
-        <Style Selector="ComboBox /template/ Popup ScrollViewer">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-        </Style>
-        <Style Selector="ComboBox /template/ Popup ScrollViewer Border">
-            <Setter Property="BorderThickness" Value="0"/>
-        </Style>
-        <Style Selector="ComboBoxItem">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-            <Setter Property="Padding" Value="10,7"/>
-            <Setter Property="CornerRadius" Value="7"/>
-            <Setter Property="Margin" Value="2"/>
-        </Style>
-        <Style Selector="ComboBoxItem:pointerover">
-            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-        </Style>
-        <Style Selector="ComboBoxItem /template/ Path#PART_CheckMark">
-            <Setter Property="IsVisible" Value="False"/>
-        </Style>
-        <Style Selector="ComboBoxItem /template/ Border#PART_CheckMark">
-            <Setter Property="IsVisible" Value="False"/>
-        </Style>
-        <Style Selector="ComboBoxItem:selected">
-            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-        </Style>
-        <Style Selector="ComboBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
-        </Style>
-        <Style Selector="ComboBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource AccentBrushHover}"/>
-            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
-        </Style>
 
         <!-- ListBoxItem: ban system blue/cyan selection highlights, preserve dark theme palette -->
         <Style Selector="ListBoxItem">
@@ -421,6 +101,7 @@
         <Style Selector="ListBox.selectable ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource AccentDimBrush}"/>
         </Style>
+
         <!-- FlyoutPresenter: clean dark popup without extra gray frames -->
         <Style Selector="FlyoutPresenter">
             <Setter Property="Background" Value="{StaticResource CardBrush}"/>
@@ -462,6 +143,7 @@
         <Style Selector="MenuItem:pointerover">
             <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
         </Style>
+
 
         <!-- Fixed slim scrollbars everywhere: constant size, no hover expansion -->
         <Style Selector="ScrollBar">
@@ -556,137 +238,12 @@
         <!-- Slider colors are driven by theme resources (see ZenithTheme.Apply):
              SliderTrackValueFill / SliderTrackFill / SliderThumbBackground -->
 
-        <!-- Universal TextBox Selection Highlight: vibrant AccentBrush with white text -->
-        <Style Selector="TextBox">
-            <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="SelectionForegroundBrush" Value="{DynamicResource OnAccentBrush}"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled"/>
-            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
-        </Style>
-        <Style Selector="TextBox:focus">
-            <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="SelectionForegroundBrush" Value="{DynamicResource OnAccentBrush}"/>
-        </Style>
-        <Style Selector="TextBox[AcceptsReturn=True]">
-            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
-        </Style>
-
-        <!-- Global DarkInput styling -->
-        <Style Selector="TextBox.darkInput">
-            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="10,8"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="SelectionForegroundBrush" Value="{DynamicResource OnAccentBrush}"/>
-            <Setter Property="CaretBrush" Value="{DynamicResource AccentBrush}"/>
-        </Style>
-        <Style Selector="TextBox.darkInput:pointerover /template/ Border#PART_BorderElement">
-            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource BorderHoverBrush}"/>
-        </Style>
-        <Style Selector="TextBox.darkInput:focus /template/ Border#PART_BorderElement">
-            <Setter Property="Background" Value="{DynamicResource FieldBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-        </Style>
 
         <Style Selector="PathIcon">
             <Setter Property="HorizontalAlignment" Value="Center"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
 
-        <!-- Compact Numeric Badge Inputs (Used for RAM, ports, counters) -->
-        <Style Selector="TextBox.badgeInput">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="CaretBrush" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="SelectionForegroundBrush" Value="{DynamicResource OnAccentBrush}"/>
-            <Setter Property="FocusAdorner" Value="{x:Null}"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="Margin" Value="0"/>
-            <Setter Property="MinHeight" Value="0"/>
-            <Setter Property="Height" Value="22"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="HorizontalContentAlignment" Value="Right"/>
-        </Style>
-        <Style Selector="TextBox.badgeInput /template/ Border#PART_BorderElement">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="MinHeight" Value="0"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="Margin" Value="0"/>
-        </Style>
-        <Style Selector="TextBox.badgeInput /template/ ScrollViewer#PART_ContentHost">
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="Margin" Value="0"/>
-            <Setter Property="MinHeight" Value="0"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-        </Style>
-        <Style Selector="TextBox.badgeInput /template/ TextPresenter#PART_TextPresenter">
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="TextBlock.Foreground" Value="{DynamicResource AccentBrush}"/>
-        </Style>
-        <Style Selector="TextBox.badgeInput:pointerover /template/ Border#PART_BorderElement">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-        </Style>
-        <Style Selector="TextBox.badgeInput:focus /template/ Border#PART_BorderElement">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-        </Style>
-        <Style Selector="TextBox.badgeInput:focus /template/ TextPresenter#PART_TextPresenter">
-            <Setter Property="TextBlock.Foreground" Value="{DynamicResource AccentBrush}"/>
-        </Style>
-
-        <!-- Clean borderless Title / Inline Renaming Inputs -->
-        <Style Selector="TextBox.titleInput">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="Margin" Value="0"/>
-            <Setter Property="MinHeight" Value="0"/>
-            <Setter Property="FocusAdorner" Value="{x:Null}"/>
-            <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="SelectionForegroundBrush" Value="{DynamicResource OnAccentBrush}"/>
-            <Setter Property="CaretBrush" Value="{DynamicResource AccentBrush}"/>
-        </Style>
-        <Style Selector="TextBox.titleInput /template/ Border#PART_BorderElement">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderBrush" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="Margin" Value="0"/>
-        </Style>
-        <Style Selector="TextBox.titleInput /template/ ScrollViewer#PART_ContentHost">
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="Margin" Value="0"/>
-            <Setter Property="Background" Value="Transparent"/>
-        </Style>
-        <Style Selector="TextBox.titleInput /template/ TextPresenter#PART_TextPresenter">
-            <Setter Property="Margin" Value="0"/>
-        </Style>
-        <Style Selector="TextBox.titleInput:focus /template/ Border#PART_BorderElement">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderBrush" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="Margin" Value="0"/>
-        </Style>
-        <Style Selector="TextBox.titleInput:pointerover /template/ Border#PART_BorderElement">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderBrush" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="Margin" Value="0"/>
-        </Style>
 
         <!-- ============ ZENITH DESIGN SYSTEM v2 (XMCL/Millida: flat, no boxes-in-boxes) ============ -->
         <!-- Typography: page / section / hint — единый ритм вместо разрозненных TextBlock -->
@@ -764,87 +321,6 @@
             <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
         </Style>
 
-        <!-- Modern CheckBox: colors via theme resources (CheckBoxCheckBackground*,
-             harmonized in ZenithTheme.Apply); box roundness via control CornerRadius.
-             Hover/press transitions live on this style (template carries no transitions).
-             PART_Border neutralized: it spans the whole row and its theme
-             pointerover/pressed backgrounds flash over dark rows. -->
-        <Style Selector="CheckBox">
-            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-            <Setter Property="FontSize" Value="12.5"/>
-            <Setter Property="Padding" Value="8,0,0,0"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="CornerRadius" Value="6"/>
-        </Style>
-        <Style Selector="CheckBox:pressed">
-            <Setter Property="Opacity" Value="0.85"/>
-        </Style>
-        <Style Selector="CheckBox:disabled">
-            <Setter Property="Opacity" Value="0.45"/>
-        </Style>
-        <!-- Smooth hover: Transitions is not template-set, so this wins -->
-        <Style Selector="CheckBox /template/ Border#NormalRectangle">
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="Background" Duration="0:0:0.18" Easing="0.16, 1, 0.3, 1"/>
-                    <BrushTransition Property="BorderBrush" Duration="0:0:0.18" Easing="0.16, 1, 0.3, 1"/>
-                </Transitions>
-            </Setter>
-        </Style>
-
-        <!-- Modern ToggleSwitch: colors via theme resources (ToggleSwitchFill*,
-             ToggleSwitchStroke*, ToggleSwitchKnobFill*), harmonized in ZenithTheme.Apply -->
-        <Style Selector="ToggleSwitch">
-            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-            <Setter Property="FontSize" Value="12.5"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="OffContent" Value=""/>
-            <Setter Property="OnContent" Value=""/>
-        </Style>
-
-        <!-- (Slider styling lives in the dedicated Slider block above; template parts:
-             RepeatButton#PART_DecreaseButton / #PART_IncreaseButton, Thumb) -->
-
-        <!-- Unified ComboBox base (убирает дубли из каждого View) -->
-        <Style Selector="ComboBox.zenCombo">
-            <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource BorderDarkBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="10,6"/>
-            <Setter Property="MinHeight" Value="34"/>
-        </Style>
-        <Style Selector="ComboBox.darkCombo">
-            <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource BorderDarkBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="10,6"/>
-            <Setter Property="MinHeight" Value="32"/>
-        </Style>
-        <Style Selector="ComboBox.zenCombo:pointerover /template/ Border#Background">
-            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource BorderMediumBrush}"/>
-        </Style>
-        <Style Selector="ComboBox.darkCombo:pointerover /template/ Border#Background">
-            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource BorderMediumBrush}"/>
-        </Style>
-    
-        <!-- Global Button Animation Disabling (Strictly instant response, no squash/scale) -->
-        <Style Selector="Button:pressed">
-            <Setter Property="RenderTransform" Value="none"/>
-        </Style>
-        <Style Selector="Button:pressed /template/ ContentPresenter">
-            <Setter Property="RenderTransform" Value="none"/>
-        </Style>
-        <Style Selector="Button:pressed /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="RenderTransform" Value="none"/>
-        </Style>
 
         <!-- Expander Modern Fluent Styling (No black header or black hover border) -->
         <Style Selector="Expander">
@@ -940,67 +416,6 @@
             <Setter Property="BorderThickness" Value="0,0,0,1"/>
         </Style>
 
-        <!-- Author Link Button (Clean text link, no box, underline and white on hover) -->
-        <Style Selector="Button.authorLinkBtn">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}"/>
-            <Setter Property="Template">
-                <ControlTemplate>
-                    <TextBlock Text="{TemplateBinding Content}"
-                               FontSize="{TemplateBinding FontSize}"
-                               Foreground="{TemplateBinding Foreground}"
-                               VerticalAlignment="Center"/>
-                </ControlTemplate>
-            </Setter>
-        </Style>
-        <Style Selector="Button.authorLinkBtn:pointerover TextBlock">
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-            <Setter Property="TextDecorations" Value="Underline"/>
-        </Style>
-        <Style Selector="Button.authorLinkBtn:pressed TextBlock">
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-            <Setter Property="TextDecorations" Value="Underline"/>
-        </Style>
 
-        <!-- Inline Link Button -->
-        <Style Selector="Button.inlineLinkBtn">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}"/>
-            <Setter Property="Template">
-                <ControlTemplate>
-                    <TextBlock Text="{TemplateBinding Content}"
-                               FontSize="{TemplateBinding FontSize}"
-                               Foreground="{TemplateBinding Foreground}"
-                               VerticalAlignment="Center"/>
-                </ControlTemplate>
-            </Setter>
-        </Style>
-        <Style Selector="Button.inlineLinkBtn:pointerover TextBlock">
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-            <Setter Property="TextDecorations" Value="Underline"/>
-        </Style>
-        <Style Selector="Button.inlineLinkBtn:pressed TextBlock">
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-            <Setter Property="TextDecorations" Value="Underline"/>
-        </Style>
-</Application.Styles>
+    </Application.Styles>
 </Application>
-
-
-
-
-
-
-
-
-
-
-

@@ -1,0 +1,31 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:ZenithLauncher.ViewModels"
+             xmlns:l10n="using:ZenithLauncher.Extensions"
+             x:Class="ZenithLauncher.Views.Components.GameConsoleDrawerControl"
+             x:DataType="vm:MainWindowViewModel"
+             mc:Ignorable="d">
+        <Border Grid.Row="0" Grid.RowSpan="2" IsVisible="{Binding IsConsoleDialogOpen}" Background="{StaticResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1000">
+            <Border Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="700" Height="480" Padding="18" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Grid RowDefinitions="Auto,*,Auto">
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,10">
+                        <TextBlock Text="{l10n:Tr Key=mw_console_title}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        <Button Grid.Column="1" Classes="primaryBtn" Content="{l10n:Tr Key=btn_copy_logs}" Command="{Binding CopyConsoleLogsCommand}" Margin="0,0,8,0" Padding="12,5" FontSize="11"/>
+                        <Button Grid.Column="2" Content="✕" Command="{Binding CloseConsoleDialogCommand}" Background="Transparent" Foreground="{StaticResource TextPlaceholderBrush}" Padding="4" Cursor="Hand"/>
+                    </Grid>
+
+                    <Border Grid.Row="1" Background="{DynamicResource SidebarBgBrush}" CornerRadius="6" Padding="10">
+                        <TextBox Text="{Binding ConsoleLogs}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap" ScrollViewer.HorizontalScrollBarVisibility="Auto" Background="Transparent" Foreground="{StaticResource TextSoftBrush}" FontFamily="Consolas, Cascadia Code, Courier New" FontSize="11" BorderThickness="0"/>
+                    </Border>
+
+                    <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,10,0,0">
+                        <ProgressBar Value="{Binding LaunchProgress}" Height="4" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                        <TextBlock Grid.Column="1" Text="{Binding LaunchProgress, StringFormat='{}{0}%'}" Foreground="{StaticResource AccentBrush}" FontWeight="Bold" FontSize="11" VerticalAlignment="Center"/>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Border>
+
+</UserControl>

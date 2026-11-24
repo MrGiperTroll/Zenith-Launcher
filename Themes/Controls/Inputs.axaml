@@ -1,0 +1,289 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+        <!-- Clean instant popup -->
+        <Style Selector="ComboBox:open /template/ Popup">
+            <Setter Property="Opacity" Value="1"/>
+            <Setter Property="RenderTransform" Value="translateY(0px)"/>
+        </Style>
+        <Style Selector="ComboBox /template/ Border#HighlightBorder">
+            <Setter Property="IsVisible" Value="False"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Opacity" Value="0"/>
+        </Style>
+        <Style Selector="ComboBox:open /template/ Border#HighlightBorder">
+            <Setter Property="IsVisible" Value="False"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Opacity" Value="0"/>
+        </Style>
+        <Style Selector="ComboBox:focus /template/ Border#HighlightBorder">
+            <Setter Property="IsVisible" Value="False"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Opacity" Value="0"/>
+        </Style>
+        <Style Selector="ComboBox /template/ Border#DropDownOverlay">
+            <Setter Property="IsVisible" Value="False"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Opacity" Value="0"/>
+        </Style>
+        <Style Selector="ComboBox:open /template/ Border#DropDownOverlay">
+            <Setter Property="IsVisible" Value="False"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Opacity" Value="0"/>
+        </Style>
+        <Style Selector="ComboBox /template/ Popup Border#PopupBorder">
+            <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderDarkBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="BoxShadow" Value="0 10 32 0 #50000000"/>
+            <Setter Property="Padding" Value="4"/>
+            <Setter Property="Margin" Value="0,4,0,4"/>
+        </Style>
+        <Style Selector="ComboBox /template/ Popup Border">
+            <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderDarkBrush}"/>
+        </Style>
+        <Style Selector="ComboBox /template/ Popup ScrollViewer">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style Selector="ComboBox /template/ Popup ScrollViewer Border">
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style Selector="ComboBoxItem">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="Padding" Value="10,7"/>
+            <Setter Property="CornerRadius" Value="7"/>
+            <Setter Property="Margin" Value="2"/>
+        </Style>
+        <Style Selector="ComboBoxItem:pointerover">
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        </Style>
+        <Style Selector="ComboBoxItem /template/ Path#PART_CheckMark">
+            <Setter Property="IsVisible" Value="False"/>
+        </Style>
+        <Style Selector="ComboBoxItem /template/ Border#PART_CheckMark">
+            <Setter Property="IsVisible" Value="False"/>
+        </Style>
+        <Style Selector="ComboBoxItem:selected">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="ComboBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
+        </Style>
+        <Style Selector="ComboBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource AccentBrushHover}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
+        </Style>
+
+
+        <!-- Universal TextBox Selection Highlight: vibrant AccentBrush with white text -->
+        <Style Selector="TextBox">
+            <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="SelectionForegroundBrush" Value="{DynamicResource OnAccentBrush}"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled"/>
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+        </Style>
+        <Style Selector="TextBox:focus">
+            <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="SelectionForegroundBrush" Value="{DynamicResource OnAccentBrush}"/>
+        </Style>
+        <Style Selector="TextBox[AcceptsReturn=True]">
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+        </Style>
+
+        <!-- Global DarkInput styling -->
+        <Style Selector="TextBox.darkInput">
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="SelectionForegroundBrush" Value="{DynamicResource OnAccentBrush}"/>
+            <Setter Property="CaretBrush" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+        <Style Selector="TextBox.darkInput:pointerover /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderHoverBrush}"/>
+        </Style>
+        <Style Selector="TextBox.darkInput:focus /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="{DynamicResource FieldBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <Style Selector="PathIcon">
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <!-- Compact Numeric Badge Inputs (Used for RAM, ports, counters) -->
+        <Style Selector="TextBox.badgeInput">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="CaretBrush" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="SelectionForegroundBrush" Value="{DynamicResource OnAccentBrush}"/>
+            <Setter Property="FocusAdorner" Value="{x:Null}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="MinHeight" Value="0"/>
+            <Setter Property="Height" Value="22"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalContentAlignment" Value="Right"/>
+        </Style>
+        <Style Selector="TextBox.badgeInput /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="MinHeight" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0"/>
+        </Style>
+        <Style Selector="TextBox.badgeInput /template/ ScrollViewer#PART_ContentHost">
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="MinHeight" Value="0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="TextBox.badgeInput /template/ TextPresenter#PART_TextPresenter">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="TextBlock.Foreground" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+        <Style Selector="TextBox.badgeInput:pointerover /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style Selector="TextBox.badgeInput:focus /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style Selector="TextBox.badgeInput:focus /template/ TextPresenter#PART_TextPresenter">
+            <Setter Property="TextBlock.Foreground" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+
+        <!-- Clean borderless Title / Inline Renaming Inputs -->
+        <Style Selector="TextBox.titleInput">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="MinHeight" Value="0"/>
+            <Setter Property="FocusAdorner" Value="{x:Null}"/>
+            <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="SelectionForegroundBrush" Value="{DynamicResource OnAccentBrush}"/>
+            <Setter Property="CaretBrush" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+        <Style Selector="TextBox.titleInput /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0"/>
+        </Style>
+        <Style Selector="TextBox.titleInput /template/ ScrollViewer#PART_ContentHost">
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="TextBox.titleInput /template/ TextPresenter#PART_TextPresenter">
+            <Setter Property="Margin" Value="0"/>
+        </Style>
+        <Style Selector="TextBox.titleInput:focus /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0"/>
+        </Style>
+        <Style Selector="TextBox.titleInput:pointerover /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0"/>
+        </Style>
+
+        <!-- Modern CheckBox: colors via theme resources (CheckBoxCheckBackground*,
+             harmonized in ZenithTheme.Apply); box roundness via control CornerRadius.
+             Hover/press transitions live on this style (template carries no transitions).
+             PART_Border neutralized: it spans the whole row and its theme
+             pointerover/pressed backgrounds flash over dark rows. -->
+        <Style Selector="CheckBox">
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="Padding" Value="8,0,0,0"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="CornerRadius" Value="6"/>
+        </Style>
+        <Style Selector="CheckBox:pressed">
+            <Setter Property="Opacity" Value="0.85"/>
+        </Style>
+        <Style Selector="CheckBox:disabled">
+            <Setter Property="Opacity" Value="0.45"/>
+        </Style>
+        <!-- Smooth hover: Transitions is not template-set, so this wins -->
+        <Style Selector="CheckBox /template/ Border#NormalRectangle">
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.18" Easing="0.16, 1, 0.3, 1"/>
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.18" Easing="0.16, 1, 0.3, 1"/>
+                </Transitions>
+            </Setter>
+        </Style>
+
+        <!-- Modern ToggleSwitch: colors via theme resources (ToggleSwitchFill*,
+             ToggleSwitchStroke*, ToggleSwitchKnobFill*), harmonized in ZenithTheme.Apply -->
+        <Style Selector="ToggleSwitch">
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="OffContent" Value=""/>
+            <Setter Property="OnContent" Value=""/>
+        </Style>
+
+        <!-- (Slider styling lives in the dedicated Slider block above; template parts:
+             RepeatButton#PART_DecreaseButton / #PART_IncreaseButton, Thumb) -->
+
+        <!-- Unified ComboBox base (убирает дубли из каждого View) -->
+        <Style Selector="ComboBox.zenCombo">
+            <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderDarkBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="MinHeight" Value="34"/>
+        </Style>
+        <Style Selector="ComboBox.darkCombo">
+            <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderDarkBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="MinHeight" Value="32"/>
+        </Style>
+        <Style Selector="ComboBox.zenCombo:pointerover /template/ Border#Background">
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderMediumBrush}"/>
+        </Style>
+        <Style Selector="ComboBox.darkCombo:pointerover /template/ Border#Background">
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderMediumBrush}"/>
+        </Style>
+    
+
+</Styles>

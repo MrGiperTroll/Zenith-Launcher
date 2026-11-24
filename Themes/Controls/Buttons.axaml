@@ -1,0 +1,149 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+        <!-- Remove default focus adorners — no ugly square borders on icons/buttons -->
+        <Style Selector="Button /template/ ContentPresenter">
+            <Setter Property="FocusAdorner" Value="{x:Null}"/>
+        </Style>
+
+        <!-- Utilitarian tactile micro-interactions: crisp press feedback without layout thrashing -->
+        <Style Selector="Button">
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Button /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Button ContentPresenter TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Button:pressed">
+            <Setter Property="RenderTransform" Value="none"/>
+        </Style>
+        <Style Selector="Button.sideTab:pressed, Button.catalogTabBtn:pressed, Button.sourceTabBtn:pressed, Button.railBtn:pressed, Button.navBtn:pressed, Button.discordNavBtn:pressed, Button.menuBarBtn:pressed, Button.captionBtn:pressed, Button.gearSettingsBtn:pressed, Button.profileMenuItem:pressed, Button.filterDropdownBtn:pressed">
+            <Setter Property="RenderTransform" Value="none"/>
+        </Style>
+
+        <!-- Global Button Hover Brightening: only illuminate background, do NOT touch Foreground here
+             (specific classes like railBtn, sideTab, primaryBtn, dangerBtn manage their own Foreground) -->
+        <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderHoverBrush}"/>
+        </Style>
+        <Style Selector="Button:pointerover PathIcon">
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+        <Style Selector="Button.primaryBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource AccentBrushHover}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+        </Style>
+        <Style Selector="Button.subBtn PathIcon">
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+        </Style>
+        <Style Selector="Button.subBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderHoverBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        </Style>
+        <Style Selector="Button.subBtn:pointerover PathIcon">
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+        <Style Selector="Button.dangerBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource DangerBgDeepBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource DangerLightBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource DangerBrush}"/>
+        </Style>
+
+
+        <!-- Version button style (for Java installer tiles and version selectors) -->
+        <Style Selector="Button.verBtn">
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="8,5"/>
+            <Setter Property="MinHeight" Value="34"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.verBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        </Style>
+        <Style Selector="Button.verBtn:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+        </Style>
+        <Style Selector="Button.verBtn:disabled">
+            <Setter Property="Opacity" Value="0.45"/>
+        </Style>
+
+        <!-- Global Button Animation Disabling (Strictly instant response, no squash/scale) -->
+        <Style Selector="Button:pressed">
+            <Setter Property="RenderTransform" Value="none"/>
+        </Style>
+        <Style Selector="Button:pressed /template/ ContentPresenter">
+            <Setter Property="RenderTransform" Value="none"/>
+        </Style>
+        <Style Selector="Button:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="RenderTransform" Value="none"/>
+        </Style>
+
+
+        <!-- Author Link Button (Clean text link, no box, underline and white on hover) -->
+        <Style Selector="Button.authorLinkBtn">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <TextBlock Text="{TemplateBinding Content}"
+                               FontSize="{TemplateBinding FontSize}"
+                               Foreground="{TemplateBinding Foreground}"
+                               VerticalAlignment="Center"/>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="Button.authorLinkBtn:pointerover TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="TextDecorations" Value="Underline"/>
+        </Style>
+        <Style Selector="Button.authorLinkBtn:pressed TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="TextDecorations" Value="Underline"/>
+        </Style>
+
+        <!-- Inline Link Button -->
+        <Style Selector="Button.inlineLinkBtn">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <TextBlock Text="{TemplateBinding Content}"
+                               FontSize="{TemplateBinding FontSize}"
+                               Foreground="{TemplateBinding Foreground}"
+                               VerticalAlignment="Center"/>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="Button.inlineLinkBtn:pointerover TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="TextDecorations" Value="Underline"/>
+        </Style>
+        <Style Selector="Button.inlineLinkBtn:pressed TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="TextDecorations" Value="Underline"/>
+        </Style>
+
+</Styles>

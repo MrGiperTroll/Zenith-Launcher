@@ -1,0 +1,27 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:ZenithLauncher.ViewModels"
+             xmlns:l10n="using:ZenithLauncher.Extensions"
+             x:Class="ZenithLauncher.Views.Components.BottomLaunchBarControl"
+             x:DataType="vm:MainWindowViewModel"
+             mc:Ignorable="d">
+                <Border Grid.Row="1" Height="76" IsVisible="{Binding IsLaunchBarVisible}" Background="{DynamicResource SidebarBgBrush}">
+                    <Grid ColumnDefinitions="*,280" VerticalAlignment="Center">
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="24,0,16,0">
+                            <TextBlock Text="{Binding SelectedInstanceName}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <TextBlock Text="{Binding SelectedInstanceDetails}" FontSize="12" Foreground="{StaticResource TextSubtleBrush}" Margin="0,2,0,0"/>
+                            <ProgressBar IsVisible="{Binding IsLaunching}" Value="{Binding LaunchProgress}" Height="4" Foreground="{StaticResource AccentBrush}" Margin="0,6,24,0"/>
+                            <TextBlock Text="{Binding StatusText}" FontSize="11" Foreground="{StaticResource TextSubtleBrush}" Margin="0,4,24,0" TextTrimming="CharacterEllipsis"/>
+                        </StackPanel>
+
+<Border Grid.Column="1" Padding="16,0,16,0" VerticalAlignment="Center">
+                            <Button Classes="primaryBtn" Command="{Binding LaunchOrCancelCommand}" IsEnabled="{Binding CanLaunchOrCancel}" Height="42" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding LaunchButtonText}" FontSize="14" FontWeight="Bold"/>
+                            </Button>
+                        </Border>
+                    </Grid>
+                </Border>
+
+</UserControl>

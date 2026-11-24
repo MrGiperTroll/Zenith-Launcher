@@ -410,7 +410,7 @@ private void OnTopBarDoubleTapped(object? sender, TappedEventArgs e)
     private string? _pendingTargetId;
     private bool _pendingDropAfter;
 
-    private void OnInstanceCardPointerPressed(object? sender, PointerPressedEventArgs e)
+    internal void OnInstanceCardPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed && sender is Border border && border.DataContext is InstanceModel instance)
         {
@@ -692,7 +692,7 @@ private void OnTopBarDoubleTapped(object? sender, TappedEventArgs e)
     }
 
 
-    private void OnInstanceCardTapped(object? sender, TappedEventArgs e)
+    internal void OnInstanceCardTapped(object? sender, TappedEventArgs e)
     {
         if (_suppressNextTap)
         {
@@ -705,7 +705,7 @@ private void OnTopBarDoubleTapped(object? sender, TappedEventArgs e)
             vm.SelectInstanceCommand.Execute(instance);
     }
 
-    private void OnInstanceCardDoubleTapped(object? sender, TappedEventArgs e)
+    internal void OnInstanceCardDoubleTapped(object? sender, TappedEventArgs e)
     {
         if (sender is Control { DataContext: Models.InstanceModel instance } && DataContext is MainWindowViewModel vm)
         {

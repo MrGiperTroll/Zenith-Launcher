@@ -46,6 +46,7 @@
                 
         <!-- Instance card subtle elevation on hover -->
         <Style Selector="Border.instanceCard">
+            <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
             <Setter Property="Transitions">
                 <Transitions>
                     <BrushTransition Property="BorderBrush" Duration="0:0:0.2" Easing="0.16, 1, 0.3, 1"/>
@@ -53,8 +54,30 @@
                 </Transitions>
             </Setter>
         </Style>
+        <Style Selector="Border.instanceCard:pointerover">
+            <Setter Property="Background" Value="{DynamicResource PanelBrush}"/>
+        </Style>
+        <Style Selector="Border.targetInstanceCard:pointerover">
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderHoverBrush}"/>
+        </Style>
         <Style Selector="Border.instanceCard.dragging">
             <Setter Property="Opacity" Value="0.0"/>
+        </Style>
+
+        <!-- Toast Notification Animation -->
+        <Style Selector="Border.toastNotification">
+            <Setter Property="Opacity" Value="0"/>
+            <Setter Property="RenderTransform" Value="translateY(24px)"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.25" Easing="CubicEaseOut"/>
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.3" Easing="BackEaseOut"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Border.toastNotification.visible">
+            <Setter Property="Opacity" Value="1"/>
+            <Setter Property="RenderTransform" Value="translateY(0px)"/>
         </Style>
 
 

@@ -98,6 +98,111 @@ public partial class MainWindowViewModel : ViewModelBase
     public Task LaunchGameAsync() => Launch.LaunchGameAsync();
     public Task LaunchGameWithArgsAsync(string? extraArgs) => Launch.LaunchGameWithArgsAsync(extraArgs);
 
+    public NavigationViewModel Navigation { get; }
+
+    [ObservableProperty] private bool _isLockAspectRatio = false;
+    [ObservableProperty] private int _maxRamMb = 16384;
+
+    public LauncherNavPage CurrentPage => Navigation.CurrentPage;
+    public bool IsProfilesView => Navigation.IsProfilesView;
+    public bool IsModpacksView => Navigation.IsModpacksView;
+    public bool IsEditInstanceView => Navigation.IsEditInstanceView;
+    public bool IsContentBrowserView => Navigation.IsContentBrowserView;
+    public bool IsSettingsView => Navigation.IsSettingsView;
+    public bool IsServerManagerView => Navigation.IsServerManagerView;
+    public bool IsAccountsView => Navigation.IsAccountsView;
+    public bool IsCreateProfileView => Navigation.IsCreateProfileView;
+    public bool IsCreateServerView => Navigation.IsCreateServerView;
+    public bool IsLaunchBarVisible => Navigation.IsLaunchBarVisible;
+
+    public bool IsSidebarExpanded
+    {
+        get => Navigation.IsSidebarExpanded;
+        set => Navigation.IsSidebarExpanded = value;
+    }
+
+    public double SidebarWidth => Navigation.SidebarWidth;
+    public bool CanGoBack => Navigation.CanGoBack;
+    public bool CanGoForward => Navigation.CanGoForward;
+    public ObservableCollection<BreadcrumbItem> Breadcrumbs => Navigation.Breadcrumbs;
+
+    public EditInstanceViewModel? CurrentEditInstanceVm
+    {
+        get => Navigation.CurrentEditInstanceVm;
+        set => Navigation.CurrentEditInstanceVm = value;
+    }
+
+    public ContentBrowserViewModel? CurrentContentBrowserVm
+    {
+        get => Navigation.CurrentContentBrowserVm;
+        set => Navigation.CurrentContentBrowserVm = value;
+    }
+
+    public ServerManagerViewModel? CurrentServerManagerVm
+    {
+        get => Navigation.CurrentServerManagerVm;
+        set => Navigation.CurrentServerManagerVm = value;
+    }
+
+    public CreateProfileViewModel? CreateProfileVm
+    {
+        get => Navigation.CreateProfileVm;
+        set => Navigation.CreateProfileVm = value;
+    }
+
+    public CreateServerViewModel? CreateServerVm
+    {
+        get => Navigation.CreateServerVm;
+        set => Navigation.CreateServerVm = value;
+    }
+
+    public string CurrentSettingsTab
+    {
+        get => Navigation.CurrentSettingsTab;
+        set => Navigation.CurrentSettingsTab = value;
+    }
+
+    public bool IsSettingsTabGame => Navigation.IsSettingsTabGame;
+    public bool IsSettingsTabGeneral => Navigation.IsSettingsTabGeneral;
+    public bool IsSettingsTabAppearance => Navigation.IsSettingsTabAppearance;
+    public bool IsSettingsTabTheme => Navigation.IsSettingsTabTheme;
+    public bool IsSettingsTabLauncher => Navigation.IsSettingsTabLauncher;
+
+    public bool IsServerUnderDevDialogOpen
+    {
+        get => Navigation.IsServerUnderDevDialogOpen;
+        set => Navigation.IsServerUnderDevDialogOpen = value;
+    }
+
+    public bool HasExistingServers => Navigation.HasExistingServers;
+
+    public IRelayCommand GoBackCommand => Navigation.GoBackCommand;
+    public IRelayCommand GoForwardCommand => Navigation.GoForwardCommand;
+    public IRelayCommand ToggleSidebarCommand => Navigation.ToggleSidebarCommand;
+    public IRelayCommand ShowProfilesCommand => Navigation.ShowProfilesCommand;
+    public IRelayCommand ShowModpacksCommand => Navigation.ShowModpacksCommand;
+    public IRelayCommand SwitchSettingsTabCommand => Navigation.SwitchSettingsTabCommand;
+    public void SwitchSettingsTab(string tab) => Navigation.SwitchSettingsTab(tab);
+    public IRelayCommand NavigateToCreateServerCommand => Navigation.NavigateToCreateServerCommand;
+    public IRelayCommand OpenServersDirectoryCommand => Navigation.OpenServersDirectoryCommand;
+    public IRelayCommand NavigateToBreadcrumbCommand => Navigation.NavigateToBreadcrumbCommand;
+
+    public void NavigateToProfiles() => Navigation.NavigateToProfiles();
+    public void NavigateToModpacks() => Navigation.NavigateToModpacks();
+    public void NavigateToSettings() => Navigation.NavigateToSettings();
+    public void NavigateToAccounts() => Navigation.NavigateToAccounts();
+    public void NavigateToCreateProfile() => Navigation.NavigateToCreateProfile();
+    public void NavigateToCreateServer() => Navigation.NavigateToCreateServer();
+    public void NavigateToEditInstance(InstanceModel i, string? tab = "Overview") => Navigation.NavigateToEditInstance(i, tab);
+    public void NavigateToContentBrowser(ContentBrowserViewModel vm, InstanceModel? instance, string parentTitle, string sectionTitle, EditInstanceViewModel? editVm) =>
+        Navigation.NavigateToContentBrowser(vm, instance, parentTitle, sectionTitle, editVm);
+    public void NavigateToServerManager(ServerManagerViewModel vm, InstanceModel? instance, EditInstanceViewModel? editVm) =>
+        Navigation.NavigateToServerManager(vm, instance, editVm);
+    public void UpdateActiveInstanceTab(string n, string t) => Navigation.UpdateActiveInstanceTab(n, t);
+    public void GoBack() => Navigation.GoBack();
+    public void GoForward() => Navigation.GoForward();
+    public void ToggleSidebar() => Navigation.ToggleSidebar();
+
     private bool _isLoadingConfig = false;
 
     private readonly IAccountService _accountService;
@@ -512,6 +617,79 @@ public partial class MainWindowViewModel : ViewModelBase
 
         _modLoaderService = new ModLoaderService();
 
+        Navigation = new NavigationViewModel(
+            () => this,
+            _instanceService,
+            _modLoaderService)
+        {
+            HasUnsavedThemeChanges = () => HasUnsavedThemeChanges(),
+            RequestThemeDiscardConfirmation = action =>
+            {
+                _pendingThemeDiscardNavAction = action;
+                IsThemeDiscardConfirmOpen = true;
+            },
+            SaveLauncherConfigRequested = () => SaveLauncherConfig(),
+            RefreshStateRequested = () => RefreshState(),
+            StatusMessageRequested = msg => StatusText = msg,
+            GetModpacksBrowser = () => ModpacksBrowser,
+            GetCurseForgeApiKey = () => LauncherSettingsVm?.CurseForgeApiKey ?? "",
+            GetUseFlatVersionList = () => UseFlatVersionList,
+            GetShowReleases = () => ShowReleases,
+            GetShowSnapshots = () => ShowSnapshots,
+            GetShowBetas = () => ShowBetas,
+            GetShowAlphas = () => ShowAlphas,
+            GetInstances = () => Instances,
+            SetSelectedInstance = inst => SelectedInstance = inst,
+            SetSelectedInstanceId = id => SelectedInstanceId = id
+        };
+
+        Navigation.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(Navigation.CurrentPage))
+            {
+                OnPropertyChanged(nameof(CurrentPage));
+                OnPropertyChanged(nameof(IsProfilesView));
+                OnPropertyChanged(nameof(IsModpacksView));
+                OnPropertyChanged(nameof(IsEditInstanceView));
+                OnPropertyChanged(nameof(IsContentBrowserView));
+                OnPropertyChanged(nameof(IsSettingsView));
+                OnPropertyChanged(nameof(IsServerManagerView));
+                OnPropertyChanged(nameof(IsAccountsView));
+                OnPropertyChanged(nameof(IsCreateProfileView));
+                OnPropertyChanged(nameof(IsCreateServerView));
+                OnPropertyChanged(nameof(IsLaunchBarVisible));
+            }
+            else if (e.PropertyName == nameof(Navigation.SidebarWidth))
+                OnPropertyChanged(nameof(SidebarWidth));
+            else if (e.PropertyName == nameof(Navigation.IsSidebarExpanded))
+                OnPropertyChanged(nameof(IsSidebarExpanded));
+            else if (e.PropertyName == nameof(Navigation.CanGoBack))
+                OnPropertyChanged(nameof(CanGoBack));
+            else if (e.PropertyName == nameof(Navigation.CanGoForward))
+                OnPropertyChanged(nameof(CanGoForward));
+            else if (e.PropertyName == nameof(Navigation.CurrentEditInstanceVm))
+                OnPropertyChanged(nameof(CurrentEditInstanceVm));
+            else if (e.PropertyName == nameof(Navigation.CurrentContentBrowserVm))
+                OnPropertyChanged(nameof(CurrentContentBrowserVm));
+            else if (e.PropertyName == nameof(Navigation.CurrentServerManagerVm))
+                OnPropertyChanged(nameof(CurrentServerManagerVm));
+            else if (e.PropertyName == nameof(Navigation.CreateProfileVm))
+                OnPropertyChanged(nameof(CreateProfileVm));
+            else if (e.PropertyName == nameof(Navigation.CreateServerVm))
+                OnPropertyChanged(nameof(CreateServerVm));
+            else if (e.PropertyName == nameof(Navigation.CurrentSettingsTab))
+            {
+                OnPropertyChanged(nameof(CurrentSettingsTab));
+                OnPropertyChanged(nameof(IsSettingsTabGame));
+                OnPropertyChanged(nameof(IsSettingsTabGeneral));
+                OnPropertyChanged(nameof(IsSettingsTabAppearance));
+                OnPropertyChanged(nameof(IsSettingsTabTheme));
+                OnPropertyChanged(nameof(IsSettingsTabLauncher));
+            }
+        };
+
+        Navigation.NavigateToProfiles();
+
 
 
         // Re-translate computed UI strings when the language changes.
@@ -522,9 +700,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         {
 
-            if (_historyIndex >= 0 && _historyIndex < _navHistory.Count)
-
-                RebuildBreadcrumbs(_navHistory[_historyIndex]);
+            Navigation.RebuildActiveBreadcrumbs();
 
             CreateServerVm?.UpdatePluginsTabTitle();
 
@@ -687,39 +863,15 @@ public partial class MainWindowViewModel : ViewModelBase
         ModpacksBrowser.GetCurseForgeApiKey = () => LauncherSettingsVm?.CurseForgeApiKey ?? "";
 
         ModpacksBrowser.OnProjectSelectedChanged = _ =>
-
         {
-
-            if (_historyIndex >= 0 && _historyIndex < _navHistory.Count)
-
-            {
-
-                var cur = _navHistory[_historyIndex];
-
-                if (cur.Page == LauncherNavPage.Modpacks)
-
-                    RebuildBreadcrumbs(cur);
-
-            }
-
+            if (Navigation.CurrentPage == LauncherNavPage.Modpacks)
+                Navigation.RebuildActiveBreadcrumbs();
         };
 
         ModpacksBrowser.OnAuthorProfileChanged = _ =>
-
         {
-
-            if (_historyIndex >= 0 && _historyIndex < _navHistory.Count)
-
-            {
-
-                var cur = _navHistory[_historyIndex];
-
-                if (cur.Page == LauncherNavPage.Modpacks)
-
-                    RebuildBreadcrumbs(cur);
-
-            }
-
+            if (Navigation.CurrentPage == LauncherNavPage.Modpacks)
+                Navigation.RebuildActiveBreadcrumbs();
         };
 
 

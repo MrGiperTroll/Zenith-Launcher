@@ -63,6 +63,7 @@ Desktop.ini
 *.cache
 *.bak
 *.orig
+temp/
 
 # ===== One-off scripts =====
 apply_fix.ps1

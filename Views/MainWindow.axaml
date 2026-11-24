@@ -1890,15 +1890,15 @@
             </Border>
         </Border>
     <!-- Update In-App Modal (soft fade-in via code-behind) -->
-        <Border Grid.Row="0" Grid.RowSpan="2" x:Name="UpdateOverlay" Background="{StaticResource OverlayBrush}" IsVisible="{Binding IsUpdateOpen}" ZIndex="2000"
+        <Border Grid.Row="0" Grid.RowSpan="2" x:Name="UpdateOverlay" Background="{DynamicResource OverlayBrush}" IsVisible="{Binding IsUpdateOpen}" ZIndex="2000"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
-            <Border Background="{StaticResource SurfaceBrush}" CornerRadius="16" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1"
+            <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="16" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1"
                     HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 18 46 0 #55000000" Padding="24,20">
                 <views:UpdateNotificationView DataContext="{Binding UpdateVm}"/>
             </Border>
         </Border>
         <!-- Info Dialog Modal (Updates / Alerts) -->
-        <Border Grid.Row="0" Grid.RowSpan="2" IsVisible="{Binding IsInfoDialogOpen}" Background="{StaticResource OverlayBrush}" ZIndex="2100"
+        <Border Grid.Row="0" Grid.RowSpan="2" IsVisible="{Binding IsInfoDialogOpen}" Background="{DynamicResource OverlayBrush}" ZIndex="2100"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderCardSoftBrush}" BorderThickness="1"
                     CornerRadius="12" Padding="24" Width="400" HorizontalAlignment="Center" VerticalAlignment="Center"

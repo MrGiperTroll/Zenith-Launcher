@@ -107,8 +107,9 @@ public partial class UpdateNotificationViewModel : ObservableObject
     private static string ShortenNotes(string notes)
     {
         if (string.IsNullOrWhiteSpace(notes)) return "";
-        var oneLine = string.Join(" ", notes.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)).Trim();
-        return oneLine.Length > 300 ? oneLine.Substring(0, 300).TrimEnd() + "…" : oneLine;
+        var lines = notes.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        var joined = string.Join(Environment.NewLine, lines).Trim();
+        return joined.Length > 600 ? joined.Substring(0, 600).TrimEnd() + "…" : joined;
     }
 
     private void ReportProgress(DownloadProgress p)

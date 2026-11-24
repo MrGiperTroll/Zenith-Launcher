@@ -4131,6 +4131,14 @@ public partial class MainWindowViewModel : ViewModelBase
 
         {
 
+            var args = Environment.GetCommandLineArgs();
+            if (args.Any(a => a.Equals("--test-update", StringComparison.OrdinalIgnoreCase) || a.Equals("--mock-update", StringComparison.OrdinalIgnoreCase)))
+            {
+                await Task.Delay(400);
+                Avalonia.Threading.Dispatcher.UIThread.Post(OpenMockUpdate);
+                return;
+            }
+
             await Task.Delay(5000);
 
             var service = new GitHubUpdateService();
@@ -4253,6 +4261,14 @@ public partial class MainWindowViewModel : ViewModelBase
 
         {
 
+            var args = Environment.GetCommandLineArgs();
+            if (args.Any(a => a.Equals("--test-update", StringComparison.OrdinalIgnoreCase) || a.Equals("--mock-update", StringComparison.OrdinalIgnoreCase)))
+            {
+                await Task.Delay(200);
+                OpenMockUpdate();
+                return;
+            }
+
             var result = await new GitHubUpdateService().CheckForUpdatesAsync();
 
             if (result?.IsNewerThanCurrent == true)
@@ -4298,6 +4314,17 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
 
+
+    public void OpenMockUpdate()
+    {
+        var result = new UpdateCheckResult(
+            Version: "1.2.0",
+            DownloadUrl: "https://github.com/MrGiperTroll/Zenith-Launcher/releases/tag/v1.2.0",
+            ReleaseNotes: "## ru\n• Переработан интерфейс лаунчера и дизайн окон\n• Улучшена производительность загрузки профилей\n• Добавлена поддержка новых версий Fabric и Forge\n• Оптимизировано потребление оперативной памяти\n\n## en\n• Redesigned launcher interface and window styles\n• Improved profile loading performance\n• Added support for newer Fabric and Forge builds\n• Optimized memory consumption\n\n## uk\n• Оновлено інтерфейс лаунчера та оформлення вікон\n• Покращено швидкодію завантаження профілів\n• Додано підтримку нових версій Fabric та Forge\n• Оптимізовано споживання оперативної пам'яті",
+            IsNewerThanCurrent: true);
+
+        OpenUpdate(result);
+    }
 
     private void OpenUpdate(UpdateCheckResult result)
 

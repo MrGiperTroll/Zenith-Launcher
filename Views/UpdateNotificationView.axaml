@@ -22,7 +22,7 @@
         </Style>
         <Style Selector="Button.secondaryBtn">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Padding" Value="18,9"/>
@@ -33,7 +33,7 @@
         </Style>
         <Style Selector="Button.iconBtn">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Padding" Value="0"/>
@@ -45,12 +45,15 @@
             <Setter Property="VerticalContentAlignment" Value="Center"/>
         </Style>
         <Style Selector="Button.iconBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+        </Style>
+        <Style Selector="Button.primaryBtn:pressed, Button.secondaryBtn:pressed, Button.iconBtn:pressed">
+            <Setter Property="RenderTransform" Value="none"/>
         </Style>
         <Style Selector="ProgressBar.upbar">
             <Setter Property="MinHeight" Value="6"/>
             <Setter Property="CornerRadius" Value="3"/>
-            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource FieldBrush}"/>
             <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
         </Style>
     </UserControl.Styles>
@@ -72,10 +75,10 @@
 
         <!-- Release notes -->
         <StackPanel Grid.Row="1" Spacing="6" IsVisible="{Binding ReleaseNotesShort, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-            <TextBlock Text="{l10n:Tr Key=update_whatsnew}" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" Opacity="0.8"/>
-            <Border Background="{StaticResource FieldBrush}" CornerRadius="8" Padding="10,8">
+            <TextBlock Text="{l10n:Tr Key=update_whatsnew}" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Opacity="0.8"/>
+            <Border Background="{DynamicResource FieldBrush}" CornerRadius="8" Padding="10,8">
                 <ScrollViewer MaxHeight="110" VerticalScrollBarVisibility="Auto">
-                    <TextBlock Text="{Binding ReleaseNotesShort}" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding ReleaseNotesShort}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                 </ScrollViewer>
             </Border>
         </StackPanel>
@@ -83,7 +86,7 @@
         <!-- Download progress -->
         <StackPanel Grid.Row="2" Spacing="6" IsVisible="{Binding ShowProgress}">
             <ProgressBar Classes="upbar" Minimum="0" Maximum="100" Value="{Binding DownloadPercent}"/>
-            <TextBlock Text="{Binding DownloadLine}" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Right"/>
+            <TextBlock Text="{Binding DownloadLine}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Right"/>
         </StackPanel>
 
         <!-- Status -->

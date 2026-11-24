@@ -203,6 +203,214 @@ public partial class MainWindowViewModel : ViewModelBase
     public void GoForward() => Navigation.GoForward();
     public void ToggleSidebar() => Navigation.ToggleSidebar();
 
+    public InstancesViewModel InstancesManager { get; }
+
+    public ObservableCollection<InstanceModel> Instances => InstancesManager.Instances;
+
+    public InstanceModel? SelectedInstance
+    {
+        get => InstancesManager.SelectedInstance;
+        set => InstancesManager.SelectedInstance = value;
+    }
+
+    public string SelectedInstanceId
+    {
+        get => InstancesManager.SelectedInstanceId;
+        set => InstancesManager.SelectedInstanceId = value;
+    }
+
+    public string SelectedInstanceName
+    {
+        get => InstancesManager.SelectedInstanceName;
+        set => InstancesManager.SelectedInstanceName = value;
+    }
+    public string SelectedInstanceDetails
+    {
+        get => InstancesManager.SelectedInstanceDetails;
+        set => InstancesManager.SelectedInstanceDetails = value;
+    }
+    public bool HasInstances
+    {
+        get => InstancesManager.HasInstances;
+        set => InstancesManager.HasInstances = value;
+    }
+
+    public bool ShowReleases
+    {
+        get => InstancesManager.ShowReleases;
+        set => InstancesManager.ShowReleases = value;
+    }
+
+    public bool ShowSnapshots
+    {
+        get => InstancesManager.ShowSnapshots;
+        set => InstancesManager.ShowSnapshots = value;
+    }
+
+    public bool ShowBetas
+    {
+        get => InstancesManager.ShowBetas;
+        set => InstancesManager.ShowBetas = value;
+    }
+
+    public bool ShowAlphas
+    {
+        get => InstancesManager.ShowAlphas;
+        set => InstancesManager.ShowAlphas = value;
+    }
+
+    public bool UseFlatVersionList
+    {
+        get => InstancesManager.UseFlatVersionList;
+        set => InstancesManager.UseFlatVersionList = value;
+    }
+
+    public ObservableCollection<string> AvailableVersions => InstancesManager.AvailableVersions;
+
+    public string SelectedVersion
+    {
+        get => InstancesManager.SelectedVersion;
+        set => InstancesManager.SelectedVersion = value;
+    }
+
+    public bool CanCreateInstance => InstancesManager.CanCreateInstance;
+
+    public ObservableCollection<string> AvailableLoaders => InstancesManager.AvailableLoaders;
+
+    public string SelectedLoader
+    {
+        get => InstancesManager.SelectedLoader;
+        set => InstancesManager.SelectedLoader = value;
+    }
+
+    public ObservableCollection<string> AvailableLoaderBuilds => InstancesManager.AvailableLoaderBuilds;
+
+    public string SelectedLoaderBuild
+    {
+        get => InstancesManager.SelectedLoaderBuild;
+        set => InstancesManager.SelectedLoaderBuild = value;
+    }
+
+    public bool ShowLoaderBuilds
+    {
+        get => InstancesManager.ShowLoaderBuilds;
+        set => InstancesManager.ShowLoaderBuilds = value;
+    }
+
+    public string LoaderError => InstancesManager.LoaderError;
+    public bool LoaderErrorVisible => InstancesManager.LoaderErrorVisible;
+    public bool IsLoaderTypesVisible => InstancesManager.IsLoaderTypesVisible;
+    public bool IsLoaderBuildsVisible => InstancesManager.IsLoaderBuildsVisible;
+    public bool CanSwapLoader => InstancesManager.CanSwapLoader;
+
+    public ObservableCollection<string> DirectoryModes
+    {
+        get => InstancesManager.DirectoryModes;
+        set => InstancesManager.DirectoryModes = value;
+    }
+
+    public string SelectedDirectoryMode
+    {
+        get => InstancesManager.SelectedDirectoryMode;
+        set => InstancesManager.SelectedDirectoryMode = value;
+    }
+
+    public ObservableCollection<string> JavaModes
+    {
+        get => InstancesManager.JavaModes;
+        set => InstancesManager.JavaModes = value;
+    }
+
+    [ObservableProperty]
+    private string _selectedJavaMode = "Recommended";
+
+    public bool IsRightSidebarOpen
+    {
+        get => InstancesManager.IsRightSidebarOpen;
+        set => InstancesManager.IsRightSidebarOpen = value;
+    }
+
+    public bool IsVersionPickerOpen
+    {
+        get => InstancesManager.IsVersionPickerOpen;
+        set => InstancesManager.IsVersionPickerOpen = value;
+    }
+
+    public bool IsCreateDialogOpen
+    {
+        get => InstancesManager.IsCreateDialogOpen;
+        set => InstancesManager.IsCreateDialogOpen = value;
+    }
+
+    public bool IsImportPickerOpen
+    {
+        get => InstancesManager.IsImportPickerOpen;
+        set => InstancesManager.IsImportPickerOpen = value;
+    }
+
+    [ObservableProperty]
+    private string _effectiveJavaPath = "";
+
+    public string NewInstanceName
+    {
+        get => InstancesManager.NewInstanceName;
+        set => InstancesManager.NewInstanceName = value;
+    }
+
+    public bool IsNewInstanceNameDuplicate => InstancesManager.IsNewInstanceNameDuplicate;
+
+    public IRelayCommand<InstanceModel> SelectInstanceCommand => InstancesManager.SelectInstanceCommand;
+    public IRelayCommand CloseRightSidebarCommand => InstancesManager.CloseRightSidebarCommand;
+    public IAsyncRelayCommand<InstanceModel> CreateDesktopShortcutCommand => InstancesManager.CreateDesktopShortcutCommand;
+    public IRelayCommand<InstanceModel> EditInstanceCommand => InstancesManager.EditInstanceCommand;
+    public IAsyncRelayCommand<InstanceModel> OpenCopyDialogCommand => InstancesManager.OpenCopyDialogCommand;
+    public IRelayCommand<InstanceModel> StartRenameInstanceCommand => InstancesManager.StartRenameInstanceCommand;
+    public IAsyncRelayCommand<InstanceModel> FinishRenameInstanceCommand => InstancesManager.FinishRenameInstanceCommand;
+    public IAsyncRelayCommand<InstanceModel> ChangeInstanceIconCommand => InstancesManager.ChangeInstanceIconCommand;
+    public IRelayCommand<InstanceModel> OpenProfileFolderCommand => InstancesManager.OpenProfileFolderCommand;
+    public IRelayCommand<InstanceModel> OpenProfileBrowseModsCommand => InstancesManager.OpenProfileBrowseModsCommand;
+    public IRelayCommand<InstanceModel> OpenProfileServerManagerCommand => InstancesManager.OpenProfileServerManagerCommand;
+    public IRelayCommand<InstanceModel> OpenProfileSectionModsCommand => InstancesManager.OpenProfileSectionModsCommand;
+    public IRelayCommand<InstanceModel> OpenProfileSectionResourcePacksCommand => InstancesManager.OpenProfileSectionResourcePacksCommand;
+    public IRelayCommand<InstanceModel> OpenProfileSectionShaderPacksCommand => InstancesManager.OpenProfileSectionShaderPacksCommand;
+    public IRelayCommand<InstanceModel> OpenProfileSectionWorldsCommand => InstancesManager.OpenProfileSectionWorldsCommand;
+    public IRelayCommand<InstanceModel> OpenProfileSectionScreenshotsCommand => InstancesManager.OpenProfileSectionScreenshotsCommand;
+    public IRelayCommand<InstanceModel> OpenProfileSectionLogsCommand => InstancesManager.OpenProfileSectionLogsCommand;
+    public IRelayCommand<InstanceModel> OpenProfileModsFolderCommand => InstancesManager.OpenProfileModsFolderCommand;
+    public IRelayCommand<InstanceModel> OpenProfileResourcePacksFolderCommand => InstancesManager.OpenProfileResourcePacksFolderCommand;
+    public IRelayCommand<InstanceModel> OpenProfileShaderPacksFolderCommand => InstancesManager.OpenProfileShaderPacksFolderCommand;
+    public IRelayCommand<InstanceModel> OpenProfileWorldsFolderCommand => InstancesManager.OpenProfileWorldsFolderCommand;
+    public IRelayCommand<InstanceModel> OpenProfileScreenshotsFolderCommand => InstancesManager.OpenProfileScreenshotsFolderCommand;
+    public IRelayCommand<InstanceModel> OpenProfileLogsFolderCommand => InstancesManager.OpenProfileLogsFolderCommand;
+    public IAsyncRelayCommand<InstanceModel> ExportCurseForgeCommand => InstancesManager.ExportCurseForgeCommand;
+    public IAsyncRelayCommand<InstanceModel> ExportModrinthCommand => InstancesManager.ExportModrinthCommand;
+    public IAsyncRelayCommand<InstanceModel> ExportPrismCommand => InstancesManager.ExportPrismCommand;
+    public IRelayCommand<InstanceModel> RequestDeleteProfileCommand => InstancesManager.RequestDeleteProfileCommand;
+    public IAsyncRelayCommand ConfirmDeleteProfileCommand => InstancesManager.ConfirmDeleteProfileCommand;
+    public IRelayCommand CancelDeleteProfileCommand => InstancesManager.CancelDeleteProfileCommand;
+    public IRelayCommand OpenRootDirectoryCommand => InstancesManager.OpenRootDirectoryCommand;
+    public IRelayCommand ToggleVersionPickerCommand => InstancesManager.ToggleVersionPickerCommand;
+    public IRelayCommand<string> SelectVersionCommand => InstancesManager.SelectVersionCommand;
+    public IRelayCommand ClearVersionCommand => InstancesManager.ClearVersionCommand;
+    public IAsyncRelayCommand ImportInstancesCommand => InstancesManager.ImportInstancesCommand;
+    public IRelayCommand CloseImportPickerCommand => InstancesManager.CloseImportPickerCommand;
+    public IAsyncRelayCommand PickImportSingleCommand => InstancesManager.PickImportSingleCommand;
+    public IAsyncRelayCommand PickImportFileCommand => InstancesManager.PickImportFileCommand;
+    public IAsyncRelayCommand<string?> PickImportFolderCommand => InstancesManager.PickImportFolderCommand;
+    public IRelayCommand OpenNewInstanceDialogCommand => InstancesManager.OpenNewInstanceDialogCommand;
+    public IAsyncRelayCommand ConfirmCreateInstanceCommand => InstancesManager.ConfirmCreateInstanceCommand;
+    public IRelayCommand ToggleLoaderBuildsCommand => InstancesManager.ToggleLoaderBuildsCommand;
+
+    public void SelectInstance(InstanceModel i) => InstancesManager.SelectInstance(i);
+    public void ReorderInstance(string movedId, string targetId, bool dropAfter, bool save = true) =>
+        InstancesManager.ReorderInstance(movedId, targetId, dropAfter, save);
+    public void PersistInstanceOrder() => InstancesManager.PersistInstanceOrder();
+    public void FilterVersions() => InstancesManager.FilterVersions();
+    public Task LoadMojangVersionsAsync() => InstancesManager.LoadMojangVersionsAsync();
+    public Task UpdateAvailableLoadersAsync(string version) => InstancesManager.UpdateAvailableLoadersAsync(version);
+    public void OnInstanceNameLostFocus() => InstancesManager.OnInstanceNameLostFocus();
+    public void CloseEditInstanceWindow(EditInstanceViewModel vm) => InstancesManager.CloseEditInstanceWindow(vm);
+
     private bool _isLoadingConfig = false;
 
     private readonly IAccountService _accountService;
@@ -212,8 +420,6 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly ILaunchService _launchService;
 
     private readonly ModLoaderService _modLoaderService;
-
-    private readonly List<(string Name, string Type)> _cachedVersions = new();
 
 
 
@@ -616,6 +822,87 @@ public partial class MainWindowViewModel : ViewModelBase
         };
 
         _modLoaderService = new ModLoaderService();
+
+        InstancesManager = new InstancesViewModel(
+            _instanceService,
+            _modLoaderService,
+            () => Launch,
+            () => Navigation!,
+            () => this)
+        {
+            OnStatusChanged = msg => StatusText = msg,
+            SaveLauncherConfigRequested = () => SaveLauncherConfig(),
+            RefreshStateRequested = () => RefreshState(),
+            UpdateJavaDisplayRequested = () => UpdateJavaDisplay(),
+            GetCurseForgeApiKey = () => LauncherSettingsVm?.CurseForgeApiKey ?? "",
+            CloseDialogsRequested = () => CloseDialogs(),
+            GetIsDeleteConfirmOpen = () => IsDeleteConfirmOpen,
+            SetIsDeleteConfirmOpen = v => IsDeleteConfirmOpen = v,
+            GetPendingDeleteInstance = () => PendingDeleteInstance,
+            SetPendingDeleteInstance = v => PendingDeleteInstance = v
+        };
+
+        InstancesManager.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(InstancesManager.SelectedInstance))
+            {
+                OnPropertyChanged(nameof(SelectedInstance));
+                OnPropertyChanged(nameof(SelectedInstanceName));
+                OnPropertyChanged(nameof(SelectedInstanceDetails));
+                OnPropertyChanged(nameof(SelectedInstanceId));
+                OnPropertyChanged(nameof(HasInstances));
+            }
+            else if (e.PropertyName == nameof(InstancesManager.SelectedInstanceName))
+                OnPropertyChanged(nameof(SelectedInstanceName));
+            else if (e.PropertyName == nameof(InstancesManager.SelectedInstanceDetails))
+                OnPropertyChanged(nameof(SelectedInstanceDetails));
+            else if (e.PropertyName == nameof(InstancesManager.HasInstances))
+                OnPropertyChanged(nameof(HasInstances));
+            else if (e.PropertyName == nameof(InstancesManager.IsRightSidebarOpen))
+                OnPropertyChanged(nameof(IsRightSidebarOpen));
+            else if (e.PropertyName == nameof(InstancesManager.IsVersionPickerOpen))
+                OnPropertyChanged(nameof(IsVersionPickerOpen));
+            else if (e.PropertyName == nameof(InstancesManager.IsCreateDialogOpen))
+                OnPropertyChanged(nameof(IsCreateDialogOpen));
+            else if (e.PropertyName == nameof(InstancesManager.IsImportPickerOpen))
+                OnPropertyChanged(nameof(IsImportPickerOpen));
+            else if (e.PropertyName == nameof(InstancesManager.EffectiveJavaPath))
+                OnPropertyChanged(nameof(EffectiveJavaPath));
+            else if (e.PropertyName == nameof(InstancesManager.SelectedVersion))
+                OnPropertyChanged(nameof(SelectedVersion));
+            else if (e.PropertyName == nameof(InstancesManager.SelectedLoader))
+                OnPropertyChanged(nameof(SelectedLoader));
+            else if (e.PropertyName == nameof(InstancesManager.SelectedLoaderBuild))
+                OnPropertyChanged(nameof(SelectedLoaderBuild));
+            else if (e.PropertyName == nameof(InstancesManager.ShowLoaderBuilds))
+                OnPropertyChanged(nameof(ShowLoaderBuilds));
+            else if (e.PropertyName == nameof(InstancesManager.CanCreateInstance))
+                OnPropertyChanged(nameof(CanCreateInstance));
+            else if (e.PropertyName == nameof(InstancesManager.CanSwapLoader))
+                OnPropertyChanged(nameof(CanSwapLoader));
+            else if (e.PropertyName == nameof(InstancesManager.LoaderError))
+                OnPropertyChanged(nameof(LoaderError));
+            else if (e.PropertyName == nameof(InstancesManager.LoaderErrorVisible))
+                OnPropertyChanged(nameof(LoaderErrorVisible));
+            else if (e.PropertyName == nameof(InstancesManager.IsLoaderTypesVisible))
+                OnPropertyChanged(nameof(IsLoaderTypesVisible));
+            else if (e.PropertyName == nameof(InstancesManager.IsLoaderBuildsVisible))
+                OnPropertyChanged(nameof(IsLoaderBuildsVisible));
+            else if (e.PropertyName == nameof(InstancesManager.ShowReleases))
+                OnPropertyChanged(nameof(ShowReleases));
+            else if (e.PropertyName == nameof(InstancesManager.ShowSnapshots))
+                OnPropertyChanged(nameof(ShowSnapshots));
+            else if (e.PropertyName == nameof(InstancesManager.ShowBetas))
+                OnPropertyChanged(nameof(ShowBetas));
+            else if (e.PropertyName == nameof(InstancesManager.ShowAlphas))
+                OnPropertyChanged(nameof(ShowAlphas));
+            else if (e.PropertyName == nameof(InstancesManager.UseFlatVersionList))
+                OnPropertyChanged(nameof(UseFlatVersionList));
+            else if (e.PropertyName == nameof(InstancesManager.SelectedDirectoryMode))
+                OnPropertyChanged(nameof(SelectedDirectoryMode));
+            else if (e.PropertyName == nameof(InstancesManager.SelectedJavaMode))
+                OnPropertyChanged(nameof(SelectedJavaMode));
+        };
 
         Navigation = new NavigationViewModel(
             () => this,

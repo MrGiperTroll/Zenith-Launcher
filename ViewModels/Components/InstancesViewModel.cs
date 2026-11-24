@@ -3,15 +3,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
-using System.Net.Http;
-using System.Runtime.InteropServices;
-using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Input;
-using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using CmlLib.Core;
@@ -19,538 +13,277 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ZenithLauncher.Models;
 using ZenithLauncher.Services;
-using ZenithLauncher.UI.Theming;
 using ZenithLauncher.ViewModels.Common;
 using ZenithLauncher.ViewModels.Pages;
-using ZenithLauncher.Views;
 
-namespace ZenithLauncher.ViewModels;
+namespace ZenithLauncher.ViewModels.Components;
 
-
-public partial class MainWindowViewModel
+public partial class InstancesViewModel : ViewModelBase
 {
+    private readonly IInstanceService _instanceService;
+    private readonly ModLoaderService _modLoaderService;
+    private readonly Func<LaunchViewModel> _getLaunch;
+    private readonly Func<NavigationViewModel> _getNavigation;
+    private readonly Func<MainWindowViewModel> _getHost;
+    private readonly List<(string Name, string Type)> _cachedVersions = new();
+
+    private string? _preRenameName;
+    private InstanceModel? _prevSelectedInstance;
+    private int _loaderBuildsRequestId;
+
+    public Action<string>? OnStatusChanged { get; set; }
+    public Action? SaveLauncherConfigRequested { get; set; }
+    public Action? RefreshStateRequested { get; set; }
+    public Action? UpdateJavaDisplayRequested { get; set; }
+    public Func<string>? GetCurseForgeApiKey { get; set; }
+    public Action? CloseDialogsRequested { get; set; }
+
     [ObservableProperty] private bool _showReleases = true;
-
     [ObservableProperty] private bool _showSnapshots = false;
-
     [ObservableProperty] private bool _showBetas = false;
-
     [ObservableProperty] private bool _showAlphas = false;
 
-
-
     partial void OnShowReleasesChanged(bool value) => FilterVersions();
-
     partial void OnShowSnapshotsChanged(bool value) => FilterVersions();
-
     partial void OnShowBetasChanged(bool value) => FilterVersions();
-
     partial void OnShowAlphasChanged(bool value) => FilterVersions();
 
-    partial void OnSelectedDirectoryModeChanged(string value) => SaveLauncherConfig();
-
     [ObservableProperty] private bool _useFlatVersionList = false;
-
-    partial void OnUseFlatVersionListChanged(bool value) => SaveLauncherConfig();
+    partial void OnUseFlatVersionListChanged(bool value) => SaveLauncherConfigRequested?.Invoke();
 
     [ObservableProperty]
-
     private ObservableCollection<string> _directoryModes = new() { "Separate directory for each instance", "Family", "Do not use separate directories" };
 
-
-
     [ObservableProperty]
-
     private string _selectedDirectoryMode = "Separate directory for each instance";
-
-
+    partial void OnSelectedDirectoryModeChanged(string value) => SaveLauncherConfigRequested?.Invoke();
 
     [ObservableProperty]
-
     private ObservableCollection<string> _javaModes = new() { "Recommended", "System", "Custom" };
 
-
-
-    // Profiles / Instances
+    [ObservableProperty]
+    private string _selectedJavaMode = "Recommended";
 
     public ObservableCollection<InstanceModel> Instances { get; } = new();
 
-
-
     [ObservableProperty]
-
     private InstanceModel? _selectedInstance;
 
-
-
-    private string? _preRenameName;
-
-    private InstanceModel? _prevSelectedInstance;
-
-
-
     partial void OnSelectedInstanceChanged(InstanceModel? value)
-
     {
-
-        OnPropertyChanged(nameof(CanLaunch));
-
-        OnPropertyChanged(nameof(CanLaunchOrCancel));
-
-        OnPropertyChanged(nameof(LaunchButtonText));
-
-        IsLaunching = value != null && Launch.IsInstanceLaunching(value.Id);
-
-        Launch.NotifyInstanceChanged();
-
-        UpdateJavaDisplay();
-
+        var launch = _getLaunch();
+        launch.IsLaunching = value != null && launch.IsInstanceLaunching(value.Id);
+        launch.NotifyInstanceChanged();
+        UpdateJavaDisplayRequested?.Invoke();
         _preRenameName = value?.Name;
 
         if (!ReferenceEquals(_prevSelectedInstance, value))
-
         {
-
             if (_prevSelectedInstance != null)
-
                 _prevSelectedInstance.PropertyChanged -= OnInstancePropertyChanged;
-
             _prevSelectedInstance = value;
-
             if (value != null)
-
                 value.PropertyChanged += OnInstancePropertyChanged;
-
         }
-
     }
-
-
 
     private void OnInstancePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-
     {
-
         if (e.PropertyName == nameof(InstanceModel.IsRunning) || e.PropertyName == nameof(InstanceModel.IsLaunching))
-
         {
-
-            Launch.NotifyInstanceChanged();
-
-            OnPropertyChanged(nameof(CanLaunch));
-
-            OnPropertyChanged(nameof(CanLaunchOrCancel));
-
-            OnPropertyChanged(nameof(LaunchButtonText));
-
+            var launch = _getLaunch();
+            launch.NotifyInstanceChanged();
             if (e.PropertyName == nameof(InstanceModel.IsLaunching) && ReferenceEquals(sender, SelectedInstance))
-
-                IsLaunching = SelectedInstance!.IsLaunching;
-
+                launch.IsLaunching = SelectedInstance!.IsLaunching;
         }
-
     }
-
-
 
     public async void OnInstanceNameLostFocus()
-
     {
-
         if (SelectedInstance == null) return;
-
         var currentName = SelectedInstance.Name;
-
         if (string.Equals(currentName, _preRenameName, StringComparison.Ordinal)) return;
 
-
-
         var (ok, error) = await _instanceService.RenameInstanceAsync(SelectedInstance, currentName);
-
         if (!ok)
-
         {
-
             SelectedInstance.Name = _preRenameName ?? currentName;
-
-            StatusText = error ?? "";
-
+            OnStatusChanged?.Invoke(error ?? "");
         }
-
         else
-
         {
-
             _preRenameName = SelectedInstance.Name;
-
-            RefreshState();
-
+            RefreshStateRequested?.Invoke();
         }
-
     }
 
+    [ObservableProperty] private string _selectedInstanceId = string.Empty;
+    [ObservableProperty] private string _selectedInstanceName = "No Profile Selected";
+    [ObservableProperty] private string _selectedInstanceDetails = "Click '+ Create Profile' to begin";
+    [ObservableProperty] private bool _hasInstances;
 
-
-    [ObservableProperty]
-
-    private string _selectedInstanceId = string.Empty;
-
-
-
-    [ObservableProperty]
-
-    private string _selectedInstanceName = "No Profile Selected";
-
-
-
-    [ObservableProperty]
-
-    private string _selectedInstanceDetails = "Click '+ Create Profile' to begin";
-
-
-
-    [ObservableProperty]
-
-    private bool _hasInstances;
-
-
-
-    [ObservableProperty]
-
-    private string _newInstanceName = string.Empty;
-
-
-
+    [ObservableProperty] private string _newInstanceName = string.Empty;
     partial void OnNewInstanceNameChanged(string value)
-
     {
-
         IsNewInstanceNameDuplicate = !string.IsNullOrWhiteSpace(value) &&
-
             _instanceService.GetInstances().Any(i => i.Name.Equals(value.Trim(), StringComparison.OrdinalIgnoreCase));
-
     }
-
-
-
-    // Versions
 
     public ObservableCollection<string> AvailableVersions { get; } = new();
 
-
-
-    [ObservableProperty]
-
-    private string _selectedVersion = "";
-
-
-
-    [ObservableProperty]
-
-    private bool _isNewInstanceNameDuplicate;
-
-
-
-    public bool CanCreateInstance => !string.IsNullOrWhiteSpace(SelectedVersion) &&
-
-        (SelectedLoader == "Vanilla" || !string.IsNullOrWhiteSpace(SelectedLoaderBuild));
-
-
-
+    [ObservableProperty] private string _selectedVersion = "";
     partial void OnSelectedVersionChanged(string value)
-
     {
-
         OnPropertyChanged(nameof(CanCreateInstance));
-
         _ = UpdateAvailableLoadersAsync(value);
-
     }
 
+    [ObservableProperty] private bool _isNewInstanceNameDuplicate;
 
-
-    // Mod Loaders
+    public bool CanCreateInstance => !string.IsNullOrWhiteSpace(SelectedVersion) &&
+        (SelectedLoader == "Vanilla" || !string.IsNullOrWhiteSpace(SelectedLoaderBuild));
 
     public ObservableCollection<string> AvailableLoaders { get; } = new();
 
+    [ObservableProperty] private string _selectedLoader = "Vanilla";
+    partial void OnSelectedLoaderChanged(string value)
+    {
+        _ = UpdateLoaderBuildsAsync();
+        OnPropertyChanged(nameof(CanSwapLoader));
+    }
 
-
-    [ObservableProperty]
-
-    private string _selectedLoader = "Vanilla";
-
-
-
-    [ObservableProperty]
-
-    private bool _isLoadingLoaders;
-
-
+    [ObservableProperty] private bool _isLoadingLoaders;
 
     public ObservableCollection<string> AvailableLoaderBuilds { get; } = new();
 
+    [ObservableProperty] private string _selectedLoaderBuild = string.Empty;
+    partial void OnSelectedLoaderBuildChanged(string value)
+    {
+        OnPropertyChanged(nameof(CanCreateInstance));
+    }
 
+    [ObservableProperty] private bool _showLoaderBuilds;
+    partial void OnShowLoaderBuildsChanged(bool value)
+    {
+        OnPropertyChanged(nameof(IsLoaderTypesVisible));
+        OnPropertyChanged(nameof(IsLoaderBuildsVisible));
+    }
 
-    [ObservableProperty]
-
-    private string _selectedLoaderBuild = string.Empty;
-
-
-
-    [ObservableProperty]
-
-    private bool _showLoaderBuilds;
-
-
-
-    [ObservableProperty]
-
-    private string _loaderError = string.Empty;
-
-
-
-    [ObservableProperty]
-
-    private bool _loaderErrorVisible;
-
-
+    [ObservableProperty] private string _loaderError = string.Empty;
+    [ObservableProperty] private bool _loaderErrorVisible;
 
     public bool IsLoaderTypesVisible => !ShowLoaderBuilds;
-
     public bool IsLoaderBuildsVisible => ShowLoaderBuilds;
-
-
-
     public bool CanSwapLoader => SelectedLoader != "Vanilla";
 
-
-
-    partial void OnShowLoaderBuildsChanged(bool value)
-
-    {
-
-        OnPropertyChanged(nameof(IsLoaderTypesVisible));
-
-        OnPropertyChanged(nameof(IsLoaderBuildsVisible));
-
-    }
-
-
-
     [RelayCommand]
-
-    private void ToggleLoaderBuilds()
-
+    public void ToggleLoaderBuilds()
     {
-
         if (!ShowLoaderBuilds)
-
         {
-
-            // switching to build mode — ensure builds are loaded
-
             if (AvailableLoaderBuilds.Count == 0 && SelectedLoader != "Vanilla")
-
                 _ = UpdateLoaderBuildsAsync();
-
         }
-
         ShowLoaderBuilds = !ShowLoaderBuilds;
-
     }
 
+    [ObservableProperty] private bool _isRightSidebarOpen;
+    [ObservableProperty] private bool _isVersionPickerOpen;
+    [ObservableProperty] private bool _isCreateDialogOpen;
+    [ObservableProperty] private bool _isImportPickerOpen;
+    [ObservableProperty] private string _effectiveJavaPath = "";
 
+    public Action<bool>? SetIsDeleteConfirmOpen { get; set; }
+    public Func<bool>? GetIsDeleteConfirmOpen { get; set; }
+    public Action<InstanceModel?>? SetPendingDeleteInstance { get; set; }
+    public Func<InstanceModel?>? GetPendingDeleteInstance { get; set; }
 
-    // Java
-
-    [ObservableProperty]
-
-    private string _selectedJavaMode = "Recommended";
-
-
-
-    [ObservableProperty]
-
-    private bool _isRightSidebarOpen;
-
-
-
-    [ObservableProperty]
-
-    private bool _isVersionPickerOpen;
-
-
-
-    [ObservableProperty]
-
-    private bool _isCreateDialogOpen;
-
-
-
-    [ObservableProperty]
-
-    private bool _isImportPickerOpen;
-
-
-
-
-    private async Task UpdateAvailableLoadersAsync(string version)
-
+    public bool IsDeleteConfirmOpen
     {
+        get => GetIsDeleteConfirmOpen?.Invoke() ?? false;
+        set => SetIsDeleteConfirmOpen?.Invoke(value);
+    }
 
+    public InstanceModel? PendingDeleteInstance
+    {
+        get => GetPendingDeleteInstance?.Invoke();
+        set => SetPendingDeleteInstance?.Invoke(value);
+    }
+
+    public InstancesViewModel(
+        IInstanceService instanceService,
+        ModLoaderService modLoaderService,
+        Func<LaunchViewModel> getLaunch,
+        Func<NavigationViewModel> getNavigation,
+        Func<MainWindowViewModel> getHost)
+    {
+        _instanceService = instanceService;
+        _modLoaderService = modLoaderService;
+        _getLaunch = getLaunch;
+        _getNavigation = getNavigation;
+        _getHost = getHost;
+    }
+
+    public async Task UpdateAvailableLoadersAsync(string version)
+    {
         await Dispatcher.UIThread.InvokeAsync(() =>
-
         {
-
             var loaders = _modLoaderService.GetSupportedLoaders(version);
-
             if (!AvailableLoaders.SequenceEqual(loaders))
-
             {
-
                 AvailableLoaders.Clear();
-
                 foreach (var loader in loaders)
-
                     AvailableLoaders.Add(loader);
-
             }
 
-
-
             if (!AvailableLoaders.Contains(SelectedLoader))
-
                 SelectedLoader = AvailableLoaders.FirstOrDefault() ?? "Vanilla";
 
-            // Re-push the value: resetting ItemsSource wipes the ComboBox's visual
-
-            // selection, and assigning the identical string raises no notification.
-
             OnPropertyChanged(nameof(SelectedLoader));
-
         });
-
         await UpdateLoaderBuildsAsync();
-
     }
 
-
-
-    // Monotonic id: only the most recent builds request may touch the UI.
-
-    private int _loaderBuildsRequestId;
-
-
-
-    private async Task UpdateLoaderBuildsAsync()
-
+    public async Task UpdateLoaderBuildsAsync()
     {
-
         var requestId = ++_loaderBuildsRequestId;
-
         var loader = SelectedLoader;
-
         var version = SelectedVersion;
-
         AvailableLoaderBuilds.Clear();
 
         if (string.IsNullOrWhiteSpace(loader) || loader == "Vanilla")
-
         {
-
             SelectedLoaderBuild = "";
-
             OnPropertyChanged(nameof(SelectedLoaderBuild));
-
             LoaderErrorVisible = false;
-
             LoaderError = string.Empty;
-
             return;
-
         }
-
-
 
         List<string> builds;
-
         try
-
         {
-
             builds = await _modLoaderService.GetLoaderBuildsAsync(version, loader);
-
         }
-
         catch (Exception ex)
-
         {
-
             LauncherLog.Error("Failed to load loader builds", ex);
-
             builds = new List<string> { "Latest (Auto)" };
-
         }
-
-
 
         await Dispatcher.UIThread.InvokeAsync(() =>
-
         {
-
-            if (requestId != _loaderBuildsRequestId) return; // stale response - a newer request owns the UI
-
+            if (requestId != _loaderBuildsRequestId) return;
             AvailableLoaderBuilds.Clear();
-
             foreach (var b in builds)
-
                 AvailableLoaderBuilds.Add(b);
 
-
-
             SelectedLoaderBuild = AvailableLoaderBuilds.FirstOrDefault() ?? "";
-
             OnPropertyChanged(nameof(SelectedLoaderBuild));
-
-
-
             LoaderErrorVisible = false;
-
             LoaderError = string.Empty;
-
         });
-
     }
-
-
-
-    partial void OnSelectedLoaderChanged(string value)
-
-    {
-
-        _ = UpdateLoaderBuildsAsync();
-
-        OnPropertyChanged(nameof(CanSwapLoader));
-
-    }
-
-
-
-    partial void OnSelectedLoaderBuildChanged(string value)
-
-    {
-
-        OnPropertyChanged(nameof(CanCreateInstance));
-
-    }
-
-
-
-    [ObservableProperty]
-
-    private string _effectiveJavaPath = "";
-
-
 
     public async Task LoadMojangVersionsAsync()
     {
@@ -618,1119 +351,554 @@ public partial class MainWindowViewModel
     }
 
     public void FilterVersions()
-
     {
-
         AvailableVersions.Clear();
-
-
-
         foreach (var v in _cachedVersions)
-
         {
-
             if (ModLoaderService.IsLoaderProfileId(v.Name)) continue;
-
             if (v.Type == "release" && ShowReleases)
-
                 AvailableVersions.Add(v.Name);
-
             else if (v.Type == "snapshot" && ShowSnapshots)
-
                 AvailableVersions.Add(v.Name);
-
             else if (v.Type == "old_beta" && ShowBetas)
-
                 AvailableVersions.Add(v.Name);
-
             else if (v.Type == "old_alpha" && ShowAlphas)
-
                 AvailableVersions.Add(v.Name);
-
         }
-
-
 
         if (AvailableVersions.Count == 0 && _cachedVersions.Count > 0)
-
         {
-
             foreach (var v in _cachedVersions)
-
             {
-
                 if (ModLoaderService.IsLoaderProfileId(v.Name)) continue;
-
                 AvailableVersions.Add(v.Name);
-
             }
-
         }
-
     }
-
-
 
     public void ReorderInstance(string movedId, string targetId, bool dropAfter, bool save = true)
-
     {
-
         try
-
         {
-
             _instanceService.ReorderInstances(movedId, targetId, dropAfter, save);
-
-
-
             var moved = Instances.FirstOrDefault(i => i.Id == movedId);
-
             if (moved == null) return;
 
-
-
             var all = _instanceService.GetInstances().ToList();
-
             int newIdx = all.FindIndex(i => i.Id == movedId);
-
             int oldIdx = Instances.IndexOf(moved);
 
-
-
-            // Clamp to valid range before calling Move
-
             if (oldIdx < 0 || newIdx < 0) return;
-
             newIdx = Math.Clamp(newIdx, 0, Instances.Count - 1);
-
             oldIdx = Math.Clamp(oldIdx, 0, Instances.Count - 1);
 
-
-
             if (oldIdx != newIdx)
-
-                { var item = Instances[oldIdx]; Instances.RemoveAt(oldIdx); Instances.Insert(newIdx, item); }
-
+            {
+                var item = Instances[oldIdx];
+                Instances.RemoveAt(oldIdx);
+                Instances.Insert(newIdx, item);
+            }
         }
-
         catch (Exception ex)
-
         {
-
             LauncherLog.Error("ReorderInstance failed", ex);
-
         }
-
     }
-
-
 
     public void PersistInstanceOrder()
-
     {
-
         var ids = Instances.Select(i => i.Id).ToList();
-
         _instanceService.SetInstanceOrder(ids);
-
     }
 
-
-
     [RelayCommand]
-
-    private void SelectInstance(InstanceModel instance)
-
+    public void SelectInstance(InstanceModel instance)
     {
-
         if (instance == null) return;
-
-
-
         _instanceService.SetSelectedInstance(instance.Id);
-
         SelectedInstanceId = instance.Id;
 
         foreach (var inst in Instances)
-
             inst.IsSelected = (inst.Id == instance.Id);
 
-
-
         SelectedInstance = instance;
-
         SelectedInstanceName = instance.Name;
-
         SelectedInstanceDetails = instance.DisplayVersion;
-
         IsRightSidebarOpen = true;
-
     }
 
-
+    [RelayCommand]
+    public void CloseRightSidebar() => IsRightSidebarOpen = false;
 
     [RelayCommand]
-
-    private void CloseRightSidebar() => IsRightSidebarOpen = false;
-
-
-
-    [RelayCommand]
-
-    private async Task CreateDesktopShortcutAsync(InstanceModel instance)
-
+    public async Task CreateDesktopShortcutAsync(InstanceModel instance)
     {
-
         var inst = instance ?? SelectedInstance;
-
         if (inst == null) return;
 
-
-
         try
-
         {
-
             if (!OperatingSystem.IsWindows())
-
             {
-
-                StatusText = L10n.T("mw_status_shortcut_os");
-
+                OnStatusChanged?.Invoke(L10n.T("mw_status_shortcut_os"));
                 return;
-
             }
 
-
-
-            var topLevel = Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop
-
+            var topLevel = Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
                 ? desktop.MainWindow
-
                 : null;
 
-
-
             string shortcutPath;
-
             if (topLevel?.StorageProvider != null)
-
             {
-
                 var desktopDir = await topLevel.StorageProvider.TryGetFolderFromPathAsync(
-
                     Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory));
 
-
-
-                var file = await topLevel.StorageProvider.SaveFilePickerAsync(new Avalonia.Platform.Storage.FilePickerSaveOptions
-
+                var file = await topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
                 {
-
                     Title = L10n.T("btn_shortcut"),
-
                     SuggestedFileName = $"{inst.Name}.lnk",
-
                     DefaultExtension = "lnk",
-
                     SuggestedStartLocation = desktopDir,
-
                     FileTypeChoices = new[]
-
                     {
-
-                        new Avalonia.Platform.Storage.FilePickerFileType("Shortcut (*.lnk)") { Patterns = new[] { "*.lnk" } }
-
+                        new FilePickerFileType("Shortcut (*.lnk)") { Patterns = new[] { "*.lnk" } }
                     }
-
                 });
 
-
-
                 if (file == null) return;
-
                 shortcutPath = file.Path.LocalPath;
-
             }
-
             else
-
             {
-
                 var desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
-
                 shortcutPath = Path.Combine(desktopPath, $"{inst.Name}.lnk");
-
             }
-
-
 
             var exePath = Environment.ProcessPath ?? Process.GetCurrentProcess().MainModule?.FileName;
-
             if (string.IsNullOrEmpty(exePath)) return;
-
             var workDir = AppDomain.CurrentDomain.BaseDirectory;
 
-
-
-            // Default: the launcher's own (white) icon. If the profile has a custom
-
-            // icon, build a real .ico for it so Explorer shows it on the shortcut.
-
             var iconLocation = $"{Esc(exePath)},0";
-
             var customIco = ShortcutIconService.GetOrCreateInstanceIco(inst);
-
             if (!string.IsNullOrEmpty(customIco))
-
                 iconLocation = $"{Esc(customIco)},0";
 
-
-
-            // .NET's dynamic COM dispatch to WScript.Shell is unreliable in Avalonia apps,
-
-            // so generate the .lnk via a small PowerShell script instead.
-
             var script =
-
                 "$ws = New-Object -ComObject WScript.Shell\n" +
-
                 $"$sc = $ws.CreateShortcut('{Esc(shortcutPath)}')\n" +
-
                 $"$sc.TargetPath = '{Esc(exePath)}'\n" +
-
                 $"$sc.Arguments = '--launch \"{inst.Name}\"'\n" +
-
                 $"$sc.WorkingDirectory = '{Esc(workDir)}'\n" +
-
                 $"$sc.IconLocation = '{iconLocation}'\n" +
-
                 $"$sc.Description = 'Launch {Esc(inst.Name)} (Minecraft {inst.Version}) - Zenith Launcher'\n" +
-
                 "$sc.Save()\n";
 
-
-
             var scriptPath = Path.Combine(Path.GetTempPath(), $"zenith_shortcut_{Guid.NewGuid():N}.ps1");
-
             File.WriteAllText(scriptPath, script);
-
             try
-
             {
-
                 var psi = new ProcessStartInfo
-
                 {
-
                     FileName = "powershell.exe",
-
                     Arguments = $"-NoProfile -ExecutionPolicy Bypass -NoLogo -File \"{scriptPath}\"",
-
                     UseShellExecute = false,
-
                     CreateNoWindow = true
-
                 };
-
                 using var p = Process.Start(psi);
-
                 if (p != null && !p.WaitForExit(15000))
-
                     p.Kill(true);
 
-                StatusText = File.Exists(shortcutPath)
-
+                OnStatusChanged?.Invoke(File.Exists(shortcutPath)
                     ? string.Format(L10n.T("mw_status_shortcut_done"), inst.Name)
-
-                    : L10n.T("mw_status_shortcut_failed");
-
+                    : L10n.T("mw_status_shortcut_failed"));
             }
-
             finally
-
             {
-
                 try { File.Delete(scriptPath); } catch { }
-
             }
-
         }
-
         catch (Exception ex)
-
         {
-
             LauncherLog.Error("Failed to create shortcut", ex);
-
-            StatusText = L10n.T("mw_status_shortcut_failed");
-
+            OnStatusChanged?.Invoke(L10n.T("mw_status_shortcut_failed"));
         }
-
-
 
         static string Esc(string s) => s.Replace("'", "''");
-
     }
-
-
 
     [RelayCommand]
-
-    private void EditInstance(InstanceModel instance)
-
+    public void EditInstance(InstanceModel instance)
     {
-
         var inst = instance ?? SelectedInstance;
-
         if (inst == null) return;
-
         SelectInstance(inst);
-
         OpenEditInstanceWindow(inst);
-
     }
 
-
-
-    private void OpenEditInstanceWindow(InstanceModel instance)
-
+    public void OpenEditInstanceWindow(InstanceModel instance)
     {
-
-        NavigateToEditInstance(instance);
-
+        _getNavigation().NavigateToEditInstance(instance);
     }
-
-
 
     public void CloseEditInstanceWindow(EditInstanceViewModel viewModel)
-
     {
-
-        GoBack();
-
+        _getNavigation().GoBack();
     }
 
-
-
     [RelayCommand]
-
-    private async Task OpenCopyDialog(InstanceModel instance)
-
+    public async Task OpenCopyDialog(InstanceModel instance)
     {
-
         var inst = instance ?? SelectedInstance;
-
         if (inst == null) return;
-
-
 
         var existingNames = _instanceService.GetInstances().Select(i => i.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
-
         string copyName = $"{inst.Name} (Copy)";
-
         int counter = 2;
-
         while (existingNames.Contains(copyName))
-
         {
-
             copyName = $"{inst.Name} (Copy {counter})";
-
             counter++;
-
         }
 
-
-
-        StatusText = $"Cloning {inst.Name}...";
-
+        OnStatusChanged?.Invoke($"Cloning {inst.Name}...");
         var created = await _instanceService.CreateInstanceAsync(copyName, inst.Version, inst.LoaderType);
-
         if (created == null) return;
 
-
-
         try
-
         {
-
             await Task.Run(() =>
-
             {
-
                 if (Directory.Exists(inst.Path) && Directory.Exists(created.Path))
-
-                {
-
                     CopyTree(inst.Path, created.Path);
-
-                }
-
             });
-
         }
-
         catch (Exception ex)
-
         {
-
             LauncherLog.Error($"Failed to copy instance directory during clone: {inst.Name}", ex);
-
         }
-
-
 
         await _instanceService.SaveInstanceAsync(created);
-
         Instances.Add(created);
-
         SelectedInstance = created;
-
-        StatusText = $"Profile '{copyName}' cloned successfully.";
-
+        OnStatusChanged?.Invoke($"Profile '{copyName}' cloned successfully.");
     }
-
-
 
     private static void CopyTree(string sourceDir, string destinationDir)
-
     {
-
         var dir = new DirectoryInfo(sourceDir);
-
         if (!dir.Exists) return;
 
-
-
         Directory.CreateDirectory(destinationDir);
-
         foreach (var file in dir.GetFiles())
-
         {
-
             if (file.Name.EndsWith(".lock", StringComparison.OrdinalIgnoreCase)) continue;
-
             try { file.CopyTo(Path.Combine(destinationDir, file.Name), true); } catch { }
-
         }
-
-
 
         foreach (var subDir in dir.GetDirectories())
-
         {
-
             if (subDir.Name.Equals(".fabric", StringComparison.OrdinalIgnoreCase) ||
-
                 subDir.Name.Equals(".quilt", StringComparison.OrdinalIgnoreCase) ||
-
                 subDir.Name.Equals("crash-reports", StringComparison.OrdinalIgnoreCase))
-
                 continue;
 
-
-
             try { CopyTree(subDir.FullName, Path.Combine(destinationDir, subDir.Name)); } catch { }
-
         }
-
     }
 
-
-
-
-
     [RelayCommand]
-
-    private void StartRenameInstance(InstanceModel instance)
-
+    public void StartRenameInstance(InstanceModel instance)
     {
-
-        if (instance == null || instance.IsRunning || instance.IsLaunching || Launch.IsInstanceLaunching(instance.Id)) return;
-
+        if (instance == null || instance.IsRunning || instance.IsLaunching || _getLaunch().IsInstanceLaunching(instance.Id)) return;
         instance.IsEditingName = true;
-
     }
 
-
-
     [RelayCommand]
-
-    private async Task FinishRenameInstanceAsync(InstanceModel instance)
-
+    public async Task FinishRenameInstanceAsync(InstanceModel instance)
     {
-
         if (instance == null) return;
-
         instance.IsEditingName = false;
 
-
-
-        // Check for duplicate name
-
         var allInstances = _instanceService.GetInstances();
-
         if (allInstances.Any(i => i.Id != instance.Id && i.Name.Equals(instance.Name, StringComparison.OrdinalIgnoreCase)))
-
         {
-
-            StatusText = string.Format(L10n.T("mw_status_name_exists"), instance.Name);
-
+            OnStatusChanged?.Invoke(string.Format(L10n.T("mw_status_name_exists"), instance.Name));
             return;
-
         }
-
-
 
         await _instanceService.SaveInstanceAsync(instance);
-
-        RefreshState();
-
+        RefreshStateRequested?.Invoke();
     }
 
-
-
     [RelayCommand]
-
-    private async Task ChangeInstanceIconAsync(InstanceModel instance)
-
+    public async Task ChangeInstanceIconAsync(InstanceModel instance)
     {
-
         var inst = instance ?? SelectedInstance;
-
         if (inst == null) return;
 
-
-
         var topLevel = Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
-
             ? desktop.MainWindow
-
             : null;
 
-
-
         if (topLevel?.StorageProvider != null)
-
         {
-
             var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
-
             {
-
                 Title = "Select Profile Icon",
-
                 AllowMultiple = false,
-
                 FileTypeFilter = new[] { FilePickerFileTypes.ImageAll }
-
             });
-
-
 
             if (files.Count > 0)
-
             {
-
                 var srcFile = files[0].Path.LocalPath;
-
                 var targetExt = Path.GetExtension(srcFile);
-
                 var destIcon = Path.Combine(inst.Path, $"icon{targetExt}");
-
                 Directory.CreateDirectory(inst.Path);
-
                 File.Copy(srcFile, destIcon, true);
-
                 inst.IconPath = destIcon;
-
                 await _instanceService.SaveInstanceAsync(inst);
-
-                RefreshState();
-
+                RefreshStateRequested?.Invoke();
             }
-
         }
-
     }
 
-
-
     [RelayCommand]
-
-    private void OpenProfileFolder(InstanceModel instance)
-
+    public void OpenProfileFolder(InstanceModel instance)
     {
-
         var inst = instance ?? SelectedInstance;
-
         if (inst != null && Directory.Exists(inst.Path))
-
         {
-
             Process.Start(new ProcessStartInfo { FileName = inst.Path, UseShellExecute = true, Verb = "open" });
-
         }
-
     }
 
-
-
     [RelayCommand]
-
-    private void OpenProfileBrowseMods(InstanceModel instance)
-
+    public void OpenProfileBrowseMods(InstanceModel instance)
     {
-
         var inst = instance ?? SelectedInstance;
-
         if (inst == null) return;
-
         SelectInstance(inst);
 
-
-
-        var editVm = new EditInstanceViewModel(inst, this, _instanceService);
-
+        var editVm = new EditInstanceViewModel(inst, _getHost(), _instanceService);
         var type = ContentType.Mod;
-
         if (!editVm.HasModsSupport)
-
             type = ContentType.ResourcePack;
 
-
-
         var vm = new ContentBrowserViewModel(
-
             inst.Version,
-
             inst.LoaderType,
-
             inst.Path,
-
-            msg => StatusText = msg,
-
+            msg => OnStatusChanged?.Invoke(msg),
             () => editVm.RefreshFileLists(),
-
             () => editVm.HasModsSupport,
-
             type)
-
         {
-
-            GetCurseForgeApiKey = () => LauncherSettingsVm?.CurseForgeApiKey ?? ""
-
+            GetCurseForgeApiKey = () => GetCurseForgeApiKey?.Invoke() ?? ""
         };
 
-
-
-        NavigateToContentBrowser(vm, inst, inst.Name, "Mods", editVm);
-
+        _getNavigation().NavigateToContentBrowser(vm, inst, inst.Name, "Mods", editVm);
     }
 
-
-
     [RelayCommand]
-
-    private void OpenProfileServerManager(InstanceModel instance)
-
+    public void OpenProfileServerManager(InstanceModel instance)
     {
-
         var inst = instance ?? SelectedInstance;
-
         if (inst == null) return;
-
         SelectInstance(inst);
 
-
-
-        var editVm = new EditInstanceViewModel(inst, this, _instanceService);
-
+        var editVm = new EditInstanceViewModel(inst, _getHost(), _instanceService);
         var path = Path.Combine(inst.Path, "servers.dat");
-
         var vm = new ServerManagerViewModel(path);
-
-        NavigateToServerManager(vm, inst, editVm);
-
+        _getNavigation().NavigateToServerManager(vm, inst, editVm);
     }
 
-
+    [RelayCommand]
+    public void OpenProfileSectionMods(InstanceModel instance) => OpenProfileWithSection(instance, "Mods");
 
     [RelayCommand]
-
-    private void OpenProfileSectionMods(InstanceModel instance) => OpenProfileWithSection(instance, "Mods");
-
-
+    public void OpenProfileSectionResourcePacks(InstanceModel instance) => OpenProfileWithSection(instance, "Resource Packs");
 
     [RelayCommand]
-
-    private void OpenProfileSectionResourcePacks(InstanceModel instance) => OpenProfileWithSection(instance, "Resource Packs");
-
-
+    public void OpenProfileSectionShaderPacks(InstanceModel instance) => OpenProfileWithSection(instance, "Shader Packs");
 
     [RelayCommand]
-
-    private void OpenProfileSectionShaderPacks(InstanceModel instance) => OpenProfileWithSection(instance, "Shader Packs");
-
-
+    public void OpenProfileSectionWorlds(InstanceModel instance) => OpenProfileWithSection(instance, "Worlds");
 
     [RelayCommand]
-
-    private void OpenProfileSectionWorlds(InstanceModel instance) => OpenProfileWithSection(instance, "Worlds");
-
-
+    public void OpenProfileSectionScreenshots(InstanceModel instance) => OpenProfileWithSection(instance, "Screenshots");
 
     [RelayCommand]
+    public void OpenProfileSectionLogs(InstanceModel instance) => OpenProfileWithSection(instance, "Logs");
 
-    private void OpenProfileSectionScreenshots(InstanceModel instance) => OpenProfileWithSection(instance, "Screenshots");
-
-
-
-    [RelayCommand]
-
-    private void OpenProfileSectionLogs(InstanceModel instance) => OpenProfileWithSection(instance, "Logs");
-
-
-
-    private void OpenProfileWithSection(InstanceModel? instance, string tab)
-
+    public void OpenProfileWithSection(InstanceModel? instance, string tab)
     {
-
         var inst = instance ?? SelectedInstance;
-
         if (inst == null) return;
-
         SelectInstance(inst);
-
-        NavigateToEditInstance(inst, tab);
-
+        _getNavigation().NavigateToEditInstance(inst, tab);
     }
 
-
+    [RelayCommand]
+    public void OpenProfileModsFolder(InstanceModel instance) => OpenInstanceSubfolder(instance, "mods");
 
     [RelayCommand]
-
-    private void OpenProfileModsFolder(InstanceModel instance) => OpenInstanceSubfolder(instance, "mods");
-
-
+    public void OpenProfileResourcePacksFolder(InstanceModel instance) => OpenInstanceSubfolder(instance, "resourcepacks");
 
     [RelayCommand]
-
-    private void OpenProfileResourcePacksFolder(InstanceModel instance) => OpenInstanceSubfolder(instance, "resourcepacks");
-
-
+    public void OpenProfileShaderPacksFolder(InstanceModel instance) => OpenInstanceSubfolder(instance, "shaderpacks");
 
     [RelayCommand]
-
-    private void OpenProfileShaderPacksFolder(InstanceModel instance) => OpenInstanceSubfolder(instance, "shaderpacks");
-
-
+    public void OpenProfileWorldsFolder(InstanceModel instance) => OpenInstanceSubfolder(instance, "saves");
 
     [RelayCommand]
-
-    private void OpenProfileWorldsFolder(InstanceModel instance) => OpenInstanceSubfolder(instance, "saves");
-
-
+    public void OpenProfileScreenshotsFolder(InstanceModel instance) => OpenInstanceSubfolder(instance, "screenshots");
 
     [RelayCommand]
+    public void OpenProfileLogsFolder(InstanceModel instance) => OpenInstanceSubfolder(instance, "logs");
 
-    private void OpenProfileScreenshotsFolder(InstanceModel instance) => OpenInstanceSubfolder(instance, "screenshots");
-
-
-
-    [RelayCommand]
-
-    private void OpenProfileLogsFolder(InstanceModel instance) => OpenInstanceSubfolder(instance, "logs");
-
-
-
-    private void OpenInstanceSubfolder(InstanceModel? instance, string subfolder)
-
+    public void OpenInstanceSubfolder(InstanceModel? instance, string subfolder)
     {
-
         var inst = instance ?? SelectedInstance;
-
         if (inst == null || string.IsNullOrWhiteSpace(inst.Path)) return;
-
         try
-
         {
-
             var targetDir = Path.Combine(inst.Path, subfolder);
-
             if (!Directory.Exists(targetDir))
-
-            {
-
                 Directory.CreateDirectory(targetDir);
-
-            }
-
             Process.Start(new ProcessStartInfo { FileName = targetDir, UseShellExecute = true, Verb = "open" });
-
         }
-
         catch (Exception ex)
-
         {
-
             LauncherLog.Error($"Failed to open subfolder '{subfolder}': {ex.Message}");
-
         }
-
     }
 
-
-
     [RelayCommand]
-
-    private async Task ExportCurseForgeAsync(InstanceModel instance)
-
+    public async Task ExportCurseForgeAsync(InstanceModel instance)
     {
-
         var inst = instance ?? SelectedInstance;
-
         if (inst == null) return;
-
         await ExportZipArchiveAsync(inst, "CurseForge", $"{inst.Name}-CurseForge.zip");
-
     }
 
-
-
     [RelayCommand]
-
-    private async Task ExportModrinthAsync(InstanceModel instance)
-
+    public async Task ExportModrinthAsync(InstanceModel instance)
     {
-
         var inst = instance ?? SelectedInstance;
-
         if (inst == null) return;
-
         await ExportZipArchiveAsync(inst, "Modrinth", $"{inst.Name}.mrpack");
-
     }
-
-
 
     [RelayCommand]
-
-    private async Task ExportPrismAsync(InstanceModel instance)
-
+    public async Task ExportPrismAsync(InstanceModel instance)
     {
-
         var inst = instance ?? SelectedInstance;
-
         if (inst == null) return;
-
         await ExportZipArchiveAsync(inst, "Prism", $"{inst.Name}-Prism.zip");
-
     }
 
-
-
-    private async Task ExportZipArchiveAsync(InstanceModel instance, string format, string defaultFileName)
-
+    public async Task ExportZipArchiveAsync(InstanceModel instance, string format, string defaultFileName)
     {
-
         var topLevel = Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
-
             ? desktop.MainWindow
-
             : null;
 
-
-
         if (topLevel?.StorageProvider != null)
-
         {
-
             var file = await topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
-
             {
-
                 Title = $"Export to {format}",
-
                 SuggestedFileName = defaultFileName
-
             });
 
-
-
             if (file != null)
-
             {
-
                 var targetPath = file.Path.LocalPath;
-
                 try
-
                 {
-
-                    StatusText = $"Exporting {instance.Name} to {format}...";
-
+                    OnStatusChanged?.Invoke($"Exporting {instance.Name} to {format}...");
                     await InstanceExportService.ExportAsync(instance, format, targetPath);
-
-                    StatusText = $"Exported to {Path.GetFileName(targetPath)} successfully.";
-
+                    OnStatusChanged?.Invoke($"Exported to {Path.GetFileName(targetPath)} successfully.");
                 }
-
                 catch (Exception ex)
-
                 {
-
                     LauncherLog.Error($"Export to {format} failed for {instance.Name}", ex);
-
-                    StatusText = $"Export to {format} failed.";
-
+                    OnStatusChanged?.Invoke($"Export to {format} failed.");
                 }
-
             }
-
         }
-
     }
 
-
-
     [RelayCommand]
-
-    private async Task ConfirmDeleteProfileAsync()
-
+    public async Task ConfirmDeleteProfileAsync()
     {
-
         var inst = PendingDeleteInstance;
-
         if (inst == null) return;
-
         IsDeleteConfirmOpen = false;
-
         PendingDeleteInstance = null;
-
-        StatusText = $"Deleting {inst.Name}...";
-
-
+        OnStatusChanged?.Invoke($"Deleting {inst.Name}...");
 
         await _instanceService.DeleteInstanceAsync(inst.Id);
-
-
-
-        StatusText = $"Deleted {inst.Name}";
-
-        RefreshState();
-
-        ModpacksBrowser?.UpdateInstalledFlags();
-
+        OnStatusChanged?.Invoke($"Deleted {inst.Name}");
+        RefreshStateRequested?.Invoke();
+        _getHost().ModpacksBrowser?.UpdateInstalledFlags();
     }
 
-
-
     [RelayCommand]
-
-    private void CancelDeleteProfile()
-
+    public void CancelDeleteProfile()
     {
-
         IsDeleteConfirmOpen = false;
-
         PendingDeleteInstance = null;
-
     }
 
-
-
     [RelayCommand]
-
-    private void RequestDeleteProfile(InstanceModel instance)
-
+    public void RequestDeleteProfile(InstanceModel instance)
     {
-
         var inst = instance ?? SelectedInstance;
-
         if (inst == null) return;
-
         PendingDeleteInstance = inst;
-
         IsDeleteConfirmOpen = true;
-
     }
 
-
-
     [RelayCommand]
-
-    private void OpenRootDirectory()
-
+    public void OpenRootDirectory()
     {
-
         var dir = ZenithPaths.AppDataDir;
-
         Directory.CreateDirectory(dir);
-
         Process.Start(new ProcessStartInfo { FileName = dir, UseShellExecute = true, Verb = "open" });
-
     }
 
-
+    [RelayCommand]
+    public void ToggleVersionPicker() => IsVersionPickerOpen = !IsVersionPickerOpen;
 
     [RelayCommand]
-
-    private void ToggleVersionPicker() => IsVersionPickerOpen = !IsVersionPickerOpen;
-
-
-
-    [RelayCommand]
-
-    private void SelectVersion(string version)
-
+    public void SelectVersion(string version)
     {
-
         SelectedVersion = version;
-
         IsVersionPickerOpen = false;
-
-        IsElyByErrorOpen = false;
-
+        _getHost().IsElyByErrorOpen = false;
     }
 
-
-
     [RelayCommand]
-
-    private void ClearVersion()
-
+    public void ClearVersion()
     {
-
         SelectedVersion = "";
-
     }
 
-
-
     [RelayCommand]
-
     public async Task ImportInstancesAsync()
-
     {
-
         IsImportPickerOpen = true;
-
         await Task.CompletedTask;
-
     }
 
-
+    [RelayCommand]
+    public void CloseImportPicker() => IsImportPickerOpen = false;
 
     [RelayCommand]
-
-    private void CloseImportPicker() => IsImportPickerOpen = false;
-
-
-
-    [RelayCommand]
-    private async Task PickImportSingleAsync()
+    public async Task PickImportSingleAsync()
     {
         var topLevel = Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
             ? desktop.MainWindow
@@ -1754,7 +922,7 @@ public partial class MainWindowViewModel
     }
 
     [RelayCommand]
-    private async Task PickImportFileAsync()
+    public async Task PickImportFileAsync()
     {
         var topLevel = Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
             ? desktop.MainWindow
@@ -1772,12 +940,11 @@ public partial class MainWindowViewModel
             }
         });
         if (files.Count == 0) return;
-
         await RunImportProcessAsync(files[0].Path.LocalPath);
     }
 
     [RelayCommand]
-    private async Task PickImportFolderAsync(string? kind)
+    public async Task PickImportFolderAsync(string? kind)
     {
         if (kind is "Archive" or "File")
         {
@@ -1796,133 +963,82 @@ public partial class MainWindowViewModel
             AllowMultiple = false
         });
         if (folders.Count == 0) return;
-
         await RunImportProcessAsync(folders[0].Path.LocalPath);
     }
 
-    private async Task RunImportProcessAsync(string path)
+    public async Task RunImportProcessAsync(string path)
     {
         var detected = InstanceImportService.Detect(path);
         if (detected == ImportSourceKind.None)
         {
-            StatusText = L10n.T("imp_not_recognized");
+            OnStatusChanged?.Invoke(L10n.T("imp_not_recognized"));
             return;
         }
 
         IsImportPickerOpen = false;
-        StatusText = L10n.T("profile_importing");
+        OnStatusChanged?.Invoke(L10n.T("profile_importing"));
         try
         {
             var result = await Task.Run(() => InstanceImportService.ImportAsync(_instanceService, path));
-            StatusText = result.Imported > 0
+            var msg = result.Imported > 0
                 ? string.Format(L10n.T("profile_imported"), result.Imported, result.Skipped)
                 : L10n.T("profile_import_none");
             if (result.Warnings.Count > 0)
-                StatusText += " " + result.Warnings[0];
-            RefreshState();
+                msg += " " + result.Warnings[0];
+            OnStatusChanged?.Invoke(msg);
+            RefreshStateRequested?.Invoke();
         }
         catch (Exception ex)
         {
             LauncherLog.Error("Instance import failed", ex);
-            StatusText = ex.Message;
+            OnStatusChanged?.Invoke(ex.Message);
         }
     }
 
-
-
     [RelayCommand]
-
-    private void OpenNewInstanceDialog()
-
+    public void OpenNewInstanceDialog()
     {
-
-        NavigateToCreateProfile();
-
+        _getNavigation().NavigateToCreateProfile();
     }
 
-
-
     [RelayCommand]
-
-    private async Task ConfirmCreateInstanceAsync()
-
+    public async Task ConfirmCreateInstanceAsync()
     {
-
         if (string.IsNullOrWhiteSpace(SelectedVersion))
-
         {
-
-            StatusText = L10n.T("mw_status_need_version");
-
+            OnStatusChanged?.Invoke(L10n.T("mw_status_need_version"));
             return;
-
         }
-
-
 
         var name = NewInstanceName?.Trim();
-
         if (string.IsNullOrWhiteSpace(name))
-
             name = L10n.T("ph_default_profile");
 
-
-
         var allNames = _instanceService.GetInstances().Select(i => i.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
-
         var finalName = name;
-
         if (allNames.Contains(finalName))
-
         {
-
             int idx = 1;
-
             while (allNames.Contains($"{finalName}_{idx}"))
-
                 idx++;
-
             finalName = $"{finalName}_{idx}";
-
         }
 
-
-
         var inst = await _instanceService.CreateInstanceAsync(finalName, SelectedVersion, SelectedLoader, SelectedLoaderBuild);
-
         if (inst == null)
-
         {
-
-            StatusText = string.Format(L10n.T("mw_status_name_exists"), finalName);
-
+            OnStatusChanged?.Invoke(string.Format(L10n.T("mw_status_name_exists"), finalName));
             return;
-
         }
 
         _instanceService.SetSelectedInstance(inst.Id);
-
-        CloseDialogs();
-
-        RefreshState();
-
-
-
-        // Reset create dialog form state
+        CloseDialogsRequested?.Invoke();
+        RefreshStateRequested?.Invoke();
 
         NewInstanceName = "";
-
         SelectedVersion = "";
-
         SelectedLoader = "Vanilla";
-
         SelectedLoaderBuild = "";
-
         ShowLoaderBuilds = false;
-
     }
-
-
-
-
 }

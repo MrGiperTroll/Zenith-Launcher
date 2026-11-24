@@ -52,6 +52,8 @@ public static class ZenithTheme
     {
         try
         {
+            try { Services.DiscordPresenceService.Shutdown(); } catch { }
+
             var exePath = Environment.ProcessPath;
             if (string.IsNullOrEmpty(exePath))
                 exePath = System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName;

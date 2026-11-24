@@ -1193,6 +1193,7 @@ public partial class MainWindowViewModel : ViewModelBase
             GetShowSnapshots = () => ShowSnapshots,
             GetShowBetas = () => ShowBetas,
             GetShowAlphas = () => ShowAlphas,
+            GetDefaultRamMb = () => Launch?.RamMb > 0 ? Launch.RamMb : 4096,
             GetInstances = () => Instances,
             SetSelectedInstance = inst => SelectedInstance = inst,
             SetSelectedInstanceId = id => SelectedInstanceId = id
@@ -1714,7 +1715,14 @@ public partial class MainWindowViewModel : ViewModelBase
             LauncherSettingsVm?.ApplyToConfig(configData);
             ThemeSettingsVm?.ApplyToConfig(configData);
 
-            File.WriteAllText(configPath, System.Text.Json.JsonSerializer.Serialize(configData, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
+            var json = System.Text.Json.JsonSerializer.Serialize(configData, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+            using (var fs = new FileStream(configPath, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                using var writer = new StreamWriter(fs, System.Text.Encoding.UTF8);
+                writer.Write(json);
+                writer.Flush();
+                fs.Flush(flushToDisk: true);
+            }
         }
         catch { }
     }

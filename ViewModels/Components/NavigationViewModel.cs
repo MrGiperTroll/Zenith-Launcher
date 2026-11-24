@@ -34,6 +34,7 @@ public partial class NavigationViewModel : ViewModelBase
     public Func<bool>? GetShowSnapshots { get; set; }
     public Func<bool>? GetShowBetas { get; set; }
     public Func<bool>? GetShowAlphas { get; set; }
+    public Func<int>? GetDefaultRamMb { get; set; }
     public Func<IEnumerable<InstanceModel>>? GetInstances { get; set; }
     public Action<InstanceModel?>? SetSelectedInstance { get; set; }
     public Action<string>? SetSelectedInstanceId { get; set; }
@@ -298,6 +299,12 @@ public partial class NavigationViewModel : ViewModelBase
             GetShowSnapshots?.Invoke() ?? false,
             GetShowBetas?.Invoke() ?? false,
             GetShowAlphas?.Invoke() ?? false);
+
+        var defaultRam = GetDefaultRamMb?.Invoke() ?? 4096;
+        if (defaultRam > 0)
+        {
+            vm.SelectedRamMb = defaultRam;
+        }
 
         vm.ProfileCreated += inst =>
         {
@@ -625,6 +632,12 @@ public partial class NavigationViewModel : ViewModelBase
                     GetShowSnapshots?.Invoke() ?? false,
                     GetShowBetas?.Invoke() ?? false,
                     GetShowAlphas?.Invoke() ?? false);
+
+                var defaultRam = GetDefaultRamMb?.Invoke() ?? 4096;
+                if (defaultRam > 0)
+                {
+                    vm.SelectedRamMb = defaultRam;
+                }
 
                 vm.ProfileCreated += inst =>
                 {

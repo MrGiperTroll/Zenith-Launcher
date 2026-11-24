@@ -22,6 +22,8 @@ public partial class ThemeSettingsViewModel : ViewModelBase
     public Func<LauncherConfigData>? GetConfigSnapshot { get; set; }
     public Action? SaveConfigRequested { get; set; }
     public Action? CloseRequested { get; set; }
+    public Action<string>? ThemeApplied { get; set; }
+    public Action? ThemeRestartCancelled { get; set; }
 
     public ObservableCollection<ThemePreset> AvailableThemes { get; } = new(ZenithTheme.Presets);
 
@@ -406,6 +408,7 @@ public partial class ThemeSettingsViewModel : ViewModelBase
             SnapshotCurrentSavedTheme();
         }
 
+        ThemeApplied?.Invoke(hex);
         SaveConfigRequested?.Invoke();
     }
 
@@ -426,6 +429,7 @@ public partial class ThemeSettingsViewModel : ViewModelBase
     {
         IsRestartConfirmOpen = false;
         PendingRestartThemeHex = "";
+        ThemeRestartCancelled?.Invoke();
     }
 
     [RelayCommand]
@@ -435,28 +439,7 @@ public partial class ThemeSettingsViewModel : ViewModelBase
         var hex = !string.IsNullOrWhiteSpace(PendingRestartThemeHex) ? PendingRestartThemeHex : (IsThemeSubTabSimple ? SimpleAccentHex : CustomThemeHex);
         SelectTheme(hex);
 
-        try
-        {
-            var exePath = Environment.ProcessPath;
-            if (string.IsNullOrEmpty(exePath))
-                exePath = Process.GetCurrentProcess().MainModule?.FileName;
-
-            if (!string.IsNullOrEmpty(exePath) && System.IO.File.Exists(exePath))
-            {
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = exePath,
-                    UseShellExecute = true,
-                    WorkingDirectory = System.IO.Path.GetDirectoryName(exePath)
-                });
-            }
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Failed to restart launcher: {ex.Message}");
-        }
-
-        Environment.Exit(0);
+        ZenithTheme.RestartLauncher();
     }
 
     public void RequestDiscardConfirmation(Action onDiscard)

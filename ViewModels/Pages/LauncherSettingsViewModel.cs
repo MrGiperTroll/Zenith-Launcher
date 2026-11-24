@@ -671,33 +671,18 @@ public partial class LauncherSettingsViewModel : ViewModelBase
         if (cardId == SelectedThemeCardId) return;
 
         PendingThemeCardId = cardId;
-        IsThemeRestartDialogOpen = true;
+        var card = ThemeCards.FirstOrDefault(c => c.Id == cardId);
+        var hex = card?.AccentHex ?? "#8B5CF6";
+
+        ThemeSettingsVm.PendingRestartThemeHex = hex;
+        ThemeSettingsVm.IsRestartConfirmOpen = true;
     }
 
     [RelayCommand]
-    public void ConfirmThemeRestart()
-    {
-        if (!string.IsNullOrEmpty(PendingThemeCardId))
-        {
-            SelectedThemeCardId = PendingThemeCardId;
-            foreach (var card in ThemeCards)
-                card.IsSelected = (card.Id == SelectedThemeCardId);
-            PendingThemeCardId = null;
-        }
-
-        IsThemeRestartDialogOpen = false;
-        SaveConfigRequested?.Invoke();
-        ZenithTheme.RestartLauncher();
-    }
+    public void ConfirmThemeRestart() => ThemeSettingsVm.ConfirmRestartAndApplyTheme();
 
     [RelayCommand]
-    public void CancelThemeRestart()
-    {
-        PendingThemeCardId = null;
-        IsThemeRestartDialogOpen = false;
-        foreach (var card in ThemeCards)
-            card.IsSelected = (card.Id == SelectedThemeCardId);
-    }
+    public void CancelThemeRestart() => ThemeSettingsVm.CancelRestartConfirm();
 
     partial void OnSelectedFontStyleChanged(string value)
     {
@@ -759,6 +744,22 @@ public partial class LauncherSettingsViewModel : ViewModelBase
     public LauncherSettingsViewModel(ThemeSettingsViewModel themeSettingsVm)
     {
         ThemeSettingsVm = themeSettingsVm;
+        ThemeSettingsVm.ThemeApplied = hex =>
+        {
+            var matched = ThemeCards.FirstOrDefault(c => c.AccentHex.Equals(hex, StringComparison.OrdinalIgnoreCase));
+            if (matched != null)
+            {
+                SelectedThemeCardId = matched.Id;
+                foreach (var c in ThemeCards) c.IsSelected = (c.Id == matched.Id);
+            }
+            PendingThemeCardId = null;
+        };
+        ThemeSettingsVm.ThemeRestartCancelled = () =>
+        {
+            PendingThemeCardId = null;
+            foreach (var card in ThemeCards)
+                card.IsSelected = (card.Id == SelectedThemeCardId);
+        };
         InitAppearanceModels();
     }
 

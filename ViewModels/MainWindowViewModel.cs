@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 using System.Collections.Generic;
 
@@ -163,6 +163,22 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private bool _isSearchLanguageVisible = true;
 
     [ObservableProperty] private bool _isSearchDiscordVisible = true;
+    [ObservableProperty] private bool _discordRpcEnabled = true;
+
+    partial void OnDiscordRpcEnabledChanged(bool value)
+    {
+        if (!value)
+        {
+            Services.DiscordPresenceService.Shutdown();
+            LauncherLog.Info("Discord RPC: disabled via settings toggle.");
+        }
+        else
+        {
+            Services.DiscordPresenceService.Initialize(true);
+            Services.DiscordPresenceService.SetBrowsingProfiles();
+            LauncherLog.Info("Discord RPC: enabled via settings toggle.");
+        }
+    }
 
     [ObservableProperty] private bool _isSearchAppearanceVisible = true;
 

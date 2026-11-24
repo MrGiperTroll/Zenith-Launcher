@@ -221,10 +221,28 @@ public class AccountService : IAccountService
             try
             {
                 var json = File.ReadAllText(_accountsFilePath);
-                var store = JsonSerializer.Deserialize<AccountStore>(json);
+                AccountStore? store = null;
+                var trimmed = json.TrimStart();
+                if (trimmed.StartsWith("["))
+                {
+                    var legacyList = JsonSerializer.Deserialize<List<AccountModel>>(json);
+                    if (legacyList != null)
+                    {
+                        store = new AccountStore
+                        {
+                            Accounts = legacyList,
+                            ActiveAccountId = legacyList.FirstOrDefault()?.Id
+                        };
+                    }
+                }
+                else
+                {
+                    store = JsonSerializer.Deserialize<AccountStore>(json);
+                }
+
                 if (store != null)
                 {
-                    _accounts = store.Accounts;
+                    _accounts = store.Accounts ?? new();
                     _activeAccountId = store.ActiveAccountId ?? _accounts.FirstOrDefault()?.Id;
 
                     // Decrypt tokens

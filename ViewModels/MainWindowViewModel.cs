@@ -117,11 +117,15 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public bool IsSidebarExpanded
     {
-        get => Navigation.IsSidebarExpanded;
-        set => Navigation.IsSidebarExpanded = value;
+        get => Navigation?.IsSidebarExpanded ?? false;
+        set
+        {
+            if (Navigation != null)
+                Navigation.IsSidebarExpanded = value;
+        }
     }
 
-    public double SidebarWidth => Navigation.SidebarWidth;
+    public double SidebarWidth => Navigation?.SidebarWidth ?? 220;
     public bool CanGoBack => Navigation.CanGoBack;
     public bool CanGoForward => Navigation.CanGoForward;
     public ObservableCollection<BreadcrumbItem> Breadcrumbs => Navigation.Breadcrumbs;
@@ -209,8 +213,12 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public InstanceModel? SelectedInstance
     {
-        get => InstancesManager.SelectedInstance;
-        set => InstancesManager.SelectedInstance = value;
+        get => InstancesManager?.SelectedInstance;
+        set
+        {
+            if (InstancesManager != null)
+                InstancesManager.SelectedInstance = value;
+        }
     }
 
     public string SelectedInstanceId
@@ -686,109 +694,21 @@ public partial class MainWindowViewModel : ViewModelBase
 
 
     public MainWindowViewModel()
-
     {
-
-        ThemeSettingsVm = new ThemeSettingsViewModel
-
-        {
-
-            GetConfigSnapshot = () => GetLauncherConfigSnapshot(),
-
-            SaveConfigRequested = () => SaveLauncherConfig()
-
-        };
-
-        LauncherSettingsVm = new LauncherSettingsViewModel(ThemeSettingsVm)
-
-        {
-
-            SaveConfigRequested = () => SaveLauncherConfig(),
-
-            VersionFiltersChanged = () => FilterVersions(),
-
-            LanguageChanged = lang => SelectedLanguage = lang,
-
-            DiscordRpcChanged = enabled => DiscordRpcEnabled = enabled,
-
-            ScaleChanged = scale => LauncherScale = scale,
-
-            OpenJavaInstallerRequested = () => OpenJavaInstaller(),
-            DownloadJavaRequested = async (major, prog) =>
-            {
-                return await DownloadJavaCoreAsync(major, force: true, progress: prog);
-            },
-
-            GetRecommendedJavaDisplay = () =>
-
-            {
-
-                var inst = SelectedInstance ?? _instanceService?.GetSelectedInstance();
-
-                return inst != null
-
-                    ? Services.JavaVersionHelper.RecommendedDisplay(inst.Version)
-
-                    : L10n.T("java_display_auto");
-
-            },
-
-            GetWindowTitle = () => WindowTitle
-
-        };
-
-
-
-        LoadLauncherConfig();
-
-
-
-        // Force-apply the language even when the loaded value equals the
-
-        // field default ("English") — CommunityToolkit skips the change
-
-        // notification in that case, so OnSelectedLanguageChanged never
-
-        // fires and the UI stays on DetectSystemCode() (the OS language).
-
-        Services.L10n.ApplyDisplay(SelectedLanguage);
-
-
-
-        // Recompute language-dependent display strings AFTER the final language
-
-        // is applied — LoadFromConfig above may have rendered them in the OS language.
-
-        LauncherSettingsVm.UpdateJavaDisplay();
-
-
-
         _accountService = new AccountService();
-
         AccountsVm = new AccountsViewModel(_accountService);
-
         AccountsVm.AccountStateChanged += () =>
-
         {
-
             OnPropertyChanged(nameof(ActiveAccountName));
-
             OnPropertyChanged(nameof(ActiveAccountType));
-
             OnPropertyChanged(nameof(ActiveAccountRow));
-
             OnPropertyChanged(nameof(SelectedAccount));
-
             OnPropertyChanged(nameof(Accounts));
-
             OnPropertyChanged(nameof(AccountRows));
-
         };
-
         AccountsVm.OnStatusMessage += msg => StatusText = msg;
 
         _instanceService = new InstanceService();
-
         _launchService = new LaunchService((IInstanceService)_instanceService);
 
         Launch = new LaunchViewModel(_launchService, _accountService, _instanceService, Console)
@@ -904,6 +824,53 @@ public partial class MainWindowViewModel : ViewModelBase
                 OnPropertyChanged(nameof(SelectedJavaMode));
         };
 
+        ThemeSettingsVm = new ThemeSettingsViewModel
+
+        {
+
+            GetConfigSnapshot = () => GetLauncherConfigSnapshot(),
+
+            SaveConfigRequested = () => SaveLauncherConfig()
+
+        };
+
+        LauncherSettingsVm = new LauncherSettingsViewModel(ThemeSettingsVm)
+
+        {
+
+            SaveConfigRequested = () => SaveLauncherConfig(),
+
+            VersionFiltersChanged = () => FilterVersions(),
+
+            LanguageChanged = lang => SelectedLanguage = lang,
+
+            DiscordRpcChanged = enabled => DiscordRpcEnabled = enabled,
+
+            ScaleChanged = scale => LauncherScale = scale,
+
+            OpenJavaInstallerRequested = () => OpenJavaInstaller(),
+            DownloadJavaRequested = async (major, prog) =>
+            {
+                return await DownloadJavaCoreAsync(major, force: true, progress: prog);
+            },
+
+            GetRecommendedJavaDisplay = () =>
+
+            {
+
+                var inst = SelectedInstance ?? _instanceService?.GetSelectedInstance();
+
+                return inst != null
+
+                    ? Services.JavaVersionHelper.RecommendedDisplay(inst.Version)
+
+                    : L10n.T("java_display_auto");
+
+            },
+
+            GetWindowTitle = () => WindowTitle
+        };
+
         Navigation = new NavigationViewModel(
             () => this,
             _instanceService,
@@ -976,6 +943,18 @@ public partial class MainWindowViewModel : ViewModelBase
         };
 
         Navigation.NavigateToProfiles();
+
+        LoadLauncherConfig();
+
+        // Force-apply the language even when the loaded value equals the
+        // field default ("English") — CommunityToolkit skips the change
+        // notification in that case, so OnSelectedLanguageChanged never
+        // fires and the UI stays on DetectSystemCode() (the OS language).
+        Services.L10n.ApplyDisplay(SelectedLanguage);
+
+        // Recompute language-dependent display strings AFTER the final language
+        // is applied — LoadFromConfig above may have rendered them in the OS language.
+        LauncherSettingsVm.UpdateJavaDisplay();
 
 
 

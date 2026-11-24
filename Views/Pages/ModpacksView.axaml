@@ -1,0 +1,207 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:ZenithLauncher.ViewModels"
+             xmlns:views="using:ZenithLauncher.Views"
+             xmlns:pages="using:ZenithLauncher.Views.Pages"
+             xmlns:items="using:ZenithLauncher.ViewModels.Items"
+             xmlns:converters="using:ZenithLauncher.Converters"
+             xmlns:conv="using:Avalonia.Data.Converters"
+             xmlns:l10n="using:ZenithLauncher.Extensions"
+             x:Class="ZenithLauncher.Views.Pages.ModpacksView"
+             x:DataType="vm:MainWindowViewModel"
+             UseLayoutRounding="True"
+             mc:Ignorable="d">
+    <Grid Margin="24,16,16,0" UseLayoutRounding="True">
+        <Grid RowDefinitions="Auto,*" IsVisible="{Binding !ModpacksBrowser.IsDetailsOpen}">
+            <!-- Header: Type Tabs, Search Bar, and Filter Controls -->
+            <StackPanel Grid.Row="0" Spacing="10" Margin="0,0,0,12">
+                <!-- Top Segmented Content Type Tabs -->
+                <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
+                        BorderThickness="1" CornerRadius="18" Padding="3" HorizontalAlignment="Left">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <Button Classes="catalogTabBtn" Classes.active="{Binding ModpacksBrowser.IsModpacksTab}"
+                                Command="{Binding ModpacksBrowser.SelectProjectTypeCommand}" CommandParameter="modpack"
+                                Content="{l10n:Tr nav_modpacks}"/>
+                        <Button Classes="catalogTabBtn" Classes.active="{Binding ModpacksBrowser.IsModsTab}"
+                                Command="{Binding ModpacksBrowser.SelectProjectTypeCommand}" CommandParameter="mod"
+                                Content="{l10n:Tr tab_mods}"/>
+                        <Button Classes="catalogTabBtn" Classes.active="{Binding ModpacksBrowser.IsResourcePacksTab}"
+                                Command="{Binding ModpacksBrowser.SelectProjectTypeCommand}" CommandParameter="resourcepack"
+                                Content="{l10n:Tr tab_resourcepacks}"/>
+                        <Button Classes="catalogTabBtn" Classes.active="{Binding ModpacksBrowser.IsDataPacksTab}"
+                                Command="{Binding ModpacksBrowser.SelectProjectTypeCommand}" CommandParameter="datapack"
+                                Content="{l10n:Tr tab_datapacks}"/>
+                        <Button Classes="catalogTabBtn" Classes.active="{Binding ModpacksBrowser.IsShadersTab}"
+                                Command="{Binding ModpacksBrowser.SelectProjectTypeCommand}" CommandParameter="shader"
+                                Content="{l10n:Tr tab_shaders}"/>
+                        <Button Classes="catalogTabBtn" Classes.active="{Binding ModpacksBrowser.IsWorldsTab}"
+                                Command="{Binding ModpacksBrowser.SelectProjectTypeCommand}" CommandParameter="world"
+                                Content="{l10n:Tr tab_worlds}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Full Width Search Bar -->
+                <TextBox Classes="darkInput" Height="40"
+                         Text="{Binding ModpacksBrowser.SearchQuery}"
+                         PlaceholderText="{Binding ModpacksBrowser.SearchPlaceholder}"
+                         FontSize="12.5" VerticalAlignment="Center">
+                    <TextBox.KeyBindings>
+                        <KeyBinding Gesture="Enter" Command="{Binding ModpacksBrowser.SearchCommand}"/>
+                    </TextBox.KeyBindings>
+                    <TextBox.InnerLeftContent>
+                        <PathIcon Data="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
+                                  Width="14" Height="14" Foreground="{DynamicResource TextPlaceholderBrush}" Margin="12,0,4,0"/>
+                    </TextBox.InnerLeftContent>
+                    <TextBox.InnerRightContent>
+                        <Button Command="{Binding ModpacksBrowser.ClearSearchCommand}"
+                                IsVisible="{Binding ModpacksBrowser.SearchQuery, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}"
+                                Background="Transparent" BorderThickness="0" Padding="8,0" Cursor="Hand" Content="✕"
+                                Foreground="{DynamicResource TextPlaceholderBrush}"/>
+                    </TextBox.InnerRightContent>
+                </TextBox>
+
+                <!-- Filters bar: Source, Sort, Versions, Loaders, Reset -->
+                <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,*" VerticalAlignment="Center">
+                    <!-- 0. Source Switcher Dropdown (Modrinth / CurseForge) -->
+                    <views:SourceFilterDropdown Grid.Column="0" DataContext="{Binding ModpacksBrowser.BrowserSourceFilter}" Margin="0,0,10,0" VerticalAlignment="Center"/>
+
+                    <views:SortFilterDropdown Grid.Column="1" DataContext="{Binding ModpacksBrowser.BrowserSortFilter}" Margin="0,0,10,0" VerticalAlignment="Center"/>
+
+                    <views:GameVersionFilterDropdown Grid.Column="2" DataContext="{Binding ModpacksBrowser.BrowserVersionFilter}" Margin="0,0,10,0" VerticalAlignment="Center"/>
+
+                    <views:LoaderFilterDropdown Grid.Column="3" DataContext="{Binding ModpacksBrowser.BrowserLoaderFilter}" Margin="0,0,10,0" VerticalAlignment="Center"/>
+
+                    <Button Grid.Column="4" Classes="subBtn" Command="{Binding ModpacksBrowser.ResetFiltersCommand}" ToolTip.Tip="{l10n:Tr Key=cb_clear}"
+                            Width="32" Height="32" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" VerticalAlignment="Center">
+                        <PathIcon Data="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" Width="13" Height="13" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    </Button>
+                </Grid>
+            </StackPanel>
+
+            <!-- Results list -->
+            <Grid Grid.Row="1">
+                <ListBox x:Name="ModpacksList" ItemsSource="{Binding ModpacksBrowser.Results}" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible" AttachedToVisualTree="OnModpacksListAttached">
+                    <ListBox.ItemContainerTheme>
+                        <ControlTheme TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="Padding" Value="0"/>
+                            <Setter Property="Margin" Value="0"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                        </ControlTheme>
+                    </ListBox.ItemContainerTheme>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="items:ModrinthProjectItemViewModel">
+                            <Border Margin="0,0,0,8" CornerRadius="12" Background="{DynamicResource CardAltBrush}" BorderBrush="{DynamicResource BorderCardSoftBrush}" BorderThickness="1" Padding="14,12" Tapped="OnModpackCardTapped" Cursor="Hand">
+                                <Grid ColumnDefinitions="56,*,Auto" ColumnSpacing="14">
+                                    <!-- Icon -->
+                                    <Border Grid.Column="0" Width="56" Height="56" Background="{DynamicResource ChipBrush}" CornerRadius="10" ClipToBounds="True" VerticalAlignment="Top">
+                                        <Panel>
+                                            <Image Source="{Binding Icon}" Stretch="UniformToFill" Width="56" Height="56" IsVisible="{Binding HasIcon}"/>
+                                            <Path Data="M20 3H4C2.89 3 2 3.89 2 5V15C2 16.11 2.89 17 4 17H8V21L12 18H20C21.11 18 22 17.11 22 16V5C22 3.89 21.11 3 20 3M20 14H12L8 18V14H4V5H20V14Z" Fill="{DynamicResource TextPlaceholderBrush}" Stretch="Uniform" Width="26" Height="26" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding !HasIcon}"/>
+                                        </Panel>
+                                    </Border>
+
+                                    <!-- Content -->
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
+                                        <!-- Title + Author link -->
+                                        <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="14.5" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                            <TextBlock Text="by " FontSize="12" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                            <Button Classes="authorLinkBtn" Content="{Binding Author}"
+                                                    Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ModpacksBrowser.OpenAuthorProfileCommand}"
+                                                    CommandParameter="{Binding Author}"
+                                                    FontSize="12" VerticalAlignment="Center"/>
+                                        </WrapPanel>
+
+                                        <!-- Description -->
+                                        <TextBlock Text="{Binding Description}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" MaxLines="2" TextWrapping="Wrap" LineHeight="17"/>
+
+                                        <!-- Tag Badges / Chips -->
+                                        <ItemsControl ItemsSource="{Binding DisplayTags}">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <WrapPanel Orientation="Horizontal"/>
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Background="{DynamicResource ChipBrush}" CornerRadius="6" Padding="7,2" Margin="0,0,6,4">
+                                                        <TextBlock Text="{Binding}" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}" FontWeight="SemiBold"/>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+
+                                        <!-- Stats row (Downloads, Followers/Likes, Updated) -->
+                                        <StackPanel Orientation="Horizontal" Spacing="14" Margin="0,2,0,0">
+                                            <!-- Downloads -->
+                                            <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                                <PathIcon Data="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" Width="11" Height="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding DownloadsLabel}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                            <!-- Likes / Follows -->
+                                            <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center" IsVisible="{Binding ShowLikes}">
+                                                <PathIcon Data="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" Width="11" Height="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding FollowsLabel}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                            <!-- Updated -->
+                                            <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                                <PathIcon Data="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.59-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" Width="11" Height="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding RelativeUpdated}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </StackPanel>
+
+                                    <!-- Right: Source Icon & Install Button -->
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" HorizontalAlignment="Right">
+                                        <Button Classes="subBtn installedBtn" Classes.installed="{Binding IsInstalled}" Classes.installing="{Binding IsInstalling}"
+                                                Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ModpacksBrowser.DeleteOrInstallCommand}" CommandParameter="{Binding}"
+                                                PointerEntered="OnModpackButtonHover" PointerExited="OnModpackButtonHoverOut" Tapped="OnModpackButtonTapped"
+                                                VerticalAlignment="Center" HorizontalAlignment="Right"
+                                                Content="{Binding InstallButtonText}"/>
+                                        <!-- Modrinth Icon -->
+                                        <Border ToolTip.Tip="Modrinth" IsVisible="{Binding IsModrinth}"
+                                                Width="26" Height="26" CornerRadius="6"
+                                                Background="#1400AF5C" BorderBrush="#3300AF5C" BorderThickness="1"
+                                                VerticalAlignment="Center">
+                                            <PathIcon Data="M12.252.004a11.78 11.768 0 0 0-8.92 3.73 11 10.999 0 0 0-2.17 3.11 11.37 11.359 0 0 0-1.16 5.169c0 1.42.17 2.5.6 3.77.24.759.77 1.899 1.17 2.529a12.3 12.298 0 0 0 8.85 5.639c.44.05 2.54.07 2.76.02.2-.04.22.1-.26-1.7l-.36-1.37-1.01-.06a8.5 8.489 0 0 1-5.18-1.8 5.34 5.34 0 0 1-1.3-1.26c0-.05.34-.28.74-.5a37.572 37.545 0 0 1 2.88-1.629c.03 0 .5.45 1.06.98l1 .97 2.07-.43 2.06-.43 1.47-1.47c.8-.8 1.48-1.5 1.48-1.52 0-.09-.42-1.63-.46-1.7-.04-.06-.2-.03-1.02.18-.53.13-1.2.3-1.45.4l-.48.15-.53.53-.53.53-.93.1-.93.07-.52-.5a2.7 2.7 0 0 1-.96-1.7l-.13-.6.43-.57c.68-.9.68-.9 1.46-1.1.4-.1.65-.2.83-.33.13-.099.65-.579 1.14-1.069l.9-.9-.7-.7-.7-.7-1.95.54c-1.07.3-1.96.53-1.97.53-.03 0-2.23 2.48-2.63 2.97l-.29.35.28 1.03c.16.56.3 1.16.31 1.34l.03.3-.34.23c-.37.23-2.22 1.3-2.84 1.63-.36.2-.37.2-.44.1-.08-.1-.23-.6-.32-1.03-.18-.86-.17-2.75.02-3.73a8.84 8.839 0 0 1 7.9-6.93c.43-.03.77-.08.78-.1.06-.17.5-2.999.47-3.039-.01-.02-.1-.02-.2-.03Zm3.68.67c-.2 0-.3.1-.37.38-.06.23-.46 2.42-.46 2.52 0 .04.1.11.22.16a8.51 8.499 0 0 1 2.99 2 8.38 8.379 0 0 1 2.16 3.449 6.9 6.9 0 0 1 .4 2.8c0 1.07 0 1.27-.1 1.73a9.37 9.369 0 0 1-1.76 3.769c-.32.4-.98 1.06-1.37 1.38-.38.32-1.54 1.1-1.7 1.14-.1.03-.1.06-.07.26.03.18.64 2.56.7 2.78l.06.06a12.07 12.058 0 0 0 7.27-9.4c.13-.77.13-2.58 0-3.4a11.96 11.948 0 0 0-5.73-8.578c-.7-.42-2.05-1.06-2.25-1.06Z"
+                                                      Width="13" Height="13" Foreground="#00AF5C"
+                                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <!-- CurseForge Icon -->
+                                        <Border ToolTip.Tip="CurseForge" IsVisible="{Binding IsCurseForge}"
+                                                Width="26" Height="26" CornerRadius="6"
+                                                Background="#14F16436" BorderBrush="#33F16436" BorderThickness="1"
+                                                VerticalAlignment="Center">
+                                            <PathIcon Data="M18.326 9.2145S23.2261 8.4418 24 6.1882h-7.5066V4.4H0l2.0318 2.3576V9.173s5.1267-.2665 7.1098 1.2372c2.7146 2.516-3.053 5.917-3.053 5.917L5.0995 19.6c1.5465-1.4726 4.494-3.3775 9.8983-3.2857-2.0565.65-4.1245 1.6651-5.7344 3.2857h10.9248l-1.0288-3.2726s-7.918-4.6688-.8336-7.1127z"
+                                                      Width="13" Height="13" Foreground="#F16436"
+                                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" IsHitTestVisible="False">
+                    <TextBlock Text="{l10n:Tr Key=mp_loading}" IsVisible="{Binding ModpacksBrowser.IsBusy}" HorizontalAlignment="Center" Margin="0,12" Foreground="{DynamicResource TextMutedBrush}"/>
+                    <TextBlock Text="{l10n:Tr Key=mp_empty}" IsVisible="{Binding ModpacksBrowser.IsEmpty}" HorizontalAlignment="Center" Margin="0,12" Foreground="{DynamicResource TextPlaceholderBrush}"/>
+                </StackPanel>
+                <TextBlock VerticalAlignment="Bottom" HorizontalAlignment="Left" Text="{Binding ModpacksBrowser.StatusText}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="4,0,0,4" TextWrapping="Wrap" IsVisible="{Binding ModpacksBrowser.StatusText, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
+            </Grid>
+        </Grid>
+
+        <!-- Full-page modpack details (replaces catalog when open, seamless stretch) -->
+        <Panel IsVisible="{Binding ModpacksBrowser.IsDetailsOpen}">
+            <views:ProjectDetailsView DataContext="{Binding ModpacksBrowser}"/>
+        </Panel>
+
+        <!-- Full-page author profile for modpacks -->
+        <Panel IsVisible="{Binding ModpacksBrowser.IsAuthorProfileOpen}">
+            <views:AuthorProfileView DataContext="{Binding ModpacksBrowser.CurrentAuthorProfileVm}"/>
+        </Panel>
+    </Grid>
+</UserControl>

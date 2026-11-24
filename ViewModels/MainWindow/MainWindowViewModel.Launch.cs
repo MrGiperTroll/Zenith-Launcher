@@ -356,9 +356,7 @@ public partial class MainWindowViewModel
 
 
 
-    [ObservableProperty]
 
-    private string _consoleLogs = string.Empty;
 
 
 

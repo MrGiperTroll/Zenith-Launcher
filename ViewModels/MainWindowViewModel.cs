@@ -43,18 +43,33 @@ using ZenithLauncher.UI.Theming;
 using ZenithLauncher.ViewModels.Common;
 
 using ZenithLauncher.ViewModels.Pages;
-
+using ZenithLauncher.ViewModels.Components;
 using ZenithLauncher.Views;
-
-
 
 namespace ZenithLauncher.ViewModels;
 
-
-
 public partial class MainWindowViewModel : ViewModelBase
-
 {
+    public ConsoleViewModel Console { get; } = new();
+
+    public string ConsoleLogs
+    {
+        get => Console.ConsoleLogs;
+        set => Console.ConsoleLogs = value;
+    }
+
+    public bool IsConsoleDialogOpen
+    {
+        get => Console.IsConsoleDialogOpen;
+        set => Console.IsConsoleDialogOpen = value;
+    }
+
+    [ObservableProperty]
+    private string _currentDownloadFile = string.Empty;
+
+    public IRelayCommand OpenConsoleDialogCommand => Console.OpenConsoleDialogCommand;
+    public IRelayCommand CloseConsoleDialogCommand => Console.CloseConsoleDialogCommand;
+    public IAsyncRelayCommand CopyConsoleLogsCommand => Console.CopyConsoleLogsCommand;
 
     private bool _isLoadingConfig = false;
 
@@ -502,21 +517,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
         // and the pipe drained so the game never blocks waiting on the launcher.
 
-        _launchService.LogReceived += log =>
-
-        {
-
-            _consolePending.Enqueue(log);
-
-        };
-
-
-
-        _consoleFlushTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
-
-        _consoleFlushTimer.Tick += (_, _) => FlushConsolePending();
-
-        _consoleFlushTimer.Start();
+        Console.HasActiveProcesses = () => Instances.Any(i => i.IsRunning || i.IsLaunching || _launchingInstanceIds.Contains(i.Id));
+        _launchService.LogReceived += log => Console.AppendLog(log);
 
 
 
@@ -562,8 +564,7 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 if (!IsConsoleDialogOpen)
                 {
-                    ConsoleLogs = string.Empty;
-                    while (_consolePending.TryDequeue(out _)) { }
+                    Console.ClearLogs();
                 }
                 Services.MemoryTrimmer.TrimMemory(force: true);
             });

@@ -459,6 +459,12 @@ public partial class ThemeSettingsViewModel : ViewModelBase
         Environment.Exit(0);
     }
 
+    public void RequestDiscardConfirmation(Action onDiscard)
+    {
+        _pendingThemeDiscardNavAction = onDiscard;
+        IsThemeDiscardConfirmOpen = true;
+    }
+
     [RelayCommand]
     public void ConfirmDiscardThemeChanges()
     {
@@ -568,6 +574,20 @@ public partial class ThemeSettingsViewModel : ViewModelBase
 
     public void ApplyToConfig(LauncherConfigData cfg)
     {
+        cfg.AccentColor = CurrentAccentHex;
+        cfg.BgColor = BgHex;
+        cfg.SurfaceColor = SurfaceHex;
+        cfg.PanelColor = PanelHex;
+        cfg.SidebarBgColor = SidebarBgHex;
+        cfg.CardColor = CardHex;
+        cfg.FieldColor = FieldHex;
+        cfg.HoverColor = HoverHex;
+        cfg.TextPrimaryColor = TextPrimaryHex;
+        cfg.TextSecondaryColor = TextSecondaryHex;
+        cfg.BorderDarkColor = BorderDarkHex;
+        cfg.ThemeSubTab = ThemeSubTab;
+        cfg.SimpleAccentColor = SimpleAccentHex;
+
         cfg.SelectedParticle = SelectedParticle;
         cfg.ParticleCount = ParticleCount;
         cfg.ParticleScale = ParticleScale;

@@ -98,10 +98,326 @@ public partial class MainWindowViewModel : ViewModelBase
     public Task LaunchGameAsync() => Launch.LaunchGameAsync();
     public Task LaunchGameWithArgsAsync(string? extraArgs) => Launch.LaunchGameWithArgsAsync(extraArgs);
 
+    public string CustomJavaPath
+    {
+        get => Launch.CustomJavaPath;
+        set => Launch.CustomJavaPath = value;
+    }
+
+    public string CurrentJavaDisplay => Launch.CurrentJavaDisplay;
+    public string ResolvedJavaPath => Launch.ResolvedJavaPath;
+    public bool IsCustomJavaMode => Launch.IsCustomJavaMode;
+
+    public string JvmArgs
+    {
+        get => Launch.JvmArgs;
+        set => Launch.JvmArgs = value;
+    }
+
+    public int MinRamMb
+    {
+        get => Launch.MinRamMb;
+        set => Launch.MinRamMb = value;
+    }
+
+    public int RamMb
+    {
+        get => Launch.RamMb;
+        set => Launch.RamMb = value;
+    }
+
+    public int MaxRamMb
+    {
+        get => Launch.MaxRamMb;
+        set => Launch.MaxRamMb = value;
+    }
+
+    public string SelectedLaunchBehavior
+    {
+        get => Launch.SelectedLaunchBehavior;
+        set => Launch.SelectedLaunchBehavior = value;
+    }
+
+    public ObservableCollection<string> LaunchBehaviors => Launch.LaunchBehaviors;
+
+    public int GameWidth
+    {
+        get => Launch.GameWidth;
+        set => Launch.GameWidth = value;
+    }
+
+    public int GameHeight
+    {
+        get => Launch.GameHeight;
+        set => Launch.GameHeight = value;
+    }
+
+    public bool IsFullscreen
+    {
+        get => Launch.IsFullscreen;
+        set => Launch.IsFullscreen = value;
+    }
+
+    public bool IsElyByErrorOpen
+    {
+        get => Launch.IsElyByErrorOpen;
+        set => Launch.IsElyByErrorOpen = value;
+    }
+
+    public string ElyByErrorMessage
+    {
+        get => Launch.ElyByErrorMessage;
+        set => Launch.ElyByErrorMessage = value;
+    }
+
+    public string JavaDownloadStatus => Launch.JavaDownloadStatus;
+
+    public int IsJavaDownloading
+    {
+        get => Launch.IsJavaDownloading;
+        set => Launch.IsJavaDownloading = value;
+    }
+
+    public bool CanDownloadJava => Launch.CanDownloadJava;
+    public bool IsJavaInstallerOpen
+    {
+        get => Launch.IsJavaInstallerOpen;
+        set => Launch.IsJavaInstallerOpen = value;
+    }
+
+    public bool IsEffectiveJavaPathInvalid
+    {
+        get => Launch.IsEffectiveJavaPathInvalid;
+        set => Launch.IsEffectiveJavaPathInvalid = value;
+    }
+
+    public string EffectiveJavaPath
+    {
+        get => Launch.EffectiveJavaPath;
+        set => Launch.EffectiveJavaPath = value;
+    }
+
+    public bool IsDownloading => Launch.IsDownloading;
+
+    public IRelayCommand StepMinRamDownCommand => Launch.StepMinRamDownCommand;
+    public IRelayCommand StepMinRamUpCommand => Launch.StepMinRamUpCommand;
+    public IRelayCommand StepRamDownCommand => Launch.StepRamDownCommand;
+    public IRelayCommand StepRamUpCommand => Launch.StepRamUpCommand;
+    public IAsyncRelayCommand<object?> DownloadJavaCommand => Launch.DownloadJavaCommand;
+    public IRelayCommand OpenJavaInstallerCommand => Launch.OpenJavaInstallerCommand;
+    public IRelayCommand CloseJavaInstallerCommand => Launch.CloseJavaInstallerCommand;
+    public IAsyncRelayCommand PickCustomJavaCommand => Launch.PickCustomJavaCommand;
+    public IAsyncRelayCommand BrowseJavaPathCommand => Launch.BrowseJavaPathCommand;
+    public IAsyncRelayCommand SwitchToOfflineAccountCommand => Launch.SwitchToOfflineAccountCommand;
+    public IAsyncRelayCommand<InstanceModel> LaunchSpecificInstanceCommand => Launch.LaunchSpecificInstanceCommand;
+    public IRelayCommand<InstanceModel> KillInstanceCommand => Launch.KillInstanceCommand;
+
+    public void UpdateJavaDisplay() => Launch.UpdateJavaDisplay();
+    public Task<bool> DownloadJavaCoreAsync(object? parameter, bool force = false, IProgress<double>? progress = null) =>
+        Launch.DownloadJavaCoreAsync(parameter, force, progress);
+    public Task<string?> ResolveJavaForEditorAsync(string? instanceVersion) => Launch.ResolveJavaForEditorAsync(instanceVersion);
+    public Task<bool> CheckCommandLineLaunchAsync(string[]? args) => Launch.CheckCommandLineLaunchAsync(args);
+    public bool HasProfile(string idOrName) => Launch.HasProfile(idOrName);
+    public Task LaunchSpecificInstanceWithArgsAsync(InstanceModel? instance, string? extraArgs) =>
+        Launch.LaunchSpecificInstanceWithArgsAsync(instance, extraArgs);
+    public void OpenJavaInstaller() => Launch.OpenJavaInstaller();
+    public void CloseJavaInstaller() => Launch.CloseJavaInstaller();
+
+    // Theming Forwarders
+    [ObservableProperty] private double _launcherScale = 1.0;
+    partial void OnLauncherScaleChanged(double value) => SaveLauncherConfig();
+
+    public ObservableCollection<ThemePreset> AvailableThemes => ThemeSettingsVm.AvailableThemes;
+
+    public string CurrentAccentHex
+    {
+        get => ThemeSettingsVm.CurrentAccentHex;
+        set => ThemeSettingsVm.CurrentAccentHex = value;
+    }
+
+    public string CustomThemeHex
+    {
+        get => ThemeSettingsVm.CustomThemeHex;
+        set => ThemeSettingsVm.CustomThemeHex = value;
+    }
+
+    public string SimpleAccentHex
+    {
+        get => ThemeSettingsVm.SimpleAccentHex;
+        set => ThemeSettingsVm.SimpleAccentHex = value;
+    }
+
+    public string BgHex
+    {
+        get => ThemeSettingsVm.BgHex;
+        set => ThemeSettingsVm.BgHex = value;
+    }
+
+    public string SurfaceHex
+    {
+        get => ThemeSettingsVm.SurfaceHex;
+        set => ThemeSettingsVm.SurfaceHex = value;
+    }
+
+    public string PanelHex
+    {
+        get => ThemeSettingsVm.PanelHex;
+        set => ThemeSettingsVm.PanelHex = value;
+    }
+
+    public string FieldHex
+    {
+        get => ThemeSettingsVm.FieldHex;
+        set => ThemeSettingsVm.FieldHex = value;
+    }
+
+    public string HoverHex
+    {
+        get => ThemeSettingsVm.HoverHex;
+        set => ThemeSettingsVm.HoverHex = value;
+    }
+
+    public string SidebarBgHex
+    {
+        get => ThemeSettingsVm.SidebarBgHex;
+        set => ThemeSettingsVm.SidebarBgHex = value;
+    }
+
+    public string CardHex
+    {
+        get => ThemeSettingsVm.CardHex;
+        set => ThemeSettingsVm.CardHex = value;
+    }
+
+    public string TextPrimaryHex
+    {
+        get => ThemeSettingsVm.TextPrimaryHex;
+        set => ThemeSettingsVm.TextPrimaryHex = value;
+    }
+
+    public string TextSecondaryHex
+    {
+        get => ThemeSettingsVm.TextSecondaryHex;
+        set => ThemeSettingsVm.TextSecondaryHex = value;
+    }
+
+    public string BorderDarkHex
+    {
+        get => ThemeSettingsVm.BorderDarkHex;
+        set => ThemeSettingsVm.BorderDarkHex = value;
+    }
+
+    public IBrush PreviewAccentBrush => ThemeSettingsVm.PreviewAccentBrush;
+    public IBrush PreviewAccentHoverBrush => ThemeSettingsVm.PreviewAccentHoverBrush;
+    public IBrush PreviewAccentDimBrush => ThemeSettingsVm.PreviewAccentDimBrush;
+    public IBrush PreviewAccentBorderBrush => ThemeSettingsVm.PreviewAccentBorderBrush;
+
+    public bool IsRestartConfirmOpen
+    {
+        get => ThemeSettingsVm.IsRestartConfirmOpen;
+        set => ThemeSettingsVm.IsRestartConfirmOpen = value;
+    }
+
+    public string PendingRestartThemeHex
+    {
+        get => ThemeSettingsVm.PendingRestartThemeHex;
+        set => ThemeSettingsVm.PendingRestartThemeHex = value;
+    }
+
+    public bool IsThemeDiscardConfirmOpen
+    {
+        get => ThemeSettingsVm.IsThemeDiscardConfirmOpen;
+        set => ThemeSettingsVm.IsThemeDiscardConfirmOpen = value;
+    }
+
+    public bool IsApplyButtonHighlighted
+    {
+        get => ThemeSettingsVm.IsApplyButtonHighlighted;
+        set => ThemeSettingsVm.IsApplyButtonHighlighted = value;
+    }
+
+    public string ThemeSubTab
+    {
+        get => ThemeSettingsVm.ThemeSubTab;
+        set => ThemeSettingsVm.ThemeSubTab = value;
+    }
+
+    public bool IsThemeSubTabSimple => ThemeSettingsVm.IsThemeSubTabSimple;
+    public bool IsThemeSubTabAdvanced => ThemeSettingsVm.IsThemeSubTabAdvanced;
+
+    public string SelectedParticle
+    {
+        get => ThemeSettingsVm.SelectedParticle;
+        set => ThemeSettingsVm.SelectedParticle = value;
+    }
+
+    public string[] ParticleOptions => ThemeSettingsVm.ParticleOptions;
+
+    public int ParticleCount
+    {
+        get => ThemeSettingsVm.ParticleCount;
+        set => ThemeSettingsVm.ParticleCount = value;
+    }
+
+    public double ParticleScale
+    {
+        get => ThemeSettingsVm.ParticleScale;
+        set => ThemeSettingsVm.ParticleScale = value;
+    }
+
+    public double ParticleSpeed
+    {
+        get => ThemeSettingsVm.ParticleSpeed;
+        set => ThemeSettingsVm.ParticleSpeed = value;
+    }
+
+    public string ParticleColorHex
+    {
+        get => ThemeSettingsVm.ParticleColorHex;
+        set => ThemeSettingsVm.ParticleColorHex = value;
+    }
+
+    public double ParticleAngleDeg
+    {
+        get => ThemeSettingsVm.ParticleAngleDeg;
+        set => ThemeSettingsVm.ParticleAngleDeg = value;
+    }
+
+    public string ParticleTexturePath
+    {
+        get => ThemeSettingsVm.ParticleTexturePath;
+        set => ThemeSettingsVm.ParticleTexturePath = value;
+    }
+
+    public IRelayCommand ChooseThemeCommand => ThemeSettingsVm.ChooseThemeCommand;
+    public IRelayCommand SelectThemeCommand => ThemeSettingsVm.SelectThemeCommand;
+    public IRelayCommand RequestApplyThemeCommand => ThemeSettingsVm.RequestApplyThemeCommand;
+    public IRelayCommand CancelRestartConfirmCommand => ThemeSettingsVm.CancelRestartConfirmCommand;
+    public IRelayCommand ConfirmRestartAndApplyThemeCommand => ThemeSettingsVm.ConfirmRestartAndApplyThemeCommand;
+    public IRelayCommand ConfirmDiscardThemeChangesCommand => ThemeSettingsVm.ConfirmDiscardThemeChangesCommand;
+    public IRelayCommand CancelDiscardThemeChangesCommand => ThemeSettingsVm.CancelDiscardThemeChangesCommand;
+    public IRelayCommand ApplyCustomThemeCommand => ThemeSettingsVm.ApplyCustomThemeCommand;
+    public IRelayCommand SwitchThemeSubTabCommand => ThemeSettingsVm.SwitchThemeSubTabCommand;
+    public IRelayCommand CloseThemeEditorCommand => ThemeSettingsVm.CloseThemeEditorCommand;
+
+    public void SnapshotCurrentSavedTheme() => ThemeSettingsVm.SnapshotCurrentSavedTheme();
+    public bool HasUnsavedThemeChanges() => ThemeSettingsVm.HasUnsavedThemeChanges();
+    public void ApplySimpleTheme(string hex) => ThemeSettingsVm.ApplySimpleTheme(hex);
+    public void ApplyAdvancedSavedTheme() => ThemeSettingsVm.ApplyAdvancedSavedTheme();
+    public void ApplySimpleSavedTheme() => ThemeSettingsVm.ApplySimpleSavedTheme();
+    public void RevertThemeToSaved() => ThemeSettingsVm.RevertThemeToSaved();
+    public void ChooseTheme(string hex) => ThemeSettingsVm.ChooseTheme(hex);
+    public void SelectTheme(string hex) => ThemeSettingsVm.SelectTheme(hex);
+    public void RequestApplyTheme(string? hex = null) => ThemeSettingsVm.RequestApplyTheme(hex);
+    public void SwitchThemeSubTab(string tab) => ThemeSettingsVm.SwitchThemeSubTab(tab);
+
     public NavigationViewModel Navigation { get; }
 
-    [ObservableProperty] private bool _isLockAspectRatio = false;
-    [ObservableProperty] private int _maxRamMb = 16384;
+    public bool IsLockAspectRatio
+    {
+        get => Launch.IsLockAspectRatio;
+        set => Launch.IsLockAspectRatio = value;
+    }
 
     public LauncherNavPage CurrentPage => Navigation.CurrentPage;
     public bool IsProfilesView => Navigation.IsProfilesView;
@@ -355,9 +671,6 @@ public partial class MainWindowViewModel : ViewModelBase
         get => InstancesManager.IsImportPickerOpen;
         set => InstancesManager.IsImportPickerOpen = value;
     }
-
-    [ObservableProperty]
-    private string _effectiveJavaPath = "";
 
     public string NewInstanceName
     {
@@ -641,10 +954,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
 
 
-    [ObservableProperty] private int _isJavaDownloading;
-
-
-
     public static string AppVersion =>
 
         typeof(MainWindowViewModel).Assembly.GetName().Version?.ToString(3) ?? "1.0.0";
@@ -717,28 +1026,21 @@ public partial class MainWindowViewModel : ViewModelBase
             GetSelectedAccount = () => SelectedAccount,
             GetActiveAccountName = () => ActiveAccountName,
             GetSelectedJavaMode = () => SelectedJavaMode,
-            GetCustomJavaPath = () => CustomJavaPath,
-            GetMinRamMb = () => MinRamMb,
-            GetRamMb = () => RamMb,
-            GetSelectedLaunchBehavior = () => SelectedLaunchBehavior,
+            SetSelectedJavaMode = mode => SelectedJavaMode = mode,
             SetElyByErrorOpen = open => IsElyByErrorOpen = open,
-            OnStatusChanged = text => StatusText = text
+            OnStatusChanged = text => StatusText = text,
+            SaveLauncherConfigRequested = () => SaveLauncherConfig(),
+            RefreshStateRequested = () => RefreshState(),
+            OnJavaLocationDetected = (major, path) => LauncherSettingsVm?.SetJavaLocation(major, path),
+            OnLauncherSettingsUpdateJavaDisplayRequested = () => LauncherSettingsVm?.UpdateJavaDisplay(),
+            SelectInstanceRequested = inst => SelectInstance(inst),
+            GetInstances = () => Instances
         };
 
         Launch.PropertyChanged += (_, e) =>
         {
-            if (e.PropertyName == nameof(Launch.IsLaunching))
-                OnPropertyChanged(nameof(IsLaunching));
-            else if (e.PropertyName == nameof(Launch.LaunchProgress))
-                OnPropertyChanged(nameof(LaunchProgress));
-            else if (e.PropertyName == nameof(Launch.CanLaunch))
-                OnPropertyChanged(nameof(CanLaunch));
-            else if (e.PropertyName == nameof(Launch.CanLaunchOrCancel))
-                OnPropertyChanged(nameof(CanLaunchOrCancel));
-            else if (e.PropertyName == nameof(Launch.LaunchButtonText))
-                OnPropertyChanged(nameof(LaunchButtonText));
-            else if (e.PropertyName == nameof(Launch.CurrentDownloadFile))
-                OnPropertyChanged(nameof(CurrentDownloadFile));
+            if (e.PropertyName != null)
+                OnPropertyChanged(e.PropertyName);
         };
 
         _modLoaderService = new ModLoaderService();
@@ -825,13 +1127,16 @@ public partial class MainWindowViewModel : ViewModelBase
         };
 
         ThemeSettingsVm = new ThemeSettingsViewModel
-
         {
-
             GetConfigSnapshot = () => GetLauncherConfigSnapshot(),
+            SaveConfigRequested = () => SaveLauncherConfig(),
+            CloseRequested = () => SwitchSettingsTab("Appearance")
+        };
 
-            SaveConfigRequested = () => SaveLauncherConfig()
-
+        ThemeSettingsVm.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName != null)
+                OnPropertyChanged(e.PropertyName);
         };
 
         LauncherSettingsVm = new LauncherSettingsViewModel(ThemeSettingsVm)
@@ -877,11 +1182,7 @@ public partial class MainWindowViewModel : ViewModelBase
             _modLoaderService)
         {
             HasUnsavedThemeChanges = () => HasUnsavedThemeChanges(),
-            RequestThemeDiscardConfirmation = action =>
-            {
-                _pendingThemeDiscardNavAction = action;
-                IsThemeDiscardConfirmOpen = true;
-            },
+            RequestThemeDiscardConfirmation = action => ThemeSettingsVm.RequestDiscardConfirmation(action),
             SaveLauncherConfigRequested = () => SaveLauncherConfig(),
             RefreshStateRequested = () => RefreshState(),
             StatusMessageRequested = msg => StatusText = msg,
@@ -963,42 +1264,10 @@ public partial class MainWindowViewModel : ViewModelBase
         L10n.LanguageChanged += () => OnPropertyChanged(nameof(LaunchButtonText));
 
         L10n.LanguageChanged += () =>
-
         {
-
             Navigation.RebuildActiveBreadcrumbs();
-
             CreateServerVm?.UpdatePluginsTabTitle();
-
         };
-
-
-
-        // Detect total physical RAM
-
-        try
-
-        {
-
-            if (OperatingSystem.IsWindows())
-
-            {
-
-                var memStatus = new MEMORYSTATUSEX();
-
-                memStatus.dwLength = (uint)System.Runtime.InteropServices.Marshal.SizeOf(typeof(MEMORYSTATUSEX));
-
-                if (GlobalMemoryStatusEx(ref memStatus))
-
-                    MaxRamMb = (int)(memStatus.ullTotalPhys / (1024 * 1024));
-
-            }
-
-        }
-
-        catch { MaxRamMb = 16384; }
-
-
 
         // Console log lines are enqueued cheaply from any (reader) thread and flushed
 
@@ -1420,433 +1689,110 @@ public partial class MainWindowViewModel : ViewModelBase
 
 
     public void SaveLauncherConfig()
-
     {
+        if (_isLoadingConfig) return;
 
         try
-
         {
-
             ZenithPaths.EnsureAppDataExists();
-
             var configPath = ZenithPaths.ConfigFilePath;
 
             var configData = new LauncherConfigData
-
             {
-
                 LauncherName = LauncherName,
-
-                AccentColor = CurrentAccentHex,
-
-                BgColor = BgHex,
-
-                SurfaceColor = SurfaceHex,
-
-                PanelColor = PanelHex,
-
-                SidebarBgColor = SidebarBgHex,
-
-                CardColor = CardHex,
-
-                FieldColor = FieldHex,
-
-                HoverColor = HoverHex,
-
-                TextPrimaryColor = TextPrimaryHex,
-
-                TextSecondaryColor = TextSecondaryHex,
-
-                BorderDarkColor = BorderDarkHex,
-
-                JvmArgs = JvmArgs,
-
-                MinRamMb = MinRamMb,
-
-                RamMb = RamMb,
-
-                LaunchBehavior = SelectedLaunchBehavior,
-
-                GameWidth = GameWidth,
-
-                GameHeight = GameHeight,
-
-                IsFullscreen = IsFullscreen,
-
                 SelectedDirectoryMode = SelectedDirectoryMode,
-
                 JavaMode = SelectedJavaMode,
-
-                CustomJavaPath = CustomJavaPath,
-
                 UseFlatVersionList = UseFlatVersionList,
-
                 AutoManageJava = AutoManageJava,
-
                 DiscordRpcEnabled = DiscordRpcEnabled,
-
                 LauncherScale = LauncherScale,
-
-                SelectedParticle = SelectedParticle,
-
-                ParticleCount = ParticleCount,
-
-                ParticleScale = ParticleScale,
-
-                ParticleSpeed = ParticleSpeed,
-
-                ParticleColorHex = ParticleColorHex,
-
-                ParticleAngleDeg = ParticleAngleDeg,
-
-                ParticleTexturePath = ParticleTexturePath,
-
                 Language = SelectedLanguage,
-
-                ThemeSubTab = ThemeSubTab,
-
-                SimpleAccentColor = _savedSimpleAccentHex,
-
                 IsSidebarExpanded = IsSidebarExpanded
-
             };
 
+            Launch?.ApplyToConfig(configData);
             LauncherSettingsVm?.ApplyToConfig(configData);
-
             ThemeSettingsVm?.ApplyToConfig(configData);
 
             File.WriteAllText(configPath, System.Text.Json.JsonSerializer.Serialize(configData, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
-
         }
-
         catch { }
-
     }
 
-
-
-    /// <summary>
-
-    /// Snapshot of the current global launcher settings, used by the instance editor
-
-    /// so per-instance settings inherit the global defaults unless explicitly overridden.
-
-    /// </summary>
-
     public LauncherConfigData GetLauncherConfigSnapshot()
-
     {
-
         var snapshot = new LauncherConfigData
-
         {
-
             LauncherName = LauncherName,
-
-            AccentColor = CurrentAccentHex,
-
-            BgColor = BgHex,
-
-            SurfaceColor = SurfaceHex,
-
-            PanelColor = PanelHex,
-
-            SidebarBgColor = SidebarBgHex,
-
-            CardColor = CardHex,
-
-            FieldColor = FieldHex,
-
-            HoverColor = HoverHex,
-
-            TextPrimaryColor = TextPrimaryHex,
-
-            TextSecondaryColor = TextSecondaryHex,
-
-            BorderDarkColor = BorderDarkHex,
-
-            JvmArgs = JvmArgs,
-
-            MinRamMb = MinRamMb,
-
-            RamMb = RamMb,
-
-            LaunchBehavior = SelectedLaunchBehavior,
-
-            GameWidth = GameWidth,
-
-            GameHeight = GameHeight,
-
-            IsFullscreen = IsFullscreen,
-
             SelectedDirectoryMode = SelectedDirectoryMode,
-
             JavaMode = SelectedJavaMode,
-
-            CustomJavaPath = CustomJavaPath,
-
             UseFlatVersionList = UseFlatVersionList,
-
             AutoManageJava = AutoManageJava,
-
             DiscordRpcEnabled = DiscordRpcEnabled,
-
             LauncherScale = LauncherScale,
-
-            SelectedParticle = SelectedParticle,
-
             Language = SelectedLanguage,
-
-            ThemeSubTab = ThemeSubTab,
-
             IsSidebarExpanded = IsSidebarExpanded
-
         };
 
+        Launch?.ApplyToConfig(snapshot);
         LauncherSettingsVm?.ApplyToConfig(snapshot);
-
         ThemeSettingsVm?.ApplyToConfig(snapshot);
 
         return snapshot;
-
     }
 
-
-
     public void LoadLauncherConfig()
-
     {
-
         _isLoadingConfig = true;
-
         try
-
         {
-
             var configPath = ZenithPaths.ConfigFilePath;
-
             if (File.Exists(configPath))
-
             {
-
                 var json = File.ReadAllText(configPath);
-
                 var cfg = System.Text.Json.JsonSerializer.Deserialize<LauncherConfigData>(json);
-
                 if (cfg != null)
-
                 {
-
                     if (!string.IsNullOrWhiteSpace(cfg.LauncherName))
-
                         LauncherName = cfg.LauncherName;
 
-
-
-                    if (!string.IsNullOrWhiteSpace(cfg.ThemeSubTab))
-
-                    {
-
-                        ThemeSubTab = cfg.ThemeSubTab;
-
-                        OnPropertyChanged(nameof(IsThemeSubTabSimple));
-
-                        OnPropertyChanged(nameof(IsThemeSubTabAdvanced));
-
-                    }
-
-
-
-                    if (!string.IsNullOrWhiteSpace(cfg.BgColor)) BgHex = cfg.BgColor;
-
-                    if (!string.IsNullOrWhiteSpace(cfg.SurfaceColor)) SurfaceHex = cfg.SurfaceColor;
-
-                    if (!string.IsNullOrWhiteSpace(cfg.PanelColor)) PanelHex = cfg.PanelColor;
-
-                    if (!string.IsNullOrWhiteSpace(cfg.SidebarBgColor)) SidebarBgHex = cfg.SidebarBgColor;
-
-                    if (!string.IsNullOrWhiteSpace(cfg.CardColor)) CardHex = cfg.CardColor;
-
-                    if (!string.IsNullOrWhiteSpace(cfg.FieldColor)) FieldHex = cfg.FieldColor;
-
-                    if (!string.IsNullOrWhiteSpace(cfg.HoverColor)) HoverHex = cfg.HoverColor;
-
-                    if (!string.IsNullOrWhiteSpace(cfg.TextPrimaryColor)) TextPrimaryHex = cfg.TextPrimaryColor;
-
-                    if (!string.IsNullOrWhiteSpace(cfg.TextSecondaryColor)) TextSecondaryHex = cfg.TextSecondaryColor;
-
-                    if (!string.IsNullOrWhiteSpace(cfg.BorderDarkColor)) BorderDarkHex = (cfg.BorderDarkColor == "#121622" || cfg.BorderDarkColor == "#182743" || cfg.BorderDarkColor == "#16181C") ? "#222834" : cfg.BorderDarkColor;
-
-                    if (!string.IsNullOrWhiteSpace(cfg.SimpleAccentColor))
-
-                    {
-
-                        SimpleAccentHex = cfg.SimpleAccentColor;
-
-                        _savedSimpleAccentHex = cfg.SimpleAccentColor;
-
-                    }
-
-                    else if (!string.IsNullOrWhiteSpace(cfg.AccentColor))
-
-                    {
-
-                        SimpleAccentHex = cfg.AccentColor;
-
-                        _savedSimpleAccentHex = cfg.AccentColor;
-
-                    }
-
-
-
-                    if (!string.IsNullOrWhiteSpace(cfg.AccentColor))
-
-                    {
-
-                        CurrentAccentHex = cfg.AccentColor;
-
-                        CustomThemeHex = cfg.AccentColor;
-
-                        UpdatePreviewBrushes(cfg.AccentColor);
-
-                    }
-
-
-
-                    // Apply the theme corresponding to the saved ThemeSubTab
-
-                    if (IsThemeSubTabSimple)
-
-                    {
-
-                        ApplySimpleTheme(SimpleAccentHex);
-
-                    }
-
-                    else
-
-                    {
-
-                        ZenithTheme.Apply(GetLauncherConfigSnapshot());
-
-                    }
-
-
-
-                    // Language is restored FIRST and verbatim: an explicit
-
-                    // choice (including "Auto") always wins over detection.
-
-                    // The system language is consulted exactly once - on the
-
-                    // very first run, when nothing has been stored yet.
-
                     if (string.IsNullOrWhiteSpace(cfg.Language))
-
                     {
-
-                        // First launch: resolve the OS language once and
-
-                        // persist it immediately as the user's choice.
-
                         SelectedLanguage = L10n.CurrentDisplay;
-
                         SaveLauncherConfig();
-
                         LauncherLog.Info($"First run: system language '{L10n.CurrentDisplay}' stored as default.");
-
                     }
-
                     else
-
                     {
-
                         SelectedLanguage = NormalizeStoredLanguage(cfg.Language);
-
                     }
-
-
-
-                    if (!string.IsNullOrWhiteSpace(cfg.JvmArgs)) JvmArgs = cfg.JvmArgs;
-
-                    if (cfg.MinRamMb > 0) MinRamMb = cfg.MinRamMb;
-
-                    if (cfg.RamMb > 0) RamMb = cfg.RamMb;
-
-                    if (!string.IsNullOrWhiteSpace(cfg.LaunchBehavior))
-
-                        SelectedLaunchBehavior = cfg.LaunchBehavior;
-
-                    if (cfg.GameWidth > 0) GameWidth = cfg.GameWidth;
-
-                    if (cfg.GameHeight > 0) GameHeight = cfg.GameHeight;
-
-                    IsFullscreen = cfg.IsFullscreen;
 
                     if (!string.IsNullOrWhiteSpace(cfg.SelectedDirectoryMode))
-
                         SelectedDirectoryMode = cfg.SelectedDirectoryMode;
 
                     if (!string.IsNullOrWhiteSpace(cfg.JavaMode))
-
                         SelectedJavaMode = cfg.JavaMode;
 
-                    if (!string.IsNullOrWhiteSpace(cfg.CustomJavaPath))
-
-                        CustomJavaPath = cfg.CustomJavaPath;
-
                     UseFlatVersionList = cfg.UseFlatVersionList;
-
                     AutoManageJava = cfg.AutoManageJava;
-
                     DiscordRpcEnabled = cfg.DiscordRpcEnabled;
-
                     if (cfg.LauncherScale > 0.4 && cfg.LauncherScale < 3.0) LauncherScale = cfg.LauncherScale;
-
-                    if (!string.IsNullOrEmpty(cfg.SelectedParticle)) SelectedParticle = cfg.SelectedParticle;
-
-                    if (cfg.ParticleCount >= 10 && cfg.ParticleCount <= 150) ParticleCount = cfg.ParticleCount;
-
-                    if (cfg.ParticleScale >= 0.3 && cfg.ParticleScale <= 2.5) ParticleScale = cfg.ParticleScale;
-
-                    if (cfg.ParticleSpeed >= 0.2 && cfg.ParticleSpeed <= 3.0) ParticleSpeed = cfg.ParticleSpeed;
-
-                    ParticleColorHex = cfg.ParticleColorHex ?? "";
-
-                    if (cfg.ParticleAngleDeg >= 0 && cfg.ParticleAngleDeg <= 360) ParticleAngleDeg = cfg.ParticleAngleDeg;
-
-                    ParticleTexturePath = cfg.ParticleTexturePath ?? "";
-
                     IsSidebarExpanded = cfg.IsSidebarExpanded;
 
+                    Launch?.LoadFromConfig(cfg);
                     LauncherSettingsVm?.LoadFromConfig(cfg);
-
                     ThemeSettingsVm?.LoadFromConfig(cfg);
-
-                    SnapshotCurrentSavedTheme();
-
                 }
-
             }
-
         }
-
         catch (Exception ex)
-
         {
-
             LauncherLog.Error("Failed to load launcher config - keeping current settings.", ex);
-
         }
-
         finally
-
         {
-
             _isLoadingConfig = false;
-
         }
-
     }
 
 

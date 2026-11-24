@@ -1,10 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace CustomMcLauncher.Services;
+namespace ZenithLauncher.Services;
 
 /// <summary>
 /// Loader metadata service with multi-mirror failover.

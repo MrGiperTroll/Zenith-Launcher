@@ -1,9 +1,9 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Runtime;
 using System.Threading.Tasks;
 
-namespace CustomMcLauncher.Services;
+namespace ZenithLauncher.Services;
 
 public static class MemoryTrimmer
 {

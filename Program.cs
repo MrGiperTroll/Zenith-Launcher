@@ -3,9 +3,9 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia;
-using CustomMcLauncher.Services;
+using ZenithLauncher.Services;
 
-namespace CustomMcLauncher;
+namespace ZenithLauncher;
 
 class Program
 {

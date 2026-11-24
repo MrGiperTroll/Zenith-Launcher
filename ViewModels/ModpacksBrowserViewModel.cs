@@ -1,4 +1,4 @@
-using CustomMcLauncher.ViewModels.Dialogs;
+﻿using ZenithLauncher.ViewModels.Dialogs;
 using System.Text.RegularExpressions;
 using System;
 using System.Collections.Generic;
@@ -12,12 +12,12 @@ using Avalonia.Threading;
 using CmlLib.Core;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using CustomMcLauncher.Common.Utils;
-using CustomMcLauncher.Models;
-using CustomMcLauncher.Services;
-using CustomMcLauncher.ViewModels.Items;
+using ZenithLauncher.Common.Utils;
+using ZenithLauncher.Models;
+using ZenithLauncher.Services;
+using ZenithLauncher.ViewModels.Items;
 
-namespace CustomMcLauncher.ViewModels;
+namespace ZenithLauncher.ViewModels;
 
 public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
 {

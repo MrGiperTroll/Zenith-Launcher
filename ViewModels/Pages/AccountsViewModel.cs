@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net.Http;
@@ -6,11 +6,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using CustomMcLauncher.Models;
-using CustomMcLauncher.Services;
-using CustomMcLauncher.ViewModels.Common;
+using ZenithLauncher.Models;
+using ZenithLauncher.Services;
+using ZenithLauncher.ViewModels.Common;
 
-namespace CustomMcLauncher.ViewModels.Pages;
+namespace ZenithLauncher.ViewModels.Pages;
 
 public partial class AccountsViewModel : ViewModelBase, IDisposable
 {

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Avalonia;
@@ -9,7 +9,7 @@ using Avalonia.Animation;
 using Avalonia.Animation.Easings;
 using Avalonia.Threading;
 
-namespace CustomMcLauncher.Controls;
+namespace ZenithLauncher.Controls;
 
 public class AnimatedWrapPanel : Panel
 {

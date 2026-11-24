@@ -1,9 +1,9 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="CustomMcLauncher.Views.UpdateNotificationView"
+             x:Class="ZenithLauncher.Views.UpdateNotificationView"
              x:DataType="vms:UpdateNotificationViewModel"
-             xmlns:vms="clr-namespace:CustomMcLauncher.Views"
-             xmlns:l10n="using:CustomMcLauncher.Extensions">
+             xmlns:vms="clr-namespace:ZenithLauncher.Views"
+             xmlns:l10n="using:ZenithLauncher.Extensions">
 
     <UserControl.Styles>
         <Style Selector="Button.primaryBtn">

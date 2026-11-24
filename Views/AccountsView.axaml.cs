@@ -1,14 +1,14 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
-using CustomMcLauncher.ViewModels;
-using CustomMcLauncher.ViewModels.Pages;
+using ZenithLauncher.ViewModels;
+using ZenithLauncher.ViewModels.Pages;
 
-namespace CustomMcLauncher.Views;
+namespace ZenithLauncher.Views;
 
 public partial class AccountsView : UserControl
 {
@@ -99,7 +99,7 @@ public partial class AccountsView : UserControl
                 }
                 catch (Exception ex)
                 {
-                    CustomMcLauncher.Services.LauncherLog.Error("Failed to create account drag ghost", ex);
+                    ZenithLauncher.Services.LauncherLog.Error("Failed to create account drag ghost", ex);
                 }
             }
 
@@ -143,7 +143,7 @@ public partial class AccountsView : UserControl
                             if (_pendingTargetId != null && DataContext is AccountsViewModel currentVm)
                             {
                                 try { currentVm.ReorderAccount(movedId, _pendingTargetId, _pendingDropAfter, save: false); }
-                                catch (Exception ex) { CustomMcLauncher.Services.LauncherLog.Error("Account reorder failed", ex); }
+                                catch (Exception ex) { ZenithLauncher.Services.LauncherLog.Error("Account reorder failed", ex); }
                             }
                         };
                     }

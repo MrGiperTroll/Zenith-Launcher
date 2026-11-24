@@ -1,9 +1,9 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CustomMcLauncher.Services;
+namespace ZenithLauncher.Services;
 
 /// <summary>
 /// Windows file-operation helpers. Files under a running server or a busy

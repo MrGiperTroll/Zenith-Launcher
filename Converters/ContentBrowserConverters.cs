@@ -1,12 +1,12 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
-using CustomMcLauncher.Models;
-using CustomMcLauncher.Services;
+using ZenithLauncher.Models;
+using ZenithLauncher.Services;
 
-namespace CustomMcLauncher.Converters;
+namespace ZenithLauncher.Converters;
 
 public static class ContentBrowserConverters
 {

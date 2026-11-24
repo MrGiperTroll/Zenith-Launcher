@@ -1,7 +1,7 @@
-using System;
+﻿using System;
 using System.IO;
 
-namespace CustomMcLauncher.Services;
+namespace ZenithLauncher.Services;
 
 public static class ZenithPaths
 {

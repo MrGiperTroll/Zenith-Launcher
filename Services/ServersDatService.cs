@@ -1,10 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
 
-namespace CustomMcLauncher.Services;
+namespace ZenithLauncher.Services;
 
 public class ServerEntry
 {

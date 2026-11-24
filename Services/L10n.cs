@@ -1,8 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 
-namespace CustomMcLauncher.Services;
+namespace ZenithLauncher.Services;
 
 /// <summary>
 /// Lightweight UI localization engine.

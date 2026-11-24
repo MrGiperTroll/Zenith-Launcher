@@ -1,4 +1,4 @@
-<p align="center">
+﻿<p align="center">
   <img src="Assets/app.ico" width="96" alt="Zenith Launcher icon"/>
 </p>
 
@@ -68,7 +68,7 @@ Verify Discord Rich Presence initialization:
 ## Project structure
 
 ```
-CustomMcLauncher/
+ZenithLauncher/
 ├── Assets/              # Icons, images, app manifest
 ├── Extensions/          # XAML markup extensions (L10n binding)
 ├── Models/              # Data models (Instance, Account, Modrinth, etc.)

@@ -1,8 +1,8 @@
-using System;
+﻿using System;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CustomMcLauncher.Models;
+using ZenithLauncher.Models;
 
-namespace CustomMcLauncher.ViewModels;
+namespace ZenithLauncher.ViewModels;
 
 public sealed partial class SourceFilterViewModel : ObservableObject
 {

@@ -1,6 +1,6 @@
 ﻿using Avalonia.Controls;
 
-namespace CustomMcLauncher.Views;
+namespace ZenithLauncher.Views;
 
 public partial class ServerManagerView : UserControl
 {

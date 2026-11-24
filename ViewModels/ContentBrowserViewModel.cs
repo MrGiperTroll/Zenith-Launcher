@@ -1,4 +1,4 @@
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -12,12 +12,12 @@ using System.Threading.Tasks;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using CustomMcLauncher.Common.Utils;
-using CustomMcLauncher.Models;
-using CustomMcLauncher.Services;
-using CustomMcLauncher.ViewModels.Items;
+using ZenithLauncher.Common.Utils;
+using ZenithLauncher.Models;
+using ZenithLauncher.Services;
+using ZenithLauncher.ViewModels.Items;
 
-namespace CustomMcLauncher.ViewModels;
+namespace ZenithLauncher.ViewModels;
 
 public partial class ContentBrowserViewModel : ObservableObject, IDisposable
 {

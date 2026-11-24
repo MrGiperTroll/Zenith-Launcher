@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -8,11 +8,11 @@ using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using CustomMcLauncher.Models;
-using CustomMcLauncher.UI.Theming;
-using CustomMcLauncher.ViewModels.Common;
+using ZenithLauncher.Models;
+using ZenithLauncher.UI.Theming;
+using ZenithLauncher.ViewModels.Common;
 
-namespace CustomMcLauncher.ViewModels.Pages;
+namespace ZenithLauncher.ViewModels.Pages;
 
 public partial class ThemeSettingsViewModel : ViewModelBase
 {

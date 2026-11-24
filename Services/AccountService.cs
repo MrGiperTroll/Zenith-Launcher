@@ -7,9 +7,9 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using CustomMcLauncher.Models;
+using ZenithLauncher.Models;
 
-namespace CustomMcLauncher.Services;
+namespace ZenithLauncher.Services;
 
 public class AccountService : IAccountService
 {

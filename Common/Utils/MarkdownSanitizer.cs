@@ -1,6 +1,6 @@
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
-namespace CustomMcLauncher.Common.Utils;
+namespace ZenithLauncher.Common.Utils;
 
 /// <summary>
 /// Strips raw HTML tags, image markdown, markdown markup from Modrinth body text

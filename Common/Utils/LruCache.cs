@@ -1,7 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
-namespace CustomMcLauncher.Common.Utils;
+namespace ZenithLauncher.Common.Utils;
 
 public sealed class LruCache<TKey, TValue> where TKey : notnull
 {

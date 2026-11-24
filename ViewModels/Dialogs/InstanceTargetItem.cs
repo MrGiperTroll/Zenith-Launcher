@@ -1,11 +1,11 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using CustomMcLauncher.Models;
+using ZenithLauncher.Models;
 
-namespace CustomMcLauncher.ViewModels.Dialogs;
+namespace ZenithLauncher.ViewModels.Dialogs;
 
 public sealed partial class InstanceTargetItem : ObservableObject
 {

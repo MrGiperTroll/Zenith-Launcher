@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -6,9 +6,9 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
-using CustomMcLauncher.Models;
+using ZenithLauncher.Models;
 
-namespace CustomMcLauncher.Services;
+namespace ZenithLauncher.Services;
 
 /// <summary>
 /// Reads rich metadata + preview images for instance content so the file manager can show

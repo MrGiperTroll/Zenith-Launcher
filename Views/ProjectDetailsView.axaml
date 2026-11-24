@@ -1,15 +1,15 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="using:CustomMcLauncher.ViewModels"
-             xmlns:converters="using:CustomMcLauncher.Converters"
-             xmlns:models="using:CustomMcLauncher.Models"
-             xmlns:utils="using:CustomMcLauncher.Common.Utils"
-             xmlns:l10n="using:CustomMcLauncher.Extensions"
-             xmlns:views="using:CustomMcLauncher.Views"
+             xmlns:vm="using:ZenithLauncher.ViewModels"
+             xmlns:converters="using:ZenithLauncher.Converters"
+             xmlns:models="using:ZenithLauncher.Models"
+             xmlns:utils="using:ZenithLauncher.Common.Utils"
+             xmlns:l10n="using:ZenithLauncher.Extensions"
+             xmlns:views="using:ZenithLauncher.Views"
 
-             xmlns:controls="using:CustomMcLauncher.Controls"
+             xmlns:controls="using:ZenithLauncher.Controls"
              xmlns:conv="using:Avalonia.Data.Converters"
-             x:Class="CustomMcLauncher.Views.ProjectDetailsView"
+             x:Class="ZenithLauncher.Views.ProjectDetailsView"
              x:CompileBindings="False">
 
     <UserControl.Styles>

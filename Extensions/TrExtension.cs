@@ -1,11 +1,11 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Avalonia;
 using Avalonia.Markup.Xaml;
-using CustomMcLauncher.Services;
+using ZenithLauncher.Services;
 
-namespace CustomMcLauncher.Extensions;
+namespace ZenithLauncher.Extensions;
 
 /// <summary>
 /// XAML translation hook:  Text="{l10n:Tr set_memory}"

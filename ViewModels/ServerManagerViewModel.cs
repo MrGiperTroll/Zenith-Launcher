@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -8,10 +8,10 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using CustomMcLauncher.Services;
-using CustomMcLauncher.ViewModels.Common;
+using ZenithLauncher.Services;
+using ZenithLauncher.ViewModels.Common;
 
-namespace CustomMcLauncher.ViewModels;
+namespace ZenithLauncher.ViewModels;
 
 public partial class ServerManagerViewModel : ViewModelBase
 {

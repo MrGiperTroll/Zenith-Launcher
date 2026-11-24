@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CustomMcLauncher.Services;
-using CustomMcLauncher.ViewModels.Common;
+using ZenithLauncher.Services;
+using ZenithLauncher.ViewModels.Common;
 
-namespace CustomMcLauncher.ViewModels.Items;
+namespace ZenithLauncher.ViewModels.Items;
 
 public partial class ModrinthProjectItemViewModel : ViewModelBase, IDisposable
 {

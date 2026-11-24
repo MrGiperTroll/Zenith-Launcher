@@ -1,13 +1,13 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using CustomMcLauncher.Models;
+using ZenithLauncher.Models;
 
-namespace CustomMcLauncher.Services;
+namespace ZenithLauncher.Services;
 
 public enum DirectoryMode
 {

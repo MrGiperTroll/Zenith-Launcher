@@ -1,10 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CustomMcLauncher.Services;
+namespace ZenithLauncher.Services;
 
 /// <summary>
 /// Multi-source download helper. Tries each candidate mirror in order and returns the first

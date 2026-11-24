@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CustomMcLauncher.Models;
+namespace ZenithLauncher.Models;
 
 public enum AccountType
 {

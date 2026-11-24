@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -12,11 +12,11 @@ using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using CustomMcLauncher.Models;
-using CustomMcLauncher.Services;
-using CustomMcLauncher.ViewModels.Common;
+using ZenithLauncher.Models;
+using ZenithLauncher.Services;
+using ZenithLauncher.ViewModels.Common;
 
-namespace CustomMcLauncher.ViewModels;
+namespace ZenithLauncher.ViewModels;
 
 public sealed partial class DuplicateModFileItem : ObservableObject
 {
@@ -1075,7 +1075,7 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
 
     public string DeleteWorldName => PendingDeleteWorld?.Title ?? PendingDeleteWorld?.Name ?? "";
 
-    public string DeleteWorldPrompt => string.Format(CustomMcLauncher.Services.L10n.T("w_delete_prompt"), DeleteWorldName);
+    public string DeleteWorldPrompt => string.Format(ZenithLauncher.Services.L10n.T("w_delete_prompt"), DeleteWorldName);
 
     [ObservableProperty]
     private bool _isEditWorldOpen;
@@ -1226,7 +1226,7 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
 
     public string DeleteServerName => PendingDeleteServer?.Title ?? PendingDeleteServer?.Subtitle ?? "";
 
-    public string DeleteServerPrompt => string.Format(CustomMcLauncher.Services.L10n.T("sv_delete_prompt"), DeleteServerName);
+    public string DeleteServerPrompt => string.Format(ZenithLauncher.Services.L10n.T("sv_delete_prompt"), DeleteServerName);
 
     [ObservableProperty]
     private bool _isAddServerOpen;

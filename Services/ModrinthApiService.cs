@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -7,10 +7,10 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using CustomMcLauncher.Models;
-using CustomMcLauncher.ViewModels.Items;
+using ZenithLauncher.Models;
+using ZenithLauncher.ViewModels.Items;
 
-namespace CustomMcLauncher.Services;
+namespace ZenithLauncher.Services;
 
 public sealed class ModrinthSearchPage
 {
@@ -63,7 +63,7 @@ public static class ModrinthApiService
         }
     };
 
-    private static readonly CustomMcLauncher.Common.Utils.LruCache<string, byte[]> IconMemoryCache = new(40, comparer: StringComparer.OrdinalIgnoreCase);
+    private static readonly ZenithLauncher.Common.Utils.LruCache<string, byte[]> IconMemoryCache = new(40, comparer: StringComparer.OrdinalIgnoreCase);
 
     public static void ClearMemoryCache() => IconMemoryCache.Clear();
     private static readonly string IconDiskCacheDir = Path.Combine(ZenithPaths.AppDataDir, "cache", "icons");

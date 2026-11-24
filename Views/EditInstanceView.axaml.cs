@@ -1,15 +1,15 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
-using CustomMcLauncher.Services;
-using CustomMcLauncher.UI.Animations;
-using CustomMcLauncher.ViewModels;
+using ZenithLauncher.Services;
+using ZenithLauncher.UI.Animations;
+using ZenithLauncher.ViewModels;
 
-namespace CustomMcLauncher.Views;
+namespace ZenithLauncher.Views;
 
 public partial class EditInstanceView : UserControl
 {

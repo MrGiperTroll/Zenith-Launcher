@@ -7,7 +7,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 Write-Host "Building Zenith Launcher (Debug)..." -ForegroundColor Cyan
-dotnet build (Join-Path $PSScriptRoot "CustomMcLauncher.csproj")
+dotnet build (Join-Path $PSScriptRoot "ZenithLauncher.csproj")
 
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Build failed with exit code $LASTEXITCODE"

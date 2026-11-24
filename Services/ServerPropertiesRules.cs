@@ -1,6 +1,6 @@
-using System;
+﻿using System;
 
-namespace CustomMcLauncher.Services;
+namespace ZenithLauncher.Services;
 
 /// <summary>
 /// Version-gated visibility rules for server.properties keys.

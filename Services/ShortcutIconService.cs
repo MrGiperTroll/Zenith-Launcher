@@ -1,10 +1,10 @@
-using System;
+﻿using System;
 using System.IO;
 using Avalonia;
 using Avalonia.Media.Imaging;
-using CustomMcLauncher.Models;
+using ZenithLauncher.Models;
 
-namespace CustomMcLauncher.Services;
+namespace ZenithLauncher.Services;
 
 /// <summary>
 /// Produces real Windows .ico files for profile shortcuts.

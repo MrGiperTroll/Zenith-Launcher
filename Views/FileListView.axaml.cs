@@ -1,12 +1,12 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
-using CustomMcLauncher.ViewModels;
+using ZenithLauncher.ViewModels;
 
-namespace CustomMcLauncher.Views;
+namespace ZenithLauncher.Views;
 
 public partial class FileListView : UserControl
 {

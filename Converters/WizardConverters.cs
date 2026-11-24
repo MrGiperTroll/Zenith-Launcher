@@ -1,11 +1,11 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
-using CustomMcLauncher.Services;
+using ZenithLauncher.Services;
 
-namespace CustomMcLauncher.Converters;
+namespace ZenithLauncher.Converters;
 
 public class StepToBrushConverter : IValueConverter
 {
@@ -151,7 +151,7 @@ public class LoaderOfficialIconConverter : IValueConverter
     public static readonly LoaderOfficialIconConverter Instance = new();
 
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => CustomMcLauncher.Services.LoaderIconService.GetIcon(value as string);
+        => ZenithLauncher.Services.LoaderIconService.GetIcon(value as string);
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
 }
@@ -162,7 +162,7 @@ public class LoaderOfficialIconMissingConverter : IValueConverter
     public static readonly LoaderOfficialIconMissingConverter Instance = new();
 
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => CustomMcLauncher.Services.LoaderIconService.GetIcon(value as string) == null;
+        => ZenithLauncher.Services.LoaderIconService.GetIcon(value as string) == null;
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
 }

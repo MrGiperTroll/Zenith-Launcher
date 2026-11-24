@@ -1,10 +1,10 @@
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using CustomMcLauncher.ViewModels;
-using CustomMcLauncher.ViewModels.Items;
+using ZenithLauncher.ViewModels;
+using ZenithLauncher.ViewModels.Items;
 
-namespace CustomMcLauncher.Views;
+namespace ZenithLauncher.Views;
 
 public partial class AuthorProfileView : UserControl
 {

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -10,12 +10,12 @@ using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using CustomMcLauncher.Models;
-using CustomMcLauncher.Services;
-using CustomMcLauncher.UI.Theming;
-using CustomMcLauncher.ViewModels.Common;
+using ZenithLauncher.Models;
+using ZenithLauncher.Services;
+using ZenithLauncher.UI.Theming;
+using ZenithLauncher.ViewModels.Common;
 
-namespace CustomMcLauncher.ViewModels.Pages;
+namespace ZenithLauncher.ViewModels.Pages;
 
 public partial class LauncherSettingsViewModel : ViewModelBase
 {

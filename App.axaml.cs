@@ -1,15 +1,15 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using CustomMcLauncher.ViewModels;
-using CustomMcLauncher.Views;
-using CustomMcLauncher.Services;
+using ZenithLauncher.ViewModels;
+using ZenithLauncher.Views;
+using ZenithLauncher.Services;
 
-namespace CustomMcLauncher;
+namespace ZenithLauncher;
 
 public partial class App : Application
 {

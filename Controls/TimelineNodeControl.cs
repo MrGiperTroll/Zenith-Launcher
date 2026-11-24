@@ -1,9 +1,9 @@
-using System;
+﻿using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 
-namespace CustomMcLauncher.Controls;
+namespace ZenithLauncher.Controls;
 
 public class TimelineNodeControl : Control
 {

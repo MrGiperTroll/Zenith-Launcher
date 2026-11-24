@@ -1,4 +1,4 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
@@ -15,12 +15,12 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
-using CustomMcLauncher.Models;
-using CustomMcLauncher.Services;
-using CustomMcLauncher.UI.Animations;
-using CustomMcLauncher.ViewModels;
+using ZenithLauncher.Models;
+using ZenithLauncher.Services;
+using ZenithLauncher.UI.Animations;
+using ZenithLauncher.ViewModels;
 
-namespace CustomMcLauncher.Views;
+namespace ZenithLauncher.Views;
 
 public partial class MainWindow : Window
 {
@@ -476,7 +476,7 @@ private void OnTopBarDoubleTapped(object? sender, TappedEventArgs e)
                 }
                 catch (Exception ex)
                 {
-                    CustomMcLauncher.Services.LauncherLog.Error("Failed to create drag ghost", ex);
+                    ZenithLauncher.Services.LauncherLog.Error("Failed to create drag ghost", ex);
                 }
             }
 
@@ -521,7 +521,7 @@ private void OnTopBarDoubleTapped(object? sender, TappedEventArgs e)
                             if (_pendingTargetId != null && DataContext is ViewModels.MainWindowViewModel currentVm)
                             {
                                 try { currentVm.ReorderInstance(movedId, _pendingTargetId, _pendingDropAfter, save: false); }
-                                catch (Exception ex) { CustomMcLauncher.Services.LauncherLog.Error("Real-time reorder failed", ex); }
+                                catch (Exception ex) { ZenithLauncher.Services.LauncherLog.Error("Real-time reorder failed", ex); }
                             }
                         };
                     }
@@ -628,7 +628,7 @@ private void OnTopBarDoubleTapped(object? sender, TappedEventArgs e)
                 Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                 {
                     try { vm.PersistInstanceOrder(); }
-                    catch (Exception ex) { CustomMcLauncher.Services.LauncherLog.Error("Failed to persist order", ex); }
+                    catch (Exception ex) { ZenithLauncher.Services.LauncherLog.Error("Failed to persist order", ex); }
                 }, Avalonia.Threading.DispatcherPriority.Background);
             }
             e.Handled = true;

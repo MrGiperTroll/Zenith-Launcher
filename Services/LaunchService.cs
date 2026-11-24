@@ -1,4 +1,4 @@
-using System.IO.Compression;
+﻿using System.IO.Compression;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -16,10 +16,10 @@ using CmlLib.Core;
 using CmlLib.Core.Auth;
 using CmlLib.Core.ProcessBuilder;
 using CmlLib.Core.Version;
-using CustomMcLauncher.Models;
+using ZenithLauncher.Models;
 using Avalonia.Threading;
 
-namespace CustomMcLauncher.Services;
+namespace ZenithLauncher.Services;
 
 public class LaunchService : ILaunchService
 {

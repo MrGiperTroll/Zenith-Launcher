@@ -1,7 +1,7 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="using:CustomMcLauncher.ViewModels"
-             x:Class="CustomMcLauncher.Views.SourceFilterDropdown"
+             xmlns:vm="using:ZenithLauncher.ViewModels"
+             x:Class="ZenithLauncher.Views.SourceFilterDropdown"
              x:DataType="vm:SourceFilterViewModel">
 
     <UserControl.Styles>

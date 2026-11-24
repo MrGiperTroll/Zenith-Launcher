@@ -1,11 +1,11 @@
-using System;
+﻿using System;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 
-namespace CustomMcLauncher.Controls;
+namespace ZenithLauncher.Controls;
 
 public partial class RamCardControl : UserControl
 {

@@ -1,9 +1,9 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.IO;
 using Avalonia.Media.Imaging;
 
-namespace CustomMcLauncher.Services;
+namespace ZenithLauncher.Services;
 
 /// <summary>
 /// Serves the official mod-loader logos shipped as PNGs in Assets/Loaders.

@@ -1,8 +1,8 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Text;
 
-namespace CustomMcLauncher.Services;
+namespace ZenithLauncher.Services;
 
 /// <summary>
 /// Minimal thread-safe file logger. Writes to .zenith/launcher.log so runtime errors

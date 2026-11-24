@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,9 +11,9 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CustomMcLauncher.Services;
+using ZenithLauncher.Services;
 
-namespace CustomMcLauncher.Common.Utils;
+namespace ZenithLauncher.Common.Utils;
 
 public enum MarkdownBlockType
 {

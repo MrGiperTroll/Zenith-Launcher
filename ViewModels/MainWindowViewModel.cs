@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 using System.Collections.Generic;
 
@@ -34,21 +34,21 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 using CommunityToolkit.Mvvm.Input;
 
-using CustomMcLauncher.Models;
+using ZenithLauncher.Models;
 
-using CustomMcLauncher.Services;
+using ZenithLauncher.Services;
 
-using CustomMcLauncher.UI.Theming;
+using ZenithLauncher.UI.Theming;
 
-using CustomMcLauncher.ViewModels.Common;
+using ZenithLauncher.ViewModels.Common;
 
-using CustomMcLauncher.ViewModels.Pages;
+using ZenithLauncher.ViewModels.Pages;
 
-using CustomMcLauncher.Views;
+using ZenithLauncher.Views;
 
 
 
-namespace CustomMcLauncher.ViewModels;
+namespace ZenithLauncher.ViewModels;
 
 
 

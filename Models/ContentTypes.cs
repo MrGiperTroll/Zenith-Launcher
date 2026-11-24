@@ -1,4 +1,4 @@
-namespace CustomMcLauncher.Models;
+﻿namespace ZenithLauncher.Models;
 
 public enum ContentType
 {

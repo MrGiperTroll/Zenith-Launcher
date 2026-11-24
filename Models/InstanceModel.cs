@@ -1,9 +1,9 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Text.Json.Serialization;
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace CustomMcLauncher.Models;
+namespace ZenithLauncher.Models;
 
 public partial class InstanceModel : ObservableObject
 {

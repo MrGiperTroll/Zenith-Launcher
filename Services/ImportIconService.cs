@@ -1,8 +1,8 @@
-using System;
+﻿using System;
 using System.IO;
 using Avalonia.Media.Imaging;
 
-namespace CustomMcLauncher.Services;
+namespace ZenithLauncher.Services;
 
 /// <summary>
 /// Serves the official Prism Launcher and MultiMC import logos

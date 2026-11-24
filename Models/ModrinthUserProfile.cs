@@ -1,12 +1,12 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CustomMcLauncher.Services;
+using ZenithLauncher.Services;
 
-namespace CustomMcLauncher.Models;
+namespace ZenithLauncher.Models;
 
 public partial class ModrinthUserProfile : ObservableObject, IDisposable
 {

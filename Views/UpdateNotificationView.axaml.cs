@@ -1,12 +1,12 @@
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using CustomMcLauncher.Services;
+using ZenithLauncher.Services;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CustomMcLauncher.Views;
+namespace ZenithLauncher.Views;
 
 public partial class UpdateNotificationView : UserControl
 {

@@ -1,11 +1,11 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
-namespace CustomMcLauncher.ViewModels.Dialogs;
+namespace ZenithLauncher.ViewModels.Dialogs;
 
 public sealed partial class WorldTargetItem : ObservableObject, IDisposable
 {

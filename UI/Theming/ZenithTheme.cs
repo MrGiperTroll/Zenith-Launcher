@@ -1,9 +1,9 @@
-using System;
+﻿using System;
 using Avalonia;
 using Avalonia.Media;
-using CustomMcLauncher.Services;
+using ZenithLauncher.Services;
 
-namespace CustomMcLauncher.UI.Theming;
+namespace ZenithLauncher.UI.Theming;
 
 public static class ZenithTheme
 {

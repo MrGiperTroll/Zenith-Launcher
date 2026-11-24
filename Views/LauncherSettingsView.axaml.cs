@@ -1,7 +1,7 @@
-using Avalonia.Controls;
-using CustomMcLauncher.ViewModels.Pages;
+﻿using Avalonia.Controls;
+using ZenithLauncher.ViewModels.Pages;
 
-namespace CustomMcLauncher.Views;
+namespace ZenithLauncher.Views;
 
 public partial class LauncherSettingsView : UserControl
 {

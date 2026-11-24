@@ -1,8 +1,8 @@
-using Avalonia.Controls;
-using CustomMcLauncher.Services;
-using CustomMcLauncher.UI.Animations;
+﻿using Avalonia.Controls;
+using ZenithLauncher.Services;
+using ZenithLauncher.UI.Animations;
 
-namespace CustomMcLauncher.Views;
+namespace ZenithLauncher.Views;
 
 public partial class CreateProfileView : UserControl
 {

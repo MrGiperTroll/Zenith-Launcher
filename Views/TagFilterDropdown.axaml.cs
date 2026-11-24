@@ -1,8 +1,8 @@
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Interactivity;
-using CustomMcLauncher.ViewModels;
+using ZenithLauncher.ViewModels;
 
-namespace CustomMcLauncher.Views;
+namespace ZenithLauncher.Views;
 
 public partial class TagFilterDropdown : UserControl
 {

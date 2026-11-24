@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,10 +8,10 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using CustomMcLauncher.Models;
-using CustomMcLauncher.ViewModels.Items;
+using ZenithLauncher.Models;
+using ZenithLauncher.ViewModels.Items;
 
-namespace CustomMcLauncher.Services;
+namespace ZenithLauncher.Services;
 
 public static class CurseForgeApiService
 {

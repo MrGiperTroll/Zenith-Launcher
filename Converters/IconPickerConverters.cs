@@ -1,12 +1,12 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
-using CustomMcLauncher.Common.Utils;
+using ZenithLauncher.Common.Utils;
 
-namespace CustomMcLauncher.Converters;
+namespace ZenithLauncher.Converters;
 
 public class IconPathToBitmapConverter : IValueConverter
 {

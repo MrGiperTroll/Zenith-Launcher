@@ -1,9 +1,9 @@
-using System;
+﻿using System;
 using Avalonia.Controls;
-using CustomMcLauncher.Services;
-using CustomMcLauncher.ViewModels;
+using ZenithLauncher.Services;
+using ZenithLauncher.ViewModels;
 
-namespace CustomMcLauncher.Views;
+namespace ZenithLauncher.Views;
 
 public partial class IconPickerWindow : Window
 {

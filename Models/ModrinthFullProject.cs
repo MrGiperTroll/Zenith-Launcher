@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,7 +11,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using SkiaSharp;
 
-namespace CustomMcLauncher.Models;
+namespace ZenithLauncher.Models;
 
 /// <summary>Full Modrinth project body returned by GET /v2/project/{id}.</summary>
 public class ModrinthFullProject : IDisposable

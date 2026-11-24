@@ -1,14 +1,14 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="using:CustomMcLauncher.ViewModels"
-              xmlns:pages="using:CustomMcLauncher.ViewModels.Pages"
-        xmlns:converters="using:CustomMcLauncher.Converters"
+             xmlns:vm="using:ZenithLauncher.ViewModels"
+              xmlns:pages="using:ZenithLauncher.ViewModels.Pages"
+        xmlns:converters="using:ZenithLauncher.Converters"
              xmlns:conv="using:Avalonia.Data.Converters"
-             xmlns:controls="using:CustomMcLauncher.Controls"
-             xmlns:l10n="using:CustomMcLauncher.Extensions"
-             xmlns:theming="using:CustomMcLauncher.UI.Theming"
-              xmlns:services="using:CustomMcLauncher.Services"
-             x:Class="CustomMcLauncher.Views.ThemeSettingsView"
+             xmlns:controls="using:ZenithLauncher.Controls"
+             xmlns:l10n="using:ZenithLauncher.Extensions"
+             xmlns:theming="using:ZenithLauncher.UI.Theming"
+              xmlns:services="using:ZenithLauncher.Services"
+             x:Class="ZenithLauncher.Views.ThemeSettingsView"
              x:DataType="pages:ThemeSettingsViewModel">
     
     <UserControl.Styles>

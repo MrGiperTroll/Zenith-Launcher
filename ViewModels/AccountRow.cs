@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Net.Http;
@@ -8,10 +8,10 @@ using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CustomMcLauncher.Models;
-using CustomMcLauncher.Services;
+using ZenithLauncher.Models;
+using ZenithLauncher.Services;
 
-namespace CustomMcLauncher.ViewModels;
+namespace ZenithLauncher.ViewModels;
 
 public partial class AccountRow : ObservableObject, IDisposable
 {

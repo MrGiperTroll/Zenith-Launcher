@@ -339,7 +339,7 @@ public partial class MainWindow : Window
 
     protected override void OnClosing(WindowClosingEventArgs e)
     {
-        if (!_isExplicitExit)
+        if (!_isExplicitExit && e.CloseReason != WindowCloseReason.ApplicationShutdown)
         {
             try
             {

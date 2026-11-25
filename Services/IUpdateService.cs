@@ -4,6 +4,7 @@ using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -207,6 +208,7 @@ public sealed class GitHubUpdateService : IUpdateService
 
             var helperScript = Path.Combine(Path.GetTempPath(), $"zenith_updater_{Guid.NewGuid():N}.cmd");
             var scriptContent = $@"@echo off
+chcp 65001 >nul
 timeout /t 1 /nobreak >nul
 :wait_proc
 tasklist /fi ""PID eq {currentPid}"" 2>nul | find ""{currentPid}"" >nul
@@ -222,7 +224,7 @@ del /f /q ""{tempFile}"" 2>nul
 del /f /q ""%~f0"" 2>nul
 ";
 
-            await File.WriteAllTextAsync(helperScript, scriptContent, ct).ConfigureAwait(false);
+            await File.WriteAllTextAsync(helperScript, scriptContent, new UTF8Encoding(false), ct).ConfigureAwait(false);
 
             var psi = new System.Diagnostics.ProcessStartInfo
             {

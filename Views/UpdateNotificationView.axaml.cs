@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ZenithLauncher.Services;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -126,8 +127,12 @@ public partial class UpdateNotificationViewModel : ObservableObject
     {
         if (IsDownloading) return;
 
-        // Visual simulation for mock/test runs
-        if (_update.Version == "1.2.0" && _update.DownloadUrl.Contains("tag/v1.2.0"))
+        // Visual simulation for explicit --test-update / --mock-update runs only
+        var cmdArgs = Environment.GetCommandLineArgs();
+        bool isMockUpdateRun = cmdArgs.Any(a =>
+            a.Equals("--test-update", StringComparison.OrdinalIgnoreCase) ||
+            a.Equals("--mock-update", StringComparison.OrdinalIgnoreCase));
+        if (isMockUpdateRun && _update.DownloadUrl.Contains("tag/v1.2.0", StringComparison.OrdinalIgnoreCase))
         {
             IsDownloading = true;
             ShowProgress = true;
@@ -183,12 +188,20 @@ public partial class UpdateNotificationViewModel : ObservableObject
             {
                 StatusText = L10n.T("update_installing");
 
-                await Task.Delay(400);
-                if (App.Current?.ApplicationLifetime
+                await Task.Delay(350);
+                (Avalonia.Application.Current as App)?.PrepareForRestart();
+                Program.ReleaseSingleInstanceMutexForRestart();
+
+                if (Avalonia.Application.Current?.ApplicationLifetime
                     is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime life)
+                {
+                    (life.MainWindow as MainWindow)?.ForceClose();
                     life.Shutdown();
+                }
                 else
+                {
                     Environment.Exit(0);
+                }
             }
             else
             {

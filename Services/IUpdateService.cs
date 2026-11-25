@@ -49,7 +49,23 @@ public sealed class GitHubUpdateService : IUpdateService
     private const string Owner = "MrGiperTroll";
     private const string Repo = "Zenith-Launcher";
 
-    private static readonly HttpClient SharedHttp = new() { Timeout = TimeSpan.FromSeconds(20) };
+    private static readonly HttpClient SharedHttp = new(new SocketsHttpHandler
+    {
+        PooledConnectionLifetime = TimeSpan.FromMinutes(2)
+    })
+    {
+        Timeout = TimeSpan.FromSeconds(20)
+    };
+
+    private static readonly HttpClient DownloadHttp = new(new SocketsHttpHandler
+    {
+        AllowAutoRedirect = true,
+        AutomaticDecompression = System.Net.DecompressionMethods.All,
+        PooledConnectionLifetime = TimeSpan.FromMinutes(2)
+    })
+    {
+        Timeout = TimeSpan.FromMinutes(10)
+    };
 
     static GitHubUpdateService()
     {
@@ -146,17 +162,11 @@ public sealed class GitHubUpdateService : IUpdateService
             var cleanVersion = update.Version.Trim().TrimStart('v', 'V');
             var tempFile = Path.Combine(Path.GetTempPath(), $"Zenith_Setup_{cleanVersion}_{Guid.NewGuid():N}.exe");
 
-            var handler = new HttpClientHandler
-            {
-                AllowAutoRedirect = true,
-                AutomaticDecompression = System.Net.DecompressionMethods.All
-            };
+            using var dlReq = new HttpRequestMessage(HttpMethod.Get, update.DownloadUrl);
+            dlReq.Headers.UserAgent.ParseAdd("ZenithLauncher");
+            dlReq.Headers.CacheControl = new CacheControlHeaderValue { NoCache = true, NoStore = true };
 
-            using var dlHttp = new HttpClient(handler) { Timeout = TimeSpan.FromMinutes(10) };
-            dlHttp.DefaultRequestHeaders.UserAgent.ParseAdd("ZenithLauncher");
-            dlHttp.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue { NoCache = true, NoStore = true };
-
-            using (var response = await dlHttp.GetAsync(update.DownloadUrl, HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false))
+            using (var response = await DownloadHttp.SendAsync(dlReq, HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false))
             {
                 response.EnsureSuccessStatusCode();
                 var total = response.Content.Headers.ContentLength ?? -1L;

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
@@ -118,6 +119,13 @@ public static class EditInstanceWindowConverters
         public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
     }
 
+    private sealed class AreStringsEqualConverter : IMultiValueConverter
+    {
+        public static readonly AreStringsEqualConverter Instance = new();
+        public object Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
+            => values.Count >= 2 && string.Equals(values[0]?.ToString(), values[1]?.ToString(), StringComparison.Ordinal);
+    }
+
     public static IValueConverter ActiveIcon { get; } = new BoolToBrushConverter("#5A667E");
     public static IValueConverter ActiveText { get; } = new BoolToBrushConverter("#78859E");
     public static IValueConverter ActiveBorderBrush { get; } = new BoolToBrushConverter("#202227");
@@ -130,4 +138,5 @@ public static class EditInstanceWindowConverters
     public static IValueConverter IsNotDefault { get; } = DateTimeIsNotDefaultConverter.Instance;
     public static IValueConverter IsCollectionEmpty { get; } = CollectionIsEmptyConverter.Instance;
     public static IValueConverter IsNotNull { get; } = IsNotNullConverter.Instance;
+    public static IMultiValueConverter AreStringsEqual { get; } = AreStringsEqualConverter.Instance;
 }

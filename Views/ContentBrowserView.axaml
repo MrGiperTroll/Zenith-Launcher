@@ -284,11 +284,58 @@
                 <!-- 2.4 Sort Dropdown -->
                 <views:SortFilterDropdown Grid.Column="3" DataContext="{Binding BrowserSortFilter}" Margin="0,0,10,0" VerticalAlignment="Center"/>
 
-                <!-- 2.5 World Selector (when Data Packs selected) -->
-                <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsDataPackSelected}" Margin="0,0,10,0" VerticalAlignment="Center">
-                    <TextBlock Text="{l10n:Tr Key=lbl_world}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                    <ComboBox Classes="zenCombo" ItemsSource="{Binding AvailableWorlds}" SelectedItem="{Binding SelectedWorld}" PlaceholderText="{l10n:Tr Key=w_select_world}" FontSize="11" MinWidth="130" Height="32"/>
-                </StackPanel>
+                <!-- 2.5 World Selector (when Data Packs selected — matches Catalog filterDropdownBtn style) -->
+                <Button Grid.Column="4" x:Name="WorldDropdownBtn" Classes="filterDropdownBtn"
+                        IsVisible="{Binding IsDataPackSelected}" Margin="0,0,10,0" VerticalAlignment="Center">
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="7">
+                        <PathIcon Grid.Column="0" Data="M12 2A10 10 0 1 0 22 12 10 10 0 0 0 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"
+                                  Width="12" Height="12" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                        <Panel Grid.Column="1" VerticalAlignment="Center" MaxWidth="140">
+                            <TextBlock Text="{Binding SelectedWorld}" FontSize="12" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"
+                                       IsVisible="{Binding SelectedWorld, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
+                            <TextBlock Text="{l10n:Tr Key=w_select_world}" FontSize="12" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextMutedBrush}" TextTrimming="CharacterEllipsis"
+                                       IsVisible="{Binding SelectedWorld, Converter={x:Static converters:EditInstanceWindowConverters.IsEmpty}}"/>
+                        </Panel>
+                        <PathIcon Grid.Column="2" Data="M7 10l5 5 5-5z" Width="10" Height="10"
+                                  Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Button.Flyout>
+                        <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="Standard">
+                            <Flyout.FlyoutPresenterTheme>
+                                <ControlTheme TargetType="FlyoutPresenter" BasedOn="{StaticResource {x:Type FlyoutPresenter}}">
+                                    <Setter Property="Padding" Value="0"/>
+                                    <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
+                                    <Setter Property="BorderBrush" Value="{DynamicResource BorderDarkBrush}"/>
+                                    <Setter Property="BorderThickness" Value="1"/>
+                                    <Setter Property="CornerRadius" Value="8"/>
+                                    <Setter Property="ClipToBounds" Value="True"/>
+                                </ControlTheme>
+                            </Flyout.FlyoutPresenterTheme>
+                            <Border Width="200" MaxHeight="260" Background="{DynamicResource CardBrush}" Padding="2">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                    <ItemsControl ItemsSource="{Binding AvailableWorlds}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="x:String">
+                                                <Button Classes="flyoutOptionBtn" Click="OnWorldOptionClicked"
+                                                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+                                                    <Classes.selected>
+                                                        <MultiBinding Converter="{x:Static converters:EditInstanceWindowConverters.AreStringsEqual}">
+                                                            <Binding/>
+                                                            <Binding Path="$parent[views:ContentBrowserView].((vm:ContentBrowserViewModel)DataContext).SelectedWorld"/>
+                                                        </MultiBinding>
+                                                    </Classes.selected>
+                                                    <TextBlock Text="{Binding}" FontWeight="SemiBold" FontSize="12" TextTrimming="CharacterEllipsis"/>
+                                                </Button>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+                            </Border>
+                        </Flyout>
+                    </Button.Flyout>
+                </Button>
 
                 <!-- 2.6 Refresh Button -->
                 <Button Grid.Column="5" Classes="subBtn" Command="{Binding ResetFiltersCommand}" ToolTip.Tip="{l10n:Tr Key=cb_clear}"
@@ -428,15 +475,11 @@
         </Border>
     </Border>
 
-    <!-- Full-page project details (replaces catalog when open) -->
-    <Border IsVisible="{Binding IsDetailsOpen}" Background="Transparent" Margin="0">
-        <views:ProjectDetailsView DataContext="{Binding}"/>
-    </Border>
+    <!-- Full-page project details (lazy-mounted on open, unloaded on close) -->
+    <Panel x:Name="DetailsHost" IsVisible="{Binding IsDetailsOpen}"/>
 
-    <!-- Full-page author profile (Modrinth author page) -->
-    <Border IsVisible="{Binding IsAuthorProfileOpen}" Background="Transparent" Margin="0">
-        <views:AuthorProfileView DataContext="{Binding CurrentAuthorProfileVm}"/>
-    </Border>
+    <!-- Full-page author profile (lazy-mounted on open, unloaded on close) -->
+    <Panel x:Name="AuthorHost" IsVisible="{Binding IsAuthorProfileOpen}"/>
     </Panel>
 </UserControl>
 

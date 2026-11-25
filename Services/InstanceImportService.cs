@@ -32,7 +32,8 @@ public sealed record FoundInstance(
     int MaxMemMb,
     string JavaPath,
     string JvmArgs,
-    string SourceDir);
+    string SourceDir,
+    string PackRootDir = "");
 
 public sealed record ImportResult(
     int Imported,
@@ -63,7 +64,7 @@ public static class InstanceImportService
     };
 
     private static readonly Regex McVersionRegex = new(@"(?:mc|minecraft)[-_]?(1\.\d+(?:\.\d+)?)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-    private static readonly Regex GeneralVersionRegex = new(@"[-_](1\.\d{2}(?:\.\d+)?)[-_.]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static readonly Regex GeneralVersionRegex = new(@"[-_+](1\.\d{2}(?:\.\d+)?)[-_+.]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     public static ImportSourceKind Detect(string path)
     {
@@ -75,7 +76,7 @@ public static class InstanceImportService
             if (File.Exists(path))
             {
                 var ext = Path.GetExtension(path).ToLowerInvariant();
-                if (ext is ".zip" or ".mrpack" or ".rar")
+                if (ext is ".zip" or ".mrpack")
                     return ImportSourceKind.Archive;
                 return ImportSourceKind.None;
             }
@@ -91,7 +92,7 @@ public static class InstanceImportService
                 return ImportSourceKind.Single;
             if (File.Exists(Path.Combine(path, "modrinth.index.json")))
                 return ImportSourceKind.Modrinth;
-            if (File.Exists(Path.Combine(path, "manifest.json")) && Directory.Exists(Path.Combine(path, "overrides")))
+            if (File.Exists(Path.Combine(path, "manifest.json")))
                 return ImportSourceKind.CurseForge;
             if (Directory.Exists(Path.Combine(path, "versions")) || File.Exists(Path.Combine(path, "launcher_profiles.json")))
                 return ImportSourceKind.Vanilla;
@@ -171,8 +172,46 @@ public static class InstanceImportService
         return out_;
     }
 
+    public static async Task<ImportResult> ImportFromUrlAsync(
+        IInstanceService svc,
+        string url,
+        CancellationToken ct = default,
+        string? customName = null,
+        string? customIconPath = null,
+        string? group = null,
+        IProgress<double>? progress = null,
+        string? curseForgeApiKey = null)
+    {
+        if (!Uri.TryCreate(url?.Trim(), UriKind.Absolute, out var uri) ||
+            (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+        {
+            throw new InvalidOperationException(L10n.T("imp_url_invalid"));
+        }
+
+        var ext = Path.GetExtension(uri.AbsolutePath).ToLowerInvariant();
+        if (ext is not (".zip" or ".mrpack"))
+            ext = ".zip";
+
+        var tempArchive = Path.Combine(Path.GetTempPath(), $"ZenithImport_{Guid.NewGuid():N}{ext}");
+        try
+        {
+            await ResilientDownloadService.DownloadFileAsync(new[] { uri.AbsoluteUri }, tempArchive, ct: ct, progress: progress);
+            return await ImportAsync(svc, tempArchive, ct, customName, customIconPath, group, curseForgeApiKey);
+        }
+        finally
+        {
+            try { if (File.Exists(tempArchive)) File.Delete(tempArchive); } catch { }
+        }
+    }
+
     public static async Task<ImportResult> ImportAsync(
-        IInstanceService svc, string path, CancellationToken ct = default)
+        IInstanceService svc,
+        string path,
+        CancellationToken ct = default,
+        string? customName = null,
+        string? customIconPath = null,
+        string? group = null,
+        string? curseForgeApiKey = null)
     {
         string? tempExtractDir = null;
         try
@@ -180,9 +219,13 @@ public static class InstanceImportService
             var targetPath = path;
             if (File.Exists(path))
             {
+                var ext = Path.GetExtension(path).ToLowerInvariant();
+                if (ext == ".rar")
+                    throw new InvalidOperationException(L10n.T("imp_rar_unsupported"));
+
                 tempExtractDir = Path.Combine(Path.GetTempPath(), "ZenithImport_" + Guid.NewGuid().ToString("N"));
                 Directory.CreateDirectory(tempExtractDir);
-                ZipFile.ExtractToDirectory(path, tempExtractDir);
+                ZipFile.ExtractToDirectory(path, tempExtractDir, overwriteFiles: true);
                 targetPath = tempExtractDir;
             }
 
@@ -202,6 +245,7 @@ public static class InstanceImportService
                 return new ImportResult(0, 0, warnings);
 
             int imported = 0, skipped = 0;
+            var normalizedGroup = group?.Trim() ?? "";
             foreach (var f in found)
             {
                 ct.ThrowIfCancellationRequested();
@@ -211,19 +255,38 @@ public static class InstanceImportService
                     var loaderType = !string.IsNullOrWhiteSpace(f.LoaderType) ? f.LoaderType : "Vanilla";
                     var loaderBuild = f.LoaderBuild ?? "";
 
-                    var name = UniqueName(svc, f.Name);
+                    var baseName = found.Count == 1 && !string.IsNullOrWhiteSpace(customName)
+                        ? customName.Trim()
+                        : f.Name;
+                    var name = UniqueName(svc, baseName);
                     var inst = await svc.CreateInstanceAsync(name, mcVer, loaderType, loaderBuild);
                     if (inst == null)
                     {
-                        warnings.Add($"{f.Name}: name is taken, skipped.");
+                        warnings.Add($"{baseName}: name is taken, skipped.");
                         skipped++;
                         continue;
                     }
                     if (f.MaxMemMb >= 512) inst.MaxMemoryMb = f.MaxMemMb;
                     if (!string.IsNullOrWhiteSpace(f.JavaPath)) inst.CustomJavaPath = f.JavaPath;
                     if (!string.IsNullOrWhiteSpace(f.JvmArgs)) inst.JvmArgs = f.JvmArgs;
+                    if (!string.IsNullOrWhiteSpace(normalizedGroup)) inst.Group = normalizedGroup;
 
                     CopyUserContent(f.SourceDir, inst.Path);
+
+                    var packRoot = !string.IsNullOrWhiteSpace(f.PackRootDir) ? f.PackRootDir : f.SourceDir;
+                    var clientOverrides = Path.Combine(packRoot, "client-overrides");
+                    if (Directory.Exists(clientOverrides) && !string.Equals(clientOverrides, f.SourceDir, StringComparison.OrdinalIgnoreCase))
+                        CopyUserContent(clientOverrides, inst.Path);
+
+                    var modrinthIndex = Path.Combine(packRoot, "modrinth.index.json");
+                    if (File.Exists(modrinthIndex))
+                        await DownloadModrinthPackFilesAsync(modrinthIndex, inst.Path, warnings, ct);
+
+                    var curseForgeManifest = Path.Combine(packRoot, "manifest.json");
+                    if (File.Exists(curseForgeManifest))
+                        await DownloadCurseForgePackFilesAsync(curseForgeManifest, inst.Path, curseForgeApiKey, warnings, ct);
+
+                    ApplyInstanceIcon(inst, f.SourceDir, packRoot, tempExtractDir, customIconPath);
                     await svc.SaveInstanceAsync(inst);
                     imported++;
                 }
@@ -244,6 +307,199 @@ public static class InstanceImportService
         }
     }
 
+    private static async Task DownloadModrinthPackFilesAsync(
+        string indexPath,
+        string instancePath,
+        List<string> warnings,
+        CancellationToken ct)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(await File.ReadAllTextAsync(indexPath, ct));
+            if (!doc.RootElement.TryGetProperty("files", out var filesEl) || filesEl.ValueKind != JsonValueKind.Array)
+                return;
+
+            var instRootFull = Path.GetFullPath(instancePath).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            using var sem = new SemaphoreSlim(6);
+            var tasks = new List<Task>();
+
+            foreach (var fileEl in filesEl.EnumerateArray())
+            {
+                if (fileEl.TryGetProperty("env", out var envEl) &&
+                    envEl.TryGetProperty("client", out var clientEl) &&
+                    string.Equals(clientEl.GetString(), "unsupported", StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                if (!fileEl.TryGetProperty("path", out var pathEl)) continue;
+                var relPath = pathEl.GetString();
+                if (string.IsNullOrWhiteSpace(relPath)) continue;
+
+                var destFull = Path.GetFullPath(Path.Combine(instancePath, relPath.Replace('/', Path.DirectorySeparatorChar)));
+                if (!destFull.StartsWith(instRootFull, StringComparison.OrdinalIgnoreCase))
+                {
+                    warnings.Add($"Skipped unsafe pack path: {relPath}");
+                    continue;
+                }
+
+                if (!fileEl.TryGetProperty("downloads", out var dlArr) || dlArr.ValueKind != JsonValueKind.Array)
+                    continue;
+
+                var urls = dlArr.EnumerateArray()
+                    .Select(u => u.GetString())
+                    .Where(u => !string.IsNullOrWhiteSpace(u))
+                    .Cast<string>()
+                    .ToList();
+                if (urls.Count == 0) continue;
+
+                tasks.Add(Task.Run(async () =>
+                {
+                    await sem.WaitAsync(ct);
+                    try
+                    {
+                        await ResilientDownloadService.DownloadFileAsync(urls, destFull, ct: ct, maxRounds: 2);
+                    }
+                    catch (OperationCanceledException) { throw; }
+                    catch (Exception ex)
+                    {
+                        lock (warnings)
+                            warnings.Add($"{Path.GetFileName(destFull)}: {ex.Message}");
+                    }
+                    finally
+                    {
+                        sem.Release();
+                    }
+                }, ct));
+            }
+
+            if (tasks.Count > 0)
+                await Task.WhenAll(tasks);
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception ex)
+        {
+            warnings.Add($"modrinth.index.json: {ex.Message}");
+        }
+    }
+
+    private static async Task DownloadCurseForgePackFilesAsync(
+        string manifestPath,
+        string instancePath,
+        string? curseForgeApiKey,
+        List<string> warnings,
+        CancellationToken ct)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(await File.ReadAllTextAsync(manifestPath, ct));
+            if (!doc.RootElement.TryGetProperty("files", out var filesEl) || filesEl.ValueKind != JsonValueKind.Array)
+                return;
+
+            var fileIds = new List<long>();
+            foreach (var f in filesEl.EnumerateArray())
+            {
+                if (f.TryGetProperty("fileID", out var fidEl) && fidEl.TryGetInt64(out var fid) && fid > 0)
+                    fileIds.Add(fid);
+            }
+
+            if (fileIds.Count == 0) return;
+
+            var apiKey = curseForgeApiKey ?? "";
+            var filesInfo = await CurseForgeApiService.GetModFilesBatchAsync(fileIds, apiKey, ct);
+            if (filesInfo.Count == 0)
+            {
+                warnings.Add("CurseForge mod files could not be resolved (API key may be required for third-party downloads).");
+                return;
+            }
+
+            var modsDir = Path.Combine(instancePath, "mods");
+            Directory.CreateDirectory(modsDir);
+
+            using var sem = new SemaphoreSlim(6);
+            var tasks = filesInfo.Select(async info =>
+            {
+                await sem.WaitAsync(ct);
+                try
+                {
+                    ct.ThrowIfCancellationRequested();
+                    if (string.IsNullOrWhiteSpace(info.DownloadUrl)) return;
+                    var dest = Path.Combine(modsDir, Path.GetFileName(info.FileName));
+                    if (!File.Exists(dest))
+                    {
+                        var data = await CurseForgeApiService.DownloadAsync(info.DownloadUrl, ct);
+                        if (data is { Length: > 0 })
+                            await File.WriteAllBytesAsync(dest, data, ct);
+                    }
+                }
+                catch (OperationCanceledException) { throw; }
+                catch (Exception ex)
+                {
+                    lock (warnings)
+                        warnings.Add($"{info.FileName}: {ex.Message}");
+                }
+                finally
+                {
+                    sem.Release();
+                }
+            });
+
+            await Task.WhenAll(tasks);
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception ex)
+        {
+            warnings.Add($"CurseForge manifest.json: {ex.Message}");
+        }
+    }
+
+    private static void ApplyInstanceIcon(InstanceModel inst, string sourceDir, string? packRoot, string? extractRoot, string? customIconPath)
+    {
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(customIconPath) && File.Exists(customIconPath))
+            {
+                var ext = Path.GetExtension(customIconPath);
+                if (string.IsNullOrWhiteSpace(ext)) ext = ".png";
+                var dest = Path.Combine(inst.Path, $"icon{ext}");
+                Directory.CreateDirectory(inst.Path);
+                File.Copy(customIconPath, dest, true);
+                inst.IconPath = dest;
+                return;
+            }
+
+            string? candidate = FindIconInCandidates(
+                sourceDir,
+                packRoot,
+                Path.GetDirectoryName(sourceDir),
+                extractRoot);
+            if (!string.IsNullOrEmpty(candidate))
+            {
+                var dest = Path.Combine(inst.Path, Path.GetFileName(candidate));
+                Directory.CreateDirectory(inst.Path);
+                File.Copy(candidate, dest, true);
+                inst.IconPath = dest;
+            }
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Warn($"Instance import: failed to copy icon: {ex.Message}");
+        }
+    }
+
+    private static string? FindIconInCandidates(params string?[] dirs)
+    {
+        string[] exts = { ".png", ".jpg", ".jpeg", ".webp", ".ico" };
+        foreach (var dir in dirs)
+        {
+            if (string.IsNullOrWhiteSpace(dir) || !Directory.Exists(dir)) continue;
+            foreach (var ext in exts)
+            {
+                var path = Path.Combine(dir, "icon" + ext);
+                if (File.Exists(path)) return path;
+            }
+        }
+        return null;
+    }
+
     private static FoundInstance? ReadArchiveInstance(string zipPath)
     {
         try
@@ -252,7 +508,7 @@ public static class InstanceImportService
             var name = Path.GetFileNameWithoutExtension(zipPath);
 
             // 1. Modrinth mrpack
-            var mrEntry = archive.GetEntry("modrinth.index.json");
+            var mrEntry = archive.Entries.FirstOrDefault(e => e.Name.Equals("modrinth.index.json", StringComparison.OrdinalIgnoreCase));
             if (mrEntry != null)
             {
                 using var stream = mrEntry.Open();
@@ -274,7 +530,7 @@ public static class InstanceImportService
             }
 
             // 2. CurseForge manifest.json
-            var cfEntry = archive.GetEntry("manifest.json");
+            var cfEntry = archive.Entries.FirstOrDefault(e => e.Name.Equals("manifest.json", StringComparison.OrdinalIgnoreCase));
             if (cfEntry != null)
             {
                 using var stream = cfEntry.Open();
@@ -299,26 +555,47 @@ public static class InstanceImportService
                 return new FoundInstance(name, mcVer, loader, build, 0, "", "", zipPath);
             }
 
-            // 3. MultiMC mmc-pack.json inside zip
+            // 3. MultiMC / Prism instance.cfg + mmc-pack.json inside zip
             var mmcEntry = archive.Entries.FirstOrDefault(e => e.Name.Equals("mmc-pack.json", StringComparison.OrdinalIgnoreCase));
-            if (mmcEntry != null)
+            var cfgEntry = archive.Entries.FirstOrDefault(e => e.Name.Equals("instance.cfg", StringComparison.OrdinalIgnoreCase));
+            if (mmcEntry != null || cfgEntry != null)
             {
-                using var stream = mmcEntry.Open();
-                using var doc = JsonDocument.Parse(stream);
                 var mcVer = "";
                 var loader = "Vanilla";
                 var build = "";
-                if (doc.RootElement.TryGetProperty("components", out var comps))
+                if (cfgEntry != null)
                 {
-                    foreach (var c in comps.EnumerateArray())
+                    using var cfgStream = cfgEntry.Open();
+                    using var sr = new StreamReader(cfgStream);
+                    foreach (var raw in sr.ReadToEnd().Split('\n'))
                     {
-                        var uid = c.GetProperty("uid").GetString() ?? "";
-                        var ver = c.TryGetProperty("version", out var vEl) ? vEl.GetString() ?? "" : "";
-                        if (uid == "net.minecraft") mcVer = ver;
-                        else if (uid == "net.fabricmc.fabric-loader") { loader = "Fabric"; build = ver; }
-                        else if (uid == "net.minecraftforge") { loader = "Forge"; build = ver; }
-                        else if (uid == "net.neoforged") { loader = "NeoForge"; build = ver; }
-                        else if (uid == "org.quiltmc.quilt-loader") { loader = "Quilt"; build = ver; }
+                        var line = raw.Trim();
+                        var eq = line.IndexOf('=');
+                        if (eq <= 0) continue;
+                        var k = line[..eq].Trim();
+                        var v = line[(eq + 1)..].Trim();
+                        if (k.Equals("name", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(v))
+                            name = v;
+                        else if ((k.Equals("IntendedVersion", StringComparison.OrdinalIgnoreCase) || k.Equals("MCVersion", StringComparison.OrdinalIgnoreCase)) && string.IsNullOrEmpty(mcVer))
+                            mcVer = v;
+                    }
+                }
+                if (mmcEntry != null)
+                {
+                    using var stream = mmcEntry.Open();
+                    using var doc = JsonDocument.Parse(stream);
+                    if (doc.RootElement.TryGetProperty("components", out var comps))
+                    {
+                        foreach (var c in comps.EnumerateArray())
+                        {
+                            var uid = c.GetProperty("uid").GetString() ?? "";
+                            var ver = c.TryGetProperty("version", out var vEl) ? vEl.GetString() ?? "" : "";
+                            if (uid == "net.minecraft" && !string.IsNullOrWhiteSpace(ver)) mcVer = ver;
+                            else if (uid == "net.fabricmc.fabric-loader") { loader = "Fabric"; build = ver; }
+                            else if (uid == "net.minecraftforge") { loader = "Forge"; build = StripMcPrefix(mcVer, ver); }
+                            else if (uid == "net.neoforged") { loader = "NeoForge"; build = StripMcPrefix(mcVer, ver); }
+                            else if (uid == "org.quiltmc.quilt-loader") { loader = "Quilt"; build = ver; }
+                        }
                     }
                 }
                 return new FoundInstance(name, mcVer, loader, build, 0, "", "", zipPath);
@@ -437,7 +714,7 @@ public static class InstanceImportService
                 ? Path.Combine(dir, "overrides")
                 : (Directory.Exists(Path.Combine(dir, "client-overrides")) ? Path.Combine(dir, "client-overrides") : dir);
 
-            return new FoundInstance(name, mcVer, loader, build, 0, "", "", sourceDir);
+            return new FoundInstance(name, mcVer, loader, build, 0, "", "", sourceDir, dir);
         }
         catch { return null; }
     }
@@ -467,11 +744,13 @@ public static class InstanceImportService
                 }
             }
 
-            var sourceDir = Directory.Exists(Path.Combine(dir, "overrides"))
-                ? Path.Combine(dir, "overrides")
-                : dir;
+            var ovName = root.TryGetProperty("overrides", out var ovEl) && !string.IsNullOrWhiteSpace(ovEl.GetString())
+                ? ovEl.GetString()!
+                : "overrides";
+            var overridesDir = Path.Combine(dir, ovName);
+            var sourceDir = Directory.Exists(overridesDir) ? overridesDir : dir;
 
-            return new FoundInstance(name, mcVer, loader, build, 0, "", "", sourceDir);
+            return new FoundInstance(name, mcVer, loader, build, 0, "", "", sourceDir, dir);
         }
         catch { return null; }
     }

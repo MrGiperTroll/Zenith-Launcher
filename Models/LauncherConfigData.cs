@@ -43,6 +43,11 @@ public class LauncherConfigData
 
     public bool MinimizeToTrayOnClose { get; set; } = false;
     public bool HardwareAcceleration { get; set; } = true;
+    public bool IsLockAspectRatio { get; set; } = false;
+    public bool ShowReleases { get; set; } = true;
+    public bool ShowSnapshots { get; set; } = false;
+    public bool ShowBetas { get; set; } = false;
+    public bool ShowAlphas { get; set; } = false;
 
     public string SelectedParticle { get; set; } = "None";
     public int ParticleCount { get; set; } = 50;
@@ -58,10 +63,30 @@ public class LauncherConfigData
     public string ThemeMode { get; set; } = "Dark";
     public string SelectedThemeCardId { get; set; } = "zenith";
     public bool IsCustomTheme { get; set; } = false;
+    public string CustomAccentColor { get; set; } = string.Empty;
     public string FontStyle { get; set; } = "Sans";
     public string CustomFontPath { get; set; } = string.Empty;
 
     public bool IsSetupCompleted { get; set; }
+
+    private static LauncherConfigData? _cached;
+    private static System.DateTime _cachedWriteUtc;
+    private static readonly object CacheGate = new();
+
+    public static void UpdateCache(LauncherConfigData config)
+    {
+        try
+        {
+            var path = ZenithLauncher.Services.ZenithPaths.ConfigFilePath;
+            var writeUtc = System.IO.File.Exists(path) ? System.IO.File.GetLastWriteTimeUtc(path) : System.DateTime.UtcNow;
+            lock (CacheGate)
+            {
+                _cached = config;
+                _cachedWriteUtc = writeUtc;
+            }
+        }
+        catch { }
+    }
 
     public static LauncherConfigData Load()
     {
@@ -70,8 +95,21 @@ public class LauncherConfigData
             var path = ZenithLauncher.Services.ZenithPaths.ConfigFilePath;
             if (System.IO.File.Exists(path))
             {
+                var writeUtc = System.IO.File.GetLastWriteTimeUtc(path);
+                lock (CacheGate)
+                {
+                    if (_cached != null && _cachedWriteUtc == writeUtc)
+                        return _cached;
+                }
+
                 var json = System.IO.File.ReadAllText(path);
-                return System.Text.Json.JsonSerializer.Deserialize<LauncherConfigData>(json) ?? new LauncherConfigData();
+                var parsed = System.Text.Json.JsonSerializer.Deserialize(json, LauncherJsonContext.Default.LauncherConfigData) ?? new LauncherConfigData();
+                lock (CacheGate)
+                {
+                    _cached = parsed;
+                    _cachedWriteUtc = writeUtc;
+                }
+                return parsed;
             }
         }
         catch { }

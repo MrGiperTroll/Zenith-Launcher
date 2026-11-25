@@ -9,6 +9,8 @@
         <SolidColorBrush x:Key="AccentDimBrush" Color="#0F172A"/>
         <SolidColorBrush x:Key="AccentBorderBrush" Color="#2563EB"/>
         <SolidColorBrush x:Key="AccentTranslucentBrush" Color="#223B82F6"/>
+        <SolidColorBrush x:Key="ModrinthBrandBrush" Color="#00AF5C"/>
+        <SolidColorBrush x:Key="CurseForgeBrandBrush" Color="#F16436"/>
 
         <Color x:Key="AccentGradientStart">#60A5FA</Color>
         <Color x:Key="AccentGradientMid">#3B82F6</Color>

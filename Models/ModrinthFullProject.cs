@@ -93,10 +93,14 @@ public class ModrinthFullProject : IDisposable
     }
 
     private List<Common.Utils.MarkdownBlock>? _cachedDescriptionBlocks;
-    public List<Common.Utils.MarkdownBlock> DescriptionBlocks => _cachedDescriptionBlocks ??= Common.Utils.MarkdownBlockParser.Parse(Body);
+    private volatile bool _disposed;
+    public List<Common.Utils.MarkdownBlock> DescriptionBlocks =>
+        _disposed ? new() : (_cachedDescriptionBlocks ??= Common.Utils.MarkdownBlockParser.Parse(Body));
 
     public void Dispose()
     {
+        if (_disposed) return;
+        _disposed = true;
         if (_cachedDescriptionBlocks != null)
         {
             foreach (var b in _cachedDescriptionBlocks)
@@ -116,9 +120,10 @@ public class ModrinthFullProject : IDisposable
         {
             foreach (var m in TeamMembers)
             {
-                try { m.Avatar?.Dispose(); } catch { }
+                m.Dispose();
             }
         }
+        Versions?.Clear();
     }
 
     public static List<string> FormatGroupedVersions(IEnumerable<string>? rawVersions)
@@ -244,7 +249,7 @@ public class ModrinthFullProject : IDisposable
     }
 }
 
-public partial class ModrinthGalleryItem : ObservableObject
+public partial class ModrinthGalleryItem : ObservableObject, IDisposable
 {
     public string Url { get; init; } = "";
     public bool Featured { get; init; }
@@ -260,17 +265,25 @@ public partial class ModrinthGalleryItem : ObservableObject
     private Bitmap? _image;
     public bool HasImage => Image != null;
 
+    private static readonly SemaphoreSlim GalleryLoadGate = new(3, 3);
     private CancellationTokenSource? _animCts;
     private readonly List<Bitmap> _allFrames = new();
+    private volatile bool _disposed;
+    private int _loadStarted;
 
     public void LoadImage()
     {
-        if (string.IsNullOrWhiteSpace(Url) || Image != null) return;
+        if (_disposed || string.IsNullOrWhiteSpace(Url) || Image != null) return;
+        if (Interlocked.Exchange(ref _loadStarted, 1) != 0) return;
         Task.Run(async () =>
         {
-            var bytes = await Services.ModrinthApiService.GetIconAsync(Url);
-            if (bytes is { Length: > 0 })
+            await GalleryLoadGate.WaitAsync().ConfigureAwait(false);
+            try
             {
+                if (_disposed) return;
+                var bytes = await Services.ModrinthApiService.GetIconAsync(Url).ConfigureAwait(false);
+                if (_disposed || bytes is not { Length: > 0 }) return;
+
                 // Try decoding animated GIF
                 try
                 {
@@ -278,104 +291,161 @@ public partial class ModrinthGalleryItem : ObservableObject
                     using var codec = SKCodec.Create(stream);
                     if (codec != null && codec.FrameCount > 1)
                     {
-                        int targetW = Math.Min(480, codec.Info.Width);
+                        int targetW = Math.Min(420, codec.Info.Width);
                         int targetH = Math.Max(1, (int)((double)codec.Info.Height * targetW / Math.Max(1, codec.Info.Width)));
                         var info = new SKImageInfo(targetW, targetH, SKColorType.Bgra8888, SKAlphaType.Premul);
                         using var skBmp = new SKBitmap(info);
                         var frames = new List<(Bitmap bitmap, int durationMs)>();
 
-                        int maxFrames = 12;
+                        int maxFrames = 6;
                         int step = Math.Max(1, codec.FrameCount / maxFrames);
-                        for (int i = 0; i < codec.FrameCount; i += step)
+                    for (int i = 0; i < codec.FrameCount; i += step)
+                    {
+                        if (_disposed) break;
+                        var opts = new SKCodecOptions(i);
+                        if (codec.GetPixels(info, skBmp.GetPixels(), opts) == SKCodecResult.Success)
                         {
-                            var opts = new SKCodecOptions(i);
-                            if (codec.GetPixels(info, skBmp.GetPixels(), opts) == SKCodecResult.Success)
+                            using var img = SKImage.FromBitmap(skBmp);
+                            using var data = img.Encode(SKEncodedImageFormat.Png, 80);
+                            using var ms = new MemoryStream();
+                            data.SaveTo(ms);
+                            ms.Position = 0;
+                            var bmp = new Bitmap(ms);
+                            int dur = codec.FrameInfo[i].Duration;
+                            if (dur <= 15) dur = 80;
+                            frames.Add((bmp, dur));
+                            lock (_allFrames)
                             {
-                                using var img = SKImage.FromBitmap(skBmp);
-                                using var data = img.Encode(SKEncodedImageFormat.Png, 80);
-                                using var ms = new MemoryStream();
-                                data.SaveTo(ms);
-                                ms.Position = 0;
-                                var bmp = new Bitmap(ms);
-                                int dur = codec.FrameInfo[i].Duration;
-                                if (dur <= 15) dur = 80;
-                                frames.Add((bmp, dur));
-                                lock (_allFrames) { _allFrames.Add(bmp); }
+                                if (_disposed)
+                                {
+                                    try { bmp.Dispose(); } catch { }
+                                }
+                                else
+                                {
+                                    _allFrames.Add(bmp);
+                                }
                             }
                         }
+                    }
 
-                        if (frames.Count > 0)
+                    if (_disposed)
+                    {
+                        foreach (var f in frames) { try { f.bitmap.Dispose(); } catch { } }
+                        return;
+                    }
+
+                    if (frames.Count > 0)
+                    {
+                        Dispatcher.UIThread.Post(() =>
                         {
-                            Dispatcher.UIThread.Post(() =>
-                            {
-                                Image = frames[0].bitmap;
-                                OnPropertyChanged(nameof(HasImage));
-                            });
+                            if (_disposed) return;
+                            Image = frames[0].bitmap;
+                            OnPropertyChanged(nameof(HasImage));
+                        });
 
-                            _animCts?.Cancel();
-                            var cts = new CancellationTokenSource();
-                            _animCts = cts;
-
-                            _ = Task.Run(async () =>
-                            {
-                                int idx = 0;
-                                while (!cts.Token.IsCancellationRequested && frames.Count > 1)
-                                {
-                                    try
-                                    {
-                                        await Task.Delay(frames[idx].durationMs, cts.Token);
-                                        idx = (idx + 1) % frames.Count;
-                                        var f = frames[idx].bitmap;
-                                        Dispatcher.UIThread.Post(() => Image = f);
-                                    }
-                                    catch { break; }
-                                }
-                            }, cts.Token);
+                        try { _animCts?.Cancel(); _animCts?.Dispose(); } catch { }
+                        var cts = new CancellationTokenSource();
+                        _animCts = cts;
+                        if (_disposed)
+                        {
+                            cts.Cancel();
+                            cts.Dispose();
                             return;
                         }
+
+                        _ = Task.Run(async () =>
+                        {
+                            int idx = 0;
+                            while (!_disposed && !cts.Token.IsCancellationRequested && frames.Count > 1)
+                            {
+                                try
+                                {
+                                    await Task.Delay(frames[idx].durationMs, cts.Token);
+                                    if (_disposed || cts.Token.IsCancellationRequested) break;
+                                    idx = (idx + 1) % frames.Count;
+                                    var f = frames[idx].bitmap;
+                                    Dispatcher.UIThread.Post(() =>
+                                    {
+                                        if (!_disposed) Image = f;
+                                    });
+                                }
+                                catch { break; }
+                            }
+                        }, cts.Token);
+                        return;
                     }
                 }
-                catch { }
+            }
+            catch { }
 
-                // Fallback: standard static bitmap decode (downscaled to max 960px width to save memory)
-                try
+            if (_disposed) return;
+
+            // Fallback: standard static bitmap decode (downscaled to max 720px width to save memory)
+            try
+            {
+                using var ms = new MemoryStream(bytes);
+                var bmp = Bitmap.DecodeToWidth(ms, 720, BitmapInterpolationMode.MediumQuality);
+                if (_disposed)
                 {
-                    using var ms = new MemoryStream(bytes);
-                    var bmp = Bitmap.DecodeToWidth(ms, 960, BitmapInterpolationMode.MediumQuality);
-                    Dispatcher.UIThread.Post(() =>
-                    {
-                        Image = bmp;
-                        OnPropertyChanged(nameof(HasImage));
-                    });
+                    try { bmp.Dispose(); } catch { }
+                    return;
                 }
-                catch { }
+                Dispatcher.UIThread.Post(() =>
+                {
+                    if (_disposed)
+                    {
+                        try { bmp.Dispose(); } catch { }
+                        return;
+                    }
+                    var old = Image;
+                    Image = bmp;
+                    if (!ReferenceEquals(old, bmp))
+                    {
+                        try { old?.Dispose(); } catch { }
+                    }
+                    OnPropertyChanged(nameof(HasImage));
+                });
+            }
+            catch { }
+            }
+            finally
+            {
+                GalleryLoadGate.Release();
             }
         });
     }
 
     public void StopAnimation()
     {
-        _animCts?.Cancel();
+        try { _animCts?.Cancel(); } catch { }
     }
 
     public void Dispose()
     {
+        if (_disposed) return;
+        _disposed = true;
         try { _animCts?.Cancel(); _animCts?.Dispose(); } catch { }
         _animCts = null;
+        var currentImage = Image;
+        Image = null;
+        bool currentWasInFrames = false;
         lock (_allFrames)
         {
             foreach (var f in _allFrames)
             {
+                if (ReferenceEquals(f, currentImage)) currentWasInFrames = true;
                 try { f?.Dispose(); } catch { }
             }
             _allFrames.Clear();
         }
-        try { Image?.Dispose(); } catch { }
-        Image = null;
+        if (!currentWasInFrames && currentImage != null)
+        {
+            try { currentImage.Dispose(); } catch { }
+        }
     }
 }
 
-public partial class ModrinthTeamMember : ObservableObject
+public partial class ModrinthTeamMember : ObservableObject, IDisposable
 {
     public string Id { get; init; } = "";
     public string Username { get; init; } = "";
@@ -386,24 +456,53 @@ public partial class ModrinthTeamMember : ObservableObject
     [ObservableProperty]
     private Bitmap? _avatar;
     public bool HasAvatar => Avatar != null;
+    private static readonly SemaphoreSlim AvatarLoadGate = new(4, 4);
+    private volatile bool _disposed;
 
     public void LoadAvatar()
     {
-        if (string.IsNullOrWhiteSpace(AvatarUrl) || Avatar != null) return;
+        if (_disposed || string.IsNullOrWhiteSpace(AvatarUrl) || Avatar != null) return;
         Task.Run(async () =>
         {
-            var bytes = await Services.ModrinthApiService.GetIconAsync(AvatarUrl);
-            if (bytes is { Length: > 0 })
+            await AvatarLoadGate.WaitAsync().ConfigureAwait(false);
+            try
             {
+                if (_disposed) return;
+                var bytes = await Services.ModrinthApiService.GetIconAsync(AvatarUrl).ConfigureAwait(false);
+                if (_disposed || bytes is not { Length: > 0 }) return;
                 using var ms = new MemoryStream(bytes);
                 var bmp = Bitmap.DecodeToWidth(ms, 64);
+                if (_disposed)
+                {
+                    try { bmp.Dispose(); } catch { }
+                    return;
+                }
                 Dispatcher.UIThread.Post(() =>
                 {
+                    if (_disposed)
+                    {
+                        try { bmp.Dispose(); } catch { }
+                        return;
+                    }
+                    var old = Avatar;
                     Avatar = bmp;
+                    try { old?.Dispose(); } catch { }
                     OnPropertyChanged(nameof(HasAvatar));
                 });
             }
+            catch { }
+            finally
+            {
+                AvatarLoadGate.Release();
+            }
         });
+    }
+
+    public void Dispose()
+    {
+        _disposed = true;
+        try { Avatar?.Dispose(); } catch { }
+        Avatar = null;
     }
 }
 

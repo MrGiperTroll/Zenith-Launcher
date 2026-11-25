@@ -15,36 +15,31 @@
     </UserControl.Resources>
 
     <UserControl.Styles>
-        <Style Selector="ScrollBar:vertical">
-            <Setter Property="Width" Value="5"/>
-        </Style>
-        <Style Selector="ScrollBar:vertical /template/ Thumb">
-            <Setter Property="Background" Value="{DynamicResource BorderStrongBrush}"/>
-            <Setter Property="CornerRadius" Value="3"/>
-        </Style>
-        <Style Selector="ScrollBar /template/ RepeatButton">
-            <Setter Property="IsVisible" Value="False"/>
-        </Style>
-
         <Style Selector="Button.chipBtn">
-            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Background" Value="{DynamicResource FieldBrush}"/>
             <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource BorderEditorBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderDarkBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="14"/>
-            <Setter Property="Padding" Value="12,3"/>
-            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Padding" Value="12,0"/>
+            <Setter Property="FontSize" Value="12"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
-        <Style Selector="Button.chipBtn:pointerover">
-            <Setter Property="Background" Value="{DynamicResource FieldBrush}"/>
+        <Style Selector="Button.chipBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderHoverBrush}"/>
             <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
         <Style Selector="Button.chipBtn.active">
             <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
             <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style Selector="Button.chipBtn.active /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
         </Style>
         <Style Selector="Button.chipBtn.active:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource AccentBrushHover}"/>
@@ -55,7 +50,7 @@
             <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
             <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
             <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="14,6"/>
+            <Setter Property="Padding" Value="14,0"/>
             <Setter Property="Height" Value="32"/>
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
@@ -66,6 +61,7 @@
 
         <Style Selector="Button.rowDelBtn">
             <Setter Property="Background" Value="{DynamicResource IconChipBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Padding" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -84,63 +80,21 @@
             <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
         </Style>
 
-        <Style Selector="Button.primaryBtn">
-            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Padding" Value="18,10"/>
-
-        </Style>
-        <Style Selector="Button.primaryBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource AccentBrushHover}"/>
-            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
-        </Style>
-
-        <Style Selector="Button.subBtn">
-            <Setter Property="Background" Value="{DynamicResource FieldBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource BorderEditorBrush}"/>
+        <Style Selector="Border.eiRowCard">
+            <Setter Property="Background" Value="{DynamicResource CardAltBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderCardSoftBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="14,9"/>
-            <Setter Property="Cursor" Value="Hand"/>
-
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.15" Easing="CubicEaseOut"/>
+                </Transitions>
+            </Setter>
         </Style>
-        <Style Selector="Button.subBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+        <Style Selector="Border.eiRowCard:pointerover">
             <Setter Property="BorderBrush" Value="{DynamicResource BorderHoverBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-        </Style>
-
-        <Style Selector="Button.dangerBtn">
-            <Setter Property="Background" Value="{DynamicResource DangerBgBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource DangerBorderBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="14,9"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
-        <Style Selector="Button.dangerBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource DangerBgDeepBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource DangerLightBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}"/>
-        </Style>
-
-        <Style Selector="Button.resetBtn">
-            <Setter Property="Background" Value="{DynamicResource TabHoverBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource WarningBorderBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="12,5"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
-        <Style Selector="Button.resetBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource TabPressedBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource WarningBrightBrush}"/>
         </Style>
 
         <Style Selector="Button.sideTab">
@@ -199,7 +153,7 @@
                             <Button Classes="sideTab" Classes.active="{Binding IsModsTab}" Command="{Binding SelectTabCommand}" CommandParameter="Mods" IsVisible="{Binding HasModsSupport}">
                                 <Grid ColumnDefinitions="Auto,*">
                                     <Border Width="30" Height="30" Background="{DynamicResource IconChipBrush}" CornerRadius="7" VerticalAlignment="Center">
-                                        <PathIcon Data="M20.5 11H19V7c0-1.1-.9-2-2-2h-4V3.5a2.5 2.5 0 0 0-5 0V5H4c-1.1 0-1.99.9-1.99 2v3.8H3.5a2.5 2.5 0 0 1 0 5H2v4c0 1.1.9 2 2 2h3.8v1.5a2.5 2.5 0 0 0 5 0V21H17c1.1 0 2-.9 2-2v-4h1.5a2.5 2.5 0 0 0 0-5z" Width="17" Height="15" Foreground="{Binding IsModsTab, Converter={x:Static converters:EditInstanceWindowConverters.ActiveIcon}}"/>
+                                        <PathIcon Data="M19.0,10.2 H17.5 V7.2 C17.5,6.1 16.6,5.2 15.5,5.2 H12.5 V4.5 A2.5,2.5 0 0,0 7.5,4.5 V5.2 H4.5 C3.4,5.2 2.5,6.1 2.5,7.2 V10.5 H3.2 A2.5,2.5 0 0,1 3.2,15.5 H2.5 V18.8 C2.5,19.9 3.4,20.8 4.5,20.8 H7.5 V20.1 A2.5,2.5 0 0,1 12.5,20.1 V20.8 H15.5 C16.6,20.8 17.5,19.9 17.5,18.8 V15.2 H19.0 A2.5,2.5 0 0,0 19.0,10.2 Z" Width="16" Height="16" Foreground="{Binding IsModsTab, Converter={x:Static converters:EditInstanceWindowConverters.ActiveIcon}}"/>
                                     </Border>
                                     <TextBlock Grid.Column="1" Text="{l10n:Tr Key=tab_mods}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsModsTab, Converter={x:Static converters:EditInstanceWindowConverters.ActiveText}}"/>
                                 </Grid>
@@ -312,8 +266,8 @@
                                 </StackPanel>
 
                                 <!-- Single Clean Open Folder Button next to instance details -->
-                                <Button Grid.Column="2" Classes="primaryBtn" Command="{Binding LaunchCommand}" IsEnabled="{Binding CanLaunch}" Content="{l10n:Tr Key=btn_launch}" Padding="18,9" VerticalAlignment="Center"/>
-                                <Button Grid.Column="3" Classes="subBtn" Command="{Binding OpenInstanceFolderCommand}" Content="{l10n:Tr Key=btn_open_folder}" Padding="16,9" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" ToolTip.Tip="{l10n:Tr Key=btn_open_folder}"/>
+                                <Button Grid.Column="2" Classes="primaryBtn" Command="{Binding LaunchCommand}" IsEnabled="{Binding CanLaunch}" Content="{l10n:Tr Key=btn_launch}" Height="34" Padding="16,0" FontSize="12.5" VerticalAlignment="Center"/>
+                                <Button Grid.Column="3" Classes="subBtn" Command="{Binding OpenInstanceFolderCommand}" Content="{l10n:Tr Key=btn_open_folder}" Height="34" Padding="14,0" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" ToolTip.Tip="{l10n:Tr Key=btn_open_folder}"/>
                             </Grid>
                         </Border>
 
@@ -346,23 +300,65 @@
                     </StackPanel>
                 </ScrollViewer>
 
-                <!-- Logs (Redesigned matching Modrinth style) -->
-                <Grid IsVisible="{Binding IsLogsTab}" RowDefinitions="Auto,Auto,*" Margin="14,10">
-                    <!-- Row 0: Search input & Live Log dropdown -->
-                    <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center" Margin="0,0,0,10">
-                        <Border Grid.Column="0" Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
-                                BorderThickness="1" CornerRadius="8" Width="280" Height="34" Padding="10,0">
-                            <Grid ColumnDefinitions="Auto,*">
-                                <PathIcon Data="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
-                                          Width="13" Height="13" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                <TextBox Grid.Column="1" Classes="titleInput" Text="{Binding LogSearchQuery, Mode=TwoWay}"
-                                         PlaceholderText="Search logs" FontSize="12" Background="Transparent" BorderThickness="0"
-                                         VerticalAlignment="Center" Padding="0"/>
-                            </Grid>
-                        </Border>
+                <!-- Logs (Unified Catalog Toolbar & Terminal Area) -->
+                <Grid IsVisible="{Binding IsLogsTab}" RowDefinitions="Auto,Auto,*" Margin="16">
+                    <!-- Row 0: Search input & Log source Flyout dropdown -->
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="10" VerticalAlignment="Center" Margin="0,0,0,10">
+                        <TextBox Grid.Column="0" Classes="darkInput" Text="{Binding LogSearchQuery, Mode=TwoWay}"
+                                 PlaceholderText="Search logs..." FontSize="12" Height="36"
+                                 HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                            <TextBox.InnerLeftContent>
+                                <PathIcon Data="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
+                                          Width="13" Height="13" Foreground="{DynamicResource TextPlaceholderBrush}" Margin="10,0,2,0"/>
+                            </TextBox.InnerLeftContent>
+                            <TextBox.InnerRightContent>
+                                <Button Command="{Binding ClearLogSearchCommand}"
+                                        IsVisible="{Binding LogSearchQuery, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"
+                                        Background="Transparent" BorderThickness="0" Padding="8,0" Cursor="Hand" Content="✕"
+                                        Foreground="{DynamicResource TextPlaceholderBrush}"/>
+                            </TextBox.InnerRightContent>
+                        </TextBox>
 
-                        <ComboBox Grid.Column="2" Classes="zenCombo" ItemsSource="{Binding LogSources}"
-                                  SelectedItem="{Binding SelectedLogSource}" Width="130" Height="34" VerticalAlignment="Center"/>
+                        <Button Grid.Column="1" x:Name="LogSourceDropdownBtn" Classes="filterDropdownBtn" MinWidth="136" VerticalAlignment="Center">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Grid.Column="0" Text="{Binding SelectedLogSource}" FontSize="12" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <PathIcon Grid.Column="1" Data="M7 10l5 5 5-5z" Width="10" Height="10"
+                                          Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                            </Grid>
+                            <Button.Flyout>
+                                <Flyout Placement="BottomEdgeAlignedRight" ShowMode="Standard">
+                                    <Flyout.FlyoutPresenterTheme>
+                                        <ControlTheme TargetType="FlyoutPresenter" BasedOn="{StaticResource {x:Type FlyoutPresenter}}">
+                                            <Setter Property="Padding" Value="0"/>
+                                            <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
+                                            <Setter Property="BorderBrush" Value="{DynamicResource BorderDarkBrush}"/>
+                                            <Setter Property="BorderThickness" Value="1"/>
+                                            <Setter Property="CornerRadius" Value="8"/>
+                                            <Setter Property="ClipToBounds" Value="True"/>
+                                        </ControlTheme>
+                                    </Flyout.FlyoutPresenterTheme>
+                                    <Border Width="155" Background="{DynamicResource CardBrush}" Padding="2">
+                                        <ItemsControl ItemsSource="{Binding LogSources}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate x:DataType="x:String">
+                                                    <Button Classes="flyoutOptionBtn" Click="OnLogSourceOptionClicked"
+                                                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+                                                        <Classes.selected>
+                                                            <MultiBinding Converter="{x:Static converters:EditInstanceWindowConverters.AreStringsEqual}">
+                                                                <Binding/>
+                                                                <Binding Path="$parent[views:EditInstanceView].((vm:EditInstanceViewModel)DataContext).SelectedLogSource"/>
+                                                            </MultiBinding>
+                                                        </Classes.selected>
+                                                        <TextBlock Text="{Binding}" FontWeight="SemiBold" FontSize="12"/>
+                                                    </Button>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </Border>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
                     </Grid>
 
                     <!-- Row 1: Filter chips (All / Error / Warn / Info) + Expand & Copy actions -->
@@ -381,9 +377,9 @@
                         </StackPanel>
 
                         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                            <Button Classes="subBtn" Command="{Binding OpenLogFileCommand}" Content="{l10n:Tr Key=fl_open}" Padding="12,5" FontSize="11" ToolTip.Tip="Open log file"/>
-                            <Button Classes="subBtn" Command="{Binding CopyLogsCommand}" Content="{l10n:Tr Key=btn_copy_logs}" Padding="12,5" FontSize="11" ToolTip.Tip="{l10n:Tr Key=btn_copy_logs}"/>
-                            <Button Classes="subBtn" Command="{Binding ToggleLogExpandCommand}" Content="{Binding LogExpandText}" Padding="12,5" FontSize="11"/>
+                            <Button Classes="subBtn" Command="{Binding OpenLogFileCommand}" Content="{l10n:Tr Key=fl_open}" Height="32" Padding="12,0" FontSize="12" FontWeight="SemiBold"/>
+                            <Button Classes="subBtn" Command="{Binding CopyLogsCommand}" Content="{l10n:Tr Key=btn_copy_logs}" Height="32" Padding="12,0" FontSize="12" FontWeight="SemiBold" ToolTip.Tip="{l10n:Tr Key=btn_copy_logs}"/>
+                            <Button Classes="subBtn" Command="{Binding ToggleLogExpandCommand}" Content="{Binding LogExpandText}" Height="32" Padding="12,0" FontSize="12" FontWeight="SemiBold"/>
                         </StackPanel>
                     </Grid>
 
@@ -414,65 +410,149 @@
                 </Grid>
 
                 <!-- Mods -->
-                <Grid IsVisible="{Binding IsModsTab}" Margin="14,10">
+                <Grid IsVisible="{Binding IsModsTab}" Margin="16">
                     <views:FileListView x:Name="ModView" DataContext="{Binding ModList}"/>
                 </Grid>
 
                 <!-- Resource Packs -->
-                <Grid IsVisible="{Binding IsResourcePacksTab}" Margin="14,10">
+                <Grid IsVisible="{Binding IsResourcePacksTab}" Margin="16">
                     <views:FileListView x:Name="ResourceView" DataContext="{Binding ResourcePackList}"/>
                 </Grid>
 
                 <!-- Shader Packs -->
-                <Grid IsVisible="{Binding IsShaderPacksTab}" Margin="14,10">
+                <Grid IsVisible="{Binding IsShaderPacksTab}" Margin="16">
                     <views:FileListView x:Name="ShaderView" DataContext="{Binding ShaderList}"/>
                 </Grid>
 
                 <!-- Data Packs -->
-                <Grid IsVisible="{Binding IsDataPacksTab}" RowDefinitions="Auto,*,Auto" Margin="14,10">
-                    <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8" Margin="0,0,0,10" VerticalAlignment="Center">
-                        <TextBlock Grid.Column="0" Text="{l10n:Tr Key=lbl_world}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                        <ComboBox Grid.Column="1" Classes="zenCombo" ItemsSource="{Binding AvailableWorlds}" SelectedItem="{Binding SelectedWorld}" PlaceholderText="{l10n:Tr Key=w_select_world}" FontSize="11" Padding="10,6" HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
-                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right" VerticalAlignment="Center">
-                            <Button Classes="subBtn" Content="{l10n:Tr Key=btn_open_folder}" Command="{Binding OpenDataPackFolderCommand}" Padding="12,5" FontSize="11" VerticalAlignment="Center" IsEnabled="{Binding SelectedWorld, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
-                            <Button Classes="primaryBtn" Content="{l10n:Tr Key=btn_browse_datapacks}" Command="{Binding OpenContentBrowserCommand}" CommandParameter="Data Packs" Padding="14,5" FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center" IsEnabled="{Binding AvailableWorlds.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsNonZero}}"/>
+                <Grid IsVisible="{Binding IsDataPacksTab}" RowDefinitions="Auto,*,Auto" Margin="16">
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="10" Margin="0,0,0,10" VerticalAlignment="Center">
+                        <Button Grid.Column="0" x:Name="DataPackWorldDropdownBtn" Classes="filterDropdownBtn" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+                                <Border Grid.Column="0" Width="22" Height="22" CornerRadius="5" Background="{DynamicResource IconChipBrush}" ClipToBounds="True" VerticalAlignment="Center">
+                                    <Panel>
+                                        <Image Source="{Binding SelectedWorldEntry.PreviewBytes, Converter={x:Static converters:BytesToBitmapConverter.Instance}}"
+                                               Stretch="UniformToFill" Width="22" Height="22"
+                                               IsVisible="{Binding SelectedWorldEntry.HasPreview, FallbackValue=False}"/>
+                                        <PathIcon Data="M12 2A10 10 0 1 0 22 12 10 10 0 0 0 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"
+                                                  Width="12" Height="12" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"
+                                                  IsVisible="{Binding !SelectedWorldEntry.HasPreview, FallbackValue=True}"/>
+                                    </Panel>
+                                </Border>
+                                <Panel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding SelectedWorldEntry.Title, FallbackValue=''}" FontSize="12" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"
+                                               IsVisible="{Binding SelectedWorldEntry, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                                    <TextBlock Text="{l10n:Tr Key=w_select_world}" FontSize="12" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextMutedBrush}" TextTrimming="CharacterEllipsis"
+                                               IsVisible="{Binding SelectedWorldEntry, Converter={x:Static ObjectConverters.IsNull}}"/>
+                                </Panel>
+                                <PathIcon Grid.Column="2" Data="M7 10l5 5 5-5z" Width="10" Height="10"
+                                          Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                            </Grid>
+                            <Button.Flyout>
+                                <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="Standard">
+                                    <Flyout.FlyoutPresenterTheme>
+                                        <ControlTheme TargetType="FlyoutPresenter" BasedOn="{StaticResource {x:Type FlyoutPresenter}}">
+                                            <Setter Property="Padding" Value="0"/>
+                                            <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
+                                            <Setter Property="BorderBrush" Value="{DynamicResource BorderDarkBrush}"/>
+                                            <Setter Property="BorderThickness" Value="1"/>
+                                            <Setter Property="CornerRadius" Value="8"/>
+                                            <Setter Property="ClipToBounds" Value="True"/>
+                                        </ControlTheme>
+                                    </Flyout.FlyoutPresenterTheme>
+                                    <Border Width="340" MaxHeight="320" Background="{DynamicResource CardBrush}" Padding="4">
+                                        <Panel>
+                                            <TextBlock Text="{l10n:Tr Key=w_no_worlds}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
+                                                       TextWrapping="Wrap" TextAlignment="Center" Margin="14,16"
+                                                       IsVisible="{Binding HasNoWorlds}"/>
+                                            <ScrollViewer VerticalScrollBarVisibility="Auto" IsVisible="{Binding !HasNoWorlds}">
+                                                <ItemsControl ItemsSource="{Binding AvailableWorldEntries}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate x:DataType="models:InstanceFileEntry">
+                                                            <Button Classes="flyoutOptionBtn" Click="OnDataPackWorldOptionClicked"
+                                                                    Padding="8,7" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+                                                                <Classes.selected>
+                                                                    <MultiBinding Converter="{x:Static converters:EditInstanceWindowConverters.AreStringsEqual}">
+                                                                        <Binding Path="Name"/>
+                                                                        <Binding Path="$parent[views:EditInstanceView].((vm:EditInstanceViewModel)DataContext).SelectedWorld"/>
+                                                                    </MultiBinding>
+                                                                </Classes.selected>
+                                                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" VerticalAlignment="Center">
+                                                                    <Border Grid.Column="0" Width="36" Height="36" CornerRadius="7" ClipToBounds="True" Background="{DynamicResource IconChipBrush}">
+                                                                        <Panel>
+                                                                            <Image Source="{Binding PreviewBytes, Converter={x:Static converters:BytesToBitmapConverter.Instance}}"
+                                                                                   Stretch="UniformToFill" Width="36" Height="36" IsVisible="{Binding HasPreview}"/>
+                                                                            <PathIcon Data="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+                                                                                      Width="16" Height="16" Foreground="{DynamicResource TextMutedBrush}"
+                                                                                      HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                                      IsVisible="{Binding !HasPreview}"/>
+                                                                        </Panel>
+                                                                    </Border>
+                                                                    <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                                                        <TextBlock Text="{Binding Title}" FontSize="12.5" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                                                            <TextBlock Text="{Binding RelativeTimeDisplay}" FontSize="10.5" Opacity="0.75"/>
+                                                                            <TextBlock Text="{Binding Meta}" FontSize="10.5" Opacity="0.75"
+                                                                                       IsVisible="{Binding Meta, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
+                                                                        </StackPanel>
+                                                                    </StackPanel>
+                                                                </Grid>
+                                                            </Button>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </ScrollViewer>
+                                        </Panel>
+                                    </Border>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <Button Classes="subBtn" Content="{l10n:Tr Key=btn_open_folder}" Command="{Binding OpenDataPackFolderCommand}" Height="32" Padding="12,0" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" IsEnabled="{Binding SelectedWorld, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
+                            <Button Classes="primaryBtn" Content="{l10n:Tr Key=btn_browse_datapacks}" Command="{Binding OpenContentBrowserCommand}" CommandParameter="Data Packs" Height="32" Padding="14,0" FontSize="12" FontWeight="Bold" VerticalAlignment="Center" IsEnabled="{Binding AvailableWorldEntries.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsNonZero}}"/>
                         </StackPanel>
                     </Grid>
-                    <Border Grid.Row="1" Background="Transparent" Padding="4">
+                    <Border Grid.Row="1" Background="Transparent" Padding="0">
                         <Grid>
-                            <ListBox ItemsSource="{Binding DataPacks}" Background="Transparent" BorderThickness="0" Padding="6" IsVisible="{Binding HasDataPacks}">
-                                <ListBox.Styles>
-                                    <Style Selector="ListBoxItem">
-                                        <Setter Property="Padding" Value="0"/>
+                            <ListBox ItemsSource="{Binding DataPacks}" Background="Transparent" BorderThickness="0" Padding="0,0,4,0"
+                                     ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                     IsVisible="{Binding HasDataPacks}">
+                                <ListBox.ItemContainerTheme>
+                                    <ControlTheme TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
                                         <Setter Property="Background" Value="Transparent"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="Padding" Value="0"/>
+                                        <Setter Property="Margin" Value="0"/>
                                         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                                    </Style>
-                                    <Style Selector="ListBoxItem:selected">
-                                        <Setter Property="Background" Value="{DynamicResource PanelBrush}"/>
-                                    </Style>
-                                </ListBox.Styles>
+                                    </ControlTheme>
+                                </ListBox.ItemContainerTheme>
                                 <ListBox.ItemTemplate>
                                     <DataTemplate x:DataType="models:InstanceFileEntry">
-                                        <Grid ColumnDefinitions="48,*,Auto" MinHeight="52" Margin="4,6,4,6">
-                                            <Border Width="40" Height="40" Background="{DynamicResource IconChipBrush}" CornerRadius="8" ClipToBounds="True" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                                <Panel>
-                                                    <Image Source="{Binding PreviewBytes, Converter={x:Static converters:BytesToBitmapConverter.Instance}}" Stretch="UniformToFill" Width="40" Height="40" IsVisible="{Binding HasPreview}"/>
-                                                    <Path Data="M14 2H6A2 2 0 0 0 4 4V20A2 2 0 0 0 6 22H18A2 2 0 0 0 20 20V6L14 2Z" Width="20" Height="20" Stretch="Uniform" Fill="{DynamicResource TextPlaceholderBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding !HasPreview}"/>
-                                                </Panel>
-                                            </Border>
-                                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1" Margin="0,0,8,0">
-                                                <TextBlock Text="{Binding Title}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
-                                                <TextBlock Text="{Binding ModifiedAt, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}" FontSize="10" Foreground="{DynamicResource TextCaptionBrush}"/>
-                                            </StackPanel>
-                                            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
-                                                <Button Command="{Binding $parent[Window].((vm:EditInstanceViewModel)DataContext).OpenDataPackCommand}" CommandParameter="{Binding}" Background="Transparent" Foreground="{DynamicResource TextPlaceholderBrush}" Padding="4,1" Cursor="Hand" ToolTip.Tip="Open" VerticalAlignment="Center">
-                                                    <PathIcon Data="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="14" Height="14" Foreground="{DynamicResource TextPlaceholderBrush}"/>
-                                                </Button>
-                                                <Button Command="{Binding $parent[Window].((vm:EditInstanceViewModel)DataContext).DeleteDataPackCommand}" CommandParameter="{Binding}" Background="Transparent" Foreground="{DynamicResource TextPlaceholderBrush}" Padding="4,1" Cursor="Hand" ToolTip.Tip="Delete" VerticalAlignment="Center">
-                                                    <PathIcon Data="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" Width="13" Height="13" Foreground="{DynamicResource TextPlaceholderBrush}"/>
-                                                </Button>
-                                            </StackPanel>
-                                        </Grid>
+                                        <Border Classes="eiRowCard">
+                                            <Grid ColumnDefinitions="52,*,Auto" ColumnSpacing="8">
+                                                <Border Width="44" Height="44" Background="{DynamicResource IconChipBrush}" CornerRadius="8" ClipToBounds="True" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                                    <Panel>
+                                                        <Image Source="{Binding PreviewBytes, Converter={x:Static converters:BytesToBitmapConverter.Instance}}" Stretch="UniformToFill" Width="44" Height="44" IsVisible="{Binding HasPreview}"/>
+                                                        <Path Data="M14 2H6A2 2 0 0 0 4 4V20A2 2 0 0 0 6 22H18A2 2 0 0 0 20 20V6L14 2Z" Width="20" Height="20" Stretch="Uniform" Fill="{DynamicResource TextPlaceholderBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding !HasPreview}"/>
+                                                    </Panel>
+                                                </Border>
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2" Margin="0,0,8,0">
+                                                    <TextBlock Text="{Binding Title}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                                    <TextBlock Text="{Binding ModifiedAt, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}" FontSize="10.5" Foreground="{DynamicResource TextCaptionBrush}"/>
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                                    <Button Classes="rowActionBtn" Command="{Binding $parent[views:EditInstanceView].((vm:EditInstanceViewModel)DataContext).OpenDataPackCommand}" CommandParameter="{Binding}" ToolTip.Tip="{l10n:Tr Key=fl_reveal_tip}" VerticalAlignment="Center">
+                                                        <PathIcon Data="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="14" Height="14"/>
+                                                    </Button>
+                                                    <Button Classes="rowDelBtn" Command="{Binding $parent[views:EditInstanceView].((vm:EditInstanceViewModel)DataContext).DeleteDataPackCommand}" CommandParameter="{Binding}" ToolTip.Tip="{l10n:Tr Key=fl_delete}" VerticalAlignment="Center">
+                                                        <PathIcon Data="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" Width="13" Height="13"/>
+                                                    </Button>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
                             </ListBox>
@@ -481,32 +561,41 @@
                             <TextBlock Text="{l10n:Tr Key=w_none}" Foreground="{DynamicResource TextPlaceholderBrush}" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding HasEmptyDataPacks}"/>
                         </Grid>
                     </Border>
-                    <TextBlock Grid.Row="2" Text="{l10n:Tr Key=w_tip}" FontSize="10" Foreground="{DynamicResource TextCaptionBrush}" Margin="2,8,0,0"/>
+                    <TextBlock Grid.Row="2" Text="{l10n:Tr Key=w_tip}" FontSize="11" Foreground="{DynamicResource TextCaptionBrush}" Margin="2,8,0,0"/>
                 </Grid>
-                <!-- Worlds (Matches Modrinth/Zenith Clean Card Layout) -->
-                <Grid IsVisible="{Binding IsWorldsTab}" RowDefinitions="Auto,*" Margin="14,10">
+                <!-- Worlds (Matches Catalog & FileListView Clean Card Layout) -->
+                <Grid IsVisible="{Binding IsWorldsTab}" RowDefinitions="Auto,*" Margin="16">
                     <!-- Top bar: search/count + import button -->
-                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,10">
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="10" Margin="0,0,0,10">
                         <TextBox Grid.Column="0" Classes="darkInput" Text="{Binding WorldList.SearchQuery}"
-                                 PlaceholderText="{l10n:Tr Key=ph_search}" FontSize="11" Padding="10,6"
-                                 HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                                 PlaceholderText="{l10n:Tr Key=ph_search}" FontSize="12" Height="36"
+                                 HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                            <TextBox.InnerLeftContent>
+                                <PathIcon Data="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
+                                          Width="13" Height="13" Foreground="{DynamicResource TextPlaceholderBrush}" Margin="10,0,2,0"/>
+                            </TextBox.InnerLeftContent>
+                            <TextBox.InnerRightContent>
+                                <Button Command="{Binding WorldList.ClearSearchCommand}"
+                                        IsVisible="{Binding WorldList.SearchQuery, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"
+                                        Background="Transparent" BorderThickness="0" Padding="8,0" Cursor="Hand" Content="✕"
+                                        Foreground="{DynamicResource TextPlaceholderBrush}"/>
+                            </TextBox.InnerRightContent>
+                        </TextBox>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                             <Button Classes="subBtn" Command="{Binding WorldList.OpenFolderCommand}"
-                                    Content="{l10n:Tr Key=btn_open_folder}" FontSize="11" Padding="12,5" VerticalAlignment="Center"/>
+                                    Content="{l10n:Tr Key=btn_open_folder}" FontSize="12" FontWeight="SemiBold" Height="32" Padding="12,0" VerticalAlignment="Center"/>
                             <Button Classes="primaryBtn" Command="{Binding WorldList.ImportFilesCommand}"
-                                    Content="{l10n:Tr Key=fl_import}" FontSize="11.5" FontWeight="SemiBold" Padding="14,5" VerticalAlignment="Center"/>
+                                    Content="{l10n:Tr Key=fl_import}" FontSize="12" FontWeight="Bold" Height="32" Padding="14,0" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Grid>
 
                     <!-- Worlds List -->
                     <Border Grid.Row="1" Background="Transparent">
                         <Grid>
-                            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                                <ItemsControl ItemsSource="{Binding WorldList.Entries}">
-                                    <ItemsControl.ItemTemplate>
+                            <ListBox Classes="plainVirtualList" ItemsSource="{Binding WorldList.Entries}" Padding="0,0,4,0" ScrollViewer.VerticalScrollBarVisibility="Visible">
+                                    <ListBox.ItemTemplate>
                                         <DataTemplate x:DataType="models:InstanceFileEntry">
-                                            <Border Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
-                                                    BorderThickness="1" CornerRadius="10" Padding="12,10" Margin="0,0,0,8">
+                                            <Border Classes="eiRowCard">
                                                 <Grid ColumnDefinitions="Auto,*,Auto">
                                                     <!-- Thumbnail -->
                                                     <Border Grid.Column="0" Width="44" Height="44" CornerRadius="8" ClipToBounds="True"
@@ -528,21 +617,19 @@
                                                         <TextBlock Text="{Binding RelativeTimeDisplay}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
                                                     </StackPanel>
 
-                                                    <!-- Actions: Green Play Button + 3-dots Menu Button -->
-                                                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                                        <!-- Green Play Button -->
+                                                    <!-- Actions: Play Button + 3-dots Menu Button -->
+                                                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                                        <!-- Play Button -->
                                                         <Button Classes="worldPlayBtn"
                                                                 Command="{Binding $parent[views:EditInstanceView].((vm:EditInstanceViewModel)DataContext).LaunchWorldCommand}"
                                                                 CommandParameter="{Binding}">
-                                                            <TextBlock Text="{l10n:Tr Key=btn_play}" FontWeight="Bold" FontSize="12.5" Foreground="{DynamicResource OnAccentBrush}"/>
+                                                            <TextBlock Text="{l10n:Tr Key=btn_play}" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource OnAccentBrush}"/>
                                                         </Button>
 
                                                         <!-- 3-Dots Button with Flyout -->
-                                                        <Button Width="32" Height="32" CornerRadius="16"
-                                                                Background="{DynamicResource IconChipBrush}" Padding="0" Cursor="Hand"
-                                                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                                                        <Button Classes="rowActionBtn">
                                                             <PathIcon Data="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"
-                                                                      Width="14" Height="14" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                                                      Width="14" Height="14"/>
                                                             <Button.Flyout>
                                                                 <MenuFlyout Placement="BottomEdgeAlignedRight">
                                                                     <MenuItem Header="Edit" Command="{Binding $parent[views:EditInstanceView].((vm:EditInstanceViewModel)DataContext).OpenEditWorldDialogCommand}" CommandParameter="{Binding}">
@@ -572,9 +659,8 @@
                                                 </Grid>
                                             </Border>
                                         </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </ScrollViewer>
+                                    </ListBox.ItemTemplate>
+                            </ListBox>
                             <TextBlock Text="{l10n:Tr Key=fl_empty_worlds}" TextWrapping="Wrap" Foreground="{DynamicResource TextPlaceholderBrush}" FontSize="12"
                                        Margin="12,24" HorizontalAlignment="Center" VerticalAlignment="Center"
                                        IsVisible="{Binding WorldList.Entries.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}"/>
@@ -583,23 +669,21 @@
                 </Grid>
 
                 <!-- Servers (Unified list with Play, Delete, Add Server) -->
-                <Grid IsVisible="{Binding IsServersTab}" RowDefinitions="Auto,*" Margin="14,10">
+                <Grid IsVisible="{Binding IsServersTab}" RowDefinitions="Auto,*" Margin="16">
                     <!-- Top bar: count + Add Server button -->
                     <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,10">
                         <Panel/>
                         <Button Grid.Column="1" Classes="primaryBtn" Content="{l10n:Tr Key=sv_add_server}"
-                                Command="{Binding OpenAddServerDialogCommand}" FontSize="11" Padding="12,5"/>
+                                Command="{Binding OpenAddServerDialogCommand}" FontSize="12" FontWeight="Bold" Height="32" Padding="14,0"/>
                     </Grid>
 
                     <!-- Servers List -->
                     <Border Grid.Row="1" Background="Transparent">
                         <Grid>
-                            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                                <ItemsControl ItemsSource="{Binding Servers}">
-                                    <ItemsControl.ItemTemplate>
+                            <ListBox Classes="plainVirtualList" ItemsSource="{Binding Servers}" Padding="0,0,4,0" ScrollViewer.VerticalScrollBarVisibility="Visible">
+                                    <ListBox.ItemTemplate>
                                         <DataTemplate x:DataType="models:InstanceFileEntry">
-                                            <Border Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
-                                                    BorderThickness="1" CornerRadius="10" Padding="12,10" Margin="0,0,0,8">
+                                            <Border Classes="eiRowCard">
                                                 <Grid ColumnDefinitions="Auto,*,Auto,Auto">
                                                     <!-- Server Icon -->
                                                     <Border Grid.Column="0" Width="44" Height="44" CornerRadius="8" ClipToBounds="True"
@@ -631,12 +715,12 @@
                                                                IsVisible="{Binding Meta, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
 
                                                     <!-- Actions: Play Button + Delete Button -->
-                                                    <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                                    <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                                                         <!-- Play Button -->
                                                         <Button Classes="worldPlayBtn"
                                                                 Command="{Binding $parent[views:EditInstanceView].((vm:EditInstanceViewModel)DataContext).LaunchServerCommand}"
                                                                 CommandParameter="{Binding}">
-                                                            <TextBlock Text="{l10n:Tr Key=btn_play}" FontWeight="Bold" FontSize="12.5" Foreground="{DynamicResource OnAccentBrush}"/>
+                                                            <TextBlock Text="{l10n:Tr Key=btn_play}" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource OnAccentBrush}"/>
                                                         </Button>
 
                                                         <!-- Delete Button -->
@@ -651,9 +735,8 @@
                                                 </Grid>
                                             </Border>
                                         </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </ScrollViewer>
+                                    </ListBox.ItemTemplate>
+                            </ListBox>
                             <TextBlock Text="{l10n:Tr Key=sv_nodat}" TextWrapping="Wrap" Foreground="{DynamicResource TextPlaceholderBrush}" FontSize="12"
                                        Margin="12,24" HorizontalAlignment="Center" VerticalAlignment="Center"
                                        IsVisible="{Binding Servers.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}"/>
@@ -662,7 +745,7 @@
                 </Grid>
 
                 <!-- Screenshots -->
-                <Grid IsVisible="{Binding IsScreenshotsTab}" Margin="14,10">
+                <Grid IsVisible="{Binding IsScreenshotsTab}" Margin="16">
                     <views:FileListView x:Name="ScreenshotView" DataContext="{Binding ScreenshotList}"/>
                 </Grid>
 
@@ -690,12 +773,12 @@
                                         <TextBlock FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Text="{l10n:Tr Key=set_resolution}"/>
                                         <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" Text="{l10n:Tr Key=set_resolution_hint}"/>
                                     </StackPanel>
-                                    <Grid Grid.Column="1" ColumnDefinitions="Auto,70,14,70,14,Auto" VerticalAlignment="Center">
-                                        <TextBlock Text="W" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,4,0"/>
-                                        <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding GameWidth}" FontSize="12" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="28"/>
+                                    <Grid Grid.Column="1" ColumnDefinitions="Auto,72,14,72,14,Auto" VerticalAlignment="Center">
+                                        <TextBlock Text="W" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                        <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding GameWidth}" FontSize="12" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="32"/>
                                         <TextBlock Grid.Column="2" Text="×" FontSize="14" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                        <TextBox Grid.Column="3" Classes="darkInput" Text="{Binding GameHeight}" FontSize="12" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="28"/>
-                                        <TextBlock Grid.Column="4" Text="H" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                        <TextBox Grid.Column="3" Classes="darkInput" Text="{Binding GameHeight}" FontSize="12" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="32"/>
+                                        <TextBlock Grid.Column="4" Text="H" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="6,0,0,0"/>
                                     </Grid>
                                 </Grid>
 
@@ -715,7 +798,7 @@
                                 <TextBlock Text="{Binding JavaCardTitle}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10" VerticalAlignment="Center">
                                     <TextBox Grid.Column="0" Classes="darkInput" Text="{Binding CustomJavaPath, Mode=TwoWay}" PlaceholderText="{Binding JavaPlaceholderPath}" FontSize="12" Height="34"/>
-                                    <Button Grid.Column="1" Classes="subBtn" Content="{l10n:Tr Key=btn_browse}" Command="{Binding PickCustomJavaCommand}" Padding="14,6" Height="34"/>
+                                    <Button Grid.Column="1" Classes="subBtn" Content="{l10n:Tr Key=btn_browse}" Command="{Binding PickCustomJavaCommand}" Padding="14,0" Height="34" FontSize="12" FontWeight="SemiBold"/>
                                 </Grid>
                             </StackPanel>
                         </Border>
@@ -728,7 +811,7 @@
                                         <TextBlock FontSize="13.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Text="{l10n:Tr Key=set_jvmargs}"/>
                                         <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" Text="{l10n:Tr Key=set_jvmargs_hint}"/>
                                     </StackPanel>
-                                    <Button Grid.Column="1" Classes="subBtn" Content="{l10n:Tr Key=btn_reset}" Command="{Binding ResetJvmArgsCommand}" IsVisible="{Binding CanResetJvmArgs}" FontSize="11" Padding="10,4" VerticalAlignment="Center"/>
+                                    <Button Grid.Column="1" Classes="subBtn" Content="{l10n:Tr Key=btn_reset}" Command="{Binding ResetJvmArgsCommand}" IsVisible="{Binding CanResetJvmArgs}" FontSize="12" FontWeight="SemiBold" Height="32" Padding="12,0" VerticalAlignment="Center"/>
                                 </Grid>
                                 <TextBox Classes="darkInput" Text="{Binding JvmArgs}" PlaceholderText="-XX:+UseG1GC ..." Padding="10,6" FontSize="12" Height="34"/>
                                 <Border Background="{DynamicResource DangerBgBrush}" BorderBrush="{DynamicResource DangerBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="10" IsVisible="{Binding HasJvmArgsWarning}">
@@ -737,7 +820,7 @@
                                             <TextBlock Text="{l10n:Tr Key=jvm_warn_title}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource DangerBrush}"/>
                                             <TextBlock Text="{Binding JvmArgsWarningMessage}" FontSize="11" Foreground="{DynamicResource DangerLightBrush}" TextWrapping="Wrap"/>
                                         </StackPanel>
-                                        <Button Grid.Column="1" Classes="dangerBtn" Content="{l10n:Tr Key=btn_clean_jvm_flags}" Command="{Binding CleanIncompatibleJvmArgsCommand}" FontSize="11" Padding="10,5" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                        <Button Grid.Column="1" Classes="dangerBtn" Content="{l10n:Tr Key=btn_clean_jvm_flags}" Command="{Binding CleanIncompatibleJvmArgsCommand}" FontSize="12" FontWeight="SemiBold" Height="32" Padding="12,0" VerticalAlignment="Center" Margin="10,0,0,0"/>
                                     </Grid>
                                 </Border>
                             </StackPanel>
@@ -760,12 +843,12 @@
                 </StackPanel>
                 <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto" VerticalAlignment="Center" ColumnSpacing="8">
                     <TextBlock Text="{Binding Instance.Path}" FontSize="11" Foreground="{DynamicResource TextCaptionBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                    <Border Grid.Column="1" IsVisible="{Binding IsRunning}" Background="{DynamicResource ChipBrush}" CornerRadius="4" Padding="8,4" VerticalAlignment="Center" Margin="0,0,8,0">
+                    <Border Grid.Column="1" IsVisible="{Binding IsRunning}" Background="{DynamicResource ChipBrush}" CornerRadius="6" Padding="8,4" VerticalAlignment="Center" Margin="0,0,4,0">
                         <TextBlock Text="{l10n:Tr Key=status_running}" FontSize="11" Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold" VerticalAlignment="Center"/>
                     </Border>
-                    <Button Grid.Column="2" Classes="primaryBtn" Content="{l10n:Tr Key=btn_launch}" Command="{Binding LaunchCommand}" IsEnabled="{Binding CanLaunch}" Width="110" Height="38" Padding="0" HorizontalAlignment="Center" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
-                    <Button Grid.Column="3" Classes="dangerBtn" Content="{l10n:Tr Key=btn_kill_short}" Command="{Binding KillCommand}" IsEnabled="{Binding IsRunning}" Width="90" Height="38" Padding="0" HorizontalAlignment="Center" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
-                    <Button Grid.Column="4" Classes="subBtn" Content="{l10n:Tr Key=close}" Command="{Binding CloseCommand}" Width="90" Height="38" Padding="0" HorizontalAlignment="Center" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                    <Button Grid.Column="2" Classes="primaryBtn" Content="{l10n:Tr Key=btn_launch}" Command="{Binding LaunchCommand}" IsEnabled="{Binding CanLaunch}" MinWidth="104" Height="34" Padding="16,0" FontSize="12.5" HorizontalAlignment="Center" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                    <Button Grid.Column="3" Classes="dangerBtn" Content="{l10n:Tr Key=btn_kill_short}" Command="{Binding KillCommand}" IsEnabled="{Binding IsRunning}" MinWidth="88" Height="34" Padding="14,0" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                    <Button Grid.Column="4" Classes="subBtn" Content="{l10n:Tr Key=close}" Command="{Binding CloseCommand}" MinWidth="88" Height="34" Padding="14,0" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
                 </Grid>
             </StackPanel>
         </Border>

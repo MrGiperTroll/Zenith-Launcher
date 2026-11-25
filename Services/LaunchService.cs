@@ -166,7 +166,7 @@ public class LaunchService : ILaunchService
         try
         {
             var json = File.ReadAllText(configPath);
-            _cachedConfig = System.Text.Json.JsonSerializer.Deserialize<LauncherConfigData>(json);
+            _cachedConfig = System.Text.Json.JsonSerializer.Deserialize(json, LauncherJsonContext.Default.LauncherConfigData);
             _configLastRead = lastWrite;
         }
         catch { _cachedConfig = null; }
@@ -562,23 +562,48 @@ public class LaunchService : ILaunchService
             launchOption.JavaPath = instance.CustomJavaPath;
             LogReceived?.Invoke($"Using user-specified instance Java: {instance.CustomJavaPath}");
         }
+        else if (config != null
+                 && string.Equals(config.JavaMode, "Custom", StringComparison.OrdinalIgnoreCase)
+                 && !string.IsNullOrWhiteSpace(config.CustomJavaPath)
+                 && File.Exists(config.CustomJavaPath))
+        {
+            launchOption.JavaPath = config.CustomJavaPath;
+            LogReceived?.Invoke($"Using global custom Java: {config.CustomJavaPath}");
+        }
+        else if (string.Equals(config?.JavaMode, "System", StringComparison.OrdinalIgnoreCase)
+                 && JavaVersionHelper.FindSystemJavaPath() is { Length: > 0 } sysJava
+                 && File.Exists(sysJava))
+        {
+            launchOption.JavaPath = sysJava;
+            LogReceived?.Invoke($"Using system Java: {sysJava}");
+        }
         else
         {
-            // Auto-select suitable Java version for this instance
-            LogReceived?.Invoke($"Required Java version: {requiredJava}");
-            var found = await ResolveJavaAsync(requiredJava, zenithRoot);
-            if (found != null)
+            // Honor explicit per-version Java slot configured in Settings (Java 25/21/17/8) before auto-scan
+            var configuredSlot = GetConfiguredJavaSlot(config, requiredJava);
+            if (!string.IsNullOrWhiteSpace(configuredSlot) && File.Exists(configuredSlot))
             {
-                launchOption.JavaPath = found;
-                LogReceived?.Invoke($"Using Java: {found}");
+                launchOption.JavaPath = configuredSlot;
+                LogReceived?.Invoke($"Using configured Java {requiredJava}: {configuredSlot}");
             }
             else
             {
-                var globalCustom = config?.CustomJavaPath;
-                if (!string.IsNullOrWhiteSpace(globalCustom) && File.Exists(globalCustom))
+                // Auto-select suitable Java version for this instance
+                LogReceived?.Invoke($"Required Java version: {requiredJava}");
+                var found = await ResolveJavaAsync(requiredJava, zenithRoot);
+                if (found != null)
                 {
-                    launchOption.JavaPath = globalCustom;
-                    LogReceived?.Invoke($"Using global custom Java: {globalCustom}");
+                    launchOption.JavaPath = found;
+                    LogReceived?.Invoke($"Using Java: {found}");
+                }
+                else
+                {
+                    var globalCustom = config?.CustomJavaPath;
+                    if (!string.IsNullOrWhiteSpace(globalCustom) && File.Exists(globalCustom))
+                    {
+                        launchOption.JavaPath = globalCustom;
+                        LogReceived?.Invoke($"Using global custom Java: {globalCustom}");
+                    }
                 }
             }
         }
@@ -773,21 +798,33 @@ public class LaunchService : ILaunchService
         catch { return false; }
     }
 
+    private sealed record AdoptiumReleaseInfo(string ReleaseName, string ComparableVersion, string DownloadUrl, string? Sha256);
+    private static readonly ConcurrentDictionary<int, (DateTime CheckedUtc, AdoptiumReleaseInfo? Info)> AdoptiumLatestCache = new();
+    private static readonly TimeSpan AdoptiumCheckCooldown = TimeSpan.FromHours(6);
+
     private async Task<string?> ResolveJavaAsync(int major, string zenithRoot)
     {
         var found = await FindLocalJavaAsync(major, zenithRoot);
         if (found != null)
         {
-            if (JavaVersionHelper.IsVulnerableToJava4Shell(found, out var vMaj, out var cVer, out var minSafe))
+            var cfgLocal = GetConfig();
+            bool autoManage = cfgLocal == null || cfgLocal.AutoManageJava;
+
+            if (JavaVersionHelper.IsVulnerableToJava4Shell(found, out _, out var cVer, out var minSafe))
             {
-                var cfgLocal = GetConfig();
-                if (cfgLocal == null || cfgLocal.AutoManageJava)
+                if (autoManage)
                 {
                     LogReceived?.Invoke($"[SECURITY] Local Java {major} ({cVer}) is vulnerable to CVE-2026-114938 (Java4Shell). Enforcing update to patched build ({minSafe})...");
                     var updated = await DownloadAdoptiumRuntimeAsync(major, zenithRoot, forceRedownload: true);
                     if (updated != null) return updated;
                 }
             }
+            else if (autoManage)
+            {
+                var updated = await TryAutoUpdateJavaIfOutdatedAsync(major, found, zenithRoot);
+                if (updated != null) return updated;
+            }
+
             return found;
         }
 
@@ -803,31 +840,83 @@ public class LaunchService : ILaunchService
         return await DownloadAdoptiumRuntimeAsync(major, zenithRoot);
     }
 
+    private async Task<string?> TryAutoUpdateJavaIfOutdatedAsync(int major, string localJavaExe, string zenithRoot)
+    {
+        try
+        {
+            var latest = await GetLatestAdoptiumReleaseCachedAsync(major);
+            if (latest == null) return null;
+
+            var localReleaseInfo = ReadLocalReleaseMarker(localJavaExe);
+            if (!string.IsNullOrEmpty(localReleaseInfo.ReleaseName) &&
+                string.Equals(localReleaseInfo.ReleaseName, latest.ReleaseName, StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            var localVer = !string.IsNullOrEmpty(localReleaseInfo.ComparableVersion)
+                ? localReleaseInfo.ComparableVersion
+                : ExtractComparableJavaVersion(major, localJavaExe);
+
+            if (!string.IsNullOrEmpty(localVer) &&
+                JavaVersionHelper.CompareVersions(localVer, latest.ComparableVersion) >= 0)
+            {
+                return null;
+            }
+
+            LogReceived?.Invoke($"New Java {major} security/maintenance release available on Adoptium ({latest.ReleaseName}, local: {(string.IsNullOrEmpty(localVer) ? "older" : localVer)}). Updating...");
+            return await DownloadAdoptiumRuntimeAsync(major, zenithRoot, forceRedownload: true, prefetchedRelease: latest);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
     /// <summary>
     /// Explicit one-click install from the Settings "+" button. Runs regardless
     /// of the AutoManageJava toggle. Returns true when the runtime is usable.
     /// </summary>
     public async Task<bool> DownloadJavaRuntimeAsync(int major, string zenithRoot, bool forceRedownload = false, IProgress<double>? progress = null)
     {
+        AdoptiumReleaseInfo? latest = null;
         if (!forceRedownload)
         {
             var found = await FindLocalJavaAsync(major, zenithRoot);
             if (found != null)
             {
-                if (JavaVersionHelper.IsVulnerableToJava4Shell(found, out var vMaj, out var cVer, out var minSafe))
+                if (JavaVersionHelper.IsVulnerableToJava4Shell(found, out _, out var cVer, out var minSafe))
                 {
                     LogReceived?.Invoke($"[SECURITY] Local Java {major} ({cVer}) is vulnerable to CVE-2026-114938 (Java4Shell). Enforcing update to patched build ({minSafe})...");
                     forceRedownload = true;
                 }
                 else
                 {
-                    LogReceived?.Invoke($"Java {major} is already installed: {found}");
-                    return true;
+                    latest = await GetLatestAdoptiumReleaseCachedAsync(major, bypassCache: true);
+                    var localMarker = ReadLocalReleaseMarker(found);
+                    var localVer = !string.IsNullOrEmpty(localMarker.ComparableVersion)
+                        ? localMarker.ComparableVersion
+                        : ExtractComparableJavaVersion(major, found);
+
+                    bool hasNewer = latest != null &&
+                        !string.Equals(localMarker.ReleaseName, latest.ReleaseName, StringComparison.OrdinalIgnoreCase) &&
+                        (string.IsNullOrEmpty(localVer) || JavaVersionHelper.CompareVersions(localVer, latest.ComparableVersion) < 0);
+
+                    if (hasNewer)
+                    {
+                        LogReceived?.Invoke($"Updating Java {major} to latest Adoptium release ({latest!.ReleaseName})...");
+                        forceRedownload = true;
+                    }
+                    else
+                    {
+                        LogReceived?.Invoke($"Java {major} is already up to date: {found}");
+                        return true;
+                    }
                 }
             }
         }
 
-        var downloaded = await DownloadAdoptiumRuntimeAsync(major, zenithRoot, forceRedownload, progress);
+        var downloaded = await DownloadAdoptiumRuntimeAsync(major, zenithRoot, forceRedownload, progress, latest);
         if (downloaded == null)
             LogReceived?.Invoke($"Failed to install Java {major}. See the log above for details.");
         else
@@ -846,7 +935,23 @@ public class LaunchService : ILaunchService
         var major = string.IsNullOrWhiteSpace(instanceVersion)
             ? 21 // modern default line when no profile is selected yet
             : InferRequiredJavaMajor(instanceVersion);
+        var slot = GetConfiguredJavaSlot(GetConfig(), major);
+        if (!string.IsNullOrWhiteSpace(slot) && File.Exists(slot))
+            return slot;
         return await FindLocalJavaAsync(major, ZenithPaths.AppDataDir);
+    }
+
+    private static string? GetConfiguredJavaSlot(LauncherConfigData? cfg, int major)
+    {
+        if (cfg == null) return null;
+        return major switch
+        {
+            25 => cfg.Java25Path,
+            21 => cfg.Java21Path,
+            17 => cfg.Java17Path,
+            8 => cfg.Java8Path,
+            _ => null
+        };
     }
 
     private async Task<string?> FindLocalJavaAsync(int major, string zenithRoot)
@@ -968,72 +1073,31 @@ public class LaunchService : ILaunchService
     /// Downloads the matching Adoptium JRE into &lt;zenithRoot&gt;/runtime and
     /// returns the path to javaw.exe/java.exe, or null on failure.
     /// </summary>
-    private async Task<string?> DownloadAdoptiumRuntimeAsync(int major, string zenithRoot, bool forceRedownload = false, IProgress<double>? progress = null)
+    private async Task<string?> DownloadAdoptiumRuntimeAsync(int major, string zenithRoot, bool forceRedownload = false, IProgress<double>? progress = null, AdoptiumReleaseInfo? prefetchedRelease = null)
     {
         var javaDir = Path.Combine(zenithRoot, "runtime");
         Directory.CreateDirectory(javaDir);
 
-        LogReceived?.Invoke(forceRedownload ? $"Re-downloading Java {major}..." : $"Java {major} not found locally. Downloading...");
+        LogReceived?.Invoke(forceRedownload ? $"Updating Java {major}..." : $"Java {major} not found locally. Downloading...");
         try
         {
             var runtimeDir = Path.Combine(javaDir, $"{GetRuntimeFolderName(major)}");
             var existingPatterns = RuntimeDirPatterns(major);
-
-            if (forceRedownload)
-            {
-                foreach (var pattern in existingPatterns)
-                {
-                    foreach (var dir in Directory.GetDirectories(javaDir, pattern, SearchOption.TopDirectoryOnly))
-                    {
-                        try { Directory.Delete(dir, recursive: true); } catch { }
-                    }
-                }
-            }
+            var existingDirsBefore = forceRedownload
+                ? existingPatterns.SelectMany(p => Directory.GetDirectories(javaDir, p, SearchOption.TopDirectoryOnly)).Distinct(StringComparer.OrdinalIgnoreCase).ToList()
+                : new List<string>();
 
             if (forceRedownload ||
                 (!Directory.Exists(runtimeDir) &&
                  !existingPatterns.Any(p => Directory.GetDirectories(javaDir, p, SearchOption.TopDirectoryOnly).Any())))
             {
-                // Try GA first, then JDK-image, then EA fallback.
-                // IMPORTANT: the API returns .msi installers as separate binary
-                // entries - only accept entries whose package link ends in .zip,
-                // otherwise extraction fails ("unable to install").
-                string? link = null;
-                string? expectedSha256 = null;
-                var adoptiumUrls = new[]
-                {
-                    $"https://api.adoptium.net/v3/assets/feature_releases/{major}/ga?release_type=ga&jvm_impl=hotspot&os=windows&arch=x64&image_type=jre",
-                    $"https://api.adoptium.net/v3/assets/feature_releases/{major}/ga?release_type=ga&jvm_impl=hotspot&os=windows&arch=x64&image_type=jdk",
-                    $"https://api.adoptium.net/v3/assets/feature_releases/{major}/ea?release_type=ea&jvm_impl=hotspot&os=windows&arch=x64&image_type=jre",
-                };
-                foreach (var url in adoptiumUrls)
-                {
-                    if (!string.IsNullOrEmpty(link)) break;
-                    try
-                    {
-                        var json = await Http.GetStringAsync(url);
-                        using var doc = System.Text.Json.JsonDocument.Parse(json);
-                        foreach (var release in doc.RootElement.EnumerateArray())
-                        {
-                            if (!release.TryGetProperty("binaries", out var binaries)) continue;
-                            foreach (var binary in binaries.EnumerateArray())
-                            {
-                                if (!binary.TryGetProperty("package", out var pkg)) continue;
-                                var pkgLink = pkg.TryGetProperty("link", out var l) ? l.GetString() : null;
-                                if (string.IsNullOrEmpty(pkgLink) ||
-                                    !pkgLink.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
-                                    continue;
-                                link = pkgLink;
-                                expectedSha256 = pkg.TryGetProperty("checksum", out var c) ? c.GetString() : null;
-                                break;
-                            }
-                            if (!string.IsNullOrEmpty(link)) break;
-                        }
-                    }
-                    catch { }
-                }
+                var release = prefetchedRelease ?? await GetLatestAdoptiumReleaseCachedAsync(major, bypassCache: true);
+                string? link = release?.DownloadUrl;
+                string? expectedSha256 = release?.Sha256;
+                string? releaseName = release?.ReleaseName;
+                string? comparableVer = release?.ComparableVersion;
 
-                // Some versions (notably Java 16) have no Adoptium GA builds left
+                // Some versions (notably Java 16) have no Adoptium GA build left
                 // - fall back to the official temurin{major}-binaries GitHub repo,
                 // which still hosts every historical Windows x64 JRE zip.
                 if (string.IsNullOrEmpty(link))
@@ -1052,6 +1116,45 @@ public class LaunchService : ILaunchService
                 // Overwrite existing files in case a partial/older runtime is present
                 System.IO.Compression.ZipFile.ExtractToDirectory(temp, javaDir, overwriteFiles: true);
                 File.Delete(temp);
+
+                // Find extracted folder matching releaseName or newest build and write release marker
+                var extractedDirs = RuntimeDirPatterns(major)
+                    .SelectMany(p => Directory.GetDirectories(javaDir, p, SearchOption.TopDirectoryOnly))
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+
+                var newestDir = extractedDirs
+                    .Where(d => !string.IsNullOrEmpty(releaseName) && Path.GetFileName(d).Contains(releaseName, StringComparison.OrdinalIgnoreCase))
+                    .FirstOrDefault()
+                    ?? extractedDirs
+                        .OrderBy(d =>
+                        {
+                            var exe = Path.Combine(d, "bin", "javaw.exe");
+                            if (!File.Exists(exe)) exe = Path.Combine(d, "bin", "java.exe");
+                            return File.Exists(exe) && JavaVersionHelper.IsVulnerableToJava4Shell(exe, out _, out _, out _) ? 1 : 0;
+                        })
+                        .ThenByDescending(d =>
+                        {
+                            var exe = Path.Combine(d, "bin", "javaw.exe");
+                            if (!File.Exists(exe)) exe = Path.Combine(d, "bin", "java.exe");
+                            return File.Exists(exe) ? JavaVersionHelper.GetJavaFileVersion(exe) : d;
+                        }, Comparer<string>.Create(JavaVersionHelper.CompareVersions))
+                        .FirstOrDefault();
+
+                if (newestDir != null && JavaVersionHelper.IsValidJavaHome(newestDir))
+                {
+                    if (!string.IsNullOrEmpty(releaseName) && !string.IsNullOrEmpty(comparableVer))
+                    {
+                        WriteLocalReleaseMarker(newestDir, releaseName, comparableVer);
+                    }
+
+                    // Remove superseded runtime directories only AFTER the new build is verified on disk
+                    foreach (var oldDir in existingDirsBefore)
+                    {
+                        if (string.Equals(oldDir, newestDir, StringComparison.OrdinalIgnoreCase)) continue;
+                        try { Directory.Delete(oldDir, recursive: true); } catch { }
+                    }
+                }
             }
 
             // Find extracted JDK folder, prioritizing non-vulnerable / highest version builds
@@ -1089,6 +1192,146 @@ public class LaunchService : ILaunchService
         }
 
         return null;
+    }
+
+    private static async Task<AdoptiumReleaseInfo?> GetLatestAdoptiumReleaseCachedAsync(int major, bool bypassCache = false)
+    {
+        if (!bypassCache && AdoptiumLatestCache.TryGetValue(major, out var cached) &&
+            (DateTime.UtcNow - cached.CheckedUtc) < AdoptiumCheckCooldown)
+        {
+            return cached.Info;
+        }
+
+        // Try GA first, then JDK-image, then EA fallback.
+        // IMPORTANT: the API returns .msi installers as separate binary
+        // entries - only accept entries whose package link ends in .zip.
+        var adoptiumUrls = new[]
+        {
+            $"https://api.adoptium.net/v3/assets/feature_releases/{major}/ga?release_type=ga&jvm_impl=hotspot&os=windows&arch=x64&image_type=jre&page_size=1",
+            $"https://api.adoptium.net/v3/assets/feature_releases/{major}/ga?release_type=ga&jvm_impl=hotspot&os=windows&arch=x64&image_type=jdk&page_size=1",
+            $"https://api.adoptium.net/v3/assets/feature_releases/{major}/ea?release_type=ea&jvm_impl=hotspot&os=windows&arch=x64&image_type=jre&page_size=1",
+        };
+
+        AdoptiumReleaseInfo? result = null;
+        foreach (var url in adoptiumUrls)
+        {
+            if (result != null) break;
+            try
+            {
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+                var json = await Http.GetStringAsync(url, cts.Token).ConfigureAwait(false);
+                using var doc = System.Text.Json.JsonDocument.Parse(json);
+                foreach (var release in doc.RootElement.EnumerateArray())
+                {
+                    if (!release.TryGetProperty("binaries", out var binaries)) continue;
+                    string? pkgLink = null;
+                    string? checksum = null;
+                    foreach (var binary in binaries.EnumerateArray())
+                    {
+                        if (!binary.TryGetProperty("package", out var pkg)) continue;
+                        var candidateLink = pkg.TryGetProperty("link", out var l) ? l.GetString() : null;
+                        if (string.IsNullOrEmpty(candidateLink) ||
+                            !candidateLink.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+                            continue;
+                        pkgLink = candidateLink;
+                        checksum = pkg.TryGetProperty("checksum", out var c) ? c.GetString() : null;
+                        break;
+                    }
+                    if (string.IsNullOrEmpty(pkgLink)) continue;
+
+                    var releaseName = release.TryGetProperty("release_name", out var rn) ? (rn.GetString() ?? "") : "";
+                    var comparable = "";
+                    if (release.TryGetProperty("version_data", out var vd))
+                    {
+                        int vMaj = vd.TryGetProperty("major", out var jm) && jm.TryGetInt32(out var vmj) ? vmj : major;
+                        int vMin = vd.TryGetProperty("minor", out var jn) && jn.TryGetInt32(out var vmn) ? vmn : 0;
+                        int vSec = vd.TryGetProperty("security", out var js) && js.TryGetInt32(out var vsc) ? vsc : 0;
+                        int vPatch = vd.TryGetProperty("patch", out var jp) && jp.TryGetInt32(out var vpt) ? vpt : 0;
+                        comparable = vPatch > 0 ? $"{vMaj}.{vMin}.{vSec}.{vPatch}" : $"{vMaj}.{vMin}.{vSec}";
+                    }
+                    if (string.IsNullOrEmpty(comparable))
+                        comparable = NormalizeReleaseVersion(major, releaseName);
+
+                    result = new AdoptiumReleaseInfo(releaseName, comparable, pkgLink, checksum);
+                    break;
+                }
+            }
+            catch { }
+        }
+
+        if (result != null)
+            AdoptiumLatestCache[major] = (DateTime.UtcNow, result);
+
+        return result;
+    }
+
+    private static (string ReleaseName, string ComparableVersion) ReadLocalReleaseMarker(string javaExePath)
+    {
+        try
+        {
+            var binDir = Path.GetDirectoryName(javaExePath);
+            var homeDir = string.IsNullOrEmpty(binDir) ? null : Path.GetDirectoryName(binDir);
+            if (string.IsNullOrEmpty(homeDir)) return ("", "");
+            var marker = Path.Combine(homeDir, ".zenith-release");
+            if (File.Exists(marker))
+            {
+                var lines = File.ReadAllLines(marker);
+                if (lines.Length >= 2)
+                    return (lines[0].Trim(), lines[1].Trim());
+                if (lines.Length == 1)
+                    return (lines[0].Trim(), "");
+            }
+        }
+        catch { }
+        return ("", "");
+    }
+
+    private static void WriteLocalReleaseMarker(string javaHomeDir, string releaseName, string comparableVer)
+    {
+        try
+        {
+            File.WriteAllLines(Path.Combine(javaHomeDir, ".zenith-release"), new[] { releaseName, comparableVer });
+        }
+        catch { }
+    }
+
+    private static string ExtractComparableJavaVersion(int major, string javaExePath)
+    {
+        // Try folder name first (e.g. "jdk-21.0.13+1-jre" or "jdk8u452-b09-jre") as it preserves exact Adoptium security numbers.
+        try
+        {
+            var homeDir = Path.GetDirectoryName(Path.GetDirectoryName(javaExePath));
+            var folderName = string.IsNullOrEmpty(homeDir) ? "" : Path.GetFileName(homeDir);
+            var normalizedFromFolder = NormalizeReleaseVersion(major, folderName);
+            if (!string.IsNullOrEmpty(normalizedFromFolder))
+                return normalizedFromFolder;
+        }
+        catch { }
+
+        var raw = JavaVersionHelper.GetJavaFileVersion(javaExePath);
+        if (major == 8 && !string.IsNullOrEmpty(raw))
+        {
+            var m8 = System.Text.RegularExpressions.Regex.Match(raw, @"^(?:1\.8\.0[._]|8\.0\.)(\d+)");
+            if (m8.Success && int.TryParse(m8.Groups[1].Value, out int updateNum))
+            {
+                // Temurin 8 Windows FileVersion embeds e.g. 4520 for u452; scale back if > 1000.
+                if (updateNum >= 1000 && updateNum % 10 == 0) updateNum /= 10;
+                return $"8.0.{updateNum}";
+            }
+        }
+        return raw;
+    }
+
+    private static string NormalizeReleaseVersion(int major, string? tag)
+    {
+        if (string.IsNullOrWhiteSpace(tag)) return "";
+        if (major == 8)
+        {
+            var m8 = System.Text.RegularExpressions.Regex.Match(tag, @"(?:jdk)?8u(\d+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            if (m8.Success) return $"8.0.{m8.Groups[1].Value}";
+        }
+        var m = System.Text.RegularExpressions.Regex.Match(tag, @"(\d+\.\d+\.\d+(?:\.\d+)?)");
+        return m.Success ? m.Groups[1].Value : "";
     }
 
     // Adoptium exposes JDKs as "jdk-{major}*" and JRE builds unpack to "jdk-{major}.0+{build}-jre".

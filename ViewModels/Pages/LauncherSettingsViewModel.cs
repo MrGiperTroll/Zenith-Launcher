@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ZenithLauncher.Models;
@@ -20,6 +22,7 @@ namespace ZenithLauncher.ViewModels.Pages;
 public partial class LauncherSettingsViewModel : ViewModelBase
 {
     private bool _isLoadingConfig;
+    private bool _isSyncingHardwareAccel;
 
     public ThemeSettingsViewModel ThemeSettingsVm { get; }
 
@@ -28,6 +31,7 @@ public partial class LauncherSettingsViewModel : ViewModelBase
     public Action<string>? LanguageChanged { get; set; }
     public Action<bool>? DiscordRpcChanged { get; set; }
     public Action<double>? ScaleChanged { get; set; }
+    public Action<bool>? HardwareAccelRestartRequested { get; set; }
     public Action? OpenJavaInstallerRequested { get; set; }
     public Func<int, IProgress<double>?, Task<bool>>? DownloadJavaRequested { get; set; }
     public Func<string>? GetRecommendedJavaDisplay { get; set; }
@@ -161,6 +165,14 @@ public partial class LauncherSettingsViewModel : ViewModelBase
     partial void OnIsFullscreenChanged(bool value)
     {
         if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
+    }
+
+    partial void OnIsLockAspectRatioChanged(bool value)
+    {
+        if (_isLoadingConfig) return;
+        if (value && GameWidth > 0)
+            GameHeight = Math.Clamp(GameWidth * 9 / 16, 600, 4320);
+        SaveConfigRequested?.Invoke();
     }
 
     // --- Java Runtime ---
@@ -476,7 +488,35 @@ public partial class LauncherSettingsViewModel : ViewModelBase
 
     partial void OnHardwareAccelerationChanged(bool value)
     {
-        if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
+        if (_isLoadingConfig || _isSyncingHardwareAccel) return;
+        HardwareAccelRestartRequested?.Invoke(value);
+    }
+
+    public void RevertHardwareAcceleration()
+    {
+        _isSyncingHardwareAccel = true;
+        try
+        {
+            HardwareAcceleration = Program.StartupHardwareAcceleration;
+        }
+        finally
+        {
+            _isSyncingHardwareAccel = false;
+        }
+    }
+
+    public void CommitHardwareAcceleration(bool enabled)
+    {
+        _isSyncingHardwareAccel = true;
+        try
+        {
+            HardwareAcceleration = enabled;
+        }
+        finally
+        {
+            _isSyncingHardwareAccel = false;
+        }
+        SaveConfigRequested?.Invoke();
     }
 
     [RelayCommand]
@@ -586,6 +626,9 @@ public partial class LauncherSettingsViewModel : ViewModelBase
             JavaModes = new ObservableCollection<string>(new[] { "Recommended", "System", "Custom" });
             DirectoryModes = new ObservableCollection<string>(new[] { "Separate directory for each instance", "Family", "Do not use separate directories" });
             UpdateJavaDisplay();
+            var customCard = ThemeCards.FirstOrDefault(c => c.IsCustom);
+            if (customCard != null)
+                customCard.Name = L10n.T("theme_custom_card");
             SaveConfigRequested?.Invoke();
         }
     }
@@ -684,6 +727,39 @@ public partial class LauncherSettingsViewModel : ViewModelBase
     [ObservableProperty] private bool _isThemeRestartDialogOpen;
     [ObservableProperty] private string? _pendingThemeCardId;
 
+    private bool _isSyncingCustomColor;
+    private CancellationTokenSource? _customSaveDebounceCts;
+
+    [ObservableProperty] private string _customAccentHex = string.Empty;
+    [ObservableProperty] private HsvColor _customHsvColor = new(1.0, 262.0, 0.0, 1.0);
+    [ObservableProperty] private string _customColorHexInput = "#FFFFFF";
+
+    public IBrush CustomColorPreviewBrush
+    {
+        get
+        {
+            var hex = string.IsNullOrWhiteSpace(CustomAccentHex) ? "#FFFFFF" : CustomAccentHex;
+            return Color.TryParse(hex, out var c) ? new SolidColorBrush(c) : Brushes.White;
+        }
+    }
+
+    public string CustomColorDisplayHex => string.IsNullOrWhiteSpace(CustomAccentHex) ? "#FFFFFF" : CustomAccentHex;
+    public bool HasCustomColorSaved => !string.IsNullOrWhiteSpace(CustomAccentHex);
+
+    public ObservableCollection<ThemeSwatchModel> CustomColorSwatches { get; } = new()
+    {
+        new("#EF4444"),
+        new("#F97316"),
+        new("#EAB308"),
+        new("#22C55E"),
+        new("#10B981"),
+        new("#06B6D4"),
+        new("#3B82F6"),
+        new("#6366F1"),
+        new("#8B5CF6"),
+        new("#EC4899")
+    };
+
     public bool IsCustomFontOption => SelectedFontStyle == "Custom...";
 
     public ObservableCollection<ThemeCardModel> ThemeCards { get; } = new();
@@ -708,14 +784,6 @@ public partial class LauncherSettingsViewModel : ViewModelBase
             AccentHex = "#3B82F6",
             AccentBrush = new SolidColorBrush(Color.Parse("#3B82F6")),
             SoftBrush = new SolidColorBrush(Color.FromArgb(0x40, 59, 130, 246))
-        });
-        ThemeCards.Add(new ThemeCardModel
-        {
-            Id = "forest",
-            Name = "Forest",
-            AccentHex = "#10B981",
-            AccentBrush = new SolidColorBrush(Color.Parse("#10B981")),
-            SoftBrush = new SolidColorBrush(Color.FromArgb(0x40, 16, 185, 129))
         });
         ThemeCards.Add(new ThemeCardModel
         {
@@ -757,6 +825,157 @@ public partial class LauncherSettingsViewModel : ViewModelBase
             AccentBrush = new SolidColorBrush(Color.Parse("#EC4899")),
             SoftBrush = new SolidColorBrush(Color.FromArgb(0x40, 236, 72, 153))
         });
+        ThemeCards.Add(new ThemeCardModel
+        {
+            Id = "custom",
+            Name = L10n.T("theme_custom_card"),
+            AccentHex = "#FFFFFF",
+            AccentBrush = new SolidColorBrush(Colors.White),
+            SoftBrush = new SolidColorBrush(Color.FromArgb(0x40, 255, 255, 255)),
+            IsCustom = true
+        });
+    }
+
+    partial void OnCustomHsvColorChanged(HsvColor value)
+    {
+        if (_isLoadingConfig || _isSyncingCustomColor) return;
+
+        var hex = ZenithTheme.ColorToHex(value.ToRgb());
+        _isSyncingCustomColor = true;
+        try
+        {
+            if (!string.Equals(CustomColorHexInput, hex, StringComparison.OrdinalIgnoreCase))
+                CustomColorHexInput = hex;
+        }
+        finally
+        {
+            _isSyncingCustomColor = false;
+        }
+
+        ApplyCustomColorUpdate(hex, immediateSave: false);
+    }
+
+    partial void OnCustomColorHexInputChanged(string value)
+    {
+        if (_isLoadingConfig || _isSyncingCustomColor || string.IsNullOrWhiteSpace(value)) return;
+
+        var normalized = value.Trim();
+        if (!normalized.StartsWith('#'))
+            normalized = "#" + normalized;
+
+        if (normalized.Length != 7 || !Color.TryParse(normalized, out var parsed))
+            return;
+
+        var canonical = ZenithTheme.ColorToHex(parsed);
+        _isSyncingCustomColor = true;
+        try
+        {
+            CustomHsvColor = new HsvColor(parsed);
+        }
+        finally
+        {
+            _isSyncingCustomColor = false;
+        }
+
+        ApplyCustomColorUpdate(canonical, immediateSave: false);
+    }
+
+    private void ApplyCustomColorUpdate(string hex, bool immediateSave)
+    {
+        CustomAccentHex = hex;
+        OnPropertyChanged(nameof(CustomColorPreviewBrush));
+        OnPropertyChanged(nameof(CustomColorDisplayHex));
+        OnPropertyChanged(nameof(HasCustomColorSaved));
+
+        var customCard = ThemeCards.FirstOrDefault(c => c.IsCustom);
+        customCard?.UpdateColor(hex);
+
+        if (immediateSave)
+            SaveCustomThemeImmediately();
+        else
+            ScheduleAutoSaveCustomTheme();
+    }
+
+    private void ScheduleAutoSaveCustomTheme()
+    {
+        _customSaveDebounceCts?.Cancel();
+        _customSaveDebounceCts?.Dispose();
+        var cts = new CancellationTokenSource();
+        _customSaveDebounceCts = cts;
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await Task.Delay(160, cts.Token);
+                if (!cts.IsCancellationRequested)
+                    Dispatcher.UIThread.Post(() => SaveConfigRequested?.Invoke());
+            }
+            catch (OperationCanceledException) { }
+        });
+    }
+
+    public void SaveCustomThemeImmediately()
+    {
+        _customSaveDebounceCts?.Cancel();
+        _customSaveDebounceCts?.Dispose();
+        _customSaveDebounceCts = null;
+        if (!_isLoadingConfig)
+            SaveConfigRequested?.Invoke();
+    }
+
+    [RelayCommand]
+    public void PickCustomSwatch(string? hex)
+    {
+        if (string.IsNullOrWhiteSpace(hex) || !Color.TryParse(hex, out var parsed)) return;
+
+        var canonical = ZenithTheme.ColorToHex(parsed);
+        _isSyncingCustomColor = true;
+        try
+        {
+            CustomHsvColor = new HsvColor(parsed);
+            CustomColorHexInput = canonical;
+        }
+        finally
+        {
+            _isSyncingCustomColor = false;
+        }
+
+        ApplyCustomColorUpdate(canonical, immediateSave: true);
+    }
+
+    [RelayCommand]
+    public void ResetCustomThemeColor()
+    {
+        _isSyncingCustomColor = true;
+        try
+        {
+            CustomAccentHex = string.Empty;
+            CustomColorHexInput = "#FFFFFF";
+            CustomHsvColor = new HsvColor(1.0, 262.0, 0.0, 1.0);
+        }
+        finally
+        {
+            _isSyncingCustomColor = false;
+        }
+
+        OnPropertyChanged(nameof(CustomColorPreviewBrush));
+        OnPropertyChanged(nameof(CustomColorDisplayHex));
+        OnPropertyChanged(nameof(HasCustomColorSaved));
+
+        var customCard = ThemeCards.FirstOrDefault(c => c.IsCustom);
+        customCard?.UpdateColor("#FFFFFF");
+
+        SaveCustomThemeImmediately();
+    }
+
+    [RelayCommand]
+    public void ApplyCustomThemeCard()
+    {
+        var hex = !string.IsNullOrWhiteSpace(CustomAccentHex) ? CustomAccentHex : "#FFFFFF";
+        PendingThemeCardId = "custom";
+        ThemeSettingsVm.PendingRestartThemeHex = hex;
+        ThemeSettingsVm.IsRestartConfirmOpen = true;
     }
 
     public void ApplyCurrentThemeLive()
@@ -773,6 +992,9 @@ public partial class LauncherSettingsViewModel : ViewModelBase
     [RelayCommand]
     public void SelectThemeCard(string cardId)
     {
+        if (cardId == "custom")
+            return;
+
         if (cardId == SelectedThemeCardId) return;
 
         PendingThemeCardId = cardId;
@@ -851,7 +1073,9 @@ public partial class LauncherSettingsViewModel : ViewModelBase
         ThemeSettingsVm = themeSettingsVm;
         ThemeSettingsVm.ThemeApplied = hex =>
         {
-            var matched = ThemeCards.FirstOrDefault(c => c.AccentHex.Equals(hex, StringComparison.OrdinalIgnoreCase));
+            var matched = !string.IsNullOrEmpty(PendingThemeCardId)
+                ? ThemeCards.FirstOrDefault(c => c.Id == PendingThemeCardId)
+                : ThemeCards.FirstOrDefault(c => c.AccentHex.Equals(hex, StringComparison.OrdinalIgnoreCase));
             if (matched != null)
             {
                 SelectedThemeCardId = matched.Id;
@@ -877,17 +1101,30 @@ public partial class LauncherSettingsViewModel : ViewModelBase
             if (cfg.RamMb > 0) RamMb = cfg.RamMb;
             if (cfg.GameWidth > 0) GameWidth = cfg.GameWidth;
             if (cfg.GameHeight > 0) GameHeight = cfg.GameHeight;
+            IsLockAspectRatio = cfg.IsLockAspectRatio;
             IsFullscreen = cfg.IsFullscreen;
             if (!string.IsNullOrWhiteSpace(cfg.JvmArgs)) JvmArgs = cfg.JvmArgs;
             if (!string.IsNullOrWhiteSpace(cfg.LaunchBehavior)) SelectedLaunchBehavior = cfg.LaunchBehavior;
             if (!string.IsNullOrWhiteSpace(cfg.SelectedDirectoryMode)) SelectedDirectoryMode = cfg.SelectedDirectoryMode;
             if (!string.IsNullOrWhiteSpace(cfg.JavaMode)) SelectedJavaMode = cfg.JavaMode;
             if (!string.IsNullOrWhiteSpace(cfg.CustomJavaPath)) CustomJavaPath = cfg.CustomJavaPath;
+            ShowReleases = cfg.ShowReleases;
+            ShowSnapshots = cfg.ShowSnapshots;
+            ShowBetas = cfg.ShowBetas;
+            ShowAlphas = cfg.ShowAlphas;
             UseFlatVersionList = cfg.UseFlatVersionList;
             AutoManageJava = cfg.AutoManageJava;
             DiscordRpcEnabled = cfg.DiscordRpcEnabled;
             MinimizeToTrayOnClose = cfg.MinimizeToTrayOnClose;
-            HardwareAcceleration = cfg.HardwareAcceleration;
+            _isSyncingHardwareAccel = true;
+            try
+            {
+                HardwareAcceleration = cfg.HardwareAcceleration;
+            }
+            finally
+            {
+                _isSyncingHardwareAccel = false;
+            }
             if (cfg.LauncherScale > 0.4 && cfg.LauncherScale < 3.0)
             {
                 LauncherScale = cfg.LauncherScale;
@@ -895,17 +1132,51 @@ public partial class LauncherSettingsViewModel : ViewModelBase
                 ScalePercentText = Math.Round(cfg.LauncherScale * 100).ToString("0");
             }
 
-            if (!string.IsNullOrWhiteSpace(cfg.Java25Path) && File.Exists(cfg.Java25Path) && (JavaVersionHelper.GetJavaMajor(cfg.Java25Path) == 25 || JavaVersionHelper.GetJavaMajor(cfg.Java25Path) == 0)) Java25Location = cfg.Java25Path;
-            else { var d25 = JavaVersionHelper.FindJavaForVersion(25); if (!string.IsNullOrWhiteSpace(d25)) Java25Location = d25; }
+            // Apply persisted Java paths immediately; verify/auto-discover missing slots off UI thread
+            // so cold startup is never blocked by FileVersionInfo/Registry/Program Files scans.
+            bool has25 = !string.IsNullOrWhiteSpace(cfg.Java25Path) && File.Exists(cfg.Java25Path);
+            bool has21 = !string.IsNullOrWhiteSpace(cfg.Java21Path) && File.Exists(cfg.Java21Path);
+            bool has17 = !string.IsNullOrWhiteSpace(cfg.Java17Path) && File.Exists(cfg.Java17Path);
+            bool has8 = !string.IsNullOrWhiteSpace(cfg.Java8Path) && File.Exists(cfg.Java8Path);
 
-            if (!string.IsNullOrWhiteSpace(cfg.Java21Path) && File.Exists(cfg.Java21Path) && (JavaVersionHelper.GetJavaMajor(cfg.Java21Path) == 21 || JavaVersionHelper.GetJavaMajor(cfg.Java21Path) == 0)) Java21Location = cfg.Java21Path;
-            else { var d21 = JavaVersionHelper.FindJavaForVersion(21); if (!string.IsNullOrWhiteSpace(d21)) Java21Location = d21; }
+            if (has25) Java25Location = cfg.Java25Path;
+            if (has21) Java21Location = cfg.Java21Path;
+            if (has17) Java17Location = cfg.Java17Path;
+            if (has8) Java8Location = cfg.Java8Path;
 
-            if (!string.IsNullOrWhiteSpace(cfg.Java17Path) && File.Exists(cfg.Java17Path) && (JavaVersionHelper.GetJavaMajor(cfg.Java17Path) == 17 || JavaVersionHelper.GetJavaMajor(cfg.Java17Path) == 0)) Java17Location = cfg.Java17Path;
-            else { var d17 = JavaVersionHelper.FindJavaForVersion(17); if (!string.IsNullOrWhiteSpace(d17)) Java17Location = d17; }
+            var snap25 = cfg.Java25Path;
+            var snap21 = cfg.Java21Path;
+            var snap17 = cfg.Java17Path;
+            var snap8 = cfg.Java8Path;
+            _ = Task.Run(() =>
+            {
+                static string? ResolveValidOrFind(string saved, int major)
+                {
+                    if (!string.IsNullOrWhiteSpace(saved) && File.Exists(saved))
+                    {
+                        var detectedMajor = JavaVersionHelper.GetJavaMajor(saved);
+                        if (detectedMajor == major || detectedMajor == 0)
+                            return null; // persisted path is already valid
+                    }
+                    return JavaVersionHelper.FindJavaForVersion(major);
+                }
 
-            if (!string.IsNullOrWhiteSpace(cfg.Java8Path) && File.Exists(cfg.Java8Path) && (JavaVersionHelper.GetJavaMajor(cfg.Java8Path) == 8 || JavaVersionHelper.GetJavaMajor(cfg.Java8Path) == 0)) Java8Location = cfg.Java8Path;
-            else { var d8 = JavaVersionHelper.FindJavaForVersion(8); if (!string.IsNullOrWhiteSpace(d8)) Java8Location = d8; }
+                var d25 = ResolveValidOrFind(snap25, 25);
+                var d21 = ResolveValidOrFind(snap21, 21);
+                var d17 = ResolveValidOrFind(snap17, 17);
+                var d8 = ResolveValidOrFind(snap8, 8);
+
+                if (d25 != null || d21 != null || d17 != null || d8 != null)
+                {
+                    Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                    {
+                        if (!string.IsNullOrWhiteSpace(d25) && string.IsNullOrWhiteSpace(Java25Location)) Java25Location = d25;
+                        if (!string.IsNullOrWhiteSpace(d21) && string.IsNullOrWhiteSpace(Java21Location)) Java21Location = d21;
+                        if (!string.IsNullOrWhiteSpace(d17) && string.IsNullOrWhiteSpace(Java17Location)) Java17Location = d17;
+                        if (!string.IsNullOrWhiteSpace(d8) && string.IsNullOrWhiteSpace(Java8Location)) Java8Location = d8;
+                    });
+                }
+            });
 
             if (!string.IsNullOrWhiteSpace(cfg.Language))
                 SelectedLanguage = cfg.Language;
@@ -917,6 +1188,50 @@ public partial class LauncherSettingsViewModel : ViewModelBase
             CustomFontPath = cfg.CustomFontPath ?? string.Empty;
             CustomFontDisplayName = !string.IsNullOrWhiteSpace(CustomFontPath) ? Path.GetFileName(CustomFontPath) : string.Empty;
 
+            var savedCustomHex = !string.IsNullOrWhiteSpace(cfg.CustomAccentColor)
+                ? cfg.CustomAccentColor.Trim()
+                : (cfg.SelectedThemeCardId == "custom" && !string.IsNullOrWhiteSpace(cfg.AccentColor) ? cfg.AccentColor.Trim() : string.Empty);
+
+            var customCard = ThemeCards.FirstOrDefault(c => c.IsCustom);
+            if (customCard != null)
+                customCard.Name = L10n.T("theme_custom_card");
+
+            if (!string.IsNullOrWhiteSpace(savedCustomHex) && Color.TryParse(savedCustomHex, out var customColor))
+            {
+                var canonical = ZenithTheme.ColorToHex(customColor);
+                _isSyncingCustomColor = true;
+                try
+                {
+                    CustomAccentHex = canonical;
+                    CustomColorHexInput = canonical;
+                    CustomHsvColor = new HsvColor(customColor);
+                }
+                finally
+                {
+                    _isSyncingCustomColor = false;
+                }
+                customCard?.UpdateColor(canonical);
+            }
+            else
+            {
+                _isSyncingCustomColor = true;
+                try
+                {
+                    CustomAccentHex = string.Empty;
+                    CustomColorHexInput = "#FFFFFF";
+                    CustomHsvColor = new HsvColor(1.0, 262.0, 0.0, 1.0);
+                }
+                finally
+                {
+                    _isSyncingCustomColor = false;
+                }
+                customCard?.UpdateColor("#FFFFFF");
+            }
+
+            OnPropertyChanged(nameof(CustomColorPreviewBrush));
+            OnPropertyChanged(nameof(CustomColorDisplayHex));
+            OnPropertyChanged(nameof(HasCustomColorSaved));
+
             var currentAccent = !string.IsNullOrWhiteSpace(cfg.AccentColor)
                 ? cfg.AccentColor
                 : (!string.IsNullOrWhiteSpace(cfg.SimpleAccentColor) ? cfg.SimpleAccentColor : "#8B5CF6");
@@ -925,7 +1240,6 @@ public partial class LauncherSettingsViewModel : ViewModelBase
                 ? cfg.SelectedThemeCardId
                 : (currentAccent.ToUpperInvariant() switch
                 {
-                    "#10B981" or "#059669" => "forest",
                     "#06B6D4" or "#0891B2" => "mint",
                     "#EAB308" or "#D97706" => "bee",
                     "#FB923C" or "#EA580C" or "#F97316" => "parchment",
@@ -935,7 +1249,7 @@ public partial class LauncherSettingsViewModel : ViewModelBase
                     _ => "zenith"
                 });
 
-            if (matchedId == "custom" || !ThemeCards.Any(x => x.Id == matchedId))
+            if (!ThemeCards.Any(x => x.Id == matchedId))
             {
                 matchedId = "zenith";
             }
@@ -958,12 +1272,17 @@ public partial class LauncherSettingsViewModel : ViewModelBase
         cfg.RamMb = RamMb;
         cfg.GameWidth = GameWidth;
         cfg.GameHeight = GameHeight;
+        cfg.IsLockAspectRatio = IsLockAspectRatio;
         cfg.IsFullscreen = IsFullscreen;
         cfg.JvmArgs = JvmArgs;
         cfg.LaunchBehavior = SelectedLaunchBehavior;
         cfg.SelectedDirectoryMode = SelectedDirectoryMode;
         cfg.JavaMode = SelectedJavaMode;
         cfg.CustomJavaPath = CustomJavaPath;
+        cfg.ShowReleases = ShowReleases;
+        cfg.ShowSnapshots = ShowSnapshots;
+        cfg.ShowBetas = ShowBetas;
+        cfg.ShowAlphas = ShowAlphas;
         cfg.UseFlatVersionList = UseFlatVersionList;
         cfg.AutoManageJava = AutoManageJava;
         cfg.DiscordRpcEnabled = DiscordRpcEnabled;
@@ -984,17 +1303,18 @@ public partial class LauncherSettingsViewModel : ViewModelBase
         cfg.CustomFontPath = CustomFontPath;
 
         cfg.SelectedThemeCardId = SelectedThemeCardId;
-        cfg.IsCustomTheme = false;
+        cfg.CustomAccentColor = CustomAccentHex;
+        cfg.IsCustomTheme = SelectedThemeCardId == "custom";
 
         cfg.AccentColor = SelectedThemeCardId switch
         {
-            "forest" => "#10B981",
             "mint" => "#06B6D4",
             "bee" => "#EAB308",
             "parchment" => "#FB923C",
             "cobalt" => "#3B82F6",
             "crimson" => "#E11D48",
             "rose" => "#EC4899",
+            "custom" => !string.IsNullOrWhiteSpace(CustomAccentHex) ? CustomAccentHex : "#8B5CF6",
             _ => "#8B5CF6"
         };
         cfg.SimpleAccentColor = cfg.AccentColor;
@@ -1009,13 +1329,67 @@ public partial class LauncherSettingsViewModel : ViewModelBase
 }
 
 
+public class ThemeSwatchModel
+{
+    public string Hex { get; }
+    public IBrush ColorBrush { get; }
+
+    public ThemeSwatchModel(string hex)
+    {
+        Hex = hex;
+        ColorBrush = Color.TryParse(hex, out var c) ? new SolidColorBrush(c) : Brushes.White;
+    }
+}
+
 public class ThemeCardModel : ObservableObject
 {
     public string Id { get; set; } = "";
-    public string Name { get; set; } = "";
-    public string AccentHex { get; set; } = "";
-    public IBrush AccentBrush { get; set; } = Brushes.Transparent;
-    public IBrush SoftBrush { get; set; } = Brushes.Transparent;
+    public bool IsCustom { get; set; }
+
+    private string _name = "";
+    public string Name
+    {
+        get => _name;
+        set => SetProperty(ref _name, value);
+    }
+
+    private string _accentHex = "";
+    public string AccentHex
+    {
+        get => _accentHex;
+        set => SetProperty(ref _accentHex, value);
+    }
+
+    private IBrush _accentBrush = Brushes.Transparent;
+    public IBrush AccentBrush
+    {
+        get => _accentBrush;
+        set
+        {
+            if (SetProperty(ref _accentBrush, value))
+            {
+                OnPropertyChanged(nameof(CardBorderBrush));
+                OnPropertyChanged(nameof(RadioBorderBrush));
+            }
+        }
+    }
+
+    private IBrush _softBrush = Brushes.Transparent;
+    public IBrush SoftBrush
+    {
+        get => _softBrush;
+        set => SetProperty(ref _softBrush, value);
+    }
+
+    public void UpdateColor(string hex)
+    {
+        if (!Color.TryParse(hex, out var color))
+            color = Colors.White;
+
+        AccentHex = ZenithTheme.ColorToHex(color);
+        AccentBrush = new SolidColorBrush(color);
+        SoftBrush = new SolidColorBrush(Color.FromArgb(0x40, color.R, color.G, color.B));
+    }
 
     private bool _isSelected;
     public bool IsSelected

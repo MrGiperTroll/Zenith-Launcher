@@ -221,14 +221,14 @@ public class AccountService : IAccountService
             try
             {
                 var json = File.ReadAllText(_accountsFilePath);
-                AccountStore? store = null;
+                AccountsStore? store = null;
                 var trimmed = json.TrimStart();
                 if (trimmed.StartsWith("["))
                 {
-                    var legacyList = JsonSerializer.Deserialize<List<AccountModel>>(json);
+                    var legacyList = JsonSerializer.Deserialize(json, LauncherJsonContext.Default.ListAccountModel);
                     if (legacyList != null)
                     {
-                        store = new AccountStore
+                        store = new AccountsStore
                         {
                             Accounts = legacyList,
                             ActiveAccountId = legacyList.FirstOrDefault()?.Id
@@ -237,7 +237,7 @@ public class AccountService : IAccountService
                 }
                 else
                 {
-                    store = JsonSerializer.Deserialize<AccountStore>(json);
+                    store = JsonSerializer.Deserialize(json, LauncherJsonContext.Default.AccountsStore);
                 }
 
                 if (store != null)
@@ -245,9 +245,10 @@ public class AccountService : IAccountService
                     _accounts = store.Accounts ?? new();
                     _activeAccountId = store.ActiveAccountId ?? _accounts.FirstOrDefault()?.Id;
 
-                    // Decrypt tokens
+                    // Decrypt tokens (skip offline placeholders to avoid startup FormatException overhead)
                     foreach (var acc in _accounts)
                     {
+                        if (acc.Type == AccountType.Offline) continue;
                         acc.AccessToken = TryDecrypt(acc.AccessToken, acc.Username);
                         acc.RefreshToken = TryDecrypt(acc.RefreshToken, acc.Username);
                     }
@@ -274,13 +275,13 @@ public class AccountService : IAccountService
             Type = a.Type
         }).ToList();
 
-        var storeToSave = new AccountStore
+        var storeToSave = new AccountsStore
         {
             Accounts = clone,
             ActiveAccountId = _activeAccountId
         };
 
-        var json = JsonSerializer.Serialize(storeToSave, new JsonSerializerOptions { WriteIndented = true });
+        var json = JsonSerializer.Serialize(storeToSave, LauncherJsonContext.Default.AccountsStore);
         File.WriteAllText(_accountsFilePath, json);
     }
 
@@ -313,11 +314,5 @@ public class AccountService : IAccountService
             LauncherLog.Error("DPAPI encryption failed — storing token as plaintext (less secure).", ex);
             return token;
         }
-    }
-
-    private class AccountStore
-    {
-        public List<AccountModel> Accounts { get; set; } = new();
-        public string? ActiveAccountId { get; set; }
     }
 }

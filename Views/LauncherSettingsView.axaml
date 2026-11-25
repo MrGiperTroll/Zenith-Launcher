@@ -3,6 +3,7 @@
              xmlns:vm="using:ZenithLauncher.ViewModels"
              xmlns:pages="using:ZenithLauncher.ViewModels.Pages"
              xmlns:converters="using:ZenithLauncher.Converters"
+             xmlns:controls="using:ZenithLauncher.Controls"
              xmlns:views="using:ZenithLauncher.Views"
              xmlns:l10n="using:ZenithLauncher.Extensions"
              xmlns:services="using:ZenithLauncher.Services"
@@ -12,7 +13,103 @@
              Background="{DynamicResource BgBrush}"
              UseLayoutRounding="True">
 
+    <UserControl.Resources>
+        <Flyout x:Key="CustomThemeColorFlyout" Placement="BottomEdgeAlignedLeft" Closing="OnCustomColorFlyoutClosing">
+            <Flyout.FlyoutPresenterTheme>
+                <ControlTheme TargetType="FlyoutPresenter" BasedOn="{StaticResource {x:Type FlyoutPresenter}}">
+                    <Setter Property="Padding" Value="0"/>
+                    <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}"/>
+                    <Setter Property="BorderThickness" Value="1"/>
+                    <Setter Property="CornerRadius" Value="12"/>
+                    <Setter Property="ClipToBounds" Value="True"/>
+                </ControlTheme>
+            </Flyout.FlyoutPresenterTheme>
+            <Border x:DataType="pages:LauncherSettingsViewModel"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Padding="14"
+                    Width="292">
+                <StackPanel Spacing="12">
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8" VerticalAlignment="Center">
+                        <Border Grid.Column="0" Width="16" Height="16" CornerRadius="5"
+                                Background="{Binding CustomColorPreviewBrush}"
+                                BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1"
+                                VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="1" Text="{l10n:Tr Key=theme_custom_picker_title}"
+                                   FontSize="12.5" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        <Button Grid.Column="2" Classes="rowActionBtn" Width="24" Height="24"
+                                IsVisible="{Binding HasCustomColorSaved}"
+                                Command="{Binding ResetCustomThemeColorCommand}"
+                                ToolTip.Tip="{l10n:Tr Key=theme_custom_reset}">
+                            <PathIcon Data="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"
+                                      Width="12" Height="12"/>
+                        </Button>
+                    </Grid>
+
+                    <controls:ColorPadControl HorizontalAlignment="Stretch"
+                                              Height="156"
+                                              CornerRadius="10"
+                                              HsvColor="{Binding CustomHsvColor, Mode=TwoWay}"/>
+
+                    <ColorSlider Orientation="Horizontal"
+                                 ColorModel="Hsva"
+                                 ColorComponent="Component1"
+                                 IsPerceptive="False"
+                                 HorizontalAlignment="Stretch"
+                                 HsvColor="{Binding CustomHsvColor, Mode=TwoWay}"/>
+
+                    <ItemsControl ItemsSource="{Binding CustomColorSwatches}" HorizontalAlignment="Stretch">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Columns="10"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="pages:ThemeSwatchModel">
+                                <Button Classes="swatchDotBtn"
+                                        Command="{Binding $parent[UserControl].((pages:LauncherSettingsViewModel)DataContext).PickCustomSwatchCommand}"
+                                        CommandParameter="{Binding Hex}"
+                                        ToolTip.Tip="{Binding Hex}">
+                                    <Border Width="18" Height="18" CornerRadius="9"
+                                            Background="{Binding ColorBrush}"
+                                            BorderBrush="{DynamicResource BorderStrongBrush}"
+                                            BorderThickness="1"/>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" VerticalAlignment="Center">
+                        <TextBox Grid.Column="0" Classes="darkInput" Height="32" FontSize="12"
+                                 MaxLength="7" Text="{Binding CustomColorHexInput, Mode=TwoWay}"
+                                 PlaceholderText="#RRGGBB"/>
+                        <Button Grid.Column="1" Classes="primaryBtn" Height="32" Padding="14,0" FontSize="12"
+                                Content="{l10n:Tr Key=theme_custom_apply}"
+                                Click="OnCustomColorApplyClicked"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Flyout>
+    </UserControl.Resources>
+
     <UserControl.Styles>
+        <Style Selector="Button.swatchDotBtn">
+            <Setter Property="Width" Value="22"/>
+            <Setter Property="Height" Value="22"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="CornerRadius" Value="11"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Button.swatchDotBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+        </Style>
         <Style Selector="ScrollBar">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
@@ -117,44 +214,6 @@
             <Setter Property="HorizontalAlignment" Value="Left"/>
             <Setter Property="LineHeight" Value="16"/>
         </Style>
-
-        <!-- Scoped Scale Slider (Isolated specifically to interface scaling) -->
-        <Style Selector="Slider.scaleSlider">
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="FocusAdorner" Value="{x:Null}"/>
-            <Setter Property="Height" Value="24"/>
-        </Style>
-        <Style Selector="Slider.scaleSlider /template/ Track#PART_Track">
-            <Setter Property="MinHeight" Value="24"/>
-        </Style>
-        <Style Selector="Slider.scaleSlider /template/ Thumb">
-            <Setter Property="Width" Value="14"/>
-            <Setter Property="Height" Value="14"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Background" Value="{DynamicResource OnAccentBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="BorderThickness" Value="3"/>
-            <Setter Property="CornerRadius" Value="7"/>
-            <Setter Property="ClipToBounds" Value="False"/>
-            <Setter Property="RenderTransform" Value="none"/>
-        </Style>
-        <Style Selector="Slider.scaleSlider /template/ Thumb:pointerover">
-            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrushHover}"/>
-            <Setter Property="RenderTransform" Value="none"/>
-        </Style>
-        <Style Selector="Slider.scaleSlider /template/ Thumb:pressed">
-            <Setter Property="BorderBrush" Value="{DynamicResource AccentPressed}"/>
-            <Setter Property="RenderTransform" Value="none"/>
-        </Style>
-        <Style Selector="Slider.scaleSlider /template/ RepeatButton#PART_DecreaseButton">
-            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
-        <Style Selector="Slider.scaleSlider /template/ RepeatButton#PART_IncreaseButton">
-            <Setter Property="Background" Value="{DynamicResource BorderDarkBrush}"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
     </UserControl.Styles>
 
     <Panel>
@@ -170,7 +229,7 @@
                         <Button Classes="sideTab" Classes.active="{Binding IsSettingsTabGame}" Command="{Binding SwitchSettingsTabCommand}" CommandParameter="Game">
                             <Grid ColumnDefinitions="Auto,*">
                                 <Border Width="28" Height="28" Background="{DynamicResource IconChipBrush}" CornerRadius="6" VerticalAlignment="Center">
-                                    <PathIcon Data="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10 7H8v3H6v-3H3v-2h3V8h2v3h3v2zm4.5 2c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm3-3c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" Width="14" Height="14" Foreground="{Binding IsSettingsTabGame, Converter={x:Static converters:EditInstanceWindowConverters.ActiveIcon}}"/>
+                                    <PathIcon Data="M5,1 L11,1 L11,2 L13,2 L13,3 L14,3 L14,5 L15,5 L15,11 L14,11 L14,12 L12,12 L12,10 L13,10 L13,7 L12,7 L12,6 L11,6 L11,7 L10,7 L10,8 L9,8 L9,9 L8,9 L8,10 L7,10 L7,11 L6,11 L6,12 L5,12 L5,13 L4,13 L4,14 L3,14 L3,15 L1,15 L1,13 L2,13 L2,12 L3,12 L3,11 L4,11 L4,10 L5,10 L5,9 L6,9 L6,8 L7,8 L7,7 L8,7 L8,6 L9,6 L9,5 L10,5 L10,4 L9,4 L9,3 L6,3 L6,4 L4,4 L4,2 L5,2 Z" Width="15" Height="15" Foreground="{Binding IsSettingsTabGame, Converter={x:Static converters:EditInstanceWindowConverters.ActiveIcon}}"/>
                                 </Border>
                                 <TextBlock Grid.Column="1" Text="{l10n:Tr set_game}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsSettingsTabGame, Converter={x:Static converters:EditInstanceWindowConverters.ActiveText}}"/>
                             </Grid>
@@ -180,7 +239,7 @@
                         <Button Classes="sideTab" Classes.active="{Binding IsSettingsTabJava}" Command="{Binding SwitchSettingsTabCommand}" CommandParameter="Java">
                             <Grid ColumnDefinitions="Auto,*">
                                 <Border Width="28" Height="28" Background="{DynamicResource IconChipBrush}" CornerRadius="6" VerticalAlignment="Center">
-                                    <PathIcon Data="M20 3H4v10c0 2.21 1.79 4 4 4h6c2.21 0 4-1.79 4-4v-3h2c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 5h-2V5h2v3zM2 19h18v2H2z" Width="14" Height="14" Foreground="{Binding IsSettingsTabJava, Converter={x:Static converters:EditInstanceWindowConverters.ActiveIcon}}"/>
+                                    <PathIcon Data="M9.8,8.5 C8.4,7.0 10.9,5.6 9.6,3.8 C9.0,3.0 9.1,2.2 9.8,1.5 C10.6,2.3 10.6,3.2 11.1,4.0 C12.3,5.8 9.9,7.1 11.1,8.5 Z M13.6,8.2 C12.5,7.0 14.4,5.9 13.4,4.4 C12.9,3.7 13.0,3.0 13.6,2.4 C14.3,3.1 14.3,3.9 14.7,4.5 C15.7,6.0 13.7,7.0 14.7,8.2 Z M4.5,10 H17.5 V13.5 C17.5,16.5 14.8,18.5 11.0,18.5 C7.2,18.5 4.5,16.5 4.5,13.5 Z M17.5,10.5 H19.3 C20.6,10.5 21.5,11.4 21.5,12.8 C21.5,14.2 20.6,15.2 19.3,15.2 H17.5 V13.7 H19.0 C19.6,13.7 20.0,13.3 20.0,12.8 C20.0,12.3 19.6,12.0 19.0,12.0 H17.5 Z M3,20.2 C6.2,21.6 15.8,21.6 19,20.2 C19.5,20.0 19.9,20.4 19.6,20.9 C16.0,22.4 6.0,22.4 2.4,20.9 C2.1,20.4 2.5,20.0 3,20.2 Z" Width="15" Height="15" Foreground="{Binding IsSettingsTabJava, Converter={x:Static converters:EditInstanceWindowConverters.ActiveIcon}}"/>
                                 </Border>
                                 <TextBlock Grid.Column="1" Text="{l10n:Tr set_java}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{Binding IsSettingsTabJava, Converter={x:Static converters:EditInstanceWindowConverters.ActiveText}}"/>
                             </Grid>
@@ -526,7 +585,7 @@
                                         <TextBlock Classes="itemTitle" Text="{l10n:Tr set_hardware_accel}"/>
                                         <TextBlock Classes="itemDesc" Text="{l10n:Tr set_hardware_accel_hint}"/>
                                     </StackPanel>
-                                    <ToggleSwitch Grid.Column="1" IsChecked="{Binding HardwareAcceleration}"
+                                    <ToggleSwitch Grid.Column="1" IsChecked="{Binding HardwareAcceleration, Mode=TwoWay}"
                                                   OnContent="{x:Null}" OffContent="{x:Null}"
                                                   HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                 </Grid>
@@ -598,6 +657,7 @@
                                         <DataTemplate x:DataType="pages:ThemeCardModel">
                                             <Button Command="{Binding $parent[UserControl].((pages:LauncherSettingsViewModel)DataContext).SelectThemeCardCommand}"
                                                     CommandParameter="{Binding Id}"
+                                                    Click="OnThemeCardClicked"
                                                     Background="Transparent"
                                                     BorderThickness="0"
                                                     Padding="0"
@@ -622,15 +682,8 @@
                                                             BorderThickness="{Binding CardBorderThickness}"
                                                             BorderBrush="{Binding CardBorderBrush}">
                                                         <Grid RowDefinitions="Auto,Auto,*">
-                                                            <!-- Row 0: Top Accent Pill + Radio Checkmark -->
-                                                            <Grid Grid.Row="0" ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                                                <Border Grid.Column="0" Width="48" Height="6" CornerRadius="3" Background="{Binding AccentBrush}" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-                                                                <Border Grid.Column="1" Width="16" Height="16" CornerRadius="8"
-                                                                        BorderBrush="{Binding RadioBorderBrush}"
-                                                                        BorderThickness="1.5" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                                                    <Border Width="7" Height="7" CornerRadius="3.5" Background="{Binding AccentBrush}" IsVisible="{Binding IsSelected}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                                </Border>
-                                                            </Grid>
+                                                            <!-- Row 0: Top Accent Pill -->
+                                                            <Border Grid.Row="0" Width="48" Height="6" CornerRadius="3" Background="{Binding AccentBrush}" HorizontalAlignment="Left" VerticalAlignment="Center"/>
 
                                                             <!-- Row 1: Sub line below pill -->
                                                             <Border Grid.Row="1" Width="36" Height="4" CornerRadius="2" Background="{DynamicResource BorderDarkBrush}" HorizontalAlignment="Left" Margin="0,5,0,6"/>
@@ -646,9 +699,16 @@
                                                     </Border>
                                                     
                                                     <!-- Theme Name Label -->
-                                                    <TextBlock Text="{Binding Name}" FontSize="12"
-                                                               HorizontalAlignment="Center"
-                                                               Foreground="{Binding NameForegroundBrush}"/>
+                                                    <Panel HorizontalAlignment="Center">
+                                                        <TextBlock Text="{Binding Name}" FontSize="12"
+                                                                   IsVisible="{Binding !IsCustom}"
+                                                                   HorizontalAlignment="Center"
+                                                                   Foreground="{Binding NameForegroundBrush}"/>
+                                                        <TextBlock Text="{l10n:Tr Key=theme_custom_card}" FontSize="12"
+                                                                   IsVisible="{Binding IsCustom}"
+                                                                   HorizontalAlignment="Center"
+                                                                   Foreground="{Binding NameForegroundBrush}"/>
+                                                    </Panel>
                                                 </StackPanel>
                                             </Button>
                                         </DataTemplate>

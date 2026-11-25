@@ -22,10 +22,12 @@ public partial class GameVersionFilterItem : ObservableObject
     private bool _isVisible = true;
 }
 
-public partial class GameVersionFilterViewModel : ObservableObject
+public partial class GameVersionFilterViewModel : ObservableObject, IDisposable
 {
     public ObservableCollection<GameVersionFilterItem> Items { get; } = new();
     public ObservableCollection<GameVersionFilterItem> FilteredItems { get; } = new();
+    private readonly Action _languageChangedHandler;
+    private bool _disposed;
 
     [ObservableProperty]
     private string _searchText = "";
@@ -54,11 +56,24 @@ public partial class GameVersionFilterViewModel : ObservableObject
 
     public GameVersionFilterViewModel()
     {
-        L10n.LanguageChanged += () =>
+        _languageChangedHandler = () =>
         {
             OnPropertyChanged(nameof(ButtonText));
             OnPropertyChanged(nameof(SelectedText));
         };
+        L10n.LanguageChanged += _languageChangedHandler;
+    }
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+        L10n.LanguageChanged -= _languageChangedHandler;
+        FilterChanged = null;
+        foreach (var item in Items)
+            item.PropertyChanged -= OnItemPropertyChanged;
+        Items.Clear();
+        FilteredItems.Clear();
     }
 
     partial void OnSearchTextChanged(string value) => ApplyFilter();

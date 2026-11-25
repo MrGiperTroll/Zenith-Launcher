@@ -106,4 +106,13 @@ public partial class FileListView : UserControl
             }
         }
     }
+
+    private void OnSortOptionClicked(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button { DataContext: string option } && DataContext is FileListViewModel vm)
+        {
+            vm.SelectSortCommand.Execute(option);
+            SortDropdownBtn.Flyout?.Hide();
+        }
+    }
 }

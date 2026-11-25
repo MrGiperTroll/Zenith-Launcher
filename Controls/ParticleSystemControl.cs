@@ -163,10 +163,8 @@ public class ParticleSystemControl : Control
 
     private void OnTimerTick(object? sender, EventArgs e)
     {
-        if (!IsVisible)
+        if (!IsVisible || !IsEffectivelyVisible || TopLevel.GetTopLevel(this) is Window { WindowState: WindowState.Minimized })
         {
-            StopTimer();
-            _particles.Clear();
             return;
         }
         UpdateParticles();

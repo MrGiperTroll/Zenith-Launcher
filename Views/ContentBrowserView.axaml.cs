@@ -1,8 +1,11 @@
-﻿using Avalonia;
+﻿using System;
+using System.ComponentModel;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
+using ZenithLauncher.UI.Animations;
 using ZenithLauncher.ViewModels;
 
 namespace ZenithLauncher.Views;
@@ -10,12 +13,94 @@ namespace ZenithLauncher.Views;
 public partial class ContentBrowserView : UserControl
 {
     private bool _scrollAttached;
+    private ContentBrowserViewModel? _boundVm;
 
     public ContentBrowserView()
     {
         InitializeComponent();
-        ResultsList.AddHandler(ScrollViewer.ScrollChangedEvent, OnResultsScrollChanged);
         ResultsList.AttachedToVisualTree += OnResultsListAttached;
+        SmoothScrollBehavior.Attach(ResultsList, wheelStep: 90.0, damping: 14.0);
+        DataContextChanged += OnDataContextChanged;
+        DetachedFromVisualTree += OnDetached;
+    }
+
+    private void OnDataContextChanged(object? sender, EventArgs e)
+    {
+        DetachVm();
+        if (DataContext is ContentBrowserViewModel vm)
+        {
+            _boundVm = vm;
+            _boundVm.PropertyChanged += OnVmPropertyChanged;
+            SyncOverlays();
+        }
+    }
+
+    private void OnDetached(object? sender, VisualTreeAttachmentEventArgs e)
+    {
+        DetachVm();
+        ClearHost(DetailsHost);
+        ClearHost(AuthorHost);
+    }
+
+    private void DetachVm()
+    {
+        if (_boundVm != null)
+        {
+            _boundVm.PropertyChanged -= OnVmPropertyChanged;
+            _boundVm = null;
+        }
+    }
+
+    private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(ContentBrowserViewModel.IsDetailsOpen)
+            or nameof(ContentBrowserViewModel.IsAuthorProfileOpen)
+            or nameof(ContentBrowserViewModel.CurrentAuthorProfileVm))
+        {
+            SyncOverlays();
+        }
+    }
+
+    private void SyncOverlays()
+    {
+        if (_boundVm == null)
+        {
+            ClearHost(DetailsHost);
+            ClearHost(AuthorHost);
+            return;
+        }
+
+        if (_boundVm.IsDetailsOpen)
+        {
+            if (DetailsHost.Children.Count == 0)
+                DetailsHost.Children.Add(new ProjectDetailsView { DataContext = _boundVm });
+            else if (!ReferenceEquals(DetailsHost.Children[0].DataContext, _boundVm))
+                DetailsHost.Children[0].DataContext = _boundVm;
+        }
+        else
+        {
+            ClearHost(DetailsHost);
+        }
+
+        if (_boundVm.IsAuthorProfileOpen && _boundVm.CurrentAuthorProfileVm != null)
+        {
+            if (AuthorHost.Children.Count == 0)
+                AuthorHost.Children.Add(new AuthorProfileView { DataContext = _boundVm.CurrentAuthorProfileVm });
+            else if (!ReferenceEquals(AuthorHost.Children[0].DataContext, _boundVm.CurrentAuthorProfileVm))
+                AuthorHost.Children[0].DataContext = _boundVm.CurrentAuthorProfileVm;
+        }
+        else
+        {
+            ClearHost(AuthorHost);
+        }
+    }
+
+    private static void ClearHost(Panel? host)
+    {
+        if (host == null || host.Children.Count == 0) return;
+        foreach (var child in host.Children)
+            child.DataContext = null;
+        host.Children.Clear();
     }
 
     private void OnResultsListAttached(object? sender, VisualTreeAttachmentEventArgs e)
@@ -61,5 +146,14 @@ public partial class ContentBrowserView : UserControl
     private void OnInstallButtonTapped(object? sender, TappedEventArgs e)
     {
         e.Handled = true;
+    }
+
+    private void OnWorldOptionClicked(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button { DataContext: string world } && DataContext is ContentBrowserViewModel vm)
+        {
+            vm.SelectWorldCommand.Execute(world);
+            WorldDropdownBtn.Flyout?.Hide();
+        }
     }
 }

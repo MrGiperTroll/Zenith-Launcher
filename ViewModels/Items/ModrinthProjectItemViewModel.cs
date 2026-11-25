@@ -196,17 +196,30 @@ public partial class ModrinthProjectItemViewModel : ViewModelBase, IDisposable
     partial void OnIsInstalledChanged(bool value) => OnPropertyChanged(nameof(InstallButtonText));
     partial void OnIsHoveredChanged(bool value) => OnPropertyChanged(nameof(InstallButtonText));
 
+    private volatile bool _disposed;
+
     public void SetIcon(byte[]? bytes)
     {
-        if (bytes is not { Length: > 0 }) return;
+        if (_disposed || bytes is not { Length: > 0 }) return;
         Task.Run(() =>
         {
             try
             {
+                if (_disposed) return;
                 using var ms = new MemoryStream(bytes);
                 var bmp = Bitmap.DecodeToWidth(ms, 72, BitmapInterpolationMode.MediumQuality);
+                if (_disposed)
+                {
+                    try { bmp.Dispose(); } catch { }
+                    return;
+                }
                 Dispatcher.UIThread.Post(() =>
                 {
+                    if (_disposed)
+                    {
+                        try { bmp.Dispose(); } catch { }
+                        return;
+                    }
                     var old = Icon;
                     Icon = bmp;
                     try { old?.Dispose(); } catch { }
@@ -219,8 +232,10 @@ public partial class ModrinthProjectItemViewModel : ViewModelBase, IDisposable
 
     public void Dispose()
     {
+        _disposed = true;
         try { Icon?.Dispose(); } catch { }
         Icon = null;
         OnPropertyChanged(nameof(HasIcon));
+        GC.SuppressFinalize(this);
     }
 }

@@ -51,19 +51,38 @@ public partial class AuthorProfileViewModel : ViewModelBase, IDisposable
 
     public Action<ModrinthProjectItemViewModel>? OnOpenProjectRequested { get; set; }
     public Action? OnCloseRequested { get; set; }
+    private System.Threading.CancellationTokenSource? _loadCts;
+    private volatile bool _disposed;
 
     public async Task LoadAuthorAsync(string usernameOrId)
     {
+        _loadCts?.Cancel();
+        _loadCts?.Dispose();
+        _loadCts = new System.Threading.CancellationTokenSource();
+        var token = _loadCts.Token;
+
         IsLoading = true;
+        foreach (var old in AllProjects) old.Dispose();
         AllProjects.Clear();
         FilteredProjects.Clear();
 
         try
         {
-            var user = await ModrinthApiService.GetUserProfileAsync(usernameOrId);
+            var user = await ModrinthApiService.GetUserProfileAsync(usernameOrId, token);
+            if (_disposed || token.IsCancellationRequested)
+            {
+                user?.Dispose();
+                return;
+            }
+            Profile?.Dispose();
             Profile = user ?? new ModrinthUserProfile { Username = usernameOrId };
 
-            var projects = await ModrinthApiService.GetUserProjectsAsync(usernameOrId);
+            var projects = await ModrinthApiService.GetUserProjectsAsync(usernameOrId, token);
+            if (_disposed || token.IsCancellationRequested)
+            {
+                foreach (var p in projects) p.Dispose();
+                return;
+            }
             foreach (var p in projects.OrderByDescending(x => x.Downloads))
             {
                 AllProjects.Add(p);
@@ -72,10 +91,12 @@ public partial class AuthorProfileViewModel : ViewModelBase, IDisposable
             OnPropertyChanged(nameof(ProjectsCount));
             OnPropertyChanged(nameof(TotalDownloadsDisplay));
         }
+        catch (OperationCanceledException) { }
         catch { }
         finally
         {
-            IsLoading = false;
+            if (!_disposed)
+                IsLoading = false;
         }
     }
 
@@ -144,6 +165,10 @@ public partial class AuthorProfileViewModel : ViewModelBase, IDisposable
 
     public void Dispose()
     {
+        if (_disposed) return;
+        _disposed = true;
+        try { _loadCts?.Cancel(); _loadCts?.Dispose(); } catch { }
+        _loadCts = null;
         Profile?.Dispose();
         Profile = null;
         foreach (var p in AllProjects)

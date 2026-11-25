@@ -571,7 +571,7 @@ public partial class CreateServerViewModel : ObservableObject, IDisposable
                     try
                     {
                         using var ms = new MemoryStream(bytes);
-                        bmp = new Bitmap(ms);
+                        bmp = Bitmap.DecodeToWidth(ms, 96, BitmapInterpolationMode.MediumQuality);
                     }
                     catch { }
                 }
@@ -2385,7 +2385,8 @@ public partial class CreateServerViewModel : ObservableObject, IDisposable
                 catch { }
 
                 // Minecraft server strictly requires 64x64 PNG format (avoids Bad PNG Signature error)
-                using (var srcBmp = new Bitmap(srcPath))
+                using (var srcFs = File.OpenRead(srcPath))
+                using (var srcBmp = Bitmap.DecodeToWidth(srcFs, 128, BitmapInterpolationMode.HighQuality))
                 using (var scaled = srcBmp.CreateScaledBitmap(new Avalonia.PixelSize(64, 64), BitmapInterpolationMode.HighQuality))
                 {
 #pragma warning disable CS0618
@@ -2398,9 +2399,10 @@ public partial class CreateServerViewModel : ObservableObject, IDisposable
                 var item = ExistingServersList.FirstOrDefault(s => s.Name.Equals(SelectedServerName, StringComparison.OrdinalIgnoreCase));
                 if (item != null)
                 {
-                    item.IconBitmap?.Dispose();
+                    var oldIcon = item.IconBitmap;
                     using var stream = File.OpenRead(destPath);
-                    item.IconBitmap = new Bitmap(stream);
+                    item.IconBitmap = Bitmap.DecodeToWidth(stream, 96, BitmapInterpolationMode.MediumQuality);
+                    oldIcon?.Dispose();
                     item.HasIcon = true;
                 }
             }
@@ -2431,7 +2433,7 @@ public partial class CreateServerViewModel : ObservableObject, IDisposable
             try
             {
                 using var ms = new MemoryStream(bytes);
-                ServerIconBitmap = new Bitmap(ms);
+                ServerIconBitmap = Bitmap.DecodeToWidth(ms, 96, BitmapInterpolationMode.MediumQuality);
                 HasServerIcon = true;
             }
             catch { }
@@ -2633,7 +2635,7 @@ public partial class CreateServerViewModel : ObservableObject, IDisposable
             try
             {
                 using var ms = new MemoryStream(snapshot.iconBytes);
-                WorldIconBitmap = new Bitmap(ms);
+                WorldIconBitmap = Bitmap.DecodeToWidth(ms, 96, BitmapInterpolationMode.MediumQuality);
                 HasWorldIcon = true;
             }
             catch { }

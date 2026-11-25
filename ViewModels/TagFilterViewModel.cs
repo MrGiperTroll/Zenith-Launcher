@@ -32,9 +32,11 @@ public sealed partial class TagFilterItem : ObservableObject
     }
 }
 
-public sealed partial class TagFilterViewModel : ObservableObject
+public sealed partial class TagFilterViewModel : ObservableObject, IDisposable
 {
     public ObservableCollection<TagFilterItem> Items { get; } = new();
+    private readonly Action _languageChangedHandler;
+    private bool _disposed;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ButtonText))]
@@ -56,11 +58,21 @@ public sealed partial class TagFilterViewModel : ObservableObject
 
     public TagFilterViewModel()
     {
-        L10n.LanguageChanged += () =>
+        _languageChangedHandler = () =>
         {
             RefreshDisplayNames();
             OnPropertyChanged(nameof(ButtonText));
         };
+        L10n.LanguageChanged += _languageChangedHandler;
+    }
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+        L10n.LanguageChanged -= _languageChangedHandler;
+        TagChanged = null;
+        Items.Clear();
     }
 
     public void SetOptions(IEnumerable<string> options, string? selected = null)

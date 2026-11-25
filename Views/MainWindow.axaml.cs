@@ -24,24 +24,169 @@ namespace ZenithLauncher.Views;
 
 public partial class MainWindow : Window
 {
+    private MainWindowViewModel? _observedVm;
+    private System.Threading.CancellationTokenSource? _unloadCleanupCts;
+
+    private static MainWindow? _activeWindow;
+
     public MainWindow()
     {
+        _activeWindow = this;
         InitializeComponent();
         Opacity = 1.0;
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
-        
-        // RAM optimization: when the window is minimized or deactivated, collect GC generation and release unneeded working set
+
+        DataContextChanged += OnMainDataContextChanged;
+        Closed += OnMainWindowClosed;
+
         PropertyChanged += (s, e) =>
         {
-            if (e.Property == WindowStateProperty && WindowState == WindowState.Minimized)
+            if (e.Property == WindowStateProperty)
             {
-                OptimizeMemory();
+                UpdateWindowChromeState();
             }
         };
-        Deactivated += (s, e) =>
+    }
+
+    private void OnMainDataContextChanged(object? sender, EventArgs e)
+    {
+        if (_observedVm != null)
         {
-            OptimizeMemory();
-        };
+            _observedVm.PropertyChanged -= OnMainVmPropertyChanged;
+            _observedVm = null;
+        }
+
+        if (DataContext is MainWindowViewModel vm)
+        {
+            _observedVm = vm;
+            vm.PropertyChanged += OnMainVmPropertyChanged;
+            SyncSecondaryPanes(vm);
+        }
+    }
+
+    private void OnMainWindowClosed(object? sender, EventArgs e)
+    {
+        try { _unloadCleanupCts?.Cancel(); _unloadCleanupCts?.Dispose(); } catch { }
+        _unloadCleanupCts = null;
+        if (_observedVm != null)
+        {
+            _observedVm.PropertyChanged -= OnMainVmPropertyChanged;
+            _observedVm = null;
+        }
+    }
+
+    private void OnMainVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (sender is not MainWindowViewModel vm) return;
+        if (e.PropertyName is nameof(MainWindowViewModel.CurrentPage)
+            or nameof(MainWindowViewModel.CurrentEditInstanceVm)
+            or nameof(MainWindowViewModel.CurrentContentBrowserVm)
+            or nameof(MainWindowViewModel.CurrentServerManagerVm)
+            or nameof(MainWindowViewModel.CreateProfileVm)
+            or nameof(MainWindowViewModel.CreateServerVm))
+        {
+            SyncSecondaryPanes(vm);
+        }
+    }
+
+    private void SyncSecondaryPanes(MainWindowViewModel vm)
+    {
+        var page = vm.CurrentPage;
+        bool anyUnloaded = false;
+
+        anyUnloaded |= SyncPane<Pages.ModpacksView>(ModpacksPane, page == LauncherNavPage.Modpacks, explicitDataContext: null, hasExplicitDc: false);
+        anyUnloaded |= SyncPane<EditInstanceView>(EditInstancePane, page == LauncherNavPage.EditInstance, vm.CurrentEditInstanceVm, hasExplicitDc: true);
+        anyUnloaded |= SyncPane<ContentBrowserView>(ContentBrowserPane, page == LauncherNavPage.ContentBrowser, vm.CurrentContentBrowserVm, hasExplicitDc: true);
+        anyUnloaded |= SyncPane<LauncherSettingsView>(SettingsPane, page == LauncherNavPage.Settings, vm.LauncherSettingsVm, hasExplicitDc: true);
+        anyUnloaded |= SyncPane<ServerManagerView>(ServerManagerPane, page == LauncherNavPage.ServerManager, vm.CurrentServerManagerVm, hasExplicitDc: true);
+        anyUnloaded |= SyncPane<AccountsView>(AccountsPane, page == LauncherNavPage.Accounts, vm.AccountsVm, hasExplicitDc: true);
+        anyUnloaded |= SyncPane<CreateProfileView>(CreateProfilePane, page == LauncherNavPage.CreateProfile, vm.CreateProfileVm, hasExplicitDc: true);
+        anyUnloaded |= SyncPane<CreateServerView>(CreateServerPane, page == LauncherNavPage.CreateServer, vm.CreateServerVm, hasExplicitDc: true);
+
+        if (anyUnloaded)
+        {
+            ScheduleHeavyPageCleanup();
+        }
+    }
+
+    public static void RequestBackgroundMemoryCleanup()
+    {
+        _activeWindow?.ScheduleHeavyPageCleanup();
+    }
+
+    private void ScheduleHeavyPageCleanup()
+    {
+        try { SkiaSharp.SKGraphics.PurgeAllCaches(); } catch { }
+
+        try { _unloadCleanupCts?.Cancel(); _unloadCleanupCts?.Dispose(); } catch { }
+        var cts = new System.Threading.CancellationTokenSource();
+        _unloadCleanupCts = cts;
+        var token = cts.Token;
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await Task.Delay(420, token).ConfigureAwait(false);
+                if (token.IsCancellationRequested) return;
+                try
+                {
+                    System.Runtime.GCSettings.LargeObjectHeapCompactionMode =
+                        System.Runtime.GCLargeObjectHeapCompactionMode.CompactOnce;
+                    GC.Collect(2, GCCollectionMode.Aggressive, blocking: true, compacting: true);
+                    GC.WaitForPendingFinalizers();
+                    if (token.IsCancellationRequested) return;
+                    System.Runtime.GCSettings.LargeObjectHeapCompactionMode =
+                        System.Runtime.GCLargeObjectHeapCompactionMode.CompactOnce;
+                    GC.Collect(2, GCCollectionMode.Aggressive, blocking: true, compacting: true);
+                }
+                catch { }
+                if (token.IsCancellationRequested) return;
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    if (!token.IsCancellationRequested)
+                    {
+                        try { SkiaSharp.SKGraphics.PurgeAllCaches(); } catch { }
+                    }
+                }, Avalonia.Threading.DispatcherPriority.Background);
+            }
+            catch (OperationCanceledException) { }
+            catch { }
+        }, token);
+    }
+
+    private static bool SyncPane<TView>(Panel? pane, bool active, object? explicitDataContext, bool hasExplicitDc)
+        where TView : Control, new()
+    {
+        if (pane == null) return false;
+
+        if (!active || (hasExplicitDc && explicitDataContext == null))
+        {
+            if (pane.Children.Count > 0)
+            {
+                if (hasExplicitDc)
+                {
+                    foreach (var child in pane.Children)
+                        child.DataContext = null;
+                }
+                pane.Children.Clear();
+                return true;
+            }
+            return false;
+        }
+
+        if (pane.Children.Count == 0)
+        {
+            var view = new TView();
+            if (hasExplicitDc)
+                view.DataContext = explicitDataContext;
+            pane.Children.Add(view);
+        }
+        else if (hasExplicitDc && !ReferenceEquals(pane.Children[0].DataContext, explicitDataContext))
+        {
+            pane.Children[0].DataContext = explicitDataContext;
+        }
+        return false;
     }
 
 
@@ -75,8 +220,11 @@ public partial class MainWindow : Window
     public void ShowAndActivate()
     {
         if (!IsVisible) Show();
-        WindowState = WindowState == WindowState.Minimized ? WindowState.Normal : WindowState;
+        if (WindowState == WindowState.Minimized)
+            WindowState = WindowState.Normal;
         Activate();
+        Topmost = true;
+        Topmost = false;
         Focus();
     }
 
@@ -91,7 +239,6 @@ public partial class MainWindow : Window
                 {
                     e.Cancel = true;
                     Hide();
-                    OptimizeMemory();
                     return;
                 }
             }
@@ -105,14 +252,30 @@ public partial class MainWindow : Window
         Close();
     }
 
-    private void UpdateMaximizeIcon()
+    private void UpdateMaximizeIcon() => UpdateWindowChromeState();
+
+    private void UpdateWindowChromeState()
     {
+        bool isMaximized = WindowState == WindowState.Maximized;
         var icon = this.FindControl<PathIcon>("MaximizeButtonIcon");
         if (icon != null)
         {
-            icon.Data = WindowState == WindowState.Maximized
+            icon.Data = isMaximized
                 ? StreamGeometry.Parse("M4 8H8V4H20V16H16V20H4V8ZM6 10V18H14V10H6ZM16 14H18V6H10V8H16V14Z")
                 : StreamGeometry.Parse("M4 4h16v16H4V4zm2 2v12h12V6H6z");
+        }
+
+        var rootBorder = this.FindControl<Border>("WindowRootBorder");
+        if (rootBorder != null)
+        {
+            rootBorder.CornerRadius = isMaximized ? new CornerRadius(0) : new CornerRadius(12);
+            rootBorder.BorderThickness = isMaximized ? new Thickness(0) : new Thickness(1);
+        }
+
+        var closeBtn = this.FindControl<Button>("CloseWindowBtn");
+        if (closeBtn != null)
+        {
+            closeBtn.CornerRadius = isMaximized ? new CornerRadius(0) : new CornerRadius(0, 11, 0, 0);
         }
     }
 
@@ -120,11 +283,6 @@ private void OnTopBarDoubleTapped(object? sender, TappedEventArgs e)
     {
         WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
         UpdateMaximizeIcon();
-    }
-
-    private static void OptimizeMemory()
-    {
-        MemoryTrimmer.TrimMemory(force: true);
     }
 
 

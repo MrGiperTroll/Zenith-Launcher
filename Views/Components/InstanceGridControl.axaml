@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:ZenithLauncher.ViewModels"
+             xmlns:vcomp="using:ZenithLauncher.ViewModels.Components"
              xmlns:models="using:ZenithLauncher.Models"
              xmlns:controls="using:ZenithLauncher.Controls"
              xmlns:converters="using:ZenithLauncher.Converters"
@@ -12,11 +13,116 @@
              mc:Ignorable="d">
     <UserControl.Resources>
         <converters:BoolToBorderBrushConverter x:Key="BoolToBorderBrushConverter"/>
+        <DataTemplate x:Key="InstanceCardTemplate" x:DataType="models:InstanceModel">
+            <Border Width="150" Height="150" Margin="2,2,10,10" CornerRadius="12"
+                    Classes="instanceCard" Classes.dragging="{Binding IsDragging}"
+                    BorderBrush="{Binding IsSelected, Converter={StaticResource BoolToBorderBrushConverter}}"
+                    BorderThickness="1"
+                    Tag="{Binding}" Cursor="Hand"
+                    PointerPressed="OnInstanceCardPointerPressed"
+                    Tapped="OnInstanceCardTapped"
+                    DoubleTapped="OnInstanceCardDoubleTapped">
+                <Border.ContextMenu>
+                    <ContextMenu Background="{DynamicResource CardAltBrush}" BorderBrush="{DynamicResource BorderStrongBrush}">
+                        <MenuItem Header="{l10n:Tr Key=mi_launch}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).LaunchSpecificInstanceCommand}" CommandParameter="{Binding}" FontWeight="Bold"/>
+                        <MenuItem Header="{l10n:Tr Key=btn_edit_instance}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).EditInstanceCommand}" CommandParameter="{Binding}"/>
+                        <Separator Background="{DynamicResource BorderStrongBrush}"/>
+                        <MenuItem Header="{l10n:Tr Key=btn_browse_mods}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenProfileBrowseModsCommand}" CommandParameter="{Binding}" IsVisible="{Binding HasModsSupport}"/>
+                        <MenuItem Header="{l10n:Tr Key=tab_servers}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenProfileServerManagerCommand}" CommandParameter="{Binding}"/>
+                        <MenuItem Header="{l10n:Tr Key=btn_open_folder}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenProfileFolderCommand}" CommandParameter="{Binding}"/>
+                        <MenuItem Header="{l10n:Tr Key=mi_sections}">
+                            <MenuItem Header="{l10n:Tr Key=tab_mods}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenProfileSectionModsCommand}" CommandParameter="{Binding}" IsVisible="{Binding HasModsSupport}"/>
+                            <MenuItem Header="{l10n:Tr Key=tab_resourcepacks}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenProfileSectionResourcePacksCommand}" CommandParameter="{Binding}"/>
+                            <MenuItem Header="{l10n:Tr Key=tab_shaders}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenProfileSectionShaderPacksCommand}" CommandParameter="{Binding}" IsVisible="{Binding HasShaderSupport}"/>
+                            <MenuItem Header="{l10n:Tr Key=tab_worlds}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenProfileSectionWorldsCommand}" CommandParameter="{Binding}"/>
+                            <MenuItem Header="{l10n:Tr Key=tab_screenshots}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenProfileSectionScreenshotsCommand}" CommandParameter="{Binding}"/>
+                            <MenuItem Header="{l10n:Tr Key=tab_logs}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenProfileSectionLogsCommand}" CommandParameter="{Binding}"/>
+                        </MenuItem>
+                        <Separator Background="{DynamicResource BorderStrongBrush}"/>
+                        <MenuItem Header="{l10n:Tr Key=mi_change_icon}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ChangeInstanceIconCommand}" CommandParameter="{Binding}"/>
+                        <MenuItem Header="{l10n:Tr Key=mi_set_group}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenGroupDialogCommand}" CommandParameter="{Binding}"/>
+                        <MenuItem Header="{l10n:Tr Key=btn_clone_profile}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenCopyDialogCommand}" CommandParameter="{Binding}"/>
+                        <MenuItem Header="{l10n:Tr Key=btn_shortcut}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).CreateDesktopShortcutCommand}" CommandParameter="{Binding}"/>
+                        <MenuItem Header="{l10n:Tr Key=mi_export}">
+                            <MenuItem Header="{l10n:Tr Key=exp_curseforge}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ExportCurseForgeCommand}" CommandParameter="{Binding}"/>
+                            <MenuItem Header="Modrinth (.mrpack)" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ExportModrinthCommand}" CommandParameter="{Binding}"/>
+                            <MenuItem Header="{l10n:Tr Key=exp_prism}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ExportPrismCommand}" CommandParameter="{Binding}"/>
+                        </MenuItem>
+                        <Separator Background="{DynamicResource BorderStrongBrush}"/>
+                        <MenuItem Header="{l10n:Tr Key=btn_kill}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).KillInstanceCommand}" CommandParameter="{Binding}" IsEnabled="{Binding IsRunning}"/>
+                        <MenuItem Header="{l10n:Tr Key=btn_delete_profile}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).RequestDeleteProfileCommand}" CommandParameter="{Binding}" Foreground="{DynamicResource DangerBrush}"/>
+                    </ContextMenu>
+                </Border.ContextMenu>
+                <StackPanel Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Border Width="56" Height="56" Background="{DynamicResource ChipBrush}" CornerRadius="12" HorizontalAlignment="Center" ClipToBounds="True">
+                        <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Path IsVisible="{Binding !HasCustomIcon}" Data="{StaticResource ZenithLogoGeometry}" Fill="{DynamicResource SubtleEmeraldBrush}" Stretch="Uniform" Width="32" Height="32" Margin="0,3,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <Image IsVisible="{Binding HasCustomIcon}" Source="{Binding IconPath, Converter={x:Static converters:IconPathToBitmapConverter.Instance}}" Stretch="UniformToFill" Width="56" Height="56" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Panel>
+                    </Border>
+                    <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center" TextAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="130"/>
+                    <TextBlock Text="{Binding DisplayVersion}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+        </DataTemplate>
     </UserControl.Resources>
                         <ScrollViewer Grid.Column="0" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Hidden" Padding="0,0,16,16">
                             <StackPanel Spacing="14">
                                 <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" Margin="0,0,0,8">
-                                    <Panel Grid.Column="0"/>
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center"
+                                                IsVisible="{Binding HasProfileGroups}">
+                                        <Button x:Name="GroupFilterBtn" Classes="filterDropdownBtn" MinWidth="136" Height="32" Padding="10,0">
+                                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="7" VerticalAlignment="Center">
+                                                <PathIcon Grid.Column="0"
+                                                          Data="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
+                                                          Width="13" Height="13" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding SelectedProfileGroupDisplay}"
+                                                           FontSize="12" FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource TextPrimaryBrush}"
+                                                           TextTrimming="CharacterEllipsis" MaxWidth="160" VerticalAlignment="Center"/>
+                                                <PathIcon Grid.Column="2"
+                                                          Data="M7 10l5 5 5-5z"
+                                                          Width="10" Height="10" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                            </Grid>
+                                            <Button.Flyout>
+                                                <Flyout Placement="BottomEdgeAlignedLeft">
+                                                    <Flyout.FlyoutPresenterTheme>
+                                                        <ControlTheme TargetType="FlyoutPresenter" BasedOn="{StaticResource {x:Type FlyoutPresenter}}">
+                                                            <Setter Property="Padding" Value="4"/>
+                                                            <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
+                                                            <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}"/>
+                                                            <Setter Property="BorderThickness" Value="1"/>
+                                                            <Setter Property="CornerRadius" Value="10"/>
+                                                            <Setter Property="MinWidth" Value="184"/>
+                                                        </ControlTheme>
+                                                    </Flyout.FlyoutPresenterTheme>
+                                                    <StackPanel Spacing="2">
+                                                        <Button Classes="flyoutOptionBtn" Classes.selected="{Binding IsAllGroupsSelected}"
+                                                                Tag="" Click="OnGroupFilterOptionClicked">
+                                                            <TextBlock Text="{l10n:Tr Key=grp_all}" FontSize="12" FontWeight="SemiBold"/>
+                                                        </Button>
+                                                        <ItemsControl ItemsSource="{Binding ProfileGroups}">
+                                                            <ItemsControl.ItemTemplate>
+                                                                <DataTemplate x:DataType="x:String">
+                                                                    <Button Classes="flyoutOptionBtn"
+                                                                            Tag="{Binding}" Click="OnGroupFilterOptionClicked">
+                                                                        <TextBlock Text="{Binding}" FontSize="12" TextTrimming="CharacterEllipsis"/>
+                                                                    </Button>
+                                                                </DataTemplate>
+                                                            </ItemsControl.ItemTemplate>
+                                                        </ItemsControl>
+                                                    </StackPanel>
+                                                </Flyout>
+                                            </Button.Flyout>
+                                        </Button>
+                                        <Button Classes="rowActionBtn" Width="28" Height="28"
+                                                IsVisible="{Binding !IsAllGroupsSelected}"
+                                                Command="{Binding SelectProfileGroupCommand}" CommandParameter=""
+                                                ToolTip.Tip="{l10n:Tr Key=grp_all}">
+                                            <PathIcon Data="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                                                      Width="10" Height="10"/>
+                                        </Button>
+                                    </StackPanel>
                                     <Button Grid.Column="1" Classes="subBtn" Command="{Binding ImportInstancesCommand}" Padding="14,7">
                                         <TextBlock Text="{l10n:Tr Key=profile_import}" FontSize="12" FontWeight="SemiBold"/>
                                     </Button>
@@ -32,63 +138,62 @@
                                 </StackPanel>
                             </Border>
 
-                            <ItemsControl x:Name="InstancesItemsControl" ItemsSource="{Binding Instances}" Margin="0,4,0,0">
+                            <!-- Flat grid when no profile groups are configured -->
+                            <ItemsControl x:Name="InstancesItemsControl"
+                                          IsVisible="{Binding !HasProfileGroups}"
+                                          ItemsSource="{Binding FilteredInstances}"
+                                          ItemTemplate="{StaticResource InstanceCardTemplate}"
+                                          Margin="0,4,0,0">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
                                         <controls:AnimatedWrapPanel/>
                                     </ItemsPanelTemplate>
                                 </ItemsControl.ItemsPanel>
+                            </ItemsControl>
+
+                            <!-- Collapsible Prism-style group sections when groups exist -->
+                            <ItemsControl x:Name="GroupedInstancesItemsControl"
+                                          IsVisible="{Binding HasProfileGroups}"
+                                          ItemsSource="{Binding GroupedInstances}"
+                                          Margin="0,4,0,0">
                                 <ItemsControl.ItemTemplate>
-<DataTemplate x:DataType="models:InstanceModel">
-                                        <Border Width="150" Height="150" Margin="2,2,10,10" CornerRadius="12"
-                                                Classes="instanceCard" Classes.dragging="{Binding IsDragging}"
-                                                BorderBrush="{Binding IsSelected, Converter={StaticResource BoolToBorderBrushConverter}}"
-                                                BorderThickness="1"
-                                                Tag="{Binding}" Cursor="Hand"
-                                                PointerPressed="OnInstanceCardPointerPressed"
-                                                Tapped="OnInstanceCardTapped"
-                                                DoubleTapped="OnInstanceCardDoubleTapped">
-                                            <Border.ContextMenu>
-                                                <ContextMenu Background="{DynamicResource CardAltBrush}" BorderBrush="{DynamicResource BorderStrongBrush}">
-                                                    <MenuItem Header="{l10n:Tr Key=mi_launch}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).LaunchSpecificInstanceCommand}" CommandParameter="{Binding}" FontWeight="Bold"/>
-                                                    <MenuItem Header="{l10n:Tr Key=btn_edit_instance}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).EditInstanceCommand}" CommandParameter="{Binding}"/>
-                                                    <Separator Background="{DynamicResource BorderStrongBrush}"/>
-                                                    <MenuItem Header="{l10n:Tr Key=btn_browse_mods}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenProfileBrowseModsCommand}" CommandParameter="{Binding}" IsVisible="{Binding HasModsSupport}"/>
-                                                    <MenuItem Header="{l10n:Tr Key=tab_servers}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenProfileServerManagerCommand}" CommandParameter="{Binding}"/>
-                                                    <MenuItem Header="{l10n:Tr Key=btn_open_folder}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenProfileFolderCommand}" CommandParameter="{Binding}"/>
-                                                    <MenuItem Header="{l10n:Tr Key=mi_sections}">
-                                                        <MenuItem Header="{l10n:Tr Key=tab_mods}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenProfileSectionModsCommand}" CommandParameter="{Binding}" IsVisible="{Binding HasModsSupport}"/>
-                                                        <MenuItem Header="{l10n:Tr Key=tab_resourcepacks}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenProfileSectionResourcePacksCommand}" CommandParameter="{Binding}"/>
-                                                        <MenuItem Header="{l10n:Tr Key=tab_shaders}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenProfileSectionShaderPacksCommand}" CommandParameter="{Binding}" IsVisible="{Binding HasShaderSupport}"/>
-                                                        <MenuItem Header="{l10n:Tr Key=tab_worlds}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenProfileSectionWorldsCommand}" CommandParameter="{Binding}"/>
-                                                        <MenuItem Header="{l10n:Tr Key=tab_screenshots}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenProfileSectionScreenshotsCommand}" CommandParameter="{Binding}"/>
-                                                        <MenuItem Header="{l10n:Tr Key=tab_logs}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenProfileSectionLogsCommand}" CommandParameter="{Binding}"/>
-                                                    </MenuItem>
-                                                    <Separator Background="{DynamicResource BorderStrongBrush}"/>
-                                                    <MenuItem Header="{l10n:Tr Key=mi_change_icon}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ChangeInstanceIconCommand}" CommandParameter="{Binding}"/>
-                                                    <MenuItem Header="{l10n:Tr Key=btn_clone_profile}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenCopyDialogCommand}" CommandParameter="{Binding}"/>
-                                                    <MenuItem Header="{l10n:Tr Key=btn_shortcut}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).CreateDesktopShortcutCommand}" CommandParameter="{Binding}"/>
-                                                    <MenuItem Header="{l10n:Tr Key=mi_export}">
-                                                        <MenuItem Header="{l10n:Tr Key=exp_curseforge}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ExportCurseForgeCommand}" CommandParameter="{Binding}"/>
-                                                        <MenuItem Header="Modrinth (.mrpack)" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ExportModrinthCommand}" CommandParameter="{Binding}"/>
-                                                        <MenuItem Header="{l10n:Tr Key=exp_prism}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ExportPrismCommand}" CommandParameter="{Binding}"/>
-                                                    </MenuItem>
-                                                    <Separator Background="{DynamicResource BorderStrongBrush}"/>
-                                                    <MenuItem Header="{l10n:Tr Key=btn_kill}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).KillInstanceCommand}" CommandParameter="{Binding}" IsEnabled="{Binding IsRunning}"/>
-                                                    <MenuItem Header="{l10n:Tr Key=btn_delete_profile}" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).RequestDeleteProfileCommand}" CommandParameter="{Binding}" Foreground="{DynamicResource DangerBrush}"/>
-                                                </ContextMenu>
-                                            </Border.ContextMenu>
-                                            <StackPanel Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                <Border Width="56" Height="56" Background="{DynamicResource ChipBrush}" CornerRadius="12" HorizontalAlignment="Center" ClipToBounds="True">
-                                                    <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                        <Path IsVisible="{Binding !HasCustomIcon}" Data="{StaticResource ZenithLogoGeometry}" Fill="{DynamicResource SubtleEmeraldBrush}" Stretch="Uniform" Width="32" Height="32" Margin="0,3,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                        <Image IsVisible="{Binding HasCustomIcon}" Source="{Binding IconPath, Converter={x:Static converters:IconPathToBitmapConverter.Instance}}" Stretch="UniformToFill" Width="56" Height="56" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                    </Panel>
-                                                </Border>
-                                                <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center" TextAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="130"/>
-                                                <TextBlock Text="{Binding DisplayVersion}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" FontWeight="SemiBold" HorizontalAlignment="Center"/>
-                                            </StackPanel>
-                                        </Border>
+                                    <DataTemplate x:DataType="vcomp:InstanceGroupSection">
+                                        <StackPanel Spacing="10" Margin="0,0,0,12">
+                                            <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="8" Background="Transparent"
+                                                  Cursor="Hand" Tapped="OnGroupSectionHeaderTapped">
+                                                <PathIcon Grid.Column="0"
+                                                          Data="M7 10l5 5 5-5z"
+                                                          Width="11" Height="11"
+                                                          Foreground="{DynamicResource TextSecondaryBrush}"
+                                                          IsVisible="{Binding IsExpanded}"
+                                                          VerticalAlignment="Center"/>
+                                                <PathIcon Grid.Column="0"
+                                                          Data="M10 17l5-5-5-5v10z"
+                                                          Width="11" Height="11"
+                                                          Foreground="{DynamicResource TextMutedBrush}"
+                                                          IsVisible="{Binding !IsExpanded}"
+                                                          VerticalAlignment="Center"/>
+                                                <Panel Grid.Column="1" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding HeaderTitle}" FontSize="12.5" FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                                               IsVisible="{Binding !IsUngrouped}"/>
+                                                    <TextBlock Text="{l10n:Tr Key=grp_ungrouped}" FontSize="12.5" FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                                               IsVisible="{Binding IsUngrouped}"/>
+                                                </Panel>
+                                                <Border Grid.Column="2" Height="1" Background="{DynamicResource BorderDarkBrush}" VerticalAlignment="Center" Margin="4,1,0,0"/>
+                                            </Grid>
+
+                                            <ItemsControl ItemsSource="{Binding Items}"
+                                                          ItemTemplate="{StaticResource InstanceCardTemplate}"
+                                                          IsVisible="{Binding IsExpanded}">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <controls:AnimatedWrapPanel/>
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                            </ItemsControl>
+                                        </StackPanel>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>

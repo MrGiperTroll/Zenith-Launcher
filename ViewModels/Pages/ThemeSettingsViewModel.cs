@@ -347,6 +347,40 @@ public partial class ThemeSettingsViewModel : ViewModelBase
         ApplySimpleTheme(_savedSimpleAccentHex);
     }
 
+    public void SyncFromSimpleTheme(string hex)
+    {
+        if (string.IsNullOrWhiteSpace(hex)) return;
+        hex = hex.Trim();
+        if (!hex.StartsWith("#")) hex = "#" + hex;
+
+        _isLoadingConfig = true;
+        try
+        {
+            var harmonized = ZenithTheme.GenerateHarmonizedPalette(hex, "Dark");
+            ThemeSubTab = "Simple";
+            SimpleAccentHex = hex;
+            CurrentAccentHex = hex;
+            CustomThemeHex = hex;
+            BgHex = harmonized.BgColor!;
+            SidebarBgHex = harmonized.SidebarBgColor!;
+            SurfaceHex = harmonized.SurfaceColor!;
+            CardHex = harmonized.CardColor!;
+            PanelHex = harmonized.PanelColor!;
+            FieldHex = harmonized.FieldColor!;
+            HoverHex = harmonized.HoverColor!;
+            BorderDarkHex = harmonized.BorderDarkColor!;
+            TextPrimaryHex = harmonized.TextPrimaryColor!;
+            TextSecondaryHex = harmonized.TextSecondaryColor!;
+            UpdatePreviewBrushes(hex);
+            SnapshotCurrentSavedTheme();
+            _savedSimpleAccentHex = hex;
+        }
+        finally
+        {
+            _isLoadingConfig = false;
+        }
+    }
+
     public void RevertThemeToSaved()
     {
         if (IsThemeSubTabSimple)

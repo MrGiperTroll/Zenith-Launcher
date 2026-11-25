@@ -94,4 +94,38 @@ public partial class LauncherSettingsView : UserControl
             vm.ApplyScalePercentInput(tb.Text);
         }
     }
+
+    private void OnThemeCardClicked(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.DataContext is ThemeCardModel card && card.IsCustom)
+        {
+            OpenCustomColorFlyout(btn);
+        }
+    }
+
+    private void OpenCustomColorFlyout(Control target)
+    {
+        if (this.TryFindResource("CustomThemeColorFlyout", out var res) && res is Flyout flyout)
+        {
+            if (flyout.Content is Control content)
+                content.DataContext = DataContext;
+            flyout.ShowAt(target);
+        }
+    }
+
+    private void OnCustomColorApplyClicked(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (this.TryFindResource("CustomThemeColorFlyout", out var res) && res is Flyout flyout)
+            flyout.Hide();
+        if (DataContext is LauncherSettingsViewModel vm)
+            vm.ApplyCustomThemeCard();
+    }
+
+    private void OnCustomColorFlyoutClosing(object? sender, System.ComponentModel.CancelEventArgs e)
+    {
+        if (DataContext is LauncherSettingsViewModel vm)
+        {
+            vm.SaveCustomThemeImmediately();
+        }
+    }
 }

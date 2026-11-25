@@ -17,6 +17,7 @@ public partial class ConsoleViewModel : ViewModelBase
 {
     private readonly ConcurrentQueue<string> _consolePending = new();
     private readonly DispatcherTimer _consoleFlushTimer;
+    private int _flushScheduled;
 
     [ObservableProperty]
     private string _consoleLogs = string.Empty;
@@ -30,18 +31,33 @@ public partial class ConsoleViewModel : ViewModelBase
     {
         _consoleFlushTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
         _consoleFlushTimer.Tick += (_, _) => FlushConsolePending();
-        _consoleFlushTimer.Start();
     }
 
     public void AppendLog(string line)
     {
         if (string.IsNullOrEmpty(line)) return;
         _consolePending.Enqueue(line);
+        if (System.Threading.Interlocked.Exchange(ref _flushScheduled, 1) == 0)
+        {
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (!_consolePending.IsEmpty && !_consoleFlushTimer.IsEnabled)
+                    _consoleFlushTimer.Start();
+            });
+        }
     }
 
     public void FlushConsolePending()
     {
-        if (_consolePending.IsEmpty) return;
+        if (_consolePending.IsEmpty)
+        {
+            System.Threading.Interlocked.Exchange(ref _flushScheduled, 0);
+            if (_consolePending.IsEmpty)
+            {
+                _consoleFlushTimer.Stop();
+                return;
+            }
+        }
 
         var sb = new StringBuilder();
         while (_consolePending.TryDequeue(out var line))
@@ -50,15 +66,34 @@ public partial class ConsoleViewModel : ViewModelBase
         if (sb.Length > 0)
         {
             const int maxChars = 40_000;
-            var newText = ConsoleLogs + sb;
-            if (newText.Length > maxChars)
-                newText = newText.Substring(newText.Length - maxChars);
-            ConsoleLogs = newText;
+            var current = ConsoleLogs ?? string.Empty;
+            if (sb.Length >= maxChars)
+            {
+                ConsoleLogs = sb.ToString(sb.Length - maxChars, maxChars);
+            }
+            else
+            {
+                int keepFromCurrent = Math.Min(current.Length, maxChars - sb.Length);
+                int skipFromCurrent = current.Length - keepFromCurrent;
+                ConsoleLogs = string.Concat(current.AsSpan(skipFromCurrent), sb.ToString());
+            }
+        }
+
+        System.Threading.Interlocked.Exchange(ref _flushScheduled, 0);
+        if (_consolePending.IsEmpty)
+        {
+            _consoleFlushTimer.Stop();
+        }
+        else if (!_consoleFlushTimer.IsEnabled)
+        {
+            _consoleFlushTimer.Start();
         }
     }
 
     public void ClearLogs()
     {
+        _consoleFlushTimer.Stop();
+        System.Threading.Interlocked.Exchange(ref _flushScheduled, 0);
         ConsoleLogs = string.Empty;
         while (_consolePending.TryDequeue(out _)) { }
     }
@@ -73,7 +108,6 @@ public partial class ConsoleViewModel : ViewModelBase
         if (HasActiveProcesses == null || !HasActiveProcesses())
         {
             ClearLogs();
-            MemoryTrimmer.TrimMemory();
         }
     }
 

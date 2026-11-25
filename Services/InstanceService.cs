@@ -183,7 +183,7 @@ public class InstanceService : IInstanceService
             if (!string.IsNullOrEmpty(instance.Path) && Directory.Exists(instance.Path))
             {
                 var jsonPath = Path.Combine(instance.Path, "instance.json");
-                var json = JsonSerializer.Serialize(instance, new JsonSerializerOptions { WriteIndented = true });
+                var json = JsonSerializer.Serialize(instance, LauncherJsonContext.Default.InstanceModel);
                 await File.WriteAllTextAsync(jsonPath, json);
             }
         }
@@ -218,16 +218,35 @@ public class InstanceService : IInstanceService
     {
         lock (_lock)
         {
+            bool needsCleanupSave = false;
             if (File.Exists(_instancesFilePath))
             {
                 try
                 {
                     var json = File.ReadAllText(_instancesFilePath);
-                    var store = JsonSerializer.Deserialize<LocalStore>(json);
+                    var store = JsonSerializer.Deserialize(json, LauncherJsonContext.Default.InstancesStore);
                     if (store != null)
                     {
-                        _instances = store.Instances ?? new();
-                        _selectedInstanceId = store.SelectedInstanceId ?? _instances.FirstOrDefault()?.Id;
+                        var raw = store.Instances ?? new();
+                        var seenPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                        _instances = new List<InstanceModel>(raw.Count);
+                        foreach (var inst in raw)
+                        {
+                            if (inst == null || string.IsNullOrWhiteSpace(inst.Path) || string.IsNullOrWhiteSpace(inst.Name))
+                            {
+                                needsCleanupSave = true;
+                                continue;
+                            }
+                            if (!seenPaths.Add(inst.Path))
+                            {
+                                needsCleanupSave = true;
+                                continue;
+                            }
+                            _instances.Add(inst);
+                        }
+                        _selectedInstanceId = store.SelectedInstanceId;
+                        if (string.IsNullOrWhiteSpace(_selectedInstanceId) || !_instances.Any(i => i.Id == _selectedInstanceId))
+                            _selectedInstanceId = _instances.FirstOrDefault()?.Id;
                     }
                     else
                     {
@@ -254,7 +273,9 @@ public class InstanceService : IInstanceService
                         try
                         {
                             var jsonText = File.ReadAllText(instJsonPath);
-                            newInst = JsonSerializer.Deserialize<InstanceModel>(jsonText);
+                            var parsed = JsonSerializer.Deserialize(jsonText, LauncherJsonContext.Default.InstanceModel);
+                            if (parsed != null && !string.IsNullOrWhiteSpace(parsed.Id))
+                                newInst = parsed;
                         }
                         catch { }
                     }
@@ -279,16 +300,17 @@ public class InstanceService : IInstanceService
                     _instances.Add(newInst);
                     discovered = true;
                 }
-                if (discovered)
+                if (discovered || needsCleanupSave)
                 {
-                    // Save them back immediately so they persist and are selected properly later
-                    try
-                    {
-                        var store = new LocalStore { Instances = _instances, SelectedInstanceId = _selectedInstanceId };
-                        var json = JsonSerializer.Serialize(store, new JsonSerializerOptions { WriteIndented = true });
-                        File.WriteAllText(_instancesFilePath, json);
-                    } catch {}
+                    // Save them back immediately so they persist cleanly
+                    if (string.IsNullOrWhiteSpace(_selectedInstanceId) || !_instances.Any(i => i.Id == _selectedInstanceId))
+                        _selectedInstanceId = _instances.FirstOrDefault()?.Id;
+                    SaveInstances();
                 }
+            }
+            else if (needsCleanupSave)
+            {
+                SaveInstances();
             }
         }
     }
@@ -297,12 +319,12 @@ public class InstanceService : IInstanceService
     {
         try
         {
-            var store = new LocalStore
+            var store = new InstancesStore
             {
                 Instances = _instances,
                 SelectedInstanceId = _selectedInstanceId
             };
-            var json = JsonSerializer.Serialize(store, new JsonSerializerOptions { WriteIndented = true });
+            var json = JsonSerializer.Serialize(store, LauncherJsonContext.Default.InstancesStore);
             File.WriteAllText(_instancesFilePath, json);
         }
         catch { }
@@ -389,12 +411,6 @@ public class InstanceService : IInstanceService
             }
             SaveInstances();
         }
-    }
-
-    private class LocalStore
-    {
-        public List<InstanceModel> Instances { get; set; } = new();
-        public string? SelectedInstanceId { get; set; }
     }
 }
 

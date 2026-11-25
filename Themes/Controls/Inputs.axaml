@@ -305,6 +305,102 @@
             <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
             <Setter Property="BorderBrush" Value="{DynamicResource BorderMediumBrush}"/>
         </Style>
+
+        <!-- Unified Slider matching Interface Scaling (4px track, 14px thumb) -->
+        <Style Selector="Slider:horizontal">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="FocusAdorner" Value="{x:Null}"/>
+            <Setter Property="Height" Value="20"/>
+            <Setter Property="MinHeight" Value="20"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Grid Height="20" Background="Transparent" VerticalAlignment="Center">
+                        <Border Height="4"
+                                CornerRadius="2"
+                                Background="{DynamicResource BorderDarkBrush}"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Stretch"
+                                IsHitTestVisible="False"/>
+                        <Track x:Name="PART_Track"
+                               Orientation="Horizontal"
+                               Minimum="{TemplateBinding Minimum}"
+                               Maximum="{TemplateBinding Maximum}"
+                               Value="{Binding Value, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                               IsDirectionReversed="{TemplateBinding IsDirectionReversed}"
+                               VerticalAlignment="Stretch"
+                               HorizontalAlignment="Stretch">
+                            <Track.DecreaseButton>
+                                <RepeatButton x:Name="PART_DecreaseButton"
+                                              Focusable="False"
+                                              Cursor="Hand"
+                                              MinWidth="0"
+                                              MinHeight="0"
+                                              Padding="0"
+                                              Margin="0"
+                                              HorizontalAlignment="Stretch"
+                                              VerticalAlignment="Stretch">
+                                    <RepeatButton.Template>
+                                        <ControlTemplate>
+                                            <Grid Background="Transparent" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                                                <Border x:Name="PART_DecreaseTrackBar"
+                                                        Height="4"
+                                                        CornerRadius="2,0,0,2"
+                                                        Background="{DynamicResource SliderTrackValueFill}"
+                                                        VerticalAlignment="Center"
+                                                        HorizontalAlignment="Stretch"/>
+                                            </Grid>
+                                        </ControlTemplate>
+                                    </RepeatButton.Template>
+                                </RepeatButton>
+                            </Track.DecreaseButton>
+                            <Track.IncreaseButton>
+                                <RepeatButton x:Name="PART_IncreaseButton"
+                                              Focusable="False"
+                                              Cursor="Hand"
+                                              MinWidth="0"
+                                              MinHeight="0"
+                                              Padding="0"
+                                              Margin="0"
+                                              HorizontalAlignment="Stretch"
+                                              VerticalAlignment="Stretch">
+                                    <RepeatButton.Template>
+                                        <ControlTemplate>
+                                            <Border Background="Transparent" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                                        </ControlTemplate>
+                                    </RepeatButton.Template>
+                                </RepeatButton>
+                            </Track.IncreaseButton>
+                            <Track.Thumb>
+                                <Thumb x:Name="thumb"
+                                       Width="14"
+                                       Height="14"
+                                       Cursor="Hand"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Center">
+                                    <Thumb.Template>
+                                        <ControlTemplate>
+                                            <Border Width="14"
+                                                    Height="14"
+                                                    CornerRadius="7"
+                                                    Background="{DynamicResource SliderThumbBackground}"
+                                                    BorderThickness="0"/>
+                                        </ControlTemplate>
+                                    </Thumb.Template>
+                                </Thumb>
+                            </Track.Thumb>
+                        </Track>
+                    </Grid>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="Slider:horizontal:pointerover /template/ RepeatButton#PART_DecreaseButton /template/ Border#PART_DecreaseTrackBar">
+            <Setter Property="Background" Value="{DynamicResource SliderTrackValueFillPointerOver}"/>
+        </Style>
+        <Style Selector="Slider:horizontal:pressed /template/ RepeatButton#PART_DecreaseButton /template/ Border#PART_DecreaseTrackBar">
+            <Setter Property="Background" Value="{DynamicResource SliderTrackValueFillPressed}"/>
+        </Style>
     
 
 </Styles>

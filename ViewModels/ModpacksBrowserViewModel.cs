@@ -26,7 +26,14 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
 
     partial void OnCurrentAuthorProfileVmChanging(AuthorProfileViewModel? value)
     {
-        _currentAuthorProfileVm?.Dispose();
+        var oldAuthor = _currentAuthorProfileVm;
+        if (oldAuthor != null && !ReferenceEquals(oldAuthor, value))
+        {
+            Dispatcher.UIThread.Post(() =>
+            {
+                try { oldAuthor.Dispose(); } catch { }
+            }, DispatcherPriority.Background);
+        }
     }
 
     public bool IsAuthorProfileOpen => CurrentAuthorProfileVm != null;
@@ -61,7 +68,6 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
     [RelayCommand]
     public void CloseAuthorProfile()
     {
-        CurrentAuthorProfileVm?.Dispose();
         CurrentAuthorProfileVm = null;
         OnPropertyChanged(nameof(IsAuthorProfileOpen));
         OnAuthorProfileChanged?.Invoke(false);
@@ -275,8 +281,19 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
 
     partial void OnFullProjectChanging(Models.ModrinthFullProject? value)
     {
-        try { _fullProject?.Dispose(); } catch { }
-        try { HeaderImage?.Dispose(); HeaderImage = null; } catch { }
+        var oldProject = _fullProject;
+        var oldHeader = HeaderImage;
+        if (oldHeader != null)
+            HeaderImage = null;
+        if (oldProject != null || oldHeader != null)
+        {
+            Dispatcher.UIThread.Post(() =>
+            {
+                try { oldProject?.Dispose(); } catch { }
+                try { oldHeader?.Dispose(); } catch { }
+                try { SkiaSharp.SKGraphics.PurgeAllCaches(); } catch { }
+            }, DispatcherPriority.Background);
+        }
     }
 
     [ObservableProperty]
@@ -372,6 +389,20 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(IsChangelogTab));
         OnPropertyChanged(nameof(IsVersionsTab));
         OnPropertyChanged(nameof(VersionList));
+
+        if (FullProject?.Gallery != null)
+        {
+            if (IsGalleryTab)
+            {
+                foreach (var g in FullProject.Gallery)
+                    g.LoadImage();
+            }
+            else
+            {
+                foreach (var g in FullProject.Gallery)
+                    g.StopAnimation();
+            }
+        }
     }
 
     public bool IsDescriptionTab => SelectedDetailTab.Equals("description", StringComparison.OrdinalIgnoreCase);
@@ -972,8 +1003,16 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
             SelectedSort = newSort;
         };
         L10n.LanguageChanged += () => OnPropertyChanged(nameof(SearchPlaceholder));
-        _ = LoadVersionsAsync();
-        // Defer catalog search until navigated to (prevents startup freeze/network traffic)
+        // Defer version & catalog requests until Modpacks view is opened (fast cold start)
+    }
+
+    private int _versionsLoadStarted;
+
+    public Task EnsureVersionsLoadedAsync()
+    {
+        if (System.Threading.Interlocked.Exchange(ref _versionsLoadStarted, 1) != 0)
+            return Task.CompletedTask;
+        return LoadVersionsAsync();
     }
 
     /// <summary>
@@ -1167,7 +1206,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
         var gen = Interlocked.Increment(ref _searchGeneration);
         IsBusy = true;
         StatusText = "";
-        foreach (var r in Results) { try { r.Icon?.Dispose(); } catch { } } Results.Clear();
+        foreach (var r in Results) { try { r.Dispose(); } catch { } } Results.Clear();
         _offset = 0;
         _totalHits = 0;
         try
@@ -1224,64 +1263,6 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
                 }
                 UpdateInstalledFlags();
                 StatusText = _totalHits == 0 ? L10n.T("mp_status_none") : "";
-                return;
-            }
-
-            if (SelectedSource == ContentSource.All)
-            {
-                var apiKey = GetCurseForgeApiKey?.Invoke() ?? "";
-                var cfTask = CurseForgeApiService.SearchProjectsAsync(
-                    SearchQuery,
-                    SelectedProjectType,
-                    SelectedVersion,
-                    SelectedLoader,
-                    _offset / 2,
-                    PageSize,
-                    SelectedSort,
-                    apiKey);
-
-                var mrTask = ModrinthApiService.SearchAsync(
-                    SearchQuery,
-                    SelectedVersion,
-                    LoaderFacets,
-                    SelectedProjectType,
-                    sort,
-                    categoryFilter,
-                    _offset / 2,
-                    PageSize);
-
-                await Task.WhenAll(cfTask, mrTask);
-                if (gen != _searchGeneration) return;
-
-                var cfRes = cfTask.Result;
-                var mrPage = mrTask.Result;
-
-                var merged = MergeProjectResults(mrPage?.Hits, cfRes?.Hits, SelectedSort);
-                if (merged.Count == 0)
-                {
-                    _offset = _totalHits;
-                }
-                else
-                {
-                    _offset += merged.Count;
-                    _totalHits = (mrPage?.TotalHits ?? 0) + (cfRes?.TotalHits ?? 0);
-                    var existingIds = Results.Select(r => r.ProjectId).ToHashSet(StringComparer.OrdinalIgnoreCase);
-                    var existingTitles = Results.Select(r => NormalizeKey(r.Title)).Where(k => !string.IsNullOrEmpty(k)).ToHashSet(StringComparer.OrdinalIgnoreCase);
-                    var existingSlugs = Results.Select(r => NormalizeKey(r.Slug)).Where(k => !string.IsNullOrEmpty(k)).ToHashSet(StringComparer.OrdinalIgnoreCase);
-                    foreach (var p in merged)
-                    {
-                        var tKey = NormalizeKey(p.Title);
-                        var sKey = NormalizeKey(p.Slug);
-                        if (existingIds.Add(p.ProjectId) &&
-                            (string.IsNullOrEmpty(tKey) || existingTitles.Add(tKey)) &&
-                            (string.IsNullOrEmpty(sKey) || existingSlugs.Add(sKey)))
-                        {
-                            Results.Add(p);
-                            LoadIcon(p, gen);
-                        }
-                    }
-                    UpdateInstalledFlags();
-                }
                 return;
             }
 
@@ -1503,12 +1484,21 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
         }
     }
 
-    private async void LoadIcon(ModrinthProjectItemViewModel project, int generation)
+    private void LoadIcon(ModrinthProjectItemViewModel project, int generation)
     {
         if (string.IsNullOrWhiteSpace(project.IconUrl) || project.HasIcon) return;
-        var bytes = await ModrinthApiService.GetIconAsync(project.IconUrl);
-        if (generation == _searchGeneration)
-            project.SetIcon(bytes);
+        _ = LoadIconAsync(project, generation);
+    }
+
+    private async Task LoadIconAsync(ModrinthProjectItemViewModel project, int generation)
+    {
+        try
+        {
+            var bytes = await ModrinthApiService.GetIconAsync(project.IconUrl);
+            if (generation == _searchGeneration)
+                project.SetIcon(bytes);
+        }
+        catch { }
     }
 
     public void UpdateInstalledFlags()
@@ -1579,13 +1569,101 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _instanceSearchQuery = "";
     [ObservableProperty] private ModrinthProjectItemViewModel? _projectForAddToInstance;
     [ObservableProperty] private ObservableCollection<InstanceTargetItem> _targetInstances = new();
+    [ObservableProperty] private bool _filterCompatibleOnly;
+    [ObservableProperty] private string _selectedAddGroup = "";
+    [ObservableProperty] private ObservableCollection<string> _availableAddGroups = new();
+    [ObservableProperty] private ObservableCollection<AddVersionOption> _availableAddVersions = new();
+    [ObservableProperty] private AddVersionOption? _selectedAddVersion;
+    [ObservableProperty] private bool _isLoadingAddVersions;
+    [ObservableProperty] private string _addToInstanceStatusText = "";
+    [ObservableProperty] private bool _isAddToInstanceStatusError;
+
+    private CancellationTokenSource? _addVersionCts;
+    private readonly Dictionary<string, HashSet<string>> _sessionInstalledFiles = new(StringComparer.OrdinalIgnoreCase);
 
     public string TargetInstanceNameForWorld => SelectedTargetInstanceForWorld?.Name ?? "";
-    public string AddToInstanceModalTitle => IsSelectWorldStep ? "Select World" : "Add to Instance";
-    public string SelectWorldSubtitle => $"Select which world in '{TargetInstanceNameForWorld}' to add '{ProjectForAddToInstance?.Title}' to:";
+    public string TargetInstanceVersionForWorld => SelectedTargetInstanceForWorld?.DisplayVersion ?? "";
+    public string? TargetInstanceIconForWorld => SelectedTargetInstanceForWorld?.IconPath;
+    public bool HasTargetInstanceIconForWorld => SelectedTargetInstanceForWorld?.HasCustomIcon ?? false;
+    public string AddToInstanceModalTitle => IsSelectWorldStep ? L10n.T("modal_select_world") : L10n.T("modal_add_to_instance");
+    public string SelectWorldSubtitle => string.Format(L10n.T("modal_select_world_sub"), TargetInstanceNameForWorld, ProjectForAddToInstance?.Title ?? "");
     public int CompatibleInstanceCount => TargetInstances.Count(i => !i.IsInstalled);
+    public bool HasAnyProfileGroups => AvailableAddGroups.Count > 1;
+    public string SelectedAddGroupLabel => string.IsNullOrWhiteSpace(SelectedAddGroup) ? L10n.T("add_inst_group_all") : SelectedAddGroup;
+    public string SelectedAddVersionLabel => SelectedAddVersion?.Label ?? L10n.T("add_inst_version_auto");
+    public bool HasAddToInstanceStatus => !string.IsNullOrWhiteSpace(AddToInstanceStatusText);
+    public bool HasNoMatchingInstances => TargetInstances.Count == 0;
+
+    public string ProjectSourceLabel => ProjectForAddToInstance?.IsCurseForge == true
+        ? L10n.T("imp_src_curseforge")
+        : L10n.T("imp_src_modrinth");
+
+    public string ProjectCompatibilitySummary
+    {
+        get
+        {
+            if (ProjectForAddToInstance == null) return "";
+            var vers = ProjectForAddToInstance.GameVersionsLabel;
+            var loaders = ProjectForAddToInstance.LoadersLabel;
+            if (!string.IsNullOrWhiteSpace(vers) && !string.IsNullOrWhiteSpace(loaders))
+                return $"{vers} • {loaders}";
+            return !string.IsNullOrWhiteSpace(vers) ? vers : loaders;
+        }
+    }
+
+    public bool HasProjectCompatibilitySummary => !string.IsNullOrWhiteSpace(ProjectCompatibilitySummary);
+
+    public string AddToInstanceSummaryText
+    {
+        get
+        {
+            if (IsSelectWorldStep)
+                return string.Format(L10n.T("add_inst_worlds_count"), TargetWorlds.Count);
+
+            var allCount = _instanceService.GetInstances().Count;
+            var compatCount = TargetInstances.Count(i => i.IsCompatible);
+            return string.Format(L10n.T("add_inst_count_status"), TargetInstances.Count, allCount, compatCount);
+        }
+    }
+
+    public string WorldsCountLabel => string.Format(L10n.T("add_inst_worlds_count"), TargetWorlds.Count);
 
     partial void OnInstanceSearchQueryChanged(string value) => RefreshTargetInstances();
+    partial void OnFilterCompatibleOnlyChanged(bool value) => RefreshTargetInstances();
+    partial void OnSelectedAddGroupChanged(string value)
+    {
+        OnPropertyChanged(nameof(SelectedAddGroupLabel));
+        RefreshTargetInstances();
+    }
+    partial void OnSelectedAddVersionChanged(AddVersionOption? value)
+    {
+        OnPropertyChanged(nameof(SelectedAddVersionLabel));
+        RefreshTargetInstances();
+    }
+    partial void OnAddToInstanceStatusTextChanged(string value) => OnPropertyChanged(nameof(HasAddToInstanceStatus));
+
+    [RelayCommand]
+    private void ClearInstanceSearch() => InstanceSearchQuery = "";
+
+    [RelayCommand]
+    private void SelectAddGroup(string? group)
+    {
+        SelectedAddGroup = string.IsNullOrWhiteSpace(group) || group == L10n.T("add_inst_group_all") ? "" : group.Trim();
+    }
+
+    [RelayCommand]
+    private void SelectAddVersion(AddVersionOption? option)
+    {
+        if (option != null) SelectedAddVersion = option;
+    }
+
+    [RelayCommand]
+    private void ResetAddInstanceFilters()
+    {
+        InstanceSearchQuery = "";
+        FilterCompatibleOnly = false;
+        SelectedAddGroup = "";
+    }
 
     private void ClearTargetWorlds()
     {
@@ -1604,17 +1682,30 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
         ClearTargetWorlds();
         OnPropertyChanged(nameof(AddToInstanceModalTitle));
         OnPropertyChanged(nameof(IsSelectWorldStep));
+        OnPropertyChanged(nameof(TargetInstanceVersionForWorld));
+        OnPropertyChanged(nameof(TargetInstanceIconForWorld));
+        OnPropertyChanged(nameof(HasTargetInstanceIconForWorld));
+        OnPropertyChanged(nameof(AddToInstanceSummaryText));
+        OnPropertyChanged(nameof(WorldsCountLabel));
     }
 
     [RelayCommand]
     public void CloseAddToInstance()
     {
+        _addVersionCts?.Cancel();
+        _addVersionCts?.Dispose();
+        _addVersionCts = null;
+
         IsAddToInstanceOpen = false;
         IsSelectWorldStep = false;
         SelectedTargetInstanceForWorld = null;
         ClearTargetWorlds();
         ProjectForAddToInstance = null;
         TargetInstances.Clear();
+        AvailableAddVersions.Clear();
+        SelectedAddVersion = null;
+        AddToInstanceStatusText = "";
+        IsAddToInstanceStatusError = false;
         OnPropertyChanged(nameof(AddToInstanceModalTitle));
         OnPropertyChanged(nameof(IsSelectWorldStep));
     }
@@ -1623,15 +1714,177 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
     public void OpenAddToInstanceModal(ModrinthProjectItemViewModel? project)
     {
         if (project == null) return;
+
+        _addVersionCts?.Cancel();
+        _addVersionCts?.Dispose();
+        _addVersionCts = new CancellationTokenSource();
+
         ProjectForAddToInstance = project;
         InstanceSearchQuery = "";
+        FilterCompatibleOnly = true;
+        SelectedAddGroup = "";
+        AddToInstanceStatusText = "";
+        IsAddToInstanceStatusError = false;
         IsSelectWorldStep = false;
         SelectedTargetInstanceForWorld = null;
         ClearTargetWorlds();
+
+        // Populate profile group filter options from existing profiles
+        AvailableAddGroups.Clear();
+        AvailableAddGroups.Add(L10n.T("add_inst_group_all"));
+        foreach (var grp in _instanceService.GetInstances()
+                     .Select(i => (i.Group ?? "").Trim())
+                     .Where(g => !string.IsNullOrWhiteSpace(g))
+                     .Distinct(StringComparer.OrdinalIgnoreCase)
+                     .OrderBy(g => g, StringComparer.OrdinalIgnoreCase))
+        {
+            AvailableAddGroups.Add(grp);
+        }
+        OnPropertyChanged(nameof(HasAnyProfileGroups));
+        OnPropertyChanged(nameof(SelectedAddGroupLabel));
+
+        // Seed Auto version selector immediately, then load release list in background
+        var autoOpt = new AddVersionOption(
+            "",
+            L10n.T("add_inst_version_auto"),
+            "",
+            "",
+            "",
+            Array.Empty<string>(),
+            Array.Empty<string>(),
+            IsAuto: true);
+        AvailableAddVersions.Clear();
+        AvailableAddVersions.Add(autoOpt);
+        SelectedAddVersion = autoOpt;
+
         RefreshTargetInstances();
+        OnPropertyChanged(nameof(ProjectSourceLabel));
+        OnPropertyChanged(nameof(ProjectCompatibilitySummary));
+        OnPropertyChanged(nameof(HasProjectCompatibilitySummary));
         OnPropertyChanged(nameof(AddToInstanceModalTitle));
         OnPropertyChanged(nameof(IsSelectWorldStep));
+        OnPropertyChanged(nameof(AddToInstanceSummaryText));
+
         IsAddToInstanceOpen = true;
+        _ = LoadAddVersionsAsync(project, _addVersionCts.Token);
+    }
+
+    private async Task LoadAddVersionsAsync(ModrinthProjectItemViewModel project, CancellationToken ct)
+    {
+        IsLoadingAddVersions = true;
+        try
+        {
+            var fetched = new List<AddVersionOption>();
+            if (project.Source == ContentSource.CurseForge)
+            {
+                var apiKey = GetCurseForgeApiKey?.Invoke() ?? "";
+                var cfFiles = await CurseForgeApiService.GetProjectFilesAsync(project.ProjectId, apiKey, ct);
+                foreach (var f in cfFiles.Take(25))
+                {
+                    var cleanGvs = f.GameVersions
+                        .Where(v => !string.IsNullOrWhiteSpace(v) &&
+                                    !v.TrimStart('.').Equals("minecraft", StringComparison.OrdinalIgnoreCase))
+                        .ToArray();
+                    var gv = string.Join(", ", cleanGvs.Take(4));
+                    fetched.Add(new AddVersionOption(
+                        f.FileId.ToString(),
+                        f.DisplayName,
+                        gv,
+                        f.FileName,
+                        f.DownloadUrl,
+                        cleanGvs,
+                        Array.Empty<string>(),
+                        IsAuto: false));
+                }
+            }
+            else
+            {
+                var versions = await ModrinthApiService.GetProjectVersionsAsync(project.ProjectId);
+                ct.ThrowIfCancellationRequested();
+                foreach (var v in versions.Take(30))
+                {
+                    var pf = v.Files.FirstOrDefault(f => f.IsPrimary) ?? v.Files.FirstOrDefault();
+                    if (pf == null || string.IsNullOrWhiteSpace(pf.Url)) continue;
+                    var cleanGvs = v.GameVersions
+                        .Where(g => !string.IsNullOrWhiteSpace(g) &&
+                                    !g.TrimStart('.').Equals("minecraft", StringComparison.OrdinalIgnoreCase))
+                        .ToArray();
+                    var cleanLoaders = v.Loaders
+                        .Where(l => !string.IsNullOrWhiteSpace(l) &&
+                                    !l.TrimStart('.').Equals("minecraft", StringComparison.OrdinalIgnoreCase))
+                        .ToArray();
+                    var gv = string.Join(", ", cleanGvs.Take(3));
+                    var ld = string.Join(", ", cleanLoaders.Take(2));
+                    var sub = !string.IsNullOrWhiteSpace(gv) && !string.IsNullOrWhiteSpace(ld)
+                        ? $"{gv} • {ld}"
+                        : (!string.IsNullOrWhiteSpace(gv) ? gv : ld);
+                    var label = !string.IsNullOrWhiteSpace(v.VersionNumber) ? v.VersionNumber : v.Name;
+                    fetched.Add(new AddVersionOption(
+                        v.Id,
+                        label,
+                        sub,
+                        pf.Filename,
+                        pf.Url,
+                        cleanGvs,
+                        cleanLoaders,
+                        IsAuto: false));
+                }
+            }
+
+            if (ct.IsCancellationRequested || ProjectForAddToInstance != project) return;
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (ct.IsCancellationRequested || ProjectForAddToInstance != project) return;
+                var auto = AvailableAddVersions.FirstOrDefault(a => a.IsAuto);
+                AvailableAddVersions.Clear();
+                if (auto != null) AvailableAddVersions.Add(auto);
+                foreach (var item in fetched) AvailableAddVersions.Add(item);
+                if (SelectedAddVersion == null && auto != null) SelectedAddVersion = auto;
+            });
+        }
+        catch { }
+        finally
+        {
+            if (!ct.IsCancellationRequested)
+                await Dispatcher.UIThread.InvokeAsync(() => IsLoadingAddVersions = false);
+        }
+    }
+
+    private bool IsInstanceCompatible(InstanceModel inst, ModrinthProjectItemViewModel project)
+    {
+        var mcVer = (inst.Version ?? "").Trim();
+        var verPool = SelectedAddVersion is { IsAuto: false, GameVersions.Length: > 0 }
+            ? SelectedAddVersion.GameVersions
+            : project.GameVersions;
+
+        bool verOk = verPool == null || verPool.Length == 0 || string.IsNullOrEmpty(mcVer) ||
+                     verPool.Any(v => v.Equals(mcVer, StringComparison.OrdinalIgnoreCase));
+        if (!verOk) return false;
+
+        var typeLower = (project.ProjectType ?? SelectedProjectType ?? "").ToLowerInvariant();
+        if (typeLower is "mod" or "modpack")
+        {
+            var loaderPool = SelectedAddVersion is { IsAuto: false, Loaders.Length: > 0 }
+                ? SelectedAddVersion.Loaders
+                : project.Loaders;
+
+            var meaningfulLoaders = (loaderPool ?? Array.Empty<string>())
+                .Where(l => !string.IsNullOrWhiteSpace(l) &&
+                            !l.Equals("minecraft", StringComparison.OrdinalIgnoreCase) &&
+                            !l.Equals("datapack", StringComparison.OrdinalIgnoreCase))
+                .ToArray();
+
+            if (meaningfulLoaders.Length > 0)
+            {
+                var instLoader = (inst.LoaderType ?? "Vanilla").Trim();
+                if (instLoader.Equals("Vanilla", StringComparison.OrdinalIgnoreCase))
+                    return false;
+                if (!meaningfulLoaders.Any(l => l.Equals(instLoader, StringComparison.OrdinalIgnoreCase)))
+                    return false;
+            }
+        }
+
+        return true;
     }
 
     private void RefreshTargetInstances()
@@ -1640,36 +1893,96 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
         TargetInstances.Clear();
         var allInstances = _instanceService.GetInstances();
         var q = InstanceSearchQuery?.Trim().ToLowerInvariant() ?? "";
+        var grpFilter = (SelectedAddGroup ?? "").Trim();
         bool isDatapack = SelectedProjectType == "datapack" ||
                           string.Equals(ProjectForAddToInstance.ProjectType, "datapack", StringComparison.OrdinalIgnoreCase);
 
+        var candidateList = new List<(InstanceModel Inst, bool Compatible, bool Installed)>();
         foreach (var inst in allInstances)
         {
             if (!string.IsNullOrEmpty(q) &&
                 !inst.Name.ToLowerInvariant().Contains(q) &&
-                !(inst.Version ?? "").ToLowerInvariant().Contains(q))
+                !(inst.Version ?? "").ToLowerInvariant().Contains(q) &&
+                !(inst.LoaderType ?? "").ToLowerInvariant().Contains(q))
+                continue;
+
+            if (!string.IsNullOrEmpty(grpFilter) &&
+                !string.Equals((inst.Group ?? "").Trim(), grpFilter, StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            bool isCompatible = IsInstanceCompatible(inst, ProjectForAddToInstance);
+            if (FilterCompatibleOnly && !isCompatible)
                 continue;
 
             bool isInst = isDatapack ? false : CheckIfProjectInstalledInInstance(inst, ProjectForAddToInstance);
-            TargetInstances.Add(new InstanceTargetItem(inst, isInst, isDatapack, async (target) =>
-            {
-                if (isDatapack)
+            candidateList.Add((inst, isCompatible, isInst));
+        }
+
+        foreach (var (inst, isCompatible, isInst) in candidateList
+                     .OrderByDescending(x => x.Compatible)
+                     .ThenBy(x => x.Installed)
+                     .ThenBy(x => x.Inst.Name, StringComparer.OrdinalIgnoreCase))
+        {
+            TargetInstances.Add(new InstanceTargetItem(
+                inst,
+                isInst,
+                isDatapack,
+                isCompatible,
+                async (target) =>
                 {
-                    OpenSelectWorldStep(target.Instance);
-                }
-                else
+                    if (ProjectForAddToInstance == null) return;
+                    if (isDatapack)
+                    {
+                        OpenSelectWorldStep(target.Instance);
+                    }
+                    else
+                    {
+                        try
+                        {
+                            IsAddToInstanceStatusError = false;
+                            AddToInstanceStatusText = "";
+                            await InstallProjectToInstanceAsync(ProjectForAddToInstance, target.Instance);
+                            OnPropertyChanged(nameof(CompatibleInstanceCount));
+                            OnPropertyChanged(nameof(AddToInstanceSummaryText));
+                        }
+                        catch (Exception ex)
+                        {
+                            IsAddToInstanceStatusError = true;
+                            AddToInstanceStatusText = ex.Message;
+                            throw;
+                        }
+                    }
+                },
+                async (target) =>
                 {
-                    await InstallProjectToInstanceAsync(ProjectForAddToInstance, target.Instance);
-                }
-            }));
+                    if (ProjectForAddToInstance == null) return;
+                    try
+                    {
+                        IsAddToInstanceStatusError = false;
+                        AddToInstanceStatusText = "";
+                        await UninstallProjectFromInstanceAsync(ProjectForAddToInstance, target.Instance);
+                        OnPropertyChanged(nameof(CompatibleInstanceCount));
+                        OnPropertyChanged(nameof(AddToInstanceSummaryText));
+                    }
+                    catch (Exception ex)
+                    {
+                        IsAddToInstanceStatusError = true;
+                        AddToInstanceStatusText = ex.Message;
+                        throw;
+                    }
+                }));
         }
         OnPropertyChanged(nameof(CompatibleInstanceCount));
+        OnPropertyChanged(nameof(HasNoMatchingInstances));
+        OnPropertyChanged(nameof(AddToInstanceSummaryText));
     }
 
     public void OpenSelectWorldStep(InstanceModel instance)
     {
         SelectedTargetInstanceForWorld = instance;
         ClearTargetWorlds();
+        AddToInstanceStatusText = "";
+        IsAddToInstanceStatusError = false;
 
         var savesDir = Path.Combine(instance.Path, "saves");
         if (Directory.Exists(savesDir))
@@ -1682,6 +1995,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
             {
                 var folderName = Path.GetFileName(worldDir);
                 string worldDisplayName = folderName;
+                var metaParts = new List<string>();
                 try
                 {
                     var levelDat = Path.Combine(worldDir, "level.dat");
@@ -1695,31 +2009,77 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
                                 level = innerDict;
                             if (level.TryGetValue("LevelName", out var ln) && ln is string lns && !string.IsNullOrWhiteSpace(lns))
                                 worldDisplayName = lns;
+                            if (level.TryGetValue("GameType", out var gtObj) && gtObj is IConvertible gtConv)
+                            {
+                                var mode = Convert.ToInt32(gtConv) switch
+                                {
+                                    1 => "Creative",
+                                    2 => "Adventure",
+                                    3 => "Spectator",
+                                    _ => "Survival"
+                                };
+                                metaParts.Add(mode);
+                            }
+                            if (level.TryGetValue("LastPlayed", out var lpObj) && lpObj is IConvertible lpConv)
+                            {
+                                var lpMs = Convert.ToInt64(lpConv);
+                                if (lpMs > 0)
+                                {
+                                    var dt = DateTimeOffset.FromUnixTimeMilliseconds(lpMs).LocalDateTime;
+                                    metaParts.Add(dt.ToString("dd.MM.yyyy"));
+                                }
+                            }
                         }
                     }
                 }
                 catch { }
 
-                bool isInstalledInWorld = false;
                 var dpFolder = Path.Combine(worldDir, "datapacks");
-                if (Directory.Exists(dpFolder))
-                {
-                    foreach (var file in Directory.GetFiles(dpFolder))
-                    {
-                        var fn = Path.GetFileName(file).ToLowerInvariant();
-                        if (!string.IsNullOrEmpty(slug) && fn.Contains(slug)) { isInstalledInWorld = true; break; }
-                        if (!string.IsNullOrEmpty(id) && fn.Contains(id)) { isInstalledInWorld = true; break; }
-                        if (!string.IsNullOrEmpty(title) && fn.Contains(title.Replace(" ", "-"))) { isInstalledInWorld = true; break; }
-                    }
-                }
+                bool isInstalledInWorld = ProjectForAddToInstance != null &&
+                    FindMatchingProjectFiles(dpFolder, ProjectForAddToInstance).Count > 0;
 
-                var worldItem = new WorldTargetItem(folderName, worldDisplayName, worldDir, isInstalledInWorld, async (w) =>
-                {
-                    if (ProjectForAddToInstance != null)
+                var worldItem = new WorldTargetItem(
+                    folderName,
+                    worldDisplayName,
+                    worldDir,
+                    string.Join(" • ", metaParts),
+                    isInstalledInWorld,
+                    async (w) =>
                     {
-                        await InstallDatapackToWorldAsync(ProjectForAddToInstance, instance, w.FolderName);
-                    }
-                });
+                        if (ProjectForAddToInstance != null)
+                        {
+                            try
+                            {
+                                IsAddToInstanceStatusError = false;
+                                AddToInstanceStatusText = "";
+                                await InstallDatapackToWorldAsync(ProjectForAddToInstance, instance, w.FolderName);
+                            }
+                            catch (Exception ex)
+                            {
+                                IsAddToInstanceStatusError = true;
+                                AddToInstanceStatusText = ex.Message;
+                                throw;
+                            }
+                        }
+                    },
+                    async (w) =>
+                    {
+                        if (ProjectForAddToInstance != null)
+                        {
+                            try
+                            {
+                                IsAddToInstanceStatusError = false;
+                                AddToInstanceStatusText = "";
+                                await UninstallDatapackFromWorldAsync(ProjectForAddToInstance, instance, w.FolderName);
+                            }
+                            catch (Exception ex)
+                            {
+                                IsAddToInstanceStatusError = true;
+                                AddToInstanceStatusText = ex.Message;
+                                throw;
+                            }
+                        }
+                    });
                 TargetWorlds.Add(worldItem);
             }
         }
@@ -1727,77 +2087,39 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
         HasNoWorldsFound = TargetWorlds.Count == 0;
         IsSelectWorldStep = true;
         OnPropertyChanged(nameof(TargetInstanceNameForWorld));
+        OnPropertyChanged(nameof(TargetInstanceVersionForWorld));
+        OnPropertyChanged(nameof(TargetInstanceIconForWorld));
+        OnPropertyChanged(nameof(HasTargetInstanceIconForWorld));
         OnPropertyChanged(nameof(AddToInstanceModalTitle));
         OnPropertyChanged(nameof(SelectWorldSubtitle));
         OnPropertyChanged(nameof(IsSelectWorldStep));
+        OnPropertyChanged(nameof(AddToInstanceSummaryText));
+        OnPropertyChanged(nameof(WorldsCountLabel));
     }
 
-    private async Task InstallDatapackToWorldAsync(ModrinthProjectItemViewModel project, InstanceModel instance, string worldName)
+    private async Task<(string fileName, byte[] bytes)> DownloadProjectArtifactAsync(
+        ModrinthProjectItemViewModel project,
+        InstanceModel instance,
+        bool includeLoaderFilter)
     {
-        if (project.Source == ContentSource.CurseForge)
+        if (SelectedAddVersion is { IsAuto: false } picked &&
+            !string.IsNullOrWhiteSpace(picked.FileUrl) &&
+            !string.IsNullOrWhiteSpace(picked.FileName))
         {
-            var apiKey = GetCurseForgeApiKey?.Invoke() ?? "";
-            var fileInfo = await CurseForgeApiService.GetLatestProjectFileAsync(project.ProjectId, instance.Version, null, apiKey);
-            if (fileInfo == null || string.IsNullOrWhiteSpace(fileInfo.DownloadUrl))
-                fileInfo = await CurseForgeApiService.GetLatestProjectFileAsync(project.ProjectId, null, null, apiKey);
-            if (fileInfo == null || string.IsNullOrWhiteSpace(fileInfo.DownloadUrl))
-                throw new Exception("No downloadable file found on CurseForge.");
-
-            var cfData = await CurseForgeApiService.DownloadAsync(fileInfo.DownloadUrl);
-            if (cfData == null || cfData.Length == 0)
+            var pickedData = project.Source == ContentSource.CurseForge
+                ? await CurseForgeApiService.DownloadAsync(picked.FileUrl)
+                : await ModrinthApiService.DownloadAsync(picked.FileUrl);
+            if (pickedData == null || pickedData.Length == 0)
                 throw new Exception("Download failed.");
-
-            var cfTargetFolder = Path.Combine(instance.Path, "saves", worldName, "datapacks");
-            Directory.CreateDirectory(cfTargetFolder);
-            var cfDest = Path.Combine(cfTargetFolder, fileInfo.FileName);
-            await File.WriteAllBytesAsync(cfDest, cfData);
-
-            StatusText = $"Added datapack '{project.Title}' to world '{worldName}' ({instance.Name})";
-            project.IsInstalled = true;
-            return;
+            return (picked.FileName, pickedData);
         }
 
-        var mcVer = instance.Version;
-        var loader = (instance.LoaderType ?? "").ToLowerInvariant();
-
-        var versions = await ModrinthApiService.GetProjectVersionsAsync(
-            project.ProjectId,
-            !string.IsNullOrWhiteSpace(loader) && loader != "vanilla" ? new[] { loader } : null,
-            !string.IsNullOrWhiteSpace(mcVer) ? new[] { mcVer } : null);
-
-        if (versions.Count == 0)
-        {
-            versions = await ModrinthApiService.GetProjectVersionsAsync(project.ProjectId);
-        }
-
-        var targetVer = versions.FirstOrDefault(v => v.GameVersions.Contains(mcVer)) ?? versions.FirstOrDefault();
-        if (targetVer == null || targetVer.Files == null || targetVer.Files.Count == 0)
-            throw new Exception("No compatible version found.");
-
-        var primaryFile = targetVer.Files.FirstOrDefault(f => f.IsPrimary) ?? targetVer.Files[0];
-        if (string.IsNullOrWhiteSpace(primaryFile.Url))
-            throw new Exception("No file URL.");
-
-        var data = await ModrinthApiService.DownloadAsync(primaryFile.Url);
-        if (data == null || data.Length == 0)
-            throw new Exception("Download failed.");
-
-        var targetFolder = Path.Combine(instance.Path, "saves", worldName, "datapacks");
-        Directory.CreateDirectory(targetFolder);
-        var dest = Path.Combine(targetFolder, primaryFile.Filename);
-        await File.WriteAllBytesAsync(dest, data);
-
-        StatusText = $"Added datapack '{project.Title}' to world '{worldName}' ({instance.Name})";
-        project.IsInstalled = true;
-    }
-
-    private async Task InstallProjectToInstanceAsync(ModrinthProjectItemViewModel project, InstanceModel instance)
-    {
         if (project.Source == ContentSource.CurseForge)
         {
             var apiKey = GetCurseForgeApiKey?.Invoke() ?? "";
-            var fileInfo = await CurseForgeApiService.GetLatestProjectFileAsync(project.ProjectId, instance.Version, instance.LoaderType, apiKey);
-            if (fileInfo == null || string.IsNullOrWhiteSpace(fileInfo.DownloadUrl))
+            var loader = includeLoaderFilter ? instance.LoaderType : null;
+            var fileInfo = await CurseForgeApiService.GetLatestProjectFileAsync(project.ProjectId, instance.Version, loader, apiKey);
+            if ((fileInfo == null || string.IsNullOrWhiteSpace(fileInfo.DownloadUrl)) && !string.IsNullOrWhiteSpace(loader))
                 fileInfo = await CurseForgeApiService.GetLatestProjectFileAsync(project.ProjectId, instance.Version, null, apiKey);
             if (fileInfo == null || string.IsNullOrWhiteSpace(fileInfo.DownloadUrl))
                 fileInfo = await CurseForgeApiService.GetLatestProjectFileAsync(project.ProjectId, null, null, apiKey);
@@ -1807,54 +2129,18 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
             var cfData = await CurseForgeApiService.DownloadAsync(fileInfo.DownloadUrl);
             if (cfData == null || cfData.Length == 0)
                 throw new Exception("Download failed.");
-
-            var cfSubDir = (project.ProjectType ?? SelectedProjectType) switch
-            {
-                "resourcepack" => "resourcepacks",
-                "shader" => "shaderpacks",
-                "datapack" => Path.Combine("saves", "datapacks"),
-                _ => "mods"
-            };
-
-            var cfTargetFolder = Path.Combine(instance.Path, cfSubDir);
-            Directory.CreateDirectory(cfTargetFolder);
-            var cfDest = Path.Combine(cfTargetFolder, fileInfo.FileName);
-            await File.WriteAllBytesAsync(cfDest, cfData);
-
-            if (!string.IsNullOrWhiteSpace(project.IconUrl))
-            {
-                try
-                {
-                    var iconBytes = await ModrinthApiService.GetIconAsync(project.IconUrl);
-                    if (iconBytes is { Length: > 0 })
-                    {
-                        var cacheDir = Path.Combine(ZenithPaths.AppDataDir, "cache", "icons");
-                        Directory.CreateDirectory(cacheDir);
-                        await File.WriteAllBytesAsync(Path.Combine(cacheDir, Path.GetFileNameWithoutExtension(cfDest) + ".png"), iconBytes);
-                        await File.WriteAllBytesAsync(Path.Combine(cacheDir, Path.GetFileName(cfDest) + ".png"), iconBytes);
-                        await File.WriteAllBytesAsync(Path.Combine(cacheDir, $"{project.ProjectId}.png"), iconBytes);
-                    }
-                }
-                catch { }
-            }
-
-            StatusText = $"Added {project.Title} to {instance.Name}";
-            project.IsInstalled = true;
-            return;
+            return (fileInfo.FileName, cfData);
         }
 
         var mcVer = instance.Version;
-        var loader = (instance.LoaderType ?? "").ToLowerInvariant();
-
+        var mrLoader = (instance.LoaderType ?? "").ToLowerInvariant();
         var versions = await ModrinthApiService.GetProjectVersionsAsync(
             project.ProjectId,
-            !string.IsNullOrWhiteSpace(loader) && loader != "vanilla" ? new[] { loader } : null,
+            includeLoaderFilter && !string.IsNullOrWhiteSpace(mrLoader) && mrLoader != "vanilla" ? new[] { mrLoader } : null,
             !string.IsNullOrWhiteSpace(mcVer) ? new[] { mcVer } : null);
 
         if (versions.Count == 0)
-        {
             versions = await ModrinthApiService.GetProjectVersionsAsync(project.ProjectId);
-        }
 
         var targetVer = versions.FirstOrDefault(v => v.GameVersions.Contains(mcVer)) ?? versions.FirstOrDefault();
         if (targetVer == null || targetVer.Files == null || targetVer.Files.Count == 0)
@@ -1868,64 +2154,177 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
         if (data == null || data.Length == 0)
             throw new Exception("Download failed.");
 
-        var subDir = project.ProjectType switch
-        {
-            "resourcepack" => "resourcepacks",
-            "shader" => "shaderpacks",
-            _ => "mods"
-        };
+        return (primaryFile.Filename, data);
+    }
 
-        var targetFolder = Path.Combine(instance.Path, subDir);
+    private async Task InstallDatapackToWorldAsync(ModrinthProjectItemViewModel project, InstanceModel instance, string worldName)
+    {
+        var (fileName, data) = await DownloadProjectArtifactAsync(project, instance, includeLoaderFilter: false);
+        var targetFolder = Path.Combine(instance.Path, "saves", worldName, "datapacks");
         Directory.CreateDirectory(targetFolder);
-        var dest = Path.Combine(targetFolder, primaryFile.Filename);
-        await File.WriteAllBytesAsync(dest, data);
+        await File.WriteAllBytesAsync(Path.Combine(targetFolder, fileName), data);
+        TrackInstalledFile(targetFolder, project.ProjectId, fileName);
 
-        StatusText = $"Added {project.Title} to {instance.Name}";
         project.IsInstalled = true;
     }
 
-    private static bool CheckIfProjectInstalledInInstance(InstanceModel instance, ModrinthProjectItemViewModel project)
+    private async Task InstallProjectToInstanceAsync(ModrinthProjectItemViewModel project, InstanceModel instance)
     {
+        var pType = project.ProjectType ?? SelectedProjectType;
+        var includeLoader = pType is "mod" or "modpack";
+        var (fileName, data) = await DownloadProjectArtifactAsync(project, instance, includeLoaderFilter: includeLoader);
+
+        var targetFolder = ResolveProjectTargetDir(instance, pType);
+        Directory.CreateDirectory(targetFolder);
+        var dest = Path.Combine(targetFolder, fileName);
+        await File.WriteAllBytesAsync(dest, data);
+        TrackInstalledFile(targetFolder, project.ProjectId, fileName);
+
+        if (!string.IsNullOrWhiteSpace(project.IconUrl))
+        {
+            try
+            {
+                var iconBytes = await ModrinthApiService.GetIconAsync(project.IconUrl);
+                if (iconBytes is { Length: > 0 })
+                {
+                    var cacheDir = Path.Combine(ZenithPaths.AppDataDir, "cache", "icons");
+                    Directory.CreateDirectory(cacheDir);
+                    await File.WriteAllBytesAsync(Path.Combine(cacheDir, Path.GetFileNameWithoutExtension(dest) + ".png"), iconBytes);
+                    await File.WriteAllBytesAsync(Path.Combine(cacheDir, Path.GetFileName(dest) + ".png"), iconBytes);
+                    await File.WriteAllBytesAsync(Path.Combine(cacheDir, $"{project.ProjectId}.png"), iconBytes);
+                }
+            }
+            catch { }
+        }
+
+        project.IsInstalled = true;
+    }
+
+    private async Task UninstallProjectFromInstanceAsync(ModrinthProjectItemViewModel project, InstanceModel instance)
+    {
+        var pType = project.ProjectType ?? SelectedProjectType;
+        var targetFolder = ResolveProjectTargetDir(instance, pType);
+        await Task.Run(() =>
+        {
+            foreach (var file in FindMatchingProjectFiles(targetFolder, project))
+            {
+                try { File.Delete(file); } catch { }
+            }
+        });
+        UntrackInstalledFolder(targetFolder, project.ProjectId);
+
+        if (!_instanceService.GetInstances().Any(i => CheckIfProjectInstalledInInstance(i, project)))
+            project.IsInstalled = false;
+    }
+
+    private async Task UninstallDatapackFromWorldAsync(ModrinthProjectItemViewModel project, InstanceModel instance, string worldName)
+    {
+        var targetFolder = Path.Combine(instance.Path, "saves", worldName, "datapacks");
+        await Task.Run(() =>
+        {
+            foreach (var file in FindMatchingProjectFiles(targetFolder, project))
+            {
+                try { File.Delete(file); } catch { }
+            }
+        });
+        UntrackInstalledFolder(targetFolder, project.ProjectId);
+
+        if (!_instanceService.GetInstances().Any(i => CheckIfProjectInstalledInInstance(i, project)))
+            project.IsInstalled = false;
+    }
+
+    private string ResolveProjectTargetDir(InstanceModel instance, string? projectType)
+    {
+        var subDir = (projectType ?? SelectedProjectType) switch
+        {
+            "resourcepack" => "resourcepacks",
+            "shader" => "shaderpacks",
+            "datapack" => Path.Combine("saves", "datapacks"),
+            _ => "mods"
+        };
+        return Path.Combine(instance.Path, subDir);
+    }
+
+    private void TrackInstalledFile(string folder, string projectId, string fileName)
+    {
+        if (string.IsNullOrWhiteSpace(projectId) || string.IsNullOrWhiteSpace(fileName)) return;
+        var key = $"{projectId}|{folder}";
+        if (!_sessionInstalledFiles.TryGetValue(key, out var set))
+        {
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            _sessionInstalledFiles[key] = set;
+        }
+        set.Add(fileName);
+    }
+
+    private void UntrackInstalledFolder(string folder, string projectId)
+    {
+        if (string.IsNullOrWhiteSpace(projectId)) return;
+        _sessionInstalledFiles.Remove($"{projectId}|{folder}");
+    }
+
+    private List<string> FindMatchingProjectFiles(string folder, ModrinthProjectItemViewModel project)
+    {
+        var matches = new List<string>();
+        if (!Directory.Exists(folder) || project == null) return matches;
+
         var slug = project.Slug?.ToLowerInvariant() ?? "";
         var title = project.Title?.ToLowerInvariant() ?? "";
+        var titleCompact = title.Replace(" ", "").Replace("-", "");
+        var titleDashed = title.Replace(" ", "-");
         var id = project.ProjectId?.ToLowerInvariant() ?? "";
 
+        var knownNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        if (_sessionInstalledFiles.TryGetValue($"{project.ProjectId}|{folder}", out var tracked))
+        {
+            foreach (var t in tracked) knownNames.Add(t);
+        }
+        if (ProjectForAddToInstance?.ProjectId == project.ProjectId)
+        {
+            foreach (var opt in AvailableAddVersions)
+            {
+                if (!string.IsNullOrWhiteSpace(opt.FileName))
+                    knownNames.Add(opt.FileName);
+            }
+        }
+
+        foreach (var file in Directory.GetFiles(folder))
+        {
+            var rawName = Path.GetFileName(file);
+            var baseName = rawName.EndsWith(".disabled", StringComparison.OrdinalIgnoreCase)
+                ? rawName[..^".disabled".Length]
+                : rawName;
+            var fn = baseName.ToLowerInvariant();
+            var fnCompact = fn.Replace("-", "").Replace("_", "").Replace(" ", "");
+
+            bool matched = knownNames.Contains(rawName) || knownNames.Contains(baseName)
+                || (!string.IsNullOrEmpty(slug) && fn.Contains(slug))
+                || (!string.IsNullOrEmpty(id) && fn.Contains(id))
+                || (!string.IsNullOrEmpty(titleDashed) && fn.Contains(titleDashed))
+                || (titleCompact.Length >= 4 && fnCompact.Contains(titleCompact));
+
+            if (matched)
+                matches.Add(file);
+        }
+
+        return matches;
+    }
+
+    private bool CheckIfProjectInstalledInInstance(InstanceModel instance, ModrinthProjectItemViewModel project)
+    {
         if (project.ProjectType == "datapack")
         {
             var saves = Path.Combine(instance.Path, "saves");
             if (!Directory.Exists(saves)) return false;
             foreach (var worldDir in Directory.GetDirectories(saves))
             {
-                var dpFolder = Path.Combine(worldDir, "datapacks");
-                if (!Directory.Exists(dpFolder)) continue;
-                foreach (var file in Directory.GetFiles(dpFolder))
-                {
-                    var fn = Path.GetFileName(file).ToLowerInvariant();
-                    if (!string.IsNullOrEmpty(slug) && fn.Contains(slug)) return true;
-                    if (!string.IsNullOrEmpty(id) && fn.Contains(id)) return true;
-                    if (!string.IsNullOrEmpty(title) && fn.Contains(title.Replace(" ", "-"))) return true;
-                }
+                if (FindMatchingProjectFiles(Path.Combine(worldDir, "datapacks"), project).Count > 0)
+                    return true;
             }
             return false;
         }
 
-        var subDir = project.ProjectType switch
-        {
-            "resourcepack" => "resourcepacks",
-            "shader" => "shaderpacks",
-            _ => "mods"
-        };
-        var folder = Path.Combine(instance.Path, subDir);
-        if (!Directory.Exists(folder)) return false;
-
-        foreach (var file in Directory.GetFiles(folder))
-        {
-            var fn = Path.GetFileName(file).ToLowerInvariant();
-            if (!string.IsNullOrEmpty(slug) && fn.Contains(slug)) return true;
-            if (!string.IsNullOrEmpty(id) && fn.Contains(id)) return true;
-            if (!string.IsNullOrEmpty(title) && fn.Contains(title.Replace(" ", "-"))) return true;
-        }
-        return false;
+        return FindMatchingProjectFiles(ResolveProjectTargetDir(instance, project.ProjectType), project).Count > 0;
     }
 
     private async Task InstallLatestAsync(ModrinthProjectItemViewModel project)
@@ -2204,32 +2603,57 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
         SelectedProject = project;
     }
 
+    private CancellationTokenSource? _fullProjectCts;
+
     [RelayCommand]
     private void CloseDetails()
     {
-        try { FullProject?.Dispose(); FullProject = null; } catch { }
-        try { HeaderImage?.Dispose(); HeaderImage = null; } catch { }
+        try { _fullProjectCts?.Cancel(); _fullProjectCts?.Dispose(); _fullProjectCts = null; } catch { }
+        _allVersions.Clear();
+        PlatformFilterItems.Clear();
+        SelectedDetailVersion = null;
+        SelectedVersionForDetails = null;
+        SelectedVersionToInstall = null;
+        ActiveGalleryModalItem = null;
+        SelectedCompatibilityVersion = "";
         SelectedProject = null;
+        FullProject = null;
+        HeaderImage = null;
         PendingDelete = null;
-        MemoryTrimmer.TrimMemory();
+        Views.MainWindow.RequestBackgroundMemoryCleanup();
     }
 
     public void Dispose()
     {
+        Interlocked.Increment(ref _searchGeneration);
         try { _searchCts?.Cancel(); _searchCts?.Dispose(); _searchCts = null; } catch { }
         try { _reinstallCts?.Cancel(); _reinstallCts?.Dispose(); _reinstallCts = null; } catch { }
+        try { _fullProjectCts?.Cancel(); _fullProjectCts?.Dispose(); _fullProjectCts = null; } catch { }
+        try { if (_prevSelectedProject != null && _selectedProjectPropChanged != null) _prevSelectedProject.PropertyChanged -= _selectedProjectPropChanged; } catch { }
+        _prevSelectedProject = null;
+        _selectedProjectPropChanged = null;
         try { CurrentAuthorProfileVm?.Dispose(); CurrentAuthorProfileVm = null; } catch { }
         try { FullProject?.Dispose(); FullProject = null; } catch { }
         try { HeaderImage?.Dispose(); HeaderImage = null; } catch { }
         SelectedProject = null;
+        ProjectForAddToInstance = null;
+        SelectedTargetInstanceForWorld = null;
+        AvailableAddVersions.Clear();
+        TargetInstances.Clear();
+        SelectedDetailVersion = null;
+        SelectedVersionForDetails = null;
+        SelectedVersionToInstall = null;
+        ActiveGalleryModalItem = null;
         PendingDelete = null;
+        _allVersions.Clear();
+        PlatformFilterItems.Clear();
         foreach (var r in Results)
         {
             try { r.Dispose(); } catch { }
         }
         Results.Clear();
         ClearTargetWorlds();
-        MemoryTrimmer.TrimMemory();
+        ModrinthApiService.ClearMemoryCache();
     }
 
     [RelayCommand]
@@ -2244,6 +2668,11 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
 
     private async Task LoadFullProjectAsync(ModrinthProjectItemViewModel project)
     {
+        _fullProjectCts?.Cancel();
+        _fullProjectCts?.Dispose();
+        _fullProjectCts = new CancellationTokenSource();
+        var token = _fullProjectCts.Token;
+
         FullProjectBusy = true;
         try
         {
@@ -2251,6 +2680,11 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
             {
                 var apiKey = GetCurseForgeApiKey?.Invoke() ?? "";
                 var cfProject = await CurseForgeApiService.GetFullProjectAsync(project.ProjectId, apiKey);
+                if (token.IsCancellationRequested)
+                {
+                    cfProject?.Dispose();
+                    return;
+                }
                 FullProject = cfProject;
                 HeaderImage = null;
                 OnPropertyChanged(nameof(CleanBody));
@@ -2258,6 +2692,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
                 OnPropertyChanged(nameof(HasGalleryItems));
 
                 _allVersions = await CurseForgeApiService.GetProjectVersionsAsync(project.ProjectId, apiKey);
+                if (token.IsCancellationRequested) return;
                 if (cfProject != null)
                 {
                     cfProject.Versions = _allVersions;
@@ -2316,6 +2751,11 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
                 return;
             }
             var full = await ModrinthApiService.GetFullProjectAsync(project.ProjectId);
+            if (token.IsCancellationRequested)
+            {
+                full?.Dispose();
+                return;
+            }
             FullProject = full;
             HeaderImage = null;
             OnPropertyChanged(nameof(CleanBody));
@@ -2323,12 +2763,19 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
             OnPropertyChanged(nameof(HasGalleryItems));
 
             _allVersions = await ModrinthApiService.GetProjectVersionsAsync(project.ProjectId);
+            if (token.IsCancellationRequested) return;
             if (full != null)
             {
                 full.Versions = _allVersions;
-                foreach (var g in full.Gallery)
+                if (IsGalleryTab)
                 {
-                    g.LoadImage();
+                    foreach (var g in full.Gallery)
+                        g.LoadImage();
+                }
+                else if (full.Gallery.Count > 0)
+                {
+                    var previewItem = full.Gallery.FirstOrDefault(g => g.Featured) ?? full.Gallery[0];
+                    previewItem.LoadImage();
                 }
                 foreach (var tm in full.TeamMembers)
                 {
@@ -2396,13 +2843,26 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
                     _ = Task.Run(async () =>
                     {
                         var bytes = await ModrinthApiService.GetIconAsync(bannerUrl);
-                        if (bytes is { Length: > 0 })
+                        if (token.IsCancellationRequested || bytes is not { Length: > 0 }) return;
+                        using var ms = new System.IO.MemoryStream(bytes);
+                        var bmp = Avalonia.Media.Imaging.Bitmap.DecodeToWidth(ms, 1200);
+                        if (token.IsCancellationRequested)
                         {
-                            using var ms = new System.IO.MemoryStream(bytes);
-                            var bmp = Avalonia.Media.Imaging.Bitmap.DecodeToWidth(ms, 1200);
-                            Avalonia.Threading.Dispatcher.UIThread.Post(() => HeaderImage = bmp);
+                            try { bmp.Dispose(); } catch { }
+                            return;
                         }
-                    });
+                        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                        {
+                            if (token.IsCancellationRequested || !ReferenceEquals(FullProject, full))
+                            {
+                                try { bmp.Dispose(); } catch { }
+                                return;
+                            }
+                            var old = HeaderImage;
+                            HeaderImage = bmp;
+                            try { old?.Dispose(); } catch { }
+                        });
+                    }, token);
                 }
 
                 CurrentVersionPage = 1;
@@ -2690,8 +3150,6 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
             StatusText = $"Installing files (0/{total})...";
 
             using var sem = new System.Threading.SemaphoreSlim(6);
-            using var http = new System.Net.Http.HttpClient();
-            http.DefaultRequestHeaders.UserAgent.ParseAdd("ZenithLauncher/1.0");
 
             var tasks = files.Select(async file =>
             {
@@ -2722,8 +3180,8 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
                         if (string.IsNullOrWhiteSpace(url)) continue;
                         try
                         {
-                            var data = await http.GetByteArrayAsync(url, token);
-                            if (data.Length > 0)
+                            var data = await ModrinthApiService.DownloadAsync(url, token);
+                            if (data is { Length: > 0 })
                             {
                                 await File.WriteAllBytesAsync(destPath, data, token);
                                 break;

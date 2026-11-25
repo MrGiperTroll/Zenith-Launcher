@@ -54,4 +54,21 @@ public partial class InstanceGridControl : UserControl
             vm.NavigateToEditInstance(instance, "Overview");
         }
     }
+
+    private void OnGroupFilterOptionClicked(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm && sender is Button btn)
+        {
+            vm.SelectProfileGroupCommand.Execute(btn.Tag as string ?? "");
+        }
+        this.FindControl<Button>("GroupFilterBtn")?.Flyout?.Hide();
+    }
+
+    private void OnGroupSectionHeaderTapped(object? sender, TappedEventArgs e)
+    {
+        if (sender is Control { DataContext: ViewModels.Components.InstanceGroupSection section })
+        {
+            section.ToggleExpandCommand.Execute(null);
+        }
+    }
 }

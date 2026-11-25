@@ -36,7 +36,8 @@
         <converters:BoolToBorderBrushConverter x:Key="BoolToBorderBrushConverter"/>
     </Window.Resources>
 
-    <Border CornerRadius="12"
+    <Border x:Name="WindowRootBorder"
+            CornerRadius="12"
             Background="{DynamicResource BgBrush}"
             BorderBrush="{DynamicResource BorderDarkBrush}"
             BorderThickness="1"
@@ -124,14 +125,14 @@
                     </Grid>
 
                     <!-- Right (Col 2): Window Caption Controls -->
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="0" VerticalAlignment="Stretch">
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="0" VerticalAlignment="Stretch" HorizontalAlignment="Right">
                         <Button Classes="captionBtn" Click="OnMinimizeButtonClick" ToolTip.Tip="Minimize">
                             <PathIcon Data="M19 13H5v-2h14v2z" Width="10" Height="10"/>
                         </Button>
                         <Button Classes="captionBtn" Click="OnMaximizeButtonClick" ToolTip.Tip="Maximize">
                             <PathIcon x:Name="MaximizeButtonIcon" Data="M4 4h16v16H4V4zm2 2v12h12V6H6z" Width="10" Height="10"/>
                         </Button>
-                        <Button Classes="captionBtn captionCloseBtn" Click="OnCloseButtonClick" ToolTip.Tip="Close">
+                        <Button x:Name="CloseWindowBtn" Classes="captionBtn captionCloseBtn" CornerRadius="0,11,0,0" Click="OnCloseButtonClick" ToolTip.Tip="Close">
                             <PathIcon Data="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" Width="10" Height="10"/>
                         </Button>
                     </StackPanel>
@@ -147,47 +148,25 @@
                     <Grid Grid.Column="1" RowDefinitions="*,Auto">
                         <!-- Center Workspace Content (Row 0) -->
                         <Grid Grid.Row="0" Margin="0">
-                    <!-- Profiles View -->
+                    <!-- Profiles View (kept mounted for instant return) -->
                     <pages:ProfilesView x:Name="ProfilesPane" Classes="viewPane" IsVisible="{Binding IsProfilesView}"/>
 
-                    <!-- Catalog / Modpacks View -->
-                    <pages:ModpacksView x:Name="ModpacksPane" Classes="viewPane" IsVisible="{Binding IsModpacksView}"/>
+                    <!-- Secondary Views (lazy-mounted on visit and unloaded on leave to minimize idle RAM) -->
+                    <Panel x:Name="ModpacksPane" Classes="viewPane" IsVisible="{Binding IsModpacksView}"/>
 
+                    <Panel x:Name="EditInstancePane" Classes="viewPane" IsVisible="{Binding IsEditInstanceView}" Margin="0" UseLayoutRounding="True"/>
 
-                    <!-- In-Window Edit Instance View -->
-                    <Panel x:Name="EditInstancePane" Classes="viewPane" IsVisible="{Binding IsEditInstanceView}" Margin="0" UseLayoutRounding="True">
-                        <views:EditInstanceView DataContext="{Binding CurrentEditInstanceVm}"/>
-                    </Panel>
+                    <Panel x:Name="ContentBrowserPane" Classes="viewPane" IsVisible="{Binding IsContentBrowserView}" Margin="24,16,16,0" UseLayoutRounding="True"/>
 
-                    <!-- In-Window Content Browser View -->
-                    <Panel x:Name="ContentBrowserPane" Classes="viewPane" IsVisible="{Binding IsContentBrowserView}" Margin="24,16,16,0" UseLayoutRounding="True">
-                        <views:ContentBrowserView DataContext="{Binding CurrentContentBrowserVm}"/>
-                    </Panel>
+                    <Panel x:Name="SettingsPane" Classes="viewPane" IsVisible="{Binding IsSettingsView}" Margin="0" UseLayoutRounding="True"/>
 
-                    <!-- In-Window Launcher Settings View -->
-                    <Panel x:Name="SettingsPane" Classes="viewPane" IsVisible="{Binding IsSettingsView}" Margin="0" UseLayoutRounding="True">
-                        <views:LauncherSettingsView DataContext="{Binding LauncherSettingsVm}"/>
-                    </Panel>
+                    <Panel x:Name="ServerManagerPane" Classes="viewPane" IsVisible="{Binding IsServerManagerView}" Margin="24,14,16,0"/>
 
-                    <!-- In-Window Server Manager View -->
-                    <Panel x:Name="ServerManagerPane" Classes="viewPane" IsVisible="{Binding IsServerManagerView}" Margin="24,14,16,0">
-                        <views:ServerManagerView DataContext="{Binding CurrentServerManagerVm}"/>
-                    </Panel>
+                    <Panel x:Name="AccountsPane" Classes="viewPane" IsVisible="{Binding IsAccountsView}" Margin="24,16,16,0"/>
 
-                    <!-- In-Window Accounts View -->
-                    <Panel x:Name="AccountsPane" Classes="viewPane" IsVisible="{Binding IsAccountsView}" Margin="24,16,16,0">
-                        <views:AccountsView DataContext="{Binding AccountsVm}"/>
-                    </Panel>
+                    <Panel x:Name="CreateProfilePane" Classes="viewPane" IsVisible="{Binding IsCreateProfileView}" Margin="24,16,16,0"/>
 
-                    <!-- In-Window Create Profile View -->
-                    <Panel x:Name="CreateProfilePane" Classes="viewPane" IsVisible="{Binding IsCreateProfileView}" Margin="24,16,16,0">
-                        <views:CreateProfileView DataContext="{Binding CreateProfileVm}"/>
-                    </Panel>
-
-                    <!-- In-Window Create Server View -->
-                    <Panel x:Name="CreateServerPane" Classes="viewPane" IsVisible="{Binding IsCreateServerView}" Margin="24,16,16,0">
-                        <views:CreateServerView DataContext="{Binding CreateServerVm}"/>
-                    </Panel>
+                    <Panel x:Name="CreateServerPane" Classes="viewPane" IsVisible="{Binding IsCreateServerView}" Margin="24,16,16,0"/>
                 </Grid>
 
                 <!-- Full-Width Bottom Launch Bar -->

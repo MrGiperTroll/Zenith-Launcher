@@ -19,8 +19,6 @@ namespace ZenithLauncher.Views.Pages;
 public partial class ProfilesView : UserControl
 {
     private MainWindowViewModel? _subscribedVm;
-    private bool _sidebarClosePending;
-    private int _sidebarCloseGeneration;
 
     private Border? _draggedCard;
     private InstanceModel? _draggedInstance;
@@ -62,51 +60,14 @@ public partial class ProfilesView : UserControl
         }
     }
 
-    private async void AnimateSidebar(bool open)
+    private void AnimateSidebar(bool open)
     {
         var sidebar = this.FindControl<Border>("InstanceDetailsSidebar");
         if (sidebar == null) return;
 
-        const double width = 300;
-        const int ms = 240;
-
-        var translate = sidebar.RenderTransform as TranslateTransform;
-        if (translate == null)
-        {
-            translate = new TranslateTransform();
-            sidebar.RenderTransform = translate;
-        }
-
-        if (open)
-        {
-            _sidebarClosePending = false;
-            sidebar.IsVisible = true;
-            sidebar.IsHitTestVisible = true;
-
-            translate.X = width;
-            sidebar.Opacity = 0;
-
-            translate.X = 0;
-            sidebar.Opacity = 1;
-        }
-        else
-        {
-            sidebar.IsHitTestVisible = false;
-
-            translate.X = width;
-            sidebar.Opacity = 0;
-
-            _sidebarClosePending = true;
-            _sidebarCloseGeneration++;
-            var thisClose = _sidebarCloseGeneration;
-
-            await Task.Delay(ms);
-
-            if (_sidebarClosePending && _sidebarCloseGeneration == thisClose)
-            {
-                sidebar.IsVisible = false;
-            }
-        }
+        sidebar.IsVisible = open;
+        sidebar.IsHitTestVisible = open;
+        sidebar.Opacity = open ? 1 : 0;
     }
 
     private void OnInstanceNameDoubleTapped(object? sender, TappedEventArgs e)
@@ -268,9 +229,9 @@ public partial class ProfilesView : UserControl
         }
 
         var itemsCtrl = this.FindControl<ItemsControl>("InstancesItemsControl");
-        if (itemsCtrl == null) return (null, false);
-
-        var wrapPanel = itemsCtrl.FindDescendantOfType<Controls.AnimatedWrapPanel>();
+        Controls.AnimatedWrapPanel? wrapPanel = itemsCtrl is { IsVisible: true }
+            ? itemsCtrl.FindDescendantOfType<Controls.AnimatedWrapPanel>()
+            : this.FindDescendantOfType<Controls.AnimatedWrapPanel>();
         if (wrapPanel == null) return (null, false);
 
         var pointerInWrap = this.TranslatePoint(currentPos, wrapPanel);

@@ -102,4 +102,27 @@ public partial class EditInstanceView : UserControl
         if (DataContext is EditInstanceViewModel vm)
             vm.SaveInstanceName();
     }
+
+    private void OnLogSourceOptionClicked(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button { DataContext: string src } && DataContext is EditInstanceViewModel vm)
+        {
+            vm.SelectLogSourceCommand.Execute(src);
+            LogSourceDropdownBtn.Flyout?.Hide();
+        }
+    }
+
+    private void OnDataPackWorldOptionClicked(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button { DataContext: Models.InstanceFileEntry worldEntry } && DataContext is EditInstanceViewModel vm)
+        {
+            vm.SelectWorldEntryCommand.Execute(worldEntry);
+            DataPackWorldDropdownBtn.Flyout?.Hide();
+        }
+        else if (sender is Button { DataContext: string world } && DataContext is EditInstanceViewModel vmStr)
+        {
+            vmStr.SelectWorldCommand.Execute(world);
+            DataPackWorldDropdownBtn.Flyout?.Hide();
+        }
+    }
 }

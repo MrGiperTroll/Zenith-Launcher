@@ -31,7 +31,7 @@ public partial class CreateProfileViewModel : ObservableObject, IDisposable
 {
     private readonly IInstanceService _instanceService;
     private readonly ModLoaderService _modLoaderService;
-    private readonly List<(string Name, string Type, string ReleaseTime)> _cachedVersions = new();
+    private readonly List<CachedVersionEntry> _cachedVersions = new();
     
     [ObservableProperty] private bool _showReleases = true;
     [ObservableProperty] private bool _showSnapshots;
@@ -370,13 +370,13 @@ public partial class CreateProfileViewModel : ObservableObject, IDisposable
             _cachedVersions.Clear();
             // Store the RAW type: local custom entries (modloader profiles) have no
             // Mojang type and must be classified by id shape, not forced to "release".
-            foreach (var v in versions) _cachedVersions.Add((v.Name, v.Type ?? "", ""));
+            foreach (var v in versions) _cachedVersions.Add(new CachedVersionEntry { Name = v.Name, Type = v.Type ?? "", ReleaseTime = "" });
             // Enrich with release dates from Mojang's manifest v2 - needed to place
             // snapshots inside the folder of the release they lead up to.
             var dates = await FetchReleaseDatesAsync();
             for (var i = 0; i < _cachedVersions.Count; i++)
                 if (_cachedVersions[i].ReleaseTime.Length == 0 && dates.TryGetValue(_cachedVersions[i].Name, out var dt))
-                    _cachedVersions[i] = (_cachedVersions[i].Name, _cachedVersions[i].Type, dt);
+                    _cachedVersions[i].ReleaseTime = dt;
             SaveVersionCache();
             BuildVersionGroups();
         }
@@ -386,9 +386,9 @@ public partial class CreateProfileViewModel : ObservableObject, IDisposable
             LoadVersionCache();
             if (_cachedVersions.Count == 0)
             {
-                _cachedVersions.Add(("1.21.1", "release", ""));
-                _cachedVersions.Add(("1.20.1", "release", ""));
-                _cachedVersions.Add(("1.16.5", "release", ""));
+                _cachedVersions.Add(new CachedVersionEntry { Name = "1.21.1", Type = "release", ReleaseTime = "" });
+                _cachedVersions.Add(new CachedVersionEntry { Name = "1.20.1", Type = "release", ReleaseTime = "" });
+                _cachedVersions.Add(new CachedVersionEntry { Name = "1.16.5", Type = "release", ReleaseTime = "" });
             }
             BuildVersionGroups();
         }
@@ -399,7 +399,7 @@ public partial class CreateProfileViewModel : ObservableObject, IDisposable
 
     private void SaveVersionCache()
     {
-        try { File.WriteAllText(VersionCachePath, System.Text.Json.JsonSerializer.Serialize(_cachedVersions)); } catch { }
+        try { File.WriteAllText(VersionCachePath, System.Text.Json.JsonSerializer.Serialize(_cachedVersions, LauncherJsonContext.Compact.ListCachedVersionEntry)); } catch { }
     }
 
     private void LoadVersionCache()
@@ -407,8 +407,15 @@ public partial class CreateProfileViewModel : ObservableObject, IDisposable
         if (!File.Exists(VersionCachePath)) return;
         try
         {
-            var cached = System.Text.Json.JsonSerializer.Deserialize<List<(string Name, string Type, string ReleaseTime)>>(File.ReadAllText(VersionCachePath));
-            if (cached != null) _cachedVersions.AddRange(cached);
+            var cached = System.Text.Json.JsonSerializer.Deserialize(File.ReadAllText(VersionCachePath), LauncherJsonContext.Default.ListCachedVersionEntry);
+            if (cached != null)
+            {
+                foreach (var item in cached)
+                {
+                    if (!string.IsNullOrWhiteSpace(item.Name))
+                        _cachedVersions.Add(item);
+                }
+            }
         }
         catch { }
     }
@@ -460,8 +467,11 @@ public partial class CreateProfileViewModel : ObservableObject, IDisposable
         // under their BASE Minecraft version folder instead of junk keys.
         var groupKey = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-        foreach (var (name, rawType, relTime) in _cachedVersions)
+        foreach (var cv in _cachedVersions)
         {
+            var name = cv.Name;
+            var rawType = cv.Type;
+            var relTime = cv.ReleaseTime;
             // Locally installed modloader profiles are launcher internals,
             // not game versions - never show them in any list.
             if (ModLoaderService.IsLoaderProfileId(name)) continue;
@@ -825,7 +835,7 @@ public partial class CreateProfileViewModel : ObservableObject, IDisposable
         {
             _pickedIconPath = icon.FilePath;
             IconPath = icon.FilePath;
-            try { IconPreview?.Dispose(); IconPreview = new Bitmap(icon.FilePath); } catch { }
+            try { var old = IconPreview; IconPreview = DecodePreviewBitmap(icon.FilePath); old?.Dispose(); } catch { }
         }
         else if (!string.IsNullOrWhiteSpace(icon.GeometryData))
         {
@@ -877,7 +887,7 @@ public partial class CreateProfileViewModel : ObservableObject, IDisposable
             SelectedIconOption = newIcon;
             _pickedIconPath = dest;
             IconPath = dest;
-            try { IconPreview?.Dispose(); IconPreview = new Bitmap(dest); } catch { }
+            try { var old = IconPreview; IconPreview = DecodePreviewBitmap(dest); old?.Dispose(); } catch { }
         }
     }
 
@@ -885,9 +895,17 @@ public partial class CreateProfileViewModel : ObservableObject, IDisposable
     private void ResetIcon()
     {
         SelectedIconOption = null;
+        var old = IconPreview;
         IconPreview = null;
+        try { old?.Dispose(); } catch { }
         IconPath = "";
         _pickedIconPath = null;
+    }
+
+    private static Bitmap DecodePreviewBitmap(string path)
+    {
+        using var fs = File.OpenRead(path);
+        return Bitmap.DecodeToWidth(fs, 128, BitmapInterpolationMode.MediumQuality);
     }
 
     private static Bitmap RenderIconToBitmap(string geometryData, string colorHex, int size)
@@ -924,7 +942,7 @@ public partial class CreateProfileViewModel : ObservableObject, IDisposable
         {
             _pickedIconPath = option.FilePath;
             IconPath = option.FilePath;
-            try { IconPreview?.Dispose(); IconPreview = new Bitmap(option.FilePath); } catch { }
+            try { var old = IconPreview; IconPreview = DecodePreviewBitmap(option.FilePath); old?.Dispose(); } catch { }
         }
         else if (!string.IsNullOrEmpty(option.GeometryData))
         {

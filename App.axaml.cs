@@ -1,10 +1,14 @@
 ﻿using System;
+using System.IO.Pipes;
 using System.Linq;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
 using ZenithLauncher.ViewModels;
 using ZenithLauncher.Views;
 using ZenithLauncher.Services;
@@ -13,6 +17,7 @@ namespace ZenithLauncher;
 
 public partial class App : Application
 {
+    private CancellationTokenSource? _singleInstancePipeCts;
     public override void Initialize()
     {
         AppDomain.CurrentDomain.UnhandledException += (s, e) =>
@@ -74,6 +79,22 @@ public partial class App : Application
                 };
 
                 SetupTrayIcon(desktop);
+                StartSingleInstanceListener(desktop);
+
+                try
+                {
+                    var skiaCpuLimit = Program.StartupHardwareAcceleration ? 16 * 1024 * 1024 : 8 * 1024 * 1024;
+                    SkiaSharp.SKGraphics.SetResourceCacheTotalByteLimit(skiaCpuLimit);
+                    SkiaSharp.SKGraphics.SetResourceCacheSingleAllocationByteLimit(4 * 1024 * 1024);
+                }
+                catch { }
+
+                desktop.Exit += (_, _) =>
+                {
+                    try { _singleInstancePipeCts?.Cancel(); } catch { }
+                    _singleInstancePipeCts?.Dispose();
+                    _singleInstancePipeCts = null;
+                };
 
                 // Handle command-line launch for desktop shortcuts
                 if (wantsDirectLaunch)
@@ -110,9 +131,25 @@ public partial class App : Application
 
             try
             {
-                trayIcon.Icon = new WindowIcon(Avalonia.Platform.AssetLoader.Open(new Uri("avares://ZenithLauncher/Assets/app.ico")));
+                var iconUri = new Uri("avares://Zenith Launcher/Assets/app.ico");
+                if (Avalonia.Platform.AssetLoader.Exists(iconUri))
+                {
+                    using var iconStream = Avalonia.Platform.AssetLoader.Open(iconUri);
+                    trayIcon.Icon = new WindowIcon(iconStream);
+                }
+                else
+                {
+                    var diskIconPath = System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", "app.ico");
+                    if (System.IO.File.Exists(diskIconPath))
+                    {
+                        trayIcon.Icon = new WindowIcon(diskIconPath);
+                    }
+                }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                LauncherLog.Warn($"Failed to load tray icon: {ex.Message}");
+            }
 
             trayIcon.Clicked += (_, _) =>
             {
@@ -145,8 +182,13 @@ public partial class App : Application
                 }
             };
 
+        L10n.LanguageChanged += () =>
+            {
+                openItem.Header = L10n.T("tray_open");
+                exitItem.Header = L10n.T("tray_exit");
+            };
+
             menu.Items.Add(openItem);
-            menu.Items.Add(new NativeMenuItemSeparator());
             menu.Items.Add(exitItem);
 
             trayIcon.Menu = menu;
@@ -156,5 +198,78 @@ public partial class App : Application
         {
             LauncherLog.Warn($"Tray icon initialization skipped or failed: {ex.Message}");
         }
+    }
+
+    public void PrepareForRestart()
+    {
+        try { _singleInstancePipeCts?.Cancel(); } catch { }
+        try { _singleInstancePipeCts?.Dispose(); } catch { }
+        _singleInstancePipeCts = null;
+
+        try
+        {
+            var icons = TrayIcon.GetIcons(this);
+            if (icons != null)
+            {
+                foreach (var icon in icons)
+                {
+                    icon.IsVisible = false;
+                    icon.Dispose();
+                }
+                icons.Clear();
+            }
+        }
+        catch { }
+    }
+
+    private void StartSingleInstanceListener(IClassicDesktopStyleApplicationLifetime desktop)
+    {
+        _singleInstancePipeCts?.Cancel();
+        _singleInstancePipeCts?.Dispose();
+        var cts = new CancellationTokenSource();
+        _singleInstancePipeCts = cts;
+
+        _ = Task.Run(async () =>
+        {
+            while (!cts.IsCancellationRequested)
+            {
+                try
+                {
+                    using var server = new NamedPipeServerStream(
+                        Program.SingleInstancePipeName,
+                        PipeDirection.In,
+                        1,
+                        PipeTransmissionMode.Byte,
+                        PipeOptions.Asynchronous);
+
+                    await server.WaitForConnectionAsync(cts.Token).ConfigureAwait(false);
+
+                    var buf = new byte[64];
+                    int read = await server.ReadAsync(buf, cts.Token).ConfigureAwait(false);
+                    var msg = read > 0 ? Encoding.UTF8.GetString(buf, 0, read).Trim() : string.Empty;
+
+                    if (msg.StartsWith("SHOW", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Dispatcher.UIThread.Post(() =>
+                        {
+                            if (desktop.MainWindow is MainWindow mainWin)
+                            {
+                                mainWin.ShowAndActivate();
+                            }
+                        });
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    LauncherLog.Warn($"Single-instance listener error: {ex.Message}");
+                    try { await Task.Delay(500, cts.Token).ConfigureAwait(false); }
+                    catch { break; }
+                }
+            }
+        }, cts.Token);
     }
 }

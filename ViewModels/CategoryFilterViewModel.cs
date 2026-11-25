@@ -27,9 +27,11 @@ public sealed partial class CategoryFilterItem : ObservableObject
     }
 }
 
-public sealed partial class CategoryFilterViewModel : ObservableObject
+public sealed partial class CategoryFilterViewModel : ObservableObject, IDisposable
 {
     public ObservableCollection<CategoryFilterItem> Items { get; } = new();
+    private readonly Action _languageChangedHandler;
+    private bool _disposed;
 
     public int SelectedCount => Items.Count(i => i.IsSelected);
     public string SelectedText => string.Format(L10n.T("filter_selected"), SelectedCount);
@@ -52,11 +54,21 @@ public sealed partial class CategoryFilterViewModel : ObservableObject
     public CategoryFilterViewModel()
     {
         PopulateItems();
-        L10n.LanguageChanged += () =>
+        _languageChangedHandler = () =>
         {
             RefreshDisplayNames();
             NotifySelectionState();
         };
+        L10n.LanguageChanged += _languageChangedHandler;
+    }
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+        L10n.LanguageChanged -= _languageChangedHandler;
+        FilterChanged = null;
+        Items.Clear();
     }
 
     public void PopulateItems(ContentType selectedType = ContentType.Mod, bool hasModsSupport = true, bool hasShaderSupport = true)

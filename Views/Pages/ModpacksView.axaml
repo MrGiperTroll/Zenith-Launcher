@@ -194,14 +194,10 @@
             </Grid>
         </Grid>
 
-        <!-- Full-page modpack details (replaces catalog when open, seamless stretch) -->
-        <Panel IsVisible="{Binding ModpacksBrowser.IsDetailsOpen}">
-            <views:ProjectDetailsView DataContext="{Binding ModpacksBrowser}"/>
-        </Panel>
+        <!-- Full-page modpack details (lazy-mounted on open, unloaded on close) -->
+        <Panel x:Name="DetailsHost" IsVisible="{Binding ModpacksBrowser.IsDetailsOpen}"/>
 
-        <!-- Full-page author profile for modpacks -->
-        <Panel IsVisible="{Binding ModpacksBrowser.IsAuthorProfileOpen}">
-            <views:AuthorProfileView DataContext="{Binding ModpacksBrowser.CurrentAuthorProfileVm}"/>
-        </Panel>
+        <!-- Full-page author profile for modpacks (lazy-mounted on open, unloaded on close) -->
+        <Panel x:Name="AuthorHost" IsVisible="{Binding ModpacksBrowser.IsAuthorProfileOpen}"/>
     </Grid>
 </UserControl>

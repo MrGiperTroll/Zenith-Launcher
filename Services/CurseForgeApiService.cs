@@ -15,7 +15,15 @@ namespace ZenithLauncher.Services;
 
 public static class CurseForgeApiService
 {
-    private static readonly HttpClient Http = new()
+    private static readonly SocketsHttpHandler HttpHandler = new()
+    {
+        PooledConnectionLifetime = TimeSpan.FromMinutes(1),
+        PooledConnectionIdleTimeout = TimeSpan.FromSeconds(15),
+        MaxConnectionsPerServer = 6,
+        AutomaticDecompression = System.Net.DecompressionMethods.All
+    };
+
+    private static readonly HttpClient Http = new(HttpHandler)
     {
         Timeout = TimeSpan.FromMinutes(5)
     };
@@ -299,6 +307,58 @@ public static class CurseForgeApiService
         return null;
     }
 
+    public static async Task<List<CurseForgeProjectFileOption>> GetProjectFilesAsync(
+        string projectId,
+        string? apiKey = null,
+        CancellationToken token = default)
+    {
+        var list = new List<CurseForgeProjectFileOption>();
+        if (string.IsNullOrWhiteSpace(projectId)) return list;
+        try
+        {
+            using var request = CreateRequest(HttpMethod.Get, $"mods/{projectId}/files?pageSize=25", apiKey);
+            using var response = await Http.SendAsync(request, token).ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode) return list;
+
+            using var stream = await response.Content.ReadAsStreamAsync(token).ConfigureAwait(false);
+            using var doc = await JsonDocument.ParseAsync(stream, cancellationToken: token).ConfigureAwait(false);
+            if (!doc.RootElement.TryGetProperty("data", out var data) || data.ValueKind != JsonValueKind.Array)
+                return list;
+
+            foreach (var f in data.EnumerateArray())
+            {
+                var fileId = f.TryGetProperty("id", out var fid) ? fid.GetInt64() : 0;
+                var fileName = f.TryGetProperty("fileName", out var fn) ? fn.GetString() ?? "" : "";
+                var displayName = f.TryGetProperty("displayName", out var dn) ? dn.GetString() ?? "" : "";
+                var fileLen = f.TryGetProperty("fileLength", out var fl) ? fl.GetInt64() : 0;
+                var dlUrl = f.TryGetProperty("downloadUrl", out var du) ? du.GetString() ?? "" : "";
+                if (string.IsNullOrWhiteSpace(dlUrl) && fileId > 0 && !string.IsNullOrWhiteSpace(fileName))
+                    dlUrl = $"https://edge.forgecdn.net/files/{fileId / 1000}/{fileId % 1000}/{Uri.EscapeDataString(fileName)}";
+                if (string.IsNullOrWhiteSpace(dlUrl)) continue;
+
+                var gvs = new List<string>();
+                if (f.TryGetProperty("gameVersions", out var gvArr) && gvArr.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var g in gvArr.EnumerateArray())
+                    {
+                        var gs = g.GetString();
+                        if (!string.IsNullOrWhiteSpace(gs)) gvs.Add(gs);
+                    }
+                }
+
+                list.Add(new CurseForgeProjectFileOption(
+                    fileId,
+                    !string.IsNullOrWhiteSpace(displayName) ? displayName : fileName,
+                    fileName,
+                    dlUrl,
+                    fileLen,
+                    gvs.ToArray()));
+            }
+        }
+        catch { }
+        return list;
+    }
+
     public static async Task<List<CurseForgeFileInfo>> GetModFilesBatchAsync(
         IEnumerable<long> fileIds,
         string? apiKey = null,
@@ -552,3 +612,11 @@ public record CurseForgeSearchResult(
 );
 
 public record CurseForgeFileInfo(long FileId, string FileName, string DownloadUrl);
+
+public record CurseForgeProjectFileOption(
+    long FileId,
+    string DisplayName,
+    string FileName,
+    string DownloadUrl,
+    long FileLength,
+    string[] GameVersions);

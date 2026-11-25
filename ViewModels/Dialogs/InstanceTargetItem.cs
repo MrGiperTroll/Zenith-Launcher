@@ -1,11 +1,24 @@
 ﻿using System;
-using System.IO;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ZenithLauncher.Models;
+using ZenithLauncher.Services;
 
 namespace ZenithLauncher.ViewModels.Dialogs;
+
+public sealed record AddVersionOption(
+    string Id,
+    string Label,
+    string Subtitle,
+    string FileName,
+    string FileUrl,
+    string[] GameVersions,
+    string[] Loaders,
+    bool IsAuto = false)
+{
+    public bool HasSubtitle => !string.IsNullOrWhiteSpace(Subtitle);
+}
 
 public sealed partial class InstanceTargetItem : ObservableObject
 {
@@ -14,57 +27,110 @@ public sealed partial class InstanceTargetItem : ObservableObject
     public string VersionDisplay => $"{Instance.Version} {Instance.LoaderType}";
     public string? IconPath => Instance.IconPath;
     public bool HasIcon => Instance.HasCustomIcon;
+    public string GroupName => (Instance.Group ?? "").Trim();
+    public bool HasGroup => !string.IsNullOrWhiteSpace(GroupName);
+    public bool IsCompatible { get; }
+    public string CompatibilityLabel => IsCompatible ? L10n.T("add_inst_compat_ok") : L10n.T("add_inst_compat_mismatch");
     public bool IsDatapackSelection { get; }
 
     [ObservableProperty] private bool _isInstalled;
     [ObservableProperty] private bool _isInstalling;
-    [ObservableProperty] private string _buttonText = "Install";
+    [ObservableProperty] private bool _isHovered;
+    [ObservableProperty] private string _buttonText = L10n.T("btn_install");
 
-    public bool CanClickButton => IsDatapackSelection || !IsInstalled;
+    public bool CanClickButton => !IsInstalling;
 
-    private readonly Func<InstanceTargetItem, Task> _onAction;
+    private readonly Func<InstanceTargetItem, Task> _onInstall;
+    private readonly Func<InstanceTargetItem, Task>? _onUninstall;
 
-    public InstanceTargetItem(InstanceModel instance, bool isInstalled, bool isDatapack, Func<InstanceTargetItem, Task> onAction)
+    public InstanceTargetItem(
+        InstanceModel instance,
+        bool isInstalled,
+        bool isDatapack,
+        bool isCompatible,
+        Func<InstanceTargetItem, Task> onInstall,
+        Func<InstanceTargetItem, Task>? onUninstall = null)
     {
         Instance = instance;
         _isInstalled = isInstalled;
         IsDatapackSelection = isDatapack;
-        _onAction = onAction;
+        IsCompatible = isCompatible;
+        _onInstall = onInstall;
+        _onUninstall = onUninstall;
+        UpdateButtonText();
+    }
 
-        if (isDatapack)
+    partial void OnIsInstalledChanged(bool value) => UpdateButtonText();
+    partial void OnIsInstallingChanged(bool value)
+    {
+        OnPropertyChanged(nameof(CanClickButton));
+        UpdateButtonText();
+    }
+    partial void OnIsHoveredChanged(bool value) => UpdateButtonText();
+
+    private void UpdateButtonText()
+    {
+        if (IsInstalling)
         {
-            ButtonText = "Select World →";
+            ButtonText = L10n.T("btn_installing");
+            return;
         }
-        else
+        if (IsDatapackSelection)
         {
-            ButtonText = isInstalled ? "Installed ✓" : "Install";
+            ButtonText = L10n.T("btn_select_world");
+            return;
         }
+        if (IsInstalled)
+        {
+            ButtonText = IsHovered ? L10n.T("mi_delete") : L10n.T("btn_installed");
+            return;
+        }
+        ButtonText = L10n.T("btn_install");
     }
 
     [RelayCommand]
     public async Task InstallAsync()
     {
-        if (IsInstalling || (!IsDatapackSelection && IsInstalled)) return;
+        if (IsInstalling) return;
 
         if (IsDatapackSelection)
         {
-            if (_onAction != null)
-                await _onAction(this);
+            if (_onInstall != null)
+                await _onInstall(this);
+            return;
+        }
+
+        if (IsInstalled)
+        {
+            if (_onUninstall == null) return;
+            IsInstalling = true;
+            try
+            {
+                await _onUninstall(this);
+                IsInstalled = false;
+                IsHovered = false;
+            }
+            catch
+            {
+                ButtonText = L10n.T("btn_failed");
+            }
+            finally
+            {
+                IsInstalling = false;
+            }
             return;
         }
 
         IsInstalling = true;
-        ButtonText = "Installing...";
         try
         {
-            if (_onAction != null)
-                await _onAction(this);
+            if (_onInstall != null)
+                await _onInstall(this);
             IsInstalled = true;
-            ButtonText = "Installed ✓";
         }
         catch
         {
-            ButtonText = "Failed";
+            ButtonText = L10n.T("btn_failed");
         }
         finally
         {

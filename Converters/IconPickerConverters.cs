@@ -12,9 +12,10 @@ public class IconPathToBitmapConverter : IValueConverter
 {
     public static readonly IconPathToBitmapConverter Instance = new();
 
-    // Path -> decoded bitmap bounded with LRU eviction. Disposes bitmaps on eviction or clear.
+    // Bounded LRU cache of decoded profile icons. Evicted entries are NOT disposed synchronously
+    // because visible Image controls may still hold a reference; GC finalizes unused bitmaps safely.
     private static readonly LruCache<string, (Bitmap Bmp, DateTime WriteUtc)> _cache =
-        new(40, null, StringComparer.OrdinalIgnoreCase);
+        new(20, null, StringComparer.OrdinalIgnoreCase);
 
     public static void ClearCache() => _cache.Clear();
 
@@ -32,7 +33,7 @@ public class IconPathToBitmapConverter : IValueConverter
                 if (info.Length > 8 * 1024 * 1024) return null;
 
                 using var fs = System.IO.File.OpenRead(path);
-                var bmp = Bitmap.DecodeToWidth(fs, 96);
+                var bmp = Bitmap.DecodeToWidth(fs, 96, BitmapInterpolationMode.MediumQuality);
                 _cache.Set(path, (bmp, writeUtc));
                 return bmp;
             }
@@ -46,13 +47,24 @@ public class IconPathToBitmapConverter : IValueConverter
 public class StringToBrushConverter : IValueConverter
 {
     public static readonly StringToBrushConverter Instance = new();
+    private static readonly SolidColorBrush DefaultBrush = new(Color.Parse("#3A4556"));
+    private static readonly LruCache<string, SolidColorBrush> _brushCache = new(32, null, StringComparer.OrdinalIgnoreCase);
+
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value is string s && !string.IsNullOrWhiteSpace(s))
         {
-            try { return new SolidColorBrush(Color.Parse(s)); } catch { }
+            if (_brushCache.TryGet(s, out var cached))
+                return cached;
+            try
+            {
+                var brush = new SolidColorBrush(Color.Parse(s));
+                _brushCache.Set(s, brush);
+                return brush;
+            }
+            catch { }
         }
-        return new SolidColorBrush(Color.Parse("#3A4556"));
+        return DefaultBrush;
     }
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
 }
@@ -75,11 +87,26 @@ public class BytesToBitmapConverter : IValueConverter
 {
     public static readonly BytesToBitmapConverter Instance = new();
 
-    // Bounded LRU cache for decoded byte previews, ensuring evicted bitmaps are disposed immediately.
-    private static readonly LruCache<byte[], Bitmap> _cache =
-        new(48, null, ReferenceEqualityComparer.Instance);
+    private readonly record struct BytesCacheKey(ulong Hash, int Length, int DecodeWidth);
+
+    // Content-addressed bounded LRU cache. Never calls Bitmap.Dispose() on eviction because
+    // active UI Image controls may still reference an evicted bitmap.
+    private static readonly LruCache<BytesCacheKey, Bitmap> _cache = new(16, null);
 
     public static void ClearCache() => _cache.Clear();
+
+    private static ulong ComputeHash(byte[] data)
+    {
+        const ulong offset = 14695981039346656037UL;
+        const ulong prime = 1099511628211UL;
+        ulong hash = offset;
+        for (int i = 0; i < data.Length; i++)
+        {
+            hash ^= data[i];
+            hash *= prime;
+        }
+        return hash;
+    }
 
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
@@ -87,16 +114,19 @@ public class BytesToBitmapConverter : IValueConverter
         {
             try
             {
-                if (_cache.TryGet(bytes, out var hit))
-                    return hit;
-
                 int decodeWidth = 400;
                 if (parameter is int pInt) decodeWidth = pInt;
                 else if (parameter is string pStr && int.TryParse(pStr, out var pParsed)) decodeWidth = pParsed;
 
+                var key = new BytesCacheKey(ComputeHash(bytes), bytes.Length, decodeWidth);
+                if (_cache.TryGet(key, out var hit))
+                    return hit;
+
                 using var ms = new System.IO.MemoryStream(bytes);
-                var bmp = decodeWidth > 0 ? Bitmap.DecodeToWidth(ms, decodeWidth) : new Bitmap(ms);
-                _cache.Set(bytes, bmp);
+                var bmp = decodeWidth > 0
+                    ? Bitmap.DecodeToWidth(ms, decodeWidth, BitmapInterpolationMode.MediumQuality)
+                    : Bitmap.DecodeToWidth(ms, 800, BitmapInterpolationMode.MediumQuality);
+                _cache.Set(key, bmp);
                 return bmp;
             }
             catch
@@ -119,8 +149,12 @@ public class FullImageConverter : IValueConverter
         {
             try
             {
+                int decodeWidth = 1280;
+                if (parameter is int pInt && pInt > 0) decodeWidth = pInt;
+                else if (parameter is string pStr && int.TryParse(pStr, out var pParsed) && pParsed > 0) decodeWidth = pParsed;
+
                 using var fs = System.IO.File.OpenRead(path);
-                return new Bitmap(fs);
+                return Bitmap.DecodeToWidth(fs, decodeWidth, BitmapInterpolationMode.MediumQuality);
             }
             catch { return null; }
         }

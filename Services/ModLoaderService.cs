@@ -129,11 +129,11 @@ public class ModLoaderService
 
         await Task.WhenAll(fabricTask, quiltTask, forgeTask, neoForgeTask, optiFineTask);
 
-        if (fabricTask.Result.Count > 0) _fabricVersions.Insert(0, (fabricTask.Result, DateTime.UtcNow));
-        if (quiltTask.Result.Count > 0) _quiltVersions.Insert(0, (quiltTask.Result, DateTime.UtcNow));
-        if (forgeTask.Result.Count > 0) _forgeVersions.Insert(0, (forgeTask.Result, DateTime.UtcNow));
-        if (neoForgeTask.Result.Count > 0) _neoForgeVersions.Insert(0, (neoForgeTask.Result, DateTime.UtcNow));
-        if (optiFineTask.Result.Count > 0) _optiFineVersions.Insert(0, (optiFineTask.Result, DateTime.UtcNow));
+        if (fabricTask.Result.Count > 0) { _fabricVersions.Clear(); _fabricVersions.Add((fabricTask.Result, DateTime.UtcNow)); }
+        if (quiltTask.Result.Count > 0) { _quiltVersions.Clear(); _quiltVersions.Add((quiltTask.Result, DateTime.UtcNow)); }
+        if (forgeTask.Result.Count > 0) { _forgeVersions.Clear(); _forgeVersions.Add((forgeTask.Result, DateTime.UtcNow)); }
+        if (neoForgeTask.Result.Count > 0) { _neoForgeVersions.Clear(); _neoForgeVersions.Add((neoForgeTask.Result, DateTime.UtcNow)); }
+        if (optiFineTask.Result.Count > 0) { _optiFineVersions.Clear(); _optiFineVersions.Add((optiFineTask.Result, DateTime.UtcNow)); }
     }
 
     /// <summary>All loader types shown in the Create Profile dropdown, in display order.

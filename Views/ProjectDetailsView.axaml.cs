@@ -4,6 +4,7 @@ using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using ZenithLauncher.Models;
+using ZenithLauncher.UI.Animations;
 
 namespace ZenithLauncher.Views;
 
@@ -12,6 +13,7 @@ public partial class ProjectDetailsView : UserControl
     public ProjectDetailsView()
     {
         InitializeComponent();
+        SmoothScrollBehavior.Attach(DetailsScroll, wheelStep: 90.0, damping: 14.0);
     }
 
     private void OnVersionRowTapped(object? sender, RoutedEventArgs e)

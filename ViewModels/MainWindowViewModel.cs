@@ -526,6 +526,17 @@ public partial class MainWindowViewModel : ViewModelBase
     public InstancesViewModel InstancesManager { get; }
 
     public ObservableCollection<InstanceModel> Instances => InstancesManager.Instances;
+    public ObservableCollection<InstanceModel> FilteredInstances => InstancesManager.FilteredInstances;
+    public ObservableCollection<InstanceGroupSection> GroupedInstances => InstancesManager.GroupedInstances;
+    public ObservableCollection<string> ProfileGroups => InstancesManager.ProfileGroups;
+    public bool HasProfileGroups => InstancesManager.HasProfileGroups;
+    public string SelectedProfileGroup
+    {
+        get => InstancesManager.SelectedProfileGroup;
+        set => InstancesManager.SelectedProfileGroup = value;
+    }
+    public string SelectedProfileGroupDisplay => InstancesManager.SelectedProfileGroupDisplay;
+    public bool IsAllGroupsSelected => InstancesManager.IsAllGroupsSelected;
 
     public InstanceModel? SelectedInstance
     {
@@ -688,6 +699,8 @@ public partial class MainWindowViewModel : ViewModelBase
     public IRelayCommand<InstanceModel> StartRenameInstanceCommand => InstancesManager.StartRenameInstanceCommand;
     public IAsyncRelayCommand<InstanceModel> FinishRenameInstanceCommand => InstancesManager.FinishRenameInstanceCommand;
     public IAsyncRelayCommand<InstanceModel> ChangeInstanceIconCommand => InstancesManager.ChangeInstanceIconCommand;
+    public IRelayCommand<string?> SelectProfileGroupCommand => InstancesManager.SelectProfileGroupCommand;
+    public IRelayCommand<InstanceModel?> OpenGroupDialogCommand => InstancesManager.OpenGroupDialogCommand;
     public IRelayCommand<InstanceModel> OpenProfileFolderCommand => InstancesManager.OpenProfileFolderCommand;
     public IRelayCommand<InstanceModel> OpenProfileBrowseModsCommand => InstancesManager.OpenProfileBrowseModsCommand;
     public IRelayCommand<InstanceModel> OpenProfileServerManagerCommand => InstancesManager.OpenProfileServerManagerCommand;
@@ -733,6 +746,27 @@ public partial class MainWindowViewModel : ViewModelBase
     public void CloseEditInstanceWindow(EditInstanceViewModel vm) => InstancesManager.CloseEditInstanceWindow(vm);
 
     private bool _isLoadingConfig = false;
+    private bool _isSavingConfig = false;
+
+    [ObservableProperty] private bool _isHardwareAccelConfirmOpen;
+    private bool _pendingHardwareAccelValue;
+
+    [RelayCommand]
+    public void CancelHardwareAccelRestart()
+    {
+        IsHardwareAccelConfirmOpen = false;
+        LauncherSettingsVm?.RevertHardwareAcceleration();
+    }
+
+    [RelayCommand]
+    public void ConfirmHardwareAccelRestart()
+    {
+        IsHardwareAccelConfirmOpen = false;
+        LauncherSettingsVm?.CommitHardwareAcceleration(_pendingHardwareAccelValue);
+        SyncSettingsToRuntimeModels();
+        SaveLauncherConfig();
+        ZenithTheme.RestartLauncher();
+    }
 
     private readonly IAccountService _accountService;
 
@@ -1124,12 +1158,24 @@ public partial class MainWindowViewModel : ViewModelBase
                 OnPropertyChanged(nameof(SelectedDirectoryMode));
             else if (e.PropertyName == nameof(InstancesManager.SelectedJavaMode))
                 OnPropertyChanged(nameof(SelectedJavaMode));
+            else if (e.PropertyName == nameof(InstancesManager.HasProfileGroups))
+                OnPropertyChanged(nameof(HasProfileGroups));
+            else if (e.PropertyName == nameof(InstancesManager.SelectedProfileGroup))
+                OnPropertyChanged(nameof(SelectedProfileGroup));
+            else if (e.PropertyName == nameof(InstancesManager.SelectedProfileGroupDisplay))
+                OnPropertyChanged(nameof(SelectedProfileGroupDisplay));
+            else if (e.PropertyName == nameof(InstancesManager.IsAllGroupsSelected))
+                OnPropertyChanged(nameof(IsAllGroupsSelected));
         };
 
         ThemeSettingsVm = new ThemeSettingsViewModel
         {
             GetConfigSnapshot = () => GetLauncherConfigSnapshot(),
-            SaveConfigRequested = () => SaveLauncherConfig(),
+            SaveConfigRequested = () =>
+            {
+                SyncSettingsToRuntimeModels();
+                SaveLauncherConfig();
+            },
             CloseRequested = () => SwitchSettingsTab("Appearance")
         };
 
@@ -1143,15 +1189,36 @@ public partial class MainWindowViewModel : ViewModelBase
 
         {
 
-            SaveConfigRequested = () => SaveLauncherConfig(),
+            SaveConfigRequested = () =>
+            {
+                SyncSettingsToRuntimeModels();
+                SaveLauncherConfig();
+            },
 
-            VersionFiltersChanged = () => FilterVersions(),
+            VersionFiltersChanged = () =>
+            {
+                if (LauncherSettingsVm != null)
+                {
+                    InstancesManager.ShowReleases = LauncherSettingsVm.ShowReleases;
+                    InstancesManager.ShowSnapshots = LauncherSettingsVm.ShowSnapshots;
+                    InstancesManager.ShowBetas = LauncherSettingsVm.ShowBetas;
+                    InstancesManager.ShowAlphas = LauncherSettingsVm.ShowAlphas;
+                    InstancesManager.UseFlatVersionList = LauncherSettingsVm.UseFlatVersionList;
+                }
+                FilterVersions();
+            },
 
             LanguageChanged = lang => SelectedLanguage = lang,
 
             DiscordRpcChanged = enabled => DiscordRpcEnabled = enabled,
 
             ScaleChanged = scale => LauncherScale = scale,
+
+            HardwareAccelRestartRequested = enabled =>
+            {
+                _pendingHardwareAccelValue = enabled;
+                IsHardwareAccelConfirmOpen = true;
+            },
 
             OpenJavaInstallerRequested = () => OpenJavaInstaller(),
             DownloadJavaRequested = async (major, prog) =>
@@ -1284,19 +1351,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
 
 
-        ModLoaderService.Diagnostic += msg =>
-
-        {
-
-            Dispatcher.UIThread.Post(() =>
-
-            {
-
-                ConsoleLogs += $"[ModLoader] {msg}" + Environment.NewLine;
-
-            });
-
-        };
+        ModLoaderService.Diagnostic += msg => Console.AppendLog($"[ModLoader] {msg}");
 
 
 
@@ -1328,7 +1383,6 @@ public partial class MainWindowViewModel : ViewModelBase
                 {
                     Console.ClearLogs();
                 }
-                Services.MemoryTrimmer.TrimMemory(force: true);
             });
         };
 
@@ -1375,8 +1429,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
 
         _ = LoadMojangVersionsAsync();
-
-        _ = InitializeModLoadersAsync();
 
         UpdateJavaDisplay();
 
@@ -1689,10 +1741,37 @@ public partial class MainWindowViewModel : ViewModelBase
 
 
 
+    private void SyncSettingsToRuntimeModels()
+    {
+        if (LauncherSettingsVm == null) return;
+
+        if (Launch != null)
+        {
+            Launch.RamMb = LauncherSettingsVm.RamMb;
+            Launch.MinRamMb = LauncherSettingsVm.MinRamMb;
+            Launch.GameWidth = LauncherSettingsVm.GameWidth;
+            Launch.GameHeight = LauncherSettingsVm.GameHeight;
+            Launch.IsLockAspectRatio = LauncherSettingsVm.IsLockAspectRatio;
+            Launch.IsFullscreen = LauncherSettingsVm.IsFullscreen;
+            Launch.JvmArgs = LauncherSettingsVm.JvmArgs;
+            Launch.SelectedLaunchBehavior = LauncherSettingsVm.SelectedLaunchBehavior;
+            Launch.CustomJavaPath = LauncherSettingsVm.CustomJavaPath;
+        }
+
+        SelectedJavaMode = LauncherSettingsVm.SelectedJavaMode;
+        InstancesManager.SelectedDirectoryMode = LauncherSettingsVm.SelectedDirectoryMode;
+        InstancesManager.UseFlatVersionList = LauncherSettingsVm.UseFlatVersionList;
+        InstancesManager.ShowReleases = LauncherSettingsVm.ShowReleases;
+        InstancesManager.ShowSnapshots = LauncherSettingsVm.ShowSnapshots;
+        InstancesManager.ShowBetas = LauncherSettingsVm.ShowBetas;
+        InstancesManager.ShowAlphas = LauncherSettingsVm.ShowAlphas;
+    }
+
     public void SaveLauncherConfig()
     {
-        if (_isLoadingConfig) return;
+        if (_isLoadingConfig || _isSavingConfig) return;
 
+        _isSavingConfig = true;
         try
         {
             ZenithPaths.EnsureAppDataExists();
@@ -1721,7 +1800,7 @@ public partial class MainWindowViewModel : ViewModelBase
             LauncherSettingsVm?.ApplyToConfig(configData);
             ThemeSettingsVm?.ApplyToConfig(configData);
 
-            var json = System.Text.Json.JsonSerializer.Serialize(configData, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+            var json = System.Text.Json.JsonSerializer.Serialize(configData, LauncherJsonContext.Default.LauncherConfigData);
             using (var fs = new FileStream(configPath, FileMode.Create, FileAccess.Write, FileShare.None))
             {
                 using var writer = new StreamWriter(fs, System.Text.Encoding.UTF8);
@@ -1729,12 +1808,18 @@ public partial class MainWindowViewModel : ViewModelBase
                 writer.Flush();
                 fs.Flush(flushToDisk: true);
             }
+            LauncherConfigData.UpdateCache(configData);
         }
         catch { }
+        finally
+        {
+            _isSavingConfig = false;
+        }
     }
 
     public LauncherConfigData GetLauncherConfigSnapshot()
     {
+        SyncSettingsToRuntimeModels();
         var snapshot = new LauncherConfigData
         {
             LauncherName = LauncherName,
@@ -1747,12 +1832,6 @@ public partial class MainWindowViewModel : ViewModelBase
             Language = SelectedLanguage,
             IsSidebarExpanded = IsSidebarExpanded
         };
-
-        if (Launch != null && LauncherSettingsVm != null)
-        {
-            Launch.RamMb = LauncherSettingsVm.RamMb;
-            Launch.MinRamMb = LauncherSettingsVm.MinRamMb;
-        }
 
         Launch?.ApplyToConfig(snapshot);
         LauncherSettingsVm?.ApplyToConfig(snapshot);
@@ -1769,8 +1848,7 @@ public partial class MainWindowViewModel : ViewModelBase
             var configPath = ZenithPaths.ConfigFilePath;
             if (File.Exists(configPath))
             {
-                var json = File.ReadAllText(configPath);
-                var cfg = System.Text.Json.JsonSerializer.Deserialize<LauncherConfigData>(json);
+                var cfg = LauncherConfigData.Load();
                 if (cfg != null)
                 {
                     if (!string.IsNullOrWhiteSpace(cfg.LauncherName))
@@ -1794,6 +1872,11 @@ public partial class MainWindowViewModel : ViewModelBase
                         SelectedJavaMode = cfg.JavaMode;
 
                     UseFlatVersionList = cfg.UseFlatVersionList;
+                    InstancesManager.ShowReleases = cfg.ShowReleases;
+                    InstancesManager.ShowSnapshots = cfg.ShowSnapshots;
+                    InstancesManager.ShowBetas = cfg.ShowBetas;
+                    InstancesManager.ShowAlphas = cfg.ShowAlphas;
+                    if (Launch != null) Launch.IsLockAspectRatio = cfg.IsLockAspectRatio;
                     AutoManageJava = cfg.AutoManageJava;
                     DiscordRpcEnabled = cfg.DiscordRpcEnabled;
                     if (cfg.LauncherScale > 0.4 && cfg.LauncherScale < 3.0) LauncherScale = cfg.LauncherScale;
@@ -1883,6 +1966,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
 
         HasInstances = Instances.Count > 0;
+
+
+
+        InstancesManager.RefreshGroupsAndFilter();
 
 
 
@@ -2104,9 +2191,14 @@ public partial class MainWindowViewModel : ViewModelBase
 
         IsRestartConfirmOpen = false;
 
+        if (IsHardwareAccelConfirmOpen)
+            CancelHardwareAccelRestart();
+
         IsCloneDialogOpen = false;
 
         IsServerUnderDevDialogOpen = false;
+
+        InstancesManager.IsGroupDialogOpen = false;
 
         PendingDeleteInstance = null;
 

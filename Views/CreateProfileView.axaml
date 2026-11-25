@@ -267,36 +267,30 @@
                         </ItemsControl>
                     </ScrollViewer>
 
-                    <!-- Flat List Mode -->
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" VerticalAlignment="Stretch" IsVisible="{Binding UseFlatVersionList}">
-                        <ItemsControl ItemsSource="{Binding FlatVersions}" Margin="0,0,8,0">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel Spacing="4"/>
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="vm:FlatVersionItem">
-                                    <Button Classes="flatVersionTile" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
-                                            Padding="14,8" FontSize="12" MinHeight="36" CornerRadius="6" Cursor="Hand"
-                                            Command="{Binding $parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectVersionCommand}" CommandParameter="{Binding Name}">
-                                        <Classes.selected>
-                                            <MultiBinding Converter="{x:Static converters:StringEqualityToBoolConverter.Instance}">
-                                                <Binding Path="$parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectedVersion"/>
-                                                <Binding Path="Name"/>
-                                            </MultiBinding>
-                                        </Classes.selected>
-                                        <Grid ColumnDefinitions="*,Auto">
-                                            <TextBlock Grid.Column="0" Text="{Binding Name}" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center"/>
-                                            <Border Grid.Column="1" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding Kind}" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                            </Border>
-                                        </Grid>
-                                    </Button>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
+                    <!-- Flat List Mode (virtualized) -->
+                    <ListBox Classes="plainVirtualList" ItemsSource="{Binding FlatVersions}" Padding="0,0,8,0"
+                             ScrollViewer.VerticalScrollBarVisibility="Auto" IsVisible="{Binding UseFlatVersionList}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:FlatVersionItem">
+                                <Button Classes="flatVersionTile" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                                        Padding="14,8" FontSize="12" MinHeight="36" CornerRadius="6" Cursor="Hand" Margin="0,0,0,4"
+                                        Command="{Binding $parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectVersionCommand}" CommandParameter="{Binding Name}">
+                                    <Classes.selected>
+                                        <MultiBinding Converter="{x:Static converters:StringEqualityToBoolConverter.Instance}">
+                                            <Binding Path="$parent[UserControl].((vm:CreateProfileViewModel)DataContext).SelectedVersion"/>
+                                            <Binding Path="Name"/>
+                                        </MultiBinding>
+                                    </Classes.selected>
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Grid.Column="0" Text="{Binding Name}" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center"/>
+                                        <Border Grid.Column="1" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Kind}" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                        </Border>
+                                    </Grid>
+                                </Button>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
                 </Panel>
             </Grid>
 

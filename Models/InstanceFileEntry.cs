@@ -98,6 +98,42 @@ public partial class InstanceFileEntry : ObservableObject, IDisposable
         }
     }
 
+    public void SetPreviewFromFile(string filePath, int decodeWidth = 640)
+    {
+        if (string.IsNullOrWhiteSpace(filePath) || IsDirectory || !File.Exists(filePath))
+        {
+            PreviewBytes = null;
+            OnPropertyChanged(nameof(HasPreview));
+            return;
+        }
+
+        try
+        {
+            using var stream = File.OpenRead(filePath);
+            using var codec = SkiaSharp.SKCodec.Create(stream);
+            if (codec != null)
+            {
+                int targetW = Math.Clamp(decodeWidth, 32, 800);
+                int targetH = Math.Max(1, (int)((double)codec.Info.Height * targetW / Math.Max(1, codec.Info.Width)));
+                var info = new SkiaSharp.SKImageInfo(targetW, targetH, SkiaSharp.SKColorType.Bgra8888, SkiaSharp.SKAlphaType.Premul);
+                using var skBmp = new SkiaSharp.SKBitmap(info);
+                var opts = new SkiaSharp.SKCodecOptions(0);
+                if (codec.GetPixels(info, skBmp.GetPixels(), opts) == SkiaSharp.SKCodecResult.Success)
+                {
+                    using var img = SkiaSharp.SKImage.FromBitmap(skBmp);
+                    using var data = img.Encode(SkiaSharp.SKEncodedImageFormat.Jpeg, 88);
+                    PreviewBytes = data.ToArray();
+                    OnPropertyChanged(nameof(HasPreview));
+                    return;
+                }
+            }
+        }
+        catch { }
+
+        PreviewBytes = null;
+        OnPropertyChanged(nameof(HasPreview));
+    }
+
     public void SetPreview(byte[]? bytes, int decodeWidth = 64, bool allowDirectory = false)
     {
         if (bytes is { Length: > 0 } && (!IsDirectory || allowDirectory))

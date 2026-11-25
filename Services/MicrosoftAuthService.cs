@@ -35,6 +35,14 @@ public class MicrosoftAuthService
 
     private const string Scope = "XboxLive.signin offline_access";
 
+    private static readonly HttpClient SharedHttp = new(new SocketsHttpHandler
+    {
+        PooledConnectionLifetime = TimeSpan.FromMinutes(2)
+    })
+    {
+        Timeout = TimeSpan.FromSeconds(30)
+    };
+
     public sealed record MsAuthResult(string Username, string Uuid, string AccessToken, string RefreshToken);
 
     public async Task<MsAuthResult> AuthenticateAsync(CancellationToken ct = default)
@@ -213,10 +221,9 @@ public class MicrosoftAuthService
 
     private static async Task<MsTokens> PostTokenRequestAsync(Dictionary<string, string> form, CancellationToken ct)
     {
-        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
         using var content = new FormUrlEncodedContent(form);
 
-        using var response = await http.PostAsync(TokenUrl, content, ct).ConfigureAwait(false);
+        using var response = await SharedHttp.PostAsync(TokenUrl, content, ct).ConfigureAwait(false);
         var body = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
 
         if (!response.IsSuccessStatusCode)
@@ -337,10 +344,10 @@ public class MicrosoftAuthService
 
     private static async Task<(string Username, string Uuid)> GetProfileAsync(string mcToken, CancellationToken ct)
     {
-        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
-        http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", mcToken);
+        using var req = new HttpRequestMessage(HttpMethod.Get, McProfileUrl);
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", mcToken);
 
-        using var response = await http.GetAsync(McProfileUrl, ct).ConfigureAwait(false);
+        using var response = await SharedHttp.SendAsync(req, ct).ConfigureAwait(false);
         var body = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
 
         if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
@@ -365,10 +372,9 @@ public class MicrosoftAuthService
 
     private static async Task<string> PostJsonAsync(string url, string payload, CancellationToken ct, bool allowErrorStatus = false)
     {
-        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
         using var content = new StringContent(payload, Encoding.UTF8, "application/json");
 
-        using var response = await http.PostAsync(url, content, ct).ConfigureAwait(false);
+        using var response = await SharedHttp.PostAsync(url, content, ct).ConfigureAwait(false);
         var body = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
 
         if (!allowErrorStatus && !response.IsSuccessStatusCode)

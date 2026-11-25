@@ -202,7 +202,6 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
         LogText = string.Empty;
         _cachedFilteredLogText = string.Empty;
         LogHasContent = false;
-        MemoryTrimmer.TrimMemory();
         GC.SuppressFinalize(this);
     }
 
@@ -245,7 +244,6 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
             LogHasContent = false;
             _lastLogModifiedUtc = default;
             _lastLogLength = 0;
-            MemoryTrimmer.TrimMemory();
         }
 
         // Only refresh what the newly visible tab shows — rescanning every folder
@@ -871,10 +869,11 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
 
     // Data Packs (per-world)
     public ObservableCollection<string> AvailableWorlds { get; } = new();
+    public ObservableCollection<InstanceFileEntry> AvailableWorldEntries { get; } = new();
     public ObservableCollection<InstanceFileEntry> DataPacks { get; } = new();
 
-    public bool HasNoWorlds => AvailableWorlds.Count == 0;
-    public bool HasNoSelectedWorld => AvailableWorlds.Count > 0 && string.IsNullOrWhiteSpace(SelectedWorld);
+    public bool HasNoWorlds => AvailableWorldEntries.Count == 0;
+    public bool HasNoSelectedWorld => AvailableWorldEntries.Count > 0 && string.IsNullOrWhiteSpace(SelectedWorld);
     public bool HasEmptyDataPacks => !string.IsNullOrWhiteSpace(SelectedWorld) && DataPacks.Count == 0;
     public bool HasDataPacks => !string.IsNullOrWhiteSpace(SelectedWorld) && DataPacks.Count > 0;
 
@@ -889,11 +888,48 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
     [ObservableProperty]
     private string _selectedWorld = "";
 
+    [ObservableProperty]
+    private InstanceFileEntry? _selectedWorldEntry;
+
     partial void OnSelectedWorldChanged(string value)
     {
+        var matching = AvailableWorldEntries.FirstOrDefault(w => string.Equals(w.Name, value, StringComparison.OrdinalIgnoreCase));
+        if (!ReferenceEquals(SelectedWorldEntry, matching))
+            SelectedWorldEntry = matching;
         RefreshDataPacks();
         NotifyDataPackStates();
     }
+
+    partial void OnSelectedWorldEntryChanged(InstanceFileEntry? value)
+    {
+        var nextFolder = value?.Name ?? "";
+        if (!string.Equals(SelectedWorld, nextFolder, StringComparison.Ordinal))
+            SelectedWorld = nextFolder;
+    }
+
+    [RelayCommand]
+    private void SelectWorld(string? world)
+    {
+        if (!string.IsNullOrWhiteSpace(world))
+            SelectedWorld = world;
+    }
+
+    [RelayCommand]
+    private void SelectWorldEntry(InstanceFileEntry? entry)
+    {
+        if (entry != null)
+            SelectedWorld = entry.Name;
+    }
+
+    [RelayCommand]
+    private void SelectLogSource(string? source)
+    {
+        if (!string.IsNullOrWhiteSpace(source))
+            SelectedLogSource = source;
+    }
+
+    [RelayCommand]
+    private void ClearLogSearch() => LogSearchQuery = string.Empty;
 
     // ----- Launch / download progress (mirrored from MainWindow host) -----
     public double LaunchProgress => _host.LaunchProgress;
@@ -921,27 +957,65 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
     private void RefreshAvailableWorlds()
     {
         var saves = Path.Combine(Instance.Path, "saves");
-        var worlds = new List<string>();
+        var worldEntries = new List<InstanceFileEntry>();
         if (Directory.Exists(saves))
         {
             foreach (var dir in Directory.GetDirectories(saves))
             {
-                if (File.Exists(Path.Combine(dir, "level.dat")))
-                    worlds.Add(Path.GetFileName(dir));
+                var levelDat = Path.Combine(dir, "level.dat");
+                var dpDir = Path.Combine(dir, "datapacks");
+                if (!File.Exists(levelDat) && !Directory.Exists(dpDir))
+                    continue;
+
+                var entry = new InstanceFileEntry
+                {
+                    Name = Path.GetFileName(dir),
+                    FullPath = dir,
+                    IsDirectory = true,
+                    IsEnabled = true,
+                    Kind = InstanceFileKind.World,
+                    Title = Path.GetFileName(dir),
+                    ModifiedAt = SafeGetWriteTime(levelDat, dir)
+                };
+                try { ContentMetadataReader.Enrich(entry); } catch { }
+                worldEntries.Add(entry);
             }
         }
+
+        worldEntries = worldEntries
+            .OrderByDescending(w => w.ModifiedAt)
+            .ThenBy(w => w.Title, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
         var prev = SelectedWorld;
         AvailableWorlds.Clear();
-        foreach (var w in worlds.OrderBy(x => x, StringComparer.OrdinalIgnoreCase))
-            AvailableWorlds.Add(w);
+        AvailableWorldEntries.Clear();
+        foreach (var w in worldEntries)
+        {
+            AvailableWorlds.Add(w.Name);
+            AvailableWorldEntries.Add(w);
+        }
+
         if (!string.IsNullOrWhiteSpace(prev) && AvailableWorlds.Contains(prev))
             SelectedWorld = prev;
-        else if (AvailableWorlds.Count > 0 && string.IsNullOrWhiteSpace(SelectedWorld))
-            SelectedWorld = AvailableWorlds[0];
-        else if (AvailableWorlds.Count == 0)
+        else if (AvailableWorldEntries.Count > 0)
+            SelectedWorld = AvailableWorldEntries[0].Name;
+        else
             SelectedWorld = "";
 
+        SelectedWorldEntry = AvailableWorldEntries.FirstOrDefault(w => string.Equals(w.Name, SelectedWorld, StringComparison.OrdinalIgnoreCase));
         NotifyDataPackStates();
+    }
+
+    private static DateTime SafeGetWriteTime(string primaryFile, string fallbackDir)
+    {
+        try
+        {
+            if (File.Exists(primaryFile)) return File.GetLastWriteTime(primaryFile);
+            if (Directory.Exists(fallbackDir)) return Directory.GetLastWriteTime(fallbackDir);
+        }
+        catch { }
+        return DateTime.MinValue;
     }
 
     private void RefreshDataPacks()
@@ -1671,33 +1745,47 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
 
     private async void SaveSettings()
     {
-        // Only store an override if the user explicitly enabled it for that block;
-        // otherwise keep null so the launcher inherits the global setting.
-        Instance.CustomJavaPath = !string.IsNullOrWhiteSpace(CustomJavaPath)
-            ? CustomJavaPath.Trim()
-            : null;
-        Instance.JavaMode = !string.IsNullOrWhiteSpace(Instance.CustomJavaPath)
-            ? "Custom"
-            : (_javaDirty ? SelectedJavaMode : null);
-        Instance.JvmArgs = _jvmArgsDirty ? (string.IsNullOrWhiteSpace(JvmArgs) ? null : JvmArgs) : null;
-        Instance.RamMb = _memoryDirty ? RamMb : null;
-        Instance.GameWidth = _windowDirty ? GameWidth : null;
-        Instance.GameHeight = _windowDirty ? GameHeight : null;
-        Instance.IsFullscreen = _windowDirty ? IsFullscreen : null;
+        try
+        {
+            // Only store an override if the user explicitly enabled it for that block;
+            // otherwise keep null so the launcher inherits the global setting.
+            Instance.CustomJavaPath = !string.IsNullOrWhiteSpace(CustomJavaPath)
+                ? CustomJavaPath.Trim()
+                : null;
+            Instance.JavaMode = !string.IsNullOrWhiteSpace(Instance.CustomJavaPath)
+                ? "Custom"
+                : (_javaDirty ? SelectedJavaMode : null);
+            Instance.JvmArgs = _jvmArgsDirty ? (string.IsNullOrWhiteSpace(JvmArgs) ? null : JvmArgs) : null;
+            Instance.RamMb = _memoryDirty ? RamMb : null;
+            Instance.GameWidth = _windowDirty ? GameWidth : null;
+            Instance.GameHeight = _windowDirty ? GameHeight : null;
+            Instance.IsFullscreen = _windowDirty ? IsFullscreen : null;
 
-        Instance.LogsFollowOutput = LogsFollowOutput;
-        Instance.LogsWrapLines = LogsWrapLines;
-        Instance.LogsShowSystemMessages = LogsShowSystemMessages;
-        Instance.LogsFullJava = LogsFullJava;
+            Instance.LogsFollowOutput = LogsFollowOutput;
+            Instance.LogsWrapLines = LogsWrapLines;
+            Instance.LogsShowSystemMessages = LogsShowSystemMessages;
+            Instance.LogsFullJava = LogsFullJava;
 
-        await _instanceService.SaveInstanceAsync(Instance);
+            await _instanceService.SaveInstanceAsync(Instance);
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Error("Failed to save instance settings", ex);
+        }
     }
 
     public async void SaveInstanceName()
     {
-        if (string.IsNullOrWhiteSpace(Instance.Name))
-            Instance.Name = "Profile";
-        await _instanceService.SaveInstanceAsync(Instance);
-        _host?.RefreshState();
+        try
+        {
+            if (string.IsNullOrWhiteSpace(Instance.Name))
+                Instance.Name = "Profile";
+            await _instanceService.SaveInstanceAsync(Instance);
+            _host?.RefreshState();
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Error("Failed to save instance name", ex);
+        }
     }
 }

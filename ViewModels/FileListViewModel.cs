@@ -55,6 +55,16 @@ public partial class FileListViewModel : ObservableObject, IDisposable
 
     partial void OnSelectedSortOptionChanged(string value) => ApplyFilter();
 
+    [RelayCommand]
+    private void SelectSort(string? option)
+    {
+        if (!string.IsNullOrWhiteSpace(option))
+            SelectedSortOption = option;
+    }
+
+    [RelayCommand]
+    private void ClearSearch() => SearchQuery = string.Empty;
+
     [ObservableProperty]
     private string _searchQuery = "";
 
@@ -162,6 +172,7 @@ public partial class FileListViewModel : ObservableObject, IDisposable
 
         try
         {
+            var installedMap = LoadInstalledMap();
             foreach (var f in Directory.GetFiles(_folder))
             {
                 var isDisabled = Path.GetExtension(f).Equals(".disabled", StringComparison.OrdinalIgnoreCase);
@@ -179,7 +190,7 @@ public partial class FileListViewModel : ObservableObject, IDisposable
                     IsEnabled = !isDisabled,
                     ModifiedAt = SafeModified(f)
                 };
-                Enrich(entry);
+                Enrich(entry, installedMap);
                 entries.Add(entry);
             }
             foreach (var d in Directory.GetDirectories(_folder))
@@ -193,7 +204,7 @@ public partial class FileListViewModel : ObservableObject, IDisposable
                     IsEnabled = !disabled,
                     ModifiedAt = SafeModified(d)
                 };
-                Enrich(entry);
+                Enrich(entry, installedMap);
                 entries.Add(entry);
             }
         }
@@ -242,7 +253,12 @@ public partial class FileListViewModel : ObservableObject, IDisposable
         var hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(_instancePath)))[..12];
         var path = Path.Combine(ZenithPaths.AppDataDir, "cache", "installed", $"{hash}.json");
         if (!File.Exists(path)) return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        try { return System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(path)) ?? new(StringComparer.OrdinalIgnoreCase); } catch { return new(StringComparer.OrdinalIgnoreCase); }
+        try
+        {
+            var raw = System.Text.Json.JsonSerializer.Deserialize(File.ReadAllText(path), LauncherJsonContext.Default.DictionaryStringString);
+            return raw != null ? new Dictionary<string, string>(raw, StringComparer.OrdinalIgnoreCase) : new(StringComparer.OrdinalIgnoreCase);
+        }
+        catch { return new(StringComparer.OrdinalIgnoreCase); }
     }
 
     private string FindProjectIdByFileName(string fileName)
@@ -512,6 +528,27 @@ public partial class FileListViewModel : ObservableObject, IDisposable
 
     [ObservableProperty] private bool _isLightboxOpen;
     [ObservableProperty] private InstanceFileEntry? _currentLightboxEntry;
+    [ObservableProperty] private Avalonia.Media.Imaging.Bitmap? _lightboxImage;
+
+    partial void OnCurrentLightboxEntryChanged(InstanceFileEntry? value)
+    {
+        var old = LightboxImage;
+        LightboxImage = null;
+        try { old?.Dispose(); } catch { }
+
+        if (value == null || string.IsNullOrWhiteSpace(value.FullPath) || !File.Exists(value.FullPath))
+            return;
+
+        try
+        {
+            using var fs = File.OpenRead(value.FullPath);
+            LightboxImage = Avalonia.Media.Imaging.Bitmap.DecodeToWidth(fs, 1920, Avalonia.Media.Imaging.BitmapInterpolationMode.HighQuality);
+        }
+        catch
+        {
+            LightboxImage = null;
+        }
+    }
 
     [RelayCommand]
     public void OpenLightbox(InstanceFileEntry? entry)
@@ -781,5 +818,8 @@ public partial class FileListViewModel : ObservableObject, IDisposable
         }
         Entries.Clear();
         SelectedEntry = null;
+        CurrentLightboxEntry = null;
+        try { LightboxImage?.Dispose(); } catch { }
+        LightboxImage = null;
     }
 }

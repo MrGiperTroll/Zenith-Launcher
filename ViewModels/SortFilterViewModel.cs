@@ -33,9 +33,11 @@ public sealed partial class SortFilterItem : ObservableObject
     }
 }
 
-public sealed partial class SortFilterViewModel : ObservableObject
+public sealed partial class SortFilterViewModel : ObservableObject, IDisposable
 {
     public ObservableCollection<SortFilterItem> Items { get; } = new();
+    private readonly Action _languageChangedHandler;
+    private bool _disposed;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ButtonText))]
@@ -57,11 +59,21 @@ public sealed partial class SortFilterViewModel : ObservableObject
     public SortFilterViewModel()
     {
         SetOptions(new[] { "Relevance", "Downloads", "Newest", "Recently Updated" }, "Relevance");
-        L10n.LanguageChanged += () =>
+        _languageChangedHandler = () =>
         {
             SetOptions(new[] { "Relevance", "Downloads", "Newest", "Recently Updated" }, SelectedSort);
             OnPropertyChanged(nameof(ButtonText));
         };
+        L10n.LanguageChanged += _languageChangedHandler;
+    }
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+        L10n.LanguageChanged -= _languageChangedHandler;
+        SortChanged = null;
+        Items.Clear();
     }
 
     public void SetOptions(IEnumerable<string> options, string? selected = null)

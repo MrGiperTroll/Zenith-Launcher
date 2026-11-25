@@ -488,6 +488,7 @@ public partial class NavigationViewModel : ViewModelBase
         entry.CreateServerVm = null;
         try { (entry.CreateProfileVm as IDisposable)?.Dispose(); } catch { }
         entry.CreateProfileVm = null;
+        try { (entry.ServerManagerVm as IDisposable)?.Dispose(); } catch { }
         entry.ServerManagerVm = null;
     }
 
@@ -506,10 +507,9 @@ public partial class NavigationViewModel : ViewModelBase
             foreach (var d in dropped) DisposeHistoryEntry(d);
         }
 
-        if (_historyIndex >= 0 && _historyIndex < _navHistory.Count)
-        {
-            DisposeHistoryEntry(_navHistory[_historyIndex]);
-        }
+        HistoryEntry? prevActiveEntry = (_historyIndex >= 0 && _historyIndex < _navHistory.Count)
+            ? _navHistory[_historyIndex]
+            : null;
 
         _navHistory.Add(entry);
 
@@ -522,12 +522,23 @@ public partial class NavigationViewModel : ViewModelBase
 
         _historyIndex = _navHistory.Count - 1;
         ApplyHistoryEntry(entry);
+        if (prevActiveEntry != null)
+        {
+            Dispatcher.UIThread.Post(() => DisposeHistoryEntry(prevActiveEntry), DispatcherPriority.Background);
+        }
         UpdateHistoryButtons();
     }
 
     private void ApplyHistoryEntry(HistoryEntry entry)
     {
         var prevPage = CurrentPage;
+        IDisposable? leavingServerVm = null;
+        ModpacksBrowserViewModel? leavingModpacks = null;
+        IDisposable? leavingContentVm = null;
+        IDisposable? leavingEditVm = null;
+        IDisposable? leavingCreateServerVm = null;
+        IDisposable? leavingCreateProfileVm = null;
+
         if (prevPage != entry.Page)
         {
             if (prevPage == LauncherNavPage.Settings)
@@ -541,35 +552,43 @@ public partial class NavigationViewModel : ViewModelBase
             else if (prevPage == LauncherNavPage.ServerManager)
             {
                 CurrentEditInstanceVm?.RefreshServers();
-                try { (CurrentServerManagerVm as IDisposable)?.Dispose(); } catch { }
+                leavingServerVm = CurrentServerManagerVm as IDisposable;
                 CurrentServerManagerVm = null;
             }
             else if (prevPage == LauncherNavPage.Modpacks)
             {
-                try { GetModpacksBrowser?.Invoke()?.Dispose(); } catch { }
+                leavingModpacks = GetModpacksBrowser?.Invoke();
             }
             else if (prevPage == LauncherNavPage.ContentBrowser)
             {
-                try { CurrentContentBrowserVm?.Dispose(); } catch { }
+                leavingContentVm = CurrentContentBrowserVm;
                 CurrentContentBrowserVm = null;
             }
             else if (prevPage == LauncherNavPage.EditInstance)
             {
-                try { CurrentEditInstanceVm?.Dispose(); } catch { }
+                leavingEditVm = CurrentEditInstanceVm;
                 CurrentEditInstanceVm = null;
             }
             else if (prevPage == LauncherNavPage.CreateServer)
             {
-                try { CreateServerVm?.Dispose(); } catch { }
+                leavingCreateServerVm = CreateServerVm;
                 CreateServerVm = null;
             }
             else if (prevPage == LauncherNavPage.CreateProfile)
             {
-                try { CreateProfileVm?.Dispose(); } catch { }
+                leavingCreateProfileVm = CreateProfileVm;
                 CreateProfileVm = null;
             }
-
-            MemoryTrimmer.TrimMemory(force: true);
+        }
+        else if (prevPage == LauncherNavPage.ContentBrowser && !ReferenceEquals(CurrentContentBrowserVm, entry.ContentBrowserVm))
+        {
+            leavingContentVm = CurrentContentBrowserVm;
+            CurrentContentBrowserVm = null;
+        }
+        else if (prevPage == LauncherNavPage.EditInstance && !ReferenceEquals(CurrentEditInstanceVm, entry.EditInstanceVm))
+        {
+            leavingEditVm = CurrentEditInstanceVm;
+            CurrentEditInstanceVm = null;
         }
 
         if (entry.Page == LauncherNavPage.EditInstance)
@@ -584,9 +603,13 @@ public partial class NavigationViewModel : ViewModelBase
         else if (entry.Page == LauncherNavPage.Modpacks)
         {
             var modpacks = GetModpacksBrowser?.Invoke();
-            if (modpacks != null && modpacks.Results.Count == 0)
+            if (modpacks != null)
             {
-                _ = modpacks.ReloadAsync();
+                _ = modpacks.EnsureVersionsLoadedAsync();
+                if (modpacks.Results.Count == 0)
+                {
+                    _ = modpacks.ReloadAsync();
+                }
             }
         }
         else if (entry.Page == LauncherNavPage.ContentBrowser)
@@ -710,7 +733,6 @@ public partial class NavigationViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsLaunchBarVisible));
 
         RebuildBreadcrumbs(entry);
-        MemoryTrimmer.TrimMemory();
 
         switch (entry.Page)
         {
@@ -743,6 +765,23 @@ public partial class NavigationViewModel : ViewModelBase
                 if (entry.EditInstanceVm != null)
                     DiscordPresenceService.SetEditingInstance(entry.EditInstanceVm.Instance.Name);
                 break;
+        }
+
+        if (leavingServerVm != null || leavingModpacks != null || leavingContentVm != null ||
+            leavingEditVm != null || leavingCreateServerVm != null || leavingCreateProfileVm != null)
+        {
+            Dispatcher.UIThread.Post(() =>
+            {
+                try { leavingServerVm?.Dispose(); } catch { }
+                try { leavingModpacks?.Dispose(); } catch { }
+                try { leavingContentVm?.Dispose(); } catch { }
+                try { leavingEditVm?.Dispose(); } catch { }
+                try { leavingCreateServerVm?.Dispose(); } catch { }
+                try { leavingCreateProfileVm?.Dispose(); } catch { }
+                try { Converters.BytesToBitmapConverter.ClearCache(); } catch { }
+                try { Converters.IconPathToBitmapConverter.ClearCache(); } catch { }
+                try { ModrinthApiService.ClearMemoryCache(); } catch { }
+            }, DispatcherPriority.Background);
         }
     }
 

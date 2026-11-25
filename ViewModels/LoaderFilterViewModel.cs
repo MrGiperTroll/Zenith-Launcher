@@ -18,9 +18,11 @@ public partial class LoaderFilterItem : ObservableObject
     private bool _isSelected;
 }
 
-public partial class LoaderFilterViewModel : ObservableObject
+public partial class LoaderFilterViewModel : ObservableObject, IDisposable
 {
     public ObservableCollection<LoaderFilterItem> Items { get; } = new();
+    private readonly Action _languageChangedHandler;
+    private bool _disposed;
 
     public int SelectedCount => Items.Count(i => i.IsSelected);
     public string SelectedText => string.Format(L10n.T("filter_selected"), SelectedCount);
@@ -43,11 +45,23 @@ public partial class LoaderFilterViewModel : ObservableObject
 
     public LoaderFilterViewModel()
     {
-        L10n.LanguageChanged += () =>
+        _languageChangedHandler = () =>
         {
             OnPropertyChanged(nameof(ButtonText));
             OnPropertyChanged(nameof(SelectedText));
         };
+        L10n.LanguageChanged += _languageChangedHandler;
+    }
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+        L10n.LanguageChanged -= _languageChangedHandler;
+        FilterChanged = null;
+        foreach (var item in Items)
+            item.PropertyChanged -= OnItemPropertyChanged;
+        Items.Clear();
     }
 
     [RelayCommand]

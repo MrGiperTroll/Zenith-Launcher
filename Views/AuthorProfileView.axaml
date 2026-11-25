@@ -114,13 +114,12 @@
 
         <!-- Main Content Area: Full-width Projects List -->
         <Grid Grid.Row="1">
-            <ScrollViewer VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled" AllowAutoHide="True">
-                <StackPanel Spacing="10">
-                    <TextBlock Text="Loading projects..." Foreground="{StaticResource TextMutedBrush}"
-                               FontSize="13" HorizontalAlignment="Center" Margin="0,30" IsVisible="{Binding IsLoading}"/>
+            <TextBlock Text="Loading projects..." Foreground="{StaticResource TextMutedBrush}"
+                       FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,30" IsVisible="{Binding IsLoading}"/>
 
-                    <ItemsControl ItemsSource="{Binding FilteredProjects}" IsVisible="{Binding !IsLoading}">
-                        <ItemsControl.ItemTemplate>
+            <ListBox Classes="plainVirtualList" ItemsSource="{Binding FilteredProjects}" IsVisible="{Binding !IsLoading}"
+                     ScrollViewer.VerticalScrollBarVisibility="Hidden">
+                <ListBox.ItemTemplate>
                             <DataTemplate x:DataType="items:ModrinthProjectItemViewModel">
                                 <Border Classes="authorProjectCard" Padding="14,12" Margin="0,0,0,10"
                                         Tapped="OnProjectCardTapped">
@@ -171,11 +170,8 @@
                                     </Grid>
                                 </Border>
                             </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </StackPanel>
-            </ScrollViewer>
-
-            </Grid>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Grid>
     </Grid>
 </UserControl>

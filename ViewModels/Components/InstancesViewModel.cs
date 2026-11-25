@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using CmlLib.Core;
@@ -18,6 +19,27 @@ using ZenithLauncher.ViewModels.Pages;
 
 namespace ZenithLauncher.ViewModels.Components;
 
+public partial class InstanceGroupSection : ObservableObject
+{
+    public string GroupKey { get; }
+    public bool IsUngrouped { get; }
+    public string HeaderTitle { get; }
+    public ObservableCollection<InstanceModel> Items { get; }
+
+    [ObservableProperty] private bool _isExpanded = true;
+
+    public InstanceGroupSection(string groupKey, bool isUngrouped, string headerTitle, IEnumerable<InstanceModel> items)
+    {
+        GroupKey = groupKey;
+        IsUngrouped = isUngrouped;
+        HeaderTitle = headerTitle;
+        Items = new ObservableCollection<InstanceModel>(items);
+    }
+
+    [RelayCommand]
+    public void ToggleExpand() => IsExpanded = !IsExpanded;
+}
+
 public partial class InstancesViewModel : ViewModelBase
 {
     private readonly IInstanceService _instanceService;
@@ -25,7 +47,7 @@ public partial class InstancesViewModel : ViewModelBase
     private readonly Func<LaunchViewModel> _getLaunch;
     private readonly Func<NavigationViewModel> _getNavigation;
     private readonly Func<MainWindowViewModel> _getHost;
-    private readonly List<(string Name, string Type)> _cachedVersions = new();
+    private readonly List<CachedVersionEntry> _cachedVersions = new();
 
     private string? _preRenameName;
     private InstanceModel? _prevSelectedInstance;
@@ -65,6 +87,156 @@ public partial class InstancesViewModel : ViewModelBase
     private string _selectedJavaMode = "Recommended";
 
     public ObservableCollection<InstanceModel> Instances { get; } = new();
+    public ObservableCollection<InstanceModel> FilteredInstances { get; } = new();
+    public ObservableCollection<InstanceGroupSection> GroupedInstances { get; } = new();
+    public ObservableCollection<string> ProfileGroups { get; } = new();
+    private readonly Dictionary<string, bool> _groupExpandedStates = new(StringComparer.OrdinalIgnoreCase);
+
+    [ObservableProperty] private string _selectedProfileGroup = "";
+    [ObservableProperty] private bool _hasProfileGroups;
+
+    public bool IsAllGroupsSelected => string.IsNullOrEmpty(SelectedProfileGroup);
+    public string SelectedProfileGroupDisplay => IsAllGroupsSelected ? L10n.T("grp_all") : SelectedProfileGroup;
+
+    partial void OnSelectedProfileGroupChanged(string value)
+    {
+        RebuildFilteredInstances();
+        OnPropertyChanged(nameof(IsAllGroupsSelected));
+        OnPropertyChanged(nameof(SelectedProfileGroupDisplay));
+    }
+
+    [ObservableProperty] private bool _isGroupDialogOpen;
+    [ObservableProperty] private InstanceModel? _pendingGroupInstance;
+    [ObservableProperty] private string _editingGroupName = "";
+
+    public void RefreshGroupsAndFilter()
+    {
+        var groups = Instances
+            .Select(i => i.Group?.Trim() ?? "")
+            .Where(g => g.Length > 0)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(g => g, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        if (!ProfileGroups.SequenceEqual(groups))
+        {
+            ProfileGroups.Clear();
+            foreach (var g in groups)
+                ProfileGroups.Add(g);
+        }
+
+        HasProfileGroups = ProfileGroups.Count > 0;
+        if (!string.IsNullOrEmpty(SelectedProfileGroup) &&
+            !ProfileGroups.Contains(SelectedProfileGroup, StringComparer.OrdinalIgnoreCase))
+        {
+            SelectedProfileGroup = "";
+        }
+        else
+        {
+            RebuildFilteredInstances();
+        }
+    }
+
+    public void RebuildFilteredInstances()
+    {
+        FilteredInstances.Clear();
+        foreach (var inst in Instances)
+        {
+            if (string.IsNullOrEmpty(SelectedProfileGroup) ||
+                string.Equals(inst.Group?.Trim(), SelectedProfileGroup, StringComparison.OrdinalIgnoreCase))
+            {
+                FilteredInstances.Add(inst);
+            }
+        }
+
+        foreach (var existing in GroupedInstances)
+            _groupExpandedStates[existing.GroupKey] = existing.IsExpanded;
+
+        GroupedInstances.Clear();
+        if (!HasProfileGroups)
+            return;
+
+        if (string.IsNullOrEmpty(SelectedProfileGroup))
+        {
+            var ungrouped = FilteredInstances.Where(i => string.IsNullOrWhiteSpace(i.Group)).ToList();
+            if (ungrouped.Count > 0)
+            {
+                var sec = new InstanceGroupSection("", true, L10n.T("grp_ungrouped"), ungrouped);
+                if (_groupExpandedStates.TryGetValue("", out var exp))
+                    sec.IsExpanded = exp;
+                GroupedInstances.Add(sec);
+            }
+
+            foreach (var grp in ProfileGroups)
+            {
+                var items = FilteredInstances
+                    .Where(i => string.Equals(i.Group?.Trim(), grp, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+                if (items.Count == 0) continue;
+                var sec = new InstanceGroupSection(grp, false, grp, items);
+                if (_groupExpandedStates.TryGetValue(grp, out var exp))
+                    sec.IsExpanded = exp;
+                GroupedInstances.Add(sec);
+            }
+        }
+        else
+        {
+            var items = FilteredInstances.ToList();
+            if (items.Count > 0)
+            {
+                var sec = new InstanceGroupSection(SelectedProfileGroup, false, SelectedProfileGroup, items);
+                if (_groupExpandedStates.TryGetValue(SelectedProfileGroup, out var exp))
+                    sec.IsExpanded = exp;
+                GroupedInstances.Add(sec);
+            }
+        }
+    }
+
+    [RelayCommand]
+    public void SelectProfileGroup(string? group)
+    {
+        SelectedProfileGroup = group?.Trim() ?? "";
+    }
+
+    [RelayCommand]
+    public void OpenGroupDialog(InstanceModel? instance)
+    {
+        var inst = instance ?? SelectedInstance;
+        if (inst == null) return;
+        PendingGroupInstance = inst;
+        EditingGroupName = inst.Group ?? "";
+        IsGroupDialogOpen = true;
+    }
+
+    [RelayCommand]
+    public void PickGroupSuggestion(string? group)
+    {
+        EditingGroupName = group?.Trim() ?? "";
+    }
+
+    [RelayCommand]
+    public async Task SaveGroupDialogAsync()
+    {
+        var inst = PendingGroupInstance;
+        if (inst == null) return;
+
+        inst.Group = EditingGroupName?.Trim() ?? "";
+        IsGroupDialogOpen = false;
+        PendingGroupInstance = null;
+
+        await _instanceService.SaveInstanceAsync(inst);
+        RefreshGroupsAndFilter();
+        OnStatusChanged?.Invoke(string.IsNullOrWhiteSpace(inst.Group)
+            ? string.Format(L10n.T("grp_cleared_status"), inst.Name)
+            : string.Format(L10n.T("grp_saved_status"), inst.Name, inst.Group));
+    }
+
+    [RelayCommand]
+    public void CloseGroupDialog()
+    {
+        IsGroupDialogOpen = false;
+        PendingGroupInstance = null;
+    }
 
     [ObservableProperty]
     private InstanceModel? _selectedInstance;
@@ -292,11 +464,19 @@ public partial class InstancesViewModel : ViewModelBase
         {
             try
             {
-                var cached = System.Text.Json.JsonSerializer.Deserialize<List<(string Name, string Type)>>(File.ReadAllText(cachePath));
-                if (cached != null && cached.Count > 0)
+                var cached = await Task.Run(() =>
                 {
-                    _cachedVersions.AddRange(cached);
-                    FilterVersions();
+                    var json = File.ReadAllText(cachePath);
+                    return System.Text.Json.JsonSerializer.Deserialize(json, LauncherJsonContext.Default.ListCachedVersionEntry);
+                }).ConfigureAwait(true);
+                if (cached != null)
+                {
+                    var valid = cached.Where(v => !string.IsNullOrWhiteSpace(v.Name)).ToList();
+                    if (valid.Count > 0)
+                    {
+                        _cachedVersions.AddRange(valid);
+                        FilterVersions();
+                    }
                 }
             }
             catch { }
@@ -308,11 +488,11 @@ public partial class InstancesViewModel : ViewModelBase
             var launcher = new MinecraftLauncher(path);
             var versions = await LaunchService.WithManifestRetryAsync(() => launcher.GetAllVersionsAsync().AsTask()).ConfigureAwait(false);
 
-            var fresh = new List<(string Name, string Type)>();
+            var fresh = new List<CachedVersionEntry>();
             foreach (var v in versions)
             {
                 if (ModLoaderService.IsLoaderProfileId(v.Name)) continue;
-                fresh.Add((v.Name, v.Type ?? ""));
+                fresh.Add(new CachedVersionEntry { Name = v.Name, Type = v.Type ?? "" });
             }
 
             if (fresh.Count > 0)
@@ -325,7 +505,12 @@ public partial class InstancesViewModel : ViewModelBase
                     if (!AvailableVersions.Contains(SelectedVersion) && AvailableVersions.Count > 0)
                         SelectedVersion = AvailableVersions.First();
                 });
-                try { File.WriteAllText(cachePath, System.Text.Json.JsonSerializer.Serialize(fresh)); } catch { }
+                try
+                {
+                    var jsonOut = System.Text.Json.JsonSerializer.Serialize(fresh, LauncherJsonContext.Compact.ListCachedVersionEntry);
+                    await File.WriteAllTextAsync(cachePath, jsonOut).ConfigureAwait(false);
+                }
+                catch { }
             }
         }
         catch (Exception ex)
@@ -333,13 +518,13 @@ public partial class InstancesViewModel : ViewModelBase
             LauncherLog.Error("Failed to fetch Mojang version list in background", ex);
             if (_cachedVersions.Count == 0)
             {
-                _cachedVersions.Add(("1.21.1", "release"));
-                _cachedVersions.Add(("1.20.4", "release"));
-                _cachedVersions.Add(("1.20.1", "release"));
-                _cachedVersions.Add(("1.16.5", "release"));
-                _cachedVersions.Add(("1.8.9", "release"));
-                _cachedVersions.Add(("1.7.10", "release"));
-                _cachedVersions.Add(("1.0", "release"));
+                _cachedVersions.Add(new CachedVersionEntry { Name = "1.21.1", Type = "release" });
+                _cachedVersions.Add(new CachedVersionEntry { Name = "1.20.4", Type = "release" });
+                _cachedVersions.Add(new CachedVersionEntry { Name = "1.20.1", Type = "release" });
+                _cachedVersions.Add(new CachedVersionEntry { Name = "1.16.5", Type = "release" });
+                _cachedVersions.Add(new CachedVersionEntry { Name = "1.8.9", Type = "release" });
+                _cachedVersions.Add(new CachedVersionEntry { Name = "1.7.10", Type = "release" });
+                _cachedVersions.Add(new CachedVersionEntry { Name = "1.0", Type = "release" });
                 FilterVersions();
             }
         }
@@ -397,6 +582,7 @@ public partial class InstancesViewModel : ViewModelBase
                 var item = Instances[oldIdx];
                 Instances.RemoveAt(oldIdx);
                 Instances.Insert(newIdx, item);
+                RebuildFilteredInstances();
             }
         }
         catch (Exception ex)
@@ -564,6 +750,7 @@ public partial class InstancesViewModel : ViewModelBase
         OnStatusChanged?.Invoke($"Cloning {inst.Name}...");
         var created = await _instanceService.CreateInstanceAsync(copyName, inst.Version, inst.LoaderType);
         if (created == null) return;
+        created.Group = inst.Group;
 
         try
         {
@@ -580,6 +767,7 @@ public partial class InstancesViewModel : ViewModelBase
 
         await _instanceService.SaveInstanceAsync(created);
         Instances.Add(created);
+        RefreshGroupsAndFilter();
         SelectedInstance = created;
         OnStatusChanged?.Invoke($"Profile '{copyName}' cloned successfully.");
     }
@@ -887,18 +1075,200 @@ public partial class InstancesViewModel : ViewModelBase
         SelectedVersion = "";
     }
 
+    // ── Prism-Style Multi-Source Import Modal State ─────────────────────────
+    [ObservableProperty] private string _importSourceTab = "Single";
+    [ObservableProperty] private string _importProfileName = "";
+    [ObservableProperty] private string _importProfileGroup = "";
+    [ObservableProperty] private string _importCustomIconPath = "";
+    [ObservableProperty] private Bitmap? _importCustomIconPreview;
+    [ObservableProperty] private string _importSourceInput = "";
+    [ObservableProperty] private string _importPreviewText = "";
+    [ObservableProperty] private string _importErrorText = "";
+    [ObservableProperty] private bool _isImporting;
+    private string _lastAutoImportName = "";
+
+    public bool IsImportTabSingle => ImportSourceTab == "Single";
+    public bool IsImportTabModrinth => ImportSourceTab == "Modrinth";
+    public bool IsImportTabCurseForge => ImportSourceTab == "CurseForge";
+    public bool IsImportTabMultiMC => ImportSourceTab == "MultiMC";
+    public bool IsImportTabPrism => ImportSourceTab == "Prism";
+    public bool HasImportCustomIcon => ImportCustomIconPreview != null;
+    public bool HasImportPreview => !string.IsNullOrWhiteSpace(ImportPreviewText);
+    public bool HasImportError => !string.IsNullOrWhiteSpace(ImportErrorText);
+
+    public bool IsImportUrlSupportedTab => ImportSourceTab is "Single" or "Modrinth" or "CurseForge";
+
+    public string ImportTabHeading => ImportSourceTab switch
+    {
+        "Modrinth" => L10n.T("imp_src_modrinth"),
+        "CurseForge" => L10n.T("imp_src_curseforge"),
+        "MultiMC" => L10n.T("imp_mmc_t"),
+        "Prism" => L10n.T("imp_prism_t"),
+        _ => L10n.T("imp_single_t")
+    };
+
+    public string ImportTabDescription => ImportSourceTab switch
+    {
+        "Modrinth" => L10n.T("imp_desc_modrinth"),
+        "CurseForge" => L10n.T("imp_desc_curseforge"),
+        "MultiMC" => L10n.T("imp_mmc_d"),
+        "Prism" => L10n.T("imp_prism_d"),
+        _ => L10n.T("imp_desc_single")
+    };
+
+    public string ImportInputWatermark => ImportSourceTab switch
+    {
+        "Modrinth" => L10n.T("imp_ph_modrinth"),
+        "CurseForge" => L10n.T("imp_ph_curseforge"),
+        "MultiMC" => L10n.T("imp_ph_multimc"),
+        "Prism" => L10n.T("imp_ph_prism"),
+        _ => L10n.T("imp_ph_single")
+    };
+
+    public bool CanConfirmImport =>
+        !IsImporting &&
+        !string.IsNullOrWhiteSpace(ImportSourceInput) &&
+        string.IsNullOrWhiteSpace(ImportErrorText);
+
+    partial void OnImportSourceTabChanged(string value)
+    {
+        OnPropertyChanged(nameof(IsImportTabSingle));
+        OnPropertyChanged(nameof(IsImportTabModrinth));
+        OnPropertyChanged(nameof(IsImportTabCurseForge));
+        OnPropertyChanged(nameof(IsImportTabMultiMC));
+        OnPropertyChanged(nameof(IsImportTabPrism));
+        OnPropertyChanged(nameof(IsImportUrlSupportedTab));
+        OnPropertyChanged(nameof(ImportTabHeading));
+        OnPropertyChanged(nameof(ImportTabDescription));
+        OnPropertyChanged(nameof(ImportInputWatermark));
+        EvaluateImportSourceInput();
+    }
+
+    partial void OnImportSourceInputChanged(string value) => EvaluateImportSourceInput();
+
+    partial void OnImportPreviewTextChanged(string value) => OnPropertyChanged(nameof(HasImportPreview));
+
+    partial void OnImportErrorTextChanged(string value)
+    {
+        OnPropertyChanged(nameof(HasImportError));
+        OnPropertyChanged(nameof(CanConfirmImport));
+    }
+
+    partial void OnIsImportingChanged(bool value) => OnPropertyChanged(nameof(CanConfirmImport));
+
+    private void EvaluateImportSourceInput()
+    {
+        ImportErrorText = "";
+        ImportPreviewText = "";
+        var raw = ImportSourceInput?.Trim() ?? "";
+        if (string.IsNullOrEmpty(raw))
+        {
+            OnPropertyChanged(nameof(CanConfirmImport));
+            return;
+        }
+
+        if (raw.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+            raw.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+        {
+            ImportPreviewText = L10n.T("imp_url_ready");
+            OnPropertyChanged(nameof(CanConfirmImport));
+            return;
+        }
+
+        if (!File.Exists(raw) && !Directory.Exists(raw))
+        {
+            ImportErrorText = L10n.T("imp_path_missing");
+            OnPropertyChanged(nameof(CanConfirmImport));
+            return;
+        }
+
+        if (File.Exists(raw) && Path.GetExtension(raw).Equals(".rar", StringComparison.OrdinalIgnoreCase))
+        {
+            ImportErrorText = L10n.T("imp_rar_unsupported");
+            OnPropertyChanged(nameof(CanConfirmImport));
+            return;
+        }
+
+        var found = InstanceImportService.Scan(raw);
+        if (found.Count == 0)
+        {
+            ImportErrorText = L10n.T("imp_not_recognized");
+        }
+        else if (found.Count == 1)
+        {
+            var f = found[0];
+            var verText = string.IsNullOrWhiteSpace(f.McVersion) ? "Minecraft" : f.McVersion;
+            var loaderText = string.IsNullOrWhiteSpace(f.LoaderType) ? "Vanilla" : f.LoaderType;
+            ImportPreviewText = $"{f.Name}  •  {verText}  •  {loaderText}";
+
+            if (string.IsNullOrWhiteSpace(ImportProfileName) ||
+                string.Equals(ImportProfileName, _lastAutoImportName, StringComparison.Ordinal))
+            {
+                _lastAutoImportName = f.Name;
+                ImportProfileName = f.Name;
+            }
+        }
+        else
+        {
+            ImportPreviewText = string.Format(L10n.T("imp_found_multiple"), found.Count);
+        }
+
+        OnPropertyChanged(nameof(CanConfirmImport));
+    }
+
+    private void SetImportCustomIconPreview(Bitmap? next)
+    {
+        var prev = ImportCustomIconPreview;
+        ImportCustomIconPreview = next;
+        OnPropertyChanged(nameof(HasImportCustomIcon));
+        prev?.Dispose();
+    }
+
+    private void ResetImportModalState()
+    {
+        ImportSourceTab = "Single";
+        ImportProfileName = "";
+        _lastAutoImportName = "";
+        ImportProfileGroup = string.IsNullOrEmpty(SelectedProfileGroup) ? "" : SelectedProfileGroup;
+        ImportCustomIconPath = "";
+        SetImportCustomIconPreview(null);
+        ImportSourceInput = "";
+        ImportPreviewText = "";
+        ImportErrorText = "";
+        IsImporting = false;
+    }
+
     [RelayCommand]
     public async Task ImportInstancesAsync()
     {
+        ResetImportModalState();
         IsImportPickerOpen = true;
         await Task.CompletedTask;
     }
 
     [RelayCommand]
-    public void CloseImportPicker() => IsImportPickerOpen = false;
+    public void CloseImportPicker()
+    {
+        if (IsImporting) return;
+        IsImportPickerOpen = false;
+        SetImportCustomIconPreview(null);
+    }
 
     [RelayCommand]
-    public async Task PickImportSingleAsync()
+    public void SelectImportTab(string? tab)
+    {
+        if (string.IsNullOrWhiteSpace(tab)) return;
+        ImportSourceTab = tab;
+    }
+
+    [RelayCommand]
+    public void PickImportGroup(string? group)
+    {
+        ImportProfileGroup = group?.Trim() ?? "";
+    }
+
+    [RelayCommand]
+    public async Task PickImportIconAsync()
     {
         var topLevel = Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
             ? desktop.MainWindow
@@ -907,51 +1277,66 @@ public partial class InstancesViewModel : ViewModelBase
 
         var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "Import Instance (Archive or Folder)",
+            Title = L10n.T("imp_pick_icon_title"),
+            AllowMultiple = false,
+            FileTypeFilter = new[] { FilePickerFileTypes.ImageAll }
+        });
+        if (files.Count == 0) return;
+
+        var path = files[0].Path.LocalPath;
+        if (!File.Exists(path)) return;
+
+        try
+        {
+            await using var fs = File.OpenRead(path);
+            var bmp = Bitmap.DecodeToWidth(fs, 128, BitmapInterpolationMode.MediumQuality);
+            ImportCustomIconPath = path;
+            SetImportCustomIconPreview(bmp);
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Warn($"Failed to load custom import icon: {ex.Message}");
+        }
+    }
+
+    [RelayCommand]
+    public void ClearImportIcon()
+    {
+        ImportCustomIconPath = "";
+        SetImportCustomIconPreview(null);
+    }
+
+    [RelayCommand]
+    public async Task BrowseImportFileAsync()
+    {
+        var topLevel = Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
+            ? desktop.MainWindow
+            : null;
+        if (topLevel?.StorageProvider == null) return;
+
+        var patterns = ImportSourceTab == "Modrinth"
+            ? new[] { "*.mrpack", "*.zip" }
+            : ImportSourceTab == "CurseForge"
+                ? new[] { "*.zip", "*.mrpack" }
+                : new[] { "*.zip", "*.mrpack" };
+
+        var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = L10n.T("imp_browse_file"),
             AllowMultiple = false,
             FileTypeFilter = new[]
             {
-                new FilePickerFileType("Minecraft Archives") { Patterns = new[] { "*.zip", "*.mrpack", "*.rar" } },
+                new FilePickerFileType("Modpack / Instance Archive") { Patterns = patterns },
                 FilePickerFileTypes.All
             }
         });
         if (files.Count > 0)
-        {
-            await RunImportProcessAsync(files[0].Path.LocalPath);
-        }
+            ImportSourceInput = files[0].Path.LocalPath;
     }
 
     [RelayCommand]
-    public async Task PickImportFileAsync()
+    public async Task BrowseImportFolderAsync()
     {
-        var topLevel = Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
-            ? desktop.MainWindow
-            : null;
-        if (topLevel?.StorageProvider == null) return;
-
-        var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
-        {
-            Title = "Import Instance or Modpack Archive",
-            AllowMultiple = false,
-            FileTypeFilter = new[]
-            {
-                new FilePickerFileType("Minecraft Archives") { Patterns = new[] { "*.zip", "*.mrpack", "*.rar" } },
-                FilePickerFileTypes.All
-            }
-        });
-        if (files.Count == 0) return;
-        await RunImportProcessAsync(files[0].Path.LocalPath);
-    }
-
-    [RelayCommand]
-    public async Task PickImportFolderAsync(string? kind)
-    {
-        if (kind is "Archive" or "File")
-        {
-            await PickImportFileAsync();
-            return;
-        }
-
         var topLevel = Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
             ? desktop.MainWindow
             : null;
@@ -959,12 +1344,84 @@ public partial class InstancesViewModel : ViewModelBase
 
         var folders = await topLevel.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
         {
-            Title = L10n.T("profile_import"),
+            Title = L10n.T("imp_browse_folder"),
             AllowMultiple = false
         });
-        if (folders.Count == 0) return;
-        await RunImportProcessAsync(folders[0].Path.LocalPath);
+        if (folders.Count > 0)
+            ImportSourceInput = folders[0].Path.LocalPath;
     }
+
+    [RelayCommand]
+    public async Task ConfirmImportAsync()
+    {
+        var source = ImportSourceInput?.Trim() ?? "";
+        if (string.IsNullOrEmpty(source) || IsImporting) return;
+
+        var customName = ImportProfileName?.Trim();
+        var customIcon = ImportCustomIconPath?.Trim();
+        var group = ImportProfileGroup?.Trim();
+        var cfApiKey = GetCurseForgeApiKey?.Invoke();
+
+        IsImporting = true;
+        ImportErrorText = "";
+        OnStatusChanged?.Invoke(L10n.T("profile_importing"));
+        try
+        {
+            ImportResult result;
+            if (source.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+                source.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            {
+                result = await Task.Run(() =>
+                    InstanceImportService.ImportFromUrlAsync(_instanceService, source, customName: customName, customIconPath: customIcon, group: group, curseForgeApiKey: cfApiKey));
+            }
+            else
+            {
+                var detected = InstanceImportService.Detect(source);
+                if (detected == ImportSourceKind.None)
+                {
+                    ImportErrorText = L10n.T("imp_not_recognized");
+                    return;
+                }
+                result = await Task.Run(() =>
+                    InstanceImportService.ImportAsync(_instanceService, source, customName: customName, customIconPath: customIcon, group: group, curseForgeApiKey: cfApiKey));
+            }
+
+            if (result.Imported <= 0)
+            {
+                ImportErrorText = result.Warnings.Count > 0 ? result.Warnings[0] : L10n.T("profile_import_none");
+                OnStatusChanged?.Invoke(ImportErrorText);
+                return;
+            }
+
+            var msg = string.Format(L10n.T("profile_imported"), result.Imported, result.Skipped);
+            if (result.Warnings.Count > 0)
+                msg += " " + result.Warnings[0];
+
+            IsImportPickerOpen = false;
+            SetImportCustomIconPreview(null);
+            OnStatusChanged?.Invoke(msg);
+            RefreshStateRequested?.Invoke();
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Error("Instance import failed", ex);
+            ImportErrorText = ex.Message;
+            OnStatusChanged?.Invoke(ex.Message);
+        }
+        finally
+        {
+            IsImporting = false;
+        }
+    }
+
+    [RelayCommand]
+    public async Task PickImportSingleAsync() => await BrowseImportFileAsync();
+
+    [RelayCommand]
+    public async Task PickImportFileAsync() => await BrowseImportFileAsync();
+
+    [RelayCommand]
+    public async Task PickImportFolderAsync(string? kind) => await BrowseImportFolderAsync();
 
     public async Task RunImportProcessAsync(string path)
     {

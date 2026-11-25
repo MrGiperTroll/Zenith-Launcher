@@ -45,15 +45,9 @@
         
 
                 
-        <!-- Instance card subtle elevation on hover -->
+        <!-- Instance card crisp hover without per-frame brush transition allocations -->
         <Style Selector="Border.instanceCard">
             <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="BorderBrush" Duration="0:0:0.2" Easing="0.16, 1, 0.3, 1"/>
-                    <BrushTransition Property="Background" Duration="0:0:0.2" Easing="0.16, 1, 0.3, 1"/>
-                </Transitions>
-            </Setter>
         </Style>
         <Style Selector="Border.instanceCard:pointerover">
             <Setter Property="Background" Value="{DynamicResource PanelBrush}"/>
@@ -124,6 +118,22 @@
         </Style>
         <Style Selector="ListBox.selectable ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource AccentDimBrush}"/>
+        </Style>
+
+        <!-- Virtualized plain list: replaces ScrollViewer+ItemsControl with zero selection chrome -->
+        <Style Selector="ListBox.plainVirtualList">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+        </Style>
+        <Style Selector="ListBox.plainVirtualList ListBoxItem">
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Focusable" Value="False"/>
         </Style>
 
         <!-- FlyoutPresenter: clean dark popup without extra gray frames -->

@@ -11,147 +11,208 @@
              Focusable="True">
 
     <UserControl.Styles>
-        <Style Selector="Button.dialogBtn">
-            <Setter Property="Background" Value="{DynamicResource FieldBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource BorderEditorBrush}"/>
+        <Style Selector="Border.fileRowCard">
+            <Setter Property="Background" Value="{DynamicResource CardAltBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderCardSoftBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.15" Easing="CubicEaseOut"/>
+                </Transitions>
+            </Setter>
         </Style>
-        <Style Selector="Button.dialogBtn:pointerover">
-            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+        <Style Selector="Border.fileRowCard:pointerover">
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderHoverBrush}"/>
+        </Style>
+        <Style Selector="Button.rowDelBtn">
+            <Setter Property="Background" Value="{DynamicResource IconChipBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Button.rowDelBtn PathIcon">
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+        </Style>
+        <Style Selector="Button.rowDelBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource DangerBgBrush}"/>
+        </Style>
+        <Style Selector="Button.rowDelBtn:pointerover PathIcon">
+            <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
         </Style>
     </UserControl.Styles>
 
     <Grid RowDefinitions="Auto,*">
-        <Border Grid.Row="0" Padding="0,0,0,8">
-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                <!-- Search box stretched across the left side -->
+        <Border Grid.Row="0" Padding="0,0,0,10">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                <!-- Search box (Catalog style with icon and clear button) -->
                 <TextBox Grid.Column="0" x:Name="SearchBox" Classes="darkInput" Text="{Binding SearchQuery}"
-                         PlaceholderText="{l10n:Tr Key=ph_search}" FontSize="11" Padding="10,6"
-                         HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+                         PlaceholderText="{l10n:Tr Key=ph_search}" FontSize="12" Height="36"
+                         HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                    <TextBox.InnerLeftContent>
+                        <PathIcon Data="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
+                                  Width="13" Height="13" Foreground="{DynamicResource TextPlaceholderBrush}" Margin="10,0,2,0"/>
+                    </TextBox.InnerLeftContent>
+                    <TextBox.InnerRightContent>
+                        <Button Command="{Binding ClearSearchCommand}"
+                                IsVisible="{Binding SearchQuery, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"
+                                Background="Transparent" BorderThickness="0" Padding="8,0" Cursor="Hand" Content="✕"
+                                Foreground="{DynamicResource TextPlaceholderBrush}"/>
+                    </TextBox.InnerRightContent>
+                </TextBox>
 
-                <!-- Right toolbar: Sort, Batch Actions, Refresh, Open Folder, Primary Action -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <ComboBox Classes="zenCombo" ItemsSource="{Binding SortOptions}" SelectedItem="{Binding SelectedSortOption}"
-                              FontSize="11" Padding="8,4" Width="118" VerticalAlignment="Center">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding Converter={x:Static converters:FileSortDisplayConverter.Instance}}"/>
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
+                <!-- Right toolbar: Catalog-style Sort Flyout, Batch Actions, Refresh, Open Folder, Primary Action -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Button x:Name="SortDropdownBtn" Classes="filterDropdownBtn" MinWidth="134" VerticalAlignment="Center">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0"
+                                       Text="{Binding SelectedSortOption, Converter={x:Static converters:FileSortDisplayConverter.Instance}}"
+                                       FontSize="12" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       VerticalAlignment="Center" Margin="0,0,8,0"
+                                       MaxWidth="140" TextTrimming="CharacterEllipsis"/>
+                            <PathIcon Grid.Column="1" Data="M7 10l5 5 5-5z" Width="10" Height="10"
+                                      Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                        </Grid>
+                        <Button.Flyout>
+                            <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="Standard">
+                                <Flyout.FlyoutPresenterTheme>
+                                    <ControlTheme TargetType="FlyoutPresenter" BasedOn="{StaticResource {x:Type FlyoutPresenter}}">
+                                        <Setter Property="Padding" Value="0"/>
+                                        <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
+                                        <Setter Property="BorderBrush" Value="{DynamicResource BorderDarkBrush}"/>
+                                        <Setter Property="BorderThickness" Value="1"/>
+                                        <Setter Property="CornerRadius" Value="8"/>
+                                        <Setter Property="ClipToBounds" Value="True"/>
+                                    </ControlTheme>
+                                </Flyout.FlyoutPresenterTheme>
+                                <Border Width="168" Background="{DynamicResource CardBrush}" Padding="2">
+                                    <ItemsControl ItemsSource="{Binding SortOptions}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="x:String">
+                                                <Button Classes="flyoutOptionBtn"
+                                                        Click="OnSortOptionClicked"
+                                                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+                                                    <Classes.selected>
+                                                        <MultiBinding Converter="{x:Static converters:EditInstanceWindowConverters.AreStringsEqual}">
+                                                            <Binding/>
+                                                            <Binding Path="$parent[UserControl].((vm:FileListViewModel)DataContext).SelectedSortOption"/>
+                                                        </MultiBinding>
+                                                    </Classes.selected>
+                                                    <TextBlock Text="{Binding Converter={x:Static converters:FileSortDisplayConverter.Instance}}" FontWeight="SemiBold" FontSize="12"/>
+                                                </Button>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Border>
+                            </Flyout>
+                        </Button.Flyout>
+                    </Button>
                     <Button Classes="subBtn" Command="{Binding EnableAllCommand}"
-                            Content="{l10n:Tr Key=fl_enable_all}" FontSize="11" Padding="10,5" VerticalAlignment="Center"
+                            Content="{l10n:Tr Key=fl_enable_all}" FontSize="12" FontWeight="SemiBold" Height="32" Padding="12,0" VerticalAlignment="Center"
                             IsVisible="{Binding SupportsDisable}"/>
                     <Button Classes="subBtn" Command="{Binding DisableAllCommand}"
-                            Content="{l10n:Tr Key=fl_disable_all}" FontSize="11" Padding="10,5" VerticalAlignment="Center"
+                            Content="{l10n:Tr Key=fl_disable_all}" FontSize="12" FontWeight="SemiBold" Height="32" Padding="12,0" VerticalAlignment="Center"
                             IsVisible="{Binding SupportsDisable}"/>
                     <Button Classes="subBtn" Command="{Binding RefreshListCommand}"
-                            Content="{l10n:Tr Key=fl_refresh}" FontSize="11" Padding="10,5" VerticalAlignment="Center"/>
+                            Content="{l10n:Tr Key=fl_refresh}" FontSize="12" FontWeight="SemiBold" Height="32" Padding="12,0" VerticalAlignment="Center"/>
                     <Button Classes="subBtn" Command="{Binding OpenFolderCommand}"
-                            Content="{l10n:Tr Key=btn_open_folder}" FontSize="11" Padding="10,5" VerticalAlignment="Center"
+                            Content="{l10n:Tr Key=btn_open_folder}" FontSize="12" FontWeight="SemiBold" Height="32" Padding="12,0" VerticalAlignment="Center"
                             ToolTip.Tip="{l10n:Tr Key=btn_open_folder}"/>
                     <Button Classes="primaryBtn" Command="{Binding PrimaryActionCommand}" CommandParameter="{Binding PrimaryActionCommandParameter}"
-                            Content="{Binding PrimaryActionText}" FontSize="11.5" FontWeight="SemiBold" Padding="14,5" VerticalAlignment="Center"
+                            Content="{Binding PrimaryActionText}" FontSize="12" FontWeight="Bold" Height="32" Padding="14,0" VerticalAlignment="Center"
                             IsVisible="{Binding HasPrimaryAction}"/>
                 </StackPanel>
             </Grid>
         </Border>
 
-        <Border Grid.Row="1" Background="Transparent" Padding="4">
+        <Border Grid.Row="1" Background="Transparent" Padding="0">
             <Grid>
                 <!-- Standard card list (mods / packs / worlds / generic) -->
-                <ListBox ItemsSource="{Binding Entries}" Background="Transparent" BorderThickness="0" Padding="6"
-                         ScrollViewer.VerticalScrollBarVisibility="Hidden"
+                <ListBox ItemsSource="{Binding Entries}" Background="Transparent" BorderThickness="0" Padding="0,0,4,0"
+                         ScrollViewer.VerticalScrollBarVisibility="Visible"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                          IsVisible="{Binding !IsGalleryMode}" x:Name="EntryList" DragDrop.AllowDrop="True">
-                    <ListBox.Styles>
-                        <Style Selector="ListBoxItem">
-                            <Setter Property="Padding" Value="0"/>
+                    <ListBox.ItemContainerTheme>
+                        <ControlTheme TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
                             <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="Padding" Value="0"/>
+                            <Setter Property="Margin" Value="0"/>
                             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                            <Setter Property="CornerRadius" Value="8"/>
-                        </Style>
-                        <Style Selector="ListBoxItem:pointerover">
-                            <Setter Property="Background" Value="{DynamicResource FieldBrush}"/>
-                        </Style>
-                        <Style Selector="ListBoxItem:selected">
-                            <Setter Property="Background" Value="{DynamicResource PanelBrush}"/>
-                        </Style>
-                    </ListBox.Styles>
+                        </ControlTheme>
+                    </ListBox.ItemContainerTheme>
                     <ListBox.ItemTemplate>
                         <DataTemplate x:DataType="models:InstanceFileEntry">
-                            <Grid ColumnDefinitions="56,*,Auto,Auto" MinHeight="58" Margin="2,4,2,4" Cursor="Hand">
-                                <Border Width="48" Height="48" Background="{DynamicResource IconChipBrush}" CornerRadius="8"
-                                        ClipToBounds="True" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                    <Panel>
-                                        <Image Source="{Binding PreviewBytes, Converter={x:Static converters:BytesToBitmapConverter.Instance}}" Stretch="UniformToFill" Width="48" Height="48"
-                                               IsVisible="{Binding HasPreview}"/>
-                                        <Path Data="M14 2H6A2 2 0 0 0 4 4V20A2 2 0 0 0 6 22H18A2 2 0 0 0 20 20V6L14 2Z"
-                                              Width="20" Height="20" Stretch="Uniform" Fill="{DynamicResource TextPlaceholderBrush}"
-                                              HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding !HasPreview}"/>
-                                    </Panel>
-                                </Border>
+                            <Border Classes="fileRowCard" Cursor="Hand">
+                                <Grid ColumnDefinitions="56,*,Auto,Auto" ColumnSpacing="8">
+                                    <Border Width="48" Height="48" Background="{DynamicResource IconChipBrush}" CornerRadius="8"
+                                            ClipToBounds="True" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                        <Panel>
+                                            <Image Source="{Binding PreviewBytes, Converter={x:Static converters:BytesToBitmapConverter.Instance}}" Stretch="UniformToFill" Width="48" Height="48"
+                                                   IsVisible="{Binding HasPreview}"/>
+                                            <Path Data="M14 2H6A2 2 0 0 0 4 4V20A2 2 0 0 0 6 22H18A2 2 0 0 0 20 20V6L14 2Z"
+                                                  Width="20" Height="20" Stretch="Uniform" Fill="{DynamicResource TextPlaceholderBrush}"
+                                                  HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding !HasPreview}"/>
+                                        </Panel>
+                                    </Border>
 
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1" Margin="0,0,8,0">
-                                    <TextBlock Text="{Binding Title}" FontSize="12" FontWeight="SemiBold"
-                                               Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
-                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <TextBlock Text="{Binding Subtitle}" FontSize="10" Foreground="{DynamicResource AccentBrush}"
-                                                   IsVisible="{Binding Subtitle, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
-                                        <TextBlock Text="{Binding Meta}" FontSize="10" Foreground="{DynamicResource TextCaptionBrush}"
-                                                   IsVisible="{Binding Meta, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2" Margin="0,0,8,0">
+                                        <TextBlock Text="{Binding Title}" FontSize="13" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <TextBlock Text="{Binding Subtitle}" FontSize="10.5" Foreground="{DynamicResource AccentBrush}"
+                                                       IsVisible="{Binding Subtitle, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
+                                            <TextBlock Text="{Binding Meta}" FontSize="10.5" Foreground="{DynamicResource TextCaptionBrush}"
+                                                       IsVisible="{Binding Meta, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding Description}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                                                   TextTrimming="CharacterEllipsis" MaxLines="2" TextWrapping="Wrap"
+                                                   IsVisible="{Binding Description, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
+                                        <TextBlock Text="{Binding ModifiedAt, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}" FontSize="10.5"
+                                                   Foreground="{DynamicResource TextCaptionBrush}"/>
                                     </StackPanel>
-                                    <TextBlock Text="{Binding Description}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
-                                               TextTrimming="CharacterEllipsis" MaxLines="2" TextWrapping="Wrap"
-                                               IsVisible="{Binding Description, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
-                                    <TextBlock Text="{Binding ModifiedAt, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}" FontSize="10"
-                                               Foreground="{DynamicResource TextCaptionBrush}" Margin="0,2,0,0"/>
-                                </StackPanel>
 
-                                <ToggleSwitch Grid.Column="2" IsChecked="{Binding IsEnabled}"
-                                          Command="{Binding $parent[UserControl].DataContext.ToggleFileCommand}"
-                                          CommandParameter="{Binding}"
-                                          OnContent="" OffContent=""
-                                          Margin="4,0,4,0" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                    <ToggleSwitch Grid.Column="2" IsChecked="{Binding IsEnabled}"
+                                                  Command="{Binding $parent[UserControl].((vm:FileListViewModel)DataContext).ToggleFileCommand}"
+                                                  CommandParameter="{Binding}"
+                                                  OnContent="{x:Null}" OffContent="{x:Null}" MinWidth="0" Padding="0"
+                                                  Margin="0,0,2,0" VerticalAlignment="Center" HorizontalAlignment="Right"/>
 
-                                <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Spacing="2">
-                                    <Button Classes="subBtn" Content="{l10n:Tr Key=fl_backup}" FontSize="11" Padding="12,4" ToolTip.Tip="{l10n:Tr Key=fl_backup_tip}"
-                                            IsVisible="{Binding $parent[UserControl].DataContext.SupportsBackup}"
-                                            Command="{Binding $parent[UserControl].DataContext.BackupFileCommand}" CommandParameter="{Binding}"/>
-                                    <Button Command="{Binding $parent[UserControl].DataContext.OpenFileCommand}" CommandParameter="{Binding}"
-                                            Background="Transparent" Foreground="{DynamicResource TextSecondaryBrush}" Padding="4,1" Cursor="Hand"
-                                            ToolTip.Tip="{l10n:Tr Key=fl_reveal_tip}" VerticalAlignment="Center">
-                                        <PathIcon Data="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
-                                                  Width="14" Height="14" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                        <Button.Styles>
-                                            <Style Selector="Button:pointerover PathIcon">
-                                                <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
-                                            </Style>
-                                        </Button.Styles>
-                                    </Button>
-                                    <Button Command="{Binding $parent[UserControl].DataContext.DeleteFileCommand}" CommandParameter="{Binding}"
-                                            Background="Transparent" Foreground="{DynamicResource TextSecondaryBrush}" Padding="4,1" Cursor="Hand"
-                                            ToolTip.Tip="{l10n:Tr Key=fl_delete}" VerticalAlignment="Center">
-                                        <PathIcon Data="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
-                                                  Width="13" Height="13" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                        <Button.Styles>
-                                            <Style Selector="Button:pointerover PathIcon">
-                                                <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
-                                            </Style>
-                                        </Button.Styles>
-                                    </Button>
-                                </StackPanel>
-                            </Grid>
+                                    <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Spacing="6">
+                                        <Button Classes="subBtn" Content="{l10n:Tr Key=fl_backup}" FontSize="11.5" FontWeight="SemiBold" Height="32" Padding="12,0" ToolTip.Tip="{l10n:Tr Key=fl_backup_tip}"
+                                                IsVisible="{Binding $parent[UserControl].((vm:FileListViewModel)DataContext).SupportsBackup}"
+                                                Command="{Binding $parent[UserControl].((vm:FileListViewModel)DataContext).BackupFileCommand}" CommandParameter="{Binding}"/>
+                                        <Button Classes="rowActionBtn"
+                                                Command="{Binding $parent[UserControl].((vm:FileListViewModel)DataContext).OpenFileCommand}" CommandParameter="{Binding}"
+                                                ToolTip.Tip="{l10n:Tr Key=fl_reveal_tip}" VerticalAlignment="Center">
+                                            <PathIcon Data="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
+                                                      Width="14" Height="14"/>
+                                        </Button>
+                                        <Button Classes="rowDelBtn"
+                                                Command="{Binding $parent[UserControl].((vm:FileListViewModel)DataContext).DeleteFileCommand}" CommandParameter="{Binding}"
+                                                ToolTip.Tip="{l10n:Tr Key=fl_delete}" VerticalAlignment="Center">
+                                            <PathIcon Data="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                                                      Width="13" Height="13"/>
+                                        </Button>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
 
                 <!-- Screenshot gallery (grid of preview tiles) -->
-                <ListBox ItemsSource="{Binding Entries}" Background="Transparent" BorderThickness="0" Padding="8"
-                         ScrollViewer.VerticalScrollBarVisibility="Hidden"
+                <ListBox ItemsSource="{Binding Entries}" Background="Transparent" BorderThickness="0" Padding="0,0,4,0"
+                         ScrollViewer.VerticalScrollBarVisibility="Visible"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                          IsVisible="{Binding IsGalleryMode}" x:Name="GalleryList" DragDrop.AllowDrop="True">
                     <ListBox.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -304,7 +365,7 @@
                 <Grid Grid.Row="1">
                     <Border CornerRadius="12" ClipToBounds="True" HorizontalAlignment="Center" VerticalAlignment="Center"
                             BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1">
-                        <Image Source="{Binding CurrentLightboxEntry.FullPath, Converter={x:Static converters:FullImageConverter.Instance}}"
+                        <Image Source="{Binding LightboxImage}"
                                Stretch="Uniform"
                                RenderOptions.BitmapInterpolationMode="HighQuality"/>
                     </Border>

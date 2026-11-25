@@ -13,7 +13,7 @@ using ZenithLauncher.ViewModels.Common;
 
 namespace ZenithLauncher.ViewModels;
 
-public partial class ServerManagerViewModel : ViewModelBase
+public partial class ServerManagerViewModel : ViewModelBase, IDisposable
 {
     private readonly string _serversDatPath;
 
@@ -190,5 +190,13 @@ public partial class ServerManagerViewModel : ViewModelBase
         {
             StatusText = $"Failed to save servers.dat: {ex.Message}";
         }
+    }
+
+    public void Dispose()
+    {
+        ClearEditor();
+        foreach (var s in Servers)
+            s.IconBytes = Array.Empty<byte>();
+        Servers.Clear();
     }
 }

@@ -38,6 +38,14 @@ public class ElyAuthService
     /// <summary>Account info endpoint (user details after token exchange).</summary>
     private const string UserInfoUrl = "https://account.ely.by/api/account/v1/info";
 
+    private static readonly HttpClient SharedHttp = new(new SocketsHttpHandler
+    {
+        PooledConnectionLifetime = TimeSpan.FromMinutes(2)
+    })
+    {
+        Timeout = TimeSpan.FromSeconds(30)
+    };
+
     public static bool IsConfigured =>
         !string.IsNullOrWhiteSpace(ClientId) &&
         !string.IsNullOrWhiteSpace(ClientSecret);
@@ -121,8 +129,6 @@ public class ElyAuthService
 
     private async Task<TokenResponse> ExchangeCodeForTokensAsync(string code, CancellationToken ct)
     {
-        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
-
         var payload = new Dictionary<string, string>
         {
             ["grant_type"] = "authorization_code",
@@ -133,7 +139,7 @@ public class ElyAuthService
         };
         using var content = new FormUrlEncodedContent(payload);
 
-        using var response = await http.PostAsync(TokenUrl, content, ct).ConfigureAwait(false);
+        using var response = await SharedHttp.PostAsync(TokenUrl, content, ct).ConfigureAwait(false);
         var body = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
 
         if (!response.IsSuccessStatusCode)
@@ -157,8 +163,6 @@ public class ElyAuthService
     /// <summary>Refresh a stored Ely refresh token.</summary>
     public async Task<TokenResponse> RefreshTokensAsync(string refreshToken, CancellationToken ct = default)
     {
-        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
-
         var payload = new Dictionary<string, string>
         {
             ["grant_type"] = "refresh_token",
@@ -168,7 +172,7 @@ public class ElyAuthService
         };
         using var content = new FormUrlEncodedContent(payload);
 
-        using var response = await http.PostAsync(TokenUrl, content, ct).ConfigureAwait(false);
+        using var response = await SharedHttp.PostAsync(TokenUrl, content, ct).ConfigureAwait(false);
         var body = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
 
         if (!response.IsSuccessStatusCode)
@@ -193,10 +197,10 @@ public class ElyAuthService
 
     private async Task<(string Username, string Uuid)> FetchUserInfoAsync(string accessToken, CancellationToken ct)
     {
-        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
-        http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        using var req = new HttpRequestMessage(HttpMethod.Get, UserInfoUrl);
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
-        using var response = await http.GetAsync(UserInfoUrl, ct).ConfigureAwait(false);
+        using var response = await SharedHttp.SendAsync(req, ct).ConfigureAwait(false);
         var body = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
 
         if (!response.IsSuccessStatusCode)

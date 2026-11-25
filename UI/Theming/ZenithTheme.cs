@@ -53,6 +53,8 @@ public static class ZenithTheme
         try
         {
             try { Services.DiscordPresenceService.Shutdown(); } catch { }
+            try { (Application.Current as App)?.PrepareForRestart(); } catch { }
+            try { Program.ReleaseSingleInstanceMutexForRestart(); } catch { }
 
             var exePath = Environment.ProcessPath;
             if (string.IsNullOrEmpty(exePath))
@@ -63,6 +65,7 @@ public static class ZenithTheme
                 System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
                 {
                     FileName = exePath,
+                    Arguments = $"--restart {Environment.ProcessId}",
                     UseShellExecute = true,
                     WorkingDirectory = System.IO.Path.GetDirectoryName(exePath)
                 });
@@ -152,10 +155,13 @@ public static class ZenithTheme
         SetBrushColor(r, "BorderSoftBrush", borderSoft);
 
         // Accents
+        var luminance = (0.299 * accent.R + 0.587 * accent.G + 0.114 * accent.B) / 255.0;
+        var onAccent = luminance > 0.65 ? Color.Parse("#131416") : Colors.White;
+
         SetBrushColor(r, "AccentBrush", accent);
         SetBrushColor(r, "AccentBrushHover", hover);
         SetBrushColor(r, "AccentPressed", pressed);
-        SetBrushColor(r, "OnAccentBrush", Colors.White);
+        SetBrushColor(r, "OnAccentBrush", onAccent);
         SetBrushColor(r, "AccentSoftBrush", Blend(accent, bg, 0.22f));
         SetBrushColor(r, "AccentDimBrush", Blend(accent, bg, 0.12f));
         SetBrushColor(r, "AccentBorderBrush", Blend(accent, borderDark, 0.55f));
@@ -208,9 +214,9 @@ public static class ZenithTheme
         SetBrushColor(r, "CheckBoxCheckBackgroundFillChecked", accent);
         SetBrushColor(r, "CheckBoxCheckBackgroundFillCheckedPointerOver", hover);
         SetBrushColor(r, "CheckBoxCheckBackgroundFillCheckedPressed", accent);
-        SetBrushColor(r, "CheckBoxCheckGlyphForegroundChecked", Colors.White);
-        SetBrushColor(r, "CheckBoxCheckGlyphForegroundCheckedPointerOver", Colors.White);
-        SetBrushColor(r, "CheckBoxCheckGlyphForegroundCheckedPressed", Colors.White);
+        SetBrushColor(r, "CheckBoxCheckGlyphForegroundChecked", onAccent);
+        SetBrushColor(r, "CheckBoxCheckGlyphForegroundCheckedPointerOver", onAccent);
+        SetBrushColor(r, "CheckBoxCheckGlyphForegroundCheckedPressed", onAccent);
 
         // Expander overrides
         SetBrushColor(r, "ExpanderBorderBrush", Color.Parse("#26282E"));
@@ -331,7 +337,6 @@ public static class ZenithTheme
     {
         new("zenith", "Zenith", "Zenith", "#8B5CF6"),
         new("cobalt", "Cobalt", "Кобальт", "#3B82F6"),
-        new("forest", "Forest", "Лес", "#10B981"),
         new("mint", "Mint", "Мята", "#06B6D4"),
         new("bee", "Bee", "Пчела", "#EAB308"),
         new("parchment", "Parchment", "Пергамент", "#FB923C"),

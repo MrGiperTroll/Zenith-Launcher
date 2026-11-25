@@ -384,7 +384,7 @@
             <!-- ========== TWO-COLUMN BODY ========== -->
             <Grid Grid.Row="1" Margin="0,0,0,16">
                 <Grid>
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" AllowAutoHide="True" Padding="0,0,10,0">
+                    <ScrollViewer x:Name="DetailsScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" AllowAutoHide="True" Padding="0,0,10,0">
                         <StackPanel>
 
                             <!-- ============================================== -->
@@ -595,13 +595,27 @@
                                                     <!-- Banner image -->
                                                     <Border CornerRadius="8" ClipToBounds="True" MaxWidth="640" MaxHeight="280" HorizontalAlignment="Center" Margin="0,4,0,16"
                                                             IsVisible="{Binding IsBannerImage}">
-                                                        <Image Source="{Binding ImageBitmap}" Stretch="Uniform" MaxWidth="640" MaxHeight="280" StretchDirection="DownOnly"/>
+                                                        <Panel>
+                                                            <Image Source="{Binding ImageBitmap}" Stretch="Uniform" MaxWidth="640" MaxHeight="280" StretchDirection="DownOnly"
+                                                                   IsVisible="{Binding !HasLinkUrl}"/>
+                                                            <Button Classes="badgeBtn" Click="OnExternalLinkTagClicked" Tag="{Binding LinkUrl}"
+                                                                    IsVisible="{Binding HasLinkUrl}" Padding="0" HorizontalAlignment="Center">
+                                                                <Image Source="{Binding ImageBitmap}" Stretch="Uniform" MaxWidth="640" MaxHeight="280" StretchDirection="DownOnly"/>
+                                                            </Button>
+                                                        </Panel>
                                                     </Border>
 
                                                     <!-- Content Image -->
                                                     <Border CornerRadius="8" ClipToBounds="True" MaxWidth="680" MaxHeight="450" HorizontalAlignment="Left" Margin="0,8,0,12"
                                                             IsVisible="{Binding IsContentImage}">
-                                                        <Image Source="{Binding ImageBitmap}" MaxWidth="680" MaxHeight="450" Stretch="Uniform" StretchDirection="DownOnly"/>
+                                                        <Panel>
+                                                            <Image Source="{Binding ImageBitmap}" MaxWidth="680" MaxHeight="450" Stretch="Uniform" StretchDirection="DownOnly"
+                                                                   IsVisible="{Binding !HasLinkUrl}"/>
+                                                            <Button Classes="badgeBtn" Click="OnExternalLinkTagClicked" Tag="{Binding LinkUrl}"
+                                                                    IsVisible="{Binding HasLinkUrl}" Padding="0" HorizontalAlignment="Left">
+                                                                <Image Source="{Binding ImageBitmap}" MaxWidth="680" MaxHeight="450" Stretch="Uniform" StretchDirection="DownOnly"/>
+                                                            </Button>
+                                                        </Panel>
                                                     </Border>
 
                                                     <!-- Social media button row / badge strip -->
@@ -616,8 +630,16 @@
                                                             <ItemsControl.ItemTemplate>
                                                                 <DataTemplate x:DataType="utils:MarkdownSocialButton">
                                                                     <Button Classes="socialMediaBtn" ToolTip.Tip="{Binding Alt}" Tag="{Binding LinkUrl}" Click="OnExternalLinkTagClicked"
-                                                                            Padding="6,4" MinWidth="32" Height="30" Margin="0,0,6,6" Background="{DynamicResource FieldBrush}" CornerRadius="6">
-                                                                        <Image Source="{Binding IconBitmap}" Height="20" Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                            Padding="0" MinWidth="24" MinHeight="24" Margin="0,0,8,8" Background="Transparent" BorderThickness="0" CornerRadius="6">
+                                                                        <Panel>
+                                                                            <Image Source="{Binding IconBitmap}" MaxHeight="34" Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                                   IsVisible="{Binding HasIconBitmap}"/>
+                                                                            <Border Background="{DynamicResource FieldBrush}" CornerRadius="6" Padding="10,5"
+                                                                                    IsVisible="{Binding !HasIconBitmap}">
+                                                                                <TextBlock Text="{Binding Alt}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"
+                                                                                           VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                                                            </Border>
+                                                                        </Panel>
                                                                     </Button>
                                                                 </DataTemplate>
                                                             </ItemsControl.ItemTemplate>

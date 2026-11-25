@@ -53,7 +53,15 @@ public static class ModrinthApiService
 {
     private const string ApiBase = "https://api.modrinth.com/v2";
 
-    private static readonly HttpClient Http = new()
+    private static readonly SocketsHttpHandler HttpHandler = new()
+    {
+        PooledConnectionLifetime = TimeSpan.FromMinutes(1),
+        PooledConnectionIdleTimeout = TimeSpan.FromSeconds(15),
+        MaxConnectionsPerServer = 6,
+        AutomaticDecompression = System.Net.DecompressionMethods.All
+    };
+
+    private static readonly HttpClient Http = new(HttpHandler)
     {
         Timeout = TimeSpan.FromSeconds(45),
         DefaultRequestHeaders =
@@ -63,7 +71,7 @@ public static class ModrinthApiService
         }
     };
 
-    private static readonly ZenithLauncher.Common.Utils.LruCache<string, byte[]> IconMemoryCache = new(40, comparer: StringComparer.OrdinalIgnoreCase);
+    private static readonly ZenithLauncher.Common.Utils.LruCache<string, byte[]> IconMemoryCache = new(20, comparer: StringComparer.OrdinalIgnoreCase);
 
     public static void ClearMemoryCache() => IconMemoryCache.Clear();
     private static readonly string IconDiskCacheDir = Path.Combine(ZenithPaths.AppDataDir, "cache", "icons");
@@ -198,17 +206,16 @@ public static class ModrinthApiService
             url += "&query=" + Uri.EscapeDataString(query.Trim());
         url += "&facets=" + Uri.EscapeDataString(JsonSerializer.Serialize(facets));
 
-        using var response = await Http.GetAsync(url, cancellationToken).ConfigureAwait(false);
+        using var response = await Http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
         if (!response.IsSuccessStatusCode) return null;
 
-        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-        return ParseSearchPage(json, selectedResolutions, query);
+        await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+        using var doc = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken).ConfigureAwait(false);
+        return ParseSearchPage(doc.RootElement, selectedResolutions, query);
     }
 
-    private static ModrinthSearchPage? ParseSearchPage(string json, IReadOnlyList<string> selectedResolutions, string? query = null)
+    private static ModrinthSearchPage? ParseSearchPage(JsonElement root, IReadOnlyList<string> selectedResolutions, string? query = null)
     {
-        using var doc = JsonDocument.Parse(json);
-        var root = doc.RootElement;
         var hits = new List<ModrinthProjectItemViewModel>();
         var totalHits = root.TryGetProperty("total_hits", out var th) ? th.GetInt32() : 0;
         var offset = root.TryGetProperty("offset", out var off) ? off.GetInt32() : 0;
@@ -288,8 +295,10 @@ public static class ModrinthApiService
         if (queryParts.Count > 0)
             url += "?" + string.Join("&", queryParts);
 
-        var json = await Http.GetStringAsync(url, token);
-        using var doc = JsonDocument.Parse(json);
+        using var response = await Http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, token).ConfigureAwait(false);
+        response.EnsureSuccessStatusCode();
+        await using var stream = await response.Content.ReadAsStreamAsync(token).ConfigureAwait(false);
+        using var doc = await JsonDocument.ParseAsync(stream, cancellationToken: token).ConfigureAwait(false);
         if (doc.RootElement.ValueKind != JsonValueKind.Array) return null;
 
         foreach (var v in doc.RootElement.EnumerateArray())
@@ -434,8 +443,10 @@ public static class ModrinthApiService
     {
         try
         {
-            var json = await Http.GetStringAsync($"{ApiBase}/project/{Uri.EscapeDataString(projectId)}");
-            using var doc = JsonDocument.Parse(json);
+            using var projResp = await Http.GetAsync($"{ApiBase}/project/{Uri.EscapeDataString(projectId)}", HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
+            projResp.EnsureSuccessStatusCode();
+            await using var projStream = await projResp.Content.ReadAsStreamAsync().ConfigureAwait(false);
+            using var doc = await JsonDocument.ParseAsync(projStream).ConfigureAwait(false);
             var r = doc.RootElement;
 
             // Get team members for creators section
@@ -444,32 +455,36 @@ public static class ModrinthApiService
             var ownerAvatar = "";
             try
             {
-                var teamJson = await Http.GetStringAsync($"{ApiBase}/project/{Uri.EscapeDataString(projectId)}/members");
-                using var teamDoc = JsonDocument.Parse(teamJson);
-                foreach (var m in teamDoc.RootElement.EnumerateArray())
+                using var teamResp = await Http.GetAsync($"{ApiBase}/project/{Uri.EscapeDataString(projectId)}/members", HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
+                if (teamResp.IsSuccessStatusCode)
                 {
-                    var userId = "";
-                    var username = "";
-                    var avatar = "";
-                    if (m.TryGetProperty("user", out var u) && u.ValueKind == JsonValueKind.Object)
+                    await using var teamStream = await teamResp.Content.ReadAsStreamAsync().ConfigureAwait(false);
+                    using var teamDoc = await JsonDocument.ParseAsync(teamStream).ConfigureAwait(false);
+                    foreach (var m in teamDoc.RootElement.EnumerateArray())
                     {
-                        userId = GetString(u, "id") ?? "";
-                        username = GetString(u, "username") ?? "";
-                        avatar = GetString(u, "avatar_url") ?? "";
-                    }
-                    else
-                    {
-                        username = GetString(m, "username") ?? "";
-                        avatar = GetString(m, "avatar_url") ?? "";
-                    }
-                    var role = GetString(m, "role") ?? "";
-                    if (!string.IsNullOrWhiteSpace(username))
-                    {
-                        team.Add(new ModrinthTeamMember { Id = userId, Username = username, Role = role, AvatarUrl = avatar });
-                        if (string.Equals(role, "Owner", StringComparison.OrdinalIgnoreCase) || string.IsNullOrEmpty(ownerAuthor))
+                        var userId = "";
+                        var username = "";
+                        var avatar = "";
+                        if (m.TryGetProperty("user", out var u) && u.ValueKind == JsonValueKind.Object)
                         {
-                            ownerAuthor = username;
-                            ownerAvatar = avatar;
+                            userId = GetString(u, "id") ?? "";
+                            username = GetString(u, "username") ?? "";
+                            avatar = GetString(u, "avatar_url") ?? "";
+                        }
+                        else
+                        {
+                            username = GetString(m, "username") ?? "";
+                            avatar = GetString(m, "avatar_url") ?? "";
+                        }
+                        var role = GetString(m, "role") ?? "";
+                        if (!string.IsNullOrWhiteSpace(username))
+                        {
+                            team.Add(new ModrinthTeamMember { Id = userId, Username = username, Role = role, AvatarUrl = avatar });
+                            if (string.Equals(role, "Owner", StringComparison.OrdinalIgnoreCase) || string.IsNullOrEmpty(ownerAuthor))
+                            {
+                                ownerAuthor = username;
+                                ownerAvatar = avatar;
+                            }
                         }
                     }
                 }
@@ -554,8 +569,10 @@ public static class ModrinthApiService
                 parts.Add($"loaders={Uri.EscapeDataString(JsonSerializer.Serialize(loaders))}");
             if (parts.Count > 0) url += "?" + string.Join("&", parts);
 
-            var json = await Http.GetStringAsync(url);
-            using var doc = JsonDocument.Parse(json);
+            using var response = await Http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            await using var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+            using var doc = await JsonDocument.ParseAsync(stream).ConfigureAwait(false);
             var versions = new List<ModrinthProjectVersion>();
 
             foreach (var v in doc.RootElement.EnumerateArray())
@@ -620,8 +637,10 @@ public static class ModrinthApiService
         try
         {
             var url = $"{ApiBase}/user/{Uri.EscapeDataString(usernameOrId)}";
-            var json = await Http.GetStringAsync(url, token);
-            using var doc = JsonDocument.Parse(json);
+            using var resp = await Http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, token).ConfigureAwait(false);
+            resp.EnsureSuccessStatusCode();
+            await using var stream = await resp.Content.ReadAsStreamAsync(token).ConfigureAwait(false);
+            using var doc = await JsonDocument.ParseAsync(stream, cancellationToken: token).ConfigureAwait(false);
             var r = doc.RootElement;
             DateTime.TryParse(GetString(r, "created"), out var created);
 
@@ -651,8 +670,10 @@ public static class ModrinthApiService
         try
         {
             var url = $"{ApiBase}/user/{Uri.EscapeDataString(usernameOrId)}/projects";
-            var json = await Http.GetStringAsync(url, token);
-            using var doc = JsonDocument.Parse(json);
+            using var resp = await Http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, token).ConfigureAwait(false);
+            resp.EnsureSuccessStatusCode();
+            await using var stream = await resp.Content.ReadAsStreamAsync(token).ConfigureAwait(false);
+            using var doc = await JsonDocument.ParseAsync(stream, cancellationToken: token).ConfigureAwait(false);
             if (doc.RootElement.ValueKind != JsonValueKind.Array) return result;
 
             foreach (var item in doc.RootElement.EnumerateArray())

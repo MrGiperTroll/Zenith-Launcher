@@ -45,25 +45,19 @@ public class TimelineNodeControl : Control
         if (brush == null) return;
 
         double centerX = Math.Round(Bounds.Width / 2.0);
-        double circleCenterY = 9.0;
         double circleRadius = 4.5;
+        double circleCenterY = 9.0;
 
         var dashStyle = new DashStyle(new double[] { 3, 3 }, 0);
         var pen = new Pen(brush, 2.0, dashStyle, PenLineCap.Flat, PenLineJoin.Miter);
 
-        // 1. Top dashed line (from Y=0 to top of circle node)
-        if (ShowTopLine)
-        {
-            context.DrawLine(pen, new Point(centerX, 0), new Point(centerX, circleCenterY - circleRadius));
-        }
-
-        // 2. Circle node strictly centered on the timeline axis
+        // Always keep the dot at the very top of the entry with dashes flowing downward only
         context.DrawEllipse(brush, null, new Point(centerX, circleCenterY), circleRadius, circleRadius);
 
-        // 3. Bottom dashed line (from bottom of circle node to bottom of row)
-        if (ShowBottomLine && Bounds.Height > circleCenterY + circleRadius)
+        double lineStartY = circleCenterY + circleRadius + 3.0;
+        if (ShowBottomLine && Bounds.Height > lineStartY + 2.0)
         {
-            context.DrawLine(pen, new Point(centerX, circleCenterY + circleRadius), new Point(centerX, Bounds.Height));
+            context.DrawLine(pen, new Point(centerX, lineStartY), new Point(centerX, Bounds.Height));
         }
     }
 }

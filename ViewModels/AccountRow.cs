@@ -21,11 +21,11 @@ public partial class AccountRow : ObservableObject, IDisposable
         Timeout = TimeSpan.FromSeconds(10)
     };
 
-    // Process-wide skin-head cache: username → raw PNG bytes. Account rows are
-    // recreated on every RefreshState / account switch; without this cache each
-    // rebuild refetched the head over the network, so avatars flickered
-    // (letter placeholder → image) every single time.
-    private static readonly ConcurrentDictionary<string, byte[]> MemoryCache = new(StringComparer.OrdinalIgnoreCase);
+    // Bounded process-wide skin-head cache: username -> raw PNG bytes.
+    private static readonly ZenithLauncher.Common.Utils.LruCache<string, byte[]> MemoryCache =
+        new(32, comparer: StringComparer.OrdinalIgnoreCase);
+
+    private volatile bool _disposed;
 
     private static string DiskCacheDir => Path.Combine(ZenithPaths.AppDataDir, "avatars");
 
@@ -58,12 +58,12 @@ public partial class AccountRow : ObservableObject, IDisposable
             try
             {
                 using var ms = new MemoryStream(cached);
-                _headImage = new Bitmap(ms);
+                _headImage = Bitmap.DecodeToWidth(ms, 64, BitmapInterpolationMode.MediumQuality);
             }
             catch
             {
                 // Corrupted cache entry - drop it and fall back to the letter avatar.
-                MemoryCache.TryRemove(Username, out _);
+                MemoryCache.Remove(Username);
             }
         }
     }
@@ -74,9 +74,9 @@ public partial class AccountRow : ObservableObject, IDisposable
     /// Uses the memory/disk caches first; only hits the network on a real miss.</summary>
     public async Task LoadHeadAsync()
     {
-        if (string.IsNullOrWhiteSpace(Username)) return;
-        if (HeadImage != null && MemoryCache.ContainsKey(Username)) return;
-        if (MemoryCache.TryGetValue(Username, out var mem))
+        if (_disposed || string.IsNullOrWhiteSpace(Username)) return;
+        if (HeadImage != null && MemoryCache.TryGet(Username, out _)) return;
+        if (MemoryCache.TryGet(Username, out var mem))
         {
             SetFromBytes(mem);
             return;
@@ -86,9 +86,9 @@ public partial class AccountRow : ObservableObject, IDisposable
         {
             var url = $"https://mc-heads.net/avatar/{Uri.EscapeDataString(Username)}/32";
             var bytes = await Http.GetByteArrayAsync(url).ConfigureAwait(true);
-            if (bytes.Length == 0) return;
+            if (_disposed || bytes.Length == 0) return;
 
-            MemoryCache[Username] = bytes;
+            MemoryCache.Set(Username, bytes);
             try
             {
                 Directory.CreateDirectory(DiskCacheDir);
@@ -106,13 +106,17 @@ public partial class AccountRow : ObservableObject, IDisposable
 
     private void SetFromBytes(byte[] bytes)
     {
+        if (_disposed) return;
         _ = Dispatcher.UIThread.InvokeAsync(() =>
         {
+            if (_disposed) return;
             try
             {
                 using var ms = new MemoryStream(bytes);
-                HeadImage?.Dispose();
-                HeadImage = new Bitmap(ms);
+                var next = Bitmap.DecodeToWidth(ms, 64, BitmapInterpolationMode.MediumQuality);
+                var old = HeadImage;
+                HeadImage = next;
+                try { old?.Dispose(); } catch { }
             }
             catch { }
         });
@@ -120,7 +124,7 @@ public partial class AccountRow : ObservableObject, IDisposable
 
     private static bool TryGetCachedBytes(string username, out byte[] bytes)
     {
-        if (MemoryCache.TryGetValue(username, out bytes!)) return true;
+        if (MemoryCache.TryGet(username, out bytes!)) return true;
         try
         {
             var path = DiskPath(username);
@@ -129,7 +133,7 @@ public partial class AccountRow : ObservableObject, IDisposable
                 bytes = File.ReadAllBytes(path);
                 if (bytes.Length > 0)
                 {
-                    MemoryCache[username] = bytes;
+                    MemoryCache.Set(username, bytes);
                     return true;
                 }
             }
@@ -151,10 +155,12 @@ public partial class AccountRow : ObservableObject, IDisposable
 
     public void Dispose()
     {
+        _disposed = true;
         try
         {
-            HeadImage?.Dispose();
+            var old = HeadImage;
             HeadImage = null;
+            old?.Dispose();
         }
         catch { }
     }

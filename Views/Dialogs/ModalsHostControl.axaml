@@ -11,6 +11,50 @@
              x:Class="ZenithLauncher.Views.Dialogs.ModalsHostControl"
              x:DataType="vm:MainWindowViewModel">
 
+    <UserControl.Styles>
+        <Style Selector="Button.impSideTab">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="11,9"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Button.impSideTab:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+        </Style>
+        <Style Selector="Button.impSideTab.active /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource AccentDimBrush}"/>
+        </Style>
+        <Style Selector="Button.impSideTab TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+        </Style>
+        <Style Selector="Button.impSideTab.active TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="Button.impSideTab.active PathIcon.tabGlyph">
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+
+        <Style Selector="Button.impIconBtn">
+            <Setter Property="Background" Value="{DynamicResource FieldBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Button.impIconBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+    </UserControl.Styles>
+
     <Panel>
         <!-- Server Under Development Dialog -->
         <Border IsVisible="{Binding IsServerUnderDevDialogOpen}" Background="{DynamicResource OverlayBrush}" ZIndex="150"
@@ -155,6 +199,20 @@
             </Border>
         </Border>
 
+        <!-- MODAL: Restart Confirmation (GUI Hardware Acceleration) -->
+        <Border IsVisible="{Binding IsHardwareAccelConfirmOpen}" Background="{DynamicResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1000">
+            <Border Background="{DynamicResource CardAltBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="400" Padding="22" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel Spacing="14">
+                    <TextBlock Text="{l10n:Tr Key=dialog_restart_title}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Text="{l10n:Tr Key=dialog_restart_gpu_msg}" TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12.5" LineHeight="18"/>
+                    <Grid ColumnDefinitions="*,*" Margin="0,4,0,0">
+                        <Button Grid.Column="0" Content="{l10n:Tr Key=no}" Command="{Binding CancelHardwareAccelRestartCommand}" Classes="subBtn" HorizontalContentAlignment="Center" Margin="0,0,6,0" Height="36"/>
+                        <Button Grid.Column="1" Classes="primaryBtn" Content="{l10n:Tr Key=yes}" Command="{Binding ConfirmHardwareAccelRestartCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="6,0,0,0" Height="36"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Border>
+
         <!-- MODAL: Discard Changes Confirmation (Theme Tab Switch) -->
         <Border IsVisible="{Binding IsThemeDiscardConfirmOpen}" Background="{DynamicResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1000">
             <Border Background="{DynamicResource CardAltBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="400" Padding="22" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -205,7 +263,7 @@
         <Border Background="{DynamicResource OverlayBrush}" IsVisible="{Binding IsJavaInstallerOpen}" ZIndex="1000"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <Border x:Name="JavaInstallerCard" Background="{DynamicResource SurfaceBrush}" CornerRadius="14" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1"
-                    Width="420" HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 18 46 0 #55000000" Padding="24,20,24,18">
+                    Width="420" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="24,20,24,18">
                 <Grid RowDefinitions="Auto,Auto,Auto,Auto">
                     <!-- Header -->
                     <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
@@ -287,58 +345,263 @@
             </Border>
         </Border>
 
-        <!-- Import Picker In-App Modal -->
+        <!-- Import Picker In-App Modal (Prism-inspired two-pane layout in Zenith UI) -->
         <Border Background="{DynamicResource OverlayBrush}" IsVisible="{Binding IsImportPickerOpen}" ZIndex="1000"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-            <Border Background="{DynamicResource BgBrush}" CornerRadius="14" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1"
-                    Width="460" HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 18 46 0 #55000000" Padding="24,20,24,18">
+            <Border Background="{DynamicResource CardBrush}" CornerRadius="14" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1"
+                    Width="690" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="22">
+                <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="18">
+                    <!-- Top Row: Large Icon Square (top-left) + Name & Group Inputs (spaced right) + Close -->
+                    <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="22" VerticalAlignment="Center">
+                        <Panel Grid.Column="0" Width="78" Height="78" VerticalAlignment="Center">
+                            <Button Classes="impIconBtn" Width="78" Height="78" CornerRadius="14"
+                                    Command="{Binding InstancesManager.PickImportIconCommand}"
+                                    ToolTip.Tip="{l10n:Tr Key=imp_pick_icon_tip}"
+                                    ClipToBounds="True">
+                                <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <Path IsVisible="{Binding !InstancesManager.HasImportCustomIcon}"
+                                          Data="{StaticResource ZenithLogoGeometry}"
+                                          Fill="{DynamicResource AccentBrush}"
+                                          Stretch="Uniform" Width="40" Height="40" Margin="0,3,0,0"/>
+                                    <Image IsVisible="{Binding InstancesManager.HasImportCustomIcon}"
+                                           Source="{Binding InstancesManager.ImportCustomIconPreview}"
+                                           Stretch="UniformToFill" Width="76" Height="76"/>
+                                </Panel>
+                            </Button>
+                            <Button Classes="rowActionBtn" Width="20" Height="20"
+                                    HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-4,-4,0"
+                                    IsVisible="{Binding InstancesManager.HasImportCustomIcon}"
+                                    Command="{Binding InstancesManager.ClearImportIconCommand}"
+                                    Background="{DynamicResource CardAltBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1">
+                                <PathIcon Data="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" Width="8" Height="8"/>
+                            </Button>
+                        </Panel>
+
+                        <Grid Grid.Column="1" RowDefinitions="Auto,Auto" RowSpacing="10" VerticalAlignment="Center">
+                            <Grid Grid.Row="0" ColumnDefinitions="76,*" ColumnSpacing="10" VerticalAlignment="Center">
+                                <TextBlock Grid.Column="0" Text="{l10n:Tr Key=imp_profile_name}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                <TextBox Grid.Column="1" Classes="darkInput" Height="34" FontSize="12.5"
+                                         Text="{Binding InstancesManager.ImportProfileName}"
+                                         PlaceholderText="{l10n:Tr Key=imp_ph_name}"/>
+                            </Grid>
+                            <Grid Grid.Row="1" ColumnDefinitions="76,*,Auto" ColumnSpacing="10" VerticalAlignment="Center">
+                                <TextBlock Grid.Column="0" Text="{l10n:Tr Key=imp_profile_group}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                <TextBox Grid.Column="1" Classes="darkInput" Height="34" FontSize="12.5"
+                                         Text="{Binding InstancesManager.ImportProfileGroup}"
+                                         PlaceholderText="{l10n:Tr Key=imp_ph_group}"/>
+                                <Button Grid.Column="2" x:Name="ImportGroupFlyoutBtn" Classes="filterDropdownBtn" Height="34" Width="34" Padding="0"
+                                        IsVisible="{Binding HasProfileGroups}" ToolTip.Tip="{l10n:Tr Key=grp_modal_suggestions}">
+                                    <PathIcon Data="M7 10l5 5 5-5z" Width="13" Height="13" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center"/>
+                                    <Button.Flyout>
+                                        <Flyout Placement="BottomEdgeAlignedRight">
+                                            <Flyout.FlyoutPresenterTheme>
+                                                <ControlTheme TargetType="FlyoutPresenter" BasedOn="{StaticResource {x:Type FlyoutPresenter}}">
+                                                    <Setter Property="Padding" Value="4"/>
+                                                    <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
+                                                    <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}"/>
+                                                    <Setter Property="BorderThickness" Value="1"/>
+                                                    <Setter Property="CornerRadius" Value="10"/>
+                                                    <Setter Property="MinWidth" Value="170"/>
+                                                </ControlTheme>
+                                            </Flyout.FlyoutPresenterTheme>
+                                            <ItemsControl ItemsSource="{Binding ProfileGroups}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate x:DataType="x:String">
+                                                        <Button Classes="flyoutOptionBtn"
+                                                                Tag="{Binding}" Click="OnImportGroupOptionClicked">
+                                                            <TextBlock Text="{Binding}" FontSize="12" TextTrimming="CharacterEllipsis"/>
+                                                        </Button>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </Flyout>
+                                    </Button.Flyout>
+                                </Button>
+                            </Grid>
+                        </Grid>
+
+                        <Button Grid.Column="2" Command="{Binding CloseImportPickerCommand}" Classes="rowActionBtn"
+                                Background="Transparent" VerticalAlignment="Top" ToolTip.Tip="{l10n:Tr Key=close}">
+                            <PathIcon Data="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" Width="12" Height="12"/>
+                        </Button>
+                    </Grid>
+
+                    <!-- Middle Two-Pane: Fixed Height prevents layout jitter on tab switches -->
+                    <Grid Grid.Row="1" ColumnDefinitions="192,*" ColumnSpacing="14" Height="296">
+                        <!-- Left Rail -->
+                        <StackPanel Grid.Column="0" Spacing="4" VerticalAlignment="Top">
+                            <Button Classes="impSideTab" Classes.active="{Binding InstancesManager.IsImportTabSingle}"
+                                    Command="{Binding InstancesManager.SelectImportTabCommand}" CommandParameter="Single">
+                                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                    <PathIcon Classes="tabGlyph"
+                                              Data="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
+                                              Width="16" Height="16" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{l10n:Tr Key=imp_single_t}" FontSize="12.5" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button Classes="impSideTab" Classes.active="{Binding InstancesManager.IsImportTabModrinth}"
+                                    Command="{Binding InstancesManager.SelectImportTabCommand}" CommandParameter="Modrinth">
+                                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                    <PathIcon Data="M12.252.004a11.78 11.768 0 0 0-8.92 3.73 11 10.999 0 0 0-2.17 3.11 11.37 11.359 0 0 0-1.16 5.169c0 1.42.17 2.5.6 3.77.24.759.77 1.899 1.17 2.529a12.3 12.298 0 0 0 8.85 5.639c.44.05 2.54.07 2.76.02.2-.04.22.1-.26-1.7l-.36-1.37-1.01-.06a8.5 8.489 0 0 1-5.18-1.8 5.34 5.34 0 0 1-1.3-1.26c0-.05.34-.28.74-.5a37.572 37.545 0 0 1 2.88-1.629c.03 0 .5.45 1.06.98l1 .97 2.07-.43 2.06-.43 1.47-1.47c.8-.8 1.48-1.5 1.48-1.52 0-.09-.42-1.63-.46-1.7-.04-.06-.2-.03-1.02.18-.53.13-1.2.3-1.45.4l-.48.15-.53.53-.53.53-.93.1-.93.07-.52-.5a2.7 2.7 0 0 1-.96-1.7l-.13-.6.43-.57c.68-.9.68-.9 1.46-1.1.4-.1.65-.2.83-.33.13-.099.65-.579 1.14-1.069l.9-.9-.7-.7-.7-.7-1.95.54c-1.07.3-1.96.53-1.97.53-.03 0-2.23 2.48-2.63 2.97l-.29.35.28 1.03c.16.56.3 1.16.31 1.34l.03.3-.34.23c-.37.23-2.22 1.3-2.84 1.63-.36.2-.37.2-.44.1-.08-.1-.23-.6-.32-1.03-.18-.86-.17-2.75.02-3.73a8.84 8.839 0 0 1 7.9-6.93c.43-.03.77-.08.78-.1.06-.17.5-2.999.47-3.039-.01-.02-.1-.02-.2-.03Zm3.68.67c-.2 0-.3.1-.37.38-.06.23-.46 2.42-.46 2.52 0 .04.1.11.22.16a8.51 8.499 0 0 1 2.99 2 8.38 8.379 0 0 1 2.16 3.449 6.9 6.9 0 0 1 .4 2.8c0 1.07 0 1.27-.1 1.73a9.37 9.369 0 0 1-1.76 3.769c-.32.4-.98 1.06-1.37 1.38-.38.32-1.54 1.1-1.7 1.14-.1.03-.1.06-.07.26.03.18.64 2.56.7 2.78l.06.06a12.07 12.058 0 0 0 7.27-9.4c.13-.77.13-2.58 0-3.4a11.96 11.948 0 0 0-5.73-8.578c-.7-.42-2.05-1.06-2.25-1.06Z"
+                                              Width="16" Height="16" Foreground="{DynamicResource ModrinthBrandBrush}" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{l10n:Tr Key=imp_src_modrinth}" FontSize="12.5" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button Classes="impSideTab" Classes.active="{Binding InstancesManager.IsImportTabCurseForge}"
+                                    Command="{Binding InstancesManager.SelectImportTabCommand}" CommandParameter="CurseForge">
+                                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                    <PathIcon Data="M18.326 9.2145S23.2261 8.4418 24 6.1882h-7.5066V4.4H0l2.0318 2.3576V9.173s5.1267-.2665 7.1098 1.2372c2.7146 2.516-3.053 5.917-3.053 5.917L5.0995 19.6c1.5465-1.4726 4.494-3.3775 9.8983-3.2857-2.0565.65-4.1245 1.6651-5.7344 3.2857h10.9248l-1.0288-3.2726s-7.918-4.6688-.8336-7.1127z"
+                                              Width="16" Height="16" Foreground="{DynamicResource CurseForgeBrandBrush}" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{l10n:Tr Key=imp_src_curseforge}" FontSize="12.5" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button Classes="impSideTab" Classes.active="{Binding InstancesManager.IsImportTabMultiMC}"
+                                    Command="{Binding InstancesManager.SelectImportTabCommand}" CommandParameter="MultiMC">
+                                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                    <Image Source="{Binding MultiMCImportIcon}" Width="18" Height="18" Stretch="Uniform" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{l10n:Tr Key=imp_mmc_t}" FontSize="12.5" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button Classes="impSideTab" Classes.active="{Binding InstancesManager.IsImportTabPrism}"
+                                    Command="{Binding InstancesManager.SelectImportTabCommand}" CommandParameter="Prism">
+                                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                    <Image Source="{Binding PrismImportIcon}" Width="18" Height="18" Stretch="Uniform" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{l10n:Tr Key=imp_prism_t}" FontSize="12.5" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+
+                        <!-- Right Panel -->
+                        <Border Grid.Column="1" Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1"
+                                CornerRadius="10" Padding="18" Height="296">
+                            <Grid RowDefinitions="62,Auto,*" RowSpacing="12">
+                                <StackPanel Grid.Row="0" Spacing="4" VerticalAlignment="Top">
+                                    <TextBlock Text="{Binding InstancesManager.ImportTabHeading}" FontSize="14.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="{Binding InstancesManager.ImportTabDescription}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" LineHeight="17"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Row="1" Spacing="6">
+                                    <TextBlock Text="{l10n:Tr Key=imp_path_label}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBox Classes="darkInput" Height="34" FontSize="12"
+                                             Text="{Binding InstancesManager.ImportSourceInput}"
+                                             PlaceholderText="{Binding InstancesManager.ImportInputWatermark}"/>
+                                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+                                        <Button Classes="subBtn" Command="{Binding InstancesManager.BrowseImportFileCommand}" Height="32" Padding="14,0" HorizontalAlignment="Left">
+                                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                                <PathIcon Data="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"
+                                                          Width="13" Height="13" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{l10n:Tr Key=imp_choose_file}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
+                                        <Button Classes="subBtn" Command="{Binding InstancesManager.BrowseImportFolderCommand}" Height="32" Padding="14,0" HorizontalAlignment="Left">
+                                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                                <PathIcon Data="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
+                                                          Width="13" Height="13" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{l10n:Tr Key=imp_choose_folder}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- Detected Info / Error Box -->
+                                <Border Grid.Row="2" Background="{DynamicResource CardAltBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1"
+                                        CornerRadius="8" Padding="12,10" Height="60" VerticalAlignment="Bottom">
+                                    <Panel VerticalAlignment="Center">
+                                        <TextBlock IsVisible="{Binding InstancesManager.HasImportError}"
+                                                   Text="{Binding InstancesManager.ImportErrorText}"
+                                                   FontSize="12" Foreground="{DynamicResource DangerBrush}" TextWrapping="Wrap"/>
+                                        <TextBlock IsVisible="{Binding InstancesManager.HasImportPreview}"
+                                                   Text="{Binding InstancesManager.ImportPreviewText}"
+                                                   FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap"/>
+                                        <TextBlock FontSize="11.5" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" LineHeight="16"
+                                                   Text="{l10n:Tr Key=imp_preview_empty}">
+                                            <TextBlock.IsVisible>
+                                                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                                    <Binding Path="!InstancesManager.HasImportError"/>
+                                                    <Binding Path="!InstancesManager.HasImportPreview"/>
+                                                </MultiBinding>
+                                            </TextBlock.IsVisible>
+                                        </TextBlock>
+                                    </Panel>
+                                </Border>
+                            </Grid>
+                        </Border>
+                    </Grid>
+
+                    <!-- Footer -->
+                    <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" VerticalAlignment="Center">
+                        <TextBlock Grid.Column="0" IsVisible="{Binding InstancesManager.IsImporting}"
+                                   Text="{l10n:Tr Key=profile_importing}" FontSize="12" Foreground="{DynamicResource AccentBrush}"
+                                   VerticalAlignment="Center"/>
+                        <Button Grid.Column="1" Classes="subBtn" Content="{l10n:Tr Key=cancel}"
+                                Command="{Binding CloseImportPickerCommand}"
+                                IsEnabled="{Binding !InstancesManager.IsImporting}"
+                                Height="34" Padding="18,0" FontSize="12" FontWeight="SemiBold"/>
+                        <Button Grid.Column="2" Classes="primaryBtn" Content="{l10n:Tr Key=imp_btn_import}"
+                                Command="{Binding InstancesManager.ConfirmImportCommand}"
+                                IsEnabled="{Binding InstancesManager.CanConfirmImport}"
+                                Height="34" Padding="20,0" FontSize="12"/>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Border>
+
+        <!-- Set Profile Group Modal -->
+        <Border Background="{DynamicResource OverlayBrush}" IsVisible="{Binding InstancesManager.IsGroupDialogOpen}" ZIndex="1050"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Border Background="{DynamicResource CardBrush}" CornerRadius="12" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1"
+                    Width="400" HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 18 46 0 #55000000" Padding="22">
                 <StackPanel Spacing="14">
                     <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                        <StackPanel Spacing="4" VerticalAlignment="Center">
-                            <TextBlock Text="{l10n:Tr Key=imp_title}" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                        </StackPanel>
-                        <Button Grid.Column="1" Content="✕" Command="{Binding CloseImportPickerCommand}" Classes="subBtn"
-                                Width="28" Height="28" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                VerticalAlignment="Top" Margin="8,0,0,0"/>
+                        <TextBlock Text="{l10n:Tr Key=grp_modal_title}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        <Button Grid.Column="1" Command="{Binding InstancesManager.CloseGroupDialogCommand}" Classes="rowActionBtn"
+                                Background="Transparent" VerticalAlignment="Center" ToolTip.Tip="{l10n:Tr Key=close}">
+                            <PathIcon Data="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" Width="12" Height="12"/>
+                        </Button>
                     </Grid>
-                    <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Padding="14">
-                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalAlignment="Center">
-                            <!-- Official Prism Launcher mark, rasterized from github.com/PrismLauncher/PrismLauncher (CC BY-SA 4.0) -->
-                            <Border Width="40" Height="40" Background="{DynamicResource IconChipBrush}" CornerRadius="10" VerticalAlignment="Center">
-                                <Image Source="{Binding PrismImportIcon}" Width="32" Height="32" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                                <TextBlock Classes="rowTitle" Text="{l10n:Tr Key=imp_prism_t}"/>
-                                <TextBlock Classes="rowHint" Text="{l10n:Tr Key=imp_prism_d}"/>
-                            </StackPanel>
-                            <Button Grid.Column="2" Classes="subBtn" Content="{l10n:Tr Key=imp_choose}" Command="{Binding PickImportFolderCommand}" CommandParameter="Prism" VerticalAlignment="Center"/>
-                        </Grid>
-                    </Border>
-                    <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Padding="14">
-                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalAlignment="Center">
-                            <!-- Official MultiMC mark (github.com/MultiMC/MultiMC) -->
-                            <Border Width="40" Height="40" CornerRadius="10" VerticalAlignment="Center" ClipToBounds="True">
-                                <Image Source="{Binding MultiMCImportIcon}" Width="40" Height="40" Stretch="UniformToFill" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                                <TextBlock Classes="rowTitle" Text="{l10n:Tr Key=imp_mmc_t}"/>
-                                <TextBlock Classes="rowHint" Text="{l10n:Tr Key=imp_mmc_d}"/>
-                            </StackPanel>
-                            <Button Grid.Column="2" Classes="subBtn" Content="{l10n:Tr Key=imp_choose}" Command="{Binding PickImportFolderCommand}" CommandParameter="MultiMC" VerticalAlignment="Center"/>
-                        </Grid>
-                    </Border>
-                    <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Padding="14">
-                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" VerticalAlignment="Center">
-                            <Border Width="40" Height="40" Background="{DynamicResource IconChipBrush}" CornerRadius="10" VerticalAlignment="Center">
-                                <PathIcon Data="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="20" Height="20" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                                <TextBlock Classes="rowTitle" Text="{l10n:Tr Key=imp_single_t}"/>
-                                <TextBlock Classes="rowHint" Text="Any archive (.zip, .mrpack) or custom instance/version folder"/>
-                            </StackPanel>
-                            <Button Grid.Column="2" Classes="subBtn" Content="{l10n:Tr Key=imp_choose}" Command="{Binding PickImportSingleCommand}" VerticalAlignment="Center"/>
-                        </Grid>
-                    </Border>
+
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="{l10n:Tr Key=grp_modal_label}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <TextBox Classes="darkInput" Height="34" FontSize="12.5"
+                                 Text="{Binding InstancesManager.EditingGroupName}"
+                                 PlaceholderText="{l10n:Tr Key=grp_modal_ph}"/>
+                    </StackPanel>
+
+                    <StackPanel Spacing="6" IsVisible="{Binding HasProfileGroups}">
+                        <TextBlock Text="{l10n:Tr Key=grp_modal_suggestions}" FontSize="11.5" Foreground="{DynamicResource TextMutedBrush}"/>
+                        <ItemsControl ItemsSource="{Binding ProfileGroups}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="x:String">
+                                    <Button Classes="subBtn" Margin="0,0,6,6" Padding="10,4" Height="26" HorizontalAlignment="Left"
+                                            Command="{Binding $parent[UserControl].((vm:MainWindowViewModel)DataContext).InstancesManager.PickGroupSuggestionCommand}"
+                                            CommandParameter="{Binding}">
+                                        <TextBlock Text="{Binding}" FontSize="11.5" FontWeight="SemiBold"/>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8" Margin="0,4,0,0">
+                        <Button Grid.Column="0" Classes="subBtn" Content="{l10n:Tr Key=grp_clear}"
+                                Command="{Binding InstancesManager.PickGroupSuggestionCommand}" CommandParameter=""
+                                Height="32" Padding="12,0" FontSize="12"/>
+                        <Button Grid.Column="2" Classes="subBtn" Content="{l10n:Tr Key=cancel}"
+                                Command="{Binding InstancesManager.CloseGroupDialogCommand}"
+                                Height="32" Padding="14,0" FontSize="12"/>
+                        <Button Grid.Column="3" Classes="primaryBtn" Content="{l10n:Tr Key=grp_save}"
+                                Command="{Binding InstancesManager.SaveGroupDialogCommand}"
+                                Height="32" Padding="16,0" FontSize="12"/>
+                    </Grid>
                 </StackPanel>
             </Border>
         </Border>
@@ -347,7 +610,7 @@
         <Border x:Name="UpdateOverlay" Background="{DynamicResource OverlayBrush}" IsVisible="{Binding IsUpdateOpen}" ZIndex="2000"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="16" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1"
-                    HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 18 46 0 #55000000" Padding="24,20">
+                    HorizontalAlignment="Center" VerticalAlignment="Center" Padding="24,20">
                 <views:UpdateNotificationView DataContext="{Binding UpdateVm}"/>
             </Border>
         </Border>
@@ -356,8 +619,7 @@
         <Border IsVisible="{Binding IsInfoDialogOpen}" Background="{DynamicResource OverlayBrush}" ZIndex="2100"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderCardSoftBrush}" BorderThickness="1"
-                    CornerRadius="12" Padding="24" Width="400" HorizontalAlignment="Center" VerticalAlignment="Center"
-                    BoxShadow="0 18 46 0 #55000000">
+                    CornerRadius="12" Padding="24" Width="400" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="16">
                     <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                         <Border Width="32" Height="32" Background="{DynamicResource IconChipBrush}" CornerRadius="8" VerticalAlignment="Center">
@@ -377,106 +639,340 @@
             </Border>
         </Border>
 
-        <!-- MODAL: Add to Instance / World Selector -->
+        <!-- MODAL: Add to Instance / World Selector (Rich Two-Pane Redesign) -->
         <Border Background="{DynamicResource OverlayBrush}"
                 IsVisible="{Binding ModpacksBrowser.IsAddToInstanceOpen}" ZIndex="1100"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-            <Border Background="{DynamicResource BgBrush}" CornerRadius="12" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1"
-                    Width="490" MaxHeight="520" HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 18 46 0 #55000000" Padding="18,16,18,14">
-                <Grid RowDefinitions="Auto,Auto,*,Auto">
-                    <!-- Header -->
-                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,12" VerticalAlignment="Center">
-                        <TextBlock Text="{Binding ModpacksBrowser.AddToInstanceModalTitle}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                        <Button Grid.Column="1" Content="✕" Command="{Binding ModpacksBrowser.CloseAddToInstanceCommand}" Classes="subBtn"
-                                Width="26" Height="26" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+            <Border Background="{DynamicResource CardBrush}" CornerRadius="14" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1"
+                    Width="690" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="22">
+                <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="16">
+                    <!-- Top Row: Project Icon + Title / Meta Context + Close Button (Zero empty header space) -->
+                    <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="16" VerticalAlignment="Center">
+                        <Border Grid.Column="0" Width="64" Height="64" Background="{DynamicResource IconChipBrush}"
+                                BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="12" ClipToBounds="True">
+                            <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <PathIcon IsVisible="{Binding ModpacksBrowser.ProjectForAddToInstance.Icon, Converter={x:Static ObjectConverters.IsNull}}"
+                                          Data="M21 16.5c0 .38-.21.71-.53.88l-7.9 4.44c-.16.12-.36.18-.57.18-.21 0-.41-.06-.57-.18l-7.9-4.44A.991.991 0 0 1 3 16.5v-9c0-.38.21-.71.53-.88l7.9-4.44c.16-.12.36-.18.57-.18.21 0 .41.06.57.18l7.9 4.44c.32.17.53.5.53.88v9zM12 4.15L6.04 7.5 12 10.85l5.96-3.35L12 4.15zM5 15.91l6 3.38v-6.71L5 9.21v6.7zm14 0v-6.7l-6 3.37v6.71l6-3.38z"
+                                          Width="26" Height="26" Foreground="{DynamicResource AccentBrush}"/>
+                                <Image IsVisible="{Binding ModpacksBrowser.ProjectForAddToInstance.Icon, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                       Source="{Binding ModpacksBrowser.ProjectForAddToInstance.Icon}"
+                                       Stretch="UniformToFill" Width="64" Height="64"/>
+                            </Panel>
+                        </Border>
+
+                        <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding ModpacksBrowser.ProjectForAddToInstance.Title, FallbackValue=''}"
+                                       FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"
+                                       TextTrimming="CharacterEllipsis"/>
+                            <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding ModpacksBrowser.ProjectForAddToInstance.Author, FallbackValue=''}"
+                                           FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"
+                                           IsVisible="{Binding ModpacksBrowser.ProjectForAddToInstance.Author, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}, FallbackValue=False}"
+                                           VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding ModpacksBrowser.ProjectSourceLabel}" FontSize="13.5" FontWeight="Medium"
+                                           Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding ModpacksBrowser.ProjectForAddToInstance.ProjectTypeDisplay, FallbackValue=''}" FontSize="13.5" FontWeight="Medium"
+                                           Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBlock Text="{Binding ModpacksBrowser.SelectWorldSubtitle}"
+                                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" TextTrimming="CharacterEllipsis"
+                                       IsVisible="{Binding ModpacksBrowser.IsSelectWorldStep}"/>
+                        </StackPanel>
+
+                        <Button Grid.Column="2" Command="{Binding ModpacksBrowser.CloseAddToInstanceCommand}" Classes="rowActionBtn"
+                                Background="Transparent" VerticalAlignment="Top" ToolTip.Tip="{l10n:Tr Key=close}">
+                            <PathIcon Data="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" Width="12" Height="12"/>
+                        </Button>
                     </Grid>
 
-                    <!-- STEP 1: Search & Instance List (Visible when !IsSelectWorldStep) -->
-                    <Grid Grid.Row="1" RowDefinitions="Auto,*" IsVisible="{Binding !ModpacksBrowser.IsSelectWorldStep}">
-                        <TextBox Classes="darkInput" Text="{Binding ModpacksBrowser.InstanceSearchQuery}" PlaceholderText="Search instance..." Height="32" FontSize="12" Margin="0,0,0,8"/>
-                    </Grid>
+                    <!-- Middle Two-Pane: Fixed Height prevents layout jitter -->
+                    <Grid Grid.Row="1" ColumnDefinitions="216,*" ColumnSpacing="14" Height="326">
+                        <!-- Left Rail: Version Selector + Compatibility & Group Filters / World Hint -->
+                        <Border Grid.Column="0" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
+                                BorderThickness="1" CornerRadius="10" Padding="14">
+                            <Grid RowDefinitions="Auto,*,Auto" RowSpacing="12">
+                                <!-- Release Version Selector -->
+                                <StackPanel Grid.Row="0" Spacing="6">
+                                    <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                        <TextBlock Grid.Column="0" Text="{l10n:Tr Key=add_inst_version_label}" FontSize="11.5" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="1" Text="..." FontSize="11.5" FontWeight="Bold"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   IsVisible="{Binding ModpacksBrowser.IsLoadingAddVersions}" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <Button x:Name="AddVersionFlyoutBtn" Classes="filterDropdownBtn" Height="34" HorizontalAlignment="Stretch"
+                                            HorizontalContentAlignment="Stretch" Padding="10,0">
+                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6" VerticalAlignment="Center">
+                                            <TextBlock Grid.Column="0" Text="{Binding ModpacksBrowser.SelectedAddVersionLabel}" FontSize="12"
+                                                       Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                            <PathIcon Grid.Column="1" Data="M7 10l5 5 5-5z" Width="12" Height="12" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                        </Grid>
+                                        <Button.Flyout>
+                                            <Flyout Placement="BottomEdgeAlignedLeft">
+                                                <Flyout.FlyoutPresenterTheme>
+                                                    <ControlTheme TargetType="FlyoutPresenter" BasedOn="{StaticResource {x:Type FlyoutPresenter}}">
+                                                        <Setter Property="Padding" Value="4"/>
+                                                        <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}"/>
+                                                        <Setter Property="BorderThickness" Value="1"/>
+                                                        <Setter Property="CornerRadius" Value="10"/>
+                                                        <Setter Property="Width" Value="240"/>
+                                                    </ControlTheme>
+                                                </Flyout.FlyoutPresenterTheme>
+                                                <ScrollViewer x:Name="AddVersionsScroll" MaxHeight="240" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled" Loaded="OnSmoothScrollLoaded">
+                                                    <ItemsControl ItemsSource="{Binding ModpacksBrowser.AvailableAddVersions}">
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate x:DataType="dialogs:AddVersionOption">
+                                                                <Button Classes="flyoutOptionBtn" Padding="10,6" Click="OnAddVersionOptionClicked">
+                                                                    <StackPanel Spacing="2" HorizontalAlignment="Stretch">
+                                                                        <TextBlock Text="{Binding Label}" FontSize="12" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                                                        <TextBlock Text="{Binding Subtitle}" FontSize="10.5" Foreground="{DynamicResource TextMutedBrush}"
+                                                                                   IsVisible="{Binding HasSubtitle}" TextTrimming="CharacterEllipsis"/>
+                                                                    </StackPanel>
+                                                                </Button>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </ScrollViewer>
+                                            </Flyout>
+                                        </Button.Flyout>
+                                    </Button>
+                                </StackPanel>
 
-                    <ScrollViewer Grid.Row="2" MaxHeight="320" VerticalScrollBarVisibility="Auto" IsVisible="{Binding !ModpacksBrowser.IsSelectWorldStep}">
-                        <ItemsControl ItemsSource="{Binding ModpacksBrowser.TargetInstances}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="dialogs:InstanceTargetItem">
-                                    <Border Classes="targetInstanceCard" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,0,0,6" Tapped="OnInstanceTargetCardTapped" Cursor="Hand">
-                                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalAlignment="Center">
-                                            <Border Width="36" Height="36" Background="{DynamicResource ChipBrush}" CornerRadius="8" VerticalAlignment="Center" ClipToBounds="True">
-                                                <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                    <Path IsVisible="{Binding !HasIcon}" Data="{StaticResource ZenithLogoGeometry}" Fill="{DynamicResource SubtleEmeraldBrush}" Stretch="Uniform" Width="22" Height="22" Margin="0,2,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                    <Image IsVisible="{Binding HasIcon}" Source="{Binding IconPath, Converter={x:Static converters:IconPathToBitmapConverter.Instance}}" Stretch="UniformToFill" Width="36" Height="36" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                </Panel>
-                                            </Border>
-                                            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
-                                                <TextBlock Text="{Binding VersionDisplay}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                            </StackPanel>
-                                            <!-- If NOT datapack: show standard Install button -->
-                                            <Button Grid.Column="2" Classes="primaryBtn" Classes.installed="{Binding IsInstalled}"
-                                                    Command="{Binding InstallCommand}" IsEnabled="{Binding CanClickButton}"
-                                                    IsVisible="{Binding !IsDatapackSelection}"
-                                                    Padding="14,6" FontSize="11.5">
-                                                <TextBlock Text="{Binding ButtonText}"/>
-                                            </Button>
-                                            <!-- If datapack: show chevron icon to indicate opening world list -->
-                                            <Border Grid.Column="2" IsVisible="{Binding IsDatapackSelection}" Width="26" Height="26" CornerRadius="13" Background="{DynamicResource ChipBrush}" VerticalAlignment="Center">
-                                                <PathIcon Data="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" Width="10" Height="10" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            </Border>
+                                <!-- Middle Controls: Step 1 Filters vs Step 2 Target Profile Summary -->
+                                <StackPanel Grid.Row="1" Spacing="12" VerticalAlignment="Top" IsVisible="{Binding !ModpacksBrowser.IsSelectWorldStep}">
+                                    <Border Background="{DynamicResource CardAltBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
+                                            BorderThickness="1" CornerRadius="8" Padding="10,8" Cursor="Hand" Tapped="OnCompatibleToggleRowTapped">
+                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" VerticalAlignment="Center">
+                                            <TextBlock Grid.Column="0" Text="{l10n:Tr Key=add_inst_compat_only}" FontSize="12" FontWeight="Medium"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                                            <ToggleSwitch Grid.Column="1" IsChecked="{Binding ModpacksBrowser.FilterCompatibleOnly}"
+                                                          OnContent="{x:Null}" OffContent="{x:Null}" MinWidth="0"
+                                                          HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                         </Grid>
                                     </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
 
-                    <!-- STEP 2: World List for Datapack (Visible when IsSelectWorldStep) -->
-                    <StackPanel Grid.Row="1" Margin="0,0,0,10" Spacing="6" IsVisible="{Binding ModpacksBrowser.IsSelectWorldStep}">
-                        <Button Command="{Binding ModpacksBrowser.BackToInstancesCommand}" Classes="subBtn" Padding="8,4" HorizontalAlignment="Left">
-                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                <TextBlock Text="‹" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"/>
-                                <TextBlock Text="Back to profiles" FontSize="11.5" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
-                        <TextBlock Text="{Binding ModpacksBrowser.SelectWorldSubtitle}" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
-                    </StackPanel>
-
-                    <ScrollViewer Grid.Row="2" MaxHeight="320" VerticalScrollBarVisibility="Auto" IsVisible="{Binding ModpacksBrowser.IsSelectWorldStep}">
-                        <StackPanel Spacing="6">
-                            <Border IsVisible="{Binding ModpacksBrowser.HasNoWorldsFound}" Padding="16" Background="{DynamicResource CardBrush}" CornerRadius="8" HorizontalAlignment="Stretch" Margin="0,6">
-                                <TextBlock Text="No worlds found in this profile. Launch Minecraft and create a world first." Foreground="{DynamicResource TextPlaceholderBrush}" HorizontalAlignment="Center" TextAlignment="Center" FontSize="12"/>
-                            </Border>
-                            <ItemsControl ItemsSource="{Binding ModpacksBrowser.TargetWorlds}" IsVisible="{Binding !ModpacksBrowser.HasNoWorldsFound}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate x:DataType="dialogs:WorldTargetItem">
-                                        <Border Classes="targetInstanceCard" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,0,0,6" Tapped="OnWorldTargetCardTapped" Cursor="Hand">
-                                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalAlignment="Center">
-                                                <Border Width="36" Height="36" Background="{DynamicResource ChipBrush}" CornerRadius="8" VerticalAlignment="Center" ClipToBounds="True">
-                                                    <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                        <PathIcon IsVisible="{Binding !HasIcon}" Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" Width="18" Height="18" Foreground="{DynamicResource AccentBrush}"/>
-                                                        <Image IsVisible="{Binding HasIcon}" Source="{Binding IconBitmap}" Stretch="UniformToFill" Width="36" Height="36"/>
-                                                    </Panel>
-                                                </Border>
-                                                <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                                                    <TextBlock Text="{Binding WorldName}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
-                                                    <TextBlock Text="{Binding FolderName, StringFormat='saves/{0}'}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                                </StackPanel>
-                                                <Button Grid.Column="2" Classes="primaryBtn" Classes.installed="{Binding IsInstalled}"
-                                                        Command="{Binding InstallCommand}" IsEnabled="{Binding !IsInstalled}"
-                                                        Padding="14,6" FontSize="11.5">
-                                                    <TextBlock Text="{Binding ButtonText}"/>
-                                                </Button>
+                                    <StackPanel Spacing="6" IsVisible="{Binding ModpacksBrowser.HasAnyProfileGroups}">
+                                        <TextBlock Text="{l10n:Tr Key=add_inst_group_label}" FontSize="11.5" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                        <Button x:Name="AddGroupFlyoutBtn" Classes="filterDropdownBtn" Height="34" HorizontalAlignment="Stretch"
+                                                HorizontalContentAlignment="Stretch" Padding="10,0">
+                                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6" VerticalAlignment="Center">
+                                                <TextBlock Grid.Column="0" Text="{Binding ModpacksBrowser.SelectedAddGroupLabel}" FontSize="12"
+                                                           Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                                <PathIcon Grid.Column="1" Data="M7 10l5 5 5-5z" Width="12" Height="12" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
                                             </Grid>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </StackPanel>
-                    </ScrollViewer>
+                                            <Button.Flyout>
+                                                <Flyout Placement="BottomEdgeAlignedLeft">
+                                                    <Flyout.FlyoutPresenterTheme>
+                                                        <ControlTheme TargetType="FlyoutPresenter" BasedOn="{StaticResource {x:Type FlyoutPresenter}}">
+                                                            <Setter Property="Padding" Value="4"/>
+                                                            <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
+                                                            <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}"/>
+                                                            <Setter Property="BorderThickness" Value="1"/>
+                                                            <Setter Property="CornerRadius" Value="10"/>
+                                                            <Setter Property="MinWidth" Value="188"/>
+                                                        </ControlTheme>
+                                                    </Flyout.FlyoutPresenterTheme>
+                                                    <ItemsControl ItemsSource="{Binding ModpacksBrowser.AvailableAddGroups}">
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate x:DataType="x:String">
+                                                                <Button Classes="flyoutOptionBtn" Tag="{Binding}" Click="OnAddGroupOptionClicked">
+                                                                    <TextBlock Text="{Binding}" FontSize="12" TextTrimming="CharacterEllipsis"/>
+                                                                </Button>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </Flyout>
+                                            </Button.Flyout>
+                                        </Button>
+                                    </StackPanel>
+                                </StackPanel>
 
-                    <!-- Footer -->
-                    <Grid Grid.Row="3" Margin="0,12,0,0" VerticalAlignment="Center">
-                        <Button Classes="subBtn" Content="Cancel" Command="{Binding ModpacksBrowser.CloseAddToInstanceCommand}" HorizontalAlignment="Right" Padding="16,6" FontSize="12"/>
+                                <StackPanel Grid.Row="1" Spacing="10" VerticalAlignment="Top" IsVisible="{Binding ModpacksBrowser.IsSelectWorldStep}">
+                                    <Border Background="{DynamicResource CardAltBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
+                                            BorderThickness="1" CornerRadius="8" Padding="10,8">
+                                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" VerticalAlignment="Center">
+                                            <Border Grid.Column="0" Width="28" Height="28" Background="{DynamicResource IconChipBrush}" CornerRadius="6" ClipToBounds="True">
+                                                <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <Path IsVisible="{Binding !ModpacksBrowser.HasTargetInstanceIconForWorld}"
+                                                          Data="{StaticResource ZenithLogoGeometry}" Fill="{DynamicResource SubtleEmeraldBrush}"
+                                                          Stretch="Uniform" Width="16" Height="16"/>
+                                                    <Image IsVisible="{Binding ModpacksBrowser.HasTargetInstanceIconForWorld}"
+                                                           Source="{Binding ModpacksBrowser.TargetInstanceIconForWorld, Converter={x:Static converters:IconPathToBitmapConverter.Instance}}"
+                                                           Stretch="UniformToFill" Width="28" Height="28"/>
+                                                </Panel>
+                                            </Border>
+                                            <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding ModpacksBrowser.TargetInstanceNameForWorld}" FontSize="12" FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Text="{Binding ModpacksBrowser.TargetInstanceVersionForWorld}" FontSize="11"
+                                                           Foreground="{DynamicResource TextMutedBrush}" TextTrimming="CharacterEllipsis"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                    <TextBlock Text="{l10n:Tr Key=add_inst_world_hint}" FontSize="11.5" Foreground="{DynamicResource TextMutedBrush}"
+                                               TextWrapping="Wrap" LineHeight="16"/>
+                                </StackPanel>
+
+                                <!-- Bottom Error Box Only (no redundant success notice) -->
+                                <Border Grid.Row="2" Background="{DynamicResource CardAltBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
+                                        BorderThickness="1" CornerRadius="8" Padding="10,8"
+                                        IsVisible="{Binding ModpacksBrowser.IsAddToInstanceStatusError}">
+                                    <TextBlock Text="{Binding ModpacksBrowser.AddToInstanceStatusText}" FontSize="11.5"
+                                               Foreground="{DynamicResource DangerBrush}" TextWrapping="Wrap" MaxLines="3" TextTrimming="CharacterEllipsis"/>
+                                </Border>
+                            </Grid>
+                        </Border>
+
+                        <!-- Right Pane Step 1: Search + Profile Cards -->
+                        <Grid Grid.Column="1" RowDefinitions="Auto,*" RowSpacing="10" IsVisible="{Binding !ModpacksBrowser.IsSelectWorldStep}">
+                            <TextBox Grid.Row="0" Classes="darkInput" Text="{Binding ModpacksBrowser.InstanceSearchQuery}"
+                                     PlaceholderText="{l10n:Tr Key=modal_search_instance}" Height="34" FontSize="12">
+                                <TextBox.InnerLeftContent>
+                                    <PathIcon Data="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
+                                              Width="13" Height="13" Foreground="{DynamicResource TextPlaceholderBrush}" Margin="10,0,2,0"/>
+                                </TextBox.InnerLeftContent>
+                                <TextBox.InnerRightContent>
+                                    <Button Command="{Binding ModpacksBrowser.ClearInstanceSearchCommand}"
+                                            IsVisible="{Binding ModpacksBrowser.InstanceSearchQuery, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"
+                                            Background="Transparent" BorderThickness="0" Padding="8,0" Cursor="Hand" Content="✕"
+                                            Foreground="{DynamicResource TextPlaceholderBrush}"/>
+                                </TextBox.InnerRightContent>
+                            </TextBox>
+
+                            <ScrollViewer x:Name="AddInstancesScroll" Grid.Row="1" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled" Loaded="OnSmoothScrollLoaded">
+                                <Panel>
+                                    <Border IsVisible="{Binding ModpacksBrowser.HasNoMatchingInstances}"
+                                            Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
+                                            BorderThickness="1" CornerRadius="10" Padding="22" VerticalAlignment="Top">
+                                        <StackPanel Spacing="10" HorizontalAlignment="Center">
+                                            <TextBlock Text="{l10n:Tr Key=add_inst_empty_filtered}" FontSize="12.5" Foreground="{DynamicResource TextMutedBrush}"
+                                                       HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
+                                            <Button Classes="subBtn" Content="{l10n:Tr Key=add_inst_reset_filters}"
+                                                    Command="{Binding ModpacksBrowser.ResetAddInstanceFiltersCommand}"
+                                                    Height="30" Padding="14,0" FontSize="12" HorizontalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <ItemsControl ItemsSource="{Binding ModpacksBrowser.TargetInstances}"
+                                                  IsVisible="{Binding !ModpacksBrowser.HasNoMatchingInstances}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="dialogs:InstanceTargetItem">
+                                                <Border Classes="targetInstanceCard" Background="{DynamicResource FieldBrush}"
+                                                        BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1"
+                                                        CornerRadius="10" Padding="12,10" Margin="0,0,0,6"
+                                                        Tapped="OnInstanceTargetCardTapped" Cursor="Hand">
+                                                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalAlignment="Center">
+                                                        <Border Width="38" Height="38" Background="{DynamicResource IconChipBrush}" CornerRadius="8" VerticalAlignment="Center" ClipToBounds="True">
+                                                            <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                                <Path IsVisible="{Binding !HasIcon}" Data="{StaticResource ZenithLogoGeometry}" Fill="{DynamicResource SubtleEmeraldBrush}" Stretch="Uniform" Width="22" Height="22" Margin="0,2,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                <Image IsVisible="{Binding HasIcon}" Source="{Binding IconPath, Converter={x:Static converters:IconPathToBitmapConverter.Instance}}" Stretch="UniformToFill" Width="38" Height="38" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                            </Panel>
+                                                        </Border>
+                                                        <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+                                                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                                                <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" MaxWidth="190" VerticalAlignment="Center"/>
+                                                                <Border IsVisible="{Binding HasGroup}" Background="{DynamicResource ChipBrush}" CornerRadius="5" Padding="6,1" VerticalAlignment="Center">
+                                                                    <TextBlock Text="{Binding GroupName}" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                                </Border>
+                                                            </StackPanel>
+                                                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                                                <TextBlock Text="{Binding VersionDisplay}" FontSize="11.5" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                                <Border IsVisible="{Binding IsCompatible}" Background="{DynamicResource SuccessBgBrush}" CornerRadius="5" Padding="6,1" VerticalAlignment="Center">
+                                                                    <TextBlock Text="{Binding CompatibilityLabel}" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource SuccessBrush}"/>
+                                                                </Border>
+                                                                <Border IsVisible="{Binding !IsCompatible}" Background="{DynamicResource CardAltBrush}" CornerRadius="5" Padding="6,1" VerticalAlignment="Center">
+                                                                    <TextBlock Text="{Binding CompatibilityLabel}" FontSize="10.5" Foreground="{DynamicResource TextMutedBrush}"/>
+                                                                </Border>
+                                                            </StackPanel>
+                                                        </StackPanel>
+                                                        <Button Grid.Column="2" Classes="primaryBtn" Classes.installed="{Binding IsInstalled}"
+                                                                Command="{Binding InstallCommand}" IsEnabled="{Binding CanClickButton}"
+                                                                IsVisible="{Binding !IsDatapackSelection}"
+                                                                PointerEntered="OnTargetButtonHover" PointerExited="OnTargetButtonHoverOut"
+                                                                MinWidth="96" Height="32" Padding="14,0" FontSize="12">
+                                                            <TextBlock Text="{Binding ButtonText}"/>
+                                                        </Button>
+                                                        <StackPanel Grid.Column="2" IsVisible="{Binding IsDatapackSelection}" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                                            <TextBlock Text="{l10n:Tr Key=btn_select_world}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                                            <PathIcon Data="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" Width="11" Height="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                        </StackPanel>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Panel>
+                            </ScrollViewer>
+                        </Grid>
+
+                        <!-- Right Pane Step 2: Back Bar + Worlds List -->
+                        <Grid Grid.Column="1" RowDefinitions="Auto,*" RowSpacing="10" IsVisible="{Binding ModpacksBrowser.IsSelectWorldStep}">
+                            <Grid Grid.Row="0" ColumnDefinitions="Auto,*" VerticalAlignment="Center">
+                                <Button Grid.Column="0" Command="{Binding ModpacksBrowser.BackToInstancesCommand}" Classes="subBtn" Height="34" Padding="12,0" HorizontalAlignment="Left">
+                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                        <PathIcon Data="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" Width="11" Height="11" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=modal_back_profiles}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                                <TextBlock Grid.Column="1" Text="{Binding ModpacksBrowser.WorldsCountLabel}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
+                                           HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <ScrollViewer x:Name="AddWorldsScroll" Grid.Row="1" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled" Loaded="OnSmoothScrollLoaded">
+                                <StackPanel Spacing="6">
+                                    <Border IsVisible="{Binding ModpacksBrowser.HasNoWorldsFound}" Padding="20" Background="{DynamicResource FieldBrush}"
+                                            BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="10" HorizontalAlignment="Stretch">
+                                        <TextBlock Text="{l10n:Tr Key=modal_no_worlds_found}" Foreground="{DynamicResource TextPlaceholderBrush}"
+                                                   HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" FontSize="12"/>
+                                    </Border>
+                                    <ItemsControl ItemsSource="{Binding ModpacksBrowser.TargetWorlds}" IsVisible="{Binding !ModpacksBrowser.HasNoWorldsFound}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="dialogs:WorldTargetItem">
+                                                <Border Classes="targetInstanceCard" Background="{DynamicResource FieldBrush}"
+                                                        BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1"
+                                                        CornerRadius="10" Padding="12,10" Margin="0,0,0,6"
+                                                        Tapped="OnWorldTargetCardTapped" Cursor="Hand">
+                                                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalAlignment="Center">
+                                                        <Border Width="40" Height="40" Background="{DynamicResource IconChipBrush}" CornerRadius="8" VerticalAlignment="Center" ClipToBounds="True">
+                                                            <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                                <PathIcon IsVisible="{Binding !HasIcon}" Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" Width="18" Height="18" Foreground="{DynamicResource AccentBrush}"/>
+                                                                <Image IsVisible="{Binding HasIcon}" Source="{Binding IconBitmap}" Stretch="UniformToFill" Width="40" Height="40"/>
+                                                            </Panel>
+                                                        </Border>
+                                                        <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding WorldName}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                                                <TextBlock Text="{Binding SavesRelativePath}" FontSize="11.5" Foreground="{DynamicResource TextMutedBrush}" TextTrimming="CharacterEllipsis"/>
+                                                                <Border IsVisible="{Binding HasMetaSummary}" Background="{DynamicResource ChipBrush}" CornerRadius="5" Padding="6,1" VerticalAlignment="Center">
+                                                                    <TextBlock Text="{Binding MetaSummary}" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                                </Border>
+                                                            </StackPanel>
+                                                        </StackPanel>
+                                                        <Button Grid.Column="2" Classes="primaryBtn" Classes.installed="{Binding IsInstalled}"
+                                                                Command="{Binding InstallCommand}" IsEnabled="{Binding !IsInstalling}"
+                                                                PointerEntered="OnTargetButtonHover" PointerExited="OnTargetButtonHoverOut"
+                                                                MinWidth="96" Height="32" Padding="14,0" FontSize="12">
+                                                            <TextBlock Text="{Binding ButtonText}"/>
+                                                        </Button>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </Grid>
+                    </Grid>
+
+                    <!-- Footer: Live Summary + Cancel -->
+                    <Grid Grid.Row="2" ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                        <TextBlock Grid.Column="0" Text="{Binding ModpacksBrowser.AddToInstanceSummaryText}" FontSize="12"
+                                   Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                        <Button Grid.Column="1" Classes="subBtn" Content="{l10n:Tr Key=cancel}"
+                                Command="{Binding ModpacksBrowser.CloseAddToInstanceCommand}"
+                                Height="34" Padding="18,0" FontSize="12" FontWeight="SemiBold"/>
                     </Grid>
                 </Grid>
             </Border>

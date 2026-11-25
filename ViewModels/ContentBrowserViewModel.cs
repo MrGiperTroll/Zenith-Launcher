@@ -26,7 +26,14 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
 
     partial void OnCurrentAuthorProfileVmChanging(AuthorProfileViewModel? value)
     {
-        _currentAuthorProfileVm?.Dispose();
+        var oldAuthor = _currentAuthorProfileVm;
+        if (oldAuthor != null && !ReferenceEquals(oldAuthor, value))
+        {
+            Dispatcher.UIThread.Post(() =>
+            {
+                try { oldAuthor.Dispose(); } catch { }
+            }, DispatcherPriority.Background);
+        }
     }
 
     public bool IsAuthorProfileOpen => CurrentAuthorProfileVm != null;
@@ -83,21 +90,43 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private TagFilterViewModel _browserTagFilter = new();
 
+    private CancellationTokenSource? _fullProjectCts;
     private bool _disposed;
 
     public void Dispose()
     {
         if (_disposed) return;
         _disposed = true;
+        Interlocked.Increment(ref _searchGeneration);
         try { _searchCts?.Cancel(); } catch { }
         try { _searchCts?.Dispose(); _searchCts = null; } catch { }
+        try { _fullProjectCts?.Cancel(); } catch { }
+        try { _fullProjectCts?.Dispose(); _fullProjectCts = null; } catch { }
+        try { _prevSelectedProject!.PropertyChanged -= _selectedProjectPropChanged; } catch { }
+        _prevSelectedProject = null;
+        _selectedProjectPropChanged = null;
         try { CurrentAuthorProfileVm?.Dispose(); CurrentAuthorProfileVm = null; } catch { }
         try { FullProject?.Dispose(); FullProject = null; } catch { }
         try { HeaderImage?.Dispose(); HeaderImage = null; } catch { }
         SelectedProject = null;
+        SelectedDetailVersion = null;
+        SelectedVersionForDetails = null;
+        SelectedVersionToInstall = null;
+        ActiveGalleryModalItem = null;
+        PendingDelete = null;
+        _allVersions.Clear();
+        PlatformFilterItems.Clear();
+        AvailableTags.Clear();
+        AvailableWorlds.Clear();
         foreach (var r in Results) { try { r.Dispose(); } catch { } }
         Results.Clear();
-        MemoryTrimmer.TrimMemory();
+        try { CategoryFilter.Dispose(); } catch { }
+        try { BrowserSortFilter.Dispose(); } catch { }
+        try { BrowserTagFilter.Dispose(); } catch { }
+        try { GameVersionFilter.Dispose(); } catch { }
+        OnProjectSelectedChanged = null;
+        OnAuthorProfileChanged = null;
+        GetCurseForgeApiKey = null;
         GC.SuppressFinalize(this);
     }
 
@@ -289,8 +318,19 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
 
     partial void OnFullProjectChanging(Models.ModrinthFullProject? value)
     {
-        try { _fullProject?.Dispose(); } catch { }
-        try { HeaderImage?.Dispose(); HeaderImage = null; } catch { }
+        var oldProject = _fullProject;
+        var oldHeader = HeaderImage;
+        if (oldHeader != null)
+            HeaderImage = null;
+        if (oldProject != null || oldHeader != null)
+        {
+            Dispatcher.UIThread.Post(() =>
+            {
+                try { oldProject?.Dispose(); } catch { }
+                try { oldHeader?.Dispose(); } catch { }
+                try { SkiaSharp.SKGraphics.PurgeAllCaches(); } catch { }
+            }, DispatcherPriority.Background);
+        }
     }
 
     [ObservableProperty]
@@ -399,6 +439,20 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(IsChangelogTab));
         OnPropertyChanged(nameof(IsVersionsTab));
         OnPropertyChanged(nameof(VersionList));
+
+        if (FullProject?.Gallery != null)
+        {
+            if (IsGalleryTab)
+            {
+                foreach (var g in FullProject.Gallery)
+                    g.LoadImage();
+            }
+            else
+            {
+                foreach (var g in FullProject.Gallery)
+                    g.StopAnimation();
+            }
+        }
     }
 
     public bool IsDescriptionTab => SelectedDetailTab.Equals("description", StringComparison.OrdinalIgnoreCase);
@@ -1096,6 +1150,13 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(IsDataPackSelected));
     }
 
+    [RelayCommand]
+    private void SelectWorld(string? world)
+    {
+        if (!string.IsNullOrWhiteSpace(world))
+            SelectedWorld = world;
+    }
+
     partial void OnSelectedContentTypeChanged(ContentType value)
     {
         UpdateAvailableTags();
@@ -1255,7 +1316,7 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
         var gen = Interlocked.Increment(ref _searchGeneration);
         IsBusy = true;
         StatusText = "";
-        foreach (var r in Results) { try { r.Icon?.Dispose(); } catch { } } Results.Clear();
+        foreach (var r in Results) { try { r.Dispose(); } catch { } } Results.Clear();
         _offset = 0;
         _totalHits = 0;
         try
@@ -1577,12 +1638,21 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
         }
     }
 
-    private async void LoadIcon(ModrinthProjectItemViewModel project, int generation)
+    private void LoadIcon(ModrinthProjectItemViewModel project, int generation)
     {
-        if (string.IsNullOrWhiteSpace(project.IconUrl) || project.HasIcon) return;
-        var bytes = await ModrinthApiService.GetIconAsync(project.IconUrl);
-        if (generation == _searchGeneration)
-            project.SetIcon(bytes);
+        if (_disposed || string.IsNullOrWhiteSpace(project.IconUrl) || project.HasIcon) return;
+        _ = LoadIconAsync(project, generation);
+    }
+
+    private async Task LoadIconAsync(ModrinthProjectItemViewModel project, int generation)
+    {
+        try
+        {
+            var bytes = await ModrinthApiService.GetIconAsync(project.IconUrl);
+            if (!_disposed && generation == _searchGeneration)
+                project.SetIcon(bytes);
+        }
+        catch { }
     }
 
     [RelayCommand]
@@ -2049,7 +2119,12 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
     {
         var path = GetInstalledRegistryPath();
         if (!File.Exists(path)) return new(StringComparer.OrdinalIgnoreCase);
-        try { return JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(path)) ?? new(StringComparer.OrdinalIgnoreCase); } catch { return new(StringComparer.OrdinalIgnoreCase); }
+        try
+        {
+            var raw = JsonSerializer.Deserialize(File.ReadAllText(path), LauncherJsonContext.Default.DictionaryStringString);
+            return raw != null ? new Dictionary<string, string>(raw, StringComparer.OrdinalIgnoreCase) : new(StringComparer.OrdinalIgnoreCase);
+        }
+        catch { return new(StringComparer.OrdinalIgnoreCase); }
     }
 
     [RelayCommand]
@@ -2185,8 +2260,18 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private void CloseDetails()
     {
+        try { _fullProjectCts?.Cancel(); _fullProjectCts?.Dispose(); _fullProjectCts = null; } catch { }
+        _allVersions.Clear();
+        PlatformFilterItems.Clear();
+        SelectedDetailVersion = null;
+        SelectedVersionForDetails = null;
+        SelectedVersionToInstall = null;
+        ActiveGalleryModalItem = null;
         SelectedProject = null;
+        FullProject = null;
+        HeaderImage = null;
         PendingDelete = null;
+        Views.MainWindow.RequestBackgroundMemoryCleanup();
     }
 
     [RelayCommand]
@@ -2272,6 +2357,11 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
 
     private async Task LoadFullProjectAsync(ModrinthProjectItemViewModel project)
     {
+        _fullProjectCts?.Cancel();
+        _fullProjectCts?.Dispose();
+        _fullProjectCts = new CancellationTokenSource();
+        var token = _fullProjectCts.Token;
+
         FullProjectBusy = true;
         try
         {
@@ -2279,6 +2369,11 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
             {
                 var apiKey = GetCurseForgeApiKey?.Invoke() ?? "";
                 var cf = await CurseForgeApiService.GetFullProjectAsync(project.ProjectId, apiKey);
+                if (_disposed || token.IsCancellationRequested)
+                {
+                    cf?.Dispose();
+                    return;
+                }
                 FullProject = cf;
                 HeaderImage = null;
                 OnPropertyChanged(nameof(CleanBody));
@@ -2286,6 +2381,7 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
                 OnPropertyChanged(nameof(HasGalleryItems));
 
                 _allVersions = await CurseForgeApiService.GetProjectVersionsAsync(project.ProjectId, apiKey);
+                if (_disposed || token.IsCancellationRequested) return;
                 if (cf != null)
                 {
                     cf.Versions = _allVersions;
@@ -2344,6 +2440,11 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
             }
 
             var full = await ModrinthApiService.GetFullProjectAsync(project.ProjectId);
+            if (_disposed || token.IsCancellationRequested)
+            {
+                full?.Dispose();
+                return;
+            }
             FullProject = full;
             HeaderImage = null;
             OnPropertyChanged(nameof(CleanBody));
@@ -2351,12 +2452,19 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
             OnPropertyChanged(nameof(HasGalleryItems));
 
             _allVersions = await ModrinthApiService.GetProjectVersionsAsync(project.ProjectId);
+            if (_disposed || token.IsCancellationRequested) return;
             if (full != null)
             {
                 full.Versions = _allVersions;
-                foreach (var g in full.Gallery)
+                if (IsGalleryTab)
                 {
-                    g.LoadImage();
+                    foreach (var g in full.Gallery)
+                        g.LoadImage();
+                }
+                else if (full.Gallery.Count > 0)
+                {
+                    var previewItem = full.Gallery.FirstOrDefault(g => g.Featured) ?? full.Gallery[0];
+                    previewItem.LoadImage();
                 }
                 foreach (var tm in full.TeamMembers)
                 {
@@ -2435,13 +2543,26 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
                     _ = Task.Run(async () =>
                     {
                         var bytes = await ModrinthApiService.GetIconAsync(bannerUrl);
-                        if (bytes is { Length: > 0 })
+                        if (_disposed || token.IsCancellationRequested || bytes is not { Length: > 0 }) return;
+                        using var ms = new System.IO.MemoryStream(bytes);
+                        var bmp = Avalonia.Media.Imaging.Bitmap.DecodeToWidth(ms, 1200);
+                        if (_disposed || token.IsCancellationRequested)
                         {
-                            using var ms = new System.IO.MemoryStream(bytes);
-                            var bmp = Avalonia.Media.Imaging.Bitmap.DecodeToWidth(ms, 1200);
-                            Avalonia.Threading.Dispatcher.UIThread.Post(() => HeaderImage = bmp);
+                            try { bmp.Dispose(); } catch { }
+                            return;
                         }
-                    });
+                        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                        {
+                            if (_disposed || token.IsCancellationRequested || !ReferenceEquals(FullProject, full))
+                            {
+                                try { bmp.Dispose(); } catch { }
+                                return;
+                            }
+                            var old = HeaderImage;
+                            HeaderImage = bmp;
+                            try { old?.Dispose(); } catch { }
+                        });
+                    }, token);
                 }
 
                 // Default: select the instance MC version in Compatibility sidebar
@@ -2560,7 +2681,7 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
     {
         var path = GetInstalledRegistryPath();
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-        File.WriteAllText(path, JsonSerializer.Serialize(map, new JsonSerializerOptions { WriteIndented = true }));
+        File.WriteAllText(path, JsonSerializer.Serialize(map, LauncherJsonContext.Default.DictionaryStringString));
     }
 
     private void MarkInstalled(string projectId, string fileName)

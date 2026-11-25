@@ -19,17 +19,19 @@ public sealed class LruCache<TKey, TValue> where TKey : notnull
 
     private readonly int _capacity;
     private readonly Action<TValue>? _onEvict;
+    private readonly bool _disposeOnEvict;
     private readonly object _lock = new();
     private readonly Dictionary<TKey, LinkedListNode<LruNode>> _map;
     private readonly LinkedList<LruNode> _list;
 
-    public LruCache(int capacity, Action<TValue>? onEvict = null, IEqualityComparer<TKey>? comparer = null)
+    public LruCache(int capacity, Action<TValue>? onEvict = null, IEqualityComparer<TKey>? comparer = null, bool disposeOnEvict = false)
     {
         if (capacity <= 0)
             throw new ArgumentOutOfRangeException(nameof(capacity), "Capacity must be positive.");
 
         _capacity = capacity;
         _onEvict = onEvict;
+        _disposeOnEvict = disposeOnEvict;
         _map = new Dictionary<TKey, LinkedListNode<LruNode>>(capacity, comparer);
         _list = new LinkedList<LruNode>();
     }
@@ -178,7 +180,7 @@ public sealed class LruCache<TKey, TValue> where TKey : notnull
             {
                 _onEvict(item);
             }
-            else if (item is IDisposable disposable)
+            else if (_disposeOnEvict && item is IDisposable disposable)
             {
                 disposable.Dispose();
             }

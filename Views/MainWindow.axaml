@@ -192,6 +192,11 @@
         ParticleSize="{Binding LauncherSettingsVm.ParticleSize}"
         ParticleOpacity="{Binding LauncherSettingsVm.ParticleOpacity}"
         SnowPhysicsEnabled="{Binding LauncherSettingsVm.SnowPhysicsEnabled}"
+        SnowBottomAccumulationEnabled="{Binding LauncherSettingsVm.SnowBottomAccumulationEnabled}"
+        SnowCursorInteractionEnabled="{Binding LauncherSettingsVm.SnowCursorInteractionEnabled}"
+        SnowPersistenceEnabled="{Binding LauncherSettingsVm.SnowPersistenceEnabled}"
+        SnowAccumulationRate="{Binding LauncherSettingsVm.SnowAccumulationRate}"
+        SnowMaxHeight="{Binding LauncherSettingsVm.SnowMaxHeight}"
         ActivePageKey="{Binding CurrentPageKey}"
         IsHitTestVisible="False"/>
     </Panel>

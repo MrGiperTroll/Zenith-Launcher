@@ -60,6 +60,11 @@ public class LauncherConfigData
     public double ParticleSize { get; set; } = 1.0;
     public double ParticleOpacity { get; set; } = 0.65;
     public bool SnowPhysicsEnabled { get; set; } = false;
+    public bool SnowBottomAccumulationEnabled { get; set; } = false;
+    public bool SnowCursorInteractionEnabled { get; set; } = true;
+    public bool SnowPersistenceEnabled { get; set; } = true;
+    public double SnowAccumulationRate { get; set; } = 1.0;
+    public double SnowMaxHeight { get; set; } = 11.0;
     public bool IsLockAspectRatio { get; set; } = false;
     public bool ShowReleases { get; set; } = true;
     public bool ShowSnapshots { get; set; } = false;

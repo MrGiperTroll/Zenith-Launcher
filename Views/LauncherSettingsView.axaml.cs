@@ -164,6 +164,12 @@ public partial class LauncherSettingsView : UserControl
             vm.ToggleAnimationDetailsCommand.Execute(null);
     }
 
+    private void OnSnowPhysicsHeaderTapped(object? sender, Avalonia.Input.TappedEventArgs e)
+    {
+        if (DataContext is LauncherSettingsViewModel vm)
+            vm.ToggleSnowPhysicsDetailsCommand.Execute(null);
+    }
+
     private void OnParticleSliderPointerCaptureLost(object? sender, Avalonia.Input.PointerCaptureLostEventArgs e)
     {
         if (DataContext is LauncherSettingsViewModel vm)

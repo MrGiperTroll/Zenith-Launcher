@@ -502,6 +502,12 @@ public partial class LauncherSettingsViewModel : ViewModelBase
     [ObservableProperty] private double _particleSize = 1.0;
     [ObservableProperty] private double _particleOpacity = 0.65;
     [ObservableProperty] private bool _snowPhysicsEnabled = false;
+    [ObservableProperty] private bool _snowBottomAccumulationEnabled = false;
+    [ObservableProperty] private bool _snowCursorInteractionEnabled = true;
+    [ObservableProperty] private bool _snowPersistenceEnabled = true;
+    [ObservableProperty] private double _snowAccumulationRate = 1.0;
+    [ObservableProperty] private double _snowMaxHeight = 11.0;
+    [ObservableProperty] private bool _isSnowPhysicsDetailsExpanded = false;
 
     public bool AreParticlesEnabled => !string.Equals(ParticleType, "Off", StringComparison.OrdinalIgnoreCase);
     public bool IsParticleOff => !AreParticlesEnabled;
@@ -525,6 +531,8 @@ public partial class LauncherSettingsViewModel : ViewModelBase
     public string ParticleWindText => (ParticleWind >= 0 ? "+" : "") + ParticleWind.ToString("0.0", CultureInfo.InvariantCulture);
     public string ParticleSizeText => ParticleSize.ToString("0.0x", CultureInfo.InvariantCulture);
     public string ParticleOpacityText => $"{Math.Round(ParticleOpacity * 100):0}%";
+    public string SnowAccumulationRateText => SnowAccumulationRate.ToString("0.0x", CultureInfo.InvariantCulture);
+    public string SnowMaxHeightText => $"{Math.Round(SnowMaxHeight):0} px";
 
     partial void OnMinimizeToTrayOnCloseChanged(bool value)
     {
@@ -625,6 +633,27 @@ public partial class LauncherSettingsViewModel : ViewModelBase
     {
         if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
     }
+
+    partial void OnSnowBottomAccumulationEnabledChanged(bool value)
+    {
+        if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
+    }
+
+    partial void OnSnowCursorInteractionEnabledChanged(bool value)
+    {
+        if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
+    }
+
+    partial void OnSnowPersistenceEnabledChanged(bool value)
+    {
+        if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
+    }
+
+    partial void OnSnowAccumulationRateChanged(double value) => OnPropertyChanged(nameof(SnowAccumulationRateText));
+    partial void OnSnowMaxHeightChanged(double value) => OnPropertyChanged(nameof(SnowMaxHeightText));
+
+    [RelayCommand]
+    private void ToggleSnowPhysicsDetails() => IsSnowPhysicsDetailsExpanded = !IsSnowPhysicsDetailsExpanded;
 
     [RelayCommand]
     private void ClearSnowAccumulation()
@@ -1335,6 +1364,11 @@ public partial class LauncherSettingsViewModel : ViewModelBase
             ParticleSize = Math.Clamp(cfg.ParticleSize > 0 ? cfg.ParticleSize : 1.0, 0.4, 2.2);
             ParticleOpacity = Math.Clamp(cfg.ParticleOpacity > 0 ? cfg.ParticleOpacity : 0.65, 0.15, 1.0);
             SnowPhysicsEnabled = cfg.SnowPhysicsEnabled;
+            SnowBottomAccumulationEnabled = cfg.SnowBottomAccumulationEnabled;
+            SnowCursorInteractionEnabled = cfg.SnowCursorInteractionEnabled;
+            SnowPersistenceEnabled = cfg.SnowPersistenceEnabled;
+            SnowAccumulationRate = Math.Clamp(cfg.SnowAccumulationRate > 0 ? cfg.SnowAccumulationRate : 1.0, 0.3, 3.0);
+            SnowMaxHeight = Math.Clamp(cfg.SnowMaxHeight > 0 ? cfg.SnowMaxHeight : 11.0, 4.0, 24.0);
             _isSyncingHardwareAccel = true;
             try
             {
@@ -1522,6 +1556,11 @@ public partial class LauncherSettingsViewModel : ViewModelBase
         cfg.ParticleSize = ParticleSize;
         cfg.ParticleOpacity = ParticleOpacity;
         cfg.SnowPhysicsEnabled = SnowPhysicsEnabled;
+        cfg.SnowBottomAccumulationEnabled = SnowBottomAccumulationEnabled;
+        cfg.SnowCursorInteractionEnabled = SnowCursorInteractionEnabled;
+        cfg.SnowPersistenceEnabled = SnowPersistenceEnabled;
+        cfg.SnowAccumulationRate = SnowAccumulationRate;
+        cfg.SnowMaxHeight = SnowMaxHeight;
         cfg.HardwareAcceleration = HardwareAcceleration;
         cfg.CurseForgeApiKey = CurseForgeApiKey;
         cfg.LauncherScale = LauncherScale;

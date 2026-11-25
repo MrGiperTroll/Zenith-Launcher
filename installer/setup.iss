@@ -10,7 +10,7 @@
 
 #define MyAppName "Zenith Launcher"
 #ifndef MyAppVersion
-  #define MyAppVersion "1.2.0"
+  #define MyAppVersion "1.1.1"
 #endif
 #define MyAppPublisher "Zenith"
 #define MyAppExeName "Zenith Launcher.exe"

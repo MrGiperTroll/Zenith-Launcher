@@ -117,7 +117,7 @@
             <TextBlock Text="Loading projects..." Foreground="{StaticResource TextMutedBrush}"
                        FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,30" IsVisible="{Binding IsLoading}"/>
 
-            <ListBox Classes="plainVirtualList" ItemsSource="{Binding FilteredProjects}" IsVisible="{Binding !IsLoading}"
+            <ListBox x:Name="AuthorProjectsList" Classes="plainVirtualList" ItemsSource="{Binding FilteredProjects}" IsVisible="{Binding !IsLoading}"
                      ScrollViewer.VerticalScrollBarVisibility="Hidden">
                 <ListBox.ItemTemplate>
                             <DataTemplate x:DataType="items:ModrinthProjectItemViewModel">

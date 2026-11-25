@@ -43,19 +43,13 @@ public class LauncherConfigData
 
     public bool MinimizeToTrayOnClose { get; set; } = false;
     public bool HardwareAcceleration { get; set; } = true;
+    public bool UiAnimationsEnabled { get; set; } = true;
     public bool IsLockAspectRatio { get; set; } = false;
     public bool ShowReleases { get; set; } = true;
     public bool ShowSnapshots { get; set; } = false;
     public bool ShowBetas { get; set; } = false;
     public bool ShowAlphas { get; set; } = false;
 
-    public string SelectedParticle { get; set; } = "None";
-    public int ParticleCount { get; set; } = 50;
-    public double ParticleScale { get; set; } = 1.0;
-    public double ParticleSpeed { get; set; } = 1.0;
-    public string ParticleColorHex { get; set; } = "";
-    public double ParticleAngleDeg { get; set; } = 90.0;
-    public string ParticleTexturePath { get; set; } = "";
     public double LauncherScale { get; set; } = 1.0;
     public bool IsSidebarExpanded { get; set; } = false;
 

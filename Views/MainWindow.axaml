@@ -181,7 +181,6 @@
         <dialogsView:ModalsHostControl Grid.Row="0" Grid.RowSpan="2" />
     </Grid>
     </LayoutTransformControl>
-    <controls:ParticleSystemControl ParticleType="{Binding SelectedParticle}" ParticleCount="{Binding ParticleCount}" ParticleScale="{Binding ParticleScale}" ParticleSpeed="{Binding ParticleSpeed}" ParticleColorHex="{Binding ParticleColorHex}" ParticleAngleDeg="{Binding ParticleAngleDeg}" ParticleTexturePath="{Binding ParticleTexturePath}" IsHitTestVisible="False"/>
     </Panel>
     </Border>
 </Window>

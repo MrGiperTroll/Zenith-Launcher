@@ -147,9 +147,6 @@
                         <!-- Preview Sandbox Box (Dynamic live update) -->
                         <Border Background="{Binding BgHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{Binding BorderDarkHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderThickness="1" CornerRadius="8" Height="90" ClipToBounds="True">
                             <Panel>
-                                <!-- Simulated particle animation layer -->
-                                <controls:ParticleSystemControl ParticleType="{Binding SelectedParticle}" ParticleCount="{Binding ParticleCount}" ParticleScale="{Binding ParticleScale}" ParticleSpeed="{Binding ParticleSpeed}" ParticleColorHex="{Binding ParticleColorHex}" ParticleAngleDeg="{Binding ParticleAngleDeg}" ParticleTexturePath="{Binding ParticleTexturePath}" IsHitTestVisible="False"/>
-
                                 <!-- Sample UI elements displaying active theme styles -->
                                 <Grid ColumnDefinitions="Auto,*,Auto" Margin="14" VerticalAlignment="Center">
                                     <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
@@ -158,7 +155,6 @@
                                         </Border>
                                         <StackPanel VerticalAlignment="Center" Spacing="2">
                                             <TextBlock Text="Zenith Launcher" FontSize="13" FontWeight="Bold" Foreground="{Binding TextPrimaryHex, Converter={x:Static converters:HexToBrushConverter.Instance}}"/>
-                                            <TextBlock Text="{Binding SelectedParticle, StringFormat='Effect: {0}'}" FontSize="11" Foreground="{Binding TextSecondaryHex, Converter={x:Static converters:HexToBrushConverter.Instance}}"/>
                                         </StackPanel>
                                     </StackPanel>
 
@@ -242,138 +238,10 @@
                                 </ItemsControl>
                         </StackPanel>
                     </Border>
-
-                    <!-- Particles for Simple tab -->
-                    <Border Classes="zenSection">
-                        <StackPanel Spacing="10">
-                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                <StackPanel Grid.Column="0" Spacing="4" VerticalAlignment="Center">
-                                    <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=theme_particles}"/>
-                                    <TextBlock Classes="sectionHint" Text="{l10n:Tr Key=theme_particles_hint}"/>
-                                </StackPanel>
-                                <ComboBox Grid.Column="1" Classes="zenCombo" ItemsSource="{Binding ParticleOptions}" SelectedItem="{Binding SelectedParticle}" Width="190" VerticalAlignment="Center">
-                                    <ComboBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding Converter={x:Static converters:ParticleDisplayConverter.Instance}}"/>
-                                        </DataTemplate>
-                                    </ComboBox.ItemTemplate>
-                                </ComboBox>
-                            </Grid>
-                            <StackPanel Spacing="6" IsVisible="{Binding IsCustomParticle}">
-                                <Grid ColumnDefinitions="90,*,40" VerticalAlignment="Center">
-                                    <TextBlock Classes="rowHint" Text="{l10n:Tr Key=theme_custom_count}" VerticalAlignment="Center"/>
-                                    <Slider Grid.Column="1" Minimum="10" Maximum="150" Value="{Binding ParticleCount}" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="2" Text="{Binding ParticleCount}" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" VerticalAlignment="Center" TextAlignment="Right"/>
-                                </Grid>
-                                <Grid ColumnDefinitions="90,*,40" VerticalAlignment="Center">
-                                    <TextBlock Classes="rowHint" Text="{l10n:Tr Key=theme_custom_size}" VerticalAlignment="Center"/>
-                                    <Slider Grid.Column="1" Minimum="0.3" Maximum="2.5" TickFrequency="0.1" IsSnapToTickEnabled="True" Value="{Binding ParticleScale}" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="2" Text="{Binding ParticleScale, StringFormat='{}{0:0.0}x'}" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" VerticalAlignment="Center" TextAlignment="Right"/>
-                                </Grid>
-                                <Grid ColumnDefinitions="90,*,40" VerticalAlignment="Center">
-                                    <TextBlock Classes="rowHint" Text="{l10n:Tr Key=theme_custom_speed}" VerticalAlignment="Center"/>
-                                    <Slider Grid.Column="1" Minimum="0.2" Maximum="3.0" TickFrequency="0.1" IsSnapToTickEnabled="True" Value="{Binding ParticleSpeed}" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="2" Text="{Binding ParticleSpeed, StringFormat='{}{0:0.0}x'}" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" VerticalAlignment="Center" TextAlignment="Right"/>
-                                </Grid>
-                                <Grid ColumnDefinitions="90,*,40" VerticalAlignment="Center">
-                                    <TextBlock Classes="rowHint" Text="{l10n:Tr Key=theme_custom_angle}" VerticalAlignment="Center"/>
-                                    <Slider Grid.Column="1" Minimum="0" Maximum="360" TickFrequency="5" IsSnapToTickEnabled="True" Value="{Binding ParticleAngleDeg}" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="2" Text="{Binding ParticleAngleDeg, StringFormat='{}{0:0}°'}" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" VerticalAlignment="Center" TextAlignment="Right"/>
-                                </Grid>
-                                <Grid ColumnDefinitions="90,*,Auto" VerticalAlignment="Center">
-                                    <TextBlock Classes="rowHint" Text="{l10n:Tr Key=theme_custom_tint}" VerticalAlignment="Center"/>
-                                    <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding ParticleColorHex, Mode=TwoWay}" PlaceholderText="Accent" FontSize="11" Padding="8,5" VerticalAlignment="Center"/>
-                                    <Button Grid.Column="2" Classes="subBtn" Width="30" Height="30" Padding="0" Margin="8,0,0,0" VerticalAlignment="Center">
-                                        <Button.Flyout>
-                                            <Flyout Placement="BottomEdgeAlignedRight">
-                                                <ColorView Color="{Binding ParticleColorHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
-                                            </Flyout>
-                                        </Button.Flyout>
-                                        <Border Width="16" Height="16" CornerRadius="4" Background="{Binding ParticleColorHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
-                                    </Button>
-                                </Grid>
-                                <Grid ColumnDefinitions="90,*,Auto" VerticalAlignment="Center">
-                                    <TextBlock Classes="rowHint" Text="{l10n:Tr Key=theme_custom_texture}" VerticalAlignment="Center"/>
-                                    <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding ParticleTexturePath, Mode=OneWay}" IsReadOnly="True" FontSize="11" Padding="8,5" VerticalAlignment="Center"/>
-                                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                        <Border Width="28" Height="28" CornerRadius="6" Background="{StaticResource FieldBrush}" ClipToBounds="True" VerticalAlignment="Center">
-                                            <Image Source="{Binding ParticleTexturePath, Converter={x:Static converters:IconPathToBitmapConverter.Instance}}" Stretch="UniformToFill" Width="28" Height="28"/>
-                                        </Border>
-                                        <Button Classes="subBtn" Content="{l10n:Tr Key=set_java_browse}" Command="{Binding PickParticleTextureCommand}" Padding="10,5" FontSize="11" VerticalAlignment="Center"/>
-                                        <Button Classes="subBtn" Content="✕" Command="{Binding ClearParticleTextureCommand}" Padding="10,5" FontSize="11" VerticalAlignment="Center" IsVisible="{Binding ParticleTexturePath, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}"/>
-                                    </StackPanel>
-                                </Grid>
-                            </StackPanel>
-                        </StackPanel>
-                    </Border>
                 </StackPanel>
 
                 <!-- SUBTAB 2: ADVANCED CUSTOMIZATION -->
                 <StackPanel Spacing="16" IsVisible="{Binding IsThemeSubTabAdvanced}">
-                    <!-- Particles for Advanced tab -->
-                    <Border Classes="zenSection">
-                        <StackPanel Spacing="10">
-                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                <StackPanel Grid.Column="0" Spacing="4" VerticalAlignment="Center">
-                                    <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=theme_particles}"/>
-                                    <TextBlock Classes="sectionHint" Text="{l10n:Tr Key=theme_particles_hint}"/>
-                                </StackPanel>
-                                <ComboBox Grid.Column="1" Classes="zenCombo" ItemsSource="{Binding ParticleOptions}" SelectedItem="{Binding SelectedParticle}" Width="190" VerticalAlignment="Center">
-                                    <ComboBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding Converter={x:Static converters:ParticleDisplayConverter.Instance}}"/>
-                                        </DataTemplate>
-                                    </ComboBox.ItemTemplate>
-                                </ComboBox>
-                            </Grid>
-                            <StackPanel Spacing="6" IsVisible="{Binding IsCustomParticle}">
-                                <Grid ColumnDefinitions="90,*,40" VerticalAlignment="Center">
-                                    <TextBlock Classes="rowHint" Text="{l10n:Tr Key=theme_custom_count}" VerticalAlignment="Center"/>
-                                    <Slider Grid.Column="1" Minimum="10" Maximum="150" Value="{Binding ParticleCount}" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="2" Text="{Binding ParticleCount}" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" VerticalAlignment="Center" TextAlignment="Right"/>
-                                </Grid>
-                                <Grid ColumnDefinitions="90,*,40" VerticalAlignment="Center">
-                                    <TextBlock Classes="rowHint" Text="{l10n:Tr Key=theme_custom_size}" VerticalAlignment="Center"/>
-                                    <Slider Grid.Column="1" Minimum="0.3" Maximum="2.5" TickFrequency="0.1" IsSnapToTickEnabled="True" Value="{Binding ParticleScale}" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="2" Text="{Binding ParticleScale, StringFormat='{}{0:0.0}x'}" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" VerticalAlignment="Center" TextAlignment="Right"/>
-                                </Grid>
-                                <Grid ColumnDefinitions="90,*,40" VerticalAlignment="Center">
-                                    <TextBlock Classes="rowHint" Text="{l10n:Tr Key=theme_custom_speed}" VerticalAlignment="Center"/>
-                                    <Slider Grid.Column="1" Minimum="0.2" Maximum="3.0" TickFrequency="0.1" IsSnapToTickEnabled="True" Value="{Binding ParticleSpeed}" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="2" Text="{Binding ParticleSpeed, StringFormat='{}{0:0.0}x'}" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" VerticalAlignment="Center" TextAlignment="Right"/>
-                                </Grid>
-                                <Grid ColumnDefinitions="90,*,40" VerticalAlignment="Center">
-                                    <TextBlock Classes="rowHint" Text="{l10n:Tr Key=theme_custom_angle}" VerticalAlignment="Center"/>
-                                    <Slider Grid.Column="1" Minimum="0" Maximum="360" TickFrequency="5" IsSnapToTickEnabled="True" Value="{Binding ParticleAngleDeg}" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="2" Text="{Binding ParticleAngleDeg, StringFormat='{}{0:0}°'}" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" VerticalAlignment="Center" TextAlignment="Right"/>
-                                </Grid>
-                                <Grid ColumnDefinitions="90,*,Auto" VerticalAlignment="Center">
-                                    <TextBlock Classes="rowHint" Text="{l10n:Tr Key=theme_custom_tint}" VerticalAlignment="Center"/>
-                                    <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding ParticleColorHex, Mode=TwoWay}" PlaceholderText="Accent" FontSize="11" Padding="8,5" VerticalAlignment="Center"/>
-                                    <Button Grid.Column="2" Classes="subBtn" Width="30" Height="30" Padding="0" Margin="8,0,0,0" VerticalAlignment="Center">
-                                        <Button.Flyout>
-                                            <Flyout Placement="BottomEdgeAlignedRight">
-                                                <ColorView Color="{Binding ParticleColorHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
-                                            </Flyout>
-                                        </Button.Flyout>
-                                        <Border Width="16" Height="16" CornerRadius="4" Background="{Binding ParticleColorHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
-                                    </Button>
-                                </Grid>
-                                <Grid ColumnDefinitions="90,*,Auto" VerticalAlignment="Center">
-                                    <TextBlock Classes="rowHint" Text="{l10n:Tr Key=theme_custom_texture}" VerticalAlignment="Center"/>
-                                    <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding ParticleTexturePath, Mode=OneWay}" IsReadOnly="True" FontSize="11" Padding="8,5" VerticalAlignment="Center"/>
-                                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                        <Border Width="28" Height="28" CornerRadius="6" Background="{StaticResource FieldBrush}" ClipToBounds="True" VerticalAlignment="Center">
-                                            <Image Source="{Binding ParticleTexturePath, Converter={x:Static converters:IconPathToBitmapConverter.Instance}}" Stretch="UniformToFill" Width="28" Height="28"/>
-                                        </Border>
-                                        <Button Classes="subBtn" Content="{l10n:Tr Key=set_java_browse}" Command="{Binding PickParticleTextureCommand}" Padding="10,5" FontSize="11" VerticalAlignment="Center"/>
-                                        <Button Classes="subBtn" Content="✕" Command="{Binding ClearParticleTextureCommand}" Padding="10,5" FontSize="11" VerticalAlignment="Center" IsVisible="{Binding ParticleTexturePath, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}"/>
-                                    </StackPanel>
-                                </Grid>
-                            </StackPanel>
-                        </StackPanel>
-                    </Border>
-
                     <!-- Hex Palette Editor -->
                     <Border Classes="zenSection">
                         <StackPanel Spacing="14">

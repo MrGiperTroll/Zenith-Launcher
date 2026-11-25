@@ -8,13 +8,14 @@ using Avalonia.Media;
 using Avalonia.Animation;
 using Avalonia.Animation.Easings;
 using Avalonia.Threading;
+using ZenithLauncher.UI.Animations;
 
 namespace ZenithLauncher.Controls;
 
 public class AnimatedWrapPanel : Panel
 {
     public static readonly StyledProperty<TimeSpan> AnimationDurationProperty =
-        AvaloniaProperty.Register<AnimatedWrapPanel, TimeSpan>(nameof(AnimationDuration), TimeSpan.FromMilliseconds(250));
+        AvaloniaProperty.Register<AnimatedWrapPanel, TimeSpan>(nameof(AnimationDuration), TimeSpan.FromMilliseconds(220));
 
     public TimeSpan AnimationDuration
     {
@@ -24,6 +25,26 @@ public class AnimatedWrapPanel : Panel
 
     private readonly Dictionary<Control, Rect> _previousBounds = new();
     private bool _isFirstArrange = true;
+
+    public AnimatedWrapPanel()
+    {
+        AttachedToVisualTree += (_, _) => ZenithMotion.EnabledChanged += OnMotionEnabledChanged;
+        DetachedFromVisualTree += (_, _) => ZenithMotion.EnabledChanged -= OnMotionEnabledChanged;
+    }
+
+    private void OnMotionEnabledChanged(bool enabled)
+    {
+        if (enabled) return;
+        foreach (var child in Children)
+        {
+            if (child.RenderTransform is TranslateTransform t)
+            {
+                t.Transitions = null;
+                t.X = 0;
+                t.Y = 0;
+            }
+        }
+    }
 
     protected override Size MeasureOverride(Size availableSize)
     {
@@ -58,6 +79,7 @@ public class AnimatedWrapPanel : Panel
         double currentX = 0;
         double currentY = 0;
         double maxRowHeight = 0;
+        bool animationsEnabled = ZenithMotion.IsEnabled;
 
         // Prune entries for removed cards so the map cannot grow unbounded.
         if (_previousBounds.Count > Children.Count)
@@ -80,7 +102,16 @@ public class AnimatedWrapPanel : Panel
 
             var finalRect = new Rect(currentX, currentY, desired.Width, desired.Height);
 
-            if (!_isFirstArrange && _previousBounds.TryGetValue(child, out var oldRect) && oldRect != finalRect && !child.Classes.Contains("dragging"))
+            if (!animationsEnabled)
+            {
+                if (child.RenderTransform is TranslateTransform existingTransform)
+                {
+                    existingTransform.Transitions = null;
+                    existingTransform.X = 0;
+                    existingTransform.Y = 0;
+                }
+            }
+            else if (!_isFirstArrange && _previousBounds.TryGetValue(child, out var oldRect) && oldRect != finalRect && !child.Classes.Contains("dragging"))
             {
                 var transform = child.RenderTransform as TranslateTransform;
                 if (transform == null)

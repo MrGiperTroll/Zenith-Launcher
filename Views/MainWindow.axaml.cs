@@ -26,6 +26,7 @@ public partial class MainWindow : Window
 {
     private MainWindowViewModel? _observedVm;
     private System.Threading.CancellationTokenSource? _unloadCleanupCts;
+    private LauncherNavPage? _lastAnimatedPage;
 
     private static MainWindow? _activeWindow;
 
@@ -34,6 +35,7 @@ public partial class MainWindow : Window
         _activeWindow = this;
         InitializeComponent();
         Opacity = 1.0;
+        ZenithMotion.RegisterWindow(this);
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
 
         DataContextChanged += OnMainDataContextChanged;
@@ -59,6 +61,7 @@ public partial class MainWindow : Window
         if (DataContext is MainWindowViewModel vm)
         {
             _observedVm = vm;
+            _lastAnimatedPage = vm.CurrentPage;
             vm.PropertyChanged += OnMainVmPropertyChanged;
             SyncSecondaryPanes(vm);
         }
@@ -106,6 +109,51 @@ public partial class MainWindow : Window
         if (anyUnloaded)
         {
             ScheduleHeavyPageCleanup();
+        }
+
+        if (_lastAnimatedPage != page)
+        {
+            _lastAnimatedPage = page;
+            AnimateActivePageEntrance(vm, page);
+        }
+    }
+
+    private void AnimateActivePageEntrance(MainWindowViewModel vm, LauncherNavPage page)
+    {
+        Control? target = page switch
+        {
+            LauncherNavPage.Profiles => ProfilesPane,
+            LauncherNavPage.Modpacks => ModpacksPane.Children.Count > 0 ? ModpacksPane.Children[0] as Control : null,
+            LauncherNavPage.EditInstance => EditInstancePane.Children.Count > 0 ? EditInstancePane.Children[0] as Control : null,
+            LauncherNavPage.ContentBrowser => ContentBrowserPane.Children.Count > 0 ? ContentBrowserPane.Children[0] as Control : null,
+            LauncherNavPage.Settings => SettingsPane.Children.Count > 0 ? SettingsPane.Children[0] as Control : null,
+            LauncherNavPage.ServerManager => ServerManagerPane.Children.Count > 0 ? ServerManagerPane.Children[0] as Control : null,
+            LauncherNavPage.Accounts => AccountsPane.Children.Count > 0 ? AccountsPane.Children[0] as Control : null,
+            LauncherNavPage.CreateProfile => CreateProfilePane.Children.Count > 0 ? CreateProfilePane.Children[0] as Control : null,
+            LauncherNavPage.CreateServer => CreateServerPane.Children.Count > 0 ? CreateServerPane.Children[0] as Control : null,
+            _ => null
+        };
+
+        if (target == null) return;
+
+        switch (vm.Navigation.LastNavigationKind)
+        {
+            case NavTransitionKind.HistoryBack:
+                ZenithMotion.AnimateEntrance(target, offsetX: -18, offsetY: 0, startScale: 1.0, startOpacity: 0.25, durationMs: 175);
+                break;
+            case NavTransitionKind.HistoryForward:
+                ZenithMotion.AnimateEntrance(target, offsetX: 18, offsetY: 0, startScale: 1.0, startOpacity: 0.25, durationMs: 175);
+                break;
+            case NavTransitionKind.DrillIn:
+                ZenithMotion.AnimateEntrance(target, offsetX: 20, offsetY: 0, startScale: 0.988, startOpacity: 0.2, durationMs: 185);
+                break;
+            case NavTransitionKind.DrillOut:
+                ZenithMotion.AnimateEntrance(target, offsetX: -14, offsetY: 0, startScale: 1.0, startOpacity: 0.3, durationMs: 165);
+                break;
+            default:
+                double dy = vm.Navigation.LastNavigationOrderDelta >= 0 ? 10 : -10;
+                ZenithMotion.AnimateEntrance(target, offsetX: 0, offsetY: dy, startScale: 1.0, startOpacity: 0.25, durationMs: 165);
+                break;
         }
     }
 

@@ -9,6 +9,7 @@
 
              xmlns:controls="using:ZenithLauncher.Controls"
              xmlns:conv="using:Avalonia.Data.Converters"
+             xmlns:anim="using:ZenithLauncher.UI.Animations"
              x:Class="ZenithLauncher.Views.ProjectDetailsView"
              x:CompileBindings="False">
 
@@ -109,6 +110,12 @@
             <Setter Property="Background" Value="{DynamicResource AccentBrushHover}"/>
             <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
         </Style>
+        <Style Selector="Window.noMotion Button.tabBtn">
+            <Setter Property="Transitions" Value="{x:Null}"/>
+        </Style>
+        <Style Selector="Window.noMotion Button.actionBtn">
+            <Setter Property="Transitions" Value="{x:Null}"/>
+        </Style>
         <!-- Changelog Download Action Button (Transparent with green text/icon matching Modrinth spec) -->
         <Style Selector="Button.changelogDownloadBtn">
             <Setter Property="Background" Value="Transparent"/>
@@ -192,7 +199,7 @@
             <Setter Property="ClipToBounds" Value="True"/>
             <Setter Property="Transitions">
                 <Transitions>
-                    <BrushTransition Property="BorderBrush" Duration="0:0:0.15"/>
+
                 </Transitions>
             </Setter>
         </Style>
@@ -390,7 +397,7 @@
                             <!-- ============================================== -->
                             <!-- VERSION DETAIL VIEW (Active when a version is selected) -->
                             <!-- ============================================== -->
-                            <StackPanel IsVisible="{Binding IsVersionDetailActive}" Spacing="16">
+                            <StackPanel x:Name="VersionDetailPanel" IsVisible="{Binding IsVersionDetailActive}" Spacing="16">
                                 <!-- Back navigation link -->
                                 <Button Background="Transparent" BorderThickness="0" Padding="0" Cursor="Hand"
                                         Command="{Binding CloseVersionDetailCommand}">
@@ -563,11 +570,11 @@
                             <!-- ============================================== -->
                             <!-- REGULAR TABS (Visible when no version detail active) -->
                             <!-- ============================================== -->
-                            <StackPanel IsVisible="{Binding !IsVersionDetailActive}">
+                            <StackPanel x:Name="RegularTabsPanel" IsVisible="{Binding !IsVersionDetailActive}">
 
                                 <!-- DESCRIPTION TAB (Rich Markdown Layout matching Modrinth) -->
                                 <!-- TAB 0: DESCRIPTION (Two-column: Body + Sidebar) -->
-                            <Grid IsVisible="{Binding IsDescriptionTab}" ColumnDefinitions="*,270" ColumnSpacing="16">
+                            <Grid x:Name="DescriptionPanel" IsVisible="{Binding IsDescriptionTab}" ColumnDefinitions="*,270" ColumnSpacing="16">
                                 <!-- LEFT: Description Content -->
                                 <StackPanel Grid.Column="0" Spacing="10">
             <!-- Segmented Navigation Tabs -->
@@ -927,7 +934,7 @@
                 </StackPanel>
             </Border>
 <!-- GALLERY TAB -->
-                                <StackPanel IsVisible="{Binding IsGalleryTab}" Spacing="14">
+                                <StackPanel x:Name="GalleryPanel" IsVisible="{Binding IsGalleryTab}" Spacing="14">
                                     <ItemsControl ItemsSource="{Binding GalleryItems}">
                                         <ItemsControl.ItemsPanel>
                                             <ItemsPanelTemplate>
@@ -961,7 +968,7 @@
                                 </StackPanel>
 
                                 <!-- CHANGELOG TAB (Timeline matching Modrinth) -->
-                                <StackPanel IsVisible="{Binding IsChangelogTab}" Spacing="6">
+                                <StackPanel x:Name="ChangelogPanel" IsVisible="{Binding IsChangelogTab}" Spacing="6">
                                     <!-- Filters bar above timeline with multi-select platforms and theme-aware pagination -->
                                     <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto" VerticalAlignment="Center" Margin="0,0,0,8">
                                         <PathIcon Grid.Column="0" Data="M3 4h18v2l-7 8v6l-4-2v-4L3 6V4z" Width="13" Height="13"
@@ -1065,7 +1072,7 @@
                                 </StackPanel>
 
                                 <!-- VERSIONS TAB (Table matching Modrinth) -->
-                                <StackPanel IsVisible="{Binding IsVersionsTab}" Spacing="6">
+                                <StackPanel x:Name="VersionsPanel" IsVisible="{Binding IsVersionsTab}" Spacing="6">
                                     <!-- Filters bar above timeline with multi-select platforms and theme-aware pagination -->
                                     <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto" VerticalAlignment="Center" Margin="0,0,0,8">
                                         <PathIcon Grid.Column="0" Data="M3 4h18v2l-7 8v6l-4-2v-4L3 6V4z" Width="13" Height="13"
@@ -1199,7 +1206,7 @@
         <!-- ============================================== -->
         <!-- LIGHTBOX MODAL: FULLSCREEN GALLERY VIEWER -->
         <!-- ============================================== -->
-        <Border IsVisible="{Binding IsGalleryModalOpen}" Background="#E6000000" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="2000">
+        <Border IsVisible="False" anim:ZenithMotion.ModalOpen="{Binding IsGalleryModalOpen}" Background="#E6000000" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="2000">
             <Grid RowDefinitions="Auto,*" Margin="20">
                 <!-- Modal Toolbar -->
                 <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
@@ -1226,7 +1233,7 @@
         </Border>
 
         <!-- MODAL: Reinstall Confirmation Overlay -->
-        <Border IsVisible="{Binding IsReinstallConfirmOpen, FallbackValue=False, TargetNullValue=False}" Background="{StaticResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1200">
+        <Border IsVisible="False" anim:ZenithMotion.ModalOpen="{Binding IsReinstallConfirmOpen, FallbackValue=False, TargetNullValue=False}" Background="{StaticResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1200">
             <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1"
                     CornerRadius="12" MaxWidth="380" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="12">

@@ -79,11 +79,6 @@ public partial class ThemeSettingsViewModel : ViewModelBase
     public bool IsThemeSubTabSimple => ThemeSubTab == "Simple";
     public bool IsThemeSubTabAdvanced => ThemeSubTab == "Advanced";
 
-    [ObservableProperty]
-    private string _selectedParticle = "None";
-
-    public string[] ParticleOptions { get; } = { "None", "Snowflakes", "Leaves", "Sakura", "Custom" };
-
     // Saved Baselines
     private string _savedSimpleAccentHex = ZenithTheme.DefaultAccent;
     private string _savedBgHex = "#080A0F";
@@ -131,72 +126,6 @@ public partial class ThemeSettingsViewModel : ViewModelBase
             }
         }
     }
-
-    partial void OnSelectedParticleChanged(string value)
-    {
-        OnPropertyChanged(nameof(IsCustomParticle));
-        if (!_isLoadingConfig)
-            SaveConfigRequested?.Invoke();
-    }
-
-    public bool IsCustomParticle => SelectedParticle == "Custom";
-
-    [ObservableProperty] private int _particleCount = 50;
-    [ObservableProperty] private double _particleScale = 1.0;
-    [ObservableProperty] private double _particleSpeed = 1.0;
-    [ObservableProperty] private string _particleColorHex = "";
-    [ObservableProperty] private double _particleAngleDeg = 90.0;
-    [ObservableProperty] private string _particleTexturePath = "";
-
-    partial void OnParticleCountChanged(int value)
-    {
-        if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
-    }
-
-    partial void OnParticleScaleChanged(double value)
-    {
-        if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
-    }
-
-    partial void OnParticleSpeedChanged(double value)
-    {
-        if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
-    }
-
-    partial void OnParticleColorHexChanged(string value)
-    {
-        if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
-    }
-
-    partial void OnParticleAngleDegChanged(double value)
-    {
-        if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
-    }
-
-    partial void OnParticleTexturePathChanged(string value)
-    {
-        if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
-    }
-
-    [RelayCommand]
-    private async Task PickParticleTextureAsync()
-    {
-        var topLevel = Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
-            ? desktop.MainWindow
-            : null;
-        if (topLevel?.StorageProvider == null) return;
-        var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
-        {
-            Title = "Pick particle texture",
-            AllowMultiple = false,
-            FileTypeFilter = new[] { new FilePickerFileType("Images") { Patterns = new[] { "*.png", "*.jpg", "*.jpeg" } } }
-        });
-        if (files.Count == 0) return;
-        ParticleTexturePath = files[0].Path.LocalPath;
-    }
-
-    [RelayCommand]
-    private void ClearParticleTexture() => ParticleTexturePath = "";
 
     [RelayCommand]
     public void SwitchThemeSubTab(string tab)
@@ -563,15 +492,6 @@ public partial class ThemeSettingsViewModel : ViewModelBase
                 UpdatePreviewBrushes(cfg.AccentColor);
             }
 
-            if (!string.IsNullOrEmpty(cfg.SelectedParticle))
-                SelectedParticle = cfg.SelectedParticle;
-            if (cfg.ParticleCount >= 10 && cfg.ParticleCount <= 150) ParticleCount = cfg.ParticleCount;
-            if (cfg.ParticleScale >= 0.3 && cfg.ParticleScale <= 2.5) ParticleScale = cfg.ParticleScale;
-            if (cfg.ParticleSpeed >= 0.2 && cfg.ParticleSpeed <= 3.0) ParticleSpeed = cfg.ParticleSpeed;
-            ParticleColorHex = cfg.ParticleColorHex ?? "";
-            if (cfg.ParticleAngleDeg >= 0 && cfg.ParticleAngleDeg <= 360) ParticleAngleDeg = cfg.ParticleAngleDeg;
-            ParticleTexturePath = cfg.ParticleTexturePath ?? "";
-
             if (IsThemeSubTabSimple)
             {
                 ApplySimpleTheme(SimpleAccentHex);
@@ -604,13 +524,5 @@ public partial class ThemeSettingsViewModel : ViewModelBase
         cfg.BorderDarkColor = BorderDarkHex;
         cfg.ThemeSubTab = ThemeSubTab;
         cfg.SimpleAccentColor = SimpleAccentHex;
-
-        cfg.SelectedParticle = SelectedParticle;
-        cfg.ParticleCount = ParticleCount;
-        cfg.ParticleScale = ParticleScale;
-        cfg.ParticleSpeed = ParticleSpeed;
-        cfg.ParticleColorHex = ParticleColorHex;
-        cfg.ParticleAngleDeg = ParticleAngleDeg;
-        cfg.ParticleTexturePath = ParticleTexturePath;
     }
 }

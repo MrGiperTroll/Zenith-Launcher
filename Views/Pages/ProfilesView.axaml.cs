@@ -12,6 +12,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using ZenithLauncher.Models;
 using ZenithLauncher.Services;
+using ZenithLauncher.UI.Animations;
 using ZenithLauncher.ViewModels;
 
 namespace ZenithLauncher.Views.Pages;
@@ -49,6 +50,13 @@ public partial class ProfilesView : UserControl
         {
             _subscribedVm = vm;
             vm.PropertyChanged += OnVmPropertyChanged;
+            var sidebar = this.FindControl<Border>("InstanceDetailsSidebar");
+            if (sidebar != null)
+            {
+                bool open = vm.IsRightSidebarOpen;
+                sidebar.IsVisible = open;
+                sidebar.IsHitTestVisible = open;
+            }
         }
     }
 
@@ -65,9 +73,7 @@ public partial class ProfilesView : UserControl
         var sidebar = this.FindControl<Border>("InstanceDetailsSidebar");
         if (sidebar == null) return;
 
-        sidebar.IsVisible = open;
-        sidebar.IsHitTestVisible = open;
-        sidebar.Opacity = open ? 1 : 0;
+        ZenithMotion.AnimateSlidePanel(sidebar, open, slideX: 24, slideY: 0, enterMs: 185, exitMs: 115);
     }
 
     private void OnInstanceNameDoubleTapped(object? sender, TappedEventArgs e)

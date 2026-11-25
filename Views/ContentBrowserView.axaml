@@ -7,6 +7,7 @@
         xmlns:l10n="using:ZenithLauncher.Extensions"
         xmlns:views="using:ZenithLauncher.Views"
         xmlns:conv="using:Avalonia.Data.Converters"
+        xmlns:anim="using:ZenithLauncher.UI.Animations"
         x:Class="ZenithLauncher.Views.ContentBrowserView"
         x:DataType="vm:ContentBrowserViewModel"
         Background="{StaticResource BgBrush}"
@@ -46,21 +47,6 @@
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="Background" Duration="0:0:0.2" Easing="CubicEaseOut"/>
-                    <BrushTransition Property="BorderBrush" Duration="0:0:0.2" Easing="CubicEaseOut"/>
-                    <BrushTransition Property="Foreground" Duration="0:0:0.15" Easing="CubicEaseOut"/>
-                </Transitions>
-            </Setter>
-        </Style>
-        <Style Selector="Button.installedBtn /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="Background" Duration="0:0:0.2" Easing="CubicEaseOut"/>
-                    <BrushTransition Property="BorderBrush" Duration="0:0:0.2" Easing="CubicEaseOut"/>
-                </Transitions>
-            </Setter>
         </Style>
         <Style Selector="Button.installedBtn.installed">
             <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
@@ -174,12 +160,6 @@
             <Setter Property="Background" Value="{StaticResource CardBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="Background" Duration="0:0:0.15" Easing="CubicEaseOut"/>
-                    <BrushTransition Property="BorderBrush" Duration="0:0:0.15" Easing="CubicEaseOut"/>
-                </Transitions>
-            </Setter>
         </Style>
         <Style Selector="Border.catalogCard:pointerover">
             <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
@@ -247,7 +227,7 @@
     </UserControl.Styles>
 
     <Panel>
-    <Grid RowDefinitions="Auto,*" Margin="16">
+    <Grid x:Name="CatalogContentRoot" RowDefinitions="Auto,*" Margin="16">
         <!-- Top Toolbar & Filters Section -->
         <StackPanel Grid.Row="0" Spacing="10" Margin="0,0,0,16" IsVisible="{Binding !IsDetailsOpen}">
             <!-- 1. Search Box -->
@@ -458,7 +438,7 @@
     </Grid>
 
     <!-- MODAL: Delete Confirmation -->
-    <Border IsVisible="{Binding IsDeleteConfirmOpen}" Background="{StaticResource OverlayBrush}" ZIndex="1000" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+    <Border IsVisible="False" anim:ZenithMotion.ModalOpen="{Binding IsDeleteConfirmOpen}" Background="{StaticResource OverlayBrush}" ZIndex="1000" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
         <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1"
                 CornerRadius="12" MaxWidth="360" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center">
             <StackPanel Spacing="12">

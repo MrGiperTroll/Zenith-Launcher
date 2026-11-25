@@ -12,6 +12,7 @@
 
              xmlns:pages="using:ZenithLauncher.ViewModels.Pages"
              xmlns:converters="using:ZenithLauncher.Converters"
+             xmlns:anim="using:ZenithLauncher.UI.Animations"
 
              x:Class="ZenithLauncher.Views.AccountsView"
 
@@ -457,7 +458,7 @@
     <Canvas x:Name="DragOverlayPanel" IsHitTestVisible="False" ClipToBounds="False" ZIndex="9999"/>
 
     <!-- MODAL: Delete Account Confirmation in AccountsView -->
-    <Border IsVisible="{Binding IsDeleteConfirmOpen}" Background="{DynamicResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="10000">
+    <Border IsVisible="False" anim:ZenithMotion.ModalOpen="{Binding IsDeleteConfirmOpen}" Background="{DynamicResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="10000">
         <Border Background="{DynamicResource CardAltBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="380" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center">
             <StackPanel Spacing="14">
                 <TextBlock Text="{l10n:Tr Key=acc_delete_title}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource DangerBrush}"/>

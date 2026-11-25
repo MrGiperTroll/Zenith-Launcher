@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.VisualTree;
 using ZenithLauncher.Models;
+using ZenithLauncher.UI.Animations;
 using ZenithLauncher.ViewModels;
 
 namespace ZenithLauncher.Views.Components;
@@ -13,6 +14,7 @@ public partial class InstanceGridControl : UserControl
     public InstanceGridControl()
     {
         InitializeComponent();
+        SmoothScrollBehavior.Attach(ProfilesGridScroll, wheelStep: 80.0, damping: 16.0);
     }
 
     private void OnInstanceCardPointerPressed(object? sender, PointerPressedEventArgs e)

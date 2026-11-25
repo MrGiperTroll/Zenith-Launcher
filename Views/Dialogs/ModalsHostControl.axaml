@@ -7,6 +7,7 @@
              xmlns:dialogs="using:ZenithLauncher.ViewModels.Dialogs"
              xmlns:views="using:ZenithLauncher.Views"
              xmlns:l10n="using:ZenithLauncher.Extensions"
+             xmlns:anim="using:ZenithLauncher.UI.Animations"
              mc:Ignorable="d" d:DesignWidth="1280" d:DesignHeight="780"
              x:Class="ZenithLauncher.Views.Dialogs.ModalsHostControl"
              x:DataType="vm:MainWindowViewModel">
@@ -57,7 +58,7 @@
 
     <Panel>
         <!-- Server Under Development Dialog -->
-        <Border IsVisible="{Binding IsServerUnderDevDialogOpen}" Background="{DynamicResource OverlayBrush}" ZIndex="150"
+        <Border IsVisible="False" anim:ZenithMotion.ModalOpen="{Binding IsServerUnderDevDialogOpen}" Background="{DynamicResource OverlayBrush}" ZIndex="150"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="22" Width="440" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="14">
@@ -90,7 +91,7 @@
         </Border>
 
         <!-- MODAL: Create Profile -->
-        <Border IsVisible="{Binding IsCreateDialogOpen}" Background="{DynamicResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1000">
+        <Border IsVisible="False" anim:ZenithMotion.ModalOpen="{Binding IsCreateDialogOpen}" Background="{DynamicResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1000">
             <Border Background="{DynamicResource CardAltBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="440" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="12">
                     <TextBlock Text="{l10n:Tr Key=cp_title}" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
@@ -158,7 +159,7 @@
         </Border>
 
         <!-- MODAL: Delete Account Confirmation -->
-        <Border IsVisible="{Binding IsDeleteAccountConfirmOpen}" Background="{DynamicResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1000">
+        <Border IsVisible="False" anim:ZenithMotion.ModalOpen="{Binding IsDeleteAccountConfirmOpen}" Background="{DynamicResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1000">
             <Border Background="{DynamicResource CardAltBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="380" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="14">
                     <TextBlock Text="{l10n:Tr Key=acc_delete_title}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource DangerBrush}"/>
@@ -172,7 +173,7 @@
         </Border>
 
         <!-- MODAL: Delete Confirmation -->
-        <Border IsVisible="{Binding IsDeleteConfirmOpen}" Background="{DynamicResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1000">
+        <Border IsVisible="False" anim:ZenithMotion.ModalOpen="{Binding IsDeleteConfirmOpen}" Background="{DynamicResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1000">
             <Border Background="{DynamicResource CardAltBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="380" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="14">
                     <TextBlock Text="{l10n:Tr Key=dialog_delete_title}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource DangerBrush}"/>
@@ -186,7 +187,7 @@
         </Border>
 
         <!-- MODAL: Restart Confirmation (Theme Application) -->
-        <Border IsVisible="{Binding IsRestartConfirmOpen}" Background="{DynamicResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1000">
+        <Border IsVisible="False" anim:ZenithMotion.ModalOpen="{Binding IsRestartConfirmOpen}" Background="{DynamicResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1000">
             <Border Background="{DynamicResource CardAltBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="400" Padding="22" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="14">
                     <TextBlock Text="{l10n:Tr Key=dialog_restart_title}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
@@ -200,7 +201,7 @@
         </Border>
 
         <!-- MODAL: Restart Confirmation (GUI Hardware Acceleration) -->
-        <Border IsVisible="{Binding IsHardwareAccelConfirmOpen}" Background="{DynamicResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1000">
+        <Border IsVisible="False" anim:ZenithMotion.ModalOpen="{Binding IsHardwareAccelConfirmOpen}" Background="{DynamicResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1000">
             <Border Background="{DynamicResource CardAltBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="400" Padding="22" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="14">
                     <TextBlock Text="{l10n:Tr Key=dialog_restart_title}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
@@ -214,7 +215,7 @@
         </Border>
 
         <!-- MODAL: Discard Changes Confirmation (Theme Tab Switch) -->
-        <Border IsVisible="{Binding IsThemeDiscardConfirmOpen}" Background="{DynamicResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1000">
+        <Border IsVisible="False" anim:ZenithMotion.ModalOpen="{Binding IsThemeDiscardConfirmOpen}" Background="{DynamicResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1000">
             <Border Background="{DynamicResource CardAltBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="400" Padding="22" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="14">
                     <TextBlock Text="{l10n:Tr Key=dialog_discard_title}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
@@ -228,7 +229,7 @@
         </Border>
 
         <!-- MODAL: Modpack Delete Confirmation -->
-        <Border IsVisible="{Binding ModpacksBrowser.IsDeleteConfirmOpen}" Background="{DynamicResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1000">
+        <Border IsVisible="False" anim:ZenithMotion.ModalOpen="{Binding ModpacksBrowser.IsDeleteConfirmOpen}" Background="{DynamicResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1000">
             <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1"
                     CornerRadius="12" MaxWidth="360" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="12">
@@ -246,7 +247,7 @@
         </Border>
 
         <!-- MODAL: Ely.by Error -->
-        <Border IsVisible="{Binding IsElyByErrorOpen}" Background="{DynamicResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1000">
+        <Border IsVisible="False" anim:ZenithMotion.ModalOpen="{Binding IsElyByErrorOpen}" Background="{DynamicResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1000">
             <Border Background="{DynamicResource CardAltBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="420" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="14">
                     <TextBlock Text="{l10n:Tr Key=dialog_connection}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource DangerBrush}"/>
@@ -260,7 +261,7 @@
         </Border>
 
         <!-- Java Runtime Installer In-App Modal -->
-        <Border Background="{DynamicResource OverlayBrush}" IsVisible="{Binding IsJavaInstallerOpen}" ZIndex="1000"
+        <Border Background="{DynamicResource OverlayBrush}" IsVisible="False" anim:ZenithMotion.ModalOpen="{Binding IsJavaInstallerOpen}" ZIndex="1000"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <Border x:Name="JavaInstallerCard" Background="{DynamicResource SurfaceBrush}" CornerRadius="14" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1"
                     Width="420" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="24,20,24,18">
@@ -346,7 +347,7 @@
         </Border>
 
         <!-- Import Picker In-App Modal (Prism-inspired two-pane layout in Zenith UI) -->
-        <Border Background="{DynamicResource OverlayBrush}" IsVisible="{Binding IsImportPickerOpen}" ZIndex="1000"
+        <Border Background="{DynamicResource OverlayBrush}" IsVisible="False" anim:ZenithMotion.ModalOpen="{Binding IsImportPickerOpen}" ZIndex="1000"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <Border Background="{DynamicResource CardBrush}" CornerRadius="14" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1"
                     Width="690" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="22">
@@ -476,7 +477,7 @@
                         </StackPanel>
 
                         <!-- Right Panel -->
-                        <Border Grid.Column="1" Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1"
+                        <Border x:Name="ImportTabContentCard" Grid.Column="1" Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1"
                                 CornerRadius="10" Padding="18" Height="296">
                             <Grid RowDefinitions="62,Auto,*" RowSpacing="12">
                                 <StackPanel Grid.Row="0" Spacing="4" VerticalAlignment="Top">
@@ -551,7 +552,7 @@
         </Border>
 
         <!-- Set Profile Group Modal -->
-        <Border Background="{DynamicResource OverlayBrush}" IsVisible="{Binding InstancesManager.IsGroupDialogOpen}" ZIndex="1050"
+        <Border Background="{DynamicResource OverlayBrush}" IsVisible="False" anim:ZenithMotion.ModalOpen="{Binding InstancesManager.IsGroupDialogOpen}" ZIndex="1050"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <Border Background="{DynamicResource CardBrush}" CornerRadius="12" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1"
                     Width="400" HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 18 46 0 #55000000" Padding="22">
@@ -606,8 +607,8 @@
             </Border>
         </Border>
 
-        <!-- Update In-App Modal (soft fade-in via code-behind) -->
-        <Border x:Name="UpdateOverlay" Background="{DynamicResource OverlayBrush}" IsVisible="{Binding IsUpdateOpen}" ZIndex="2000"
+        <!-- Update In-App Modal -->
+        <Border x:Name="UpdateOverlay" Background="{DynamicResource OverlayBrush}" IsVisible="False" anim:ZenithMotion.ModalOpen="{Binding IsUpdateOpen}" ZIndex="2000"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="16" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1"
                     HorizontalAlignment="Center" VerticalAlignment="Center" Padding="24,20">
@@ -616,7 +617,7 @@
         </Border>
 
         <!-- Info Dialog Modal (Updates / Alerts) -->
-        <Border IsVisible="{Binding IsInfoDialogOpen}" Background="{DynamicResource OverlayBrush}" ZIndex="2100"
+        <Border IsVisible="False" anim:ZenithMotion.ModalOpen="{Binding IsInfoDialogOpen}" Background="{DynamicResource OverlayBrush}" ZIndex="2100"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderCardSoftBrush}" BorderThickness="1"
                     CornerRadius="12" Padding="24" Width="400" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -641,7 +642,8 @@
 
         <!-- MODAL: Add to Instance / World Selector (Rich Two-Pane Redesign) -->
         <Border Background="{DynamicResource OverlayBrush}"
-                IsVisible="{Binding ModpacksBrowser.IsAddToInstanceOpen}" ZIndex="1100"
+                IsVisible="False"
+                anim:ZenithMotion.ModalOpen="{Binding ModpacksBrowser.IsAddToInstanceOpen}" ZIndex="1100"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <Border Background="{DynamicResource CardBrush}" CornerRadius="14" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1"
                     Width="690" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="22">
@@ -826,7 +828,7 @@
                         </Border>
 
                         <!-- Right Pane Step 1: Search + Profile Cards -->
-                        <Grid Grid.Column="1" RowDefinitions="Auto,*" RowSpacing="10" IsVisible="{Binding !ModpacksBrowser.IsSelectWorldStep}">
+                        <Grid x:Name="AddToInstanceMainStep" Grid.Column="1" RowDefinitions="Auto,*" RowSpacing="10" IsVisible="{Binding !ModpacksBrowser.IsSelectWorldStep}">
                             <TextBox Grid.Row="0" Classes="darkInput" Text="{Binding ModpacksBrowser.InstanceSearchQuery}"
                                      PlaceholderText="{l10n:Tr Key=modal_search_instance}" Height="34" FontSize="12">
                                 <TextBox.InnerLeftContent>
@@ -908,7 +910,7 @@
                         </Grid>
 
                         <!-- Right Pane Step 2: Back Bar + Worlds List -->
-                        <Grid Grid.Column="1" RowDefinitions="Auto,*" RowSpacing="10" IsVisible="{Binding ModpacksBrowser.IsSelectWorldStep}">
+                        <Grid x:Name="AddToInstanceWorldStep" Grid.Column="1" RowDefinitions="Auto,*" RowSpacing="10" IsVisible="{Binding ModpacksBrowser.IsSelectWorldStep}">
                             <Grid Grid.Row="0" ColumnDefinitions="Auto,*" VerticalAlignment="Center">
                                 <Button Grid.Column="0" Command="{Binding ModpacksBrowser.BackToInstancesCommand}" Classes="subBtn" Height="34" Padding="12,0" HorizontalAlignment="Left">
                                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
@@ -979,7 +981,7 @@
         </Border>
 
         <!-- Toast Notification (Bottom Center) -->
-        <Border Classes="toastNotification" Classes.visible="{Binding IsToastVisible}"
+        <Border IsVisible="False" anim:ZenithMotion.ToastOpen="{Binding IsToastVisible}"
                 HorizontalAlignment="Center" VerticalAlignment="Bottom"
                 Margin="0,0,0,36" ZIndex="3000" IsHitTestVisible="False">
             <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1"

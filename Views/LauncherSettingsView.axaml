@@ -276,7 +276,7 @@
                     <!-- ========================================================= -->
                     <!-- TAB 1: MINECRAFT & GAME                                   -->
                     <!-- ========================================================= -->
-                    <StackPanel Spacing="18" IsVisible="{Binding IsSettingsTabGame}">
+                    <StackPanel x:Name="TabGamePanel" Spacing="18" IsVisible="{Binding IsSettingsTabGame}">
 
                         <!-- Section: Memory (RAM) Allocation -->
                         <Border Classes="settingsCard" IsVisible="{Binding IsSearchMemoryVisible}">
@@ -434,7 +434,7 @@
                     <!-- ========================================================= -->
                     <!-- TAB 2: JAVA RUNTIMES                                      -->
                     <!-- ========================================================= -->
-                    <StackPanel Spacing="18" IsVisible="{Binding IsSettingsTabJava}">
+                    <StackPanel x:Name="TabJavaPanel" Spacing="18" IsVisible="{Binding IsSettingsTabJava}">
 
                         <!-- Section: Java Management Strategy -->
                         <Border Classes="settingsCard" IsVisible="{Binding IsSearchJavaVisible}">
@@ -535,7 +535,7 @@
                     <!-- ========================================================= -->
                     <!-- TAB 3: LAUNCHER & SYSTEM (General)                        -->
                     <!-- ========================================================= -->
-                    <StackPanel Spacing="18" IsVisible="{Binding IsSettingsTabGeneral}">
+                    <StackPanel x:Name="TabGeneralPanel" Spacing="18" IsVisible="{Binding IsSettingsTabGeneral}">
 
                         <!-- General & Launch Behavior -->
                         <Border Classes="settingsCard">
@@ -637,7 +637,7 @@
                     <!-- ========================================================= -->
                     <!-- TAB 4: APPEARANCE                                         -->
                     <!-- ========================================================= -->
-                    <StackPanel Spacing="18" IsVisible="{Binding IsSettingsTabAppearance}">
+                    <StackPanel x:Name="TabAppearancePanel" Spacing="18" IsVisible="{Binding IsSettingsTabAppearance}">
                         <Border Classes="settingsCard" IsVisible="{Binding IsSearchAppearanceVisible}">
                             <StackPanel Spacing="16">
                                 <!-- Theme Header -->
@@ -789,6 +789,19 @@
                                             </Grid>
                                         </Border>
                                     </StackPanel>
+                                </Grid>
+
+                                <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
+
+                                <!-- UI Animations Toggle -->
+                                <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                    <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                        <TextBlock Classes="itemTitle" Text="{l10n:Tr set_ui_animations}"/>
+                                        <TextBlock Classes="itemDesc" Text="{l10n:Tr set_ui_animations_hint}"/>
+                                    </StackPanel>
+                                    <ToggleSwitch Grid.Column="1" IsChecked="{Binding UiAnimationsEnabled, Mode=TwoWay}"
+                                                  OnContent="{x:Null}" OffContent="{x:Null}"
+                                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                 </Grid>
                             </StackPanel>
                         </Border>

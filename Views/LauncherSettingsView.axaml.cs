@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Avalonia.Controls;
+using ZenithLauncher.UI.Animations;
 using ZenithLauncher.ViewModels.Pages;
 
 namespace ZenithLauncher.Views;
@@ -12,7 +13,16 @@ public partial class LauncherSettingsView : UserControl
     public LauncherSettingsView()
     {
         InitializeComponent();
+        SmoothScrollBehavior.Attach(SettingsContentScroll, wheelStep: 78.0, damping: 16.0);
         DataContextChanged += OnViewDataContextChanged;
+        DetachedFromVisualTree += (_, _) =>
+        {
+            if (_boundVm != null)
+            {
+                _boundVm.PropertyChanged -= OnVmPropertyChanged;
+                _boundVm = null;
+            }
+        };
     }
 
     private void OnViewDataContextChanged(object? sender, System.EventArgs e)
@@ -37,6 +47,19 @@ public partial class LauncherSettingsView : UserControl
             if (SettingsContentScroll != null)
             {
                 SettingsContentScroll.Offset = Avalonia.Vector.Zero;
+            }
+
+            if (_boundVm != null)
+            {
+                Control? activeTab = _boundVm.CurrentSettingsTab switch
+                {
+                    "Game" => TabGamePanel,
+                    "Java" => TabJavaPanel,
+                    "General" or "Launcher" => TabGeneralPanel,
+                    "Appearance" => TabAppearancePanel,
+                    _ => null
+                };
+                ZenithMotion.TransitionTab(activeTab);
             }
         }
     }

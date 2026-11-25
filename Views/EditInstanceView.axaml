@@ -6,6 +6,7 @@
         xmlns:models="using:ZenithLauncher.Models"
         xmlns:views="using:ZenithLauncher.Views"
         xmlns:l10n="using:ZenithLauncher.Extensions"
+        xmlns:anim="using:ZenithLauncher.UI.Animations"
         x:Class="ZenithLauncher.Views.EditInstanceView"
         x:DataType="vm:EditInstanceViewModel"
         Background="{DynamicResource BgBrush}"
@@ -87,11 +88,6 @@
             <Setter Property="CornerRadius" Value="10"/>
             <Setter Property="Padding" Value="12,10"/>
             <Setter Property="Margin" Value="0,0,0,6"/>
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="BorderBrush" Duration="0:0:0.15" Easing="CubicEaseOut"/>
-                </Transitions>
-            </Setter>
         </Style>
         <Style Selector="Border.eiRowCard:pointerover">
             <Setter Property="BorderBrush" Value="{DynamicResource BorderHoverBrush}"/>
@@ -223,7 +219,7 @@
             <Border Grid.Column="1" Background="{DynamicResource LogSidebarBrush}">
                 <Grid x:Name="TabContentGrid">
                 <!-- Overview / Dashboard -->
-                <ScrollViewer IsVisible="{Binding IsOverviewTab}" VerticalScrollBarVisibility="Auto">
+                <ScrollViewer x:Name="OverviewScroll" IsVisible="{Binding IsOverviewTab}" VerticalScrollBarVisibility="Auto">
                     <StackPanel Spacing="16" Margin="14,10,14,24">
                                                 <!-- Instance Hero Card -->
                         <Border Classes="zenSection">
@@ -517,7 +513,7 @@
                     </Grid>
                     <Border Grid.Row="1" Background="Transparent" Padding="0">
                         <Grid>
-                            <ListBox ItemsSource="{Binding DataPacks}" Background="Transparent" BorderThickness="0" Padding="0,0,4,0"
+                            <ListBox x:Name="DataPacksList" ItemsSource="{Binding DataPacks}" Background="Transparent" BorderThickness="0" Padding="0,0,4,0"
                                      ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                      IsVisible="{Binding HasDataPacks}">
                                 <ListBox.ItemContainerTheme>
@@ -592,7 +588,7 @@
                     <!-- Worlds List -->
                     <Border Grid.Row="1" Background="Transparent">
                         <Grid>
-                            <ListBox Classes="plainVirtualList" ItemsSource="{Binding WorldList.Entries}" Padding="0,0,4,0" ScrollViewer.VerticalScrollBarVisibility="Visible">
+                            <ListBox x:Name="WorldsList" Classes="plainVirtualList" ItemsSource="{Binding WorldList.Entries}" Padding="0,0,4,0" ScrollViewer.VerticalScrollBarVisibility="Visible">
                                     <ListBox.ItemTemplate>
                                         <DataTemplate x:DataType="models:InstanceFileEntry">
                                             <Border Classes="eiRowCard">
@@ -680,7 +676,7 @@
                     <!-- Servers List -->
                     <Border Grid.Row="1" Background="Transparent">
                         <Grid>
-                            <ListBox Classes="plainVirtualList" ItemsSource="{Binding Servers}" Padding="0,0,4,0" ScrollViewer.VerticalScrollBarVisibility="Visible">
+                            <ListBox x:Name="ServersList" Classes="plainVirtualList" ItemsSource="{Binding Servers}" Padding="0,0,4,0" ScrollViewer.VerticalScrollBarVisibility="Visible">
                                     <ListBox.ItemTemplate>
                                         <DataTemplate x:DataType="models:InstanceFileEntry">
                                             <Border Classes="eiRowCard">
@@ -750,7 +746,7 @@
                 </Grid>
 
                 <!-- Settings (Clean utilitarian controls) -->
-                <ScrollViewer IsVisible="{Binding IsSettingsTab}" VerticalScrollBarVisibility="Auto">
+                <ScrollViewer x:Name="SettingsScroll" IsVisible="{Binding IsSettingsTab}" VerticalScrollBarVisibility="Auto">
                     <StackPanel Spacing="16" Margin="24,16,24,24">
                                                 <controls:RamCardControl Title="{l10n:Tr Key=set_memory}"
                                               Subtitle="{l10n:Tr Key=set_memory_hint}"
@@ -853,7 +849,7 @@
             </StackPanel>
         </Border>
         <!-- Delete World Confirmation Overlay -->
-        <Border Grid.Row="0" Grid.RowSpan="2" Background="{DynamicResource OverlayBrush}" IsVisible="{Binding IsDeleteWorldConfirmOpen}"
+        <Border Grid.Row="0" Grid.RowSpan="2" Background="{DynamicResource OverlayBrush}" IsVisible="False" anim:ZenithMotion.ModalOpen="{Binding IsDeleteWorldConfirmOpen}"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="110">
             <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
                     BorderThickness="1" CornerRadius="12" Padding="24"
@@ -877,7 +873,7 @@
         </Border>
 
         <!-- Edit World Dialog Overlay -->
-        <Border Grid.Row="0" Grid.RowSpan="2" Background="{DynamicResource OverlayBrush}" IsVisible="{Binding IsEditWorldOpen}"
+        <Border Grid.Row="0" Grid.RowSpan="2" Background="{DynamicResource OverlayBrush}" IsVisible="False" anim:ZenithMotion.ModalOpen="{Binding IsEditWorldOpen}"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="110">
             <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
                     BorderThickness="1" CornerRadius="12" Padding="24"
@@ -900,7 +896,7 @@
             </Border>
         </Border>
         <!-- Delete Server Confirmation Overlay -->
-        <Border Grid.Row="0" Grid.RowSpan="2" Background="{DynamicResource OverlayBrush}" IsVisible="{Binding IsDeleteServerConfirmOpen}"
+        <Border Grid.Row="0" Grid.RowSpan="2" Background="{DynamicResource OverlayBrush}" IsVisible="False" anim:ZenithMotion.ModalOpen="{Binding IsDeleteServerConfirmOpen}"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="110">
             <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
                     BorderThickness="1" CornerRadius="12" Padding="24"
@@ -924,7 +920,7 @@
         </Border>
 
         <!-- Add Server Dialog Overlay -->
-        <Border Grid.Row="0" Grid.RowSpan="2" Background="{DynamicResource OverlayBrush}" IsVisible="{Binding IsAddServerOpen}"
+        <Border Grid.Row="0" Grid.RowSpan="2" Background="{DynamicResource OverlayBrush}" IsVisible="False" anim:ZenithMotion.ModalOpen="{Binding IsAddServerOpen}"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="110">
             <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
                     BorderThickness="1" CornerRadius="12" Padding="24"
@@ -953,7 +949,7 @@
             </Border>
         </Border>
         <!-- Mod Conflicts Resolution Overlay -->
-        <Border Grid.Row="0" Grid.RowSpan="2" Background="{DynamicResource OverlayBrush}" IsVisible="{Binding IsConflictDialogOpen}"
+        <Border Grid.Row="0" Grid.RowSpan="2" Background="{DynamicResource OverlayBrush}" IsVisible="False" anim:ZenithMotion.ModalOpen="{Binding IsConflictDialogOpen}"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="110">
             <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
                     BorderThickness="1" CornerRadius="12" Padding="24"
@@ -970,7 +966,7 @@
                                    TextWrapping="Wrap" FontSize="12.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
                     </StackPanel>
 
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,0,0,16">
+                    <ScrollViewer x:Name="ConflictListScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,0,0,16">
                         <ItemsControl ItemsSource="{Binding DuplicateConflicts}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="vm:DuplicateConflictGroup">

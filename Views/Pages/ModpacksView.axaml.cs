@@ -72,25 +72,42 @@ public partial class ModpacksView : UserControl
         if (_boundBrowser.IsDetailsOpen)
         {
             if (DetailsHost.Children.Count == 0)
-                DetailsHost.Children.Add(new Views.ProjectDetailsView { DataContext = _boundBrowser });
+            {
+                var view = new Views.ProjectDetailsView { DataContext = _boundBrowser };
+                DetailsHost.Children.Add(view);
+                ZenithMotion.AnimateEntrance(view, offsetX: 26, offsetY: 0, startScale: 1.0, startOpacity: 0.15, durationMs: 190);
+            }
             else if (!ReferenceEquals(DetailsHost.Children[0].DataContext, _boundBrowser))
+            {
                 DetailsHost.Children[0].DataContext = _boundBrowser;
+            }
         }
-        else
+        else if (DetailsHost.Children.Count > 0)
         {
             ClearHost(DetailsHost);
+            ZenithMotion.AnimateEntrance(CatalogContentRoot, offsetX: -14, offsetY: 0, startScale: 1.0, startOpacity: 0.35, durationMs: 155);
         }
 
         if (_boundBrowser.IsAuthorProfileOpen && _boundBrowser.CurrentAuthorProfileVm != null)
         {
             if (AuthorHost.Children.Count == 0)
-                AuthorHost.Children.Add(new Views.AuthorProfileView { DataContext = _boundBrowser.CurrentAuthorProfileVm });
+            {
+                var view = new Views.AuthorProfileView { DataContext = _boundBrowser.CurrentAuthorProfileVm };
+                AuthorHost.Children.Add(view);
+                ZenithMotion.AnimateEntrance(view, offsetX: 26, offsetY: 0, startScale: 1.0, startOpacity: 0.15, durationMs: 190);
+            }
             else if (!ReferenceEquals(AuthorHost.Children[0].DataContext, _boundBrowser.CurrentAuthorProfileVm))
+            {
                 AuthorHost.Children[0].DataContext = _boundBrowser.CurrentAuthorProfileVm;
+            }
         }
-        else
+        else if (AuthorHost.Children.Count > 0)
         {
             ClearHost(AuthorHost);
+            Control? revealTarget = _boundBrowser.IsDetailsOpen && DetailsHost.Children.Count > 0
+                ? DetailsHost.Children[0] as Control
+                : CatalogContentRoot;
+            ZenithMotion.AnimateEntrance(revealTarget, offsetX: -14, offsetY: 0, startScale: 1.0, startOpacity: 0.35, durationMs: 155);
         }
     }
 

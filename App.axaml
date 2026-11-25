@@ -1,6 +1,7 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="using:ZenithLauncher"
+             xmlns:anim="using:ZenithLauncher.UI.Animations"
              x:Class="ZenithLauncher.App"
              RequestedThemeVariant="Dark">
     <Application.Resources>
@@ -58,23 +59,6 @@
         <Style Selector="Border.instanceCard.dragging">
             <Setter Property="Opacity" Value="0.0"/>
         </Style>
-
-        <!-- Toast Notification Animation -->
-        <Style Selector="Border.toastNotification">
-            <Setter Property="Opacity" Value="0"/>
-            <Setter Property="RenderTransform" Value="translateY(24px)"/>
-            <Setter Property="Transitions">
-                <Transitions>
-                    <DoubleTransition Property="Opacity" Duration="0:0:0.25" Easing="CubicEaseOut"/>
-                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.3" Easing="BackEaseOut"/>
-                </Transitions>
-            </Setter>
-        </Style>
-        <Style Selector="Border.toastNotification.visible">
-            <Setter Property="Opacity" Value="1"/>
-            <Setter Property="RenderTransform" Value="translateY(0px)"/>
-        </Style>
-
 
         <!-- ListBoxItem: ban system blue/cyan selection highlights, preserve dark theme palette -->
         <Style Selector="ListBoxItem">
@@ -145,6 +129,7 @@
             <Setter Property="Padding" Value="4"/>
             <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
             <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="anim:ZenithMotion.RevealOnAttach" Value="True"/>
         </Style>
         <Style Selector="FlyoutPresenter /template/ Border#LayoutRoot">
             <Setter Property="Background" Value="{StaticResource CardBrush}"/>
@@ -163,6 +148,7 @@
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="10"/>
             <Setter Property="Padding" Value="4"/>
+            <Setter Property="anim:ZenithMotion.RevealOnAttach" Value="True"/>
 
         </Style>
         <Style Selector="MenuFlyoutPresenter:open">
@@ -450,6 +436,25 @@
             <Setter Property="BorderThickness" Value="0,0,0,1"/>
         </Style>
 
+        <!-- Instant No-Motion Mode: removes all XAML transitions when UI animations are turned off -->
+        <Style Selector="Window.noMotion Button">
+            <Setter Property="Transitions" Value="{x:Null}"/>
+        </Style>
+        <Style Selector="Window.noMotion Button.modpackInstalledBtn /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Transitions" Value="{x:Null}"/>
+        </Style>
+        <Style Selector="Window.noMotion Border.zenRow">
+            <Setter Property="Transitions" Value="{x:Null}"/>
+        </Style>
+        <Style Selector="Window.noMotion CheckBox /template/ Border#NormalRectangle">
+            <Setter Property="Transitions" Value="{x:Null}"/>
+        </Style>
+        <Style Selector="Window.noMotion ToggleSwitch /template/ Panel#PART_MovingKnobs">
+            <Setter Property="Transitions" Value="{x:Null}"/>
+        </Style>
+        <Style Selector="Window.noMotion ToggleSwitch /template/ Panel#PART_SwitchKnob">
+            <Setter Property="Transitions" Value="{x:Null}"/>
+        </Style>
 
     </Application.Styles>
 </Application>

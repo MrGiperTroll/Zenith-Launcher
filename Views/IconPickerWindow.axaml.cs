@@ -1,6 +1,7 @@
 ﻿using System;
 using Avalonia.Controls;
-using ZenithLauncher.Services;
+using ZenithLauncher.Services;
+using ZenithLauncher.UI.Animations;
 using ZenithLauncher.ViewModels;
 
 namespace ZenithLauncher.Views;
@@ -13,7 +14,8 @@ public partial class IconPickerWindow : Window
 
     public IconPickerWindow()
     {
-        InitializeComponent();
+        InitializeComponent();
+        ZenithMotion.RegisterWindow(this);
         DataContextChanged += OnDataContextChanged;
     }
 

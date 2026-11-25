@@ -4,10 +4,11 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:ZenithLauncher.ViewModels"
              xmlns:l10n="using:ZenithLauncher.Extensions"
+             xmlns:anim="using:ZenithLauncher.UI.Animations"
              x:Class="ZenithLauncher.Views.Components.GameConsoleDrawerControl"
              x:DataType="vm:MainWindowViewModel"
              mc:Ignorable="d">
-        <Border Grid.Row="0" Grid.RowSpan="2" IsVisible="{Binding Console.IsConsoleDialogOpen}" Background="{DynamicResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1000">
+        <Border Grid.Row="0" Grid.RowSpan="2" IsVisible="False" anim:ZenithMotion.ModalOpen="{Binding Console.IsConsoleDialogOpen}" Background="{DynamicResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1000">
             <Border Background="{DynamicResource CardAltBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="12" Width="700" Height="480" Padding="18" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <Grid RowDefinitions="Auto,*,Auto">
                     <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,10">

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -19,7 +20,21 @@ public partial class EditInstanceView : UserControl
     public EditInstanceView()
     {
         InitializeComponent();
+        SmoothScrollBehavior.Attach(OverviewScroll, wheelStep: 78.0, damping: 16.0);
+        SmoothScrollBehavior.Attach(DataPacksList, wheelStep: 82.0, damping: 14.0);
+        SmoothScrollBehavior.Attach(WorldsList, wheelStep: 82.0, damping: 14.0);
+        SmoothScrollBehavior.Attach(ServersList, wheelStep: 82.0, damping: 14.0);
+        SmoothScrollBehavior.Attach(SettingsScroll, wheelStep: 78.0, damping: 16.0);
+        SmoothScrollBehavior.Attach(ConflictListScroll, wheelStep: 68.0, damping: 16.0);
         DataContextChanged += OnDataContextChanged;
+        DetachedFromVisualTree += (_, _) =>
+        {
+            if (_boundVm != null)
+            {
+                _boundVm.PropertyChanged -= OnVmPropertyChanged;
+                _boundVm = null;
+            }
+        };
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
     }
 
@@ -42,7 +57,8 @@ public partial class EditInstanceView : UserControl
     {
         if (e.PropertyName == nameof(EditInstanceViewModel.SelectedTab))
         {
-            // Tab switching is instantaneous and static with zero jitter or layout shift
+            var activeTab = TabContentGrid.Children.OfType<Control>().FirstOrDefault(c => c.IsVisible);
+            ZenithMotion.TransitionTab(activeTab);
         }
         else if (e.PropertyName == nameof(EditInstanceViewModel.LogText))
         {

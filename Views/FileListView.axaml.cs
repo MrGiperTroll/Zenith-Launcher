@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using ZenithLauncher.UI.Animations;
 using ZenithLauncher.ViewModels;
 
 namespace ZenithLauncher.Views;
@@ -13,6 +14,8 @@ public partial class FileListView : UserControl
     public FileListView()
     {
         InitializeComponent();
+        SmoothScrollBehavior.Attach(EntryList, wheelStep: 82.0, damping: 14.0);
+        SmoothScrollBehavior.Attach(GalleryList, wheelStep: 82.0, damping: 14.0);
         AddHandler(DragDrop.DropEvent, OnDrop);
         AddHandler(DragDrop.DragOverEvent, OnDragOver);
         AddHandler(DragDrop.DragLeaveEvent, OnDragLeave);

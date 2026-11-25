@@ -219,7 +219,7 @@
                 <!-- Versions Direct Container (No Extra Outer Card) -->
                 <Panel Grid.Row="2" VerticalAlignment="Stretch">
                     <!-- Grouped Accordion List -->
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" VerticalAlignment="Stretch" IsVisible="{Binding !UseFlatVersionList}">
+                    <ScrollViewer x:Name="GroupedVersionsScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" VerticalAlignment="Stretch" IsVisible="{Binding !UseFlatVersionList}">
                         <ItemsControl ItemsSource="{Binding VersionGroups}" Margin="0,0,8,0">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="vm:VersionGroup">
@@ -268,7 +268,7 @@
                     </ScrollViewer>
 
                     <!-- Flat List Mode (virtualized) -->
-                    <ListBox Classes="plainVirtualList" ItemsSource="{Binding FlatVersions}" Padding="0,0,8,0"
+                    <ListBox x:Name="FlatVersionsList" Classes="plainVirtualList" ItemsSource="{Binding FlatVersions}" Padding="0,0,8,0"
                              ScrollViewer.VerticalScrollBarVisibility="Auto" IsVisible="{Binding UseFlatVersionList}">
                         <ListBox.ItemTemplate>
                             <DataTemplate x:DataType="vm:FlatVersionItem">
@@ -295,7 +295,7 @@
             </Grid>
 
             <!-- RIGHT COLUMN: PROFILE IDENTITY & SETTINGS -->
-            <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <ScrollViewer x:Name="ProfileDetailsScroll" Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                 <StackPanel Spacing="12" Margin="0,0,4,0">
 
                     <!-- CARD 1: PROFILE DETAILS (Clean, No Horizontal Line, No Duplicate Title) -->

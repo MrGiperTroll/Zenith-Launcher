@@ -18,6 +18,15 @@ public enum LauncherNavPage
     CreateServer,
 }
 
+public enum NavTransitionKind
+{
+    LateralTab,
+    HistoryBack,
+    HistoryForward,
+    DrillIn,
+    DrillOut
+}
+
 public class BreadcrumbItem : ObservableObject
 {
     public string Title { get; set; } = string.Empty;

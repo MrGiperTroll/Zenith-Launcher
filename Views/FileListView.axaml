@@ -4,6 +4,7 @@
         xmlns:converters="using:ZenithLauncher.Converters"
              xmlns:models="using:ZenithLauncher.Models"
         xmlns:l10n="using:ZenithLauncher.Extensions"
+             xmlns:anim="using:ZenithLauncher.UI.Animations"
              x:Class="ZenithLauncher.Views.FileListView"
              x:DataType="vm:FileListViewModel"
              DragDrop.AllowDrop="True"
@@ -18,11 +19,6 @@
             <Setter Property="CornerRadius" Value="10"/>
             <Setter Property="Padding" Value="12,10"/>
             <Setter Property="Margin" Value="0,0,0,6"/>
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="BorderBrush" Duration="0:0:0.15" Easing="CubicEaseOut"/>
-                </Transitions>
-            </Setter>
         </Style>
         <Style Selector="Border.fileRowCard:pointerover">
             <Setter Property="BorderBrush" Value="{DynamicResource BorderHoverBrush}"/>
@@ -305,7 +301,7 @@
 
 
         <!-- Delete File Confirmation Overlay -->
-        <Border Grid.Row="0" Grid.RowSpan="3" Background="{DynamicResource OverlayBrush}" IsVisible="{Binding IsDeleteConfirmOpen}"
+        <Border Grid.Row="0" Grid.RowSpan="3" Background="{DynamicResource OverlayBrush}" IsVisible="False" anim:ZenithMotion.ModalOpen="{Binding IsDeleteConfirmOpen}"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="100">
             <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderDarkBrush}"
                     BorderThickness="1" CornerRadius="12" Padding="24"
@@ -331,7 +327,8 @@
         <!-- Lightbox Modal for Screenshots -->
         <Border Grid.Row="0" Grid.RowSpan="3"
                 Background="{DynamicResource OverlayBrush}"
-                IsVisible="{Binding IsLightboxOpen}"
+                IsVisible="False"
+                anim:ZenithMotion.ModalOpen="{Binding IsLightboxOpen}"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch"
                 ZIndex="200">

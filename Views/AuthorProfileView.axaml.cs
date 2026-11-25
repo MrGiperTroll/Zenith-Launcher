@@ -1,6 +1,6 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Interactivity;
+using ZenithLauncher.UI.Animations;
 using ZenithLauncher.ViewModels;
 using ZenithLauncher.ViewModels.Items;
 
@@ -11,6 +11,7 @@ public partial class AuthorProfileView : UserControl
     public AuthorProfileView()
     {
         InitializeComponent();
+        SmoothScrollBehavior.Attach(AuthorProjectsList, wheelStep: 86.0, damping: 14.0);
     }
 
     private void OnProjectCardTapped(object? sender, TappedEventArgs e)

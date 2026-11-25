@@ -14,6 +14,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ZenithLauncher.Models;
 using ZenithLauncher.Services;
+using ZenithLauncher.UI.Animations;
 using ZenithLauncher.UI.Theming;
 using ZenithLauncher.ViewModels.Common;
 
@@ -75,7 +76,7 @@ public partial class LauncherSettingsViewModel : ViewModelBase
         IsSearchJvmArgsVisible = "jvm arguments flags аргументы jvm".Contains(q);
         IsSearchLanguageVisible = "language localization english russian язык".Contains(q);
         IsSearchDiscordVisible = "discord rich presence rpc дискорд статус".Contains(q);
-        IsSearchAppearanceVisible = "appearance theme color accent name branding внешний вид тема цвет акцент оформление launcher лаунчер настройки scale масштаб интерфейс".Contains(q);
+        IsSearchAppearanceVisible = "appearance theme color accent name branding внешний вид тема цвет акцент оформление launcher лаунчер настройки scale масштаб интерфейс animations animation motion плавность анимации анимация анімації переходы".Contains(q);
     }
 
     // --- Tabs ---
@@ -478,11 +479,18 @@ public partial class LauncherSettingsViewModel : ViewModelBase
     // --- System & Tray & Hardware Accel ---
     [ObservableProperty] private bool _minimizeToTrayOnClose;
     [ObservableProperty] private bool _hardwareAcceleration = true;
+    [ObservableProperty] private bool _uiAnimationsEnabled = true;
     [ObservableProperty] private string _cacheStatusText = string.Empty;
     [ObservableProperty] private bool _isClearingCache;
 
     partial void OnMinimizeToTrayOnCloseChanged(bool value)
     {
+        if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
+    }
+
+    partial void OnUiAnimationsEnabledChanged(bool value)
+    {
+        ZenithMotion.SetEnabled(value);
         if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
     }
 
@@ -1116,6 +1124,8 @@ public partial class LauncherSettingsViewModel : ViewModelBase
             AutoManageJava = cfg.AutoManageJava;
             DiscordRpcEnabled = cfg.DiscordRpcEnabled;
             MinimizeToTrayOnClose = cfg.MinimizeToTrayOnClose;
+            UiAnimationsEnabled = cfg.UiAnimationsEnabled;
+            ZenithMotion.SetEnabled(cfg.UiAnimationsEnabled);
             _isSyncingHardwareAccel = true;
             try
             {
@@ -1287,6 +1297,7 @@ public partial class LauncherSettingsViewModel : ViewModelBase
         cfg.AutoManageJava = AutoManageJava;
         cfg.DiscordRpcEnabled = DiscordRpcEnabled;
         cfg.MinimizeToTrayOnClose = MinimizeToTrayOnClose;
+        cfg.UiAnimationsEnabled = UiAnimationsEnabled;
         cfg.HardwareAcceleration = HardwareAcceleration;
         cfg.CurseForgeApiKey = CurseForgeApiKey;
         cfg.LauncherScale = LauncherScale;

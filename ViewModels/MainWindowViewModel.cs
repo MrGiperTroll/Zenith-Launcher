@@ -23,6 +23,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
 
 using Avalonia.Media;
+using ZenithLauncher.UI.Animations;
 
 using Avalonia.Platform.Storage;
 
@@ -344,50 +345,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public bool IsThemeSubTabSimple => ThemeSettingsVm.IsThemeSubTabSimple;
     public bool IsThemeSubTabAdvanced => ThemeSettingsVm.IsThemeSubTabAdvanced;
-
-    public string SelectedParticle
-    {
-        get => ThemeSettingsVm.SelectedParticle;
-        set => ThemeSettingsVm.SelectedParticle = value;
-    }
-
-    public string[] ParticleOptions => ThemeSettingsVm.ParticleOptions;
-
-    public int ParticleCount
-    {
-        get => ThemeSettingsVm.ParticleCount;
-        set => ThemeSettingsVm.ParticleCount = value;
-    }
-
-    public double ParticleScale
-    {
-        get => ThemeSettingsVm.ParticleScale;
-        set => ThemeSettingsVm.ParticleScale = value;
-    }
-
-    public double ParticleSpeed
-    {
-        get => ThemeSettingsVm.ParticleSpeed;
-        set => ThemeSettingsVm.ParticleSpeed = value;
-    }
-
-    public string ParticleColorHex
-    {
-        get => ThemeSettingsVm.ParticleColorHex;
-        set => ThemeSettingsVm.ParticleColorHex = value;
-    }
-
-    public double ParticleAngleDeg
-    {
-        get => ThemeSettingsVm.ParticleAngleDeg;
-        set => ThemeSettingsVm.ParticleAngleDeg = value;
-    }
-
-    public string ParticleTexturePath
-    {
-        get => ThemeSettingsVm.ParticleTexturePath;
-        set => ThemeSettingsVm.ParticleTexturePath = value;
-    }
 
     public IRelayCommand ChooseThemeCommand => ThemeSettingsVm.ChooseThemeCommand;
     public IRelayCommand SelectThemeCommand => ThemeSettingsVm.SelectThemeCommand;
@@ -1729,7 +1686,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         if (e.PropertyName is "JvmArgs" or "MinRamMb" or "RamMb" or "SelectedLaunchBehavior" or "GameWidth" or "GameHeight" or "IsFullscreen" or "CustomJavaPath" or "SelectedJavaMode"
 
-            or "AutoManageJava" or "DiscordRpcEnabled" or "SelectedLanguage" or "LauncherScale" or "SelectedParticle")
+            or "AutoManageJava" or "DiscordRpcEnabled" or "SelectedLanguage" or "LauncherScale")
 
         {
 
@@ -1885,6 +1842,7 @@ public partial class MainWindowViewModel : ViewModelBase
                     Launch?.LoadFromConfig(cfg);
                     LauncherSettingsVm?.LoadFromConfig(cfg);
                     ThemeSettingsVm?.LoadFromConfig(cfg);
+                    ZenithMotion.SetEnabled(cfg.UiAnimationsEnabled);
                 }
             }
         }

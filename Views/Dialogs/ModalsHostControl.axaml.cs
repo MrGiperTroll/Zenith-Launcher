@@ -15,12 +15,15 @@ namespace ZenithLauncher.Views.Dialogs;
 public partial class ModalsHostControl : UserControl
 {
     private MainWindowViewModel? _subscribedVm;
+    private INotifyPropertyChanged? _subscribedInstances;
+    private INotifyPropertyChanged? _subscribedBrowser;
     private readonly HashSet<ScrollViewer> _attachedSmoothScrolls = new();
 
     public ModalsHostControl()
     {
         InitializeComponent();
         DataContextChanged += OnDataContextChanged;
+        DetachedFromVisualTree += (_, _) => UnsubscribeAll();
     }
 
     private void OnSmoothScrollLoaded(object? sender, RoutedEventArgs e)
@@ -31,31 +34,50 @@ public partial class ModalsHostControl : UserControl
 
     private void OnDataContextChanged(object? sender, EventArgs e)
     {
-        if (_subscribedVm != null)
-            _subscribedVm.PropertyChanged -= OnVmPropertyChanged;
-        _subscribedVm = null;
+        UnsubscribeAll();
 
         if (DataContext is not MainWindowViewModel vm) return;
         _subscribedVm = vm;
-        vm.PropertyChanged += OnVmPropertyChanged;
+        _subscribedInstances = vm.InstancesManager;
+        _subscribedBrowser = vm.ModpacksBrowser;
+        _subscribedInstances.PropertyChanged += OnInstancesPropertyChanged;
+        _subscribedBrowser.PropertyChanged += OnBrowserPropertyChanged;
     }
 
-    private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    private void UnsubscribeAll()
     {
-        if (e.PropertyName == nameof(MainWindowViewModel.IsUpdateOpen) && _subscribedVm!.IsUpdateOpen)
+        if (_subscribedInstances != null)
         {
-            var overlay = this.FindControl<Control>("UpdateOverlay");
-            if (overlay != null)
-                UiFx.FadeInNow(overlay, 240, 4);
+            _subscribedInstances.PropertyChanged -= OnInstancesPropertyChanged;
+            _subscribedInstances = null;
         }
-        else if (e.PropertyName == nameof(MainWindowViewModel.IsJavaInstallerOpen))
+
+        if (_subscribedBrowser != null)
         {
-            if (_subscribedVm!.IsJavaInstallerOpen)
-            {
-                var card = this.FindControl<Border>("JavaInstallerCard");
-                if (card != null)
-                    UiFx.FadeInNow(card, 240, 6);
-            }
+            _subscribedBrowser.PropertyChanged -= OnBrowserPropertyChanged;
+            _subscribedBrowser = null;
+        }
+
+        _subscribedVm = null;
+    }
+
+    private void OnInstancesPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(ViewModels.Components.InstancesViewModel.ImportSourceTab) &&
+            _subscribedVm?.IsImportPickerOpen == true)
+        {
+            ZenithMotion.TransitionTab(ImportTabContentCard, offsetX: 0, offsetY: 5, durationMs: 115);
+        }
+    }
+
+    private void OnBrowserPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(ModpacksBrowserViewModel.IsSelectWorldStep) &&
+            _subscribedVm?.ModpacksBrowser.IsAddToInstanceOpen == true)
+        {
+            bool toWorld = _subscribedVm.ModpacksBrowser.IsSelectWorldStep;
+            var target = toWorld ? AddToInstanceWorldStep : AddToInstanceMainStep;
+            ZenithMotion.AnimateEntrance(target, offsetX: toWorld ? 16 : -16, offsetY: 0, startScale: 1.0, startOpacity: 0.25, durationMs: 145);
         }
     }
 

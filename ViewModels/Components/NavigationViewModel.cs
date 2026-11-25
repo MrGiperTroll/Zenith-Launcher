@@ -65,6 +65,9 @@ public partial class NavigationViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsSettingsTabLauncher));
     }
 
+    public NavTransitionKind LastNavigationKind { get; private set; } = NavTransitionKind.LateralTab;
+    public int LastNavigationOrderDelta { get; private set; }
+
     [ObservableProperty]
     private LauncherNavPage _currentPage = LauncherNavPage.Profiles;
 
@@ -215,6 +218,8 @@ public partial class NavigationViewModel : ViewModelBase
                 DisposeHistoryEntry(_navHistory[_historyIndex]);
             _historyIndex--;
 
+            LastNavigationKind = NavTransitionKind.HistoryBack;
+            LastNavigationOrderDelta = -1;
             ApplyHistoryEntry(_navHistory[_historyIndex]);
             UpdateHistoryButtons();
         }
@@ -235,6 +240,8 @@ public partial class NavigationViewModel : ViewModelBase
                 DisposeHistoryEntry(_navHistory[_historyIndex]);
             _historyIndex++;
 
+            LastNavigationKind = NavTransitionKind.HistoryForward;
+            LastNavigationOrderDelta = 1;
             ApplyHistoryEntry(_navHistory[_historyIndex]);
             UpdateHistoryButtons();
         }
@@ -376,6 +383,8 @@ public partial class NavigationViewModel : ViewModelBase
                 hist.SubTitle = tab;
                 hist.EditInstanceVm.SelectTab(tab);
             }
+            LastNavigationKind = NavTransitionKind.DrillOut;
+            LastNavigationOrderDelta = -1;
             ApplyHistoryEntry(hist);
             UpdateHistoryButtons();
         }
@@ -521,6 +530,7 @@ public partial class NavigationViewModel : ViewModelBase
         }
 
         _historyIndex = _navHistory.Count - 1;
+        UpdateTransitionKind(prevActiveEntry?.Page ?? CurrentPage, entry.Page);
         ApplyHistoryEntry(entry);
         if (prevActiveEntry != null)
         {
@@ -528,6 +538,36 @@ public partial class NavigationViewModel : ViewModelBase
         }
         UpdateHistoryButtons();
     }
+
+    private void UpdateTransitionKind(LauncherNavPage from, LauncherNavPage to)
+    {
+        if (to is LauncherNavPage.EditInstance or LauncherNavPage.CreateProfile or LauncherNavPage.CreateServer
+            or LauncherNavPage.ContentBrowser or LauncherNavPage.ServerManager)
+        {
+            LastNavigationKind = NavTransitionKind.DrillIn;
+            LastNavigationOrderDelta = 1;
+        }
+        else if (from is LauncherNavPage.EditInstance or LauncherNavPage.CreateProfile or LauncherNavPage.CreateServer
+            or LauncherNavPage.ContentBrowser or LauncherNavPage.ServerManager)
+        {
+            LastNavigationKind = NavTransitionKind.DrillOut;
+            LastNavigationOrderDelta = -1;
+        }
+        else
+        {
+            LastNavigationKind = NavTransitionKind.LateralTab;
+            LastNavigationOrderDelta = GetSidebarOrder(to) - GetSidebarOrder(from);
+        }
+    }
+
+    private static int GetSidebarOrder(LauncherNavPage page) => page switch
+    {
+        LauncherNavPage.Profiles => 0,
+        LauncherNavPage.Modpacks => 1,
+        LauncherNavPage.Accounts => 2,
+        LauncherNavPage.Settings => 3,
+        _ => 0
+    };
 
     private void ApplyHistoryEntry(HistoryEntry entry)
     {

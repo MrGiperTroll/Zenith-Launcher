@@ -18,6 +18,8 @@
                     Classes="instanceCard" Classes.dragging="{Binding IsDragging}"
                     BorderBrush="{Binding IsSelected, Converter={StaticResource BoolToBorderBrushConverter}}"
                     BorderThickness="1"
+                    controls:SnowCollider.IsEnabled="True"
+                    controls:SnowCollider.SurfaceId="{Binding Id}"
                     Tag="{Binding}" Cursor="Hand"
                     PointerPressed="OnInstanceCardPointerPressed"
                     Tapped="OnInstanceCardTapped"
@@ -71,7 +73,8 @@
                                 <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" Margin="0,0,0,8">
                                     <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center"
                                                 IsVisible="{Binding HasProfileGroups}">
-                                        <Button x:Name="GroupFilterBtn" Classes="filterDropdownBtn" MinWidth="136" Height="32" Padding="10,0">
+                                        <Button x:Name="GroupFilterBtn" Classes="filterDropdownBtn" MinWidth="136" Height="32" Padding="10,0"
+                                                controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="profiles_group_filter">
                                             <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="7" VerticalAlignment="Center">
                                                 <PathIcon Grid.Column="0"
                                                           Data="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
@@ -118,20 +121,24 @@
                                         <Button Classes="rowActionBtn" Width="28" Height="28"
                                                 IsVisible="{Binding !IsAllGroupsSelected}"
                                                 Command="{Binding SelectProfileGroupCommand}" CommandParameter=""
-                                                ToolTip.Tip="{l10n:Tr Key=grp_all}">
+                                                ToolTip.Tip="{l10n:Tr Key=grp_all}"
+                                                controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="profiles_group_clear">
                                             <PathIcon Data="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
                                                       Width="10" Height="10"/>
                                         </Button>
                                     </StackPanel>
-                                    <Button Grid.Column="1" Classes="subBtn" Command="{Binding ImportInstancesCommand}" Padding="14,7">
+                                    <Button Grid.Column="1" Classes="subBtn" Command="{Binding ImportInstancesCommand}" Padding="14,7"
+                                            controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="profiles_import">
                                         <TextBlock Text="{l10n:Tr Key=profile_import}" FontSize="12" FontWeight="SemiBold"/>
                                     </Button>
-                                    <Button Grid.Column="2" Classes="primaryBtn" Command="{Binding OpenNewInstanceDialogCommand}" Padding="14,7">
+                                    <Button Grid.Column="2" Classes="primaryBtn" Command="{Binding OpenNewInstanceDialogCommand}" Padding="14,7"
+                                            controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="profiles_create">
                                         <TextBlock Text="{l10n:Tr Key=mw_create_btn}" FontSize="12" FontWeight="Bold"/>
                                     </Button>
                                 </Grid>
 
-                            <Border IsVisible="{Binding !HasInstances}" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="36" Margin="0,10,0,0">
+                            <Border IsVisible="{Binding !HasInstances}" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="12" Padding="36" Margin="0,10,0,0"
+                                    controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="profiles_empty_card">
                                 <StackPanel HorizontalAlignment="Center" Spacing="6">
 <TextBlock Text="{l10n:Tr Key=mw_no_profiles}" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
                         <TextBlock Text="{l10n:Tr Key=mw_no_profiles_hint}" Foreground="{DynamicResource TextPlaceholderBrush}" FontSize="12" HorizontalAlignment="Center" TextWrapping="Wrap" MaxWidth="320" TextAlignment="Center"/>

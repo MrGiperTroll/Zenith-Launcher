@@ -175,13 +175,14 @@
         </Grid>
 
         <!-- MODAL: Console & Logs -->
-        <components:GameConsoleDrawerControl Grid.Row="0" Grid.RowSpan="2" />
+        <components:GameConsoleDrawerControl x:Name="ConsoleDrawer" Grid.Row="0" Grid.RowSpan="2" />
 
         <!-- MODALS: In-App Dialogs and Popups Host -->
-        <dialogsView:ModalsHostControl Grid.Row="0" Grid.RowSpan="2" />
+        <dialogsView:ModalsHostControl x:Name="ModalsHost" Grid.Row="0" Grid.RowSpan="2" />
     </Grid>
     </LayoutTransformControl>
     <controls:ParticleOverlayControl
+        x:Name="ParticleOverlay"
         ParticleType="{Binding LauncherSettingsVm.ParticleType}"
         LeafPalette="{Binding LauncherSettingsVm.ParticleLeafPalette}"
         CustomImagePath="{Binding LauncherSettingsVm.ParticleCustomImagePath}"
@@ -190,6 +191,8 @@
         ParticleWind="{Binding LauncherSettingsVm.ParticleWind}"
         ParticleSize="{Binding LauncherSettingsVm.ParticleSize}"
         ParticleOpacity="{Binding LauncherSettingsVm.ParticleOpacity}"
+        SnowPhysicsEnabled="{Binding LauncherSettingsVm.SnowPhysicsEnabled}"
+        ActivePageKey="{Binding CurrentPageKey}"
         IsHitTestVisible="False"/>
     </Panel>
     </Border>

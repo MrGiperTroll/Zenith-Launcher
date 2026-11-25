@@ -11,6 +11,7 @@
              xmlns:l10n="using:ZenithLauncher.Extensions"
 
              xmlns:pages="using:ZenithLauncher.ViewModels.Pages"
+             xmlns:controls="using:ZenithLauncher.Controls"
              xmlns:converters="using:ZenithLauncher.Converters"
              xmlns:anim="using:ZenithLauncher.UI.Animations"
 
@@ -271,7 +272,7 @@
 
 
 
-    <Panel>
+    <Panel controls:SnowCollider.PageKey="Accounts" controls:SnowCollider.IsPageScope="True">
     <Grid ColumnDefinitions="*,260" Margin="0,0,8,0">
 
 
@@ -287,7 +288,8 @@
                             <ItemsControl.ItemTemplate>
 
                                 <DataTemplate x:DataType="vm:AccountRow">
-                                    <Border Classes="accRowCard" Classes.active="{Binding IsActive}" Classes.dragging="{Binding IsDragging}" Tag="{Binding}" Margin="0,0,0,6">
+                                    <Border Classes="accRowCard" Classes.active="{Binding IsActive}" Classes.dragging="{Binding IsDragging}" Tag="{Binding}" Margin="0,0,0,6"
+                                            controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="{Binding Username}">
                                         <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                             <!-- Switch account button (covers info area) -->
                                             <Button Grid.Column="0" Classes="accSwitchBtn"
@@ -352,7 +354,8 @@
                     <!-- Clean action buttons (Qoder style: no instruction walls) -->
 
                     <StackPanel IsVisible="{Binding !IsOfflinePanelOpen}" Spacing="8">
-                        <Button Classes="methodBtn" Command="{Binding LoginMicrosoftCommand}">
+                        <Button Classes="methodBtn" Command="{Binding LoginMicrosoftCommand}"
+                                controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="acc_ms">
 
                             <Grid ColumnDefinitions="Auto,*" VerticalAlignment="Center">
 
@@ -370,7 +373,8 @@
 
 
 
-                        <Button Classes="methodBtn" Command="{Binding LoginElyByCommand}">
+                        <Button Classes="methodBtn" Command="{Binding LoginElyByCommand}"
+                                controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="acc_ely">
 
                             <Grid ColumnDefinitions="Auto,*" VerticalAlignment="Center">
 
@@ -388,7 +392,8 @@
 
 
 
-                        <Button Classes="methodBtn" Command="{Binding ShowOfflinePanelCommand}">
+                        <Button Classes="methodBtn" Command="{Binding ShowOfflinePanelCommand}"
+                                controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="acc_offline">
 
                             <Grid ColumnDefinitions="Auto,*" VerticalAlignment="Center">
 

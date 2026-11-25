@@ -4,30 +4,35 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:ZenithLauncher.ViewModels"
              xmlns:models="using:ZenithLauncher.Models"
+             xmlns:controls="using:ZenithLauncher.Controls"
              xmlns:l10n="using:ZenithLauncher.Extensions"
              x:Class="ZenithLauncher.Views.Components.SidebarNavigationControl"
              x:DataType="vm:MainWindowViewModel"
+             controls:SnowCollider.PageKey="Chrome"
              mc:Ignorable="d">
                     <Border Grid.Column="0" Width="220" Background="{DynamicResource SidebarBgBrush}"
                             BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="0,0,1,0" Padding="0">
                         <Grid RowDefinitions="*,Auto">
                             <!-- Nav items (Profiles, Modpacks, Servers, Directory, Settings) -->
                             <StackPanel Grid.Row="0" Spacing="4" Margin="10,10,10,10">
-                                <Button Classes="discordNavBtn" Classes.active="{Binding IsProfilesView}" Command="{Binding ShowProfilesCommand}" ToolTip.Tip="{l10n:Tr Key=nav_profiles}">
+                                <Button Classes="discordNavBtn" Classes.active="{Binding IsProfilesView}" Command="{Binding ShowProfilesCommand}" ToolTip.Tip="{l10n:Tr Key=nav_profiles}"
+                                        controls:SnowCollider.IsEnabled="True" controls:SnowCollider.OnlyWhenActive="True" controls:SnowCollider.SurfaceId="sidebar_profiles">
                                     <Grid ColumnDefinitions="30,*" VerticalAlignment="Center">
                                         <PathIcon Grid.Column="0" Data="M3 3H10V10H3V3M14 3H21V10H14V3M3 14H10V21H3V14M14 14H21V21H14V14Z" Width="18" Height="18" HorizontalAlignment="Left" VerticalAlignment="Center"/>
                                         <TextBlock Grid.Column="1" Text="{l10n:Tr Key=nav_profiles}" FontSize="13.5" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                     </Grid>
                                 </Button>
 
-                                <Button Classes="discordNavBtn" Classes.active="{Binding IsModpacksView}" Command="{Binding ShowModpacksCommand}" ToolTip.Tip="{l10n:Tr Key=nav_catalog}">
+                                <Button Classes="discordNavBtn" Classes.active="{Binding IsModpacksView}" Command="{Binding ShowModpacksCommand}" ToolTip.Tip="{l10n:Tr Key=nav_catalog}"
+                                        controls:SnowCollider.IsEnabled="True" controls:SnowCollider.OnlyWhenActive="True" controls:SnowCollider.SurfaceId="sidebar_catalog">
                                     <Grid ColumnDefinitions="30,*" VerticalAlignment="Center">
                                         <PathIcon Grid.Column="0" Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5.5-2.5 7.51-3.49L17.5 6.5 9.99 9.99 6.5 17.5zm5.5-6.6c.61 0 1.1.49 1.1 1.1s-.49 1.1-1.1 1.1-1.1-.49-1.1-1.1.49-1.1 1.1-1.1z" Width="18" Height="18" HorizontalAlignment="Left" VerticalAlignment="Center"/>
                                         <TextBlock Grid.Column="1" Text="{l10n:Tr Key=nav_catalog}" FontSize="13.5" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                     </Grid>
                                 </Button>
 
-                                <Button Classes="discordNavBtn" Command="{Binding NavigateToCreateServerCommand}" ToolTip.Tip="{l10n:Tr Key=nav_create_server}" IsVisible="{Binding HasExistingServers}">
+                                <Button Classes="discordNavBtn" Command="{Binding NavigateToCreateServerCommand}" ToolTip.Tip="{l10n:Tr Key=nav_create_server}" IsVisible="{Binding HasExistingServers}"
+                                        controls:SnowCollider.IsEnabled="True" controls:SnowCollider.OnlyWhenActive="True" controls:SnowCollider.SurfaceId="sidebar_create_server">
                                     <Grid ColumnDefinitions="30,*" VerticalAlignment="Center">
                                         <PathIcon Grid.Column="0" Data="M20 13H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1v-6c0-.55-.45-1-1-1zM7 19c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM20 3H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1zM7 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" Width="18" Height="18" HorizontalAlignment="Left" VerticalAlignment="Center"/>
                                         <TextBlock Grid.Column="1" Text="{l10n:Tr Key=nav_create_server}" FontSize="13.5" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>

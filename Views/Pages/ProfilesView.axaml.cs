@@ -71,6 +71,11 @@ public partial class ProfilesView : UserControl
         var sidebar = this.FindControl<Border>("InstanceDetailsSidebar");
         if (sidebar == null) return;
 
+        if (open)
+            Controls.SnowCollider.NotifySubtreeShowing(sidebar);
+        else
+            Controls.SnowCollider.NotifySubtreeHiding(sidebar);
+
         ZenithMotion.AnimateSlidePanel(sidebar, open, slideX: 84, slideY: 0, enterMs: 285, exitMs: 190);
     }
 

@@ -29,6 +29,7 @@ public partial class LauncherSettingsViewModel : ViewModelBase
     public ThemeSettingsViewModel ThemeSettingsVm { get; }
 
     public Action? SaveConfigRequested { get; set; }
+    public Action? ClearSnowAccumulationRequested { get; set; }
     public Action? VersionFiltersChanged { get; set; }
     public Action<string>? LanguageChanged { get; set; }
     public Action<bool>? DiscordRpcChanged { get; set; }
@@ -77,7 +78,7 @@ public partial class LauncherSettingsViewModel : ViewModelBase
         IsSearchJvmArgsVisible = "jvm arguments flags аргументы jvm".Contains(q);
         IsSearchLanguageVisible = "language localization english russian язык".Contains(q);
         IsSearchDiscordVisible = "discord rich presence rpc дискорд статус".Contains(q);
-        IsSearchAppearanceVisible = "appearance theme color accent name branding внешний вид тема цвет акцент оформление launcher лаунчер настройки scale масштаб интерфейс animations animation motion плавность анимации анимация анімації переходы particles snow leaves sakura image custom скролл прокрутка частицы снег листья сакура".Contains(q);
+        IsSearchAppearanceVisible = "appearance theme color accent name branding внешний вид тема цвет акцент оформление launcher лаунчер настройки scale масштаб интерфейс animations animation motion плавность анимации анимация анімації переходы particles snow leaves sakura image custom скролл прокрутка частицы снег листья сакура physics accumulation beta сугробы физика сніг".Contains(q);
     }
 
     // --- Tabs ---
@@ -500,6 +501,7 @@ public partial class LauncherSettingsViewModel : ViewModelBase
     [ObservableProperty] private double _particleWind = 0.25;
     [ObservableProperty] private double _particleSize = 1.0;
     [ObservableProperty] private double _particleOpacity = 0.65;
+    [ObservableProperty] private bool _snowPhysicsEnabled = false;
 
     public bool AreParticlesEnabled => !string.Equals(ParticleType, "Off", StringComparison.OrdinalIgnoreCase);
     public bool IsParticleOff => !AreParticlesEnabled;
@@ -618,6 +620,17 @@ public partial class LauncherSettingsViewModel : ViewModelBase
     partial void OnParticleWindChanged(double value) => OnPropertyChanged(nameof(ParticleWindText));
     partial void OnParticleSizeChanged(double value) => OnPropertyChanged(nameof(ParticleSizeText));
     partial void OnParticleOpacityChanged(double value) => OnPropertyChanged(nameof(ParticleOpacityText));
+
+    partial void OnSnowPhysicsEnabledChanged(bool value)
+    {
+        if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
+    }
+
+    [RelayCommand]
+    private void ClearSnowAccumulation()
+    {
+        ClearSnowAccumulationRequested?.Invoke();
+    }
 
     [RelayCommand]
     private void SelectParticleType(string type)
@@ -1321,6 +1334,7 @@ public partial class LauncherSettingsViewModel : ViewModelBase
             ParticleWind = Math.Clamp(cfg.ParticleWind, -1.5, 1.5);
             ParticleSize = Math.Clamp(cfg.ParticleSize > 0 ? cfg.ParticleSize : 1.0, 0.4, 2.2);
             ParticleOpacity = Math.Clamp(cfg.ParticleOpacity > 0 ? cfg.ParticleOpacity : 0.65, 0.15, 1.0);
+            SnowPhysicsEnabled = cfg.SnowPhysicsEnabled;
             _isSyncingHardwareAccel = true;
             try
             {
@@ -1507,6 +1521,7 @@ public partial class LauncherSettingsViewModel : ViewModelBase
         cfg.ParticleWind = ParticleWind;
         cfg.ParticleSize = ParticleSize;
         cfg.ParticleOpacity = ParticleOpacity;
+        cfg.SnowPhysicsEnabled = SnowPhysicsEnabled;
         cfg.HardwareAcceleration = HardwareAcceleration;
         cfg.CurseForgeApiKey = CurseForgeApiKey;
         cfg.LauncherScale = LauncherScale;

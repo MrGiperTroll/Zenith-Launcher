@@ -156,7 +156,8 @@
     </UserControl.Styles>
 
     <!-- Main Clean Container Directly on Window Surface (Zero Waste Wrappers) -->
-    <Grid RowDefinitions="*,Auto" Margin="0,0,16,16">
+    <Grid RowDefinitions="*,Auto" Margin="0,0,16,16"
+          controls:SnowCollider.PageKey="CreateProfile" controls:SnowCollider.IsPageScope="True">
 
         <!-- ========================================================= -->
         <!-- MAIN CONTENT AREA (2-Column Grid)                         -->
@@ -167,7 +168,8 @@
             <Grid Grid.Column="0" RowDefinitions="Auto,Auto,*" VerticalAlignment="Stretch">
                 
                 <!-- Toolbar: Loader, Loader Build, Search & Channel Filters -->
-                <Border Grid.Row="0" Classes="settingsCard" Padding="14,12" Margin="0,0,0,10">
+                <Border Grid.Row="0" Classes="settingsCard" Padding="14,12" Margin="0,0,0,10"
+                        controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="cp_toolbar">
                     <StackPanel Spacing="10">
                         <!-- Row 1: Loader selection + search -->
                         <Grid ColumnDefinitions="150,Auto,*" ColumnSpacing="8" VerticalAlignment="Center">
@@ -299,7 +301,7 @@
                 <StackPanel Spacing="12" Margin="0,0,4,0">
 
                     <!-- CARD 1: PROFILE DETAILS (Clean, No Horizontal Line, No Duplicate Title) -->
-                    <Border Classes="settingsCard">
+                    <Border Classes="settingsCard" controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="cp_details">
                         <StackPanel Spacing="10">
                             <TextBlock Classes="cardTitle" Text="{l10n:Tr Key=set_profile_details}"/>
 
@@ -336,7 +338,7 @@
                                           TickFrequency="512"/>
 
                     <!-- CARD 3: JAVA RUNTIME (Shortened Subtitle, No Duplicate Heading) -->
-                    <Border Classes="settingsCard">
+                    <Border Classes="settingsCard" controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="cp_java">
                         <StackPanel Spacing="10">
                             <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                 <TextBlock Classes="cardTitle" Text="{l10n:Tr Key=set_java}" VerticalAlignment="Center"/>
@@ -358,7 +360,7 @@
                     </Border>
 
                     <!-- CARD 4: WINDOW & RESOLUTION (Clean, No Horizontal Divider) -->
-                    <Border Classes="settingsCard">
+                    <Border Classes="settingsCard" controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="cp_resolution">
                         <StackPanel Spacing="10">
                             <TextBlock Classes="cardTitle" Text="{l10n:Tr Key=set_window_resolution}"/>
 
@@ -382,7 +384,8 @@
         <!-- ========================================================= -->
         <!-- BOTTOM FOOTER ACTION BAR                                  -->
         <!-- ========================================================= -->
-        <Border Grid.Row="1" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="10" Padding="18,12" Margin="0,12,0,0">
+        <Border Grid.Row="1" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="10" Padding="18,12" Margin="0,12,0,0"
+                controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="cp_footer">
             <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
                 <Button Grid.Column="0" Content="{l10n:Tr Key=btn_reset}" Command="{Binding ResetWizardCommand}" Classes="subBtn" Padding="14,8" FontSize="11" ToolTip.Tip="Reset all fields"/>
 

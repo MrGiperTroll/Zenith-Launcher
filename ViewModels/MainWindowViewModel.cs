@@ -377,6 +377,7 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     public LauncherNavPage CurrentPage => Navigation.CurrentPage;
+    public string CurrentPageKey => Navigation.CurrentPage.ToString();
     public bool IsProfilesView => Navigation.IsProfilesView;
     public bool IsModpacksView => Navigation.IsModpacksView;
     public bool IsEditInstanceView => Navigation.IsEditInstanceView;
@@ -1228,6 +1229,7 @@ public partial class MainWindowViewModel : ViewModelBase
             if (e.PropertyName == nameof(Navigation.CurrentPage))
             {
                 OnPropertyChanged(nameof(CurrentPage));
+                OnPropertyChanged(nameof(CurrentPageKey));
                 OnPropertyChanged(nameof(IsProfilesView));
                 OnPropertyChanged(nameof(IsModpacksView));
                 OnPropertyChanged(nameof(IsEditInstanceView));

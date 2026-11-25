@@ -253,11 +253,13 @@
             <Border Grid.Column="0" Background="{DynamicResource SidebarBgBrush}" Padding="14,18"
                     BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="0,0,1,0">
                 <Grid RowDefinitions="Auto,*,Auto">
-                    <TextBox Classes="darkInput" Text="{Binding SettingsSearchQuery}" PlaceholderText="{l10n:Tr set_search_placeholder}" Padding="9,7" FontSize="11.5" Margin="0,0,0,14"/>
+                    <TextBox Classes="darkInput" Text="{Binding SettingsSearchQuery}" PlaceholderText="{l10n:Tr set_search_placeholder}" Padding="9,7" FontSize="11.5" Margin="0,0,0,14"
+                             controls:SnowCollider.PageKey="Settings.Sidebar" controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="settings_search"/>
 
-                    <StackPanel Grid.Row="1" Spacing="4">
+                    <StackPanel Grid.Row="1" Spacing="4" controls:SnowCollider.PageKey="Settings.Sidebar">
                         <!-- Category: Minecraft -->
-                        <Button Classes="sideTab" Classes.active="{Binding IsSettingsTabGame}" Command="{Binding SwitchSettingsTabCommand}" CommandParameter="Game">
+                        <Button Classes="sideTab" Classes.active="{Binding IsSettingsTabGame}" Command="{Binding SwitchSettingsTabCommand}" CommandParameter="Game"
+                                controls:SnowCollider.IsEnabled="True" controls:SnowCollider.OnlyWhenActive="True" controls:SnowCollider.SurfaceId="settings_tab_game">
                             <Grid ColumnDefinitions="Auto,*">
                                 <Border Width="28" Height="28" Background="{DynamicResource IconChipBrush}" CornerRadius="6" VerticalAlignment="Center">
                                     <PathIcon Data="M5,1 L11,1 L11,2 L13,2 L13,3 L14,3 L14,5 L15,5 L15,11 L14,11 L14,12 L12,12 L12,10 L13,10 L13,7 L12,7 L12,6 L11,6 L11,7 L10,7 L10,8 L9,8 L9,9 L8,9 L8,10 L7,10 L7,11 L6,11 L6,12 L5,12 L5,13 L4,13 L4,14 L3,14 L3,15 L1,15 L1,13 L2,13 L2,12 L3,12 L3,11 L4,11 L4,10 L5,10 L5,9 L6,9 L6,8 L7,8 L7,7 L8,7 L8,6 L9,6 L9,5 L10,5 L10,4 L9,4 L9,3 L6,3 L6,4 L4,4 L4,2 L5,2 Z" Width="15" Height="15" Foreground="{Binding IsSettingsTabGame, Converter={x:Static converters:EditInstanceWindowConverters.ActiveIcon}}"/>
@@ -267,7 +269,8 @@
                         </Button>
 
                         <!-- Category: Java Runtimes -->
-                        <Button Classes="sideTab" Classes.active="{Binding IsSettingsTabJava}" Command="{Binding SwitchSettingsTabCommand}" CommandParameter="Java">
+                        <Button Classes="sideTab" Classes.active="{Binding IsSettingsTabJava}" Command="{Binding SwitchSettingsTabCommand}" CommandParameter="Java"
+                                controls:SnowCollider.IsEnabled="True" controls:SnowCollider.OnlyWhenActive="True" controls:SnowCollider.SurfaceId="settings_tab_java">
                             <Grid ColumnDefinitions="Auto,*">
                                 <Border Width="28" Height="28" Background="{DynamicResource IconChipBrush}" CornerRadius="6" VerticalAlignment="Center">
                                     <PathIcon Data="M9.8,8.5 C8.4,7.0 10.9,5.6 9.6,3.8 C9.0,3.0 9.1,2.2 9.8,1.5 C10.6,2.3 10.6,3.2 11.1,4.0 C12.3,5.8 9.9,7.1 11.1,8.5 Z M13.6,8.2 C12.5,7.0 14.4,5.9 13.4,4.4 C12.9,3.7 13.0,3.0 13.6,2.4 C14.3,3.1 14.3,3.9 14.7,4.5 C15.7,6.0 13.7,7.0 14.7,8.2 Z M4.5,10 H17.5 V13.5 C17.5,16.5 14.8,18.5 11.0,18.5 C7.2,18.5 4.5,16.5 4.5,13.5 Z M17.5,10.5 H19.3 C20.6,10.5 21.5,11.4 21.5,12.8 C21.5,14.2 20.6,15.2 19.3,15.2 H17.5 V13.7 H19.0 C19.6,13.7 20.0,13.3 20.0,12.8 C20.0,12.3 19.6,12.0 19.0,12.0 H17.5 Z M3,20.2 C6.2,21.6 15.8,21.6 19,20.2 C19.5,20.0 19.9,20.4 19.6,20.9 C16.0,22.4 6.0,22.4 2.4,20.9 C2.1,20.4 2.5,20.0 3,20.2 Z" Width="15" Height="15" Foreground="{Binding IsSettingsTabJava, Converter={x:Static converters:EditInstanceWindowConverters.ActiveIcon}}"/>
@@ -277,7 +280,8 @@
                         </Button>
 
                         <!-- Category: Launcher & System -->
-                        <Button Classes="sideTab" Classes.active="{Binding IsSettingsTabGeneral}" Command="{Binding SwitchSettingsTabCommand}" CommandParameter="General">
+                        <Button Classes="sideTab" Classes.active="{Binding IsSettingsTabGeneral}" Command="{Binding SwitchSettingsTabCommand}" CommandParameter="General"
+                                controls:SnowCollider.IsEnabled="True" controls:SnowCollider.OnlyWhenActive="True" controls:SnowCollider.SurfaceId="settings_tab_general">
                             <Grid ColumnDefinitions="Auto,*">
                                 <Border Width="28" Height="28" Background="{DynamicResource IconChipBrush}" CornerRadius="6" VerticalAlignment="Center">
                                     <PathIcon Data="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z" Width="14" Height="14" Foreground="{Binding IsSettingsTabGeneral, Converter={x:Static converters:EditInstanceWindowConverters.ActiveIcon}}"/>
@@ -287,7 +291,8 @@
                         </Button>
 
                         <!-- Category: Appearance -->
-                        <Button Classes="sideTab" Classes.active="{Binding IsSettingsTabAppearance}" Command="{Binding SwitchSettingsTabCommand}" CommandParameter="Appearance">
+                        <Button Classes="sideTab" Classes.active="{Binding IsSettingsTabAppearance}" Command="{Binding SwitchSettingsTabCommand}" CommandParameter="Appearance"
+                                controls:SnowCollider.IsEnabled="True" controls:SnowCollider.OnlyWhenActive="True" controls:SnowCollider.SurfaceId="settings_tab_appearance">
                             <Grid ColumnDefinitions="Auto,*">
                                 <Border Width="28" Height="28" Background="{DynamicResource IconChipBrush}" CornerRadius="6" VerticalAlignment="Center">
                                     <PathIcon Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18V4c4.41 0 8 3.59 8 8s-3.59 8-8 8z" Width="14" Height="14" Foreground="{Binding IsSettingsTabAppearance, Converter={x:Static converters:EditInstanceWindowConverters.ActiveIcon}}"/>
@@ -307,10 +312,12 @@
                     <!-- ========================================================= -->
                     <!-- TAB 1: MINECRAFT & GAME                                   -->
                     <!-- ========================================================= -->
-                    <StackPanel x:Name="TabGamePanel" Spacing="18" IsVisible="{Binding IsSettingsTabGame}">
+                    <StackPanel x:Name="TabGamePanel" Spacing="18" IsVisible="{Binding IsSettingsTabGame}"
+                                controls:SnowCollider.PageKey="Settings.Game" controls:SnowCollider.IsPageScope="True">
 
                         <!-- Section: Memory (RAM) Allocation -->
-                        <Border Classes="settingsCard" IsVisible="{Binding IsSearchMemoryVisible}">
+                        <Border Classes="settingsCard" IsVisible="{Binding IsSearchMemoryVisible}"
+                                controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="settings_card_memory">
                             <StackPanel Spacing="14">
                                 <StackPanel Spacing="3">
                                     <TextBlock Classes="sectionHeaderTitle" Text="{l10n:Tr set_memory}"/>
@@ -361,7 +368,8 @@
                         </Border>
 
                         <!-- Section: Resolution & Display -->
-                        <Border Classes="settingsCard" IsVisible="{Binding IsSearchResolutionVisible}">
+                        <Border Classes="settingsCard" IsVisible="{Binding IsSearchResolutionVisible}"
+                                controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="settings_card_resolution">
                             <StackPanel Spacing="14">
                                 <StackPanel Spacing="3">
                                     <TextBlock Classes="sectionHeaderTitle" Text="{l10n:Tr set_window_resolution}"/>
@@ -404,7 +412,8 @@
                         </Border>
 
                         <!-- Section: Storage Strategy -->
-                        <Border Classes="settingsCard" IsVisible="{Binding IsSearchDirectoryVisible}">
+                        <Border Classes="settingsCard" IsVisible="{Binding IsSearchDirectoryVisible}"
+                                controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="settings_card_directory">
                             <StackPanel Spacing="14">
                                 <StackPanel Spacing="3">
                                     <TextBlock Classes="sectionHeaderTitle" Text="{l10n:Tr set_dirstrategy}"/>
@@ -423,7 +432,8 @@
                         </Border>
 
                         <!-- Section: Version Filters -->
-                        <Border Classes="settingsCard" IsVisible="{Binding IsSearchVersionFiltersVisible}">
+                        <Border Classes="settingsCard" IsVisible="{Binding IsSearchVersionFiltersVisible}"
+                                controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="settings_card_versions">
                             <StackPanel Spacing="14">
                                 <StackPanel Spacing="3">
                                     <TextBlock Classes="sectionHeaderTitle" Text="{l10n:Tr set_versionfilters}"/>
@@ -451,7 +461,8 @@
                         </Border>
 
                         <!-- Section: Custom JVM Arguments -->
-                        <Border Classes="settingsCard" IsVisible="{Binding IsSearchJvmArgsVisible}">
+                        <Border Classes="settingsCard" IsVisible="{Binding IsSearchJvmArgsVisible}"
+                                controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="settings_card_jvmargs">
                             <StackPanel Spacing="12">
                                 <StackPanel Spacing="3">
                                     <TextBlock Classes="sectionHeaderTitle" Text="{l10n:Tr set_jvmargs}"/>
@@ -465,10 +476,12 @@
                     <!-- ========================================================= -->
                     <!-- TAB 2: JAVA RUNTIMES                                      -->
                     <!-- ========================================================= -->
-                    <StackPanel x:Name="TabJavaPanel" Spacing="18" IsVisible="{Binding IsSettingsTabJava}">
+                    <StackPanel x:Name="TabJavaPanel" Spacing="18" IsVisible="{Binding IsSettingsTabJava}"
+                                controls:SnowCollider.PageKey="Settings.Java" controls:SnowCollider.IsPageScope="True">
 
                         <!-- Section: Java Management Strategy -->
-                        <Border Classes="settingsCard" IsVisible="{Binding IsSearchJavaVisible}">
+                        <Border Classes="settingsCard" IsVisible="{Binding IsSearchJavaVisible}"
+                                controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="settings_card_java_auto">
                             <StackPanel Spacing="14">
                                 <StackPanel Spacing="3">
                                     <TextBlock Classes="sectionHeaderTitle" Text="{l10n:Tr set_java}"/>
@@ -487,7 +500,8 @@
                         </Border>
 
                         <!-- Java 25 Card -->
-                        <Border Classes="settingsCard" IsVisible="{Binding IsSearchJavaVisible}">
+                        <Border Classes="settingsCard" IsVisible="{Binding IsSearchJavaVisible}"
+                                controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="settings_card_java25">
                             <StackPanel Spacing="12">
                                 <TextBlock Classes="itemTitle" Text="Java 25"/>
                                 <TextBox Classes="darkInput" Text="{Binding Java25Location, Mode=TwoWay}"  Height="34" FontSize="12"/>
@@ -506,7 +520,8 @@
                         </Border>
 
                         <!-- Java 21 Card -->
-                        <Border Classes="settingsCard" IsVisible="{Binding IsSearchJavaVisible}">
+                        <Border Classes="settingsCard" IsVisible="{Binding IsSearchJavaVisible}"
+                                controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="settings_card_java21">
                             <StackPanel Spacing="12">
                                 <TextBlock Classes="itemTitle" Text="Java 21"/>
                                 <TextBox Classes="darkInput" Text="{Binding Java21Location, Mode=TwoWay}"  Height="34" FontSize="12"/>
@@ -525,7 +540,8 @@
                         </Border>
 
                         <!-- Java 17 Card -->
-                        <Border Classes="settingsCard" IsVisible="{Binding IsSearchJavaVisible}">
+                        <Border Classes="settingsCard" IsVisible="{Binding IsSearchJavaVisible}"
+                                controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="settings_card_java17">
                             <StackPanel Spacing="12">
                                 <TextBlock Classes="itemTitle" Text="Java 17"/>
                                 <TextBox Classes="darkInput" Text="{Binding Java17Location, Mode=TwoWay}"  Height="34" FontSize="12"/>
@@ -544,7 +560,8 @@
                         </Border>
 
                         <!-- Java 8 Card -->
-                        <Border Classes="settingsCard" IsVisible="{Binding IsSearchJavaVisible}">
+                        <Border Classes="settingsCard" IsVisible="{Binding IsSearchJavaVisible}"
+                                controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="settings_card_java8">
                             <StackPanel Spacing="12">
                                 <TextBlock Classes="itemTitle" Text="Java 8"/>
                                 <TextBox Classes="darkInput" Text="{Binding Java8Location, Mode=TwoWay}"  Height="34" FontSize="12"/>
@@ -566,10 +583,11 @@
                     <!-- ========================================================= -->
                     <!-- TAB 3: LAUNCHER & SYSTEM (General)                        -->
                     <!-- ========================================================= -->
-                    <StackPanel x:Name="TabGeneralPanel" Spacing="18" IsVisible="{Binding IsSettingsTabGeneral}">
+                    <StackPanel x:Name="TabGeneralPanel" Spacing="18" IsVisible="{Binding IsSettingsTabGeneral}"
+                                controls:SnowCollider.PageKey="Settings.General" controls:SnowCollider.IsPageScope="True">
 
                         <!-- General & Launch Behavior -->
-                        <Border Classes="settingsCard">
+                        <Border Classes="settingsCard" controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="settings_card_general">
                             <StackPanel Spacing="14">
                                 <StackPanel Spacing="3">
                                     <TextBlock Classes="sectionHeaderTitle" Text="{l10n:Tr set_general}"/>
@@ -637,7 +655,7 @@
                         </Border>
 
                         <!-- Cache & Storage Management -->
-                        <Border Classes="settingsCard">
+                        <Border Classes="settingsCard" controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="settings_card_cache">
                             <StackPanel Spacing="14">
                                 <StackPanel Spacing="3">
                                     <TextBlock Classes="sectionHeaderTitle" Text="{l10n:Tr set_cache}"/>
@@ -668,9 +686,11 @@
                     <!-- ========================================================= -->
                     <!-- TAB 4: APPEARANCE (Themes, Particles, Typography, Motion) -->
                     <!-- ========================================================= -->
-                    <StackPanel x:Name="TabAppearancePanel" Spacing="18" IsVisible="{Binding IsSettingsTabAppearance}">
+                    <StackPanel x:Name="TabAppearancePanel" Spacing="18" IsVisible="{Binding IsSettingsTabAppearance}"
+                                controls:SnowCollider.PageKey="Settings.Appearance" controls:SnowCollider.IsPageScope="True">
                         <!-- Card 1: Theme Settings -->
-                        <Border Classes="settingsCard" IsVisible="{Binding IsSearchAppearanceVisible}">
+                        <Border Classes="settingsCard" IsVisible="{Binding IsSearchAppearanceVisible}"
+                                controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="settings_card_themes">
                             <StackPanel Spacing="16">
                                 <!-- Theme Header -->
                                 <StackPanel Spacing="3" VerticalAlignment="Center">
@@ -750,7 +770,8 @@
                         </Border>
 
                         <!-- Card 2: Background Particles (strictly below theme selection block) -->
-                        <Border Classes="settingsCard" IsVisible="{Binding IsSearchAppearanceVisible}">
+                        <Border Classes="settingsCard" IsVisible="{Binding IsSearchAppearanceVisible}"
+                                controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="settings_card_particles">
                             <StackPanel Spacing="14">
                                 <StackPanel Spacing="3">
                                     <TextBlock Classes="sectionHeaderTitle" Text="{l10n:Tr particles_title}"/>
@@ -823,6 +844,42 @@
                                             </Border>
                                             <Button Classes="subBtn" Command="{Binding PickParticleImageCommand}" Height="32" Padding="12,0" Content="{l10n:Tr btn_browse}" VerticalAlignment="Center"/>
                                             <Button Classes="subBtn" Command="{Binding ClearParticleImageCommand}" IsVisible="{Binding HasParticleCustomImage}" Width="32" Height="32" Padding="0" Content="✕" ToolTip.Tip="{l10n:Tr grp_clear}" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+
+                                <!-- Snow Physics & Accumulation (Beta) Sub-Section -->
+                                <StackPanel Spacing="14" IsVisible="{Binding IsParticleSnow}">
+                                    <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16" VerticalAlignment="Center">
+                                        <StackPanel Spacing="3" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                                <TextBlock Classes="itemTitle" Text="{l10n:Tr particles_snow_physics}" VerticalAlignment="Center"/>
+                                                <Border Background="{DynamicResource AccentDimBrush}"
+                                                        BorderBrush="{DynamicResource AccentBorderBrush}"
+                                                        BorderThickness="1"
+                                                        CornerRadius="4"
+                                                        Padding="6,1"
+                                                        VerticalAlignment="Center">
+                                                    <TextBlock Text="BETA"
+                                                               FontSize="9.5"
+                                                               FontWeight="Bold"
+                                                               Foreground="{DynamicResource AccentBrush}"
+                                                               VerticalAlignment="Center"/>
+                                                </Border>
+                                            </StackPanel>
+                                            <TextBlock Classes="itemDesc" Text="{l10n:Tr particles_snow_physics_hint}"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <Button Classes="subBtn"
+                                                    Command="{Binding ClearSnowAccumulationCommand}"
+                                                    IsVisible="{Binding SnowPhysicsEnabled}"
+                                                    Content="{l10n:Tr particles_clear_snow}"
+                                                    Height="30" Padding="12,0"
+                                                    VerticalAlignment="Center"/>
+                                            <ToggleSwitch IsChecked="{Binding SnowPhysicsEnabled, Mode=TwoWay}"
+                                                          OnContent="{x:Null}" OffContent="{x:Null}"
+                                                          HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                         </StackPanel>
                                     </Grid>
                                 </StackPanel>
@@ -938,7 +995,8 @@
                         </Border>
 
                         <!-- Card 3: Interface Language, Typography & Scale -->
-                        <Border Classes="settingsCard" IsVisible="{Binding IsSearchAppearanceVisible}">
+                        <Border Classes="settingsCard" IsVisible="{Binding IsSearchAppearanceVisible}"
+                                controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="settings_card_language">
                             <StackPanel Spacing="14">
                                 <!-- Language Selector -->
                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
@@ -1017,7 +1075,8 @@
                         </Border>
 
                         <!-- Card 4: Expandable Interface Animations & Motion Details -->
-                        <Border Classes="settingsCard" IsVisible="{Binding IsSearchAppearanceVisible}">
+                        <Border Classes="settingsCard" IsVisible="{Binding IsSearchAppearanceVisible}"
+                                controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="settings_card_animations">
                             <StackPanel Spacing="14">
                                 <!-- Master Row (Clickable Header + Minimalist Vector Chevron + Toggle) -->
                                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14" VerticalAlignment="Center">

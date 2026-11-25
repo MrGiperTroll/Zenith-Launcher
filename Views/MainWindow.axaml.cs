@@ -47,6 +47,7 @@ public partial class MainWindow : Window
 
         DataContextChanged += OnMainDataContextChanged;
         Closed += OnMainWindowClosed;
+        LayoutUpdated += OnMainWindowLayoutUpdated;
 
         PropertyChanged += (s, e) =>
         {
@@ -77,6 +78,8 @@ public partial class MainWindow : Window
         if (_observedVm != null)
         {
             _observedVm.PropertyChanged -= OnMainVmPropertyChanged;
+            if (_observedVm.LauncherSettingsVm != null)
+                _observedVm.LauncherSettingsVm.ClearSnowAccumulationRequested = null;
             _observedVm = null;
         }
 
@@ -86,6 +89,8 @@ public partial class MainWindow : Window
             _lastAnimatedPage = vm.CurrentPage;
             _lastPageVmInstance = GetPageSubVm(vm, vm.CurrentPage);
             vm.PropertyChanged += OnMainVmPropertyChanged;
+            if (vm.LauncherSettingsVm != null)
+                vm.LauncherSettingsVm.ClearSnowAccumulationRequested = () => ParticleOverlay?.ClearSnowAccumulation();
             SyncSecondaryPanes(vm);
             _isPageMotionReady = true;
         }
@@ -93,13 +98,50 @@ public partial class MainWindow : Window
 
     private void OnMainWindowClosed(object? sender, EventArgs e)
     {
+        try { ParticleOverlay?.FlushSnowPersistence(); } catch { }
         try { _unloadCleanupCts?.Cancel(); _unloadCleanupCts?.Dispose(); } catch { }
         _unloadCleanupCts = null;
         if (_observedVm != null)
         {
             _observedVm.PropertyChanged -= OnMainVmPropertyChanged;
+            if (_observedVm.LauncherSettingsVm != null)
+                _observedVm.LauncherSettingsVm.ClearSnowAccumulationRequested = null;
             _observedVm = null;
         }
+    }
+
+    private void OnMainWindowLayoutUpdated(object? sender, EventArgs e)
+    {
+        if (ParticleOverlay == null || !ParticleOverlay.IsSnowPhysicsActive)
+            return;
+
+        bool occluded = HasVisibleModalOverlay(ConsoleDrawer) || HasVisibleModalOverlay(ModalsHost);
+        if (ParticleOverlay.IsModalOccluded != occluded)
+        {
+            ParticleOverlay.IsModalOccluded = occluded;
+        }
+    }
+
+    private static bool HasVisibleModalOverlay(Control? host)
+    {
+        if (host == null) return false;
+        foreach (var child in host.GetVisualChildren())
+        {
+            if (child is Panel panel)
+            {
+                foreach (var item in panel.Children)
+                {
+                    if (item is Border b
+                        && b.IsVisible
+                        && b.VerticalAlignment == Avalonia.Layout.VerticalAlignment.Stretch
+                        && !ZenithMotion.GetToastOpen(b))
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     private void OnMainVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -339,6 +381,7 @@ public partial class MainWindow : Window
 
     protected override void OnClosing(WindowClosingEventArgs e)
     {
+        try { ParticleOverlay?.FlushSnowPersistence(); } catch { }
         if (!_isExplicitExit && e.CloseReason != WindowCloseReason.ApplicationShutdown)
         {
             try

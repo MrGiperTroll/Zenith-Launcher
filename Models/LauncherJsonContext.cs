@@ -34,6 +34,9 @@ public sealed class AccountsStore
 [JsonSerializable(typeof(AccountsStore))]
 [JsonSerializable(typeof(List<CachedVersionEntry>))]
 [JsonSerializable(typeof(Dictionary<string, string>))]
+[JsonSerializable(typeof(SnowAccumulationData))]
+[JsonSerializable(typeof(Dictionary<string, Dictionary<string, byte[]>>))]
+[JsonSerializable(typeof(Dictionary<string, byte[]>))]
 internal partial class LauncherJsonContext : JsonSerializerContext
 {
     private static readonly LauncherJsonContext CompactContext = new(new JsonSerializerOptions

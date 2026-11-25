@@ -15,6 +15,7 @@ public partial class ModpacksView : UserControl
     private bool _modpacksScrollAttached;
     private ModpacksBrowserViewModel? _boundBrowser;
     private int _lastProjectTypeIndex;
+    private bool _wasInitialLoading;
 
     public ModpacksView()
     {
@@ -31,6 +32,7 @@ public partial class ModpacksView : UserControl
         {
             _boundBrowser = vm.ModpacksBrowser;
             _lastProjectTypeIndex = GetProjectTypeIndex(_boundBrowser.SelectedProjectType);
+            _wasInitialLoading = _boundBrowser.IsInitialLoading;
             _boundBrowser.PropertyChanged += OnBrowserPropertyChanged;
             SyncOverlays();
         }
@@ -66,6 +68,15 @@ public partial class ModpacksView : UserControl
                 if (sv != null) sv.Offset = Vector.Zero;
                 ZenithMotion.AnimateCatalogSwipe(CatalogResultsHost, dir);
             }
+        }
+        else if (e.PropertyName == nameof(ModpacksBrowserViewModel.IsInitialLoading) && _boundBrowser != null)
+        {
+            bool nowLoading = _boundBrowser.IsInitialLoading;
+            if (_wasInitialLoading && !nowLoading && _boundBrowser.Results.Count > 0)
+            {
+                ZenithMotion.AnimateOpacityReveal(ModpacksList, durationMs: 200);
+            }
+            _wasInitialLoading = nowLoading;
         }
         else if (e.PropertyName is nameof(ModpacksBrowserViewModel.IsDetailsOpen)
             or nameof(ModpacksBrowserViewModel.IsAuthorProfileOpen)

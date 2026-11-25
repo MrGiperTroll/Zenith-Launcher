@@ -118,6 +118,7 @@ public static class ZenithMotion
     public static bool IsSmoothScrollEnabled => _smoothScrollEnabled;
     public static event Action<bool>? EnabledChanged;
     public static event Action<bool>? SmoothScrollEnabledChanged;
+    public static event Action? MotionConfigChanged;
 
     static ZenithMotion()
     {
@@ -218,6 +219,12 @@ public static class ZenithMotion
         {
             bool masterChanged = _isEnabled != masterEnabled;
             bool scrollChanged = _smoothScrollEnabled != smoothScroll;
+            bool anyMotionChanged = masterChanged
+                || _pageTransitionsEnabled != pageTransitions
+                || _tabTransitionsEnabled != tabTransitions
+                || _modalsEnabled != modals
+                || _sidebarsEnabled != sidebars
+                || _popupsEnabled != popups;
 
             _isEnabled = masterEnabled;
             _pageTransitionsEnabled = pageTransitions;
@@ -232,6 +239,9 @@ public static class ZenithMotion
 
             if (masterChanged)
                 EnabledChanged?.Invoke(masterEnabled);
+
+            if (anyMotionChanged)
+                MotionConfigChanged?.Invoke();
 
             if (scrollChanged)
                 SmoothScrollEnabledChanged?.Invoke(smoothScroll);
@@ -376,6 +386,21 @@ public static class ZenithMotion
             offsetX: offsetX,
             offsetY: 0,
             startScale: 0.986,
+            startOpacity: 0.0,
+            durationMs: durationMs,
+            category: MotionCategory.PageAndCatalog);
+    }
+
+    /// <summary>
+    /// Gentle pure-opacity reveal (zero spatial translation) when real catalog cards replace skeleton placeholders.
+    /// </summary>
+    public static void AnimateOpacityReveal(Control? control, int durationMs = 200)
+    {
+        AnimateEntrance(
+            control,
+            offsetX: 0,
+            offsetY: 0,
+            startScale: 1.0,
             startOpacity: 0.0,
             durationMs: durationMs,
             category: MotionCategory.PageAndCatalog);

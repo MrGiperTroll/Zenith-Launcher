@@ -524,16 +524,6 @@ public partial class LauncherSettingsViewModel : ViewModelBase
     public string ParticleSizeText => ParticleSize.ToString("0.0x", CultureInfo.InvariantCulture);
     public string ParticleOpacityText => $"{Math.Round(ParticleOpacity * 100):0}%";
 
-    public static IBrush LeafSpringDot1Brush { get; } = new SolidColorBrush(Color.Parse("#68B852"));
-    public static IBrush LeafSpringDot2Brush { get; } = new SolidColorBrush(Color.Parse("#9FE06B"));
-    public static IBrush LeafGoldenDot1Brush { get; } = new SolidColorBrush(Color.Parse("#EAB308"));
-    public static IBrush LeafGoldenDot2Brush { get; } = new SolidColorBrush(Color.Parse("#F59E0B"));
-    public static IBrush LeafAutumnDot1Brush { get; } = new SolidColorBrush(Color.Parse("#EA580C"));
-    public static IBrush LeafAutumnDot2Brush { get; } = new SolidColorBrush(Color.Parse("#DC2626"));
-    public static IBrush LeafForestDot1Brush { get; } = new SolidColorBrush(Color.Parse("#4CA344"));
-    public static IBrush LeafForestDot2Brush { get; } = new SolidColorBrush(Color.Parse("#F59E0B"));
-    public static IBrush LeafForestDot3Brush { get; } = new SolidColorBrush(Color.Parse("#B91C1C"));
-
     partial void OnMinimizeToTrayOnCloseChanged(bool value)
     {
         if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
@@ -750,6 +740,9 @@ public partial class LauncherSettingsViewModel : ViewModelBase
                 catch { }
             }
         });
+
+        CatalogFirstPageCache.Clear();
+        ModrinthApiService.ClearMemoryCache();
 
         IsClearingCache = false;
         var mb = Math.Max(0.1, Math.Round(bytesFreed / (1024.0 * 1024.0), 1));

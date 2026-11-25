@@ -970,8 +970,15 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(DeleteItemName));
     }
 
+    public bool IsInitialLoading => IsBusy && Results.Count == 0;
     public bool IsEmpty => Results.Count == 0 && !IsBusy && !IsLoadingMore;
     public bool HasMore => _offset < _totalHits;
+
+    partial void OnIsBusyChanged(bool value)
+    {
+        OnPropertyChanged(nameof(IsInitialLoading));
+        OnPropertyChanged(nameof(IsEmpty));
+    }
 
     public ModpacksBrowserViewModel(IInstanceService instanceService, ModLoaderService modLoaderService, Action? onInstalled = null)
     {
@@ -1182,6 +1189,8 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
     [RelayCommand]
     public void ResetFilters()
     {
+        CatalogFirstPageCache.Clear();
+        _searchCts?.Cancel();
         SearchQuery = "";
         SelectedVersion = "";
         SelectedCategory = "";
@@ -1189,7 +1198,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
         SelectedSort = "Relevance";
         BrowserVersionFilter.ClearCommand.Execute(null);
         BrowserLoaderFilter.ClearCommand.Execute(null);
-        _ = ReloadAsync();
+        _ = ReloadAsync(bypassCache: true);
     }
 
     [RelayCommand]
@@ -1201,12 +1210,49 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
         return ReloadAsync(_searchCts.Token);
     }
 
-    public async Task ReloadAsync(CancellationToken token = default)
+    private string BuildFirstPageCacheKey()
+    {
+        var vers = BrowserVersionFilter.SelectedVersions.Count > 0
+            ? string.Join(",", BrowserVersionFilter.SelectedVersions)
+            : SelectedVersion;
+        var ldrs = string.Join(",", LoaderFacets);
+        return $"mp|{SelectedSource}|{SelectedProjectType}|{SelectedSort}|{SearchQuery.Trim()}|{vers}|{SelectedCategory}|{ldrs}";
+    }
+
+    private void ReplaceResults(IEnumerable<ModrinthProjectItemViewModel> items)
+    {
+        foreach (var r in Results) { try { r.Dispose(); } catch { } }
+        Results.Clear();
+        foreach (var item in items)
+            Results.Add(item);
+        OnPropertyChanged(nameof(IsInitialLoading));
+        OnPropertyChanged(nameof(IsEmpty));
+    }
+
+    public async Task ReloadAsync(CancellationToken token = default, bool bypassCache = false)
     {
         var gen = Interlocked.Increment(ref _searchGeneration);
+        var cacheKey = BuildFirstPageCacheKey();
+
+        if (!bypassCache && CatalogFirstPageCache.TryGet(cacheKey, out var cached) && cached != null)
+        {
+            var restored = CatalogFirstPageCache.MaterializeCards(cached);
+            ReplaceResults(restored);
+            _totalHits = cached.TotalHits;
+            _offset = cached.NextOffset;
+            StatusText = cached.StatusText;
+            IsBusy = false;
+            UpdateInstalledFlags();
+            foreach (var p in Results) LoadIcon(p, gen);
+            OnPropertyChanged(nameof(IsInitialLoading));
+            OnPropertyChanged(nameof(IsEmpty));
+            OnPropertyChanged(nameof(HasMore));
+            return;
+        }
+
+        ReplaceResults(Array.Empty<ModrinthProjectItemViewModel>());
         IsBusy = true;
         StatusText = "";
-        foreach (var r in Results) { try { r.Dispose(); } catch { } } Results.Clear();
         _offset = 0;
         _totalHits = 0;
         try
@@ -1263,6 +1309,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
                 }
                 UpdateInstalledFlags();
                 StatusText = _totalHits == 0 ? L10n.T("mp_status_none") : "";
+                CatalogFirstPageCache.Set(cacheKey, Results, _totalHits, StatusText);
                 return;
             }
 
@@ -1294,6 +1341,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
                 }
                 UpdateInstalledFlags();
                 StatusText = res.TotalHits == 0 ? L10n.T("mp_status_none") : "";
+                CatalogFirstPageCache.Set(cacheKey, Results, _totalHits, StatusText);
                 return;
             }
 
@@ -1313,6 +1361,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
             }
             UpdateInstalledFlags();
             StatusText = page.TotalHits == 0 ? L10n.T("mp_status_none") : "";
+            CatalogFirstPageCache.Set(cacheKey, Results, _totalHits, StatusText);
         }
         catch (OperationCanceledException)
         {
@@ -1331,6 +1380,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
             if (gen == _searchGeneration)
             {
                 IsBusy = false;
+                OnPropertyChanged(nameof(IsInitialLoading));
                 OnPropertyChanged(nameof(IsEmpty));
                 OnPropertyChanged(nameof(HasMore));
             }

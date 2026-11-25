@@ -158,6 +158,12 @@ public partial class LauncherSettingsView : UserControl
             vm.ApplyCustomThemeCard();
     }
 
+    private void OnAnimationHeaderTapped(object? sender, Avalonia.Input.TappedEventArgs e)
+    {
+        if (DataContext is LauncherSettingsViewModel vm)
+            vm.ToggleAnimationDetailsCommand.Execute(null);
+    }
+
     private void OnParticleSliderPointerCaptureLost(object? sender, Avalonia.Input.PointerCaptureLostEventArgs e)
     {
         if (DataContext is LauncherSettingsViewModel vm)

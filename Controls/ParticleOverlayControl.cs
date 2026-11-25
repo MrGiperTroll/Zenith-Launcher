@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
@@ -9,7 +11,9 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Rendering.Composition;
 using Avalonia.Skia;
+using Avalonia.Threading;
 using SkiaSharp;
+using ZenithLauncher.Services;
 
 namespace ZenithLauncher.Controls;
 
@@ -24,8 +28,9 @@ public enum ParticleKind
 
 /// <summary>
 /// Render-thread ambient particle layer powered by Avalonia 12 CompositionCustomVisualHandler.
-/// Uses pre-allocated structs and reused Skia paints/paths with zero per-frame managed allocations.
-/// Automatically halts animation updates and disposes textures/paints when Off or window is minimized/hidden.
+/// Loads crisp Minecraft pixel-art sprites from local client JAR caches for the active mode only,
+/// renders with SKFilterMode.Nearest and SKColorFilter tinting, uses zero per-frame allocations,
+/// and disposes textures immediately when disabled or hidden.
 /// </summary>
 public class ParticleOverlayControl : Control
 {
@@ -108,6 +113,8 @@ public class ParticleOverlayControl : Control
     private string _loadedImagePath = string.Empty;
     private SKBitmap? _pendingCustomBitmap;
     private bool _customBitmapDirty;
+    private ParticleKind _loadedSpriteKind = ParticleKind.Off;
+    private int _spriteLoadGeneration;
 
     public ParticleOverlayControl()
     {
@@ -126,6 +133,7 @@ public class ParticleOverlayControl : Control
                 UpdateOverlayVisibility();
 
             RefreshCustomBitmapCache();
+            EnsureSpritesForCurrentKind();
             PushStateToHandler();
         }
         else if (p == LeafPaletteProperty
@@ -159,6 +167,7 @@ public class ParticleOverlayControl : Control
             _customVisual.Size = new Vector(Bounds.Width, Bounds.Height);
             ElementComposition.SetElementChildVisual(this, _customVisual);
             RefreshCustomBitmapCache();
+            EnsureSpritesForCurrentKind();
             PushStateToHandler();
         }
 
@@ -168,6 +177,8 @@ public class ParticleOverlayControl : Control
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
         DetachHostWindow();
+        _spriteLoadGeneration++;
+        _loadedSpriteKind = ParticleKind.Off;
 
         if (_customVisual != null)
         {
@@ -223,6 +234,58 @@ public class ParticleOverlayControl : Control
     private void PushPauseState()
     {
         _customVisual?.SendHandlerMessage(new PauseMsg(IsHostPaused()));
+    }
+
+    private void EnsureSpritesForCurrentKind()
+    {
+        var kind = ParseKind(ParticleType);
+        if (kind is ParticleKind.Off or ParticleKind.Custom)
+        {
+            _spriteLoadGeneration++;
+            _loadedSpriteKind = ParticleKind.Off;
+            return;
+        }
+
+        if (_customVisual == null || _loadedSpriteKind == kind)
+            return;
+
+        _loadedSpriteKind = kind;
+        int gen = ++_spriteLoadGeneration;
+
+        _ = Task.Run(() =>
+        {
+            List<SKBitmap>? loaded = null;
+            try
+            {
+                loaded = MinecraftParticleSpriteCache.LoadSpritesForMode(kind);
+            }
+            catch
+            {
+                loaded = null;
+            }
+
+            if (loaded == null || loaded.Count == 0)
+                return;
+
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (_spriteLoadGeneration != gen || _customVisual == null || ParseKind(ParticleType) != kind)
+                {
+                    DisposeBitmapList(loaded);
+                    return;
+                }
+
+                _customVisual.SendHandlerMessage(new SpriteBatchMsg(kind, loaded.ToArray()));
+            });
+        });
+    }
+
+    private static void DisposeBitmapList(List<SKBitmap> list)
+    {
+        foreach (var b in list)
+        {
+            try { b.Dispose(); } catch { }
+        }
     }
 
     private void RefreshCustomBitmapCache()
@@ -352,6 +415,7 @@ public class ParticleOverlayControl : Control
         public float SpinRate;
         public float AlphaScale;
         public byte PaletteIndex;
+        public byte SpriteIndex;
     }
 
     private sealed class ConfigMsg
@@ -398,6 +462,18 @@ public class ParticleOverlayControl : Control
         }
     }
 
+    private sealed class SpriteBatchMsg
+    {
+        public readonly ParticleKind Kind;
+        public readonly SKBitmap[] Bitmaps;
+
+        public SpriteBatchMsg(ParticleKind kind, SKBitmap[] bitmaps)
+        {
+            Kind = kind;
+            Bitmaps = bitmaps;
+        }
+    }
+
     private sealed class ViewportSizeMsg
     {
         public readonly float Width;
@@ -425,65 +501,59 @@ public class ParticleOverlayControl : Control
 
     private sealed class ParticleVisualHandler : CompositionCustomVisualHandler
     {
+        private static readonly SKSamplingOptions NearestSampling = new(SKFilterMode.Nearest, SKMipmapMode.None);
+
         private static readonly SKColor[] SnowColors =
         [
-            new SKColor(245, 250, 255),
-            new SKColor(225, 239, 255),
-            new SKColor(210, 230, 255),
             new SKColor(255, 255, 255),
-            new SKColor(235, 244, 255)
-        ];
-
-        private static readonly SKColor[] SakuraColors =
-        [
-            new SKColor(253, 164, 175),
-            new SKColor(251, 207, 232),
-            new SKColor(244, 114, 182),
-            new SKColor(255, 228, 230),
-            new SKColor(249, 168, 212)
+            new SKColor(246, 250, 255),
+            new SKColor(255, 255, 255),
+            new SKColor(240, 247, 255),
+            new SKColor(255, 255, 255)
         ];
 
         private static readonly SKColor[] LeafSpringColors =
         [
-            new SKColor(104, 184, 82),
-            new SKColor(76, 163, 68),
-            new SKColor(132, 204, 92),
-            new SKColor(159, 224, 107),
-            new SKColor(92, 176, 107)
+            new SKColor(124, 212, 92),
+            new SKColor(92, 186, 80),
+            new SKColor(152, 224, 108),
+            new SKColor(174, 232, 118),
+            new SKColor(110, 198, 122)
         ];
 
         private static readonly SKColor[] LeafGoldenColors =
         [
-            new SKColor(234, 179, 8),
-            new SKColor(245, 158, 11),
-            new SKColor(250, 204, 21),
-            new SKColor(217, 119, 6),
-            new SKColor(253, 224, 71)
+            new SKColor(242, 190, 26),
+            new SKColor(250, 168, 30),
+            new SKColor(255, 214, 48),
+            new SKColor(226, 134, 22),
+            new SKColor(255, 230, 96)
         ];
 
         private static readonly SKColor[] LeafAutumnColors =
         [
-            new SKColor(234, 88, 12),
-            new SKColor(220, 38, 38),
-            new SKColor(217, 119, 6),
-            new SKColor(180, 83, 9),
-            new SKColor(225, 29, 72)
+            new SKColor(242, 100, 26),
+            new SKColor(228, 52, 52),
+            new SKColor(224, 130, 24),
+            new SKColor(196, 94, 24),
+            new SKColor(235, 48, 88)
         ];
 
         private static readonly SKColor[] LeafForestColors =
         [
-            new SKColor(76, 163, 68),
-            new SKColor(163, 198, 57),
-            new SKColor(245, 158, 11),
-            new SKColor(234, 88, 12),
-            new SKColor(185, 28, 28)
+            new SKColor(94, 188, 82),
+            new SKColor(174, 212, 72),
+            new SKColor(246, 170, 28),
+            new SKColor(236, 100, 24),
+            new SKColor(208, 46, 46)
         ];
 
         private readonly ParticleItem[] _items = new ParticleItem[MaxParticles];
         private readonly Random _rng = new(0x5EED42);
 
         private ParticleKind _kind = ParticleKind.Off;
-        private SKColor[] _activePalette = SnowColors;
+        private ParticleKind _spriteKind = ParticleKind.Off;
+        private string _leafPaletteKey = "autumn";
         private int _count;
         private float _speed = 1.0f;
         private float _wind = 0.25f;
@@ -498,12 +568,12 @@ public class ParticleOverlayControl : Control
         private long _lastTicks;
         private float _elapsedSec;
 
-        private SKPaint? _fillPaint;
-        private SKPaint? _veinPaint;
-        private SKPaint? _bitmapPaint;
-        private SKPath? _leafPath;
-        private SKPath? _petalPath;
+        private SKPaint? _spritePaint;
+        private SKImage[]? _spriteImages;
+        private SKBitmap[]? _spriteBitmaps;
+        private SKColorFilter[]? _leafPaletteFilters;
         private SKBitmap? _customBitmap;
+        private SKImage? _customImage;
 
         public override void OnMessage(object message)
         {
@@ -511,6 +581,9 @@ public class ParticleOverlayControl : Control
             {
                 case ConfigMsg cfg:
                     ApplyConfig(cfg);
+                    break;
+                case SpriteBatchMsg batch:
+                    ApplySpriteBatch(batch);
                     break;
                 case ViewportSizeMsg vp:
                     UpdateViewportSize(vp.Width, vp.Height);
@@ -532,10 +605,11 @@ public class ParticleOverlayControl : Control
         {
             if (cfg.HasBitmapUpdate)
             {
-                if (!ReferenceEquals(_customBitmap, cfg.CustomBitmap))
+                ReleaseCustomImageOnly();
+                _customBitmap = cfg.CustomBitmap;
+                if (_customBitmap != null)
                 {
-                    try { _customBitmap?.Dispose(); } catch { }
-                    _customBitmap = cfg.CustomBitmap;
+                    _customImage = SKImage.FromBitmap(_customBitmap);
                 }
             }
 
@@ -553,7 +627,25 @@ public class ParticleOverlayControl : Control
             _size = cfg.Size;
             _opacity = cfg.Opacity;
             _isPaused = cfg.Paused;
-            _activePalette = ResolvePalette(_kind, cfg.LeafPalette);
+
+            string normalizedPalette = (cfg.LeafPalette ?? "Autumn").Trim().ToLowerInvariant();
+            if (kindChanged && _spriteKind != _kind)
+            {
+                ReleaseEffectSpritesOnly();
+            }
+
+            if (_kind == ParticleKind.Leaves)
+            {
+                if (_leafPaletteFilters == null || !string.Equals(_leafPaletteKey, normalizedPalette, StringComparison.Ordinal))
+                {
+                    _leafPaletteKey = normalizedPalette;
+                    RebuildLeafPaletteFilters(ResolveLeafColors(normalizedPalette));
+                }
+            }
+            else if (_leafPaletteFilters != null)
+            {
+                DisposeLeafFilters();
+            }
 
             if (_kind == ParticleKind.Off || _count <= 0)
             {
@@ -564,7 +656,7 @@ public class ParticleOverlayControl : Control
                 return;
             }
 
-            EnsureRenderResources();
+            EnsurePaint();
             if (!_seeded || kindChanged)
             {
                 SeedAllParticles();
@@ -574,6 +666,29 @@ public class ParticleOverlayControl : Control
             _lastTicks = Stopwatch.GetTimestamp();
             if (!_isPaused)
                 EnsureAnimationScheduled();
+            Invalidate();
+        }
+
+        private void ApplySpriteBatch(SpriteBatchMsg batch)
+        {
+            if (batch.Kind != _kind)
+            {
+                foreach (var b in batch.Bitmaps)
+                {
+                    try { b.Dispose(); } catch { }
+                }
+                return;
+            }
+
+            ReleaseEffectSpritesOnly();
+            _spriteKind = batch.Kind;
+            _spriteBitmaps = batch.Bitmaps;
+            _spriteImages = new SKImage[batch.Bitmaps.Length];
+            for (int i = 0; i < batch.Bitmaps.Length; i++)
+            {
+                _spriteImages[i] = SKImage.FromBitmap(batch.Bitmaps[i]);
+            }
+
             Invalidate();
         }
 
@@ -644,23 +759,16 @@ public class ParticleOverlayControl : Control
             var canvas = lease?.SkCanvas;
             if (canvas == null) return;
 
-            EnsureRenderResources();
-            if (_fillPaint == null) return;
+            EnsurePaint();
+            if (_spritePaint == null) return;
 
-            switch (_kind)
+            if (_kind == ParticleKind.Custom)
             {
-                case ParticleKind.Snow:
-                    RenderSnow(canvas);
-                    break;
-                case ParticleKind.Leaves:
-                    RenderLeaves(canvas);
-                    break;
-                case ParticleKind.Sakura:
-                    RenderSakura(canvas);
-                    break;
-                case ParticleKind.Custom:
-                    RenderCustomBitmaps(canvas);
-                    break;
+                RenderCustomImages(canvas);
+            }
+            else if (_spriteImages is { Length: > 0 } && _spriteKind == _kind)
+            {
+                RenderMinecraftSprites(canvas, _spriteImages);
             }
         }
 
@@ -668,9 +776,9 @@ public class ParticleOverlayControl : Control
         {
             float baseFall = _kind switch
             {
-                ParticleKind.Snow => 42.0f,
+                ParticleKind.Snow => 44.0f,
                 ParticleKind.Sakura => 52.0f,
-                ParticleKind.Leaves => 60.0f,
+                ParticleKind.Leaves => 58.0f,
                 ParticleKind.Custom => 54.0f,
                 _ => 48.0f
             };
@@ -682,7 +790,7 @@ public class ParticleOverlayControl : Control
             {
                 ref var p = ref _items[i];
                 float vy = baseFall * _speed * p.SpeedScale;
-                float sway = MathF.Sin(_elapsedSec * p.SwayFreq + p.Phase) * p.SwayAmp * (_kind == ParticleKind.Snow ? 0.65f : 1.0f);
+                float sway = MathF.Sin(_elapsedSec * p.SwayFreq + p.Phase) * p.SwayAmp * (_kind == ParticleKind.Snow ? 0.6f : 1.0f);
                 float vx = windPx * p.SpeedScale + sway;
 
                 p.X += vx * dt;
@@ -702,34 +810,20 @@ public class ParticleOverlayControl : Control
             }
         }
 
-        private void RenderSnow(SKCanvas canvas)
+        private void RenderMinecraftSprites(SKCanvas canvas, SKImage[] sprites)
         {
-            var paint = _fillPaint!;
-            float baseRadius = 3.2f * _size;
-
-            for (int i = 0; i < _count; i++)
+            var paint = _spritePaint!;
+            float baseScale = _kind switch
             {
-                ref readonly var p = ref _items[i];
-                float r = baseRadius * p.SizeScale;
-                byte a = (byte)Math.Clamp((int)MathF.Round(_opacity * p.AlphaScale * 255f), 0, 255);
-                if (a < 2) continue;
+                ParticleKind.Snow => 10.5f * _size,
+                ParticleKind.Sakura => 11.0f * _size,
+                ParticleKind.Leaves => 15.5f * _size,
+                _ => 12.0f * _size
+            };
 
-                SKColor c = _activePalette[p.PaletteIndex];
-                // Soft outer halo without expensive per-frame SKMaskFilter blurs
-                paint.Color = c.WithAlpha((byte)(a >> 2));
-                canvas.DrawCircle(p.X, p.Y, r * 1.85f, paint);
-
-                paint.Color = c.WithAlpha(a);
-                canvas.DrawCircle(p.X, p.Y, r, paint);
-            }
-        }
-
-        private void RenderLeaves(SKCanvas canvas)
-        {
-            if (_leafPath == null || _fillPaint == null || _veinPaint == null) return;
-            var fill = _fillPaint;
-            var vein = _veinPaint;
-            float scaleBase = 1.05f * _size;
+            bool useLeafFilters = _kind == ParticleKind.Leaves && _leafPaletteFilters is { Length: > 0 };
+            bool isSnow = _kind == ParticleKind.Snow;
+            int spriteCount = sprites.Length;
 
             for (int i = 0; i < _count; i++)
             {
@@ -737,59 +831,48 @@ public class ParticleOverlayControl : Control
                 byte a = (byte)Math.Clamp((int)MathF.Round(_opacity * p.AlphaScale * 255f), 0, 255);
                 if (a < 2) continue;
 
-                SKColor c = _activePalette[p.PaletteIndex];
-                float sc = scaleBase * p.SizeScale;
-                float tiltY = 0.65f + 0.35f * MathF.Abs(MathF.Cos(p.Angle * 0.7f + p.Phase));
+                var img = sprites[p.SpriteIndex % spriteCount];
+                int maxDim = Math.Max(1, Math.Max(img.Width, img.Height));
+                float scaleFactor = (baseScale * p.SizeScale) / maxDim;
+                float halfW = img.Width * scaleFactor * 0.5f;
+                float halfH = img.Height * scaleFactor * 0.5f;
 
                 canvas.Save();
                 canvas.Translate(p.X, p.Y);
-                canvas.RotateRadians(p.Angle);
-                canvas.Scale(sc, sc * tiltY);
+                if (!isSnow)
+                {
+                    canvas.RotateRadians(p.Angle);
+                }
 
-                fill.Color = c.WithAlpha(a);
-                canvas.DrawPath(_leafPath, fill);
+                if (useLeafFilters)
+                {
+                    var filters = _leafPaletteFilters!;
+                    paint.Color = SKColors.White.WithAlpha(a);
+                    paint.ColorFilter = filters[p.PaletteIndex % filters.Length];
+                }
+                else
+                {
+                    paint.ColorFilter = null;
+                    paint.Color = isSnow
+                        ? SnowColors[p.PaletteIndex % SnowColors.Length].WithAlpha(a)
+                        : SKColors.White.WithAlpha(a);
+                }
 
-                vein.Color = new SKColor(20, 12, 6, (byte)(a * 0.32f));
-                canvas.DrawLine(0f, -6.5f, 0f, 6.2f, vein);
-
+                canvas.DrawImage(img, new SKRect(-halfW, -halfH, halfW, halfH), NearestSampling, paint);
                 canvas.Restore();
             }
+
+            paint.ColorFilter = null;
         }
 
-        private void RenderSakura(SKCanvas canvas)
+        private void RenderCustomImages(SKCanvas canvas)
         {
-            if (_petalPath == null || _fillPaint == null) return;
-            var fill = _fillPaint;
-            float scaleBase = 1.0f * _size;
+            if (_customImage == null || _spritePaint == null) return;
+            var paint = _spritePaint;
+            paint.ColorFilter = null;
 
-            for (int i = 0; i < _count; i++)
-            {
-                ref readonly var p = ref _items[i];
-                byte a = (byte)Math.Clamp((int)MathF.Round(_opacity * p.AlphaScale * 255f), 0, 255);
-                if (a < 2) continue;
-
-                SKColor c = _activePalette[p.PaletteIndex];
-                float sc = scaleBase * p.SizeScale;
-                float flutter = 0.55f + 0.45f * MathF.Abs(MathF.Sin(p.Angle * 0.85f + p.Phase));
-
-                canvas.Save();
-                canvas.Translate(p.X, p.Y);
-                canvas.RotateRadians(p.Angle);
-                canvas.Scale(sc, sc * flutter);
-
-                fill.Color = c.WithAlpha(a);
-                canvas.DrawPath(_petalPath, fill);
-
-                canvas.Restore();
-            }
-        }
-
-        private void RenderCustomBitmaps(SKCanvas canvas)
-        {
-            if (_customBitmap == null || _bitmapPaint == null) return;
-            var paint = _bitmapPaint;
             float baseDim = 24.0f * _size;
-            float aspect = _customBitmap.Height > 0 ? (float)_customBitmap.Height / _customBitmap.Width : 1.0f;
+            float aspect = _customImage.Width > 0 ? (float)_customImage.Height / _customImage.Width : 1.0f;
 
             for (int i = 0; i < _count; i++)
             {
@@ -805,7 +888,7 @@ public class ParticleOverlayControl : Control
                 canvas.RotateRadians(p.Angle);
 
                 paint.Color = SKColors.White.WithAlpha(a);
-                canvas.DrawBitmap(_customBitmap, new SKRect(-halfW, -halfH, halfW, halfH), paint);
+                canvas.DrawImage(_customImage, new SKRect(-halfW, -halfH, halfW, halfH), NearestSampling, paint);
 
                 canvas.Restore();
             }
@@ -822,96 +905,100 @@ public class ParticleOverlayControl : Control
                 p.X = (float)_rng.NextDouble() * w;
                 p.Y = (float)_rng.NextDouble() * h;
                 p.SpeedScale = 0.65f + (float)_rng.NextDouble() * 0.7f;
-                p.SizeScale = 0.6f + (float)_rng.NextDouble() * 0.75f;
+                p.SizeScale = 0.70f + (float)_rng.NextDouble() * 0.65f;
                 p.Phase = (float)(_rng.NextDouble() * Math.PI * 2.0);
                 p.SwayFreq = 0.8f + (float)_rng.NextDouble() * 1.4f;
-                p.SwayAmp = 12.0f + (float)_rng.NextDouble() * 24.0f;
+                p.SwayAmp = 12.0f + (float)_rng.NextDouble() * 22.0f;
                 p.Angle = (float)(_rng.NextDouble() * Math.PI * 2.0);
-                p.SpinRate = (float)((_rng.NextDouble() - 0.5) * 1.9);
-                p.AlphaScale = 0.50f + (float)_rng.NextDouble() * 0.50f;
+                p.SpinRate = (float)((_rng.NextDouble() - 0.5) * 1.6);
+                p.AlphaScale = 0.55f + (float)_rng.NextDouble() * 0.45f;
                 p.PaletteIndex = (byte)_rng.Next(0, 5);
+                p.SpriteIndex = (byte)_rng.Next(0, 12);
             }
 
             _seeded = true;
         }
 
-        private static SKColor[] ResolvePalette(ParticleKind kind, string paletteName) => kind switch
+        private static SKColor[] ResolveLeafColors(string paletteKey) => paletteKey switch
         {
-            ParticleKind.Snow => SnowColors,
-            ParticleKind.Sakura => SakuraColors,
-            ParticleKind.Leaves => (paletteName ?? "").Trim().ToLowerInvariant() switch
-            {
-                "spring" => LeafSpringColors,
-                "golden" => LeafGoldenColors,
-                "forest" => LeafForestColors,
-                _ => LeafAutumnColors
-            },
-            _ => SnowColors
+            "spring" => LeafSpringColors,
+            "golden" => LeafGoldenColors,
+            "forest" => LeafForestColors,
+            _ => LeafAutumnColors
         };
 
-        private void EnsureRenderResources()
+        private void RebuildLeafPaletteFilters(SKColor[] colors)
         {
-            _fillPaint ??= new SKPaint
+            DisposeLeafFilters();
+            _leafPaletteFilters = new SKColorFilter[colors.Length];
+            for (int i = 0; i < colors.Length; i++)
             {
-                Style = SKPaintStyle.Fill,
-                IsAntialias = true
-            };
+                _leafPaletteFilters[i] = SKColorFilter.CreateBlendMode(colors[i], SKBlendMode.Modulate);
+            }
+        }
 
-            _veinPaint ??= new SKPaint
+        private void DisposeLeafFilters()
+        {
+            if (_leafPaletteFilters == null) return;
+            foreach (var f in _leafPaletteFilters)
             {
-                Style = SKPaintStyle.Stroke,
-                StrokeWidth = 0.9f,
-                StrokeCap = SKStrokeCap.Round,
-                IsAntialias = true
-            };
+                try { f?.Dispose(); } catch { }
+            }
+            _leafPaletteFilters = null;
+        }
 
-            _bitmapPaint ??= new SKPaint
+        private void EnsurePaint()
+        {
+            _spritePaint ??= new SKPaint
             {
-                IsAntialias = true
+                IsAntialias = false
             };
+        }
 
-            if (_leafPath == null)
+        private void ReleaseEffectSpritesOnly()
+        {
+            _spriteKind = ParticleKind.Off;
+
+            if (_spriteImages != null)
             {
-                var leaf = new SKPath();
-                leaf.MoveTo(0f, -8f);
-                leaf.CubicTo(5.2f, -4.5f, 5.8f, 3.2f, 0f, 8f);
-                leaf.CubicTo(-5.8f, 3.2f, -5.2f, -4.5f, 0f, -8f);
-                leaf.Close();
-                _leafPath = leaf;
+                foreach (var img in _spriteImages)
+                {
+                    try { img?.Dispose(); } catch { }
+                }
+                _spriteImages = null;
             }
 
-            if (_petalPath == null)
+            if (_spriteBitmaps != null)
             {
-                var petal = new SKPath();
-                petal.MoveTo(0f, -7.5f);
-                petal.CubicTo(4.8f, -5.0f, 5.4f, 2.0f, 1.4f, 6.4f);
-                petal.LineTo(0f, 4.4f);
-                petal.LineTo(-1.4f, 6.4f);
-                petal.CubicTo(-5.4f, 2.0f, -4.8f, -5.0f, 0f, -7.5f);
-                petal.Close();
-                _petalPath = petal;
+                foreach (var bmp in _spriteBitmaps)
+                {
+                    try { bmp?.Dispose(); } catch { }
+                }
+                _spriteBitmaps = null;
             }
+        }
+
+        private void ReleaseCustomImageOnly()
+        {
+            try { _customImage?.Dispose(); } catch { }
+            _customImage = null;
+
+            try { _customBitmap?.Dispose(); } catch { }
+            _customBitmap = null;
         }
 
         private void ReleaseRenderResources()
         {
-            try { _fillPaint?.Dispose(); } catch { }
-            _fillPaint = null;
+            if (_spritePaint != null)
+            {
+                _spritePaint.ColorFilter = null;
+                try { _spritePaint.Dispose(); } catch { }
+                _spritePaint = null;
+            }
 
-            try { _veinPaint?.Dispose(); } catch { }
-            _veinPaint = null;
-
-            try { _bitmapPaint?.Dispose(); } catch { }
-            _bitmapPaint = null;
-
-            try { _leafPath?.Dispose(); } catch { }
-            _leafPath = null;
-
-            try { _petalPath?.Dispose(); } catch { }
-            _petalPath = null;
-
-            try { _customBitmap?.Dispose(); } catch { }
-            _customBitmap = null;
+            DisposeLeafFilters();
+            ReleaseEffectSpritesOnly();
+            ReleaseCustomImageOnly();
         }
     }
 }

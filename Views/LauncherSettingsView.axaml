@@ -794,38 +794,17 @@
                                         </StackPanel>
                                         <WrapPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                                             <Button Classes="pillSelectBtn" Classes.active="{Binding IsLeafPaletteSpring}"
-                                                    Command="{Binding SelectLeafPaletteCommand}" CommandParameter="Spring" Margin="0,0,6,4">
-                                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                                    <Border Width="8" Height="8" CornerRadius="4" Background="{x:Static pages:LauncherSettingsViewModel.LeafSpringDot1Brush}"/>
-                                                    <Border Width="8" Height="8" CornerRadius="4" Background="{x:Static pages:LauncherSettingsViewModel.LeafSpringDot2Brush}"/>
-                                                    <TextBlock Text="{l10n:Tr particles_palette_spring}" VerticalAlignment="Center"/>
-                                                </StackPanel>
-                                            </Button>
+                                                    Command="{Binding SelectLeafPaletteCommand}" CommandParameter="Spring"
+                                                    Content="{l10n:Tr particles_palette_spring}" Margin="0,0,6,4"/>
                                             <Button Classes="pillSelectBtn" Classes.active="{Binding IsLeafPaletteGolden}"
-                                                    Command="{Binding SelectLeafPaletteCommand}" CommandParameter="Golden" Margin="0,0,6,4">
-                                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                                    <Border Width="8" Height="8" CornerRadius="4" Background="{x:Static pages:LauncherSettingsViewModel.LeafGoldenDot1Brush}"/>
-                                                    <Border Width="8" Height="8" CornerRadius="4" Background="{x:Static pages:LauncherSettingsViewModel.LeafGoldenDot2Brush}"/>
-                                                    <TextBlock Text="{l10n:Tr particles_palette_golden}" VerticalAlignment="Center"/>
-                                                </StackPanel>
-                                            </Button>
+                                                    Command="{Binding SelectLeafPaletteCommand}" CommandParameter="Golden"
+                                                    Content="{l10n:Tr particles_palette_golden}" Margin="0,0,6,4"/>
                                             <Button Classes="pillSelectBtn" Classes.active="{Binding IsLeafPaletteAutumn}"
-                                                    Command="{Binding SelectLeafPaletteCommand}" CommandParameter="Autumn" Margin="0,0,6,4">
-                                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                                    <Border Width="8" Height="8" CornerRadius="4" Background="{x:Static pages:LauncherSettingsViewModel.LeafAutumnDot1Brush}"/>
-                                                    <Border Width="8" Height="8" CornerRadius="4" Background="{x:Static pages:LauncherSettingsViewModel.LeafAutumnDot2Brush}"/>
-                                                    <TextBlock Text="{l10n:Tr particles_palette_autumn}" VerticalAlignment="Center"/>
-                                                </StackPanel>
-                                            </Button>
+                                                    Command="{Binding SelectLeafPaletteCommand}" CommandParameter="Autumn"
+                                                    Content="{l10n:Tr particles_palette_autumn}" Margin="0,0,6,4"/>
                                             <Button Classes="pillSelectBtn" Classes.active="{Binding IsLeafPaletteForest}"
-                                                    Command="{Binding SelectLeafPaletteCommand}" CommandParameter="Forest" Margin="0,0,0,4">
-                                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                                    <Border Width="8" Height="8" CornerRadius="4" Background="{x:Static pages:LauncherSettingsViewModel.LeafForestDot1Brush}"/>
-                                                    <Border Width="8" Height="8" CornerRadius="4" Background="{x:Static pages:LauncherSettingsViewModel.LeafForestDot2Brush}"/>
-                                                    <Border Width="8" Height="8" CornerRadius="4" Background="{x:Static pages:LauncherSettingsViewModel.LeafForestDot3Brush}"/>
-                                                    <TextBlock Text="{l10n:Tr particles_palette_forest}" VerticalAlignment="Center"/>
-                                                </StackPanel>
-                                            </Button>
+                                                    Command="{Binding SelectLeafPaletteCommand}" CommandParameter="Forest"
+                                                    Content="{l10n:Tr particles_palette_forest}" Margin="0,0,0,4"/>
                                         </WrapPanel>
                                     </Grid>
                                 </StackPanel>
@@ -1040,24 +1019,32 @@
                         <!-- Card 4: Expandable Interface Animations & Motion Details -->
                         <Border Classes="settingsCard" IsVisible="{Binding IsSearchAppearanceVisible}">
                             <StackPanel Spacing="14">
-                                <!-- Master Row + Expander Chevron -->
-                                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10" VerticalAlignment="Center">
-                                    <StackPanel Grid.Column="0" Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                        <TextBlock Classes="itemTitle" Text="{l10n:Tr set_ui_animations}"/>
-                                        <TextBlock Classes="itemDesc" Text="{l10n:Tr set_ui_animations_hint}"/>
-                                    </StackPanel>
-                                    <Button Grid.Column="1" Classes="subBtn" Width="30" Height="30" Padding="0"
-                                            Command="{Binding ToggleAnimationDetailsCommand}"
+                                <!-- Master Row (Clickable Header + Minimalist Vector Chevron + Toggle) -->
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14" VerticalAlignment="Center">
+                                    <Border Grid.Column="0" Background="Transparent" Cursor="Hand"
+                                            Tapped="OnAnimationHeaderTapped"
                                             ToolTip.Tip="{l10n:Tr set_ui_anim_details}"
                                             VerticalAlignment="Center">
-                                        <Panel>
-                                            <PathIcon Data="M7 10l5 5 5-5z" Width="13" Height="13" Foreground="{DynamicResource TextSecondaryBrush}"
+                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" VerticalAlignment="Center">
+                                            <StackPanel Grid.Column="0" Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                                <TextBlock Classes="itemTitle" Text="{l10n:Tr set_ui_animations}"/>
+                                                <TextBlock Classes="itemDesc" Text="{l10n:Tr set_ui_animations_hint}"/>
+                                            </StackPanel>
+                                            <Panel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,2,0">
+                                                <Path Data="M 1 1 L 5 5 L 9 1" Width="10" Height="6" Stretch="Uniform"
+                                                      Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.5"
+                                                      StrokeLineCap="Round" StrokeJoin="Round"
+                                                      VerticalAlignment="Center" HorizontalAlignment="Center"
                                                       IsVisible="{Binding !IsAnimationDetailsExpanded}"/>
-                                            <PathIcon Data="M7 14l5-5 5 5z" Width="13" Height="13" Foreground="{DynamicResource AccentBrush}"
+                                                <Path Data="M 1 5 L 5 1 L 9 5" Width="10" Height="6" Stretch="Uniform"
+                                                      Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.5"
+                                                      StrokeLineCap="Round" StrokeJoin="Round"
+                                                      VerticalAlignment="Center" HorizontalAlignment="Center"
                                                       IsVisible="{Binding IsAnimationDetailsExpanded}"/>
-                                        </Panel>
-                                    </Button>
-                                    <ToggleSwitch Grid.Column="2" IsChecked="{Binding UiAnimationsEnabled, Mode=TwoWay}"
+                                            </Panel>
+                                        </Grid>
+                                    </Border>
+                                    <ToggleSwitch Grid.Column="1" IsChecked="{Binding UiAnimationsEnabled, Mode=TwoWay}"
                                                   OnContent="{x:Null}" OffContent="{x:Null}"
                                                   HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                 </Grid>

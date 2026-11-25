@@ -5,6 +5,7 @@
              xmlns:vm="using:ZenithLauncher.ViewModels"
              xmlns:views="using:ZenithLauncher.Views"
              xmlns:pages="using:ZenithLauncher.Views.Pages"
+             xmlns:components="using:ZenithLauncher.Views.Components"
              xmlns:items="using:ZenithLauncher.ViewModels.Items"
              xmlns:converters="using:ZenithLauncher.Converters"
              xmlns:conv="using:Avalonia.Data.Converters"
@@ -81,8 +82,8 @@
             </StackPanel>
 
             <!-- Results list -->
-            <Grid x:Name="CatalogResultsHost" Grid.Row="1">
-                <ListBox x:Name="ModpacksList" ItemsSource="{Binding ModpacksBrowser.Results}" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible" AttachedToVisualTree="OnModpacksListAttached">
+            <Grid x:Name="CatalogResultsHost" Grid.Row="1" RowDefinitions="*,Auto" ClipToBounds="True">
+                <ListBox x:Name="ModpacksList" Grid.Row="0" ItemsSource="{Binding ModpacksBrowser.Results}" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible" AttachedToVisualTree="OnModpacksListAttached">
                     <ListBox.ItemContainerTheme>
                         <ControlTheme TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
                             <Setter Property="Background" Value="Transparent"/>
@@ -186,11 +187,15 @@
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
-                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" IsHitTestVisible="False">
-                    <TextBlock Text="{l10n:Tr Key=mp_loading}" IsVisible="{Binding ModpacksBrowser.IsBusy}" HorizontalAlignment="Center" Margin="0,12" Foreground="{DynamicResource TextMutedBrush}"/>
-                    <TextBlock Text="{l10n:Tr Key=mp_empty}" IsVisible="{Binding ModpacksBrowser.IsEmpty}" HorizontalAlignment="Center" Margin="0,12" Foreground="{DynamicResource TextPlaceholderBrush}"/>
-                </StackPanel>
-                <TextBlock VerticalAlignment="Bottom" HorizontalAlignment="Left" Text="{Binding ModpacksBrowser.StatusText}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="4,0,0,4" TextWrapping="Wrap" IsVisible="{Binding ModpacksBrowser.StatusText, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
+                <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Disabled"
+                              IsVisible="{Binding ModpacksBrowser.IsInitialLoading}" IsHitTestVisible="False">
+                    <components:CatalogSkeletonList CardCount="6"/>
+                </ScrollViewer>
+                <components:CatalogSkeletonList Grid.Row="1" CardCount="2"
+                                                IsVisible="{Binding ModpacksBrowser.IsLoadingMore}"
+                                                IsHitTestVisible="False" Margin="0,4,0,0"/>
+                <TextBlock Grid.Row="0" Text="{l10n:Tr Key=mp_empty}" IsVisible="{Binding ModpacksBrowser.IsEmpty}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,12" Foreground="{DynamicResource TextPlaceholderBrush}" IsHitTestVisible="False"/>
+                <TextBlock Grid.Row="0" VerticalAlignment="Bottom" HorizontalAlignment="Left" Text="{Binding ModpacksBrowser.StatusText}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="4,0,0,4" TextWrapping="Wrap" IsVisible="{Binding ModpacksBrowser.StatusText, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
             </Grid>
         </Grid>
 

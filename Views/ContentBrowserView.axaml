@@ -6,6 +6,7 @@
         xmlns:items="using:ZenithLauncher.ViewModels.Items"
         xmlns:l10n="using:ZenithLauncher.Extensions"
         xmlns:views="using:ZenithLauncher.Views"
+        xmlns:components="using:ZenithLauncher.Views.Components"
         xmlns:conv="using:Avalonia.Data.Converters"
         xmlns:anim="using:ZenithLauncher.UI.Animations"
         x:Class="ZenithLauncher.Views.ContentBrowserView"
@@ -326,8 +327,8 @@
         </StackPanel>
 
         <!-- Main catalog (hidden when details page is open) -->
-        <Grid x:Name="ContentResultsHost" Grid.Row="1" IsVisible="{Binding !IsDetailsOpen}">
-                    <ListBox x:Name="ResultsList" ItemsSource="{Binding Results}" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible">
+        <Grid x:Name="ContentResultsHost" Grid.Row="1" RowDefinitions="*,Auto" ClipToBounds="True" IsVisible="{Binding !IsDetailsOpen}">
+                    <ListBox x:Name="ResultsList" Grid.Row="0" ItemsSource="{Binding Results}" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible">
                         <ListBox.ItemContainerTheme>
                             <ControlTheme TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
                                 <Setter Property="Background" Value="Transparent"/>
@@ -431,7 +432,17 @@
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
-            <Border VerticalAlignment="Bottom" Background="{StaticResource BgBrush}" Padding="8,6" IsVisible="{Binding StatusText, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}">
+            <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Disabled"
+                          IsVisible="{Binding IsInitialLoading}" IsHitTestVisible="False" Margin="4">
+                <components:CatalogSkeletonList CardCount="6"/>
+            </ScrollViewer>
+            <components:CatalogSkeletonList Grid.Row="1" CardCount="2"
+                                            IsVisible="{Binding IsLoadingMore}"
+                                            IsHitTestVisible="False" Margin="4,4,4,0"/>
+            <TextBlock Grid.Row="0" Text="{l10n:Tr Key=mp_empty}" IsVisible="{Binding IsEmpty}"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                       Foreground="{StaticResource TextPlaceholderBrush}" IsHitTestVisible="False"/>
+            <Border Grid.Row="0" VerticalAlignment="Bottom" Background="{StaticResource BgBrush}" Padding="8,6" IsVisible="{Binding StatusText, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}">
                 <TextBlock Text="{Binding StatusText}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap"/>
             </Border>
         </Grid>

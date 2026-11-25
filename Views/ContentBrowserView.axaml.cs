@@ -15,6 +15,7 @@ public partial class ContentBrowserView : UserControl
     private bool _scrollAttached;
     private ContentBrowserViewModel? _boundVm;
     private int _lastContentTypeIndex;
+    private bool _wasInitialLoading;
 
     public ContentBrowserView()
     {
@@ -32,6 +33,7 @@ public partial class ContentBrowserView : UserControl
         {
             _boundVm = vm;
             _lastContentTypeIndex = GetContentTypeIndex(vm.SelectedContentType);
+            _wasInitialLoading = vm.IsInitialLoading;
             _boundVm.PropertyChanged += OnVmPropertyChanged;
             SyncOverlays();
         }
@@ -67,6 +69,15 @@ public partial class ContentBrowserView : UserControl
                 if (sv != null) sv.Offset = Vector.Zero;
                 ZenithMotion.AnimateCatalogSwipe(ContentResultsHost, dir);
             }
+        }
+        else if (e.PropertyName == nameof(ContentBrowserViewModel.IsInitialLoading) && _boundVm != null)
+        {
+            bool nowLoading = _boundVm.IsInitialLoading;
+            if (_wasInitialLoading && !nowLoading && _boundVm.Results.Count > 0)
+            {
+                ZenithMotion.AnimateOpacityReveal(ResultsList, durationMs: 200);
+            }
+            _wasInitialLoading = nowLoading;
         }
         else if (e.PropertyName is nameof(ContentBrowserViewModel.IsDetailsOpen)
             or nameof(ContentBrowserViewModel.IsAuthorProfileOpen)

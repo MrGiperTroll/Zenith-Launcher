@@ -10,11 +10,11 @@
              x:DataType="vm:MainWindowViewModel"
              mc:Ignorable="d">
     <Panel>
-        <Grid ColumnDefinitions="*,Auto" Margin="24,16,0,0">
-            <components:InstanceGridControl Grid.Column="0" />
+        <Grid ColumnDefinitions="*,Auto" Margin="0">
+            <components:InstanceGridControl Grid.Column="0" Margin="24,16,0,0" />
 
             <!-- Right Sidebar: Instance Details -->
-            <Border Grid.Column="1" IsVisible="False" Width="300" Background="{DynamicResource SidebarBgBrush}" Padding="16,8,16,16"
+            <Border Grid.Column="1" IsVisible="False" Width="300" Background="{DynamicResource SidebarBgBrush}" Padding="16,14,16,16"
                     x:Name="InstanceDetailsSidebar">
 
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">

@@ -17,6 +17,7 @@ public partial class EditInstanceView : UserControl
     private bool _followBottom = true;
     private EditInstanceViewModel? _boundVm;
     private string? _lastAnimatedTab;
+    private int _lastAnimatedTabIndex;
 
     public EditInstanceView()
     {
@@ -57,6 +58,7 @@ public partial class EditInstanceView : UserControl
         {
             _boundVm = vm;
             _lastAnimatedTab = vm.SelectedTab;
+            _lastAnimatedTabIndex = GetEditTabIndex(vm.SelectedTab);
             vm.PropertyChanged += OnVmPropertyChanged;
         }
     }
@@ -74,10 +76,27 @@ public partial class EditInstanceView : UserControl
 
         if (_boundVm != null && _boundVm.SelectedTab != _lastAnimatedTab)
         {
+            int newIndex = GetEditTabIndex(_boundVm.SelectedTab);
+            int dir = newIndex >= _lastAnimatedTabIndex ? 1 : -1;
             _lastAnimatedTab = _boundVm.SelectedTab;
-            ZenithMotion.TransitionTab(tab);
+            _lastAnimatedTabIndex = newIndex;
+            ZenithMotion.AnimateDirectionalTab(tab, dir, distance: 32.0, durationMs: 275);
         }
     }
+
+    private static int GetEditTabIndex(string? tab) => (tab ?? "").ToLowerInvariant() switch
+    {
+        "overview" => 0,
+        "logs" => 1,
+        "mods" => 2,
+        "resource packs" => 3,
+        "shader packs" => 4,
+        "data packs" => 5,
+        "worlds" => 6,
+        "servers" => 7,
+        "settings" => 8,
+        _ => 0
+    };
 
     private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {

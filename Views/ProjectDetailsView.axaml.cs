@@ -15,6 +15,7 @@ public partial class ProjectDetailsView : UserControl
     private INotifyPropertyChanged? _boundVm;
     private bool _lastVersionDetailActive;
     private string _lastDetailTab = string.Empty;
+    private int _lastDetailTabIndex;
 
     public ProjectDetailsView()
     {
@@ -40,6 +41,7 @@ public partial class ProjectDetailsView : UserControl
             _boundVm = npc;
             _lastVersionDetailActive = GetIsVersionDetailActive();
             _lastDetailTab = GetSelectedDetailTab();
+            _lastDetailTabIndex = GetDetailTabIndex(_lastDetailTab);
         }
     }
 
@@ -80,11 +82,11 @@ public partial class ProjectDetailsView : UserControl
         _lastVersionDetailActive = isVersion;
         if (ReferenceEquals(panel, VersionDetailPanel) && isVersion)
         {
-            ZenithMotion.AnimateEntrance(VersionDetailPanel, offsetX: 44, offsetY: 0, startScale: 0.98, startOpacity: 0.0, durationMs: 285);
+            ZenithMotion.AnimateEntrance(VersionDetailPanel, offsetX: 46, offsetY: 0, startScale: 0.98, startOpacity: 0.0, durationMs: 290, category: MotionCategory.InternalTabs);
         }
         else if (ReferenceEquals(panel, RegularTabsPanel) && !isVersion)
         {
-            ZenithMotion.AnimateEntrance(RegularTabsPanel, offsetX: -36, offsetY: 0, startScale: 0.985, startOpacity: 0.0, durationMs: 255);
+            ZenithMotion.AnimateEntrance(RegularTabsPanel, offsetX: -38, offsetY: 0, startScale: 0.985, startOpacity: 0.0, durationMs: 265, category: MotionCategory.InternalTabs);
         }
     }
 
@@ -103,10 +105,22 @@ public partial class ProjectDetailsView : UserControl
         string currentTab = GetSelectedDetailTab();
         if (!string.Equals(currentTab, _lastDetailTab, StringComparison.OrdinalIgnoreCase))
         {
+            int newIndex = GetDetailTabIndex(currentTab);
+            int dir = newIndex >= _lastDetailTabIndex ? 1 : -1;
             _lastDetailTab = currentTab;
-            ZenithMotion.TransitionTab(panel);
+            _lastDetailTabIndex = newIndex;
+            ZenithMotion.AnimateDirectionalTab(panel, dir, distance: 46.0, durationMs: 280);
         }
     }
+
+    private static int GetDetailTabIndex(string? tab) => (tab ?? "").Trim().ToLowerInvariant() switch
+    {
+        "description" => 0,
+        "gallery" => 1,
+        "changelog" => 2,
+        "versions" => 3,
+        _ => 0
+    };
 
     private void OnVersionRowTapped(object? sender, RoutedEventArgs e)
     {

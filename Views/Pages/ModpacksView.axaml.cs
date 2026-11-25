@@ -14,6 +14,7 @@ public partial class ModpacksView : UserControl
 {
     private bool _modpacksScrollAttached;
     private ModpacksBrowserViewModel? _boundBrowser;
+    private int _lastProjectTypeIndex;
 
     public ModpacksView()
     {
@@ -29,6 +30,7 @@ public partial class ModpacksView : UserControl
         if (DataContext is MainWindowViewModel vm)
         {
             _boundBrowser = vm.ModpacksBrowser;
+            _lastProjectTypeIndex = GetProjectTypeIndex(_boundBrowser.SelectedProjectType);
             _boundBrowser.PropertyChanged += OnBrowserPropertyChanged;
             SyncOverlays();
         }
@@ -37,6 +39,7 @@ public partial class ModpacksView : UserControl
     private void OnDetached(object? sender, VisualTreeAttachmentEventArgs e)
     {
         DetachBrowser();
+        ZenithMotion.CancelControl(CatalogResultsHost);
         ClearHost(DetailsHost);
         ClearHost(AuthorHost);
     }
@@ -52,13 +55,36 @@ public partial class ModpacksView : UserControl
 
     private void OnBrowserPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is nameof(ModpacksBrowserViewModel.IsDetailsOpen)
+        if (e.PropertyName == nameof(ModpacksBrowserViewModel.SelectedProjectType) && _boundBrowser != null)
+        {
+            int newIndex = GetProjectTypeIndex(_boundBrowser.SelectedProjectType);
+            if (newIndex != _lastProjectTypeIndex)
+            {
+                int dir = newIndex > _lastProjectTypeIndex ? 1 : -1;
+                _lastProjectTypeIndex = newIndex;
+                var sv = ModpacksList.FindDescendantOfType<ScrollViewer>();
+                if (sv != null) sv.Offset = Vector.Zero;
+                ZenithMotion.AnimateCatalogSwipe(CatalogResultsHost, dir);
+            }
+        }
+        else if (e.PropertyName is nameof(ModpacksBrowserViewModel.IsDetailsOpen)
             or nameof(ModpacksBrowserViewModel.IsAuthorProfileOpen)
             or nameof(ModpacksBrowserViewModel.CurrentAuthorProfileVm))
         {
             SyncOverlays();
         }
     }
+
+    private static int GetProjectTypeIndex(string? type) => (type ?? "").ToLowerInvariant() switch
+    {
+        "modpack" => 0,
+        "mod" => 1,
+        "resourcepack" => 2,
+        "datapack" => 3,
+        "shader" => 4,
+        "world" => 5,
+        _ => 0
+    };
 
     private void SyncOverlays()
     {

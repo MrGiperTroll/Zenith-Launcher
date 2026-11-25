@@ -13,8 +13,8 @@
              x:DataType="vm:MainWindowViewModel"
              UseLayoutRounding="True"
              mc:Ignorable="d">
-    <Grid Margin="24,16,16,0" UseLayoutRounding="True">
-        <Grid x:Name="CatalogContentRoot" RowDefinitions="Auto,*" IsVisible="{Binding !ModpacksBrowser.IsDetailsOpen}">
+    <Grid Margin="24,16,16,0" ClipToBounds="True" UseLayoutRounding="True">
+        <Grid x:Name="CatalogContentRoot" RowDefinitions="Auto,*" ClipToBounds="True" IsVisible="{Binding !ModpacksBrowser.IsDetailsOpen}">
             <!-- Header: Type Tabs, Search Bar, and Filter Controls -->
             <StackPanel Grid.Row="0" Spacing="10" Margin="0,0,0,12">
                 <!-- Top Segmented Content Type Tabs -->
@@ -81,7 +81,7 @@
             </StackPanel>
 
             <!-- Results list -->
-            <Grid Grid.Row="1">
+            <Grid x:Name="CatalogResultsHost" Grid.Row="1">
                 <ListBox x:Name="ModpacksList" ItemsSource="{Binding ModpacksBrowser.Results}" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible" AttachedToVisualTree="OnModpacksListAttached">
                     <ListBox.ItemContainerTheme>
                         <ControlTheme TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">

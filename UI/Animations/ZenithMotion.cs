@@ -7,6 +7,7 @@ using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
+using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using Avalonia.Rendering.Composition;
@@ -16,10 +17,21 @@ using Avalonia.VisualTree;
 
 namespace ZenithLauncher.UI.Animations;
 
+public enum MotionCategory
+{
+    Auto,
+    PageAndCatalog,
+    InternalTabs,
+    Modals,
+    Sidebars,
+    Popups
+}
+
 /// <summary>
 /// High-fluidity UI motion engine combining render-thread Avalonia Composition API
 /// spatial animations (Translation / Scale around layout CenterPoint) with synchronized
 /// VSync opacity envelopes so CompositingRenderer property syncs never cancel fades.
+/// Supports granular category toggles and independent smooth scrolling.
 /// </summary>
 public static class ZenithMotion
 {
@@ -42,10 +54,15 @@ public static class ZenithMotion
     public static readonly AttachedProperty<bool> RevealOnAttachProperty =
         AvaloniaProperty.RegisterAttached<Control, bool>("RevealOnAttach", typeof(ZenithMotion));
 
-    // Expressive Apple/Android curves: silky velocity across the full 240-320ms travel, zero jitter.
+    public static readonly AttachedProperty<MotionCategory> CategoryProperty =
+        AvaloniaProperty.RegisterAttached<Control, MotionCategory>("Category", typeof(ZenithMotion), MotionCategory.Auto);
+
+    // Expressive Apple/Android curves: silky velocity across full 240-320ms travel, zero jitter.
     private static readonly SplineEasing FluidEnter = new(0.22, 1.0, 0.36, 1.0);
     private static readonly SplineEasing SpatialGlide = new(0.16, 1.0, 0.3, 1.0);
+    private static readonly SplineEasing SoftTabCurve = new(0.24, 1.0, 0.42, 1.0);
     private static readonly SplineEasing SilkFade = new(0.25, 0.92, 0.38, 1.0);
+    private static readonly SplineEasing SoftTabFade = new(0.28, 0.92, 0.42, 1.0);
     private static readonly SplineEasing ExitAccelerate = new(0.4, 0.0, 0.8, 0.25);
     private static readonly SpringEasing SheetSpring = new(1.0, 125.0, 18.5, 0.0);
 
@@ -64,6 +81,7 @@ public static class ZenithMotion
     {
         public uint Generation;
         public uint OpacityGeneration;
+        public MotionCategory Category = MotionCategory.Auto;
         public bool ControlsVisibility;
         public bool HasInitializedOpen;
         public bool IsOpen;
@@ -89,9 +107,17 @@ public static class ZenithMotion
     private static readonly List<WeakReference<Control>> ActiveControls = new();
 
     private static bool _isEnabled = true;
+    private static bool _pageTransitionsEnabled = true;
+    private static bool _tabTransitionsEnabled = true;
+    private static bool _modalsEnabled = true;
+    private static bool _sidebarsEnabled = true;
+    private static bool _popupsEnabled = true;
+    private static bool _smoothScrollEnabled = true;
 
     public static bool IsEnabled => _isEnabled;
+    public static bool IsSmoothScrollEnabled => _smoothScrollEnabled;
     public static event Action<bool>? EnabledChanged;
+    public static event Action<bool>? SmoothScrollEnabledChanged;
 
     static ZenithMotion()
     {
@@ -119,6 +145,26 @@ public static class ZenithMotion
     public static void SetRevealOnAttach(Control control, bool value) =>
         control.SetValue(RevealOnAttachProperty, value);
 
+    public static MotionCategory GetCategory(Control control) => control.GetValue(CategoryProperty);
+    public static void SetCategory(Control control, MotionCategory value) =>
+        control.SetValue(CategoryProperty, value);
+
+    public static bool IsCategoryEnabled(MotionCategory category) => category switch
+    {
+        MotionCategory.PageAndCatalog => _isEnabled && _pageTransitionsEnabled,
+        MotionCategory.InternalTabs => _isEnabled && _tabTransitionsEnabled,
+        MotionCategory.Modals => _isEnabled && _modalsEnabled,
+        MotionCategory.Sidebars => _isEnabled && _sidebarsEnabled,
+        MotionCategory.Popups => _isEnabled && _popupsEnabled,
+        _ => _isEnabled
+    };
+
+    private static MotionCategory ResolveCategory(Control control, MotionCategory defaultCategory)
+    {
+        var explicitCat = control.GetValue(CategoryProperty);
+        return explicitCat == MotionCategory.Auto ? defaultCategory : explicitCat;
+    }
+
     /// <summary>
     /// Registers top-level window lifecycle and ensures hover transition resources reflect the toggle state.
     /// </summary>
@@ -144,6 +190,59 @@ public static class ZenithMotion
         app.Resources[MotionPresenterBgTransitionsKey] = enabled ? EnabledPresenterBgTransitions : EmptyTransitions;
     }
 
+    public static void SetEnabled(bool enabled)
+    {
+        Configure(
+            enabled,
+            _pageTransitionsEnabled,
+            _tabTransitionsEnabled,
+            _modalsEnabled,
+            _sidebarsEnabled,
+            _popupsEnabled,
+            _smoothScrollEnabled);
+    }
+
+    /// <summary>
+    /// Applies master UI animation toggle, per-category toggles, and independent smooth scroll setting immediately.
+    /// </summary>
+    public static void Configure(
+        bool masterEnabled,
+        bool pageTransitions,
+        bool tabTransitions,
+        bool modals,
+        bool sidebars,
+        bool popups,
+        bool smoothScroll)
+    {
+        void Apply()
+        {
+            bool masterChanged = _isEnabled != masterEnabled;
+            bool scrollChanged = _smoothScrollEnabled != smoothScroll;
+
+            _isEnabled = masterEnabled;
+            _pageTransitionsEnabled = pageTransitions;
+            _tabTransitionsEnabled = tabTransitions;
+            _modalsEnabled = modals;
+            _sidebarsEnabled = sidebars;
+            _popupsEnabled = popups;
+            _smoothScrollEnabled = smoothScroll;
+
+            ApplyHoverTransitionResources(masterEnabled);
+            CancelDisabledAnimations();
+
+            if (masterChanged)
+                EnabledChanged?.Invoke(masterEnabled);
+
+            if (scrollChanged)
+                SmoothScrollEnabledChanged?.Invoke(smoothScroll);
+        }
+
+        if (Dispatcher.UIThread.CheckAccess())
+            Apply();
+        else
+            Dispatcher.UIThread.Post(Apply);
+    }
+
     /// <summary>
     /// Synchronizes initial visibility and initialized state for a panel controlled by AnimateSlidePanel
     /// without running an entrance/exit transition.
@@ -152,6 +251,7 @@ public static class ZenithMotion
     {
         if (control == null) return;
         var track = GetOrCreateTrack(control);
+        track.Category = MotionCategory.Sidebars;
         track.ControlsVisibility = true;
         track.HasInitializedOpen = true;
         track.IsOpen = isVisible;
@@ -177,33 +277,6 @@ public static class ZenithMotion
         SnapToRest(control, track);
     }
 
-    public static void SetEnabled(bool enabled)
-    {
-        void ApplyToggle()
-        {
-            if (_isEnabled == enabled)
-            {
-                ApplyHoverTransitionResources(enabled);
-                return;
-            }
-
-            _isEnabled = enabled;
-            ApplyHoverTransitionResources(enabled);
-
-            if (!enabled)
-            {
-                CancelAllActiveAnimations();
-            }
-
-            EnabledChanged?.Invoke(enabled);
-        }
-
-        if (Dispatcher.UIThread.CheckAccess())
-            ApplyToggle();
-        else
-            Dispatcher.UIThread.Post(ApplyToggle);
-    }
-
     /// <summary>
     /// Animates a newly opened/navigated view into place using render-thread Scale/Translation
     /// around true centered bounds paired with synchronized VSync Opacity dissolve.
@@ -214,20 +287,23 @@ public static class ZenithMotion
         double offsetY = 0,
         double startScale = 0.96,
         double startOpacity = 0.0,
-        int durationMs = 280)
+        int durationMs = 280,
+        MotionCategory category = MotionCategory.PageAndCatalog)
     {
         if (control == null || control is Window) return;
         if (!Dispatcher.UIThread.CheckAccess())
         {
-            Dispatcher.UIThread.Post(() => AnimateEntrance(control, offsetX, offsetY, startScale, startOpacity, durationMs));
+            Dispatcher.UIThread.Post(() => AnimateEntrance(control, offsetX, offsetY, startScale, startOpacity, durationMs, category));
             return;
         }
 
         var track = GetOrCreateTrack(control);
+        var resolvedCategory = ResolveCategory(control, category);
+        track.Category = resolvedCategory;
         CancelPending(track);
         uint gen = ++track.Generation;
 
-        if (!_isEnabled || durationMs <= 0)
+        if (!IsCategoryEnabled(resolvedCategory) || durationMs <= 0)
         {
             SnapToRest(control, track);
             return;
@@ -236,9 +312,9 @@ public static class ZenithMotion
         bool needsScale = Math.Abs(startScale - 1.0) > 0.001;
         RunWhenReady(control, track, gen, needsBounds: needsScale, (ctrl, comp) =>
         {
-            if (!_isEnabled || track.Generation != gen)
+            if (!IsCategoryEnabled(resolvedCategory) || track.Generation != gen)
             {
-                if (!_isEnabled) SnapToRest(ctrl, track);
+                if (!IsCategoryEnabled(resolvedCategory)) SnapToRest(ctrl, track);
                 return;
             }
 
@@ -260,8 +336,13 @@ public static class ZenithMotion
                 comp.CenterPoint = new Vector3D(ctrl.Bounds.Width * 0.5, ctrl.Bounds.Height * 0.5, 0);
 
             bool hasSlide = Math.Abs(offsetX) >= 16.0 || Math.Abs(offsetY) >= 16.0;
-            Easing spatialEasing = hasSlide ? SpatialGlide : FluidEnter;
-            int opacityMs = Math.Clamp((int)Math.Round(durationMs * 0.88), 160, 260);
+            bool isTabCategory = resolvedCategory == MotionCategory.InternalTabs;
+            Easing spatialEasing = isTabCategory
+                ? SoftTabCurve
+                : (hasSlide ? SpatialGlide : FluidEnter);
+            Easing opacityEasing = isTabCategory ? SoftTabFade : SilkFade;
+            double opRatio = isTabCategory ? 0.90 : 0.88;
+            int opacityMs = Math.Clamp((int)Math.Round(durationMs * opRatio), 160, 275);
 
             StartCompositeMotion(
                 ctrl,
@@ -277,23 +358,67 @@ public static class ZenithMotion
                 fromOp,
                 1.0,
                 spatialEasing,
-                SilkFade,
+                opacityEasing,
                 animateScale: needsScale || Math.Abs(fromScale.X - 1.0) > 0.001,
                 animateTranslation: hasSlide || Math.Abs(offsetX) > 0.1 || Math.Abs(offsetY) > 0.1 || Math.Abs(fromTrans.X) > 0.1 || Math.Abs(fromTrans.Y) > 0.1);
         });
     }
 
     /// <summary>
-    /// Expressive centered depth-scale + cross-dissolve for in-page section tabs (Settings, Instance Edit, Project Details).
+    /// Expressive directional horizontal swipe for catalog category pills (Modpacks | Mods | Resource Packs | Data Packs | Shader Packs | Worlds).
+    /// Positive directionSign slides in from the right; negative slides in from the left.
+    /// </summary>
+    public static void AnimateCatalogSwipe(Control? control, int directionSign, int durationMs = 310)
+    {
+        double offsetX = directionSign >= 0 ? 96.0 : -96.0;
+        AnimateEntrance(
+            control,
+            offsetX: offsetX,
+            offsetY: 0,
+            startScale: 0.986,
+            startOpacity: 0.0,
+            durationMs: durationMs,
+            category: MotionCategory.PageAndCatalog);
+    }
+
+    /// <summary>
+    /// Soft, unhurried directional slide for internal section tabs (Settings, Instance Edit, Project Details, Import Modal).
+    /// </summary>
+    public static void AnimateDirectionalTab(
+        Control? control,
+        int directionSign,
+        double distance = 44.0,
+        int durationMs = 280)
+    {
+        double offsetX = directionSign == 0 ? 0.0 : (directionSign > 0 ? distance : -distance);
+        AnimateEntrance(
+            control,
+            offsetX: offsetX,
+            offsetY: 0,
+            startScale: directionSign == 0 ? 0.976 : 0.986,
+            startOpacity: 0.0,
+            durationMs: durationMs,
+            category: MotionCategory.InternalTabs);
+    }
+
+    /// <summary>
+    /// Soft centered depth-scale + cross-dissolve fallback for internal tabs.
     /// </summary>
     public static void TransitionTab(
         Control? control,
         double offsetX = 0,
         double offsetY = 0,
         double startOpacity = 0.0,
-        int durationMs = 240)
+        int durationMs = 275)
     {
-        AnimateEntrance(control, offsetX, offsetY, startScale: 0.974, startOpacity: startOpacity, durationMs: durationMs);
+        AnimateEntrance(
+            control,
+            offsetX,
+            offsetY,
+            startScale: 0.976,
+            startOpacity: startOpacity,
+            durationMs: durationMs,
+            category: MotionCategory.InternalTabs);
     }
 
     /// <summary>
@@ -308,7 +433,9 @@ public static class ZenithMotion
             return;
         }
 
+        var category = ResolveCategory(overlay, MotionCategory.Modals);
         var track = GetOrCreateTrack(overlay);
+        track.Category = category;
         track.ControlsVisibility = true;
         CancelPending(track);
 
@@ -345,12 +472,13 @@ public static class ZenithMotion
         uint cardGen = 0;
         if (cardTrack != null)
         {
+            cardTrack.Category = category;
             CancelPending(cardTrack);
             cardGen = ++cardTrack.Generation;
             cardTrack.IsOpen = isOpen;
         }
 
-        if (!_isEnabled)
+        if (!IsCategoryEnabled(category))
         {
             overlay.IsVisible = isOpen;
             overlay.IsHitTestVisible = isOpen;
@@ -367,9 +495,9 @@ public static class ZenithMotion
             Control layoutWaitTarget = card ?? overlay;
             RunWhenReady(layoutWaitTarget, track, gen, needsBounds: card != null, (targetCtrl, unusedComp) =>
             {
-                if (!_isEnabled || track.Generation != gen || !track.IsOpen)
+                if (!IsCategoryEnabled(category) || track.Generation != gen || !track.IsOpen)
                 {
-                    if (!_isEnabled)
+                    if (!IsCategoryEnabled(category))
                     {
                         overlay.IsVisible = track.IsOpen;
                         overlay.IsHitTestVisible = track.IsOpen;
@@ -432,7 +560,7 @@ public static class ZenithMotion
                         }
 
                         int cardMs = ScaledDuration(315, 1.0 - cardFromOp, 0.25);
-                        int cardOpMs = Math.Clamp((int)Math.Round(cardMs * 0.68), 130, 220);
+                        int cardOpMs = Math.Clamp((int)Math.Round(cardMs * 0.72), 140, 230);
                         StartCompositeMotion(
                             card,
                             cardComp,
@@ -553,7 +681,9 @@ public static class ZenithMotion
             return;
         }
 
+        var category = ResolveCategory(panel, MotionCategory.Sidebars);
         var track = GetOrCreateTrack(panel);
+        track.Category = category;
         track.ControlsVisibility = true;
         CancelPending(track);
 
@@ -577,7 +707,7 @@ public static class ZenithMotion
         uint gen = ++track.Generation;
         track.IsOpen = isOpen;
 
-        if (!_isEnabled)
+        if (!IsCategoryEnabled(category))
         {
             panel.IsVisible = isOpen;
             panel.IsHitTestVisible = isOpen;
@@ -592,9 +722,9 @@ public static class ZenithMotion
 
             RunWhenReady(panel, track, gen, needsBounds: false, (ctrl, comp) =>
             {
-                if (!_isEnabled || track.Generation != gen || !track.IsOpen)
+                if (!IsCategoryEnabled(category) || track.Generation != gen || !track.IsOpen)
                 {
-                    if (!_isEnabled)
+                    if (!IsCategoryEnabled(category))
                     {
                         panel.IsVisible = track.IsOpen;
                         panel.IsHitTestVisible = track.IsOpen;
@@ -616,7 +746,7 @@ public static class ZenithMotion
                 }
 
                 int ms = ScaledDuration(enterMs, 1.0 - fromOp, 0.25);
-                int opMs = Math.Clamp((int)Math.Round(ms * 0.78), 140, 230);
+                int opMs = Math.Clamp((int)Math.Round(ms * 0.85), 150, 250);
                 StartCompositeMotion(
                     ctrl,
                     comp,
@@ -695,7 +825,9 @@ public static class ZenithMotion
             return;
         }
 
+        var category = ResolveCategory(toast, MotionCategory.Popups);
         var track = GetOrCreateTrack(toast);
+        track.Category = category;
         track.ControlsVisibility = true;
         CancelPending(track);
 
@@ -718,7 +850,7 @@ public static class ZenithMotion
         uint gen = ++track.Generation;
         track.IsOpen = isVisible;
 
-        if (!_isEnabled)
+        if (!IsCategoryEnabled(category))
         {
             toast.IsVisible = isVisible;
             SnapToRest(toast, track);
@@ -730,9 +862,9 @@ public static class ZenithMotion
             toast.IsVisible = true;
             RunWhenReady(toast, track, gen, needsBounds: true, (ctrl, comp) =>
             {
-                if (!_isEnabled || track.Generation != gen || !track.IsOpen)
+                if (!IsCategoryEnabled(category) || track.Generation != gen || !track.IsOpen)
                 {
-                    if (!_isEnabled)
+                    if (!IsCategoryEnabled(category))
                     {
                         toast.IsVisible = track.IsOpen;
                         SnapToRest(toast, track);
@@ -758,7 +890,7 @@ public static class ZenithMotion
                 }
 
                 int ms = ScaledDuration(275, 1.0 - fromOp, 0.25);
-                int opMs = Math.Clamp((int)Math.Round(ms * 0.72), 120, 200);
+                int opMs = Math.Clamp((int)Math.Round(ms * 0.78), 140, 215);
                 StartCompositeMotion(
                     ctrl,
                     comp,
@@ -835,9 +967,9 @@ public static class ZenithMotion
             control.AttachedToVisualTree -= OnRevealControlAttached;
             control.AttachedToVisualTree += OnRevealControlAttached;
 
-            if (control.IsAttachedToVisualTree() && control.IsEffectivelyVisible && _isEnabled)
+            if (control.IsAttachedToVisualTree() && control.IsEffectivelyVisible && IsCategoryEnabled(MotionCategory.Popups))
             {
-                AnimateEntrance(control, offsetX: 0, offsetY: -8, startScale: 0.95, startOpacity: 0.0, durationMs: 195);
+                AnimateEntrance(control, offsetX: 0, offsetY: -8, startScale: 0.95, startOpacity: 0.0, durationMs: 205, category: MotionCategory.Popups);
             }
         }
         else
@@ -848,9 +980,9 @@ public static class ZenithMotion
 
     private static void OnRevealControlAttached(object? sender, VisualTreeAttachmentEventArgs e)
     {
-        if (sender is Control control && _isEnabled)
+        if (sender is Control control && IsCategoryEnabled(MotionCategory.Popups))
         {
-            AnimateEntrance(control, offsetX: 0, offsetY: -8, startScale: 0.95, startOpacity: 0.0, durationMs: 195);
+            AnimateEntrance(control, offsetX: 0, offsetY: -8, startScale: 0.95, startOpacity: 0.0, durationMs: 205, category: MotionCategory.Popups);
         }
     }
 
@@ -1075,7 +1207,6 @@ public static class ZenithMotion
         uint opGen = ++track.OpacityGeneration;
         track.IsOpacityAnimating = true;
 
-        // Apply starting opacity before Render/UpdateCore commits frame 0 to prevent flash.
         control.Opacity = Math.Clamp(fromOpacity, 0.0, 1.0);
 
         var topLevel = TopLevel.GetTopLevel(control);
@@ -1087,10 +1218,11 @@ public static class ZenithMotion
         }
 
         long startTicks = track.OpacityStartTicks;
+        MotionCategory capturedCategory = track.Category;
 
         void Step(TimeSpan _)
         {
-            if (!_isEnabled || track.Generation != trackGen || track.OpacityGeneration != opGen)
+            if (!IsCategoryEnabled(capturedCategory) || track.Generation != trackGen || track.OpacityGeneration != opGen)
             {
                 track.IsOpacityAnimating = false;
                 return;
@@ -1219,7 +1351,7 @@ public static class ZenithMotion
         return created;
     }
 
-    private static void CancelAllActiveAnimations()
+    private static void CancelDisabledAnimations()
     {
         for (int i = ActiveControls.Count - 1; i >= 0; i--)
         {
@@ -1232,11 +1364,13 @@ public static class ZenithMotion
             if (!Tracks.TryGetValue(control, out var track))
                 continue;
 
+            if (IsCategoryEnabled(track.Category))
+                continue;
+
             track.Generation++;
             track.OpacityGeneration++;
             CancelPending(track);
 
-            // Only restore visibility on controls explicitly managed by ModalOpen/SlidePanelOpen/ToastOpen.
             if (track.ControlsVisibility && track.HasInitializedOpen)
             {
                 control.IsVisible = track.IsOpen;
@@ -1320,7 +1454,7 @@ public static class ZenithMotion
     {
         new BrushTransition
         {
-            Property = Avalonia.Controls.Presenters.ContentPresenter.BackgroundProperty,
+            Property = ContentPresenter.BackgroundProperty,
             Duration = TimeSpan.FromMilliseconds(150),
             Easing = new SplineEasing(0.16, 1.0, 0.3, 1.0)
         }

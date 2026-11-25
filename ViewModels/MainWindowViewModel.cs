@@ -1842,7 +1842,14 @@ public partial class MainWindowViewModel : ViewModelBase
                     Launch?.LoadFromConfig(cfg);
                     LauncherSettingsVm?.LoadFromConfig(cfg);
                     ThemeSettingsVm?.LoadFromConfig(cfg);
-                    ZenithMotion.SetEnabled(cfg.UiAnimationsEnabled);
+                    ZenithMotion.Configure(
+                        cfg.UiAnimationsEnabled,
+                        cfg.UiAnimPageTransitionsEnabled,
+                        cfg.UiAnimTabsEnabled,
+                        cfg.UiAnimModalsEnabled,
+                        cfg.UiAnimSidebarsEnabled,
+                        cfg.UiAnimPopupsEnabled,
+                        cfg.SmoothScrollEnabled);
                 }
             }
         }

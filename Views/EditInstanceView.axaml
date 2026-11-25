@@ -216,8 +216,8 @@
             </Border>
 
             <!-- Content -->
-            <Border Grid.Column="1" Background="{DynamicResource LogSidebarBrush}">
-                <Grid x:Name="TabContentGrid">
+            <Border Grid.Column="1" Background="{DynamicResource LogSidebarBrush}" ClipToBounds="True">
+                <Grid x:Name="TabContentGrid" ClipToBounds="True">
                 <!-- Overview / Dashboard -->
                 <ScrollViewer x:Name="OverviewScroll" IsVisible="{Binding IsOverviewTab}" VerticalScrollBarVisibility="Auto">
                     <StackPanel Spacing="16" Margin="14,10,14,24">

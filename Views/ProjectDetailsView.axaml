@@ -550,7 +550,7 @@
                             <!-- ============================================== -->
                             <!-- REGULAR TABS (Visible when no version detail active) -->
                             <!-- ============================================== -->
-                            <StackPanel x:Name="RegularTabsPanel" IsVisible="{Binding !IsVersionDetailActive}">
+                            <StackPanel x:Name="RegularTabsPanel" ClipToBounds="True" IsVisible="{Binding !IsVersionDetailActive}">
 
                                 <!-- DESCRIPTION TAB (Rich Markdown Layout matching Modrinth) -->
                                 <!-- TAB 0: DESCRIPTION (Two-column: Body + Sidebar) -->

@@ -44,6 +44,21 @@ public class LauncherConfigData
     public bool MinimizeToTrayOnClose { get; set; } = false;
     public bool HardwareAcceleration { get; set; } = true;
     public bool UiAnimationsEnabled { get; set; } = true;
+    public bool UiAnimPageTransitionsEnabled { get; set; } = true;
+    public bool UiAnimTabsEnabled { get; set; } = true;
+    public bool UiAnimModalsEnabled { get; set; } = true;
+    public bool UiAnimSidebarsEnabled { get; set; } = true;
+    public bool UiAnimPopupsEnabled { get; set; } = true;
+    public bool SmoothScrollEnabled { get; set; } = true;
+
+    public string ParticleType { get; set; } = "Off";
+    public string ParticleLeafPalette { get; set; } = "Autumn";
+    public string ParticleCustomImagePath { get; set; } = string.Empty;
+    public int ParticleCount { get; set; } = 45;
+    public double ParticleSpeed { get; set; } = 1.0;
+    public double ParticleWind { get; set; } = 0.25;
+    public double ParticleSize { get; set; } = 1.0;
+    public double ParticleOpacity { get; set; } = 0.65;
     public bool IsLockAspectRatio { get; set; } = false;
     public bool ShowReleases { get; set; } = true;
     public bool ShowSnapshots { get; set; } = false;

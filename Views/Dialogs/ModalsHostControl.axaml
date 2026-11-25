@@ -478,8 +478,8 @@
 
                         <!-- Right Panel -->
                         <Border x:Name="ImportTabContentCard" Grid.Column="1" Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1"
-                                CornerRadius="10" Padding="18" Height="296">
-                            <Grid RowDefinitions="62,Auto,*" RowSpacing="12">
+                                CornerRadius="10" Padding="18" Height="296" ClipToBounds="True">
+                            <Grid x:Name="ImportTabContentInner" RowDefinitions="62,Auto,*" RowSpacing="12">
                                 <StackPanel Grid.Row="0" Spacing="4" VerticalAlignment="Top">
                                     <TextBlock Text="{Binding InstancesManager.ImportTabHeading}" FontSize="14.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                     <TextBlock Text="{Binding InstancesManager.ImportTabDescription}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" LineHeight="17"/>

@@ -190,6 +190,37 @@
             <Setter Property="Padding" Value="18,16"/>
         </Style>
 
+        <Style Selector="Button.pillSelectBtn">
+            <Setter Property="Background" Value="{DynamicResource FieldBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderDarkBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="Transitions" Value="{DynamicResource MotionCtrlBgBorderTransitions}"/>
+        </Style>
+        <Style Selector="Button.pillSelectBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderHoverBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        </Style>
+        <Style Selector="Button.pillSelectBtn.active">
+            <Setter Property="Background" Value="{DynamicResource AccentDimBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        </Style>
+        <Style Selector="Button.pillSelectBtn.active /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource AccentDimBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        </Style>
+
         <Style Selector="TextBlock.sectionHeaderTitle">
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="FontWeight" Value="Bold"/>
@@ -271,7 +302,7 @@
 
             <!-- Main Content Area -->
             <ScrollViewer x:Name="SettingsContentScroll" Grid.Column="1" Padding="32,24,36,28" VerticalScrollBarVisibility="Visible" UseLayoutRounding="True" Focusable="False">
-                <Panel>
+                <Panel ClipToBounds="True">
 
                     <!-- ========================================================= -->
                     <!-- TAB 1: MINECRAFT & GAME                                   -->
@@ -635,9 +666,10 @@
                     </StackPanel>
 
                     <!-- ========================================================= -->
-                    <!-- TAB 4: APPEARANCE                                         -->
+                    <!-- TAB 4: APPEARANCE (Themes, Particles, Typography, Motion) -->
                     <!-- ========================================================= -->
                     <StackPanel x:Name="TabAppearancePanel" Spacing="18" IsVisible="{Binding IsSettingsTabAppearance}">
+                        <!-- Card 1: Theme Settings -->
                         <Border Classes="settingsCard" IsVisible="{Binding IsSearchAppearanceVisible}">
                             <StackPanel Spacing="16">
                                 <!-- Theme Header -->
@@ -697,7 +729,7 @@
                                                             </Border>
                                                         </Grid>
                                                     </Border>
-                                                    
+
                                                     <!-- Theme Name Label -->
                                                     <Panel HorizontalAlignment="Center">
                                                         <TextBlock Text="{Binding Name}" FontSize="12"
@@ -714,9 +746,221 @@
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Card 2: Background Particles (strictly below theme selection block) -->
+                        <Border Classes="settingsCard" IsVisible="{Binding IsSearchAppearanceVisible}">
+                            <StackPanel Spacing="14">
+                                <StackPanel Spacing="3">
+                                    <TextBlock Classes="sectionHeaderTitle" Text="{l10n:Tr particles_title}"/>
+                                    <TextBlock Classes="sectionHeaderDesc" Text="{l10n:Tr particles_hint}"/>
+                                </StackPanel>
 
                                 <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
 
+                                <!-- Particle Type Selector -->
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16" VerticalAlignment="Center">
+                                    <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                        <TextBlock Classes="itemTitle" Text="{l10n:Tr particles_mode}"/>
+                                        <TextBlock Classes="itemDesc" Text="{l10n:Tr particles_mode_hint}"/>
+                                    </StackPanel>
+                                    <WrapPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                        <Button Classes="pillSelectBtn" Classes.active="{Binding IsParticleOff}"
+                                                Command="{Binding SelectParticleTypeCommand}" CommandParameter="Off"
+                                                Content="{l10n:Tr particles_off}" Margin="0,0,6,4"/>
+                                        <Button Classes="pillSelectBtn" Classes.active="{Binding IsParticleSnow}"
+                                                Command="{Binding SelectParticleTypeCommand}" CommandParameter="Snow"
+                                                Content="{l10n:Tr particles_snow}" Margin="0,0,6,4"/>
+                                        <Button Classes="pillSelectBtn" Classes.active="{Binding IsParticleLeaves}"
+                                                Command="{Binding SelectParticleTypeCommand}" CommandParameter="Leaves"
+                                                Content="{l10n:Tr particles_leaves}" Margin="0,0,6,4"/>
+                                        <Button Classes="pillSelectBtn" Classes.active="{Binding IsParticleSakura}"
+                                                Command="{Binding SelectParticleTypeCommand}" CommandParameter="Sakura"
+                                                Content="{l10n:Tr particles_sakura}" Margin="0,0,6,4"/>
+                                        <Button Classes="pillSelectBtn" Classes.active="{Binding IsParticleCustom}"
+                                                Command="{Binding SelectParticleTypeCommand}" CommandParameter="Custom"
+                                                Content="{l10n:Tr particles_custom}" Margin="0,0,0,4"/>
+                                    </WrapPanel>
+                                </Grid>
+
+                                <!-- Leaves Palette Sub-Section -->
+                                <StackPanel Spacing="14" IsVisible="{Binding IsParticleLeaves}">
+                                    <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16" VerticalAlignment="Center">
+                                        <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <TextBlock Classes="itemTitle" Text="{l10n:Tr particles_palette}"/>
+                                            <TextBlock Classes="itemDesc" Text="{l10n:Tr particles_palette_hint}"/>
+                                        </StackPanel>
+                                        <WrapPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <Button Classes="pillSelectBtn" Classes.active="{Binding IsLeafPaletteSpring}"
+                                                    Command="{Binding SelectLeafPaletteCommand}" CommandParameter="Spring" Margin="0,0,6,4">
+                                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                                    <Border Width="8" Height="8" CornerRadius="4" Background="{x:Static pages:LauncherSettingsViewModel.LeafSpringDot1Brush}"/>
+                                                    <Border Width="8" Height="8" CornerRadius="4" Background="{x:Static pages:LauncherSettingsViewModel.LeafSpringDot2Brush}"/>
+                                                    <TextBlock Text="{l10n:Tr particles_palette_spring}" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Button>
+                                            <Button Classes="pillSelectBtn" Classes.active="{Binding IsLeafPaletteGolden}"
+                                                    Command="{Binding SelectLeafPaletteCommand}" CommandParameter="Golden" Margin="0,0,6,4">
+                                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                                    <Border Width="8" Height="8" CornerRadius="4" Background="{x:Static pages:LauncherSettingsViewModel.LeafGoldenDot1Brush}"/>
+                                                    <Border Width="8" Height="8" CornerRadius="4" Background="{x:Static pages:LauncherSettingsViewModel.LeafGoldenDot2Brush}"/>
+                                                    <TextBlock Text="{l10n:Tr particles_palette_golden}" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Button>
+                                            <Button Classes="pillSelectBtn" Classes.active="{Binding IsLeafPaletteAutumn}"
+                                                    Command="{Binding SelectLeafPaletteCommand}" CommandParameter="Autumn" Margin="0,0,6,4">
+                                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                                    <Border Width="8" Height="8" CornerRadius="4" Background="{x:Static pages:LauncherSettingsViewModel.LeafAutumnDot1Brush}"/>
+                                                    <Border Width="8" Height="8" CornerRadius="4" Background="{x:Static pages:LauncherSettingsViewModel.LeafAutumnDot2Brush}"/>
+                                                    <TextBlock Text="{l10n:Tr particles_palette_autumn}" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Button>
+                                            <Button Classes="pillSelectBtn" Classes.active="{Binding IsLeafPaletteForest}"
+                                                    Command="{Binding SelectLeafPaletteCommand}" CommandParameter="Forest" Margin="0,0,0,4">
+                                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                                    <Border Width="8" Height="8" CornerRadius="4" Background="{x:Static pages:LauncherSettingsViewModel.LeafForestDot1Brush}"/>
+                                                    <Border Width="8" Height="8" CornerRadius="4" Background="{x:Static pages:LauncherSettingsViewModel.LeafForestDot2Brush}"/>
+                                                    <Border Width="8" Height="8" CornerRadius="4" Background="{x:Static pages:LauncherSettingsViewModel.LeafForestDot3Brush}"/>
+                                                    <TextBlock Text="{l10n:Tr particles_palette_forest}" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Button>
+                                        </WrapPanel>
+                                    </Grid>
+                                </StackPanel>
+
+                                <!-- Custom Particle Image Sub-Section -->
+                                <StackPanel Spacing="14" IsVisible="{Binding IsParticleCustom}">
+                                    <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16" VerticalAlignment="Center">
+                                        <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <TextBlock Classes="itemTitle" Text="{l10n:Tr particles_custom_image}"/>
+                                            <TextBlock Classes="itemDesc" Text="{l10n:Tr particles_custom_image_hint}"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <Border Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="6" Height="32" Padding="10,0" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding ParticleCustomImageDisplayName}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" MaxWidth="180" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <Button Classes="subBtn" Command="{Binding PickParticleImageCommand}" Height="32" Padding="12,0" Content="{l10n:Tr btn_browse}" VerticalAlignment="Center"/>
+                                            <Button Classes="subBtn" Command="{Binding ClearParticleImageCommand}" IsVisible="{Binding HasParticleCustomImage}" Width="32" Height="32" Padding="0" Content="✕" ToolTip.Tip="{l10n:Tr grp_clear}" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+
+                                <!-- Particle Physics & Style Sliders -->
+                                <StackPanel Spacing="14" IsVisible="{Binding AreParticlesEnabled}">
+                                    <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
+
+                                    <!-- Density / Count -->
+                                    <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                        <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <TextBlock Classes="itemTitle" Text="{l10n:Tr particles_density}"/>
+                                            <TextBlock Classes="itemDesc" Text="{l10n:Tr particles_density_hint}"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <Slider Width="160" Minimum="10" Maximum="160" SmallChange="1" LargeChange="10"
+                                                    Value="{Binding ParticleCount, Mode=TwoWay}"
+                                                    PointerCaptureLost="OnParticleSliderPointerCaptureLost"
+                                                    PointerReleased="OnParticleSliderPointerReleased"
+                                                    KeyUp="OnParticleSliderKeyUp"
+                                                    VerticalAlignment="Center"/>
+                                            <Border Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="6" Height="28" Width="58" Padding="6,0" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding ParticleCountText}" FontSize="11.5" FontWeight="Bold" FontFeatures="+tnum" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
+
+                                    <!-- Fall Speed -->
+                                    <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                        <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <TextBlock Classes="itemTitle" Text="{l10n:Tr particles_speed}"/>
+                                            <TextBlock Classes="itemDesc" Text="{l10n:Tr particles_speed_hint}"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <Slider Width="160" Minimum="0.2" Maximum="2.5" SmallChange="0.05" LargeChange="0.2"
+                                                    Value="{Binding ParticleSpeed, Mode=TwoWay}"
+                                                    PointerCaptureLost="OnParticleSliderPointerCaptureLost"
+                                                    PointerReleased="OnParticleSliderPointerReleased"
+                                                    KeyUp="OnParticleSliderKeyUp"
+                                                    VerticalAlignment="Center"/>
+                                            <Border Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="6" Height="28" Width="58" Padding="6,0" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding ParticleSpeedText}" FontSize="11.5" FontWeight="Bold" FontFeatures="+tnum" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
+
+                                    <!-- Wind & Sway -->
+                                    <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                        <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <TextBlock Classes="itemTitle" Text="{l10n:Tr particles_wind}"/>
+                                            <TextBlock Classes="itemDesc" Text="{l10n:Tr particles_wind_hint}"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <Slider Width="160" Minimum="-1.5" Maximum="1.5" SmallChange="0.05" LargeChange="0.2"
+                                                    Value="{Binding ParticleWind, Mode=TwoWay}"
+                                                    PointerCaptureLost="OnParticleSliderPointerCaptureLost"
+                                                    PointerReleased="OnParticleSliderPointerReleased"
+                                                    KeyUp="OnParticleSliderKeyUp"
+                                                    VerticalAlignment="Center"/>
+                                            <Border Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="6" Height="28" Width="58" Padding="6,0" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding ParticleWindText}" FontSize="11.5" FontWeight="Bold" FontFeatures="+tnum" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
+
+                                    <!-- Size -->
+                                    <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                        <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <TextBlock Classes="itemTitle" Text="{l10n:Tr particles_size}"/>
+                                            <TextBlock Classes="itemDesc" Text="{l10n:Tr particles_size_hint}"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <Slider Width="160" Minimum="0.4" Maximum="2.2" SmallChange="0.05" LargeChange="0.2"
+                                                    Value="{Binding ParticleSize, Mode=TwoWay}"
+                                                    PointerCaptureLost="OnParticleSliderPointerCaptureLost"
+                                                    PointerReleased="OnParticleSliderPointerReleased"
+                                                    KeyUp="OnParticleSliderKeyUp"
+                                                    VerticalAlignment="Center"/>
+                                            <Border Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="6" Height="28" Width="58" Padding="6,0" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding ParticleSizeText}" FontSize="11.5" FontWeight="Bold" FontFeatures="+tnum" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
+
+                                    <!-- Opacity -->
+                                    <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                        <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <TextBlock Classes="itemTitle" Text="{l10n:Tr particles_opacity}"/>
+                                            <TextBlock Classes="itemDesc" Text="{l10n:Tr particles_opacity_hint}"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <Slider Width="160" Minimum="0.15" Maximum="1.0" SmallChange="0.02" LargeChange="0.1"
+                                                    Value="{Binding ParticleOpacity, Mode=TwoWay}"
+                                                    PointerCaptureLost="OnParticleSliderPointerCaptureLost"
+                                                    PointerReleased="OnParticleSliderPointerReleased"
+                                                    KeyUp="OnParticleSliderKeyUp"
+                                                    VerticalAlignment="Center"/>
+                                            <Border Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="6" Height="28" Width="58" Padding="6,0" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding ParticleOpacityText}" FontSize="11.5" FontWeight="Bold" FontFeatures="+tnum" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Card 3: Interface Language, Typography & Scale -->
+                        <Border Classes="settingsCard" IsVisible="{Binding IsSearchAppearanceVisible}">
+                            <StackPanel Spacing="14">
                                 <!-- Language Selector -->
                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                     <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
@@ -790,19 +1034,125 @@
                                         </Border>
                                     </StackPanel>
                                 </Grid>
+                            </StackPanel>
+                        </Border>
 
-                                <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
-
-                                <!-- UI Animations Toggle -->
-                                <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                    <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                        <!-- Card 4: Expandable Interface Animations & Motion Details -->
+                        <Border Classes="settingsCard" IsVisible="{Binding IsSearchAppearanceVisible}">
+                            <StackPanel Spacing="14">
+                                <!-- Master Row + Expander Chevron -->
+                                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10" VerticalAlignment="Center">
+                                    <StackPanel Grid.Column="0" Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
                                         <TextBlock Classes="itemTitle" Text="{l10n:Tr set_ui_animations}"/>
                                         <TextBlock Classes="itemDesc" Text="{l10n:Tr set_ui_animations_hint}"/>
                                     </StackPanel>
-                                    <ToggleSwitch Grid.Column="1" IsChecked="{Binding UiAnimationsEnabled, Mode=TwoWay}"
+                                    <Button Grid.Column="1" Classes="subBtn" Width="30" Height="30" Padding="0"
+                                            Command="{Binding ToggleAnimationDetailsCommand}"
+                                            ToolTip.Tip="{l10n:Tr set_ui_anim_details}"
+                                            VerticalAlignment="Center">
+                                        <Panel>
+                                            <PathIcon Data="M7 10l5 5 5-5z" Width="13" Height="13" Foreground="{DynamicResource TextSecondaryBrush}"
+                                                      IsVisible="{Binding !IsAnimationDetailsExpanded}"/>
+                                            <PathIcon Data="M7 14l5-5 5 5z" Width="13" Height="13" Foreground="{DynamicResource AccentBrush}"
+                                                      IsVisible="{Binding IsAnimationDetailsExpanded}"/>
+                                        </Panel>
+                                    </Button>
+                                    <ToggleSwitch Grid.Column="2" IsChecked="{Binding UiAnimationsEnabled, Mode=TwoWay}"
                                                   OnContent="{x:Null}" OffContent="{x:Null}"
                                                   HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                 </Grid>
+
+                                <!-- Expandable Fine-Grained Motion Toggles -->
+                                <StackPanel Spacing="12" IsVisible="{Binding IsAnimationDetailsExpanded}">
+                                    <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
+
+                                    <!-- 1. Pages & Catalog Swipes -->
+                                    <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                        <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <TextBlock Classes="itemTitle" Text="{l10n:Tr set_ui_anim_pages}"/>
+                                            <TextBlock Classes="itemDesc" Text="{l10n:Tr set_ui_anim_pages_hint}"/>
+                                        </StackPanel>
+                                        <ToggleSwitch Grid.Column="1"
+                                                      IsChecked="{Binding UiAnimPageTransitionsEnabled, Mode=TwoWay}"
+                                                      IsEnabled="{Binding UiAnimationsEnabled}"
+                                                      OnContent="{x:Null}" OffContent="{x:Null}"
+                                                      HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+
+                                    <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
+
+                                    <!-- 2. Internal Tabs -->
+                                    <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                        <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <TextBlock Classes="itemTitle" Text="{l10n:Tr set_ui_anim_tabs}"/>
+                                            <TextBlock Classes="itemDesc" Text="{l10n:Tr set_ui_anim_tabs_hint}"/>
+                                        </StackPanel>
+                                        <ToggleSwitch Grid.Column="1"
+                                                      IsChecked="{Binding UiAnimTabsEnabled, Mode=TwoWay}"
+                                                      IsEnabled="{Binding UiAnimationsEnabled}"
+                                                      OnContent="{x:Null}" OffContent="{x:Null}"
+                                                      HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+
+                                    <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
+
+                                    <!-- 3. Modals & Dialogs -->
+                                    <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                        <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <TextBlock Classes="itemTitle" Text="{l10n:Tr set_ui_anim_modals}"/>
+                                            <TextBlock Classes="itemDesc" Text="{l10n:Tr set_ui_anim_modals_hint}"/>
+                                        </StackPanel>
+                                        <ToggleSwitch Grid.Column="1"
+                                                      IsChecked="{Binding UiAnimModalsEnabled, Mode=TwoWay}"
+                                                      IsEnabled="{Binding UiAnimationsEnabled}"
+                                                      OnContent="{x:Null}" OffContent="{x:Null}"
+                                                      HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+
+                                    <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
+
+                                    <!-- 4. Sidebars & Console -->
+                                    <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                        <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <TextBlock Classes="itemTitle" Text="{l10n:Tr set_ui_anim_sidebars}"/>
+                                            <TextBlock Classes="itemDesc" Text="{l10n:Tr set_ui_anim_sidebars_hint}"/>
+                                        </StackPanel>
+                                        <ToggleSwitch Grid.Column="1"
+                                                      IsChecked="{Binding UiAnimSidebarsEnabled, Mode=TwoWay}"
+                                                      IsEnabled="{Binding UiAnimationsEnabled}"
+                                                      OnContent="{x:Null}" OffContent="{x:Null}"
+                                                      HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+
+                                    <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
+
+                                    <!-- 5. Flyouts & Toasts -->
+                                    <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                        <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <TextBlock Classes="itemTitle" Text="{l10n:Tr set_ui_anim_popups}"/>
+                                            <TextBlock Classes="itemDesc" Text="{l10n:Tr set_ui_anim_popups_hint}"/>
+                                        </StackPanel>
+                                        <ToggleSwitch Grid.Column="1"
+                                                      IsChecked="{Binding UiAnimPopupsEnabled, Mode=TwoWay}"
+                                                      IsEnabled="{Binding UiAnimationsEnabled}"
+                                                      OnContent="{x:Null}" OffContent="{x:Null}"
+                                                      HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+
+                                    <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
+
+                                    <!-- 6. Smooth Scrolling (Independent of Master Toggle) -->
+                                    <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                        <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <TextBlock Classes="itemTitle" Text="{l10n:Tr set_ui_anim_scroll}"/>
+                                            <TextBlock Classes="itemDesc" Text="{l10n:Tr set_ui_anim_scroll_hint}"/>
+                                        </StackPanel>
+                                        <ToggleSwitch Grid.Column="1"
+                                                      IsChecked="{Binding SmoothScrollEnabled, Mode=TwoWay}"
+                                                      OnContent="{x:Null}" OffContent="{x:Null}"
+                                                      HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </StackPanel>
                             </StackPanel>
                         </Border>
                     </StackPanel>

@@ -226,8 +226,8 @@
         </Style>
     </UserControl.Styles>
 
-    <Panel>
-    <Grid x:Name="CatalogContentRoot" RowDefinitions="Auto,*" Margin="16">
+    <Panel ClipToBounds="True">
+    <Grid x:Name="CatalogContentRoot" RowDefinitions="Auto,*" Margin="16" ClipToBounds="True">
         <!-- Top Toolbar & Filters Section -->
         <StackPanel Grid.Row="0" Spacing="10" Margin="0,0,0,16" IsVisible="{Binding !IsDetailsOpen}">
             <!-- 1. Search Box -->
@@ -326,7 +326,7 @@
         </StackPanel>
 
         <!-- Main catalog (hidden when details page is open) -->
-        <Grid Grid.Row="1" IsVisible="{Binding !IsDetailsOpen}">
+        <Grid x:Name="ContentResultsHost" Grid.Row="1" IsVisible="{Binding !IsDetailsOpen}">
                     <ListBox x:Name="ResultsList" ItemsSource="{Binding Results}" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible">
                         <ListBox.ItemContainerTheme>
                             <ControlTheme TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -76,7 +77,7 @@ public partial class LauncherSettingsViewModel : ViewModelBase
         IsSearchJvmArgsVisible = "jvm arguments flags аргументы jvm".Contains(q);
         IsSearchLanguageVisible = "language localization english russian язык".Contains(q);
         IsSearchDiscordVisible = "discord rich presence rpc дискорд статус".Contains(q);
-        IsSearchAppearanceVisible = "appearance theme color accent name branding внешний вид тема цвет акцент оформление launcher лаунчер настройки scale масштаб интерфейс animations animation motion плавность анимации анимация анімації переходы".Contains(q);
+        IsSearchAppearanceVisible = "appearance theme color accent name branding внешний вид тема цвет акцент оформление launcher лаунчер настройки scale масштаб интерфейс animations animation motion плавность анимации анимация анімації переходы particles snow leaves sakura image custom скролл прокрутка частицы снег листья сакура".Contains(q);
     }
 
     // --- Tabs ---
@@ -480,17 +481,202 @@ public partial class LauncherSettingsViewModel : ViewModelBase
     [ObservableProperty] private bool _minimizeToTrayOnClose;
     [ObservableProperty] private bool _hardwareAcceleration = true;
     [ObservableProperty] private bool _uiAnimationsEnabled = true;
+    [ObservableProperty] private bool _uiAnimPageTransitionsEnabled = true;
+    [ObservableProperty] private bool _uiAnimTabsEnabled = true;
+    [ObservableProperty] private bool _uiAnimModalsEnabled = true;
+    [ObservableProperty] private bool _uiAnimSidebarsEnabled = true;
+    [ObservableProperty] private bool _uiAnimPopupsEnabled = true;
+    [ObservableProperty] private bool _smoothScrollEnabled = true;
+    [ObservableProperty] private bool _isAnimationDetailsExpanded;
     [ObservableProperty] private string _cacheStatusText = string.Empty;
     [ObservableProperty] private bool _isClearingCache;
+
+    // --- Background Particles (Theme Settings) ---
+    [ObservableProperty] private string _particleType = "Off";
+    [ObservableProperty] private string _particleLeafPalette = "Autumn";
+    [ObservableProperty] private string _particleCustomImagePath = string.Empty;
+    [ObservableProperty] private int _particleCount = 45;
+    [ObservableProperty] private double _particleSpeed = 1.0;
+    [ObservableProperty] private double _particleWind = 0.25;
+    [ObservableProperty] private double _particleSize = 1.0;
+    [ObservableProperty] private double _particleOpacity = 0.65;
+
+    public bool AreParticlesEnabled => !string.Equals(ParticleType, "Off", StringComparison.OrdinalIgnoreCase);
+    public bool IsParticleOff => !AreParticlesEnabled;
+    public bool IsParticleSnow => string.Equals(ParticleType, "Snow", StringComparison.OrdinalIgnoreCase);
+    public bool IsParticleLeaves => string.Equals(ParticleType, "Leaves", StringComparison.OrdinalIgnoreCase);
+    public bool IsParticleSakura => string.Equals(ParticleType, "Sakura", StringComparison.OrdinalIgnoreCase);
+    public bool IsParticleCustom => string.Equals(ParticleType, "Custom", StringComparison.OrdinalIgnoreCase);
+
+    public bool IsLeafPaletteSpring => string.Equals(ParticleLeafPalette, "Spring", StringComparison.OrdinalIgnoreCase);
+    public bool IsLeafPaletteGolden => string.Equals(ParticleLeafPalette, "Golden", StringComparison.OrdinalIgnoreCase);
+    public bool IsLeafPaletteAutumn => string.Equals(ParticleLeafPalette, "Autumn", StringComparison.OrdinalIgnoreCase);
+    public bool IsLeafPaletteForest => string.Equals(ParticleLeafPalette, "Forest", StringComparison.OrdinalIgnoreCase);
+
+    public bool HasParticleCustomImage => !string.IsNullOrWhiteSpace(ParticleCustomImagePath);
+    public string ParticleCustomImageDisplayName => string.IsNullOrWhiteSpace(ParticleCustomImagePath)
+        ? L10n.T("particles_image_none")
+        : Path.GetFileName(ParticleCustomImagePath);
+
+    public string ParticleCountText => ParticleCount.ToString("0");
+    public string ParticleSpeedText => ParticleSpeed.ToString("0.0x", CultureInfo.InvariantCulture);
+    public string ParticleWindText => (ParticleWind >= 0 ? "+" : "") + ParticleWind.ToString("0.0", CultureInfo.InvariantCulture);
+    public string ParticleSizeText => ParticleSize.ToString("0.0x", CultureInfo.InvariantCulture);
+    public string ParticleOpacityText => $"{Math.Round(ParticleOpacity * 100):0}%";
+
+    public static IBrush LeafSpringDot1Brush { get; } = new SolidColorBrush(Color.Parse("#68B852"));
+    public static IBrush LeafSpringDot2Brush { get; } = new SolidColorBrush(Color.Parse("#9FE06B"));
+    public static IBrush LeafGoldenDot1Brush { get; } = new SolidColorBrush(Color.Parse("#EAB308"));
+    public static IBrush LeafGoldenDot2Brush { get; } = new SolidColorBrush(Color.Parse("#F59E0B"));
+    public static IBrush LeafAutumnDot1Brush { get; } = new SolidColorBrush(Color.Parse("#EA580C"));
+    public static IBrush LeafAutumnDot2Brush { get; } = new SolidColorBrush(Color.Parse("#DC2626"));
+    public static IBrush LeafForestDot1Brush { get; } = new SolidColorBrush(Color.Parse("#4CA344"));
+    public static IBrush LeafForestDot2Brush { get; } = new SolidColorBrush(Color.Parse("#F59E0B"));
+    public static IBrush LeafForestDot3Brush { get; } = new SolidColorBrush(Color.Parse("#B91C1C"));
 
     partial void OnMinimizeToTrayOnCloseChanged(bool value)
     {
         if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
     }
 
+    private void SyncMotionConfiguration()
+    {
+        ZenithMotion.Configure(
+            UiAnimationsEnabled,
+            UiAnimPageTransitionsEnabled,
+            UiAnimTabsEnabled,
+            UiAnimModalsEnabled,
+            UiAnimSidebarsEnabled,
+            UiAnimPopupsEnabled,
+            SmoothScrollEnabled);
+    }
+
     partial void OnUiAnimationsEnabledChanged(bool value)
     {
-        ZenithMotion.SetEnabled(value);
+        SyncMotionConfiguration();
+        if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
+    }
+
+    partial void OnUiAnimPageTransitionsEnabledChanged(bool value)
+    {
+        SyncMotionConfiguration();
+        if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
+    }
+
+    partial void OnUiAnimTabsEnabledChanged(bool value)
+    {
+        SyncMotionConfiguration();
+        if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
+    }
+
+    partial void OnUiAnimModalsEnabledChanged(bool value)
+    {
+        SyncMotionConfiguration();
+        if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
+    }
+
+    partial void OnUiAnimSidebarsEnabledChanged(bool value)
+    {
+        SyncMotionConfiguration();
+        if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
+    }
+
+    partial void OnUiAnimPopupsEnabledChanged(bool value)
+    {
+        SyncMotionConfiguration();
+        if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
+    }
+
+    partial void OnSmoothScrollEnabledChanged(bool value)
+    {
+        SyncMotionConfiguration();
+        if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
+    }
+
+    [RelayCommand]
+    private void ToggleAnimationDetails() => IsAnimationDetailsExpanded = !IsAnimationDetailsExpanded;
+
+    partial void OnParticleTypeChanged(string value)
+    {
+        OnPropertyChanged(nameof(AreParticlesEnabled));
+        OnPropertyChanged(nameof(IsParticleOff));
+        OnPropertyChanged(nameof(IsParticleSnow));
+        OnPropertyChanged(nameof(IsParticleLeaves));
+        OnPropertyChanged(nameof(IsParticleSakura));
+        OnPropertyChanged(nameof(IsParticleCustom));
+        if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
+    }
+
+    partial void OnParticleLeafPaletteChanged(string value)
+    {
+        OnPropertyChanged(nameof(IsLeafPaletteSpring));
+        OnPropertyChanged(nameof(IsLeafPaletteGolden));
+        OnPropertyChanged(nameof(IsLeafPaletteAutumn));
+        OnPropertyChanged(nameof(IsLeafPaletteForest));
+        if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
+    }
+
+    partial void OnParticleCustomImagePathChanged(string value)
+    {
+        OnPropertyChanged(nameof(HasParticleCustomImage));
+        OnPropertyChanged(nameof(ParticleCustomImageDisplayName));
+        if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
+    }
+
+    partial void OnParticleCountChanged(int value) => OnPropertyChanged(nameof(ParticleCountText));
+    partial void OnParticleSpeedChanged(double value) => OnPropertyChanged(nameof(ParticleSpeedText));
+    partial void OnParticleWindChanged(double value) => OnPropertyChanged(nameof(ParticleWindText));
+    partial void OnParticleSizeChanged(double value) => OnPropertyChanged(nameof(ParticleSizeText));
+    partial void OnParticleOpacityChanged(double value) => OnPropertyChanged(nameof(ParticleOpacityText));
+
+    [RelayCommand]
+    private void SelectParticleType(string type)
+    {
+        if (!string.IsNullOrWhiteSpace(type))
+            ParticleType = type;
+    }
+
+    [RelayCommand]
+    private void SelectLeafPalette(string palette)
+    {
+        if (!string.IsNullOrWhiteSpace(palette))
+            ParticleLeafPalette = palette;
+    }
+
+    [RelayCommand]
+    private async Task PickParticleImageAsync()
+    {
+        var topLevel = Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
+            ? desktop.MainWindow
+            : null;
+        if (topLevel?.StorageProvider == null) return;
+
+        var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = L10n.T("particles_pick_image_title"),
+            AllowMultiple = false,
+            FileTypeFilter = new[]
+            {
+                new FilePickerFileType("Image Files (*.png, *.webp, *.jpg)") { Patterns = new[] { "*.png", "*.webp", "*.jpg", "*.jpeg" } },
+                FilePickerFileTypes.All
+            }
+        });
+
+        if (files.Count > 0)
+        {
+            ParticleCustomImagePath = files[0].Path.LocalPath;
+            ParticleType = "Custom";
+        }
+    }
+
+    [RelayCommand]
+    private void ClearParticleImage()
+    {
+        ParticleCustomImagePath = string.Empty;
+    }
+
+    public void CommitParticleSettings()
+    {
         if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
     }
 
@@ -1097,6 +1283,7 @@ public partial class LauncherSettingsViewModel : ViewModelBase
             foreach (var card in ThemeCards)
                 card.IsSelected = (card.Id == SelectedThemeCardId);
         };
+        L10n.LanguageChanged += () => OnPropertyChanged(nameof(ParticleCustomImageDisplayName));
         InitAppearanceModels();
     }
 
@@ -1125,7 +1312,22 @@ public partial class LauncherSettingsViewModel : ViewModelBase
             DiscordRpcEnabled = cfg.DiscordRpcEnabled;
             MinimizeToTrayOnClose = cfg.MinimizeToTrayOnClose;
             UiAnimationsEnabled = cfg.UiAnimationsEnabled;
-            ZenithMotion.SetEnabled(cfg.UiAnimationsEnabled);
+            UiAnimPageTransitionsEnabled = cfg.UiAnimPageTransitionsEnabled;
+            UiAnimTabsEnabled = cfg.UiAnimTabsEnabled;
+            UiAnimModalsEnabled = cfg.UiAnimModalsEnabled;
+            UiAnimSidebarsEnabled = cfg.UiAnimSidebarsEnabled;
+            UiAnimPopupsEnabled = cfg.UiAnimPopupsEnabled;
+            SmoothScrollEnabled = cfg.SmoothScrollEnabled;
+            SyncMotionConfiguration();
+
+            ParticleType = string.IsNullOrWhiteSpace(cfg.ParticleType) ? "Off" : cfg.ParticleType;
+            ParticleLeafPalette = string.IsNullOrWhiteSpace(cfg.ParticleLeafPalette) ? "Autumn" : cfg.ParticleLeafPalette;
+            ParticleCustomImagePath = cfg.ParticleCustomImagePath ?? string.Empty;
+            ParticleCount = Math.Clamp(cfg.ParticleCount > 0 ? cfg.ParticleCount : 45, 10, 160);
+            ParticleSpeed = Math.Clamp(cfg.ParticleSpeed > 0 ? cfg.ParticleSpeed : 1.0, 0.2, 2.5);
+            ParticleWind = Math.Clamp(cfg.ParticleWind, -1.5, 1.5);
+            ParticleSize = Math.Clamp(cfg.ParticleSize > 0 ? cfg.ParticleSize : 1.0, 0.4, 2.2);
+            ParticleOpacity = Math.Clamp(cfg.ParticleOpacity > 0 ? cfg.ParticleOpacity : 0.65, 0.15, 1.0);
             _isSyncingHardwareAccel = true;
             try
             {
@@ -1298,6 +1500,20 @@ public partial class LauncherSettingsViewModel : ViewModelBase
         cfg.DiscordRpcEnabled = DiscordRpcEnabled;
         cfg.MinimizeToTrayOnClose = MinimizeToTrayOnClose;
         cfg.UiAnimationsEnabled = UiAnimationsEnabled;
+        cfg.UiAnimPageTransitionsEnabled = UiAnimPageTransitionsEnabled;
+        cfg.UiAnimTabsEnabled = UiAnimTabsEnabled;
+        cfg.UiAnimModalsEnabled = UiAnimModalsEnabled;
+        cfg.UiAnimSidebarsEnabled = UiAnimSidebarsEnabled;
+        cfg.UiAnimPopupsEnabled = UiAnimPopupsEnabled;
+        cfg.SmoothScrollEnabled = SmoothScrollEnabled;
+        cfg.ParticleType = ParticleType;
+        cfg.ParticleLeafPalette = ParticleLeafPalette;
+        cfg.ParticleCustomImagePath = ParticleCustomImagePath;
+        cfg.ParticleCount = ParticleCount;
+        cfg.ParticleSpeed = ParticleSpeed;
+        cfg.ParticleWind = ParticleWind;
+        cfg.ParticleSize = ParticleSize;
+        cfg.ParticleOpacity = ParticleOpacity;
         cfg.HardwareAcceleration = HardwareAcceleration;
         cfg.CurseForgeApiKey = CurseForgeApiKey;
         cfg.LauncherScale = LauncherScale;

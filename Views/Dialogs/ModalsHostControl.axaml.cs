@@ -17,6 +17,7 @@ public partial class ModalsHostControl : UserControl
     private MainWindowViewModel? _subscribedVm;
     private INotifyPropertyChanged? _subscribedInstances;
     private bool _lastSelectWorldStep;
+    private int _lastImportTabIndex;
     private readonly HashSet<ScrollViewer> _attachedSmoothScrolls = new();
 
     public ModalsHostControl()
@@ -42,6 +43,7 @@ public partial class ModalsHostControl : UserControl
         _subscribedVm = vm;
         _subscribedInstances = vm.InstancesManager;
         _lastSelectWorldStep = vm.ModpacksBrowser.IsSelectWorldStep;
+        _lastImportTabIndex = GetImportTabIndex(vm.InstancesManager.ImportSourceTab);
         _subscribedInstances.PropertyChanged += OnInstancesPropertyChanged;
     }
 
@@ -59,11 +61,27 @@ public partial class ModalsHostControl : UserControl
     private void OnInstancesPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(ViewModels.Components.InstancesViewModel.ImportSourceTab) &&
-            _subscribedVm?.IsImportPickerOpen == true)
+            _subscribedVm != null)
         {
-            ZenithMotion.TransitionTab(ImportTabContentCard);
+            int newIndex = GetImportTabIndex(_subscribedVm.InstancesManager.ImportSourceTab);
+            int dir = newIndex >= _lastImportTabIndex ? 1 : -1;
+            _lastImportTabIndex = newIndex;
+            if (_subscribedVm.IsImportPickerOpen)
+            {
+                ZenithMotion.AnimateDirectionalTab(ImportTabContentInner, dir, distance: 52.0, durationMs: 280);
+            }
         }
     }
+
+    private static int GetImportTabIndex(string? tab) => (tab ?? "").ToLowerInvariant() switch
+    {
+        "single" => 0,
+        "modrinth" => 1,
+        "curseforge" => 2,
+        "multimc" => 3,
+        "prism" => 4,
+        _ => 0
+    };
 
     private void OnAddStepPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
     {
@@ -80,7 +98,7 @@ public partial class ModalsHostControl : UserControl
         {
             bool toWorld = mb.IsSelectWorldStep;
             _lastSelectWorldStep = toWorld;
-            ZenithMotion.AnimateEntrance(step, offsetX: toWorld ? 38 : -38, offsetY: 0, startScale: 0.98, startOpacity: 0.0, durationMs: 245);
+            ZenithMotion.AnimateDirectionalTab(step, toWorld ? 1 : -1, distance: 42.0, durationMs: 275);
         }
     }
 

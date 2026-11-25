@@ -181,6 +181,16 @@
         <dialogsView:ModalsHostControl Grid.Row="0" Grid.RowSpan="2" />
     </Grid>
     </LayoutTransformControl>
+    <controls:ParticleOverlayControl
+        ParticleType="{Binding LauncherSettingsVm.ParticleType}"
+        LeafPalette="{Binding LauncherSettingsVm.ParticleLeafPalette}"
+        CustomImagePath="{Binding LauncherSettingsVm.ParticleCustomImagePath}"
+        ParticleCount="{Binding LauncherSettingsVm.ParticleCount}"
+        ParticleSpeed="{Binding LauncherSettingsVm.ParticleSpeed}"
+        ParticleWind="{Binding LauncherSettingsVm.ParticleWind}"
+        ParticleSize="{Binding LauncherSettingsVm.ParticleSize}"
+        ParticleOpacity="{Binding LauncherSettingsVm.ParticleOpacity}"
+        IsHitTestVisible="False"/>
     </Panel>
     </Border>
 </Window>

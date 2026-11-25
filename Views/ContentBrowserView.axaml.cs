@@ -14,6 +14,7 @@ public partial class ContentBrowserView : UserControl
 {
     private bool _scrollAttached;
     private ContentBrowserViewModel? _boundVm;
+    private int _lastContentTypeIndex;
 
     public ContentBrowserView()
     {
@@ -30,6 +31,7 @@ public partial class ContentBrowserView : UserControl
         if (DataContext is ContentBrowserViewModel vm)
         {
             _boundVm = vm;
+            _lastContentTypeIndex = GetContentTypeIndex(vm.SelectedContentType);
             _boundVm.PropertyChanged += OnVmPropertyChanged;
             SyncOverlays();
         }
@@ -38,6 +40,7 @@ public partial class ContentBrowserView : UserControl
     private void OnDetached(object? sender, VisualTreeAttachmentEventArgs e)
     {
         DetachVm();
+        ZenithMotion.CancelControl(ContentResultsHost);
         ClearHost(DetailsHost);
         ClearHost(AuthorHost);
     }
@@ -53,13 +56,35 @@ public partial class ContentBrowserView : UserControl
 
     private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is nameof(ContentBrowserViewModel.IsDetailsOpen)
+        if (e.PropertyName == nameof(ContentBrowserViewModel.SelectedContentType) && _boundVm != null)
+        {
+            int newIndex = GetContentTypeIndex(_boundVm.SelectedContentType);
+            if (newIndex != _lastContentTypeIndex)
+            {
+                int dir = newIndex > _lastContentTypeIndex ? 1 : -1;
+                _lastContentTypeIndex = newIndex;
+                var sv = ResultsList.FindDescendantOfType<ScrollViewer>();
+                if (sv != null) sv.Offset = Vector.Zero;
+                ZenithMotion.AnimateCatalogSwipe(ContentResultsHost, dir);
+            }
+        }
+        else if (e.PropertyName is nameof(ContentBrowserViewModel.IsDetailsOpen)
             or nameof(ContentBrowserViewModel.IsAuthorProfileOpen)
             or nameof(ContentBrowserViewModel.CurrentAuthorProfileVm))
         {
             SyncOverlays();
         }
     }
+
+    private static int GetContentTypeIndex(Models.ContentType type) => type switch
+    {
+        Models.ContentType.Mod => 0,
+        Models.ContentType.ResourcePack => 1,
+        Models.ContentType.DataPack => 2,
+        Models.ContentType.Shader => 3,
+        Models.ContentType.World => 4,
+        _ => 0
+    };
 
     private void SyncOverlays()
     {

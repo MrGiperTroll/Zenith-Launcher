@@ -11,6 +11,7 @@ public partial class LauncherSettingsView : UserControl
 {
     private LauncherSettingsViewModel? _boundVm;
     private string? _lastAnimatedTab;
+    private int _lastTabIndex;
 
     public LauncherSettingsView()
     {
@@ -40,6 +41,7 @@ public partial class LauncherSettingsView : UserControl
     {
         _boundVm = DataContext as LauncherSettingsViewModel;
         _lastAnimatedTab = _boundVm?.CurrentSettingsTab;
+        _lastTabIndex = GetSettingsTabIndex(_lastAnimatedTab);
     }
 
     private void OnTabPanelPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
@@ -55,14 +57,26 @@ public partial class LauncherSettingsView : UserControl
 
         if (_boundVm != null && _boundVm.CurrentSettingsTab != _lastAnimatedTab)
         {
+            int newIndex = GetSettingsTabIndex(_boundVm.CurrentSettingsTab);
+            int dir = newIndex >= _lastTabIndex ? 1 : -1;
             _lastAnimatedTab = _boundVm.CurrentSettingsTab;
+            _lastTabIndex = newIndex;
             if (SettingsContentScroll != null)
             {
                 SettingsContentScroll.Offset = Vector.Zero;
             }
-            ZenithMotion.TransitionTab(panel);
+            ZenithMotion.AnimateDirectionalTab(panel, dir, distance: 48.0, durationMs: 285);
         }
     }
+
+    private static int GetSettingsTabIndex(string? tab) => (tab ?? "").ToLowerInvariant() switch
+    {
+        "game" => 0,
+        "java" => 1,
+        "general" or "launcher" => 2,
+        "appearance" => 3,
+        _ => 0
+    };
 
     private void OnScaleSliderPointerCaptureLost(object? sender, Avalonia.Input.PointerCaptureLostEventArgs e)
     {
@@ -142,6 +156,24 @@ public partial class LauncherSettingsView : UserControl
             flyout.Hide();
         if (DataContext is LauncherSettingsViewModel vm)
             vm.ApplyCustomThemeCard();
+    }
+
+    private void OnParticleSliderPointerCaptureLost(object? sender, Avalonia.Input.PointerCaptureLostEventArgs e)
+    {
+        if (DataContext is LauncherSettingsViewModel vm)
+            vm.CommitParticleSettings();
+    }
+
+    private void OnParticleSliderPointerReleased(object? sender, Avalonia.Input.PointerReleasedEventArgs e)
+    {
+        if (DataContext is LauncherSettingsViewModel vm)
+            vm.CommitParticleSettings();
+    }
+
+    private void OnParticleSliderKeyUp(object? sender, Avalonia.Input.KeyEventArgs e)
+    {
+        if (DataContext is LauncherSettingsViewModel vm)
+            vm.CommitParticleSettings();
     }
 
     private void OnCustomColorFlyoutClosing(object? sender, System.ComponentModel.CancelEventArgs e)

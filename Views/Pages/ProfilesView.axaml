@@ -14,7 +14,7 @@
             <components:InstanceGridControl Grid.Column="0" />
 
             <!-- Right Sidebar: Instance Details -->
-            <Border Grid.Column="1" IsVisible="False" Width="300" Opacity="0" Background="{DynamicResource SidebarBgBrush}" Padding="16,8,16,16"
+            <Border Grid.Column="1" IsVisible="False" Width="300" Background="{DynamicResource SidebarBgBrush}" Padding="16,8,16,16"
                     x:Name="InstanceDetailsSidebar">
 
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">

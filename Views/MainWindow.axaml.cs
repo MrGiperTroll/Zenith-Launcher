@@ -27,6 +27,8 @@ public partial class MainWindow : Window
     private MainWindowViewModel? _observedVm;
     private System.Threading.CancellationTokenSource? _unloadCleanupCts;
     private LauncherNavPage? _lastAnimatedPage;
+    private object? _lastPageVmInstance;
+    private bool _isPageMotionReady;
 
     private static MainWindow? _activeWindow;
 
@@ -37,6 +39,11 @@ public partial class MainWindow : Window
         Opacity = 1.0;
         ZenithMotion.RegisterWindow(this);
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
+
+        foreach (var pane in GetAllPagePanes())
+        {
+            pane.PropertyChanged += OnPagePanePropertyChanged;
+        }
 
         DataContextChanged += OnMainDataContextChanged;
         Closed += OnMainWindowClosed;
@@ -50,8 +57,23 @@ public partial class MainWindow : Window
         };
     }
 
+    private Control[] GetAllPagePanes() =>
+    [
+        ProfilesPane,
+        ModpacksPane,
+        EditInstancePane,
+        ContentBrowserPane,
+        SettingsPane,
+        ServerManagerPane,
+        AccountsPane,
+        CreateProfilePane,
+        CreateServerPane
+    ];
+
     private void OnMainDataContextChanged(object? sender, EventArgs e)
     {
+        _isPageMotionReady = false;
+
         if (_observedVm != null)
         {
             _observedVm.PropertyChanged -= OnMainVmPropertyChanged;
@@ -62,8 +84,10 @@ public partial class MainWindow : Window
         {
             _observedVm = vm;
             _lastAnimatedPage = vm.CurrentPage;
+            _lastPageVmInstance = GetPageSubVm(vm, vm.CurrentPage);
             vm.PropertyChanged += OnMainVmPropertyChanged;
             SyncSecondaryPanes(vm);
+            _isPageMotionReady = true;
         }
     }
 
@@ -111,48 +135,85 @@ public partial class MainWindow : Window
             ScheduleHeavyPageCleanup();
         }
 
-        if (_lastAnimatedPage != page)
+        object? activeSubVm = GetPageSubVm(vm, page);
+        if (_isPageMotionReady && _lastAnimatedPage == page && !ReferenceEquals(_lastPageVmInstance, activeSubVm))
         {
-            _lastAnimatedPage = page;
-            AnimateActivePageEntrance(vm, page);
+            var pane = GetPaneForPage(page);
+            if (pane != null && pane.IsVisible)
+            {
+                AnimatePagePane(pane, vm);
+            }
+        }
+
+        _lastAnimatedPage = page;
+        _lastPageVmInstance = activeSubVm;
+    }
+
+    private void OnPagePanePropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.Property != Visual.IsVisibleProperty || sender is not Control pane)
+            return;
+
+        if (e.GetNewValue<bool>())
+        {
+            if (_isPageMotionReady && _observedVm != null)
+            {
+                _lastAnimatedPage = _observedVm.CurrentPage;
+                _lastPageVmInstance = GetPageSubVm(_observedVm, _observedVm.CurrentPage);
+                AnimatePagePane(pane, _observedVm);
+            }
+        }
+        else
+        {
+            ZenithMotion.CancelControl(pane);
         }
     }
 
-    private void AnimateActivePageEntrance(MainWindowViewModel vm, LauncherNavPage page)
+    private static object? GetPageSubVm(MainWindowViewModel vm, LauncherNavPage page) => page switch
     {
-        Control? target = page switch
-        {
-            LauncherNavPage.Profiles => ProfilesPane,
-            LauncherNavPage.Modpacks => ModpacksPane.Children.Count > 0 ? ModpacksPane.Children[0] as Control : null,
-            LauncherNavPage.EditInstance => EditInstancePane.Children.Count > 0 ? EditInstancePane.Children[0] as Control : null,
-            LauncherNavPage.ContentBrowser => ContentBrowserPane.Children.Count > 0 ? ContentBrowserPane.Children[0] as Control : null,
-            LauncherNavPage.Settings => SettingsPane.Children.Count > 0 ? SettingsPane.Children[0] as Control : null,
-            LauncherNavPage.ServerManager => ServerManagerPane.Children.Count > 0 ? ServerManagerPane.Children[0] as Control : null,
-            LauncherNavPage.Accounts => AccountsPane.Children.Count > 0 ? AccountsPane.Children[0] as Control : null,
-            LauncherNavPage.CreateProfile => CreateProfilePane.Children.Count > 0 ? CreateProfilePane.Children[0] as Control : null,
-            LauncherNavPage.CreateServer => CreateServerPane.Children.Count > 0 ? CreateServerPane.Children[0] as Control : null,
-            _ => null
-        };
+        LauncherNavPage.EditInstance => vm.CurrentEditInstanceVm,
+        LauncherNavPage.ContentBrowser => vm.CurrentContentBrowserVm,
+        LauncherNavPage.ServerManager => vm.CurrentServerManagerVm,
+        LauncherNavPage.CreateProfile => vm.CreateProfileVm,
+        LauncherNavPage.CreateServer => vm.CreateServerVm,
+        _ => null
+    };
 
+    private Control? GetPaneForPage(LauncherNavPage page) => page switch
+    {
+        LauncherNavPage.Profiles => ProfilesPane,
+        LauncherNavPage.Modpacks => ModpacksPane,
+        LauncherNavPage.EditInstance => EditInstancePane,
+        LauncherNavPage.ContentBrowser => ContentBrowserPane,
+        LauncherNavPage.Settings => SettingsPane,
+        LauncherNavPage.ServerManager => ServerManagerPane,
+        LauncherNavPage.Accounts => AccountsPane,
+        LauncherNavPage.CreateProfile => CreateProfilePane,
+        LauncherNavPage.CreateServer => CreateServerPane,
+        _ => null
+    };
+
+    private static void AnimatePagePane(Control? target, MainWindowViewModel vm)
+    {
         if (target == null) return;
 
         switch (vm.Navigation.LastNavigationKind)
         {
             case NavTransitionKind.HistoryBack:
-                ZenithMotion.AnimateEntrance(target, offsetX: -18, offsetY: 0, startScale: 1.0, startOpacity: 0.25, durationMs: 175);
+                ZenithMotion.AnimateEntrance(target, offsetX: -46, offsetY: 0, startScale: 0.98, startOpacity: 0.0, durationMs: 280);
                 break;
             case NavTransitionKind.HistoryForward:
-                ZenithMotion.AnimateEntrance(target, offsetX: 18, offsetY: 0, startScale: 1.0, startOpacity: 0.25, durationMs: 175);
+                ZenithMotion.AnimateEntrance(target, offsetX: 46, offsetY: 0, startScale: 0.98, startOpacity: 0.0, durationMs: 280);
                 break;
             case NavTransitionKind.DrillIn:
-                ZenithMotion.AnimateEntrance(target, offsetX: 20, offsetY: 0, startScale: 0.988, startOpacity: 0.2, durationMs: 185);
+                ZenithMotion.AnimateEntrance(target, offsetX: 46, offsetY: 0, startScale: 0.975, startOpacity: 0.0, durationMs: 295);
                 break;
             case NavTransitionKind.DrillOut:
-                ZenithMotion.AnimateEntrance(target, offsetX: -14, offsetY: 0, startScale: 1.0, startOpacity: 0.3, durationMs: 165);
+                ZenithMotion.AnimateEntrance(target, offsetX: -38, offsetY: 0, startScale: 0.985, startOpacity: 0.0, durationMs: 265);
                 break;
             default:
-                double dy = vm.Navigation.LastNavigationOrderDelta >= 0 ? 10 : -10;
-                ZenithMotion.AnimateEntrance(target, offsetX: 0, offsetY: dy, startScale: 1.0, startOpacity: 0.25, durationMs: 165);
+                // Centered depth-bloom emergence for top-level sidebar destinations (zero vertical jitter).
+                ZenithMotion.AnimateEntrance(target, offsetX: 0, offsetY: 0, startScale: 0.96, startOpacity: 0.0, durationMs: 275);
                 break;
         }
     }

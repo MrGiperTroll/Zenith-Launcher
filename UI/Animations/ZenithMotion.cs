@@ -1,13 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Avalonia;
+using Avalonia.Animation;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
-using Avalonia.Layout;
+using Avalonia.Controls.Primitives;
+using Avalonia.Media;
 using Avalonia.Rendering.Composition;
 using Avalonia.Rendering.Composition.Animations;
 using Avalonia.Threading;
@@ -16,12 +17,19 @@ using Avalonia.VisualTree;
 namespace ZenithLauncher.UI.Animations;
 
 /// <summary>
-/// Render-thread UI motion engine powered by Avalonia 12 Composition API.
-/// Supports mid-flight interruption via monotonic generation tokens, layout-safe CenterPoint
-/// initialization, lazy-view attachment safety, and instant global disablement without restart.
+/// High-fluidity UI motion engine combining render-thread Avalonia Composition API
+/// spatial animations (Translation / Scale around layout CenterPoint) with synchronized
+/// VSync opacity envelopes so CompositingRenderer property syncs never cancel fades.
 /// </summary>
 public static class ZenithMotion
 {
+    public const string MotionCtrlBgTransitionsKey = "MotionCtrlBgTransitions";
+    public const string MotionCtrlBgFgTransitionsKey = "MotionCtrlBgFgTransitions";
+    public const string MotionCtrlBgBorderTransitionsKey = "MotionCtrlBgBorderTransitions";
+    public const string MotionBorderBgTransitionsKey = "MotionBorderBgTransitions";
+    public const string MotionBorderBgBorderTransitionsKey = "MotionBorderBgBorderTransitions";
+    public const string MotionPresenterBgTransitionsKey = "MotionPresenterBgTransitions";
+
     public static readonly AttachedProperty<bool> ModalOpenProperty =
         AvaloniaProperty.RegisterAttached<Control, bool>("ModalOpen", typeof(ZenithMotion));
 
@@ -34,28 +42,43 @@ public static class ZenithMotion
     public static readonly AttachedProperty<bool> RevealOnAttachProperty =
         AvaloniaProperty.RegisterAttached<Control, bool>("RevealOnAttach", typeof(ZenithMotion));
 
-    // Fluent/Apple decelerate enter & accelerate exit + critically-damped spatial spring.
-    private static readonly SplineEasing EnterDecelerate = new(0.05, 0.9, 0.1, 1.0);
-    private static readonly SplineEasing ExitAccelerate = new(0.3, 0.0, 0.8, 0.15);
-    private static readonly SpringEasing SpatialSpring = new(1.0, 320.0, 35.0, 0.0);
+    // Expressive Apple/Android curves: silky velocity across the full 240-320ms travel, zero jitter.
+    private static readonly SplineEasing FluidEnter = new(0.22, 1.0, 0.36, 1.0);
+    private static readonly SplineEasing SpatialGlide = new(0.16, 1.0, 0.3, 1.0);
+    private static readonly SplineEasing SilkFade = new(0.25, 0.92, 0.38, 1.0);
+    private static readonly SplineEasing ExitAccelerate = new(0.4, 0.0, 0.8, 0.25);
+    private static readonly SpringEasing SheetSpring = new(1.0, 125.0, 18.5, 0.0);
 
     private static readonly Vector3D ZeroTranslation = default;
     private static readonly Vector3D UnitScale = new(1.0, 1.0, 1.0);
 
+    private static readonly Transitions EmptyTransitions = new();
+    private static readonly Transitions EnabledCtrlBgTransitions = CreateCtrlBgTransitions();
+    private static readonly Transitions EnabledCtrlBgFgTransitions = CreateCtrlBgFgTransitions();
+    private static readonly Transitions EnabledCtrlBgBorderTransitions = CreateCtrlBgBorderTransitions();
+    private static readonly Transitions EnabledBorderBgTransitions = CreateBorderBgTransitions();
+    private static readonly Transitions EnabledBorderBgBorderTransitions = CreateBorderBgBorderTransitions();
+    private static readonly Transitions EnabledPresenterBgTransitions = CreatePresenterBgTransitions();
+
     private sealed class MotionTrack
     {
         public uint Generation;
+        public uint OpacityGeneration;
+        public bool ControlsVisibility;
         public bool HasInitializedOpen;
         public bool IsOpen;
         public bool IsAnimating;
+        public bool IsOpacityAnimating;
         public long StartTicks;
+        public long OpacityStartTicks;
         public double DurationMs;
+        public double OpacityDurationMs;
         public Vector3D FromTranslation;
         public Vector3D ToTranslation;
         public Vector3D FromScale = UnitScale;
         public Vector3D ToScale = UnitScale;
-        public float FromOpacity = 1f;
-        public float ToOpacity = 1f;
+        public double FromOpacity = 1.0;
+        public double ToOpacity = 1.0;
         public Func<double, double> SpatialCurve = Linear;
         public Func<double, double> OpacityCurve = Linear;
         public Action? CleanupPending;
@@ -64,7 +87,6 @@ public static class ZenithMotion
 
     private static readonly ConditionalWeakTable<Control, MotionTrack> Tracks = new();
     private static readonly List<WeakReference<Control>> ActiveControls = new();
-    private static readonly List<WeakReference<Window>> RegisteredWindows = new();
 
     private static bool _isEnabled = true;
 
@@ -97,26 +119,76 @@ public static class ZenithMotion
     public static void SetRevealOnAttach(Control control, bool value) =>
         control.SetValue(RevealOnAttachProperty, value);
 
+    /// <summary>
+    /// Registers top-level window lifecycle and ensures hover transition resources reflect the toggle state.
+    /// </summary>
     public static void RegisterWindow(Window window)
     {
         if (window == null) return;
-        PruneDeadWindows();
-        if (!RegisteredWindows.Any(w => w.TryGetTarget(out var target) && ReferenceEquals(target, window)))
-        {
-            RegisteredWindows.Add(new WeakReference<Window>(window));
-            window.Closed += (_, _) => PruneDeadWindows();
-        }
-        window.Classes.Set("noMotion", !_isEnabled);
+        ApplyHoverTransitionResources(_isEnabled);
+    }
+
+    /// <summary>
+    /// Updates O(1) application resources so Styles toggle hover BrushTransitions without tree-wide selectors.
+    /// </summary>
+    public static void ApplyHoverTransitionResources(bool enabled, Application? app = null)
+    {
+        app ??= Application.Current;
+        if (app == null) return;
+
+        app.Resources[MotionCtrlBgTransitionsKey] = enabled ? EnabledCtrlBgTransitions : EmptyTransitions;
+        app.Resources[MotionCtrlBgFgTransitionsKey] = enabled ? EnabledCtrlBgFgTransitions : EmptyTransitions;
+        app.Resources[MotionCtrlBgBorderTransitionsKey] = enabled ? EnabledCtrlBgBorderTransitions : EmptyTransitions;
+        app.Resources[MotionBorderBgTransitionsKey] = enabled ? EnabledBorderBgTransitions : EmptyTransitions;
+        app.Resources[MotionBorderBgBorderTransitionsKey] = enabled ? EnabledBorderBgBorderTransitions : EmptyTransitions;
+        app.Resources[MotionPresenterBgTransitionsKey] = enabled ? EnabledPresenterBgTransitions : EmptyTransitions;
+    }
+
+    /// <summary>
+    /// Synchronizes initial visibility and initialized state for a panel controlled by AnimateSlidePanel
+    /// without running an entrance/exit transition.
+    /// </summary>
+    public static void SyncVisibilityImmediate(Control? control, bool isVisible)
+    {
+        if (control == null) return;
+        var track = GetOrCreateTrack(control);
+        track.ControlsVisibility = true;
+        track.HasInitializedOpen = true;
+        track.IsOpen = isVisible;
+        track.Generation++;
+        track.OpacityGeneration++;
+        CancelPending(track);
+        control.IsVisible = isVisible;
+        control.IsHitTestVisible = isVisible;
+        SnapToRest(control, track);
+    }
+
+    /// <summary>
+    /// Cancels any active animation on a control (for example, when its host page hides) and restores neutral visual state.
+    /// </summary>
+    public static void CancelControl(Control? control)
+    {
+        if (control == null) return;
+        if (!Tracks.TryGetValue(control, out var track)) return;
+
+        track.Generation++;
+        track.OpacityGeneration++;
+        CancelPending(track);
+        SnapToRest(control, track);
     }
 
     public static void SetEnabled(bool enabled)
     {
-        if (_isEnabled == enabled) return;
-        _isEnabled = enabled;
-
         void ApplyToggle()
         {
-            SyncWindowClasses(enabled);
+            if (_isEnabled == enabled)
+            {
+                ApplyHoverTransitionResources(enabled);
+                return;
+            }
+
+            _isEnabled = enabled;
+            ApplyHoverTransitionResources(enabled);
 
             if (!enabled)
             {
@@ -133,16 +205,16 @@ public static class ZenithMotion
     }
 
     /// <summary>
-    /// Animates a newly opened/navigated view into place using render-thread Translation/Scale/Opacity.
-    /// Safe for lazy-mounted controls not yet attached or laid out.
+    /// Animates a newly opened/navigated view into place using render-thread Scale/Translation
+    /// around true centered bounds paired with synchronized VSync Opacity dissolve.
     /// </summary>
     public static void AnimateEntrance(
         Control? control,
         double offsetX = 0,
         double offsetY = 0,
-        double startScale = 1.0,
-        double startOpacity = 0.2,
-        int durationMs = 175)
+        double startScale = 0.96,
+        double startOpacity = 0.0,
+        int durationMs = 280)
     {
         if (control == null || control is Window) return;
         if (!Dispatcher.UIThread.CheckAccess())
@@ -154,8 +226,6 @@ public static class ZenithMotion
         var track = GetOrCreateTrack(control);
         CancelPending(track);
         uint gen = ++track.Generation;
-        track.IsOpen = true;
-        track.HasInitializedOpen = true;
 
         if (!_isEnabled || durationMs <= 0)
         {
@@ -163,8 +233,8 @@ public static class ZenithMotion
             return;
         }
 
-        bool needsBounds = Math.Abs(startScale - 1.0) > 0.001;
-        RunWhenReady(control, track, gen, needsBounds, (ctrl, comp) =>
+        bool needsScale = Math.Abs(startScale - 1.0) > 0.001;
+        RunWhenReady(control, track, gen, needsBounds: needsScale, (ctrl, comp) =>
         {
             if (!_isEnabled || track.Generation != gen)
             {
@@ -174,7 +244,7 @@ public static class ZenithMotion
 
             Vector3D fromTrans;
             Vector3D fromScale;
-            float fromOp;
+            double fromOp;
             if (track.IsAnimating)
             {
                 SampleCurrent(track, out fromTrans, out fromScale, out fromOp);
@@ -183,48 +253,51 @@ public static class ZenithMotion
             {
                 fromTrans = new Vector3D(offsetX, offsetY, 0);
                 fromScale = new Vector3D(startScale, startScale, 1.0);
-                fromOp = (float)Math.Clamp(startOpacity, 0.0, 1.0);
+                fromOp = Math.Clamp(startOpacity, 0.0, 1.0);
             }
 
-            if (needsBounds && ctrl.Bounds.Width > 0 && ctrl.Bounds.Height > 0)
+            if (ctrl.Bounds.Width > 0 && ctrl.Bounds.Height > 0)
                 comp.CenterPoint = new Vector3D(ctrl.Bounds.Width * 0.5, ctrl.Bounds.Height * 0.5, 0);
 
-            Easing spatialEasing = needsBounds || Math.Abs(offsetX) >= 12.0 || Math.Abs(offsetY) >= 12.0
-                ? SpatialSpring
-                : EnterDecelerate;
+            bool hasSlide = Math.Abs(offsetX) >= 16.0 || Math.Abs(offsetY) >= 16.0;
+            Easing spatialEasing = hasSlide ? SpatialGlide : FluidEnter;
+            int opacityMs = Math.Clamp((int)Math.Round(durationMs * 0.88), 160, 260);
 
-            StartCompositionTween(
+            StartCompositeMotion(
                 ctrl,
                 comp,
                 track,
+                gen,
                 durationMs,
+                opacityMs,
                 fromTrans,
                 ZeroTranslation,
                 fromScale,
                 UnitScale,
                 fromOp,
-                1f,
+                1.0,
                 spatialEasing,
-                EnterDecelerate,
-                animateScale: needsBounds || Math.Abs(fromScale.X - 1.0) > 0.001);
+                SilkFade,
+                animateScale: needsScale || Math.Abs(fromScale.X - 1.0) > 0.001,
+                animateTranslation: hasSlide || Math.Abs(offsetX) > 0.1 || Math.Abs(offsetY) > 0.1 || Math.Abs(fromTrans.X) > 0.1 || Math.Abs(fromTrans.Y) > 0.1);
         });
     }
 
     /// <summary>
-    /// Subtle micro-shift for in-page tabs (Settings, Instance Edit, Project Details, Import tabs).
+    /// Expressive centered depth-scale + cross-dissolve for in-page section tabs (Settings, Instance Edit, Project Details).
     /// </summary>
     public static void TransitionTab(
         Control? control,
         double offsetX = 0,
-        double offsetY = 6,
-        double startOpacity = 0.35,
-        int durationMs = 115)
+        double offsetY = 0,
+        double startOpacity = 0.0,
+        int durationMs = 240)
     {
-        AnimateEntrance(control, offsetX, offsetY, startScale: 1.0, startOpacity: startOpacity, durationMs: durationMs);
+        AnimateEntrance(control, offsetX, offsetY, startScale: 0.974, startOpacity: startOpacity, durationMs: durationMs);
     }
 
     /// <summary>
-    /// Interruptible modal open/close animation coordinating backdrop fade and centered card lift/scale.
+    /// Interruptible modal open/close animation coordinating backdrop dissolve and spring sheet card reveal.
     /// </summary>
     public static void HandleModalOpenChanged(Control? overlay, bool isOpen)
     {
@@ -236,6 +309,7 @@ public static class ZenithMotion
         }
 
         var track = GetOrCreateTrack(overlay);
+        track.ControlsVisibility = true;
         CancelPending(track);
 
         var card = ResolveModalCard(overlay);
@@ -247,15 +321,19 @@ public static class ZenithMotion
             if (!isOpen)
             {
                 track.Generation++;
+                track.OpacityGeneration++;
                 track.IsOpen = false;
                 track.IsAnimating = false;
+                track.IsOpacityAnimating = false;
                 overlay.IsVisible = false;
                 overlay.IsHitTestVisible = false;
+                overlay.Opacity = 1.0;
+                if (card != null) card.Opacity = 1.0;
                 return;
             }
         }
 
-        if (track.HasInitializedOpen && track.IsOpen == isOpen && (isOpen == overlay.IsVisible) && !track.IsAnimating)
+        if (track.HasInitializedOpen && track.IsOpen == isOpen && isOpen == overlay.IsVisible && !track.IsAnimating)
         {
             return;
         }
@@ -264,10 +342,11 @@ public static class ZenithMotion
         track.IsOpen = isOpen;
 
         var cardTrack = card != null ? GetOrCreateTrack(card) : null;
+        uint cardGen = 0;
         if (cardTrack != null)
         {
             CancelPending(cardTrack);
-            cardTrack.Generation++;
+            cardGen = ++cardTrack.Generation;
             cardTrack.IsOpen = isOpen;
         }
 
@@ -304,26 +383,29 @@ public static class ZenithMotion
                 if (ovComp == null)
                 {
                     SnapToRest(overlay, track);
+                    if (card != null && cardTrack != null) SnapToRest(card, cardTrack);
                     return;
                 }
 
-                SampleCurrent(track, out _, out _, out float ovFromOp);
-                if (!track.IsAnimating) ovFromOp = 0f;
-                int ovMs = ScaledDuration(165, 1.0 - ovFromOp, 0.25);
+                SampleCurrent(track, out _, out _, out double ovFromOp);
+                if (!track.IsAnimating) ovFromOp = 0.0;
+                int ovMs = ScaledDuration(240, 1.0 - ovFromOp, 0.25);
 
-                StartCompositionTween(
+                StartCompositeMotion(
                     overlay,
                     ovComp,
                     track,
+                    gen,
+                    ovMs,
                     ovMs,
                     ZeroTranslation,
                     ZeroTranslation,
                     UnitScale,
                     UnitScale,
                     ovFromOp,
-                    1f,
-                    EnterDecelerate,
-                    EnterDecelerate,
+                    1.0,
+                    FluidEnter,
+                    SilkFade,
                     animateScale: false,
                     animateTranslation: false);
 
@@ -337,40 +419,43 @@ public static class ZenithMotion
 
                         Vector3D fromTrans;
                         Vector3D fromScale;
-                        float cardFromOp;
+                        double cardFromOp;
                         if (cardTrack.IsAnimating)
                         {
                             SampleCurrent(cardTrack, out fromTrans, out fromScale, out cardFromOp);
                         }
                         else
                         {
-                            fromTrans = new Vector3D(0, 8, 0);
-                            fromScale = new Vector3D(0.96, 0.96, 1.0);
-                            cardFromOp = 0f;
+                            fromTrans = new Vector3D(0, 24, 0);
+                            fromScale = new Vector3D(0.905, 0.905, 1.0);
+                            cardFromOp = 0.0;
                         }
 
-                        int cardMs = ScaledDuration(185, 1.0 - cardFromOp, 0.25);
-                        StartCompositionTween(
+                        int cardMs = ScaledDuration(315, 1.0 - cardFromOp, 0.25);
+                        int cardOpMs = Math.Clamp((int)Math.Round(cardMs * 0.68), 130, 220);
+                        StartCompositeMotion(
                             card,
                             cardComp,
                             cardTrack,
+                            cardGen,
                             cardMs,
+                            cardOpMs,
                             fromTrans,
                             ZeroTranslation,
                             fromScale,
                             UnitScale,
                             cardFromOp,
-                            1f,
-                            SpatialSpring,
-                            EnterDecelerate,
-                            animateScale: true);
+                            1.0,
+                            SheetSpring,
+                            SilkFade,
+                            animateScale: true,
+                            animateTranslation: true);
                     }
                 }
             });
         }
         else
         {
-            // Exit immediately yields input so clicks pass through to underlying UI.
             overlay.IsHitTestVisible = false;
 
             var ovComp = overlay.IsAttachedToVisualTree() ? ElementComposition.GetElementVisual(overlay) : null;
@@ -382,21 +467,23 @@ public static class ZenithMotion
                 return;
             }
 
-            SampleCurrent(track, out _, out _, out float ovFromOp);
-            if (!track.IsAnimating) ovFromOp = 1f;
-            int exitMs = ScaledDuration(105, ovFromOp, 0.3);
+            SampleCurrent(track, out _, out _, out double ovFromOp);
+            if (!track.IsAnimating) ovFromOp = 1.0;
+            int exitMs = ScaledDuration(185, ovFromOp, 0.3);
 
-            StartCompositionTween(
+            StartCompositeMotion(
                 overlay,
                 ovComp,
                 track,
+                gen,
+                exitMs,
                 exitMs,
                 ZeroTranslation,
                 ZeroTranslation,
                 UnitScale,
                 UnitScale,
                 ovFromOp,
-                0f,
+                0.0,
                 ExitAccelerate,
                 ExitAccelerate,
                 animateScale: false,
@@ -412,7 +499,7 @@ public static class ZenithMotion
 
                     Vector3D fromTrans;
                     Vector3D fromScale;
-                    float cardFromOp;
+                    double cardFromOp;
                     if (cardTrack.IsAnimating)
                     {
                         SampleCurrent(cardTrack, out fromTrans, out fromScale, out cardFromOp);
@@ -421,23 +508,26 @@ public static class ZenithMotion
                     {
                         fromTrans = ZeroTranslation;
                         fromScale = UnitScale;
-                        cardFromOp = 1f;
+                        cardFromOp = 1.0;
                     }
 
-                    StartCompositionTween(
+                    StartCompositeMotion(
                         card,
                         cardComp,
                         cardTrack,
+                        cardGen,
+                        exitMs,
                         exitMs,
                         fromTrans,
-                        new Vector3D(0, 5, 0),
+                        new Vector3D(0, 14, 0),
                         fromScale,
-                        new Vector3D(0.97, 0.97, 1.0),
+                        new Vector3D(0.935, 0.935, 1.0),
                         cardFromOp,
-                        0f,
+                        0.0,
                         ExitAccelerate,
                         ExitAccelerate,
-                        animateScale: true);
+                        animateScale: true,
+                        animateTranslation: true);
                 }
             }
 
@@ -446,15 +536,15 @@ public static class ZenithMotion
     }
 
     /// <summary>
-    /// Interruptible slide/fade animation for persistent sidebars and sliding sub-panels.
+    /// Interruptible slide/dissolve transition for inspector drawers and sliding panels (e.g. InstanceDetailsSidebar).
     /// </summary>
     public static void AnimateSlidePanel(
         Control? panel,
         bool isOpen,
-        double slideX = 24,
+        double slideX = 84,
         double slideY = 0,
-        int enterMs = 185,
-        int exitMs = 115)
+        int enterMs = 285,
+        int exitMs = 190)
     {
         if (panel == null) return;
         if (!Dispatcher.UIThread.CheckAccess())
@@ -464,6 +554,7 @@ public static class ZenithMotion
         }
 
         var track = GetOrCreateTrack(panel);
+        track.ControlsVisibility = true;
         CancelPending(track);
 
         if (!track.HasInitializedOpen)
@@ -472,10 +563,13 @@ public static class ZenithMotion
             if (!isOpen)
             {
                 track.Generation++;
+                track.OpacityGeneration++;
                 track.IsOpen = false;
                 track.IsAnimating = false;
+                track.IsOpacityAnimating = false;
                 panel.IsVisible = false;
                 panel.IsHitTestVisible = false;
+                panel.Opacity = 1.0;
                 return;
             }
         }
@@ -510,7 +604,7 @@ public static class ZenithMotion
                 }
 
                 Vector3D fromTrans;
-                float fromOp;
+                double fromOp;
                 if (track.IsAnimating)
                 {
                     SampleCurrent(track, out fromTrans, out _, out fromOp);
@@ -518,24 +612,28 @@ public static class ZenithMotion
                 else
                 {
                     fromTrans = new Vector3D(slideX, slideY, 0);
-                    fromOp = 0f;
+                    fromOp = 0.0;
                 }
 
                 int ms = ScaledDuration(enterMs, 1.0 - fromOp, 0.25);
-                StartCompositionTween(
+                int opMs = Math.Clamp((int)Math.Round(ms * 0.78), 140, 230);
+                StartCompositeMotion(
                     ctrl,
                     comp,
                     track,
+                    gen,
                     ms,
+                    opMs,
                     fromTrans,
                     ZeroTranslation,
                     UnitScale,
                     UnitScale,
                     fromOp,
-                    1f,
-                    SpatialSpring,
-                    EnterDecelerate,
-                    animateScale: false);
+                    1.0,
+                    SpatialGlide,
+                    SilkFade,
+                    animateScale: false,
+                    animateTranslation: true);
             });
         }
         else
@@ -551,7 +649,7 @@ public static class ZenithMotion
             }
 
             Vector3D fromTrans;
-            float fromOp;
+            double fromOp;
             if (track.IsAnimating)
             {
                 SampleCurrent(track, out fromTrans, out _, out fromOp);
@@ -559,31 +657,34 @@ public static class ZenithMotion
             else
             {
                 fromTrans = ZeroTranslation;
-                fromOp = 1f;
+                fromOp = 1.0;
             }
 
             int ms = ScaledDuration(exitMs, fromOp, 0.3);
-            StartCompositionTween(
+            StartCompositeMotion(
                 panel,
                 comp,
                 track,
+                gen,
+                ms,
                 ms,
                 fromTrans,
-                new Vector3D(slideX * 0.75, slideY * 0.75, 0),
+                new Vector3D(slideX * 0.85, slideY * 0.85, 0),
                 UnitScale,
                 UnitScale,
                 fromOp,
-                0f,
+                0.0,
                 ExitAccelerate,
                 ExitAccelerate,
-                animateScale: false);
+                animateScale: false,
+                animateTranslation: true);
 
             _ = FinishExitAfterAsync(panel, track, null, null, gen, comp.Compositor, ms);
         }
     }
 
     /// <summary>
-    /// Non-intrusive centered toast reveal &amp; dismiss animation.
+    /// Expressive centered spring reveal &amp; smooth dismiss for floating toast notifications.
     /// </summary>
     public static void HandleToastOpenChanged(Control? toast, bool isVisible)
     {
@@ -595,6 +696,7 @@ public static class ZenithMotion
         }
 
         var track = GetOrCreateTrack(toast);
+        track.ControlsVisibility = true;
         CancelPending(track);
 
         if (!track.HasInitializedOpen)
@@ -603,9 +705,12 @@ public static class ZenithMotion
             if (!isVisible)
             {
                 track.Generation++;
+                track.OpacityGeneration++;
                 track.IsOpen = false;
                 track.IsAnimating = false;
+                track.IsOpacityAnimating = false;
                 toast.IsVisible = false;
+                toast.Opacity = 1.0;
                 return;
             }
         }
@@ -640,33 +745,37 @@ public static class ZenithMotion
 
                 Vector3D fromTrans;
                 Vector3D fromScale;
-                float fromOp;
+                double fromOp;
                 if (track.IsAnimating)
                 {
                     SampleCurrent(track, out fromTrans, out fromScale, out fromOp);
                 }
                 else
                 {
-                    fromTrans = new Vector3D(0, 12, 0);
-                    fromScale = new Vector3D(0.97, 0.97, 1.0);
-                    fromOp = 0f;
+                    fromTrans = new Vector3D(0, 24, 0);
+                    fromScale = new Vector3D(0.91, 0.91, 1.0);
+                    fromOp = 0.0;
                 }
 
-                int ms = ScaledDuration(175, 1.0 - fromOp, 0.25);
-                StartCompositionTween(
+                int ms = ScaledDuration(275, 1.0 - fromOp, 0.25);
+                int opMs = Math.Clamp((int)Math.Round(ms * 0.72), 120, 200);
+                StartCompositeMotion(
                     ctrl,
                     comp,
                     track,
+                    gen,
                     ms,
+                    opMs,
                     fromTrans,
                     ZeroTranslation,
                     fromScale,
                     UnitScale,
                     fromOp,
-                    1f,
-                    EnterDecelerate,
-                    EnterDecelerate,
-                    animateScale: true);
+                    1.0,
+                    SheetSpring,
+                    SilkFade,
+                    animateScale: true,
+                    animateTranslation: true);
             });
         }
         else
@@ -684,7 +793,7 @@ public static class ZenithMotion
 
             Vector3D fromTrans;
             Vector3D fromScale;
-            float fromOp;
+            double fromOp;
             if (track.IsAnimating)
             {
                 SampleCurrent(track, out fromTrans, out fromScale, out fromOp);
@@ -693,24 +802,27 @@ public static class ZenithMotion
             {
                 fromTrans = ZeroTranslation;
                 fromScale = UnitScale;
-                fromOp = 1f;
+                fromOp = 1.0;
             }
 
-            int ms = ScaledDuration(115, fromOp, 0.3);
-            StartCompositionTween(
+            int ms = ScaledDuration(180, fromOp, 0.3);
+            StartCompositeMotion(
                 toast,
                 comp,
                 track,
+                gen,
+                ms,
                 ms,
                 fromTrans,
-                new Vector3D(0, 8, 0),
+                new Vector3D(0, 14, 0),
                 fromScale,
-                new Vector3D(0.98, 0.98, 1.0),
+                new Vector3D(0.95, 0.95, 1.0),
                 fromOp,
-                0f,
+                0.0,
                 ExitAccelerate,
                 ExitAccelerate,
-                animateScale: true);
+                animateScale: true,
+                animateTranslation: true);
 
             _ = FinishExitAfterAsync(toast, track, null, null, gen, comp.Compositor, ms);
         }
@@ -723,9 +835,9 @@ public static class ZenithMotion
             control.AttachedToVisualTree -= OnRevealControlAttached;
             control.AttachedToVisualTree += OnRevealControlAttached;
 
-            if (control.IsAttachedToVisualTree() && _isEnabled)
+            if (control.IsAttachedToVisualTree() && control.IsEffectivelyVisible && _isEnabled)
             {
-                AnimateEntrance(control, offsetX: 0, offsetY: 4, startScale: 1.0, startOpacity: 0.15, durationMs: 105);
+                AnimateEntrance(control, offsetX: 0, offsetY: -8, startScale: 0.95, startOpacity: 0.0, durationMs: 195);
             }
         }
         else
@@ -738,7 +850,7 @@ public static class ZenithMotion
     {
         if (sender is Control control && _isEnabled)
         {
-            AnimateEntrance(control, offsetX: 0, offsetY: 4, startScale: 1.0, startOpacity: 0.15, durationMs: 105);
+            AnimateEntrance(control, offsetX: 0, offsetY: -8, startScale: 0.95, startOpacity: 0.0, durationMs: 195);
         }
     }
 
@@ -760,7 +872,13 @@ public static class ZenithMotion
     {
         bool IsSizeSatisfied() => !needsBounds || (target.Bounds.Width > 0 && target.Bounds.Height > 0);
 
-        if (target.IsAttachedToVisualTree() && IsSizeSatisfied())
+        bool IsReadyNow() =>
+            target.IsAttachedToVisualTree() &&
+            target.IsVisible &&
+            target.IsEffectivelyVisible &&
+            IsSizeSatisfied();
+
+        if (IsReadyNow())
         {
             var comp = ElementComposition.GetElementVisual(target);
             if (comp != null)
@@ -773,6 +891,7 @@ public static class ZenithMotion
         EventHandler<VisualTreeAttachmentEventArgs>? onAttached = null;
         EventHandler<VisualTreeAttachmentEventArgs>? onDetached = null;
         EventHandler? onLayoutUpdated = null;
+        EventHandler<AvaloniaPropertyChangedEventArgs>? onPropChanged = null;
         Action? detachAction = null;
 
         void DetachHandlers()
@@ -780,6 +899,7 @@ public static class ZenithMotion
             target.AttachedToVisualTree -= onAttached;
             target.DetachedFromVisualTree -= onDetached;
             target.LayoutUpdated -= onLayoutUpdated;
+            target.PropertyChanged -= onPropChanged;
             if (ReferenceEquals(track.CleanupPending, detachAction))
                 track.CleanupPending = null;
         }
@@ -794,7 +914,7 @@ public static class ZenithMotion
                 return;
             }
 
-            if (!target.IsAttachedToVisualTree() || !IsSizeSatisfied())
+            if (!IsReadyNow())
                 return;
 
             var comp = ElementComposition.GetElementVisual(target);
@@ -806,12 +926,20 @@ public static class ZenithMotion
 
         onAttached = (_, _) => TryComplete();
         onLayoutUpdated = (_, _) => TryComplete();
+        onPropChanged = (_, ev) =>
+        {
+            if (ev.Property == Visual.IsVisibleProperty || ev.Property == Visual.BoundsProperty)
+                TryComplete();
+        };
         onDetached = (_, _) => DetachHandlers();
 
         track.CleanupPending = detachAction;
         target.AttachedToVisualTree += onAttached;
         target.LayoutUpdated += onLayoutUpdated;
+        target.PropertyChanged += onPropChanged;
         target.DetachedFromVisualTree += onDetached;
+
+        Dispatcher.UIThread.Post(TryComplete, DispatcherPriority.Loaded);
     }
 
     private static async Task FinishExitAfterAsync(
@@ -826,7 +954,7 @@ public static class ZenithMotion
         try
         {
             await compositor.RequestCommitAsync();
-            await Task.Delay(durationMs + 16);
+            await Task.Delay(durationMs + 20);
         }
         catch
         {
@@ -851,31 +979,36 @@ public static class ZenithMotion
             Dispatcher.UIThread.Post(Complete);
     }
 
-    private static void StartCompositionTween(
+    private static void StartCompositeMotion(
         Control control,
         CompositionVisual comp,
         MotionTrack track,
-        int durationMs,
+        uint gen,
+        int spatialMs,
+        int opacityMs,
         Vector3D fromTranslation,
         Vector3D toTranslation,
         Vector3D fromScale,
         Vector3D toScale,
-        float fromOpacity,
-        float toOpacity,
+        double fromOpacity,
+        double toOpacity,
         Easing spatialEasing,
         Easing opacityEasing,
         bool animateScale,
-        bool animateTranslation = true)
+        bool animateTranslation)
     {
         comp.StopAnimation("Translation");
         comp.StopAnimation("Scale");
         comp.StopAnimation("Opacity");
 
-        var dur = TimeSpan.FromMilliseconds(Math.Max(16, durationMs));
         var compositor = comp.Compositor;
+        int clampedSpatialMs = Math.Max(16, spatialMs);
+        int clampedOpacityMs = Math.Max(16, opacityMs);
 
         track.StartTicks = Stopwatch.GetTimestamp();
-        track.DurationMs = durationMs;
+        track.OpacityStartTicks = track.StartTicks;
+        track.DurationMs = clampedSpatialMs;
+        track.OpacityDurationMs = clampedOpacityMs;
         track.FromTranslation = fromTranslation;
         track.ToTranslation = toTranslation;
         track.FromScale = fromScale;
@@ -890,69 +1023,137 @@ public static class ZenithMotion
         {
             var transAnim = compositor.CreateVector3DKeyFrameAnimation();
             transAnim.Target = "Translation";
-            transAnim.Duration = dur;
+            transAnim.Duration = TimeSpan.FromMilliseconds(clampedSpatialMs);
             transAnim.StopBehavior = AnimationStopBehavior.SetToFinalValue;
             transAnim.InsertKeyFrame(0f, fromTranslation);
             transAnim.InsertKeyFrame(1f, toTranslation, spatialEasing);
             comp.StartAnimation("Translation", transAnim);
+        }
+        else
+        {
+            comp.Translation = toTranslation;
         }
 
         if (animateScale)
         {
             var scaleAnim = compositor.CreateVector3DKeyFrameAnimation();
             scaleAnim.Target = "Scale";
-            scaleAnim.Duration = dur;
+            scaleAnim.Duration = TimeSpan.FromMilliseconds(clampedSpatialMs);
             scaleAnim.StopBehavior = AnimationStopBehavior.SetToFinalValue;
             scaleAnim.InsertKeyFrame(0f, fromScale);
             scaleAnim.InsertKeyFrame(1f, toScale, spatialEasing);
             comp.StartAnimation("Scale", scaleAnim);
         }
-
-        if (Math.Abs(fromOpacity - toOpacity) > 0.001f)
+        else
         {
-            var opAnim = compositor.CreateScalarKeyFrameAnimation();
-            opAnim.Target = "Opacity";
-            opAnim.Duration = dur;
-            opAnim.StopBehavior = AnimationStopBehavior.SetToFinalValue;
-            opAnim.InsertKeyFrame(0f, fromOpacity);
-            opAnim.InsertKeyFrame(1f, toOpacity, opacityEasing);
-            comp.StartAnimation("Opacity", opAnim);
+            comp.Scale = toScale;
         }
 
-        uint capturedGen = track.Generation;
-        _ = MarkAnimationSettledAsync(control, track, capturedGen, durationMs);
+        if (Math.Abs(fromOpacity - toOpacity) > 0.001)
+        {
+            StartOpacityFade(control, track, gen, clampedOpacityMs, fromOpacity, toOpacity, opacityEasing);
+        }
+        else
+        {
+            track.OpacityGeneration++;
+            track.IsOpacityAnimating = false;
+            control.Opacity = toOpacity;
+        }
+
+        _ = MarkAnimationSettledAsync(track, gen, Math.Max(clampedSpatialMs, clampedOpacityMs));
     }
 
-    private static async Task MarkAnimationSettledAsync(Control control, MotionTrack track, uint gen, int durationMs)
+    private static void StartOpacityFade(
+        Control control,
+        MotionTrack track,
+        uint trackGen,
+        int durationMs,
+        double fromOpacity,
+        double toOpacity,
+        Easing easing)
+    {
+        uint opGen = ++track.OpacityGeneration;
+        track.IsOpacityAnimating = true;
+
+        // Apply starting opacity before Render/UpdateCore commits frame 0 to prevent flash.
+        control.Opacity = Math.Clamp(fromOpacity, 0.0, 1.0);
+
+        var topLevel = TopLevel.GetTopLevel(control);
+        if (topLevel == null)
+        {
+            track.IsOpacityAnimating = false;
+            control.Opacity = Math.Clamp(toOpacity, 0.0, 1.0);
+            return;
+        }
+
+        long startTicks = track.OpacityStartTicks;
+
+        void Step(TimeSpan _)
+        {
+            if (!_isEnabled || track.Generation != trackGen || track.OpacityGeneration != opGen)
+            {
+                track.IsOpacityAnimating = false;
+                return;
+            }
+
+            var tl = TopLevel.GetTopLevel(control);
+            if (tl == null)
+            {
+                track.IsOpacityAnimating = false;
+                control.Opacity = Math.Clamp(toOpacity, 0.0, 1.0);
+                return;
+            }
+
+            double elapsedMs = Stopwatch.GetElapsedTime(startTicks).TotalMilliseconds;
+            double rawT = Math.Clamp(elapsedMs / durationMs, 0.0, 1.0);
+
+            if (rawT >= 1.0)
+            {
+                track.IsOpacityAnimating = false;
+                control.Opacity = Math.Clamp(toOpacity, 0.0, 1.0);
+                return;
+            }
+
+            double eased = easing.Ease(rawT);
+            double nextOpacity = fromOpacity + (toOpacity - fromOpacity) * eased;
+            control.Opacity = Math.Clamp(nextOpacity, 0.0, 1.0);
+            tl.RequestAnimationFrame(Step);
+        }
+
+        topLevel.RequestAnimationFrame(Step);
+    }
+
+    private static async Task MarkAnimationSettledAsync(MotionTrack track, uint gen, int durationMs)
     {
         try
         {
-            await Task.Delay(durationMs + 20);
+            await Task.Delay(durationMs + 24);
         }
         catch
         {
             return;
         }
 
-        if (Dispatcher.UIThread.CheckAccess())
+        void MarkDone()
         {
             if (track.Generation == gen)
                 track.IsAnimating = false;
         }
+
+        if (Dispatcher.UIThread.CheckAccess())
+            MarkDone();
         else
-        {
-            Dispatcher.UIThread.Post(() =>
-            {
-                if (track.Generation == gen)
-                    track.IsAnimating = false;
-            });
-        }
+            Dispatcher.UIThread.Post(MarkDone);
     }
 
     private static void SnapToRest(Control control, MotionTrack track)
     {
         track.IsAnimating = false;
+        track.IsOpacityAnimating = false;
+        track.OpacityGeneration++;
         CancelPending(track);
+
+        control.Opacity = 1.0;
 
         var comp = control.IsAttachedToVisualTree() ? ElementComposition.GetElementVisual(control) : null;
         if (comp != null)
@@ -966,7 +1167,7 @@ public static class ZenithMotion
         }
     }
 
-    private static void SampleCurrent(MotionTrack track, out Vector3D translation, out Vector3D scale, out float opacity)
+    private static void SampleCurrent(MotionTrack track, out Vector3D translation, out Vector3D scale, out double opacity)
     {
         if (!track.IsAnimating || track.DurationMs <= 0)
         {
@@ -979,11 +1180,14 @@ public static class ZenithMotion
         double elapsedMs = Stopwatch.GetElapsedTime(track.StartTicks).TotalMilliseconds;
         double rawT = Math.Clamp(elapsedMs / track.DurationMs, 0.0, 1.0);
         double st = track.SpatialCurve(rawT);
-        double ot = track.OpacityCurve(rawT);
+
+        double opElapsedMs = Stopwatch.GetElapsedTime(track.OpacityStartTicks).TotalMilliseconds;
+        double opRawT = track.OpacityDurationMs > 0 ? Math.Clamp(opElapsedMs / track.OpacityDurationMs, 0.0, 1.0) : 1.0;
+        double ot = track.OpacityCurve(opRawT);
 
         translation = LerpVector(track.FromTranslation, track.ToTranslation, st);
         scale = LerpVector(track.FromScale, track.ToScale, st);
-        opacity = (float)Math.Clamp(track.FromOpacity + (track.ToOpacity - track.FromOpacity) * ot, 0.0, 1.0);
+        opacity = Math.Clamp(track.FromOpacity + (track.ToOpacity - track.FromOpacity) * ot, 0.0, 1.0);
     }
 
     private static Vector3D LerpVector(Vector3D a, Vector3D b, double t) =>
@@ -993,7 +1197,7 @@ public static class ZenithMotion
             a.Z + (b.Z - a.Z) * t);
 
     private static int ScaledDuration(int baseMs, double remainingFraction, double minFraction) =>
-        Math.Max(40, (int)Math.Round(baseMs * Math.Clamp(remainingFraction, minFraction, 1.0)));
+        Math.Max(60, (int)Math.Round(baseMs * Math.Clamp(remainingFraction, minFraction, 1.0)));
 
     private static double Linear(double t) => t;
 
@@ -1029,9 +1233,11 @@ public static class ZenithMotion
                 continue;
 
             track.Generation++;
+            track.OpacityGeneration++;
             CancelPending(track);
 
-            if (track.HasInitializedOpen)
+            // Only restore visibility on controls explicitly managed by ModalOpen/SlidePanelOpen/ToastOpen.
+            if (track.ControlsVisibility && track.HasInitializedOpen)
             {
                 control.IsVisible = track.IsOpen;
                 if (track.SecondaryTarget != null || !track.IsOpen)
@@ -1042,26 +1248,81 @@ public static class ZenithMotion
         }
     }
 
-    private static void SyncWindowClasses(bool enabled)
+    private static Transitions CreateCtrlBgTransitions() => new()
     {
-        for (int i = RegisteredWindows.Count - 1; i >= 0; i--)
+        new BrushTransition
         {
-            if (!RegisteredWindows[i].TryGetTarget(out var win))
-            {
-                RegisteredWindows.RemoveAt(i);
-                continue;
-            }
-
-            win.Classes.Set("noMotion", !enabled);
+            Property = TemplatedControl.BackgroundProperty,
+            Duration = TimeSpan.FromMilliseconds(150),
+            Easing = new SplineEasing(0.16, 1.0, 0.3, 1.0)
         }
-    }
+    };
 
-    private static void PruneDeadWindows()
+    private static Transitions CreateCtrlBgFgTransitions() => new()
     {
-        for (int i = RegisteredWindows.Count - 1; i >= 0; i--)
+        new BrushTransition
         {
-            if (!RegisteredWindows[i].TryGetTarget(out _))
-                RegisteredWindows.RemoveAt(i);
+            Property = TemplatedControl.BackgroundProperty,
+            Duration = TimeSpan.FromMilliseconds(150),
+            Easing = new SplineEasing(0.16, 1.0, 0.3, 1.0)
+        },
+        new BrushTransition
+        {
+            Property = TemplatedControl.ForegroundProperty,
+            Duration = TimeSpan.FromMilliseconds(150),
+            Easing = new SplineEasing(0.16, 1.0, 0.3, 1.0)
         }
-    }
+    };
+
+    private static Transitions CreateCtrlBgBorderTransitions() => new()
+    {
+        new BrushTransition
+        {
+            Property = TemplatedControl.BackgroundProperty,
+            Duration = TimeSpan.FromMilliseconds(150),
+            Easing = new SplineEasing(0.16, 1.0, 0.3, 1.0)
+        },
+        new BrushTransition
+        {
+            Property = TemplatedControl.BorderBrushProperty,
+            Duration = TimeSpan.FromMilliseconds(150),
+            Easing = new SplineEasing(0.16, 1.0, 0.3, 1.0)
+        }
+    };
+
+    private static Transitions CreateBorderBgTransitions() => new()
+    {
+        new BrushTransition
+        {
+            Property = Border.BackgroundProperty,
+            Duration = TimeSpan.FromMilliseconds(150),
+            Easing = new SplineEasing(0.16, 1.0, 0.3, 1.0)
+        }
+    };
+
+    private static Transitions CreateBorderBgBorderTransitions() => new()
+    {
+        new BrushTransition
+        {
+            Property = Border.BackgroundProperty,
+            Duration = TimeSpan.FromMilliseconds(150),
+            Easing = new SplineEasing(0.16, 1.0, 0.3, 1.0)
+        },
+        new BrushTransition
+        {
+            Property = Border.BorderBrushProperty,
+            Duration = TimeSpan.FromMilliseconds(150),
+            Easing = new SplineEasing(0.16, 1.0, 0.3, 1.0)
+        }
+    };
+
+    private static Transitions CreatePresenterBgTransitions() => new()
+    {
+        new BrushTransition
+        {
+            Property = Avalonia.Controls.Presenters.ContentPresenter.BackgroundProperty,
+            Duration = TimeSpan.FromMilliseconds(150),
+            Easing = new SplineEasing(0.16, 1.0, 0.3, 1.0)
+        }
+    };
 }

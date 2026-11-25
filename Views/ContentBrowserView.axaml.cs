@@ -76,7 +76,7 @@ public partial class ContentBrowserView : UserControl
             {
                 var view = new ProjectDetailsView { DataContext = _boundVm };
                 DetailsHost.Children.Add(view);
-                ZenithMotion.AnimateEntrance(view, offsetX: 26, offsetY: 0, startScale: 1.0, startOpacity: 0.15, durationMs: 190);
+                ZenithMotion.AnimateEntrance(view, offsetX: 46, offsetY: 0, startScale: 0.975, startOpacity: 0.0, durationMs: 295);
             }
             else if (!ReferenceEquals(DetailsHost.Children[0].DataContext, _boundVm))
             {
@@ -86,7 +86,7 @@ public partial class ContentBrowserView : UserControl
         else if (DetailsHost.Children.Count > 0)
         {
             ClearHost(DetailsHost);
-            ZenithMotion.AnimateEntrance(CatalogContentRoot, offsetX: -14, offsetY: 0, startScale: 1.0, startOpacity: 0.35, durationMs: 155);
+            ZenithMotion.AnimateEntrance(CatalogContentRoot, offsetX: -38, offsetY: 0, startScale: 0.985, startOpacity: 0.0, durationMs: 265);
         }
 
         if (_boundVm.IsAuthorProfileOpen && _boundVm.CurrentAuthorProfileVm != null)
@@ -95,7 +95,7 @@ public partial class ContentBrowserView : UserControl
             {
                 var view = new AuthorProfileView { DataContext = _boundVm.CurrentAuthorProfileVm };
                 AuthorHost.Children.Add(view);
-                ZenithMotion.AnimateEntrance(view, offsetX: 26, offsetY: 0, startScale: 1.0, startOpacity: 0.15, durationMs: 190);
+                ZenithMotion.AnimateEntrance(view, offsetX: 46, offsetY: 0, startScale: 0.975, startOpacity: 0.0, durationMs: 295);
             }
             else if (!ReferenceEquals(AuthorHost.Children[0].DataContext, _boundVm.CurrentAuthorProfileVm))
             {
@@ -108,7 +108,7 @@ public partial class ContentBrowserView : UserControl
             Control? revealTarget = _boundVm.IsDetailsOpen && DetailsHost.Children.Count > 0
                 ? DetailsHost.Children[0] as Control
                 : CatalogContentRoot;
-            ZenithMotion.AnimateEntrance(revealTarget, offsetX: -14, offsetY: 0, startScale: 1.0, startOpacity: 0.35, durationMs: 155);
+            ZenithMotion.AnimateEntrance(revealTarget, offsetX: -38, offsetY: 0, startScale: 0.985, startOpacity: 0.0, durationMs: 265);
         }
     }
 

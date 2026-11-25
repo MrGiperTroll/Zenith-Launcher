@@ -53,18 +53,16 @@ public partial class ProfilesView : UserControl
             var sidebar = this.FindControl<Border>("InstanceDetailsSidebar");
             if (sidebar != null)
             {
-                bool open = vm.IsRightSidebarOpen;
-                sidebar.IsVisible = open;
-                sidebar.IsHitTestVisible = open;
+                ZenithMotion.SyncVisibilityImmediate(sidebar, vm.IsRightSidebarOpen);
             }
         }
     }
 
     private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(MainWindowViewModel.IsRightSidebarOpen))
+        if (e.PropertyName == nameof(MainWindowViewModel.IsRightSidebarOpen) && _subscribedVm != null)
         {
-            AnimateSidebar(_subscribedVm!.IsRightSidebarOpen);
+            AnimateSidebar(_subscribedVm.IsRightSidebarOpen);
         }
     }
 
@@ -73,7 +71,7 @@ public partial class ProfilesView : UserControl
         var sidebar = this.FindControl<Border>("InstanceDetailsSidebar");
         if (sidebar == null) return;
 
-        ZenithMotion.AnimateSlidePanel(sidebar, open, slideX: 24, slideY: 0, enterMs: 185, exitMs: 115);
+        ZenithMotion.AnimateSlidePanel(sidebar, open, slideX: 84, slideY: 0, enterMs: 285, exitMs: 190);
     }
 
     private void OnInstanceNameDoubleTapped(object? sender, TappedEventArgs e)

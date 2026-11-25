@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
@@ -12,11 +13,21 @@ namespace ZenithLauncher.Views;
 public partial class ProjectDetailsView : UserControl
 {
     private INotifyPropertyChanged? _boundVm;
+    private bool _lastVersionDetailActive;
+    private string _lastDetailTab = string.Empty;
 
     public ProjectDetailsView()
     {
         InitializeComponent();
         SmoothScrollBehavior.Attach(DetailsScroll, wheelStep: 90.0, damping: 14.0);
+
+        VersionDetailPanel.PropertyChanged += OnVersionSectionPropertyChanged;
+        RegularTabsPanel.PropertyChanged += OnVersionSectionPropertyChanged;
+        DescriptionPanel.PropertyChanged += OnDetailTabPanelPropertyChanged;
+        GalleryPanel.PropertyChanged += OnDetailTabPanelPropertyChanged;
+        ChangelogPanel.PropertyChanged += OnDetailTabPanelPropertyChanged;
+        VersionsPanel.PropertyChanged += OnDetailTabPanelPropertyChanged;
+
         DataContextChanged += OnDataContextChanged;
         DetachedFromVisualTree += (_, _) => UnsubscribeVm();
     }
@@ -27,54 +38,72 @@ public partial class ProjectDetailsView : UserControl
         if (DataContext is INotifyPropertyChanged npc)
         {
             _boundVm = npc;
-            _boundVm.PropertyChanged += OnVmPropertyChanged;
+            _lastVersionDetailActive = GetIsVersionDetailActive();
+            _lastDetailTab = GetSelectedDetailTab();
         }
     }
 
     private void UnsubscribeVm()
     {
-        if (_boundVm != null)
+        _boundVm = null;
+    }
+
+    private bool GetIsVersionDetailActive() => DataContext switch
+    {
+        ViewModels.ContentBrowserViewModel cb => cb.IsVersionDetailActive,
+        ViewModels.ModpacksBrowserViewModel mp => mp.IsVersionDetailActive,
+        _ => false
+    };
+
+    private string GetSelectedDetailTab() => DataContext switch
+    {
+        ViewModels.ContentBrowserViewModel cb => cb.SelectedDetailTab,
+        ViewModels.ModpacksBrowserViewModel mp => mp.SelectedDetailTab,
+        _ => string.Empty
+    };
+
+    private void OnVersionSectionPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.Property != Visual.IsVisibleProperty || sender is not Control panel)
+            return;
+
+        if (!e.GetNewValue<bool>())
         {
-            _boundVm.PropertyChanged -= OnVmPropertyChanged;
-            _boundVm = null;
+            ZenithMotion.CancelControl(panel);
+            return;
+        }
+
+        if (_boundVm == null) return;
+        bool isVersion = GetIsVersionDetailActive();
+        if (isVersion == _lastVersionDetailActive) return;
+
+        _lastVersionDetailActive = isVersion;
+        if (ReferenceEquals(panel, VersionDetailPanel) && isVersion)
+        {
+            ZenithMotion.AnimateEntrance(VersionDetailPanel, offsetX: 44, offsetY: 0, startScale: 0.98, startOpacity: 0.0, durationMs: 285);
+        }
+        else if (ReferenceEquals(panel, RegularTabsPanel) && !isVersion)
+        {
+            ZenithMotion.AnimateEntrance(RegularTabsPanel, offsetX: -36, offsetY: 0, startScale: 0.985, startOpacity: 0.0, durationMs: 255);
         }
     }
 
-    private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    private void OnDetailTabPanelPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
     {
-        if (e.PropertyName is nameof(ViewModels.ContentBrowserViewModel.IsVersionDetailActive)
-            or nameof(ViewModels.ModpacksBrowserViewModel.IsVersionDetailActive))
-        {
-            bool versionDetail = DataContext switch
-            {
-                ViewModels.ContentBrowserViewModel cb => cb.IsVersionDetailActive,
-                ViewModels.ModpacksBrowserViewModel mp => mp.IsVersionDetailActive,
-                _ => false
-            };
+        if (e.Property != Visual.IsVisibleProperty || sender is not Control panel)
+            return;
 
-            if (versionDetail)
-                ZenithMotion.AnimateEntrance(VersionDetailPanel, offsetX: 16, offsetY: 0, durationMs: 165);
-            else
-                ZenithMotion.AnimateEntrance(RegularTabsPanel, offsetX: -14, offsetY: 0, startOpacity: 0.35, durationMs: 155);
+        if (!e.GetNewValue<bool>())
+        {
+            ZenithMotion.CancelControl(panel);
+            return;
         }
-        else if (e.PropertyName is nameof(ViewModels.ContentBrowserViewModel.SelectedDetailTab)
-            or nameof(ViewModels.ModpacksBrowserViewModel.SelectedDetailTab))
-        {
-            string tab = DataContext switch
-            {
-                ViewModels.ContentBrowserViewModel cb when !cb.IsVersionDetailActive => cb.SelectedDetailTab,
-                ViewModels.ModpacksBrowserViewModel mp when !mp.IsVersionDetailActive => mp.SelectedDetailTab,
-                _ => string.Empty
-            };
 
-            Control? panel = tab.ToLowerInvariant() switch
-            {
-                "description" => DescriptionPanel,
-                "gallery" => GalleryPanel,
-                "changelog" => ChangelogPanel,
-                "versions" => VersionsPanel,
-                _ => null
-            };
+        if (_boundVm == null || GetIsVersionDetailActive()) return;
+        string currentTab = GetSelectedDetailTab();
+        if (!string.Equals(currentTab, _lastDetailTab, StringComparison.OrdinalIgnoreCase))
+        {
+            _lastDetailTab = currentTab;
             ZenithMotion.TransitionTab(panel);
         }
     }

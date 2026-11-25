@@ -8,13 +8,13 @@ namespace ZenithLauncher.UI.Animations;
 /// </summary>
 public static class UiFx
 {
-    public static void FadeIn(Visual visual, int ms = 175, double slideY = 8, double startScale = 1.0)
+    public static void FadeIn(Visual visual, int ms = 275, double slideY = 0, double startScale = 0.96)
     {
         if (visual is Control control)
             ZenithMotion.AnimateEntrance(control, offsetX: 0, offsetY: slideY, startScale: startScale, durationMs: ms);
     }
 
-    public static void FadeInNow(Visual visual, int ms = 175, double slideY = 8, double startScale = 1.0)
+    public static void FadeInNow(Visual visual, int ms = 275, double slideY = 0, double startScale = 0.96)
     {
         if (visual is Control control)
             ZenithMotion.AnimateEntrance(control, offsetX: 0, offsetY: slideY, startScale: startScale, durationMs: ms);

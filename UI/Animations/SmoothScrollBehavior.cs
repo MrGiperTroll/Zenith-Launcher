@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Avalonia;
 using Avalonia.Controls;
@@ -11,8 +10,8 @@ namespace ZenithLauncher.UI.Animations;
 
 /// <summary>
 /// VSync-driven smooth wheel scroller using TopLevel.RequestAnimationFrame for 60-240Hz scrolling.
-/// Handles VirtualizingStackPanel container height recalculations cleanly, yields to manual thumb drags,
-/// and switches instantaneously to native wheel scrolling when UI animations are disabled.
+/// Always active regardless of UI transition toggles, handles VirtualizingStackPanel container
+/// height recalculations cleanly, and yields immediately to manual thumb drags or keyboard jumps.
 /// </summary>
 public static class SmoothScrollBehavior
 {
@@ -27,34 +26,6 @@ public static class SmoothScrollBehavior
     }
 
     private static readonly ConditionalWeakTable<ScrollViewer, ScrollState> States = new();
-    private static readonly List<WeakReference<ScrollViewer>> ActiveViewers = new();
-
-    static SmoothScrollBehavior()
-    {
-        ZenithMotion.EnabledChanged += OnMotionEnabledChanged;
-    }
-
-    private static void OnMotionEnabledChanged(bool enabled)
-    {
-        if (enabled) return;
-
-        for (int i = ActiveViewers.Count - 1; i >= 0; i--)
-        {
-            if (!ActiveViewers[i].TryGetTarget(out var sv))
-            {
-                ActiveViewers.RemoveAt(i);
-                continue;
-            }
-
-            if (States.TryGetValue(sv, out var state))
-            {
-                state.IsRunning = false;
-                state.CurrentY = sv.Offset.Y;
-                state.TargetY = sv.Offset.Y;
-                state.LastWrittenY = sv.Offset.Y;
-            }
-        }
-    }
 
     public static void Attach(Control host, double wheelStep = 72.0, double damping = 16.0)
     {
@@ -62,9 +33,6 @@ public static class SmoothScrollBehavior
 
         host.AddHandler(InputElement.PointerWheelChangedEvent, (sender, e) =>
         {
-            if (!ZenithMotion.IsEnabled)
-                return;
-
             if (e.Delta.Y == 0) return;
 
             var sv = FindScrollableViewer(e.Source as Visual, host);
@@ -85,7 +53,6 @@ public static class SmoothScrollBehavior
                     LastLimitY = maxScroll
                 };
                 States.AddOrUpdate(sv, state);
-                ActiveViewers.Add(new WeakReference<ScrollViewer>(sv));
             }
             else if (!state.IsRunning || IsExternalJump(sv.Offset.Y, state.LastWrittenY, state.LastLimitY, maxScroll))
             {
@@ -111,11 +78,8 @@ public static class SmoothScrollBehavior
 
             void Step(TimeSpan ts)
             {
-                if (!state.IsRunning || !ZenithMotion.IsEnabled)
-                {
-                    state.IsRunning = false;
+                if (!state.IsRunning)
                     return;
-                }
 
                 var tl = TopLevel.GetTopLevel(sv);
                 if (tl == null || !sv.IsEffectivelyVisible)

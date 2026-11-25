@@ -43,6 +43,8 @@ public partial class App : Application
         };
 
         AvaloniaXamlLoader.Load(this);
+        ZenithLauncher.UI.Animations.ZenithMotion.ApplyHoverTransitionResources(
+            ZenithLauncher.UI.Animations.ZenithMotion.IsEnabled, this);
         Name = "Zenith Launcher";
     }
 

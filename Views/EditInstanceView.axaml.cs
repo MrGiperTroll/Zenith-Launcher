@@ -16,6 +16,7 @@ public partial class EditInstanceView : UserControl
 {
     private bool _followBottom = true;
     private EditInstanceViewModel? _boundVm;
+    private string? _lastAnimatedTab;
 
     public EditInstanceView()
     {
@@ -26,6 +27,12 @@ public partial class EditInstanceView : UserControl
         SmoothScrollBehavior.Attach(ServersList, wheelStep: 82.0, damping: 14.0);
         SmoothScrollBehavior.Attach(SettingsScroll, wheelStep: 78.0, damping: 16.0);
         SmoothScrollBehavior.Attach(ConflictListScroll, wheelStep: 68.0, damping: 16.0);
+
+        foreach (var tab in TabContentGrid.Children.OfType<Control>())
+        {
+            tab.PropertyChanged += OnTabControlPropertyChanged;
+        }
+
         DataContextChanged += OnDataContextChanged;
         DetachedFromVisualTree += (_, _) =>
         {
@@ -49,18 +56,32 @@ public partial class EditInstanceView : UserControl
         if (DataContext is EditInstanceViewModel vm)
         {
             _boundVm = vm;
+            _lastAnimatedTab = vm.SelectedTab;
             vm.PropertyChanged += OnVmPropertyChanged;
+        }
+    }
+
+    private void OnTabControlPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.Property != Visual.IsVisibleProperty || sender is not Control tab)
+            return;
+
+        if (!e.GetNewValue<bool>())
+        {
+            ZenithMotion.CancelControl(tab);
+            return;
+        }
+
+        if (_boundVm != null && _boundVm.SelectedTab != _lastAnimatedTab)
+        {
+            _lastAnimatedTab = _boundVm.SelectedTab;
+            ZenithMotion.TransitionTab(tab);
         }
     }
 
     private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(EditInstanceViewModel.SelectedTab))
-        {
-            var activeTab = TabContentGrid.Children.OfType<Control>().FirstOrDefault(c => c.IsVisible);
-            ZenithMotion.TransitionTab(activeTab);
-        }
-        else if (e.PropertyName == nameof(EditInstanceViewModel.LogText))
+        if (e.PropertyName == nameof(EditInstanceViewModel.LogText))
         {
             if (_followBottom && LogTextBox != null)
             {

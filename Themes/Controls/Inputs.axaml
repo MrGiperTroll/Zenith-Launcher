@@ -260,12 +260,7 @@
         </Style>
         <!-- Smooth hover: Transitions is not template-set, so this wins -->
         <Style Selector="CheckBox /template/ Border#NormalRectangle">
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="Background" Duration="0:0:0.18" Easing="0.16, 1, 0.3, 1"/>
-                    <BrushTransition Property="BorderBrush" Duration="0:0:0.18" Easing="0.16, 1, 0.3, 1"/>
-                </Transitions>
-            </Setter>
+            <Setter Property="Transitions" Value="{DynamicResource MotionBorderBgBorderTransitions}"/>
         </Style>
 
         <!-- Modern ToggleSwitch: colors via theme resources (ToggleSwitchFill*,

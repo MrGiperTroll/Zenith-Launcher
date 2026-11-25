@@ -16,12 +16,14 @@ public partial class ModalsHostControl : UserControl
 {
     private MainWindowViewModel? _subscribedVm;
     private INotifyPropertyChanged? _subscribedInstances;
-    private INotifyPropertyChanged? _subscribedBrowser;
+    private bool _lastSelectWorldStep;
     private readonly HashSet<ScrollViewer> _attachedSmoothScrolls = new();
 
     public ModalsHostControl()
     {
         InitializeComponent();
+        AddToInstanceMainStep.PropertyChanged += OnAddStepPropertyChanged;
+        AddToInstanceWorldStep.PropertyChanged += OnAddStepPropertyChanged;
         DataContextChanged += OnDataContextChanged;
         DetachedFromVisualTree += (_, _) => UnsubscribeAll();
     }
@@ -39,9 +41,8 @@ public partial class ModalsHostControl : UserControl
         if (DataContext is not MainWindowViewModel vm) return;
         _subscribedVm = vm;
         _subscribedInstances = vm.InstancesManager;
-        _subscribedBrowser = vm.ModpacksBrowser;
+        _lastSelectWorldStep = vm.ModpacksBrowser.IsSelectWorldStep;
         _subscribedInstances.PropertyChanged += OnInstancesPropertyChanged;
-        _subscribedBrowser.PropertyChanged += OnBrowserPropertyChanged;
     }
 
     private void UnsubscribeAll()
@@ -52,12 +53,6 @@ public partial class ModalsHostControl : UserControl
             _subscribedInstances = null;
         }
 
-        if (_subscribedBrowser != null)
-        {
-            _subscribedBrowser.PropertyChanged -= OnBrowserPropertyChanged;
-            _subscribedBrowser = null;
-        }
-
         _subscribedVm = null;
     }
 
@@ -66,18 +61,26 @@ public partial class ModalsHostControl : UserControl
         if (e.PropertyName == nameof(ViewModels.Components.InstancesViewModel.ImportSourceTab) &&
             _subscribedVm?.IsImportPickerOpen == true)
         {
-            ZenithMotion.TransitionTab(ImportTabContentCard, offsetX: 0, offsetY: 5, durationMs: 115);
+            ZenithMotion.TransitionTab(ImportTabContentCard);
         }
     }
 
-    private void OnBrowserPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    private void OnAddStepPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(ModpacksBrowserViewModel.IsSelectWorldStep) &&
-            _subscribedVm?.ModpacksBrowser.IsAddToInstanceOpen == true)
+        if (e.Property != Visual.IsVisibleProperty || sender is not Control step)
+            return;
+
+        if (!e.GetNewValue<bool>())
         {
-            bool toWorld = _subscribedVm.ModpacksBrowser.IsSelectWorldStep;
-            var target = toWorld ? AddToInstanceWorldStep : AddToInstanceMainStep;
-            ZenithMotion.AnimateEntrance(target, offsetX: toWorld ? 16 : -16, offsetY: 0, startScale: 1.0, startOpacity: 0.25, durationMs: 145);
+            ZenithMotion.CancelControl(step);
+            return;
+        }
+
+        if (_subscribedVm?.ModpacksBrowser is { IsAddToInstanceOpen: true } mb && mb.IsSelectWorldStep != _lastSelectWorldStep)
+        {
+            bool toWorld = mb.IsSelectWorldStep;
+            _lastSelectWorldStep = toWorld;
+            ZenithMotion.AnimateEntrance(step, offsetX: toWorld ? 38 : -38, offsetY: 0, startScale: 0.98, startOpacity: 0.0, durationMs: 245);
         }
     }
 

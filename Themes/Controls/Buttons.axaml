@@ -164,12 +164,7 @@
             <Setter Property="ClipToBounds" Value="True"/>
             <Setter Property="ToolTip.Placement" Value="Right"/>
             <Setter Property="ToolTip.HorizontalOffset" Value="10"/>
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="Background" Duration="0:0:0.18"/>
-                    <BrushTransition Property="Foreground" Duration="0:0:0.18"/>
-                </Transitions>
-            </Setter>
+            <Setter Property="Transitions" Value="{DynamicResource MotionCtrlBgFgTransitions}"/>
         </Style>
         <Style Selector="Button.railBtn /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Padding" Value="0"/>
@@ -261,12 +256,7 @@
             <Setter Property="CornerRadius" Value="14"/>
             <Setter Property="Padding" Value="14"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="Background" Duration="0:0:0.15"/>
-                    <BrushTransition Property="BorderBrush" Duration="0:0:0.15"/>
-                </Transitions>
-            </Setter>
+            <Setter Property="Transitions" Value="{DynamicResource MotionCtrlBgBorderTransitions}"/>
         </Style>
         <Style Selector="Button.cardBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource PanelBrush}"/>
@@ -285,11 +275,7 @@
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Padding" Value="16,9"/>
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="Background" Duration="0:0:0.15"/>
-                </Transitions>
-            </Setter>
+            <Setter Property="Transitions" Value="{DynamicResource MotionCtrlBgTransitions}"/>
         </Style>
         <Style Selector="Button.primaryBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource AccentBrushHover}"/>
@@ -334,12 +320,7 @@
             <Setter Property="Padding" Value="12,9"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="Background" Duration="0:0:0.15"/>
-                    <BrushTransition Property="BorderBrush" Duration="0:0:0.15"/>
-                </Transitions>
-            </Setter>
+            <Setter Property="Transitions" Value="{DynamicResource MotionCtrlBgBorderTransitions}"/>
         </Style>
         <Style Selector="Button.subBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
@@ -475,19 +456,10 @@
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="Background" Duration="0:0:0.15" Easing="CubicEaseOut"/>
-                    <BrushTransition Property="Foreground" Duration="0:0:0.1" Easing="CubicEaseOut"/>
-                </Transitions>
-            </Setter>
+            <Setter Property="Transitions" Value="{DynamicResource MotionCtrlBgFgTransitions}"/>
         </Style>
         <Style Selector="Button.modpackInstalledBtn /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="Background" Duration="0:0:0.15" Easing="CubicEaseOut"/>
-                </Transitions>
-            </Setter>
+            <Setter Property="Transitions" Value="{DynamicResource MotionPresenterBgTransitions}"/>
         </Style>
         <Style Selector="Button.modpackInstalledBtn.installed">
             <Setter Property="Background" Value="{DynamicResource AccentDimBrush}"/>
@@ -571,11 +543,7 @@
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="Background" Duration="0:0:0.15"/>
-                </Transitions>
-            </Setter>
+            <Setter Property="Transitions" Value="{DynamicResource MotionCtrlBgTransitions}"/>
         </Style>
         <Style Selector="Button.sideTab:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource PanelBrush}"/>
@@ -744,12 +712,7 @@
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="Background" Duration="0:0:0.15"/>
-                    <BrushTransition Property="Foreground" Duration="0:0:0.15"/>
-                </Transitions>
-            </Setter>
+            <Setter Property="Transitions" Value="{DynamicResource MotionCtrlBgFgTransitions}"/>
         </Style>
         <Style Selector="Button.discordNavBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>

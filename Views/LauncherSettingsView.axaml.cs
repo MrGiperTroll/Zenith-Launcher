@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Avalonia;
 using Avalonia.Controls;
 using ZenithLauncher.UI.Animations;
 using ZenithLauncher.ViewModels.Pages;
@@ -9,58 +10,57 @@ namespace ZenithLauncher.Views;
 public partial class LauncherSettingsView : UserControl
 {
     private LauncherSettingsViewModel? _boundVm;
+    private string? _lastAnimatedTab;
 
     public LauncherSettingsView()
     {
         InitializeComponent();
         SmoothScrollBehavior.Attach(SettingsContentScroll, wheelStep: 78.0, damping: 16.0);
+
+        TabGamePanel.PropertyChanged += OnTabPanelPropertyChanged;
+        TabJavaPanel.PropertyChanged += OnTabPanelPropertyChanged;
+        TabGeneralPanel.PropertyChanged += OnTabPanelPropertyChanged;
+        TabAppearancePanel.PropertyChanged += OnTabPanelPropertyChanged;
+
         DataContextChanged += OnViewDataContextChanged;
         DetachedFromVisualTree += (_, _) =>
         {
             if (_boundVm != null)
             {
-                _boundVm.PropertyChanged -= OnVmPropertyChanged;
                 _boundVm = null;
             }
+            ZenithMotion.CancelControl(TabGamePanel);
+            ZenithMotion.CancelControl(TabJavaPanel);
+            ZenithMotion.CancelControl(TabGeneralPanel);
+            ZenithMotion.CancelControl(TabAppearancePanel);
         };
     }
 
     private void OnViewDataContextChanged(object? sender, System.EventArgs e)
     {
-        if (_boundVm != null)
-        {
-            _boundVm.PropertyChanged -= OnVmPropertyChanged;
-            _boundVm = null;
-        }
-
-        if (DataContext is LauncherSettingsViewModel vm)
-        {
-            _boundVm = vm;
-            vm.PropertyChanged += OnVmPropertyChanged;
-        }
+        _boundVm = DataContext as LauncherSettingsViewModel;
+        _lastAnimatedTab = _boundVm?.CurrentSettingsTab;
     }
 
-    private void OnVmPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    private void OnTabPanelPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(LauncherSettingsViewModel.CurrentSettingsTab))
+        if (e.Property != Visual.IsVisibleProperty || sender is not Control panel)
+            return;
+
+        if (!e.GetNewValue<bool>())
         {
+            ZenithMotion.CancelControl(panel);
+            return;
+        }
+
+        if (_boundVm != null && _boundVm.CurrentSettingsTab != _lastAnimatedTab)
+        {
+            _lastAnimatedTab = _boundVm.CurrentSettingsTab;
             if (SettingsContentScroll != null)
             {
-                SettingsContentScroll.Offset = Avalonia.Vector.Zero;
+                SettingsContentScroll.Offset = Vector.Zero;
             }
-
-            if (_boundVm != null)
-            {
-                Control? activeTab = _boundVm.CurrentSettingsTab switch
-                {
-                    "Game" => TabGamePanel,
-                    "Java" => TabJavaPanel,
-                    "General" or "Launcher" => TabGeneralPanel,
-                    "Appearance" => TabAppearancePanel,
-                    _ => null
-                };
-                ZenithMotion.TransitionTab(activeTab);
-            }
+            ZenithMotion.TransitionTab(panel);
         }
     }
 

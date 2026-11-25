@@ -24,12 +24,7 @@
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="Background" Duration="0:0:0.15" Easing="CubicEaseOut"/>
-                    <BrushTransition Property="Foreground" Duration="0:0:0.15" Easing="CubicEaseOut"/>
-                </Transitions>
-            </Setter>
+            <Setter Property="Transitions" Value="{DynamicResource MotionCtrlBgFgTransitions}"/>
         </Style>
         <Style Selector="Button.tabBtn:pointerover">
             <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
@@ -100,21 +95,11 @@
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="Background" Duration="0:0:0.15" Easing="CubicEaseOut"/>
-                </Transitions>
-            </Setter>
+            <Setter Property="Transitions" Value="{DynamicResource MotionCtrlBgTransitions}"/>
         </Style>
         <Style Selector="Button.actionBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource AccentBrushHover}"/>
             <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
-        </Style>
-        <Style Selector="Window.noMotion Button.tabBtn">
-            <Setter Property="Transitions" Value="{x:Null}"/>
-        </Style>
-        <Style Selector="Window.noMotion Button.actionBtn">
-            <Setter Property="Transitions" Value="{x:Null}"/>
         </Style>
         <!-- Changelog Download Action Button (Transparent with green text/icon matching Modrinth spec) -->
         <Style Selector="Button.changelogDownloadBtn">
@@ -197,11 +182,6 @@
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="ClipToBounds" Value="True"/>
-            <Setter Property="Transitions">
-                <Transitions>
-
-                </Transitions>
-            </Setter>
         </Style>
         <Style Selector="Border.galleryCard:pointerover">
             <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>

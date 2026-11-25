@@ -3,17 +3,19 @@
 ;  Inno Setup 6 script. Build:
 ;      powershell -ExecutionPolicy Bypass -File installer\Build-Installer.ps1
 ; -----------------------------------------------------------------------------
-;  Install location : {localappdata}\Programs\ZenithLauncher
+;  Install location : {localappdata}\Zenith Launcher
 ;  Shortcuts        : Desktop + Start Menu (app icon)
 ;  Uninstall        : Standard Add/Remove Programs registration (Uninstall.exe)
 ; =============================================================================
 
 #define MyAppName "Zenith Launcher"
-#define MyAppVersion "1.0.9"
+#ifndef MyAppVersion
+  #define MyAppVersion "1.2.0"
+#endif
 #define MyAppPublisher "Zenith"
 #define MyAppExeName "Zenith Launcher.exe"
-; Fixed installer GUID (do not change once published, used for clean removal)
-#define MyAppId "{{8F3B4A2C-9D71-4E1B-A5C0-7D6E9F1B2C3D}"
+; Matches published v1.1.0 installer AppId for clean in-place upgrades
+#define MyAppId "{{B4E7A3F1-7D2C-4A8E-9F0B-3C6D5E8A1F2B}"
 
 [Setup]
 AppId={#MyAppId}
@@ -24,7 +26,7 @@ AppPublisherURL=https://github.com/MrGiperTroll/Zenith-Launcher
 AppSupportURL=https://github.com/MrGiperTroll/Zenith-Launcher
 AppUpdatesURL=https://github.com/MrGiperTroll/Zenith-Launcher
 
-DefaultDirName={localappdata}\Programs\ZenithLauncher
+DefaultDirName={localappdata}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
@@ -33,6 +35,9 @@ OutputBaseFilename=ZenithLauncher_Setup_v{#MyAppVersion}
 SetupIconFile=..\Assets\app.ico
 UninstallDisplayIcon={app}\{#MyAppExeName}
 UninstallDisplayName={#MyAppName}
+VersionInfoVersion={#MyAppVersion}.0
+VersionInfoCompany={#MyAppPublisher}
+VersionInfoDescription={#MyAppName} Setup
 Compression=lzma2/max
 SolidCompression=yes
 WizardStyle=modern
@@ -52,8 +57,7 @@ Name: "desktopicon"; Description: "Create a &desktop shortcut"; Flags: unchecked
 Name: "startmenu";  Description: "Create a &Start Menu shortcut"
 
 [Files]
-Source: "..\publish\win-x64-singlefile\Zenith Launcher.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\publish\win-x64-singlefile\Assets\*"; DestDir: "{app}\Assets"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\publish\win-x64-singlefile\*"; DestDir: "{app}"; Excludes: "*.pdb"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{userdesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon; IconFilename: "{app}\{#MyAppExeName}"

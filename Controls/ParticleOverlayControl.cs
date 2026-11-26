@@ -1213,6 +1213,7 @@ public class ParticleOverlayControl : Control
         private float _tabTransitionGraceSec;
         private bool _awaitingAtomicSwap;
         private long _pageSwitchTicks;
+        private float _pageFadeOpacity = 1.0f;
         private long _lastTicks;
         private float _elapsedSec;
 
@@ -1350,6 +1351,7 @@ public class ParticleOverlayControl : Control
                 _tabTransitionGraceSec = 0.42f;
                 _awaitingAtomicSwap = true;
                 _pageSwitchTicks = Stopwatch.GetTimestamp();
+                _pageFadeOpacity = 0.0f;
             }
             _activePageKey = cfg.ActivePageKey;
             _isModalOccluded = cfg.IsModalOccluded;
@@ -1585,6 +1587,12 @@ public class ParticleOverlayControl : Control
             if (_awaitingAtomicSwap && Stopwatch.GetElapsedTime(_pageSwitchTicks, nowTicks).TotalMilliseconds >= 95.0)
             {
                 _awaitingAtomicSwap = false;
+                _pageFadeOpacity = 0.0f;
+            }
+
+            if (!_awaitingAtomicSwap && _pageFadeOpacity < 1.0f)
+            {
+                _pageFadeOpacity = MathF.Min(1.0f, _pageFadeOpacity + dt / 0.22f);
             }
 
             _suppressCursorStepThisFrame = false;
@@ -3063,6 +3071,7 @@ public class ParticleOverlayControl : Control
                 if (hasTargetVisible || Stopwatch.GetElapsedTime(_pageSwitchTicks).TotalMilliseconds >= 95.0)
                 {
                     _awaitingAtomicSwap = false;
+                    _pageFadeOpacity = 0.0f;
                 }
             }
 
@@ -3523,6 +3532,12 @@ public class ParticleOverlayControl : Control
             return string.Equals(pageKey, _activePageKey, StringComparison.Ordinal);
         }
 
+        private static bool IsGlobalChromeSurface(DriftSurface s) =>
+            s.IsSynthetic
+            || string.Equals(s.PageKey, "Chrome", StringComparison.Ordinal)
+            || string.Equals(s.PageKey, "LaunchBar", StringComparison.Ordinal)
+            || string.Equals(s.PageKey, "Settings:Sidebar", StringComparison.Ordinal);
+
         private void RenderSnowDrifts(SKCanvas canvas)
         {
             if (_visibleSurfaces.Count == 0) return;
@@ -3532,7 +3547,8 @@ public class ParticleOverlayControl : Control
             _driftInnerPath ??= new SKPath();
 
             var paint = _driftPaint;
-            float surfaceOpacity = 0.80f + _opacity * 0.20f;
+            float baseOpacityFactor = 0.80f + _opacity * 0.20f;
+            float pageFade = _pageFadeOpacity;
 
             for (int i = 0; i < _visibleSurfaces.Count; i++)
             {
@@ -3542,6 +3558,10 @@ public class ParticleOverlayControl : Control
                     continue;
 
                 if (!s.IsSynthetic && !IsSurfaceVisibleOnCurrentPage(s.PageKey))
+                    continue;
+
+                float surfaceOpacity = IsGlobalChromeSurface(s) ? baseOpacityFactor : baseOpacityFactor * pageFade;
+                if (surfaceOpacity < 0.02f)
                     continue;
 
                 if (s.HasClipRect)
@@ -3849,6 +3869,7 @@ public class ParticleOverlayControl : Control
             var filters = _leafPaletteFilters;
             int filterCount = filters?.Length ?? 0;
 
+            float pageFade = _pageFadeOpacity;
             float baseScale = _kind == ParticleKind.Sakura ? 11.0f * _size : 15.5f * _size;
 
             for (int i = 0; i < _visibleSurfaces.Count; i++)
@@ -3859,6 +3880,10 @@ public class ParticleOverlayControl : Control
                     continue;
 
                 if (!s.IsSynthetic && !IsSurfaceVisibleOnCurrentPage(s.PageKey))
+                    continue;
+
+                float surfaceFade = IsGlobalChromeSurface(s) ? 1.0f : pageFade;
+                if (surfaceFade < 0.02f)
                     continue;
 
                 if (s.HasClipRect)
@@ -3898,7 +3923,7 @@ public class ParticleOverlayControl : Control
 
                     float lx = s.Left + leaf.RelX;
                     float ly = s.Top - (leaf.OffsetY + liveHover) - halfH * 0.36f + 1.0f;
-                    byte alpha = (byte)Math.Clamp((int)MathF.Round(_opacity * (leaf.Alpha / 255f) * 255f), 0, 255);
+                    byte alpha = (byte)Math.Clamp((int)MathF.Round(_opacity * (leaf.Alpha / 255f) * surfaceFade * 255f), 0, 255);
                     if (alpha < 2) continue;
 
                     byte depthShade = (byte)Math.Clamp(212 + (int)(MathF.Min(leaf.OffsetY, 8f) * 5.2f), 212, 255);

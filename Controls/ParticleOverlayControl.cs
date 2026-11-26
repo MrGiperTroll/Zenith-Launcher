@@ -1096,14 +1096,15 @@ public class ParticleOverlayControl : Control
         private const float CellWidthPx = 4.0f;
         private const float LegacyDriftHeightPx = 11.0f;
         private const float PersistenceMaxHeightPx = 24.0f;
-        private const float MaxSlopePerCell = 0.58f;
+        private const float PersistenceMaxHeightV4Px = 38.0f;
+        private const float MaxSlopePerCell = 2.15f;
         private const float AirwakeRadiusPx = 54.0f;
-        private const float BrushRadiusPx = 10.5f;
+        private const float BrushRadiusPx = 11.0f;
         private const float BaseSnowDeposit = 3.25f;
         private const int CursorPixelSlots = 16;
         private const float CursorPixelMaxSnow = 3.2f;
 
-        private static readonly float[] DepositKernel = [0.05f, 0.12f, 0.20f, 0.26f, 0.20f, 0.12f, 0.05f];
+        private static readonly float[] DepositKernel = [0.08f, 0.22f, 0.40f, 0.22f, 0.08f];
         private static readonly float[] CursorSlotOx =
         [
             0.4f, 1.35f, 2.3f, 3.25f, 4.2f, 5.15f, 6.1f, 7.05f, 8.0f, 8.95f, 9.9f, 10.85f,
@@ -1242,6 +1243,7 @@ public class ParticleOverlayControl : Control
         private bool _persistenceDirty;
         private long _lastSaveTicks;
         private int _pendingSaveInFlight;
+        private bool _relaxReversePass;
 
         private SKPaint? _spritePaint;
         private SKPaint? _driftPaint;
@@ -1645,7 +1647,7 @@ public class ParticleOverlayControl : Control
             for (int i = MaxParticles; i < TotalParticleSlots; i++)
             {
                 if (!_items[i].IsActive) continue;
-                StepSingleSnowflake(ref _items[i], dt, baseFall * 1.08f, windPx * 0.72f, margin, drag, hasCursorWake, canLandOnCursor);
+                StepSingleSnowflake(ref _items[i], dt, baseFall * 1.05f, windPx * 0.45f, margin, drag, hasCursorWake, canLandOnCursor);
             }
 
             if (_kind is ParticleKind.Leaves or ParticleKind.Sakura)
@@ -1691,10 +1693,10 @@ public class ParticleOverlayControl : Control
             {
                 if (p.IsChunk)
                 {
-                    p.Vx *= MathF.Exp(-0.85f * dt);
-                    p.Vy += 430.0f * dt;
-                    p.Vy *= MathF.Exp(-0.50f * dt);
-                    p.Vy = Math.Clamp(p.Vy, -420f, 520f);
+                    p.Vx *= MathF.Exp(-2.25f * dt);
+                    p.Vy += 265.0f * dt;
+                    p.Vy *= MathF.Exp(-1.25f * dt);
+                    p.Vy = Math.Clamp(p.Vy, -340f, 310f);
                 }
                 else if (isLeafOrSakura)
                 {
@@ -1707,9 +1709,9 @@ public class ParticleOverlayControl : Control
                 else
                 {
                     p.Vx *= drag;
-                    p.Vy += 240.0f * dt;
-                    p.Vy *= MathF.Exp(-1.55f * dt);
-                    p.Vy = Math.Clamp(p.Vy, -360f, 340f);
+                    p.Vy += 165.0f * dt;
+                    p.Vy *= MathF.Exp(-1.85f * dt);
+                    p.Vy = Math.Clamp(p.Vy, -260f, 220f);
                 }
                 p.Angle += p.SpinRate * dt;
             }
@@ -1811,8 +1813,8 @@ public class ParticleOverlayControl : Control
             float sway = MathF.Sin(_elapsedSec * p.SwayFreq + p.Phase) * p.SwayAmp * swayScale;
             float ambientVx = windPx * p.SpeedScale + sway;
 
-            float totalVx = (p.IsChunk ? ambientVx * 0.15f : ambientVx) + p.Vx;
-            float totalVy = (p.IsChunk ? ambientVy * 0.25f : (isLeafOrSakura && p.IsDynamic ? ambientVy * 0.72f : ambientVy)) + p.Vy;
+            float totalVx = (p.IsChunk ? ambientVx * 0.35f : ambientVx) + p.Vx;
+            float totalVy = (p.IsChunk ? ambientVy * 0.28f : (isLeafOrSakura && p.IsDynamic ? ambientVy * 0.72f : ambientVy)) + p.Vy;
 
             p.X += totalVx * dt;
             p.Y += totalVy * dt;
@@ -2186,32 +2188,33 @@ public class ParticleOverlayControl : Control
 
                 if (p.PrevY <= prevLimit && p.Y >= hitY)
                 {
+                    float sculptCap = GetSculptMaxHeightPx();
+                    float maxDepositCap = p.IsDynamic ? sculptCap : _snowMaxHeightPx;
                     float totalVolume = p.IsChunk
                         ? BaseSnowDeposit * Math.Clamp(p.Mass, 0.35f, 1.85f)
                         : BaseSnowDeposit * _snowAccumulationRate * Math.Clamp(p.Mass, 0.18f, 1.8f)
                             * (0.95f + 0.35f * p.SizeScale)
                             * Math.Clamp(_size, 0.5f, 1.8f);
 
-                    if (DepositGaussian(s, cell, totalVolume, _snowMaxHeightPx))
+                    if (DepositGaussian(s, cell, totalVolume, maxDepositCap))
                     {
                         s.NeedsRelaxation = true;
-                        RelaxLocal(s, cell, _snowMaxHeightPx);
-                        if (p.IsChunk && totalVolume > 2.4f)
-                        {
-                            RelaxLocal(s, cell, _snowMaxHeightPx);
-                        }
+                        RelaxLocal(s, cell, sculptCap);
                         _persistenceDirty = true;
                         return true;
                     }
 
-                    // Saturated right under impact: absorb on floor surfaces, gently slide off elevated card edges
+                    // Saturated right under impact: absorb on floor surfaces; gently roll down local slope on elevated cards
                     if (s.IsSynthetic)
                         return true;
 
-                    float slideSide = p.X < (s.Left + s.Right) * 0.5f ? -1f : 1f;
-                    p.Vx = Math.Clamp(p.Vx + slideSide * (p.IsChunk ? 26f : 24f), -85f, 85f);
-                    if (p.IsChunk) p.Vy *= 0.35f;
-                    p.Cooldown = 0.12f;
+                    var hArr = s.Heights;
+                    float leftH = (hArr != null && cell > 0) ? hArr[cell - 1] : float.MaxValue;
+                    float rightH = (hArr != null && cell + 1 < s.CellCount) ? hArr[cell + 1] : float.MaxValue;
+                    float slideSide = leftH < rightH ? -1f : (rightH < leftH ? 1f : (p.X < (s.Left + s.Right) * 0.5f ? -1f : 1f));
+                    p.Vx = Math.Clamp(p.Vx * 0.45f + slideSide * (p.IsChunk ? 16f : 14f), -52f, 52f);
+                    p.Vy = p.IsChunk ? MathF.Min(p.Vy * 0.15f, 22f) : MathF.Min(p.Vy * 0.35f, 28f);
+                    p.Cooldown = 0.08f;
                     return false;
                 }
             }
@@ -2439,6 +2442,12 @@ public class ParticleOverlayControl : Control
             }
         }
 
+        private float GetSculptMaxHeightPx() =>
+            MathF.Min(PersistenceMaxHeightV4Px, MathF.Max(_snowMaxHeightPx + 8.0f, _snowMaxHeightPx * 1.95f));
+
+        private static float GetEffectiveSlopeLimit(float hA, float hB) =>
+            MaxSlopePerCell + MathF.Min(0.85f, MathF.Max(hA, hB) * 0.042f);
+
         private static bool DepositGaussian(DriftSurface s, int centerCell, float totalVolume, float maxDriftHeightPx)
         {
             EnsureHeightsAllocated(s);
@@ -2449,7 +2458,7 @@ public class ParticleOverlayControl : Control
 
             for (int k = 0; k < DepositKernel.Length; k++)
             {
-                int idx = centerCell + (k - 3);
+                int idx = centerCell + (k - 2);
                 float share = totalVolume * DepositKernel[k];
                 if ((uint)idx >= (uint)n)
                 {
@@ -2468,19 +2477,26 @@ public class ParticleOverlayControl : Control
                 leftover += share - add;
             }
 
-            // Redistribute any clipped/overflow volume to nearby unsaturated cells
+            // Settle remaining snow into nearby lower pockets without smearing wide
             if (leftover > 0.05f)
             {
-                int maxDist = s.IsSynthetic ? 10 : 6;
+                int maxDist = s.IsSynthetic ? 6 : 4;
                 for (int dist = 1; dist <= maxDist && leftover > 0.05f; dist++)
                 {
-                    for (int sign = -1; sign <= 1; sign += 2)
+                    int idxL = centerCell - dist;
+                    int idxR = centerCell + dist;
+                    float hL = (uint)idxL < (uint)n ? h[idxL] : float.MaxValue;
+                    float hR = (uint)idxR < (uint)n ? h[idxR] : float.MaxValue;
+                    int firstSign = hL <= hR ? -1 : 1;
+
+                    for (int pass = 0; pass < 2 && leftover > 0.05f; pass++)
                     {
+                        int sign = pass == 0 ? firstSign : -firstSign;
                         int idx = centerCell + dist * sign;
                         if ((uint)idx >= (uint)n) continue;
                         float cap = GetMaxHeightForCell(s, idx, maxDriftHeightPx);
                         float room = MathF.Max(0f, cap - h[idx]);
-                        float add = MathF.Min(leftover * 0.5f, room);
+                        float add = MathF.Min(leftover, room);
                         if (add > 0.001f)
                         {
                             h[idx] += add;
@@ -2495,6 +2511,75 @@ public class ParticleOverlayControl : Control
                 RecomputeMaxHeight(s);
 
             return depositedAny;
+        }
+
+        private float PushSnowIntoWave(DriftSurface s, int startCell, int dir, float amount, float maxHeightCap, bool allowEdgeSpill)
+        {
+            if (amount <= 0.001f || s.Heights == null || s.CellCount <= 0)
+                return amount;
+
+            var h = s.Heights;
+            int n = s.CellCount;
+            float remaining = amount;
+
+            // Deposit sequentially ahead of the cursor face, piling up a dense front ridge first
+            for (int step = 0; step < 6 && remaining > 0.005f; step++)
+            {
+                int idx = startCell + dir * step;
+                if ((uint)idx >= (uint)n)
+                {
+                    // Synthetic bottom floor retains snow against window edges as a corner bank
+                    if (!allowEdgeSpill)
+                    {
+                        int edgeIdx = Math.Clamp(idx, 0, n - 1);
+                        float edgeCap = GetMaxHeightForCell(s, edgeIdx, maxHeightCap);
+                        float edgeRoom = MathF.Max(0f, edgeCap - h[edgeIdx]);
+                        float banked = MathF.Min(remaining, edgeRoom);
+                        h[edgeIdx] += banked;
+                        remaining -= banked;
+                    }
+                    break;
+                }
+
+                float cap = GetMaxHeightForCell(s, idx, maxHeightCap);
+                float room = MathF.Max(0f, cap - h[idx]);
+                if (room > 0.001f)
+                {
+                    // Place most into the crest cell and cascade forward as it builds up
+                    float take = MathF.Min(remaining * (step == 0 ? 0.68f : 0.85f), room);
+                    h[idx] += take;
+                    remaining -= take;
+                }
+            }
+
+            return remaining;
+        }
+
+        private void EmitEdgeSpillParticles(DriftSurface s, int edgeSign, float mass)
+        {
+            float edgeX = edgeSign < 0 ? s.Left - 3.5f : s.Right + 3.5f;
+            float edgeY = s.Top - 1.5f;
+            float safeY = ClampAboveSyntheticFloor(edgeX, edgeY);
+            float leftover = mass;
+            int spawned = 0;
+
+            while (leftover >= 0.65f && spawned < 4)
+            {
+                float unit = MathF.Min(leftover, 1.85f + (float)_rng.NextDouble() * 1.15f);
+                leftover -= unit;
+                float vx = edgeSign * (16f + (float)_rng.NextDouble() * 34f) + _cursorVx * 0.14f;
+                float vy = 16f + (float)_rng.NextDouble() * 34f;
+                SpawnDynamicSnowflake(
+                    edgeX + ((float)_rng.NextDouble() - 0.5f) * 3f,
+                    safeY,
+                    vx,
+                    vy,
+                    cooldown: 0.09f,
+                    mass: Math.Clamp(unit / BaseSnowDeposit, 0.32f, 1.25f),
+                    isChunk: true,
+                    sizeScale: -1f);
+                spawned++;
+            }
         }
 
         private void BrushDriftsAlongCursorSegment(float x0, float y0, float x1, float y1)
@@ -2513,10 +2598,12 @@ public class ParticleOverlayControl : Control
             float dx = x1 - x0;
             float dy = y1 - y0;
             float segLen = MathF.Sqrt(dx * dx + dy * dy);
-            int steps = Math.Clamp((int)MathF.Ceiling(segLen / 7.0f), 1, 14);
-            float moveDir = MathF.Abs(_cursorVx) > 35f ? MathF.Sign(_cursorVx) : (MathF.Abs(dx) > 1.5f ? MathF.Sign(dx) : 0f);
+            int steps = Math.Clamp((int)MathF.Ceiling(segLen / 4.0f), 1, 22);
+            float moveDir = MathF.Abs(_cursorVx) > 22f ? MathF.Sign(_cursorVx) : (MathF.Abs(dx) > 0.8f ? MathF.Sign(dx) : 0f);
             float cursorSpeed = MathF.Sqrt(_cursorVx * _cursorVx + _cursorVy * _cursorVy);
             bool sharpFlick = IsSharpCursorFlick(cursorSpeed);
+            bool isPressingDown = !sharpFlick && _cursorVy > 24f && MathF.Abs(_cursorVy) > MathF.Abs(_cursorVx) * 0.72f;
+            float sculptCap = GetSculptMaxHeightPx();
 
             for (int i = 0; i < _visibleSurfaces.Count; i++)
             {
@@ -2526,12 +2613,14 @@ public class ParticleOverlayControl : Control
 
                 if (s.Right < segMinX || s.Left > segMaxX)
                     continue;
-                if (s.Top + 6f < segMinY || s.Top - _snowMaxHeightPx - 6f > segMaxY)
+                if (s.Top + 6f < segMinY || s.Top - sculptCap - 6f > segMaxY)
                     continue;
 
-                float radius = s.IsSynthetic ? 9.5f : BrushRadiusPx;
+                float radius = s.IsSynthetic ? 10.5f : BrushRadiusPx;
                 bool modified = false;
                 float ejectedMass = 0f;
+                float leftSpillMass = 0f;
+                float rightSpillMass = 0f;
                 float lastHitX = x1;
                 float lastHitY = s.Top;
                 int dustSpawned = 0;
@@ -2549,6 +2638,9 @@ public class ParticleOverlayControl : Control
 
                     int cStart = Math.Clamp((int)MathF.Floor((px - radius - s.Left) / CellWidthPx), 0, s.CellCount - 1);
                     int cEnd = Math.Clamp((int)MathF.Ceiling((px + radius - s.Left) / CellWidthPx), 0, s.CellCount - 1);
+                    int frontCell = moveDir != 0f
+                        ? (int)MathF.Floor((px + moveDir * (radius * 0.85f + 2.0f) - s.Left) / CellWidthPx)
+                        : -1;
 
                     for (int c = cStart; c <= cEnd; c++)
                     {
@@ -2563,7 +2655,9 @@ public class ParticleOverlayControl : Control
                         if (distSq > radius * radius) continue;
 
                         float falloff = 1.0f - MathF.Sqrt(distSq) / radius;
-                        float brushFraction = sharpFlick ? (0.45f + 0.45f * falloff) : (0.24f + 0.34f * falloff);
+                        float brushFraction = sharpFlick
+                            ? (0.50f + 0.42f * falloff)
+                            : (isPressingDown ? (0.34f + 0.36f * falloff) : (0.32f + 0.44f * falloff));
                         float disturbed = MathF.Min(h, h * brushFraction);
                         if (disturbed <= 0.04f) continue;
 
@@ -2572,71 +2666,94 @@ public class ParticleOverlayControl : Control
                         lastHitX = cellCenterX;
                         lastHitY = s.Top - s.Heights[c];
 
-                        // 1. Plow part of disturbed snow gently along the edge when moving horizontally
-                        float plowRatio = sharpFlick ? 0.20f : 0.32f;
-                        float plowedShare = (moveDir != 0f && MathF.Abs(_cursorVx) > 35f) ? disturbed * plowRatio : 0f;
-                        float remainingShare = disturbed - plowedShare;
+                        float remainingShare = disturbed;
 
-                        if (plowedShare > 0.01f)
+                        if (isPressingDown)
                         {
+                            // Vertical press compresses and displaces snow out to both sides into a crater + twin ridges
+                            int side = cellCenterX < px ? -1 : 1;
+                            int startSideCell = Math.Clamp(c + side * 2, 0, s.CellCount - 1);
+                            remainingShare = PushSnowIntoWave(s, startSideCell, side, disturbed * 0.86f, sculptCap, allowEdgeSpill: false)
+                                           + disturbed * 0.14f;
+                        }
+                        else if (moveDir != 0f)
+                        {
+                            // Snowplow: push snow smoothly ahead of the leading edge of the cursor into a mound
+                            float speedT = Math.Clamp((cursorSpeed - 180f) / 900f, 0f, 1f);
+                            float plowRatio = sharpFlick ? 0.34f : (0.80f - 0.24f * speedT);
+                            float plowAmount = disturbed * plowRatio;
+                            remainingShare = disturbed - plowAmount;
+
                             int pushDir = (int)moveDir;
-                            int targetCell = c + pushDir * 2;
-                            if ((uint)targetCell < (uint)s.CellCount)
+                            int targetStart = pushDir > 0 ? Math.Max(c + 2, frontCell) : Math.Min(c - 2, frontCell);
+                            if ((uint)targetStart >= (uint)s.CellCount)
                             {
-                                float cap = GetMaxHeightForCell(s, targetCell, _snowMaxHeightPx);
-                                float room = MathF.Max(0f, cap - s.Heights[targetCell]);
-                                float placed = MathF.Min(plowedShare, room);
-                                s.Heights[targetCell] += placed;
-                                remainingShare += plowedShare - placed;
+                                if (!s.IsSynthetic)
+                                {
+                                    if (pushDir < 0) leftSpillMass += plowAmount;
+                                    else rightSpillMass += plowAmount;
+                                }
+                                else
+                                {
+                                    float unbanked = PushSnowIntoWave(s, Math.Clamp(targetStart, 0, s.CellCount - 1), -pushDir, plowAmount, sculptCap, allowEdgeSpill: false);
+                                    remainingShare += unbanked;
+                                }
                             }
                             else
                             {
-                                remainingShare += plowedShare;
+                                float overflow = PushSnowIntoWave(s, targetStart, pushDir, plowAmount, sculptCap, allowEdgeSpill: !s.IsSynthetic);
+                                if (overflow > 0.02f)
+                                {
+                                    if (!s.IsSynthetic && ((pushDir < 0 && targetStart <= 5) || (pushDir > 0 && targetStart >= s.CellCount - 6)))
+                                    {
+                                        if (pushDir < 0) leftSpillMass += overflow;
+                                        else rightSpillMass += overflow;
+                                    }
+                                    else
+                                    {
+                                        remainingShare += overflow;
+                                    }
+                                }
                             }
                         }
 
-                        // 2. Smooth pass scoops snow onto cursor edge pixels (Snow only); overflow/flick or Leaves/Sakura swirls upward
-                        bool spawnAsChunk = _kind == ParticleKind.Snow;
-                        if (spawnAsChunk && !sharpFlick && remainingShare > 0.01f)
+                        // Coat cursor edge gently with powder without draining the drift
+                        if (!sharpFlick && remainingShare > 0.02f)
                         {
-                            float scoopRequest = remainingShare * 0.78f;
+                            float scoopRequest = remainingShare * 0.42f;
                             float scooped = TryCoatCursorFromDrift(scoopRequest, moveDir);
                             remainingShare -= scooped;
                         }
 
                         ejectedMass += remainingShare;
-                        float spawnUnitThreshold = spawnAsChunk ? 2.0f : 1.45f;
+                        float spawnUnitThreshold = sharpFlick ? 1.85f : 2.85f;
                         while (ejectedMass >= spawnUnitThreshold)
                         {
-                            float unit = MathF.Min(ejectedMass, spawnAsChunk ? (1.95f + (float)_rng.NextDouble() * 1.65f) : (1.35f + (float)_rng.NextDouble() * 0.95f));
+                            float unit = MathF.Min(ejectedMass, 1.65f + (float)_rng.NextDouble() * 1.45f);
                             ejectedMass -= unit;
-                            float launchVx = spawnAsChunk
-                                ? Math.Clamp(_cursorVx * 0.36f + ((float)_rng.NextDouble() - 0.5f) * 44f, -260f, 260f)
-                                : Math.Clamp(_cursorVx * 0.42f + ((float)_rng.NextDouble() - 0.5f) * 88f, -260f, 260f);
-                            float launchVy = spawnAsChunk
-                                ? Math.Clamp(_cursorVy * 0.20f - 34f - cursorSpeed * 0.05f - (float)_rng.NextDouble() * 26f, -220f, -24f)
-                                : Math.Clamp(_cursorVy * 0.22f - 68f - cursorSpeed * 0.08f - (float)_rng.NextDouble() * 52f, -230f, -28f);
+                            float launchVx = Math.Clamp(_cursorVx * 0.30f + ((float)_rng.NextDouble() - 0.5f) * 38f, -220f, 220f);
+                            float launchVy = Math.Clamp(_cursorVy * 0.16f - 22f - cursorSpeed * 0.032f - (float)_rng.NextDouble() * 18f, -175f, -14f);
                             SpawnDynamicSnowflake(
                                 lastHitX,
-                                MathF.Min(s.Top - 2.5f, lastHitY - 1.5f),
+                                MathF.Min(s.Top - 2.0f, lastHitY - 1.0f),
                                 launchVx,
                                 launchVy,
-                                cooldown: 0.045f,
+                                cooldown: 0.055f,
                                 mass: unit / BaseSnowDeposit,
-                                isChunk: spawnAsChunk,
-                                sizeScale: spawnAsChunk ? -1f : (0.78f + (float)_rng.NextDouble() * 0.45f));
+                                isChunk: true,
+                                sizeScale: -1f);
 
-                            if (spawnAsChunk && dustSpawned < 2 && _rng.NextDouble() < 0.35)
+                            if (dustSpawned < 3 && _rng.NextDouble() < 0.42)
                             {
                                 SpawnDynamicSnowflake(
                                     lastHitX,
-                                    MathF.Min(s.Top - 2.5f, lastHitY - 1.5f),
-                                    launchVx * 0.65f + ((float)_rng.NextDouble() - 0.5f) * 40f,
-                                    MathF.Min(-20f, launchVy - 12f),
-                                    cooldown: 0.045f,
-                                    mass: 0.16f,
+                                    MathF.Min(s.Top - 2.0f, lastHitY - 1.0f),
+                                    launchVx * 0.60f + ((float)_rng.NextDouble() - 0.5f) * 34f,
+                                    MathF.Min(-14f, launchVy - 10f),
+                                    cooldown: 0.055f,
+                                    mass: 0.15f,
                                     isChunk: false,
-                                    sizeScale: 0.46f);
+                                    sizeScale: 0.44f);
                                 dustSpawned++;
                             }
                         }
@@ -2645,24 +2762,24 @@ public class ParticleOverlayControl : Control
 
                 if (modified)
                 {
-                    bool spawnAsChunk = _kind == ParticleKind.Snow;
-                    if (ejectedMass >= 0.45f)
+                    if (leftSpillMass >= 0.65f)
+                        EmitEdgeSpillParticles(s, -1, leftSpillMass);
+                    if (rightSpillMass >= 0.65f)
+                        EmitEdgeSpillParticles(s, 1, rightSpillMass);
+
+                    if (ejectedMass >= 0.75f && (sharpFlick || cursorSpeed > 420f))
                     {
-                        float launchVx = spawnAsChunk
-                            ? Math.Clamp(_cursorVx * 0.34f + ((float)_rng.NextDouble() - 0.5f) * 42f, -240f, 240f)
-                            : Math.Clamp(_cursorVx * 0.38f + ((float)_rng.NextDouble() - 0.5f) * 78f, -240f, 240f);
-                        float launchVy = spawnAsChunk
-                            ? Math.Clamp(_cursorVy * 0.18f - 30f - cursorSpeed * 0.04f, -200f, -22f)
-                            : Math.Clamp(_cursorVy * 0.20f - 62f - cursorSpeed * 0.07f, -220f, -26f);
+                        float launchVx = Math.Clamp(_cursorVx * 0.28f + ((float)_rng.NextDouble() - 0.5f) * 34f, -200f, 200f);
+                        float launchVy = Math.Clamp(_cursorVy * 0.14f - 20f - cursorSpeed * 0.028f, -160f, -12f);
                         SpawnDynamicSnowflake(
                             lastHitX,
-                            MathF.Min(s.Top - 2.5f, lastHitY - 1.5f),
+                            MathF.Min(s.Top - 2.0f, lastHitY - 1.0f),
                             launchVx,
                             launchVy,
-                            cooldown: 0.045f,
-                            mass: Math.Clamp(ejectedMass / BaseSnowDeposit, 0.38f, 1.45f),
-                            isChunk: spawnAsChunk,
-                            sizeScale: spawnAsChunk ? -1f : (0.78f + (float)_rng.NextDouble() * 0.42f));
+                            cooldown: 0.055f,
+                            mass: Math.Clamp(ejectedMass / BaseSnowDeposit, 0.35f, 1.35f),
+                            isChunk: true,
+                            sizeScale: -1f);
                     }
                     s.NeedsRelaxation = true;
                     RecomputeMaxHeight(s);
@@ -3268,9 +3385,10 @@ public class ParticleOverlayControl : Control
                     if (h != null && s.CellCount > 0)
                     {
                         bool changed = false;
+                        float clampCap = GetSculptMaxHeightPx();
                         for (int i = 0; i < s.CellCount; i++)
                         {
-                            float cap = GetMaxHeightForCell(s, i, _snowMaxHeightPx);
+                            float cap = GetMaxHeightForCell(s, i, clampCap);
                             if (h[i] > cap)
                             {
                                 h[i] = cap;
@@ -3418,22 +3536,28 @@ public class ParticleOverlayControl : Control
             int lo = Math.Max(0, centerCell - 6);
             int hi = Math.Min(s.CellCount - 1, centerCell + 6);
 
-            for (int pass = 0; pass < 3; pass++)
+            for (int pass = 0; pass < 2; pass++)
             {
-                for (int i = lo; i < hi; i++)
+                bool reverse = (pass & 1) == 1;
+                int start = reverse ? hi - 1 : lo;
+                int end = reverse ? lo - 1 : hi;
+                int step = reverse ? -1 : 1;
+
+                for (int i = start; i != end; i += step)
                 {
                     float diff = h[i] - h[i + 1];
-                    if (diff > MaxSlopePerCell)
+                    float slopeLimit = GetEffectiveSlopeLimit(h[i], h[i + 1]);
+                    if (diff > slopeLimit)
                     {
-                        float move = (diff - MaxSlopePerCell) * 0.42f;
+                        float move = (diff - slopeLimit) * 0.34f;
                         float cap = GetMaxHeightForCell(s, i + 1, maxDriftHeightPx);
                         float actual = MathF.Min(move, MathF.Max(0f, cap - h[i + 1]));
                         h[i] -= actual;
                         h[i + 1] += actual;
                     }
-                    else if (-diff > MaxSlopePerCell)
+                    else if (-diff > slopeLimit)
                     {
-                        float move = (-diff - MaxSlopePerCell) * 0.42f;
+                        float move = (-diff - slopeLimit) * 0.34f;
                         float cap = GetMaxHeightForCell(s, i, maxDriftHeightPx);
                         float actual = MathF.Min(move, MathF.Max(0f, cap - h[i]));
                         h[i + 1] -= actual;
@@ -3453,29 +3577,37 @@ public class ParticleOverlayControl : Control
                 return;
             }
 
-            float maxDriftHeightPx = _snowMaxHeightPx;
+            float maxDriftHeightPx = GetSculptMaxHeightPx();
             bool movedAny = false;
-            for (int i = 0; i < s.CellCount - 1; i++)
+            bool reverse = _relaxReversePass;
+            _relaxReversePass = !_relaxReversePass;
+
+            int start = reverse ? s.CellCount - 2 : 0;
+            int end = reverse ? -1 : s.CellCount - 1;
+            int step = reverse ? -1 : 1;
+
+            for (int i = start; i != end; i += step)
             {
                 float diff = h[i] - h[i + 1];
-                if (diff > MaxSlopePerCell)
+                float slopeLimit = GetEffectiveSlopeLimit(h[i], h[i + 1]);
+                if (diff > slopeLimit)
                 {
-                    float move = (diff - MaxSlopePerCell) * 0.38f;
+                    float move = (diff - slopeLimit) * 0.32f;
                     float cap = GetMaxHeightForCell(s, i + 1, maxDriftHeightPx);
                     float actual = MathF.Min(move, MathF.Max(0f, cap - h[i + 1]));
-                    if (actual > 0.015f)
+                    if (actual > 0.02f)
                     {
                         h[i] -= actual;
                         h[i + 1] += actual;
                         movedAny = true;
                     }
                 }
-                else if (-diff > MaxSlopePerCell)
+                else if (-diff > slopeLimit)
                 {
-                    float move = (-diff - MaxSlopePerCell) * 0.38f;
+                    float move = (-diff - slopeLimit) * 0.32f;
                     float cap = GetMaxHeightForCell(s, i, maxDriftHeightPx);
                     float actual = MathF.Min(move, MathF.Max(0f, cap - h[i]));
-                    if (actual > 0.015f)
+                    if (actual > 0.02f)
                     {
                         h[i + 1] -= actual;
                         h[i] += actual;
@@ -3484,25 +3616,27 @@ public class ParticleOverlayControl : Control
                 }
             }
 
-            // Gentle Laplacian smoothing for isolated spikes
-            for (int i = 1; i < s.CellCount - 1; i++)
-            {
-                float avg = (h[i - 1] + h[i + 1]) * 0.5f;
-                float spike = h[i] - avg;
-                if (spike > 0.25f)
-                {
-                    float d = spike * 0.22f;
-                    h[i] -= d;
-                    h[i - 1] = MathF.Min(GetMaxHeightForCell(s, i - 1, maxDriftHeightPx), h[i - 1] + d * 0.5f);
-                    h[i + 1] = MathF.Min(GetMaxHeightForCell(s, i + 1, maxDriftHeightPx), h[i + 1] + d * 0.5f);
-                    movedAny = true;
-                }
-            }
-
+            // Spill excess edge snow over elevated card corners instead of vanishing into flat water
             if (s.CellCount > 0)
             {
-                h[0] = MathF.Min(h[0], GetMaxHeightForCell(s, 0, maxDriftHeightPx));
-                h[s.CellCount - 1] = MathF.Min(h[s.CellCount - 1], GetMaxHeightForCell(s, s.CellCount - 1, maxDriftHeightPx));
+                float cap0 = GetMaxHeightForCell(s, 0, maxDriftHeightPx);
+                if (h[0] > cap0)
+                {
+                    float excess0 = h[0] - cap0;
+                    h[0] = cap0;
+                    if (!s.IsSynthetic && excess0 > 0.45f)
+                        EmitEdgeSpillParticles(s, -1, excess0);
+                }
+
+                int last = s.CellCount - 1;
+                float capLast = GetMaxHeightForCell(s, last, maxDriftHeightPx);
+                if (h[last] > capLast)
+                {
+                    float excessLast = h[last] - capLast;
+                    h[last] = capLast;
+                    if (!s.IsSynthetic && excessLast > 0.45f)
+                        EmitEdgeSpillParticles(s, 1, excessLast);
+                }
             }
 
             RecomputeMaxHeight(s);
@@ -3712,37 +3846,22 @@ public class ParticleOverlayControl : Control
 
                 if (p.IsChunk)
                 {
-                    float r = Math.Clamp(p.SizeScale * 3.7f * sizeScaleGlobal, 2.0f, 6.0f);
-                    float speedSq = p.Vx * p.Vx + p.Vy * p.Vy;
-
-                    // Soft trailing snow puff wake behind fast-flying clumps
-                    if (speedSq > 3600f)
-                    {
-                        byte trailA1 = (byte)(alpha * 0.34f);
-                        float r1 = r * 0.72f;
-                        float tx1 = p.X - p.Vx * 0.017f;
-                        float ty1 = p.Y - p.Vy * 0.017f;
-                        paint.Color = new SKColor(246, 251, 255, trailA1);
-                        canvas.DrawImage(img, new SKRect(tx1 - r1, ty1 - r1, tx1 + r1, ty1 + r1), LinearSampling, paint);
-
-                        byte trailA2 = (byte)(alpha * 0.15f);
-                        float r2 = r * 0.50f;
-                        float tx2 = p.X - p.Vx * 0.034f;
-                        float ty2 = p.Y - p.Vy * 0.034f;
-                        paint.Color = new SKColor(238, 247, 255, trailA2);
-                        canvas.DrawImage(img, new SKRect(tx2 - r2, ty2 - r2, tx2 + r2, ty2 + r2), LinearSampling, paint);
-                    }
-
-                    // Fluffy bright-white snow clump (2-6 px soft radius)
-                    float ovalFactor = 1.0f + 0.18f * MathF.Abs(MathF.Sin(p.Phase * 1.7f));
-                    float rx = r * ovalFactor;
-                    float ry = r;
+                    float r = Math.Clamp(p.SizeScale * 3.1f * sizeScaleGlobal, 1.8f, 4.9f);
+                    float rx = r * (1.0f + 0.16f * MathF.Abs(MathF.Sin(p.Phase * 1.7f)));
+                    float subR1 = r * 0.68f;
+                    float subR2 = r * 0.56f;
 
                     canvas.Save();
                     canvas.Translate(p.X, p.Y);
                     canvas.RotateRadians(p.Angle);
+
+                    // Granular multi-lobe snow clump instead of liquid drop trail
+                    paint.Color = new SKColor(238, 247, 255, (byte)(alpha * 0.85f));
+                    canvas.DrawImage(img, new SKRect(-rx * 0.65f - subR1, -r * 0.28f - subR1, -rx * 0.65f + subR1, -r * 0.28f + subR1), LinearSampling, paint);
+                    canvas.DrawImage(img, new SKRect(rx * 0.55f - subR2, r * 0.25f - subR2, rx * 0.55f + subR2, r * 0.25f + subR2), LinearSampling, paint);
+
                     paint.Color = new SKColor(255, 255, 255, alpha);
-                    canvas.DrawImage(img, new SKRect(-rx, -ry, rx, ry), LinearSampling, paint);
+                    canvas.DrawImage(img, new SKRect(-rx, -r, rx, r), LinearSampling, paint);
                     canvas.Restore();
                 }
                 else
@@ -3787,21 +3906,23 @@ public class ParticleOverlayControl : Control
             }
 
             float thinFade = Math.Clamp(peakHeight / 1.45f, 0.42f, 1.0f);
-            byte alpha = (byte)Math.Clamp((int)MathF.Round(baseOpacityFactor * thinFade * 255f), 75, 255);
-            byte shadowAlpha = (byte)Math.Clamp((int)MathF.Round(52f * baseOpacityFactor * thinFade), 14, 72);
+            float effectiveAlpha = thinFade * baseOpacityFactor;
+            byte alpha = (byte)Math.Clamp((int)MathF.Round(effectiveAlpha * 255f), 0, 255);
+            byte shadowAlpha = (byte)Math.Clamp((int)MathF.Round(54f * effectiveAlpha), 0, 72);
+            if (alpha < 2) return;
 
-            // 1. Soft contact shadow underneath the snow pillow
+            // 1. Soft contact shadow underneath the snow bank
             canvas.Save();
-            canvas.Translate(0f, 1.5f);
+            canvas.Translate(0f, 1.3f);
             paint.Color = new SKColor(0, 0, 0, shadowAlpha);
             canvas.DrawPath(outer, paint);
             canvas.Restore();
 
-            // 2. Soft icy-blue underside tint
-            paint.Color = new SKColor(214, 232, 252, alpha);
+            // 2. Dense shaded snow base / packed slope
+            paint.Color = new SKColor(208, 228, 248, alpha);
             canvas.DrawPath(outer, paint);
 
-            // 3. Crisp bright white snow cap on top
+            // 3. Crisp bright fresh snow ridge on top
             if (hasInner)
             {
                 paint.Color = new SKColor(250, 253, 255, alpha);
@@ -4207,8 +4328,14 @@ public class ParticleOverlayControl : Control
             int n = s.CellCount;
             int srcLen = bytes.Length;
             float max = 0f;
-            float srcMaxHeight = dataVersion >= 2 ? PersistenceMaxHeightPx : LegacyDriftHeightPx;
+            float srcMaxHeight = dataVersion switch
+            {
+                >= 4 => PersistenceMaxHeightV4Px,
+                >= 2 => PersistenceMaxHeightPx,
+                _ => LegacyDriftHeightPx
+            };
             float scale = srcMaxHeight / 255.0f;
+            float sculptCap = GetSculptMaxHeightPx();
 
             for (int i = 0; i < n; i++)
             {
@@ -4219,7 +4346,7 @@ public class ParticleOverlayControl : Control
                 int hi = Math.Clamp(lo + 1, 0, srcLen - 1);
                 float t = srcPos - lo;
                 float val = (bytes[lo] * (1f - t) + bytes[hi] * t) * scale;
-                float cap = GetMaxHeightForCell(s, i, _snowMaxHeightPx);
+                float cap = GetMaxHeightForCell(s, i, sculptCap);
                 val = MathF.Min(cap, val);
                 s.Heights![i] = val;
                 if (val > max) max = val;
@@ -4231,7 +4358,7 @@ public class ParticleOverlayControl : Control
 
         private WeatherAccumulationData BuildPersistenceSnapshot()
         {
-            var result = new WeatherAccumulationData { Version = 3 };
+            var result = new WeatherAccumulationData { Version = 4 };
 
             PackStoreIntoMode(result, "Snow", _snowStore);
             PackLeafStoreIntoMode(result, "Leaves", _leavesStore);
@@ -4300,7 +4427,7 @@ public class ParticleOverlayControl : Control
                     if (s.Heights != null && s.MaxHeight > 0.25f && s.CellCount > 0)
                     {
                         packed = new byte[s.CellCount];
-                        float invScale = 255.0f / PersistenceMaxHeightPx;
+                        float invScale = 255.0f / PersistenceMaxHeightV4Px;
                         bool anyNonZero = false;
                         for (int i = 0; i < s.CellCount; i++)
                         {

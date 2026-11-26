@@ -78,7 +78,7 @@ public partial class LauncherSettingsViewModel : ViewModelBase
         IsSearchJvmArgsVisible = "jvm arguments flags аргументы jvm".Contains(q);
         IsSearchLanguageVisible = "language localization english russian язык".Contains(q);
         IsSearchDiscordVisible = "discord rich presence rpc дискорд статус".Contains(q);
-        IsSearchAppearanceVisible = "appearance theme color accent name branding внешний вид тема цвет акцент оформление launcher лаунчер настройки scale масштаб интерфейс animations animation motion плавность анимации анимация анімації переходы particles snow leaves sakura image custom скролл прокрутка частицы снег листья сакура weather dynamic погода динамическая physics accumulation beta сугробы физика сніг".Contains(q);
+        IsSearchAppearanceVisible = "appearance theme color accent name branding внешний вид тема цвет акцент оформление launcher лаунчер настройки scale масштаб интерфейс animations animation motion плавность анимации анимация анімації переходы particles snow leaves sakura image custom скролл прокрутка частицы снег листья сакура weather dynamic погода динамическая physics accumulation сугробы физика сніг".Contains(q);
     }
 
     // --- Tabs ---

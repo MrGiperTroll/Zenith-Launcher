@@ -17,13 +17,28 @@ public sealed class SnowAccumulationData
 }
 
 /// <summary>
-/// Persisted quantized weather accumulation heightmaps keyed by
-/// (WeatherMode -> ContextKey -> SurfaceId -> byte[]).
+/// Compact per-leaf / per-petal accumulation item (~24 bytes) for realistic individual leaf piles.
+/// </summary>
+public struct SettledLeaf
+{
+    public float RelX { get; set; }
+    public float OffsetY { get; set; }
+    public float Rotation { get; set; }
+    public float Scale { get; set; }
+    public byte SpriteIndex { get; set; }
+    public byte PaletteIndex { get; set; }
+    public byte Alpha { get; set; }
+}
+
+/// <summary>
+/// Persisted weather accumulation: 1D quantized heightmaps for Snow (Modes)
+/// and individual SettledLeaf records for Leaves and Sakura (LeafModes).
 /// </summary>
 public sealed class WeatherAccumulationData
 {
     public int Version { get; set; } = 3;
     public Dictionary<string, Dictionary<string, Dictionary<string, byte[]>>> Modes { get; set; } = new(StringComparer.Ordinal);
+    public Dictionary<string, Dictionary<string, Dictionary<string, List<SettledLeaf>>>> LeafModes { get; set; } = new(StringComparer.Ordinal);
 }
 
 public static class WeatherAccumulationStore
@@ -44,6 +59,7 @@ public static class WeatherAccumulationStore
                     if (data != null)
                     {
                         data.Modes ??= new Dictionary<string, Dictionary<string, Dictionary<string, byte[]>>>(StringComparer.Ordinal);
+                        data.LeafModes ??= new Dictionary<string, Dictionary<string, Dictionary<string, List<SettledLeaf>>>>(StringComparer.Ordinal);
                         return data;
                     }
                 }

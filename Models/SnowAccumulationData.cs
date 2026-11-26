@@ -31,6 +31,7 @@ public struct SettledLeaf
     public byte Alpha { get; set; }
 
     [JsonIgnore] public float Vx;
+    [JsonIgnore] public float Vy;
     [JsonIgnore] public float AngularVel;
     [JsonIgnore] public float TargetOffsetY;
     [JsonIgnore] public float TargetRotation;

@@ -1773,10 +1773,23 @@ public class ParticleOverlayControl : Control
 
                     float overlap = contactR - dist;
                     float cSpeed = MathF.Sqrt(_cursorVx * _cursorVx + _cursorVy * _cursorVy);
-                    p.X += nx * overlap * 0.55f;
-                    p.Y += ny * overlap * 0.25f;
-                    p.Vx = Math.Clamp(p.Vx + nx * (48f + cSpeed * 0.14f) * dt * 12f + _cursorVx * 0.16f, -340f, 340f);
-                    p.Vy = Math.Clamp(p.Vy + (ny * 26f - 28f) * dt * 12f + _cursorVy * 0.12f, -290f, 320f);
+                    bool nearFloor = HasUnderlyingSurface(p.X, p.Y, 16f, out float floorTopY);
+                    float nextX = p.X + nx * overlap * 0.55f;
+                    float nextY = p.Y + ny * overlap * 0.25f;
+                    if (nearFloor)
+                    {
+                        nextY = MathF.Min(nextY, floorTopY - 1.5f);
+                        float sideDir = MathF.Abs(nx) > 0.22f ? MathF.Sign(nx) : (p.X >= _cursorX + 5.0f ? 1f : -1f);
+                        p.Vx = Math.Clamp(p.Vx + sideDir * (56f + cSpeed * 0.18f) * dt * 12f + _cursorVx * 0.18f, -340f, 340f);
+                        p.Vy = Math.Clamp(p.Vy - (22f + MathF.Abs(_cursorVy) * 0.08f) * dt * 12f, -260f, 120f);
+                    }
+                    else
+                    {
+                        p.Vx = Math.Clamp(p.Vx + nx * (48f + cSpeed * 0.14f) * dt * 12f + _cursorVx * 0.16f, -340f, 340f);
+                        p.Vy = Math.Clamp(p.Vy + (ny * 26f - 28f) * dt * 12f + _cursorVy * 0.12f, -290f, 320f);
+                    }
+                    p.X = nextX;
+                    p.Y = nextY;
                     p.SpinRate = Math.Clamp(p.SpinRate + (nx >= 0f ? 1f : -1f) * 3.8f * dt * 8f, -6.8f, 6.8f);
                 }
             }
@@ -1788,6 +1801,17 @@ public class ParticleOverlayControl : Control
 
             float totalVx = (p.IsChunk ? ambientVx * 0.15f : ambientVx) + p.Vx;
             float totalVy = (p.IsChunk ? ambientVy * 0.25f : (isLeafOrSakura && p.IsDynamic ? ambientVy * 0.72f : ambientVy)) + p.Vy;
+
+            // Prevent airwake or cursor deflection from shoving falling particles into an underlying floor/card
+            if (totalVy > 4f && HasUnderlyingSurface(p.X, p.Y, 12f, out float underY))
+            {
+                float stepDown = p.Y + totalVy * dt;
+                if (stepDown > underY && _cursorActive && hasCursorWake)
+                {
+                    float pushDir = MathF.Abs(_cursorVx) > 15f ? MathF.Sign(_cursorVx) : (p.X >= _cursorX ? 1f : -1f);
+                    p.Vx = Math.Clamp(p.Vx + pushDir * 42f * dt * 8f, -340f, 340f);
+                }
+            }
 
             p.X += totalVx * dt;
             p.Y += totalVy * dt;
@@ -1807,8 +1831,8 @@ public class ParticleOverlayControl : Control
                 }
             }
 
-            // Surface landing collision
-            if (!_isModalOccluded && p.Cooldown <= 0f && totalVy > 4f && _visibleSurfaces.Count > 0)
+            // Surface landing & anti-tunneling collision (synthetic bottom floor never bypasses even during cooldown)
+            if (!_isModalOccluded && _visibleSurfaces.Count > 0 && (totalVy > 4f || HasSolidPenetration(p.X, p.Y)))
             {
                 if (TryCollideAndDeposit(ref p, totalVx, totalVy))
                 {
@@ -1821,6 +1845,8 @@ public class ParticleOverlayControl : Control
                     return;
                 }
             }
+
+            EnforceSolidSurfaceBarrier(ref p);
 
             if (p.Y > _height + margin)
             {
@@ -2005,18 +2031,19 @@ public class ParticleOverlayControl : Control
                     float cx = _cursorX + CursorSlotOx[i];
                     float cy = _cursorY + CursorSlotOy[i];
                     float vx = _cursorVx * 0.40f + ((float)_rng.NextDouble() - 0.5f) * 105f;
-                    float vy = _cursorVy * 0.28f - 40f - (float)_rng.NextDouble() * 55f;
-                    SpawnDynamicSnowflake(cx, cy, vx, vy, cooldown: 0.15f, mass: unit / BaseSnowDeposit, isChunk: true, sizeScale: 0.68f + (float)_rng.NextDouble() * 0.25f);
+                    float vy = MathF.Min(-24f, _cursorVy * 0.24f - 40f - (float)_rng.NextDouble() * 55f);
+                    float safeCy = ClampAboveSyntheticFloor(cx, cy);
+                    SpawnDynamicSnowflake(cx, safeCy, vx, vy, cooldown: 0.045f, mass: unit / BaseSnowDeposit, isChunk: true, sizeScale: 0.68f + (float)_rng.NextDouble() * 0.25f);
                     spawned++;
 
                     if (dustSpawned < 2 && _rng.NextDouble() < 0.45)
                     {
                         SpawnDynamicSnowflake(
                             cx,
-                            cy,
+                            safeCy,
                             vx * 0.72f + ((float)_rng.NextDouble() - 0.5f) * 65f,
-                            vy - 15f,
-                            cooldown: 0.16f,
+                            MathF.Min(-20f, vy - 15f),
+                            cooldown: 0.045f,
                             mass: 0.15f,
                             isChunk: false,
                             sizeScale: 0.45f);
@@ -2027,12 +2054,13 @@ public class ParticleOverlayControl : Control
 
             if (massAccum >= 0.35f && spawned < 6)
             {
+                float safeCy = ClampAboveSyntheticFloor(_cursorX + 3f, _cursorY + 3f);
                 SpawnDynamicSnowflake(
                     _cursorX + 3f,
-                    _cursorY + 3f,
+                    safeCy,
                     _cursorVx * 0.38f + ((float)_rng.NextDouble() - 0.5f) * 85f,
-                    _cursorVy * 0.26f - 35f,
-                    cooldown: 0.15f,
+                    MathF.Min(-22f, _cursorVy * 0.22f - 35f),
+                    cooldown: 0.045f,
                     mass: Math.Clamp(massAccum / BaseSnowDeposit, 0.32f, 1.1f),
                     isChunk: true,
                     sizeScale: 0.65f);
@@ -2054,6 +2082,81 @@ public class ParticleOverlayControl : Control
             _cursorPixelMax = max;
         }
 
+        private bool HasUnderlyingSurface(float x, float y, float maxDistPx, out float topY)
+        {
+            topY = float.MaxValue;
+            bool found = false;
+            for (int i = 0; i < _visibleSurfaces.Count; i++)
+            {
+                var s = _visibleSurfaces[i];
+                if (x < s.Left || x > s.Right) continue;
+                if (s.HasClipRect && (s.Top < s.ClipTop - 1.5f || s.Top > s.ClipBottom + 1.5f)) continue;
+                if (y <= s.Top + 2f && s.Top - y <= maxDistPx && s.Top < topY)
+                {
+                    topY = s.Top;
+                    found = true;
+                }
+            }
+            return found;
+        }
+
+        private bool HasSolidPenetration(float x, float y)
+        {
+            for (int i = 0; i < _visibleSurfaces.Count; i++)
+            {
+                var s = _visibleSurfaces[i];
+                if (!s.IsSynthetic) continue;
+                if (x >= s.Left && x <= s.Right && y >= s.Top - 2.0f)
+                    return true;
+            }
+            return false;
+        }
+
+        private float ClampAboveSyntheticFloor(float x, float y)
+        {
+            for (int i = 0; i < _visibleSurfaces.Count; i++)
+            {
+                var s = _visibleSurfaces[i];
+                if (!s.IsSynthetic) continue;
+                if (x >= s.Left && x <= s.Right && y > s.Top - 2.5f)
+                    return s.Top - 2.5f;
+            }
+            return y;
+        }
+
+        private void EnforceSolidSurfaceBarrier(ref ParticleItem p)
+        {
+            if (_isModalOccluded || _visibleSurfaces.Count == 0)
+                return;
+
+            for (int i = 0; i < _visibleSurfaces.Count; i++)
+            {
+                var s = _visibleSurfaces[i];
+                if (p.X < s.Left + 1f || p.X > s.Right - 1f)
+                    continue;
+                if (s.HasClipRect && (s.Top < s.ClipTop - 1.5f || s.Top > s.ClipBottom + 1.5f))
+                    continue;
+
+                if (s.IsSynthetic)
+                {
+                    if (p.Y >= s.Top - 1.5f)
+                    {
+                        p.Y = s.Top - 1.5f;
+                        p.PrevY = p.Y;
+                        if (p.Vy > 0f) p.Vy = -MathF.Min(28f, p.Vy * 0.25f + 8f);
+                    }
+                }
+                else if (p.PrevY <= s.Top + 6.0f && p.Y >= s.Top - 0.5f && p.Y <= s.Top + 16.0f)
+                {
+                    p.Y = s.Top - 1.5f;
+                    p.PrevY = p.Y;
+                    float slideSide = p.X < (s.Left + s.Right) * 0.5f ? -1f : 1f;
+                    p.Vx = Math.Clamp(p.Vx + slideSide * 26f, -140f, 140f);
+                    if (p.Vy > 0f) p.Vy = -MathF.Min(20f, p.Vy * 0.20f + 6f);
+                }
+            }
+        }
+
         private bool TryCollideAndDeposit(ref ParticleItem p, float totalVx, float totalVy)
         {
             bool isLeafOrSakura = _kind is ParticleKind.Leaves or ParticleKind.Sakura;
@@ -2061,6 +2164,9 @@ public class ParticleOverlayControl : Control
             for (int i = 0; i < _visibleSurfaces.Count; i++)
             {
                 var s = _visibleSurfaces[i];
+                if (p.Cooldown > 0f && !s.IsSynthetic)
+                    continue;
+
                 float visLeft = s.Left + 2f;
                 float visRight = s.Right - 2f;
                 if (s.HasClipRect)
@@ -2087,8 +2193,9 @@ public class ParticleOverlayControl : Control
                 int cell = Math.Clamp((int)((p.X - s.Left) / CellWidthPx), 0, s.CellCount - 1);
                 float curDriftH = s.Heights != null ? s.Heights[cell] : 0f;
                 float hitY = s.Top - curDriftH + 1.5f;
+                float prevLimit = s.IsSynthetic ? s.Top + 48.0f : s.Top + 8.0f;
 
-                if (p.PrevY <= s.Top + 3.0f && p.Y >= hitY)
+                if (p.PrevY <= prevLimit && p.Y >= hitY)
                 {
                     float totalVolume = p.IsChunk
                         ? BaseSnowDeposit * Math.Clamp(p.Mass, 0.35f, 1.85f)
@@ -2113,9 +2220,10 @@ public class ParticleOverlayControl : Control
                         return true;
 
                     float slideSide = p.X < (s.Left + s.Right) * 0.5f ? -1f : 1f;
-                    p.Vx = Math.Clamp(p.Vx + slideSide * (p.IsChunk ? 32f : 28f), -110f, 110f);
-                    if (p.IsChunk) p.Vy *= 0.35f;
-                    p.Cooldown = 0.08f;
+                    p.Y = s.Top - 1.5f;
+                    p.Vx = Math.Clamp(p.Vx + slideSide * (p.IsChunk ? 36f : 32f), -125f, 125f);
+                    p.Vy = -14f;
+                    p.Cooldown = 0.045f;
                     return false;
                 }
             }
@@ -2150,9 +2258,9 @@ public class ParticleOverlayControl : Control
                 for (int j = 0; j < leaves.Count; j++)
                 {
                     var existing = leaves[j];
-                    if (MathF.Abs(existing.RelX - relX) < 6.5f)
+                    if (MathF.Abs(existing.RelX - relX) < 7.0f)
                     {
-                        float topCandidate = existing.TargetOffsetY + 1.85f;
+                        float topCandidate = existing.TargetOffsetY + 2.35f;
                         if (topCandidate > stackTopY) stackTopY = topCandidate;
                     }
                 }
@@ -2161,13 +2269,16 @@ public class ParticleOverlayControl : Control
             float halfH = GetLeafSpriteHalfHeight(p.SpriteIndex, p.SizeScale);
             float restAnchorOffset = halfH * 0.36f - 1.0f;
             float hitCenterY = s.Top - stackTopY - restAnchorOffset;
-            if (p.PrevY > hitCenterY + 5.0f || p.Y < hitCenterY - 0.5f)
+            float prevLimit = s.IsSynthetic ? s.Top + 48.0f : hitCenterY + 9.0f;
+            if (p.PrevY > prevLimit || p.Y < hitCenterY - 0.5f)
                 return false;
 
             // Respect lower accumulation rate cleanly without splitting 1 leaf into fragments
             if (!p.IsDynamic && _snowAccumulationRate < 0.99f && _rng.NextDouble() > _snowAccumulationRate)
             {
-                p.Cooldown = 0.08f;
+                if (s.IsSynthetic)
+                    return true;
+                p.Cooldown = 0.05f;
                 return false;
             }
 
@@ -2178,8 +2289,10 @@ public class ParticleOverlayControl : Control
                     return true;
 
                 float slideSide = relX < s.Width * 0.5f ? -1f : 1f;
-                p.Vx = Math.Clamp(p.Vx + slideSide * 28f, -95f, 95f);
-                p.Cooldown = 0.08f;
+                p.Y = s.Top - 1.5f;
+                p.Vx = Math.Clamp(p.Vx + slideSide * 34f, -125f, 125f);
+                p.Vy = -14f;
+                p.Cooldown = 0.045f;
                 return false;
             }
 
@@ -2193,14 +2306,14 @@ public class ParticleOverlayControl : Control
                 s.Leaves.RemoveAt(0);
             }
 
-            // Capture exact falling pose/opacity on contact and smoothly settle onto the surface
+            // Capture exact falling pose/opacity on contact and smoothly settle with natural bounce & glide
             float currentAngle = MathF.IEEERemainder(p.Angle, MathF.PI * 2.0f);
             float baseHoriz = MathF.Abs(currentAngle) > MathF.PI * 0.5f
                 ? (currentAngle >= 0f ? MathF.PI : -MathF.PI)
                 : 0f;
-            float targetRotation = baseHoriz + Math.Clamp((currentAngle - baseHoriz) * 0.32f, -0.48f, 0.48f);
-            float targetOffsetY = Math.Clamp(stackTopY + (float)_rng.NextDouble() * 0.7f, 0f, maxStack);
-            float startOffsetY = Math.Clamp(s.Top - restAnchorOffset - p.Y, targetOffsetY, targetOffsetY + 4.5f);
+            float targetRotation = baseHoriz + Math.Clamp((currentAngle - baseHoriz) * 0.34f, -0.52f, 0.52f);
+            float targetOffsetY = Math.Clamp(stackTopY + (float)_rng.NextDouble() * 0.85f, 0f, maxStack);
+            float startOffsetY = Math.Clamp(s.Top - restAnchorOffset - p.Y, targetOffsetY, targetOffsetY + 5.0f);
 
             s.Leaves.Add(new SettledLeaf
             {
@@ -2211,8 +2324,9 @@ public class ParticleOverlayControl : Control
                 SpriteIndex = p.SpriteIndex,
                 PaletteIndex = p.PaletteIndex,
                 Alpha = (byte)Math.Clamp((int)MathF.Round(p.AlphaScale * 255f), 40, 255),
-                Vx = Math.Clamp(totalVx * 0.52f, -95f, 95f),
-                AngularVel = Math.Clamp(p.SpinRate * 0.45f, -5.5f, 5.5f),
+                Vx = Math.Clamp(totalVx * 0.56f, -105f, 105f),
+                Vy = -Math.Clamp(totalVy * 0.14f, 4f, 18f),
+                AngularVel = Math.Clamp(p.SpinRate * 0.48f, -5.8f, 5.8f),
                 TargetOffsetY = targetOffsetY,
                 TargetRotation = targetRotation,
                 IsSettling = true
@@ -2225,9 +2339,11 @@ public class ParticleOverlayControl : Control
         private void StepSettledLeaves(float dt)
         {
             float cursorSpeedSq = _cursorVx * _cursorVx + _cursorVy * _cursorVy;
-            bool cursorRustle = _snowCursorInteractionEnabled && _cursorActive && !_isModalOccluded && cursorSpeedSq > 180f * 180f;
+            bool cursorRustle = _snowCursorInteractionEnabled && _cursorActive && !_isModalOccluded && cursorSpeedSq > 45f * 45f;
             float cursorSpeed = cursorRustle ? MathF.Sqrt(cursorSpeedSq) : 0f;
             float maxStack = MathF.Max(2.0f, _snowMaxHeightPx * 0.92f);
+            float windAbs = MathF.Abs(_wind);
+            bool windActive = windAbs > 0.08f;
 
             for (int i = 0; i < _visibleSurfaces.Count; i++)
             {
@@ -2240,8 +2356,24 @@ public class ParticleOverlayControl : Control
                 float cornerPadR = MathF.Max(3.0f, s.CornerRadiusRight * 0.35f);
                 float maxRelX = MathF.Max(cornerPadL, s.Width - cornerPadR);
                 bool surfaceNearCursor = cursorRustle
-                    && _cursorX >= s.Left - 36f && _cursorX <= s.Right + 36f
-                    && _cursorY >= s.Top - maxStack - 36f && _cursorY <= s.Top + 26f;
+                    && _cursorX >= s.Left - 48f && _cursorX <= s.Right + 48f
+                    && _cursorY >= s.Top - maxStack - 48f && _cursorY <= s.Top + 32f;
+
+                // Occasional ambient breeze gust stirs exposed settled leaves naturally
+                if (windActive && _rng.NextDouble() < dt * (1.2f + windAbs * 6.5f))
+                {
+                    int idx = _rng.Next(leaves.Count);
+                    var gustLeaf = leaves[idx];
+                    if (gustLeaf.OffsetY >= 0.4f || _rng.NextDouble() < 0.35)
+                    {
+                        float dir = MathF.Sign(_wind);
+                        gustLeaf.Vx = Math.Clamp(gustLeaf.Vx + dir * (16f + (float)_rng.NextDouble() * 26f) * windAbs, -90f, 90f);
+                        gustLeaf.Vy = Math.Clamp(gustLeaf.Vy + (10f + (float)_rng.NextDouble() * 16f) * windAbs, 0f, 34f);
+                        gustLeaf.AngularVel = Math.Clamp(gustLeaf.AngularVel + dir * (1.4f + (float)_rng.NextDouble() * 2.2f), -5.0f, 5.0f);
+                        gustLeaf.IsSettling = true;
+                        leaves[idx] = gustLeaf;
+                    }
+                }
 
                 for (int j = leaves.Count - 1; j >= 0; j--)
                 {
@@ -2254,12 +2386,13 @@ public class ParticleOverlayControl : Control
                         float dx = wx - _cursorX;
                         float dy = wy - _cursorY;
                         float d2 = dx * dx + dy * dy;
-                        if (d2 < 34f * 34f && d2 > 14f * 14f)
+                        if (d2 < 46f * 46f && d2 > 13f * 13f)
                         {
-                            float falloff = 1.0f - MathF.Sqrt(d2) / 34f;
-                            float gust = Math.Clamp(cursorSpeed * 0.04f, 4f, 24f) * falloff;
-                            leaf.Vx = Math.Clamp(leaf.Vx + MathF.Sign(_cursorVx + (dx >= 0f ? 1f : -1f)) * gust * dt * 10f, -70f, 70f);
-                            leaf.AngularVel = Math.Clamp(leaf.AngularVel + (_cursorVx >= 0f ? 1f : -1f) * 2.2f * falloff * dt * 8f, -4.5f, 4.5f);
+                            float falloff = 1.0f - MathF.Sqrt(d2) / 46f;
+                            float gust = Math.Clamp(cursorSpeed * 0.055f, 8f, 36f) * falloff;
+                            leaf.Vx = Math.Clamp(leaf.Vx + MathF.Sign(_cursorVx + (dx >= 0f ? 1f : -1f)) * gust * dt * 11f, -95f, 95f);
+                            leaf.Vy = Math.Clamp(leaf.Vy + (8f + falloff * 18f) * dt * 7f, -20f, 36f);
+                            leaf.AngularVel = Math.Clamp(leaf.AngularVel + (_cursorVx >= 0f ? 1f : -1f) * 2.6f * falloff * dt * 9f, -5.0f, 5.0f);
                             leaf.IsSettling = true;
                         }
                     }
@@ -2268,13 +2401,26 @@ public class ParticleOverlayControl : Control
                         continue;
 
                     leaf.RelX += leaf.Vx * dt;
-                    leaf.Vx *= MathF.Exp(-7.5f * dt);
+                    leaf.Vx *= MathF.Exp(-6.5f * dt);
 
-                    float dyOffset = leaf.TargetOffsetY - leaf.OffsetY;
-                    leaf.OffsetY += dyOffset * MathF.Min(1f, dt * 12.0f);
+                    leaf.Vy -= 165.0f * dt;
+                    leaf.OffsetY += leaf.Vy * dt;
+                    if (leaf.OffsetY <= leaf.TargetOffsetY)
+                    {
+                        if (leaf.Vy < -24.0f)
+                        {
+                            leaf.OffsetY = leaf.TargetOffsetY;
+                            leaf.Vy = -leaf.Vy * 0.22f;
+                        }
+                        else
+                        {
+                            leaf.OffsetY = leaf.TargetOffsetY;
+                            leaf.Vy = 0f;
+                        }
+                    }
 
                     float angDiff = leaf.TargetRotation - leaf.Rotation;
-                    leaf.AngularVel = (leaf.AngularVel + angDiff * 34.0f * dt) * MathF.Exp(-8.5f * dt);
+                    leaf.AngularVel = (leaf.AngularVel + angDiff * 26.0f * dt) * MathF.Exp(-6.2f * dt);
                     leaf.Rotation = Math.Clamp(leaf.Rotation + leaf.AngularVel * dt, -MathF.PI, MathF.PI);
 
                     if (!s.IsSynthetic && (leaf.RelX < cornerPadL - 2.0f || leaf.RelX > maxRelX + 2.0f))
@@ -2282,18 +2428,20 @@ public class ParticleOverlayControl : Control
                         float wx = s.Left + leaf.RelX;
                         float wy = s.Top - leaf.OffsetY - 2f;
                         leaves.RemoveAt(j);
-                        SpawnDynamicLeafFromSettled(in leaf, wx, MathF.Min(s.Top - 1f, wy), leaf.Vx * 0.85f, 18f, cooldown: 0.16f);
+                        SpawnDynamicLeafFromSettled(in leaf, wx, MathF.Min(s.Top - 2.5f, wy), leaf.Vx * 0.85f, -18f, cooldown: 0.045f);
                         _persistenceDirty = true;
                         continue;
                     }
 
                     leaf.RelX = Math.Clamp(leaf.RelX, cornerPadL, maxRelX);
-                    if (MathF.Abs(leaf.Vx) < 0.7f
+                    if (MathF.Abs(leaf.Vx) < 0.6f
+                        && MathF.Abs(leaf.Vy) < 1.0f
+                        && MathF.Abs(leaf.OffsetY - leaf.TargetOffsetY) < 0.08f
                         && MathF.Abs(angDiff) < 0.015f
-                        && MathF.Abs(leaf.AngularVel) < 0.05f
-                        && MathF.Abs(dyOffset) < 0.08f)
+                        && MathF.Abs(leaf.AngularVel) < 0.05f)
                     {
                         leaf.Vx = 0f;
+                        leaf.Vy = 0f;
                         leaf.AngularVel = 0f;
                         leaf.OffsetY = leaf.TargetOffsetY;
                         leaf.Rotation = leaf.TargetRotation;
@@ -2477,17 +2625,17 @@ public class ParticleOverlayControl : Control
                             float unit = MathF.Min(ejectedMass, spawnAsChunk ? (1.95f + (float)_rng.NextDouble() * 1.65f) : (1.35f + (float)_rng.NextDouble() * 0.95f));
                             ejectedMass -= unit;
                             float launchVx = spawnAsChunk
-                                ? Math.Clamp(_cursorVx * 0.36f + ((float)_rng.NextDouble() - 0.5f) * 34f, -260f, 260f)
+                                ? Math.Clamp(_cursorVx * 0.36f + ((float)_rng.NextDouble() - 0.5f) * 44f, -260f, 260f)
                                 : Math.Clamp(_cursorVx * 0.42f + ((float)_rng.NextDouble() - 0.5f) * 88f, -260f, 260f);
                             float launchVy = spawnAsChunk
-                                ? Math.Clamp(_cursorVy * 0.24f - 34f - cursorSpeed * 0.05f - (float)_rng.NextDouble() * 26f, -220f, 65f)
-                                : Math.Clamp(_cursorVy * 0.28f - 68f - cursorSpeed * 0.08f - (float)_rng.NextDouble() * 52f, -230f, 55f);
+                                ? Math.Clamp(_cursorVy * 0.20f - 34f - cursorSpeed * 0.05f - (float)_rng.NextDouble() * 26f, -220f, -24f)
+                                : Math.Clamp(_cursorVy * 0.22f - 68f - cursorSpeed * 0.08f - (float)_rng.NextDouble() * 52f, -230f, -28f);
                             SpawnDynamicSnowflake(
                                 lastHitX,
-                                MathF.Min(s.Top - 1f, lastHitY - 1f),
+                                MathF.Min(s.Top - 2.5f, lastHitY - 1.5f),
                                 launchVx,
                                 launchVy,
-                                cooldown: 0.16f,
+                                cooldown: 0.045f,
                                 mass: unit / BaseSnowDeposit,
                                 isChunk: spawnAsChunk,
                                 sizeScale: spawnAsChunk ? -1f : (0.78f + (float)_rng.NextDouble() * 0.45f));
@@ -2496,10 +2644,10 @@ public class ParticleOverlayControl : Control
                             {
                                 SpawnDynamicSnowflake(
                                     lastHitX,
-                                    MathF.Min(s.Top - 1f, lastHitY - 1f),
+                                    MathF.Min(s.Top - 2.5f, lastHitY - 1.5f),
                                     launchVx * 0.65f + ((float)_rng.NextDouble() - 0.5f) * 40f,
-                                    launchVy - 12f,
-                                    cooldown: 0.18f,
+                                    MathF.Min(-20f, launchVy - 12f),
+                                    cooldown: 0.045f,
                                     mass: 0.16f,
                                     isChunk: false,
                                     sizeScale: 0.46f);
@@ -2515,17 +2663,17 @@ public class ParticleOverlayControl : Control
                     if (ejectedMass >= 0.45f)
                     {
                         float launchVx = spawnAsChunk
-                            ? Math.Clamp(_cursorVx * 0.34f + ((float)_rng.NextDouble() - 0.5f) * 32f, -240f, 240f)
+                            ? Math.Clamp(_cursorVx * 0.34f + ((float)_rng.NextDouble() - 0.5f) * 42f, -240f, 240f)
                             : Math.Clamp(_cursorVx * 0.38f + ((float)_rng.NextDouble() - 0.5f) * 78f, -240f, 240f);
                         float launchVy = spawnAsChunk
-                            ? Math.Clamp(_cursorVy * 0.22f - 30f - cursorSpeed * 0.04f, -200f, 60f)
-                            : Math.Clamp(_cursorVy * 0.26f - 62f - cursorSpeed * 0.07f, -220f, 55f);
+                            ? Math.Clamp(_cursorVy * 0.18f - 30f - cursorSpeed * 0.04f, -200f, -22f)
+                            : Math.Clamp(_cursorVy * 0.20f - 62f - cursorSpeed * 0.07f, -220f, -26f);
                         SpawnDynamicSnowflake(
                             lastHitX,
-                            MathF.Min(s.Top - 1f, lastHitY - 1f),
+                            MathF.Min(s.Top - 2.5f, lastHitY - 1.5f),
                             launchVx,
                             launchVy,
-                            cooldown: 0.16f,
+                            cooldown: 0.045f,
                             mass: Math.Clamp(ejectedMass / BaseSnowDeposit, 0.38f, 1.45f),
                             isChunk: spawnAsChunk,
                             sizeScale: spawnAsChunk ? -1f : (0.78f + (float)_rng.NextDouble() * 0.42f));
@@ -2542,7 +2690,7 @@ public class ParticleOverlayControl : Control
             float dx = x1 - x0;
             float dy = y1 - y0;
             float cursorSpeed = MathF.Sqrt(_cursorVx * _cursorVx + _cursorVy * _cursorVy);
-            bool liftSwirl = cursorSpeed >= 300f || _cursorAccel > 2200f;
+            bool liftSwirl = cursorSpeed >= 220f || _cursorAccel > 1700f;
             float radius = liftSwirl ? 16.0f : 13.0f;
             float radiusSq = radius * radius;
 
@@ -2594,26 +2742,39 @@ public class ParticleOverlayControl : Control
                         leaves.RemoveAt(j);
                         modified = true;
 
-                        float launchVx = Math.Clamp(_cursorVx * 0.42f + (ddx * 3.2f) + ((float)_rng.NextDouble() - 0.5f) * 85f, -260f, 260f);
-                        float launchVy = Math.Clamp(_cursorVy * 0.28f - 66f - cursorSpeed * 0.08f - (float)_rng.NextDouble() * 50f, -230f, 55f);
-                        SpawnDynamicLeafFromSettled(in leaf, wx, MathF.Min(s.Top - 1f, wy), launchVx, launchVy, cooldown: 0.18f);
+                        float sideSplash = MathF.Abs(ddx) > 0.5f ? MathF.Sign(ddx) * 32f : ((float)_rng.NextDouble() - 0.5f) * 64f;
+                        float launchVx = Math.Clamp(_cursorVx * 0.44f + (ddx * 3.4f) + sideSplash + ((float)_rng.NextDouble() - 0.5f) * 85f, -260f, 260f);
+                        float launchVy = Math.Clamp(_cursorVy * 0.18f - 68f - cursorSpeed * 0.09f - (float)_rng.NextDouble() * 54f, -240f, -28f);
+                        SpawnDynamicLeafFromSettled(in leaf, wx, MathF.Min(s.Top - 2.5f, wy), launchVx, launchVy, cooldown: 0.045f);
                     }
                     else
                     {
-                        // Gentle touch: glide/tilt leaf smoothly, press slightly downward
-                        float pushX = (MathF.Abs(dx) > 0.1f ? dx * 0.62f : moveSign * 1.3f) * falloff;
+                        // Gentle touch: glide, tilt, and give a soft upward hop + neighbor ripple
+                        float pushX = (MathF.Abs(dx) > 0.1f ? dx * 0.65f : moveSign * 1.4f) * falloff;
                         if (MathF.Abs(pushX) < 0.05f && MathF.Abs(ddx) > 0.2f)
                             pushX = MathF.Sign(ddx) * 0.6f * falloff;
 
                         leaf.RelX += pushX;
-                        leaf.Vx = Math.Clamp(leaf.Vx + pushX * 22f, -120f, 120f);
-                        leaf.Rotation = Math.Clamp(leaf.Rotation + (pushX >= 0f ? 1f : -1f) * falloff * 0.12f, -MathF.PI, MathF.PI);
-                        leaf.AngularVel = Math.Clamp(leaf.AngularVel + (pushX >= 0f ? 1f : -1f) * falloff * 1.4f, -4.5f, 4.5f);
+                        leaf.Vx = Math.Clamp(leaf.Vx + pushX * 26f, -135f, 135f);
+                        leaf.Vy = Math.Max(leaf.Vy, (14f + (float)_rng.NextDouble() * 16f) * falloff);
+                        leaf.Rotation = Math.Clamp(leaf.Rotation + (pushX >= 0f ? 1f : -1f) * falloff * 0.15f, -MathF.PI, MathF.PI);
+                        leaf.AngularVel = Math.Clamp(leaf.AngularVel + (pushX >= 0f ? 1f : -1f) * falloff * 2.2f, -5.0f, 5.0f);
                         leaf.IsSettling = true;
-                        if (dy > 0.25f && leaf.OffsetY > 0.2f)
+
+                        // Ripple softly to adjacent leaves in stack
+                        for (int nIdx = 0; nIdx < leaves.Count; nIdx++)
                         {
-                            leaf.OffsetY = MathF.Max(0f, leaf.OffsetY - dy * 0.35f * falloff);
-                            leaf.TargetOffsetY = MathF.Min(leaf.TargetOffsetY, leaf.OffsetY);
+                            if (nIdx == j) continue;
+                            var nb = leaves[nIdx];
+                            float relDist = nb.RelX - leaf.RelX;
+                            if (MathF.Abs(relDist) < 14f)
+                            {
+                                nb.Vx = Math.Clamp(nb.Vx + pushX * 8f + MathF.Sign(relDist) * 12f, -95f, 95f);
+                                nb.Vy = Math.Max(nb.Vy, 8f * falloff);
+                                nb.AngularVel = Math.Clamp(nb.AngularVel + (pushX >= 0f ? 1f : -1f) * 1.1f, -4.0f, 4.0f);
+                                nb.IsSettling = true;
+                                leaves[nIdx] = nb;
+                            }
                         }
 
                         // If nudged off card edge, it slips off and flutters down
@@ -2621,8 +2782,8 @@ public class ParticleOverlayControl : Control
                         {
                             leaves.RemoveAt(j);
                             modified = true;
-                            float edgeVx = Math.Clamp((leaf.RelX < cornerPadL ? -38f : 38f) + _cursorVx * 0.25f, -160f, 160f);
-                            SpawnDynamicLeafFromSettled(in leaf, wx, MathF.Min(s.Top - 1f, wy), edgeVx, 16f, cooldown: 0.16f);
+                            float edgeVx = Math.Clamp((leaf.RelX < cornerPadL ? -42f : 42f) + _cursorVx * 0.25f, -160f, 160f);
+                            SpawnDynamicLeafFromSettled(in leaf, wx, MathF.Min(s.Top - 2.5f, wy), edgeVx, -16f, cooldown: 0.045f);
                         }
                         else
                         {
@@ -3742,6 +3903,9 @@ public class ParticleOverlayControl : Control
                     clipped = true;
                 }
 
+                float windAbs = MathF.Abs(_wind);
+                float windMag = 0.025f + windAbs * 0.09f;
+
                 for (int j = 0; j < leaves.Count; j++)
                 {
                     var leaf = leaves[j];
@@ -3751,27 +3915,37 @@ public class ParticleOverlayControl : Control
                     float halfW = img.Width * scaleFactor * 0.5f;
                     float halfH = img.Height * scaleFactor * 0.5f;
 
+                    float exposure = Math.Clamp(0.35f + leaf.OffsetY * 0.16f, 0.35f, 1.0f);
+                    float liveSway = MathF.Sin(_elapsedSec * 2.1f + leaf.RelX * 0.09f + j * 1.47f) * windMag * exposure;
+                    float liveHover = MathF.Abs(MathF.Cos(_elapsedSec * 1.6f + leaf.RelX * 0.07f + j * 0.91f)) * (windAbs * 0.55f) * exposure;
+                    float tiltY = leaf.IsSettling
+                        ? (0.76f + 0.24f * MathF.Abs(MathF.Cos(leaf.Rotation * 1.25f + _elapsedSec * 3.0f)))
+                        : (0.90f + 0.10f * MathF.Cos(liveSway * 3.5f));
+
                     float lx = s.Left + leaf.RelX;
-                    float ly = s.Top - leaf.OffsetY - halfH * 0.36f + 1.0f;
+                    float ly = s.Top - (leaf.OffsetY + liveHover) - halfH * 0.36f + 1.0f;
                     byte alpha = (byte)Math.Clamp((int)MathF.Round(_opacity * (leaf.Alpha / 255f) * 255f), 0, 255);
                     if (alpha < 2) continue;
 
+                    byte depthShade = (byte)Math.Clamp(212 + (int)(MathF.Min(leaf.OffsetY, 8f) * 5.2f), 212, 255);
+                    var tinted = new SKColor(depthShade, depthShade, depthShade, alpha);
+
                     canvas.Save();
                     canvas.Translate(lx, ly);
-                    canvas.RotateRadians(leaf.Rotation);
+                    canvas.RotateRadians(leaf.Rotation + liveSway);
 
                     if (useLeafFilters && filterCount > 0)
                     {
-                        paint.Color = SKColors.White.WithAlpha(alpha);
+                        paint.Color = tinted;
                         paint.ColorFilter = filters![leaf.PaletteIndex % filterCount];
                     }
                     else
                     {
                         paint.ColorFilter = null;
-                        paint.Color = SKColors.White.WithAlpha(alpha);
+                        paint.Color = tinted;
                     }
 
-                    canvas.DrawImage(img, new SKRect(-halfW, -halfH, halfW, halfH), NearestSampling, paint);
+                    canvas.DrawImage(img, new SKRect(-halfW, -halfH * tiltY, halfW, halfH * tiltY), NearestSampling, paint);
                     canvas.Restore();
                 }
 

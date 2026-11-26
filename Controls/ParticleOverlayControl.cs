@@ -2523,7 +2523,7 @@ public class ParticleOverlayControl : Control
             float remaining = amount;
 
             // Deposit sequentially ahead of the cursor face, piling up a dense front ridge first
-            for (int step = 0; step < 6 && remaining > 0.005f; step++)
+            for (int step = 0; step < 10 && remaining > 0.005f; step++)
             {
                 int idx = startCell + dir * step;
                 if ((uint)idx >= (uint)n)
@@ -2545,8 +2545,8 @@ public class ParticleOverlayControl : Control
                 float room = MathF.Max(0f, cap - h[idx]);
                 if (room > 0.001f)
                 {
-                    // Place most into the crest cell and cascade forward as it builds up
-                    float take = MathF.Min(remaining * (step == 0 ? 0.68f : 0.85f), room);
+                    float share = step < 3 ? 0.56f : 0.78f;
+                    float take = MathF.Min(remaining * share, room);
                     h[idx] += take;
                     remaining -= take;
                 }
@@ -2605,18 +2605,17 @@ public class ParticleOverlayControl : Control
             float dx = x1 - x0;
             float dy = y1 - y0;
             float segLen = MathF.Sqrt(dx * dx + dy * dy);
-            int steps = Math.Clamp((int)MathF.Ceiling(segLen / 5.0f), 1, 18);
-            float stepDist = segLen / steps;
-            float moveDir = MathF.Abs(_cursorVx) > 18f ? MathF.Sign(_cursorVx) : (MathF.Abs(dx) > 0.8f ? MathF.Sign(dx) : 0f);
+            int steps = Math.Clamp((int)MathF.Ceiling(segLen / 8.0f), 1, 10);
+            float moveDir = MathF.Abs(_cursorVx) > 16f ? MathF.Sign(_cursorVx) : (MathF.Abs(dx) > 0.8f ? MathF.Sign(dx) : 0f);
             float cursorSpeed = MathF.Sqrt(_cursorVx * _cursorVx + _cursorVy * _cursorVy);
             bool sharpFlick = IsSharpCursorFlick(cursorSpeed);
             bool isPressingDown = !sharpFlick && _cursorVy > 22f && MathF.Abs(_cursorVy) > MathF.Abs(_cursorVx) * 0.72f;
             float sculptCap = GetSculptMaxHeightPx();
 
-            // Cursor behaves like a soft hand: slow touch barely brushes the top fluff,
-            // while moving a deep heavy snowbank requires repeated or stronger strokes.
-            float forceFactor = MathF.Pow(Math.Clamp((cursorSpeed - 14f) / 820f, 0.05f, 1.0f), 0.85f);
-            float overlapDamping = steps <= 1 ? 1.0f : Math.Clamp(stepDist / (BrushRadiusPx * 1.15f), 0.32f, 1.0f);
+            // Cursor requires deliberate motion to push heavy snowbanks:
+            // gentle touch lightly brushes the top, firm strokes plow snow forward with tangible weight.
+            float speedEffort = Math.Clamp((cursorSpeed - 22f) / 480f, 0.04f, 1.25f);
+            float overlapScale = steps <= 1 ? 1.0f : 0.74f;
 
             for (int i = 0; i < _visibleSurfaces.Count; i++)
             {
@@ -2629,8 +2628,8 @@ public class ParticleOverlayControl : Control
                 if (s.Top + 6f < segMinY || s.Top - sculptCap - 6f > segMaxY)
                     continue;
 
-                float radius = s.IsSynthetic ? 10.5f : BrushRadiusPx;
-                float workBudget = (1.85f + segLen * 0.30f) * (0.22f + 1.18f * forceFactor) * (sharpFlick ? 1.75f : 1.0f);
+                float radius = s.IsSynthetic ? 11.0f : BrushRadiusPx;
+                float workBudget = (4.6f + segLen * 0.54f) * (0.28f + 1.45f * speedEffort) * (sharpFlick ? 1.65f : 1.0f);
                 bool modified = false;
                 float ejectedMass = 0f;
                 float leftSpillMass = 0f;
@@ -2640,13 +2639,13 @@ public class ParticleOverlayControl : Control
                 float lastHitY = s.Top;
                 int dustSpawned = 0;
 
-                for (int step = 0; step <= steps && workBudget > 0.03f; step++)
+                for (int step = 0; step <= steps && workBudget > 0.04f; step++)
                 {
                     float t = steps == 0 ? 1f : (float)step / steps;
                     float px = x0 + dx * t;
                     float py = y0 + dy * t;
 
-                    if (py < s.Top - s.MaxHeight - 6f || py > s.Top + 6f)
+                    if (py < s.Top - s.MaxHeight - 7f || py > s.Top + 6f)
                         continue;
                     if (px < s.Left - radius || px > s.Right + radius)
                         continue;
@@ -2657,14 +2656,14 @@ public class ParticleOverlayControl : Control
                         ? (int)MathF.Floor((px + moveDir * (radius * 0.85f + 2.0f) - s.Left) / CellWidthPx)
                         : -1;
 
-                    for (int c = cStart; c <= cEnd && workBudget > 0.03f; c++)
+                    for (int c = cStart; c <= cEnd && workBudget > 0.04f; c++)
                     {
                         float h = s.Heights[c];
                         if (h <= 0.12f) continue;
 
                         float cellCenterX = s.Left + (c + 0.5f) * CellWidthPx;
                         float crestY = s.Top - h;
-                        if (py < crestY - 4.5f || py > s.Top + 6.0f)
+                        if (py < crestY - 5.5f || py > s.Top + 6.5f)
                             continue;
 
                         float distX = MathF.Abs(cellCenterX - px);
@@ -2674,9 +2673,9 @@ public class ParticleOverlayControl : Control
                         if (distSq > radius * radius) continue;
 
                         float falloff = 1.0f - MathF.Sqrt(distSq) / radius;
-                        float depthInSnow = Math.Clamp((py - (crestY - 4.5f)) / MathF.Max(5.5f, h + 4.5f), 0.14f, 1.0f);
+                        float depthInSnow = Math.Clamp((py - (crestY - 5.5f)) / MathF.Max(5.5f, h + 5.5f), 0.28f, 1.0f);
 
-                        // Measure packed snow ahead so big drifts resist pushing until real force is applied
+                        // Measure local depth + snow load ahead so big drifts require stronger effort to push
                         float aheadAvg = h;
                         if (moveDir != 0f)
                         {
@@ -2694,18 +2693,18 @@ public class ParticleOverlayControl : Control
                             }
                             if (cnt > 0) aheadAvg = sum / cnt;
                         }
-                        float resistance = 1.0f + h * 0.14f + aheadAvg * 0.12f;
+                        float resistance = 1.0f + h * 0.068f + aheadAvg * 0.058f;
 
                         float baseFraction = sharpFlick
-                            ? (0.34f + 0.44f * forceFactor)
-                            : (0.09f + 0.34f * forceFactor);
-                        float rawTake = h * baseFraction * falloff * depthInSnow * overlapDamping / MathF.Sqrt(resistance);
-                        float maxByBudget = workBudget / resistance;
-                        float softFloor = sharpFlick ? 0f : MathF.Min(h * 0.18f, 0.85f);
+                            ? (0.48f + 0.34f * MathF.Min(1.0f, speedEffort))
+                            : (0.14f + 0.52f * MathF.Min(1.1f, speedEffort));
+                        float rawTake = h * baseFraction * falloff * depthInSnow * overlapScale / MathF.Pow(resistance, 0.45f);
+                        float maxByBudget = workBudget / MathF.Pow(resistance, 0.65f);
+                        float softFloor = sharpFlick ? 0f : MathF.Min(h * 0.12f, 0.55f);
                         float disturbed = Math.Clamp(rawTake, 0f, MathF.Min(maxByBudget, MathF.Max(0f, h - softFloor)));
                         if (disturbed <= 0.03f) continue;
 
-                        workBudget = MathF.Max(0f, workBudget - disturbed * resistance);
+                        workBudget = MathF.Max(0f, workBudget - disturbed * MathF.Pow(resistance, 0.65f));
                         s.Heights[c] = h - disturbed;
                         modified = true;
                         lastHitCell = c;

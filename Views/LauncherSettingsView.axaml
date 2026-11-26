@@ -779,10 +779,29 @@
                         <Border Classes="settingsCard" IsVisible="{Binding IsSearchAppearanceVisible}"
                                 controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="settings_card_particles">
                             <StackPanel Spacing="14">
-                                <StackPanel Spacing="3">
-                                    <TextBlock Classes="sectionHeaderTitle" Text="{l10n:Tr particles_title}"/>
-                                    <TextBlock Classes="sectionHeaderDesc" Text="{l10n:Tr particles_hint}"/>
-                                </StackPanel>
+                                <Border Background="Transparent" Cursor="Hand"
+                                        Tapped="OnParticlesDetailsHeaderTapped"
+                                        ToolTip.Tip="{l10n:Tr particles_details}">
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" VerticalAlignment="Center">
+                                        <StackPanel Grid.Column="0" Spacing="3" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <TextBlock Classes="sectionHeaderTitle" Text="{l10n:Tr particles_title}"/>
+                                            <TextBlock Classes="sectionHeaderDesc" Text="{l10n:Tr particles_hint}"/>
+                                        </StackPanel>
+                                        <Panel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,2,0"
+                                               IsVisible="{Binding AreParticlesEnabled}">
+                                            <Path Data="M 1 1 L 5 5 L 9 1" Width="10" Height="6" Stretch="Uniform"
+                                                  Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.5"
+                                                  StrokeLineCap="Round" StrokeJoin="Round"
+                                                  VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                  IsVisible="{Binding !IsParticlesDetailsExpanded}"/>
+                                            <Path Data="M 1 5 L 5 1 L 9 5" Width="10" Height="6" Stretch="Uniform"
+                                                  Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.5"
+                                                  StrokeLineCap="Round" StrokeJoin="Round"
+                                                  VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                  IsVisible="{Binding IsParticlesDetailsExpanded}"/>
+                                        </Panel>
+                                    </Grid>
+                                </Border>
 
                                 <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
 
@@ -810,6 +829,9 @@
                                                 Content="{l10n:Tr particles_custom}" Margin="0,0,0,4"/>
                                     </WrapPanel>
                                 </Grid>
+
+                                <!-- Expandable Particle Options & Dynamic Weather -->
+                                <StackPanel Spacing="14" IsVisible="{Binding IsParticlesDetailsExpanded}">
 
                                 <!-- Leaves Palette Sub-Section -->
                                 <StackPanel Spacing="14" IsVisible="{Binding IsParticleLeaves}">
@@ -1123,6 +1145,7 @@
                                             </Border>
                                         </StackPanel>
                                     </Grid>
+                                </StackPanel>
                                 </StackPanel>
                             </StackPanel>
                         </Border>

@@ -144,6 +144,7 @@ internal static class LocaleFr
         ["particles_leaves"] = "Feuilles",
         ["particles_sakura"] = "Sakura",
         ["particles_custom"] = "Image perso",
+        ["particles_details"] = "Développer les options de particules",
         ["particles_palette"] = "Palette de feuilles",
         ["particles_palette_hint"] = "Nuances du vert printanier au rouge d’automne.",
         ["particles_palette_spring"] = "Printemps",

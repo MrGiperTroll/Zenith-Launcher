@@ -151,6 +151,7 @@ internal static class LocaleUk
         ["particles_leaves"] = "Листя",
         ["particles_sakura"] = "Сакура",
         ["particles_custom"] = "Своє зображення",
+        ["particles_details"] = "Розгорнути параметри частинок",
         ["particles_palette"] = "Палітра листя",
         ["particles_palette_hint"] = "Відтінки від весняної зелені до осіннього листя.",
         ["particles_palette_spring"] = "Весняна",

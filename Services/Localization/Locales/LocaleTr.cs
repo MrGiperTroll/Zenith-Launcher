@@ -144,6 +144,7 @@ internal static class LocaleTr
         ["particles_leaves"] = "Yapraklar",
         ["particles_sakura"] = "Sakura",
         ["particles_custom"] = "Özel Görsel",
+        ["particles_details"] = "Parçacık ayarlarını genişlet",
         ["particles_palette"] = "Yaprak Paleti",
         ["particles_palette_hint"] = "Bahar yeşilinden sonbahar kızılına renk tonları.",
         ["particles_palette_spring"] = "Bahar Yeşili",

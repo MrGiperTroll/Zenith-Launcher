@@ -510,6 +510,7 @@ public partial class LauncherSettingsViewModel : ViewModelBase
     [ObservableProperty] private bool _snowPersistenceEnabled = true;
     [ObservableProperty] private double _snowAccumulationRate = 1.0;
     [ObservableProperty] private double _snowMaxHeight = 11.0;
+    [ObservableProperty] private bool _isParticlesDetailsExpanded = false;
     [ObservableProperty] private bool _isSnowPhysicsDetailsExpanded = false;
 
     public bool AreParticlesEnabled => !string.Equals(ParticleType, "Off", StringComparison.OrdinalIgnoreCase);
@@ -680,6 +681,13 @@ public partial class LauncherSettingsViewModel : ViewModelBase
 
     partial void OnSnowAccumulationRateChanged(double value) => OnPropertyChanged(nameof(SnowAccumulationRateText));
     partial void OnSnowMaxHeightChanged(double value) => OnPropertyChanged(nameof(SnowMaxHeightText));
+
+    [RelayCommand]
+    private void ToggleParticlesDetails()
+    {
+        if (AreParticlesEnabled)
+            IsParticlesDetailsExpanded = !IsParticlesDetailsExpanded;
+    }
 
     [RelayCommand]
     private void ToggleSnowPhysicsDetails() => IsSnowPhysicsDetailsExpanded = !IsSnowPhysicsDetailsExpanded;

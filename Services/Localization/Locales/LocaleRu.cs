@@ -184,6 +184,7 @@ internal static class LocaleRu
         ["particles_leaves"] = "Листья",
         ["particles_sakura"] = "Сакура",
         ["particles_custom"] = "Своя картинка",
+        ["particles_details"] = "Развернуть параметры частиц",
         ["particles_palette"] = "Палитра листьев",
         ["particles_palette_hint"] = "Оттенки от весенней зелени до осенней листвы.",
         ["particles_palette_spring"] = "Весенняя",

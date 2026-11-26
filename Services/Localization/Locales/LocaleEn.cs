@@ -185,6 +185,7 @@ internal static class LocaleEn
         ["particles_leaves"] = "Leaves",
         ["particles_sakura"] = "Sakura",
         ["particles_custom"] = "Custom Image",
+        ["particles_details"] = "Expand particle settings",
         ["particles_palette"] = "Leaf Palette",
         ["particles_palette_hint"] = "Color tones from spring green to autumn crimson.",
         ["particles_palette_spring"] = "Spring Green",

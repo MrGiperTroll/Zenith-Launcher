@@ -1802,17 +1802,6 @@ public class ParticleOverlayControl : Control
             float totalVx = (p.IsChunk ? ambientVx * 0.15f : ambientVx) + p.Vx;
             float totalVy = (p.IsChunk ? ambientVy * 0.25f : (isLeafOrSakura && p.IsDynamic ? ambientVy * 0.72f : ambientVy)) + p.Vy;
 
-            // Prevent airwake or cursor deflection from shoving falling particles into an underlying floor/card
-            if (totalVy > 4f && HasUnderlyingSurface(p.X, p.Y, 12f, out float underY))
-            {
-                float stepDown = p.Y + totalVy * dt;
-                if (stepDown > underY && _cursorActive && hasCursorWake)
-                {
-                    float pushDir = MathF.Abs(_cursorVx) > 15f ? MathF.Sign(_cursorVx) : (p.X >= _cursorX ? 1f : -1f);
-                    p.Vx = Math.Clamp(p.Vx + pushDir * 42f * dt * 8f, -340f, 340f);
-                }
-            }
-
             p.X += totalVx * dt;
             p.Y += totalVy * dt;
 
@@ -1846,7 +1835,7 @@ public class ParticleOverlayControl : Control
                 }
             }
 
-            EnforceSolidSurfaceBarrier(ref p);
+            ClampParticleAboveSyntheticFloor(ref p);
 
             if (p.Y > _height + margin)
             {
@@ -2124,7 +2113,7 @@ public class ParticleOverlayControl : Control
             return y;
         }
 
-        private void EnforceSolidSurfaceBarrier(ref ParticleItem p)
+        private void ClampParticleAboveSyntheticFloor(ref ParticleItem p)
         {
             if (_isModalOccluded || _visibleSurfaces.Count == 0)
                 return;
@@ -2132,27 +2121,15 @@ public class ParticleOverlayControl : Control
             for (int i = 0; i < _visibleSurfaces.Count; i++)
             {
                 var s = _visibleSurfaces[i];
+                if (!s.IsSynthetic) continue;
                 if (p.X < s.Left + 1f || p.X > s.Right - 1f)
                     continue;
-                if (s.HasClipRect && (s.Top < s.ClipTop - 1.5f || s.Top > s.ClipBottom + 1.5f))
-                    continue;
 
-                if (s.IsSynthetic)
-                {
-                    if (p.Y >= s.Top - 1.5f)
-                    {
-                        p.Y = s.Top - 1.5f;
-                        p.PrevY = p.Y;
-                        if (p.Vy > 0f) p.Vy = -MathF.Min(28f, p.Vy * 0.25f + 8f);
-                    }
-                }
-                else if (p.PrevY <= s.Top + 6.0f && p.Y >= s.Top - 0.5f && p.Y <= s.Top + 16.0f)
+                if (p.Y > s.Top - 1.5f)
                 {
                     p.Y = s.Top - 1.5f;
                     p.PrevY = p.Y;
-                    float slideSide = p.X < (s.Left + s.Right) * 0.5f ? -1f : 1f;
-                    p.Vx = Math.Clamp(p.Vx + slideSide * 26f, -140f, 140f);
-                    if (p.Vy > 0f) p.Vy = -MathF.Min(20f, p.Vy * 0.20f + 6f);
+                    if (p.Vy > 0f) p.Vy = 0f;
                 }
             }
         }
@@ -2220,10 +2197,9 @@ public class ParticleOverlayControl : Control
                         return true;
 
                     float slideSide = p.X < (s.Left + s.Right) * 0.5f ? -1f : 1f;
-                    p.Y = s.Top - 1.5f;
-                    p.Vx = Math.Clamp(p.Vx + slideSide * (p.IsChunk ? 36f : 32f), -125f, 125f);
-                    p.Vy = -14f;
-                    p.Cooldown = 0.045f;
+                    p.Vx = Math.Clamp(p.Vx + slideSide * (p.IsChunk ? 26f : 24f), -85f, 85f);
+                    if (p.IsChunk) p.Vy *= 0.35f;
+                    p.Cooldown = 0.12f;
                     return false;
                 }
             }
@@ -2289,10 +2265,8 @@ public class ParticleOverlayControl : Control
                     return true;
 
                 float slideSide = relX < s.Width * 0.5f ? -1f : 1f;
-                p.Y = s.Top - 1.5f;
-                p.Vx = Math.Clamp(p.Vx + slideSide * 34f, -125f, 125f);
-                p.Vy = -14f;
-                p.Cooldown = 0.045f;
+                p.Vx = Math.Clamp(p.Vx + slideSide * 24f, -85f, 85f);
+                p.Cooldown = 0.12f;
                 return false;
             }
 

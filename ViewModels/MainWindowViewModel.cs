@@ -738,7 +738,7 @@ public partial class MainWindowViewModel : ViewModelBase
         IsHardwareAccelConfirmOpen = false;
         LauncherSettingsVm?.CommitHardwareAcceleration(_pendingHardwareAccelValue);
         SyncSettingsToRuntimeModels();
-        SaveLauncherConfig();
+        SaveLauncherConfig(flushSync: true);
         ZenithTheme.RestartLauncher();
     }
 
@@ -1779,7 +1779,13 @@ public partial class MainWindowViewModel : ViewModelBase
         InstancesManager.ShowAlphas = LauncherSettingsVm.ShowAlphas;
     }
 
-    public void SaveLauncherConfig()
+    private readonly object _configDiskGate = new();
+    private string? _pendingConfigPath;
+    private string? _pendingConfigJson;
+    private LauncherConfigData? _pendingConfigSnapshot;
+    private int _configWriteInFlight;
+
+    public void SaveLauncherConfig(bool flushSync = false)
     {
         if (_isLoadingConfig || _isSavingConfig) return;
 
@@ -1813,19 +1819,84 @@ public partial class MainWindowViewModel : ViewModelBase
             ThemeSettingsVm?.ApplyToConfig(configData);
 
             var json = System.Text.Json.JsonSerializer.Serialize(configData, LauncherJsonContext.Default.LauncherConfigData);
-            using (var fs = new FileStream(configPath, FileMode.Create, FileAccess.Write, FileShare.None))
+            lock (_configDiskGate)
             {
-                using var writer = new StreamWriter(fs, System.Text.Encoding.UTF8);
-                writer.Write(json);
-                writer.Flush();
-                fs.Flush(flushToDisk: true);
+                _pendingConfigPath = configPath;
+                _pendingConfigJson = json;
+                _pendingConfigSnapshot = configData;
             }
             LauncherConfigData.UpdateCache(configData);
+
+            if (flushSync)
+            {
+                FlushPendingConfigSave(syncToDisk: true);
+            }
+            else if (System.Threading.Interlocked.CompareExchange(ref _configWriteInFlight, 1, 0) == 0)
+            {
+                RunBackgroundConfigFlush();
+            }
         }
         catch { }
         finally
         {
             _isSavingConfig = false;
+        }
+    }
+
+    private void RunBackgroundConfigFlush()
+    {
+        _ = System.Threading.Tasks.Task.Run(() =>
+        {
+            try
+            {
+                FlushPendingConfigSave(syncToDisk: false);
+            }
+            finally
+            {
+                System.Threading.Interlocked.Exchange(ref _configWriteInFlight, 0);
+                bool hasMore;
+                lock (_configDiskGate)
+                {
+                    hasMore = _pendingConfigJson != null;
+                }
+                if (hasMore && System.Threading.Interlocked.CompareExchange(ref _configWriteInFlight, 1, 0) == 0)
+                {
+                    RunBackgroundConfigFlush();
+                }
+            }
+        });
+    }
+
+    public void FlushPendingConfigSave(bool syncToDisk = true)
+    {
+        lock (_configDiskGate)
+        {
+            while (_pendingConfigJson != null && _pendingConfigPath != null)
+            {
+                var path = _pendingConfigPath;
+                var json = _pendingConfigJson;
+                var snapshot = _pendingConfigSnapshot;
+                _pendingConfigPath = null;
+                _pendingConfigJson = null;
+                _pendingConfigSnapshot = null;
+
+                try
+                {
+                    var tmpPath = path + ".tmp";
+                    using (var fs = new FileStream(tmpPath, FileMode.Create, FileAccess.Write, FileShare.None))
+                    {
+                        using var writer = new StreamWriter(fs, System.Text.Encoding.UTF8);
+                        writer.Write(json);
+                        writer.Flush();
+                        if (syncToDisk)
+                            fs.Flush(flushToDisk: true);
+                    }
+                    File.Move(tmpPath, path, overwrite: true);
+                    if (snapshot != null)
+                        LauncherConfigData.UpdateCache(snapshot);
+                }
+                catch { }
+            }
         }
     }
 

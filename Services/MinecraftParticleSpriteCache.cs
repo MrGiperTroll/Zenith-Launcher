@@ -17,8 +17,10 @@ namespace ZenithLauncher.Services;
 public static class MinecraftParticleSpriteCache
 {
     private const int MaxSpritesPerEffect = 12;
+    private const int MaxCandidateJarsToScan = 8;
 
     private static readonly object DiskExtractLock = new();
+    private static readonly HashSet<ParticleKind> DiskCacheAttempted = new();
 
     public static string CacheRootDir => Path.Combine(ZenithPaths.AppDataDir, "cache", "particles");
 
@@ -79,9 +81,17 @@ public static class MinecraftParticleSpriteCache
         lock (DiskExtractLock)
         {
             if (Directory.Exists(folder) && Directory.EnumerateFiles(folder, "*.png").Any())
+            {
+                DiskCacheAttempted.Add(kind);
+                return;
+            }
+
+            if (DiskCacheAttempted.Contains(kind))
                 return;
 
-            foreach (var jarPath in EnumerateCandidateClientJars())
+            DiskCacheAttempted.Add(kind);
+
+            foreach (var jarPath in EnumerateCandidateClientJars().Take(MaxCandidateJarsToScan))
             {
                 try
                 {

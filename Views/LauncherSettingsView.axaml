@@ -780,7 +780,7 @@
                                 controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="settings_card_particles">
                             <StackPanel Spacing="14">
                                 <Border Background="Transparent" Cursor="Hand"
-                                        Tapped="OnParticlesDetailsHeaderTapped"
+                                        PointerPressed="OnParticlesDetailsHeaderPointerPressed"
                                         ToolTip.Tip="{l10n:Tr particles_details}">
                                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" VerticalAlignment="Center">
                                         <StackPanel Grid.Column="0" Spacing="3" HorizontalAlignment="Left" VerticalAlignment="Center">
@@ -881,7 +881,7 @@
                                     <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
                                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14" VerticalAlignment="Center">
                                         <Border Grid.Column="0" Background="Transparent" Cursor="Hand"
-                                                Tapped="OnSnowPhysicsHeaderTapped"
+                                                PointerPressed="OnSnowPhysicsHeaderPointerPressed"
                                                 ToolTip.Tip="{l10n:Tr particles_snow_details}"
                                                 VerticalAlignment="Center">
                                             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" VerticalAlignment="Center">
@@ -1243,7 +1243,7 @@
                                 <!-- Master Row (Clickable Header + Minimalist Vector Chevron + Toggle) -->
                                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14" VerticalAlignment="Center">
                                     <Border Grid.Column="0" Background="Transparent" Cursor="Hand"
-                                            Tapped="OnAnimationHeaderTapped"
+                                            PointerPressed="OnAnimationHeaderPointerPressed"
                                             ToolTip.Tip="{l10n:Tr set_ui_anim_details}"
                                             VerticalAlignment="Center">
                                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" VerticalAlignment="Center">

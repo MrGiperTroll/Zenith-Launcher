@@ -98,6 +98,7 @@ public partial class MainWindow : Window
 
     private void OnMainWindowClosed(object? sender, EventArgs e)
     {
+        try { _observedVm?.FlushPendingConfigSave(syncToDisk: true); } catch { }
         try { ParticleOverlay?.FlushSnowPersistence(); } catch { }
         try { _unloadCleanupCts?.Cancel(); _unloadCleanupCts?.Dispose(); } catch { }
         _unloadCleanupCts = null;
@@ -381,6 +382,7 @@ public partial class MainWindow : Window
 
     protected override void OnClosing(WindowClosingEventArgs e)
     {
+        try { _observedVm?.FlushPendingConfigSave(syncToDisk: true); } catch { }
         try { ParticleOverlay?.FlushSnowPersistence(); } catch { }
         if (!_isExplicitExit && e.CloseReason != WindowCloseReason.ApplicationShutdown)
         {

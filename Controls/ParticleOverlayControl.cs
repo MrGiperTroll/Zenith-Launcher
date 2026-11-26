@@ -457,7 +457,7 @@ public class ParticleOverlayControl : Control
         else
         {
             DetachPhysicsHooks();
-            if (!IsSnowPhysicsActive)
+            if (!SnowPhysicsEnabled)
                 _snowDataRequested = false;
         }
     }
@@ -594,6 +594,9 @@ public class ParticleOverlayControl : Control
 
         _ = Task.Run(() =>
         {
+            if (_spriteLoadGeneration != gen)
+                return;
+
             List<SKBitmap>? loaded = null;
             try
             {
@@ -1325,7 +1328,7 @@ public class ParticleOverlayControl : Control
             if (wasPhysicsActive && !nowPhysicsActive)
             {
                 if (_snowPersistenceEnabled)
-                    FlushPersistenceNow(syncToDisk: true);
+                    TriggerBackgroundPersistenceSave(Stopwatch.GetTimestamp());
                 ReleaseActiveVisibleState(releaseStores: !cfg.SnowPhysicsEnabled);
             }
             else if (kindChanged && nowPhysicsActive)
@@ -2151,7 +2154,7 @@ public class ParticleOverlayControl : Control
             {
                 var s = _visibleSurfaces[i];
                 if (!s.IsSynthetic) continue;
-                if (x >= s.Left && x <= s.Right && y >= s.Top - 2.0f)
+                if (x >= s.Left && x <= s.Right && y >= s.Top - 0.5f)
                     return true;
             }
             return false;
@@ -2178,13 +2181,13 @@ public class ParticleOverlayControl : Control
             {
                 var s = _visibleSurfaces[i];
                 if (!s.IsSynthetic) continue;
-                if (p.X < s.Left + 1f || p.X > s.Right - 1f)
+                if (p.X < s.Left || p.X > s.Right)
                     continue;
 
-                if (p.Y > s.Top - 1.5f)
+                if (p.Y > s.Top + 0.25f)
                 {
-                    p.Y = s.Top - 1.5f;
-                    p.PrevY = p.Y;
+                    p.Y = s.Top + 0.25f;
+                    p.PrevY = MathF.Min(p.PrevY, s.Top);
                     if (p.Vy > 0f) p.Vy = 0f;
                 }
             }
@@ -2200,8 +2203,8 @@ public class ParticleOverlayControl : Control
                 if (p.Cooldown > 0f && !s.IsSynthetic)
                     continue;
 
-                float visLeft = s.Left + 2f;
-                float visRight = s.Right - 2f;
+                float visLeft = s.IsSynthetic ? s.Left : (s.Left + 2f);
+                float visRight = s.IsSynthetic ? s.Right : (s.Right - 2f);
                 if (s.HasClipRect)
                 {
                     visLeft = MathF.Max(visLeft, s.ClipLeft);
@@ -2225,7 +2228,9 @@ public class ParticleOverlayControl : Control
 
                 int cell = Math.Clamp((int)((p.X - s.Left) / CellWidthPx), 0, s.CellCount - 1);
                 float curDriftH = s.Heights != null ? s.Heights[cell] : 0f;
-                float hitY = s.Top - curDriftH + 1.5f;
+                float hitY = s.IsSynthetic
+                    ? MathF.Min(s.Top - 0.5f, s.Top - curDriftH + 0.5f)
+                    : (s.Top - curDriftH + 1.5f);
                 float prevLimit = s.IsSynthetic ? s.Top + 48.0f : ((p.IsDynamic && p.IsChunk) ? s.Top + 20.0f : s.Top + 10.0f);
 
                 if (p.PrevY <= prevLimit && p.Y >= hitY)
@@ -2285,7 +2290,7 @@ public class ParticleOverlayControl : Control
             float cornerPadL = MathF.Max(3.0f, s.CornerRadiusLeft * 0.35f);
             float cornerPadR = MathF.Max(3.0f, s.CornerRadiusRight * 0.35f);
             float relX = p.X - s.Left;
-            if (relX < cornerPadL - 1.5f || relX > s.Width - cornerPadR + 1.5f)
+            if (!s.IsSynthetic && (relX < cornerPadL - 1.5f || relX > s.Width - cornerPadR + 1.5f))
                 return false;
 
             float stackTopY = 0f;
@@ -2306,8 +2311,9 @@ public class ParticleOverlayControl : Control
             float halfH = GetLeafSpriteHalfHeight(p.SpriteIndex, p.SizeScale);
             float restAnchorOffset = halfH * 0.36f - 1.0f;
             float hitCenterY = s.Top - stackTopY - restAnchorOffset;
+            float effectiveHitY = s.IsSynthetic ? MathF.Min(hitCenterY - 0.5f, s.Top - 0.5f) : (hitCenterY - 0.5f);
             float prevLimit = s.IsSynthetic ? s.Top + 48.0f : hitCenterY + 9.0f;
-            if (p.PrevY > prevLimit || p.Y < hitCenterY - 0.5f)
+            if (p.PrevY > prevLimit || p.Y < effectiveHitY)
                 return false;
 
             // Respect lower accumulation rate cleanly without splitting 1 leaf into fragments
@@ -4469,7 +4475,7 @@ public class ParticleOverlayControl : Control
             }
 
             _persistenceDirty = false;
-            _bridge.SetLatestPersistence(BuildPersistenceSnapshot());
+            _bridge.SetLatestPersistence(data);
             Invalidate();
         }
 

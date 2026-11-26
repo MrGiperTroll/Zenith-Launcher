@@ -158,22 +158,37 @@ public partial class LauncherSettingsView : UserControl
             vm.ApplyCustomThemeCard();
     }
 
-    private void OnAnimationHeaderTapped(object? sender, Avalonia.Input.TappedEventArgs e)
+    private void OnAnimationHeaderPointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
     {
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+            return;
+
         if (DataContext is LauncherSettingsViewModel vm)
             vm.ToggleAnimationDetailsCommand.Execute(null);
+
+        e.Handled = true;
     }
 
-    private void OnParticlesDetailsHeaderTapped(object? sender, Avalonia.Input.TappedEventArgs e)
+    private void OnParticlesDetailsHeaderPointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
     {
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+            return;
+
         if (DataContext is LauncherSettingsViewModel vm)
             vm.ToggleParticlesDetailsCommand.Execute(null);
+
+        e.Handled = true;
     }
 
-    private void OnSnowPhysicsHeaderTapped(object? sender, Avalonia.Input.TappedEventArgs e)
+    private void OnSnowPhysicsHeaderPointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
     {
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+            return;
+
         if (DataContext is LauncherSettingsViewModel vm)
             vm.ToggleSnowPhysicsDetailsCommand.Execute(null);
+
+        e.Handled = true;
     }
 
     private void OnParticleSliderPointerCaptureLost(object? sender, Avalonia.Input.PointerCaptureLostEventArgs e)

@@ -230,7 +230,7 @@
                 <Grid x:Name="TabContentGrid" ClipToBounds="True">
                 <!-- Overview / Dashboard -->
                 <ScrollViewer x:Name="OverviewScroll" IsVisible="{Binding IsOverviewTab}" VerticalScrollBarVisibility="Auto"
-                              controls:SnowCollider.PageKey="EditInstance.Overview" controls:SnowCollider.IsPageScope="True">
+                              controls:SnowCollider.PageKey="EditInstance:Overview" controls:SnowCollider.IsPageScope="True">
                     <StackPanel Spacing="16" Margin="14,10,14,24">
                                                 <!-- Instance Hero Card -->
                         <Border Classes="zenSection" controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="ei_hero_card">

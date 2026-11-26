@@ -254,9 +254,9 @@
                     BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="0,0,1,0">
                 <Grid RowDefinitions="Auto,*,Auto">
                     <TextBox Classes="darkInput" Text="{Binding SettingsSearchQuery}" PlaceholderText="{l10n:Tr set_search_placeholder}" Padding="9,7" FontSize="11.5" Margin="0,0,0,14"
-                             controls:SnowCollider.PageKey="Settings.Sidebar" controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="settings_search"/>
+                             controls:SnowCollider.PageKey="Settings:Sidebar" controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="settings_search"/>
 
-                    <StackPanel Grid.Row="1" Spacing="4" controls:SnowCollider.PageKey="Settings.Sidebar">
+                    <StackPanel Grid.Row="1" Spacing="4" controls:SnowCollider.PageKey="Settings:Sidebar">
                         <!-- Category: Minecraft -->
                         <Button Classes="sideTab" Classes.active="{Binding IsSettingsTabGame}" Command="{Binding SwitchSettingsTabCommand}" CommandParameter="Game"
                                 controls:SnowCollider.IsEnabled="True" controls:SnowCollider.OnlyWhenActive="True" controls:SnowCollider.SurfaceId="settings_tab_game">
@@ -313,7 +313,7 @@
                     <!-- TAB 1: MINECRAFT & GAME                                   -->
                     <!-- ========================================================= -->
                     <StackPanel x:Name="TabGamePanel" Spacing="18" IsVisible="{Binding IsSettingsTabGame}"
-                                controls:SnowCollider.PageKey="Settings.Game" controls:SnowCollider.IsPageScope="True">
+                                controls:SnowCollider.PageKey="Settings:Game" controls:SnowCollider.IsPageScope="True">
 
                         <!-- Section: Memory (RAM) Allocation -->
                         <Border Classes="settingsCard" IsVisible="{Binding IsSearchMemoryVisible}"
@@ -477,7 +477,7 @@
                     <!-- TAB 2: JAVA RUNTIMES                                      -->
                     <!-- ========================================================= -->
                     <StackPanel x:Name="TabJavaPanel" Spacing="18" IsVisible="{Binding IsSettingsTabJava}"
-                                controls:SnowCollider.PageKey="Settings.Java" controls:SnowCollider.IsPageScope="True">
+                                controls:SnowCollider.PageKey="Settings:Java" controls:SnowCollider.IsPageScope="True">
 
                         <!-- Section: Java Management Strategy -->
                         <Border Classes="settingsCard" IsVisible="{Binding IsSearchJavaVisible}"
@@ -584,7 +584,7 @@
                     <!-- TAB 3: LAUNCHER & SYSTEM (General)                        -->
                     <!-- ========================================================= -->
                     <StackPanel x:Name="TabGeneralPanel" Spacing="18" IsVisible="{Binding IsSettingsTabGeneral}"
-                                controls:SnowCollider.PageKey="Settings.General" controls:SnowCollider.IsPageScope="True">
+                                controls:SnowCollider.PageKey="Settings:Launcher" controls:SnowCollider.IsPageScope="True">
 
                         <!-- General & Launch Behavior -->
                         <Border Classes="settingsCard" controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="settings_card_general">
@@ -687,7 +687,7 @@
                     <!-- TAB 4: APPEARANCE (Themes, Particles, Typography, Motion) -->
                     <!-- ========================================================= -->
                     <StackPanel x:Name="TabAppearancePanel" Spacing="18" IsVisible="{Binding IsSettingsTabAppearance}"
-                                controls:SnowCollider.PageKey="Settings.Appearance" controls:SnowCollider.IsPageScope="True">
+                                controls:SnowCollider.PageKey="Settings:Appearance" controls:SnowCollider.IsPageScope="True">
                         <!-- Card 1: Theme Settings -->
                         <Border Classes="settingsCard" IsVisible="{Binding IsSearchAppearanceVisible}"
                                 controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="settings_card_themes">
@@ -848,8 +848,8 @@
                                     </Grid>
                                 </StackPanel>
 
-                                <!-- Snow Physics & Accumulation (Beta, Expandable) Sub-Section -->
-                                <StackPanel Spacing="12" IsVisible="{Binding IsParticleSnow}">
+                                <!-- Dynamic Weather (Beta, Expandable) Sub-Section -->
+                                <StackPanel Spacing="12" IsVisible="{Binding IsDynamicWeatherSupported}">
                                     <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
                                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14" VerticalAlignment="Center">
                                         <Border Grid.Column="0" Background="Transparent" Cursor="Hand"
@@ -858,7 +858,21 @@
                                                 VerticalAlignment="Center">
                                             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" VerticalAlignment="Center">
                                                 <StackPanel Grid.Column="0" Spacing="3" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                                    <TextBlock Classes="itemTitle" Text="{l10n:Tr particles_snow_physics}"/>
+                                                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                                        <TextBlock Classes="itemTitle" Text="{l10n:Tr particles_snow_physics}" VerticalAlignment="Center"/>
+                                                        <Border Background="{DynamicResource AccentDimBrush}"
+                                                                BorderBrush="{DynamicResource AccentBorderBrush}"
+                                                                BorderThickness="1"
+                                                                CornerRadius="4"
+                                                                Padding="6,1"
+                                                                VerticalAlignment="Center">
+                                                            <TextBlock Text="BETA"
+                                                                       FontSize="9.5"
+                                                                       FontWeight="Bold"
+                                                                       Foreground="{DynamicResource AccentBrush}"
+                                                                       VerticalAlignment="Center"/>
+                                                        </Border>
+                                                    </StackPanel>
                                                     <TextBlock Classes="itemDesc" Text="{l10n:Tr particles_snow_physics_hint}"/>
                                                 </StackPanel>
                                                 <Panel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,2,0">
@@ -881,6 +895,30 @@
                                     </Grid>
 
                                     <StackPanel Spacing="12" IsVisible="{Binding IsSnowPhysicsDetailsExpanded}">
+                                        <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
+
+                                        <!-- 0. Active Weather Modes (Snow / Leaves / Sakura) -->
+                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14" VerticalAlignment="Center">
+                                            <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                                <TextBlock Classes="itemTitle" Text="{l10n:Tr particles_weather_effects}"/>
+                                                <TextBlock Classes="itemDesc" Text="{l10n:Tr particles_weather_effects_hint}"/>
+                                            </StackPanel>
+                                            <WrapPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                                <Button Classes="pillSelectBtn" Classes.active="{Binding WeatherSnowEnabled}"
+                                                        IsEnabled="{Binding SnowPhysicsEnabled}"
+                                                        Command="{Binding ToggleWeatherSnowCommand}"
+                                                        Content="{l10n:Tr particles_snow}" Margin="0,0,6,0"/>
+                                                <Button Classes="pillSelectBtn" Classes.active="{Binding WeatherLeavesEnabled}"
+                                                        IsEnabled="{Binding SnowPhysicsEnabled}"
+                                                        Command="{Binding ToggleWeatherLeavesCommand}"
+                                                        Content="{l10n:Tr particles_leaves}" Margin="0,0,6,0"/>
+                                                <Button Classes="pillSelectBtn" Classes.active="{Binding WeatherSakuraEnabled}"
+                                                        IsEnabled="{Binding SnowPhysicsEnabled}"
+                                                        Command="{Binding ToggleWeatherSakuraCommand}"
+                                                        Content="{l10n:Tr particles_sakura}"/>
+                                            </WrapPanel>
+                                        </Grid>
+
                                         <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
 
                                         <!-- 1. Bottom Window Edge Accumulation -->

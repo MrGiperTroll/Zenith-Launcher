@@ -121,8 +121,20 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(IsServersTab));
         OnPropertyChanged(nameof(IsWorldsTab));
         OnPropertyChanged(nameof(SearchPlaceholder));
+        OnPropertyChanged(nameof(WeatherContextKey));
         _ = Search();
     }
+
+    public string WeatherContextKey => IsDetailsOpen ? "Catalog:Details" : SelectedProjectType switch
+    {
+        "mod" => "Catalog:Mods",
+        "resourcepack" => "Catalog:ResourcePacks",
+        "datapack" => "Catalog:DataPacks",
+        "shader" => "Catalog:Shaders",
+        "plugin" => "Catalog:Plugins",
+        "world" => "Catalog:Worlds",
+        _ => "Catalog:Modpacks"
+    };
 
     [ObservableProperty] private string _searchQuery = "";
 
@@ -926,6 +938,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
         }
 
         OnPropertyChanged(nameof(IsDetailsOpen));
+        OnPropertyChanged(nameof(WeatherContextKey));
         OnPropertyChanged(nameof(DetailsProject));
         OnPropertyChanged(nameof(InstallButtonVisible));
         OnPropertyChanged(nameof(ReinstallText));

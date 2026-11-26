@@ -71,6 +71,15 @@ public class ParticleOverlayControl : Control
     public static readonly StyledProperty<bool> SnowPhysicsEnabledProperty =
         AvaloniaProperty.Register<ParticleOverlayControl, bool>(nameof(SnowPhysicsEnabled), false);
 
+    public static readonly StyledProperty<bool> WeatherSnowEnabledProperty =
+        AvaloniaProperty.Register<ParticleOverlayControl, bool>(nameof(WeatherSnowEnabled), true);
+
+    public static readonly StyledProperty<bool> WeatherLeavesEnabledProperty =
+        AvaloniaProperty.Register<ParticleOverlayControl, bool>(nameof(WeatherLeavesEnabled), true);
+
+    public static readonly StyledProperty<bool> WeatherSakuraEnabledProperty =
+        AvaloniaProperty.Register<ParticleOverlayControl, bool>(nameof(WeatherSakuraEnabled), true);
+
     public static readonly StyledProperty<bool> SnowBottomAccumulationEnabledProperty =
         AvaloniaProperty.Register<ParticleOverlayControl, bool>(nameof(SnowBottomAccumulationEnabled), false);
 
@@ -146,6 +155,24 @@ public class ParticleOverlayControl : Control
         set => SetValue(SnowPhysicsEnabledProperty, value);
     }
 
+    public bool WeatherSnowEnabled
+    {
+        get => GetValue(WeatherSnowEnabledProperty);
+        set => SetValue(WeatherSnowEnabledProperty, value);
+    }
+
+    public bool WeatherLeavesEnabled
+    {
+        get => GetValue(WeatherLeavesEnabledProperty);
+        set => SetValue(WeatherLeavesEnabledProperty, value);
+    }
+
+    public bool WeatherSakuraEnabled
+    {
+        get => GetValue(WeatherSakuraEnabledProperty);
+        set => SetValue(WeatherSakuraEnabledProperty, value);
+    }
+
     public bool SnowBottomAccumulationEnabled
     {
         get => GetValue(SnowBottomAccumulationEnabledProperty);
@@ -188,8 +215,20 @@ public class ParticleOverlayControl : Control
         set => SetValue(IsModalOccludedProperty, value);
     }
 
-    public bool IsSnowPhysicsActive =>
-        ParseKind(ParticleType) == ParticleKind.Snow && SnowPhysicsEnabled;
+    public bool IsSnowPhysicsActive
+    {
+        get
+        {
+            if (!SnowPhysicsEnabled) return false;
+            return ParseKind(ParticleType) switch
+            {
+                ParticleKind.Snow => WeatherSnowEnabled,
+                ParticleKind.Leaves => WeatherLeavesEnabled,
+                ParticleKind.Sakura => WeatherSakuraEnabled,
+                _ => false
+            };
+        }
+    }
 
     private CompositionCustomVisual? _customVisual;
     private Window? _hostWindow;
@@ -216,7 +255,7 @@ public class ParticleOverlayControl : Control
     {
         _bridge.ResetLatestPersistence();
         _customVisual?.SendHandlerMessage(ClearSnowMsg.Instance);
-        _ = Task.Run(SnowAccumulationStore.ClearFile);
+        _ = Task.Run(WeatherAccumulationStore.ClearFile);
     }
 
     public void FlushSnowPersistence()
@@ -237,7 +276,7 @@ public class ParticleOverlayControl : Control
         var snapshot = _bridge.TakeLatestPersistenceCopy();
         if (snapshot != null)
         {
-            SnowAccumulationStore.Save(snapshot);
+            WeatherAccumulationStore.Save(snapshot);
         }
     }
 
@@ -246,7 +285,12 @@ public class ParticleOverlayControl : Control
         base.OnPropertyChanged(change);
 
         var p = change.Property;
-        if (p == CustomImagePathProperty || p == ParticleTypeProperty || p == SnowPhysicsEnabledProperty)
+        if (p == CustomImagePathProperty
+            || p == ParticleTypeProperty
+            || p == SnowPhysicsEnabledProperty
+            || p == WeatherSnowEnabledProperty
+            || p == WeatherLeavesEnabledProperty
+            || p == WeatherSakuraEnabledProperty)
         {
             if (p == ParticleTypeProperty)
                 UpdateOverlayVisibility();
@@ -344,6 +388,8 @@ public class ParticleOverlayControl : Control
         {
             _hostWindow = win;
             _hostWindow.PropertyChanged += OnHostWindowPropertyChanged;
+            _hostWindow.Activated += OnHostWindowActivated;
+            _hostWindow.Deactivated += OnHostWindowDeactivated;
         }
     }
 
@@ -353,8 +399,20 @@ public class ParticleOverlayControl : Control
         if (_hostWindow != null)
         {
             _hostWindow.PropertyChanged -= OnHostWindowPropertyChanged;
+            _hostWindow.Activated -= OnHostWindowActivated;
+            _hostWindow.Deactivated -= OnHostWindowDeactivated;
             _hostWindow = null;
         }
+    }
+
+    private void OnHostWindowActivated(object? sender, EventArgs e)
+    {
+        _bridge.ResetCursorMotion(deactivate: false);
+    }
+
+    private void OnHostWindowDeactivated(object? sender, EventArgs e)
+    {
+        _bridge.ResetCursorMotion(deactivate: true);
     }
 
     private void OnHostWindowPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
@@ -415,7 +473,7 @@ public class ParticleOverlayControl : Control
     {
         _ = Task.Run(() =>
         {
-            var data = SnowAccumulationStore.Load();
+            var data = WeatherAccumulationStore.Load();
             Dispatcher.UIThread.Post(() =>
             {
                 if (_customVisual != null && IsSnowPhysicsActive)
@@ -593,7 +651,7 @@ public class ParticleOverlayControl : Control
             (float)Bounds.Width,
             (float)Bounds.Height,
             IsHostPaused(),
-            SnowPhysicsEnabled && kind == ParticleKind.Snow,
+            IsSnowPhysicsActive,
             SnowBottomAccumulationEnabled,
             SnowCursorInteractionEnabled,
             SnowPersistenceEnabled,
@@ -670,10 +728,12 @@ public class ParticleOverlayControl : Control
         private float _cursorX;
         private float _cursorY;
         private bool _cursorActive;
+        private bool _cursorResetPending;
+        private long _lastPointerPublishTicks;
         private int _cursorVersion;
 
         private readonly object _persistLock = new();
-        private SnowAccumulationData? _latestPersistence;
+        private WeatherAccumulationData? _latestPersistence;
 
         public void PublishSnapshots(List<ColliderSnapshot> list)
         {
@@ -719,26 +779,39 @@ public class ParticleOverlayControl : Control
 
         public void PublishPointer(float x, float y, bool active)
         {
+            long now = Stopwatch.GetTimestamp();
             lock (_pointerLock)
             {
+                if (!active || (_lastPointerPublishTicks != 0 && Stopwatch.GetElapsedTime(_lastPointerPublishTicks, now).TotalMilliseconds > 110.0))
+                {
+                    _cursorResetPending = true;
+                }
                 _cursorX = x;
                 _cursorY = y;
                 _cursorActive = active;
+                _lastPointerPublishTicks = active ? now : 0;
+                _cursorVersion++;
+            }
+        }
+
+        public void ResetCursorMotion(bool deactivate)
+        {
+            lock (_pointerLock)
+            {
+                _cursorResetPending = true;
+                _lastPointerPublishTicks = 0;
+                if (deactivate)
+                    _cursorActive = false;
                 _cursorVersion++;
             }
         }
 
         public void ClearPointer()
         {
-            lock (_pointerLock)
-            {
-                if (!_cursorActive) return;
-                _cursorActive = false;
-                _cursorVersion++;
-            }
+            ResetCursorMotion(deactivate: true);
         }
 
-        public bool TryReadPointer(ref int lastVersion, out float x, out float y, out bool active)
+        public bool TryReadPointer(ref int lastVersion, out float x, out float y, out bool active, out bool resetVelocity)
         {
             lock (_pointerLock)
             {
@@ -747,6 +820,7 @@ public class ParticleOverlayControl : Control
                     x = _cursorX;
                     y = _cursorY;
                     active = _cursorActive;
+                    resetVelocity = false;
                     return false;
                 }
 
@@ -754,11 +828,13 @@ public class ParticleOverlayControl : Control
                 x = _cursorX;
                 y = _cursorY;
                 active = _cursorActive;
+                resetVelocity = _cursorResetPending;
+                _cursorResetPending = false;
                 return true;
             }
         }
 
-        public void SetLatestPersistence(SnowAccumulationData data)
+        public void SetLatestPersistence(WeatherAccumulationData data)
         {
             lock (_persistLock)
             {
@@ -774,7 +850,7 @@ public class ParticleOverlayControl : Control
             }
         }
 
-        public SnowAccumulationData? TakeLatestPersistenceCopy()
+        public WeatherAccumulationData? TakeLatestPersistenceCopy()
         {
             lock (_persistLock)
             {
@@ -916,8 +992,8 @@ public class ParticleOverlayControl : Control
 
     private sealed class LoadSnowMsg
     {
-        public readonly SnowAccumulationData Data;
-        public LoadSnowMsg(SnowAccumulationData data) => Data = data;
+        public readonly WeatherAccumulationData Data;
+        public LoadSnowMsg(WeatherAccumulationData data) => Data = data;
     }
 
     private sealed class ClearSnowMsg
@@ -942,6 +1018,7 @@ public class ParticleOverlayControl : Control
     {
         public string PageKey = string.Empty;
         public string SurfaceId = string.Empty;
+        public int SurfaceIdHash;
         public float[]? Heights;
         public byte[]? PendingSavedBytes;
         public int PendingSavedVersion = 1;
@@ -1054,9 +1131,23 @@ public class ParticleOverlayControl : Control
         private int _localSnapshotCount;
         private int _lastSnapshotVersion = -1;
 
-        private readonly Dictionary<string, Dictionary<string, DriftSurface>> _driftStore = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, Dictionary<string, DriftSurface>> _snowStore = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, Dictionary<string, DriftSurface>> _leavesStore = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, Dictionary<string, DriftSurface>> _sakuraStore = new(StringComparer.Ordinal);
         private readonly List<DriftSurface> _visibleSurfaces = new(64);
         private readonly List<DriftSurface> _prevVisibleSurfaces = new(64);
+
+        private Dictionary<string, Dictionary<string, DriftSurface>> GetStoreForKind(ParticleKind kind) => kind switch
+        {
+            ParticleKind.Leaves => _leavesStore,
+            ParticleKind.Sakura => _sakuraStore,
+            _ => _snowStore
+        };
+
+        private Dictionary<string, Dictionary<string, DriftSurface>> ActiveDriftStore => GetStoreForKind(_kind);
+
+        private static bool IsWeatherPhysicsKind(ParticleKind kind) =>
+            kind is ParticleKind.Snow or ParticleKind.Leaves or ParticleKind.Sakura;
 
         private ParticleKind _kind = ParticleKind.Off;
         private ParticleKind _spriteKind = ParticleKind.Off;
@@ -1098,6 +1189,7 @@ public class ParticleOverlayControl : Control
         private float _cursorAccel;
         private float _cursorShakeEnergy;
         private bool _hasPrevCursor;
+        private bool _suppressCursorStepThisFrame;
         private readonly float[] _cursorPixelSnow = new float[CursorPixelSlots];
         private float _cursorPixelMax;
 
@@ -1183,14 +1275,18 @@ public class ParticleOverlayControl : Control
             }
 
             bool kindChanged = _kind != cfg.Kind;
-            bool wasPhysicsActive = _snowPhysicsEnabled && _kind == ParticleKind.Snow;
-            bool nowPhysicsActive = cfg.SnowPhysicsEnabled && cfg.Kind == ParticleKind.Snow;
+            bool wasPhysicsActive = _snowPhysicsEnabled && IsWeatherPhysicsKind(_kind);
+            bool nowPhysicsActive = cfg.SnowPhysicsEnabled && IsWeatherPhysicsKind(cfg.Kind);
 
             if (wasPhysicsActive && !nowPhysicsActive)
             {
                 if (_snowPersistenceEnabled)
                     FlushPersistenceNow(syncToDisk: true);
-                ReleaseAllSnowPhysicsMemory();
+                ReleaseActiveVisibleState(releaseStores: !cfg.SnowPhysicsEnabled);
+            }
+            else if (kindChanged && nowPhysicsActive)
+            {
+                ReleaseActiveVisibleState(releaseStores: false);
             }
 
             bool maxHeightShrank = cfg.SnowMaxHeight < _snowMaxHeightPx - 0.1f;
@@ -1339,7 +1435,7 @@ public class ParticleOverlayControl : Control
 
             if (_width > 0 && _height > 0)
             {
-                if (_kind == ParticleKind.Snow && _snowPhysicsEnabled)
+                if (_snowPhysicsEnabled && IsWeatherPhysicsKind(_kind))
                 {
                     StepSnowWithPhysics(dt, now);
                 }
@@ -1369,10 +1465,17 @@ public class ParticleOverlayControl : Control
             EnsurePaint();
             if (_spritePaint == null) return;
 
-            if (_kind == ParticleKind.Snow && _snowPhysicsEnabled && !_isModalOccluded)
+            if (_snowPhysicsEnabled && !_isModalOccluded && IsWeatherPhysicsKind(_kind))
             {
-                RenderSnowDrifts(canvas);
-                RenderCursorSnowCap(canvas);
+                if (_kind == ParticleKind.Snow)
+                {
+                    RenderSnowDrifts(canvas);
+                    RenderCursorSnowCap(canvas);
+                }
+                else if (_spriteImages is { Length: > 0 } && _spriteKind == _kind)
+                {
+                    RenderLeafOrSakuraPiles(canvas, _spriteImages);
+                }
             }
 
             if (_kind == ParticleKind.Custom)
@@ -1436,13 +1539,15 @@ public class ParticleOverlayControl : Control
             SyncSurfacesFromBridge();
             EnsureBottomEdgeSurfaceSync();
 
+            _suppressCursorStepThisFrame = false;
             if (_snowCursorInteractionEnabled)
             {
                 UpdateCursorKinematics(dt);
 
-                if (!_isModalOccluded && _cursorActive)
+                if (!_suppressCursorStepThisFrame && !_isModalOccluded && _cursorActive)
                 {
-                    UpdateCursorSnowShedding(dt);
+                    if (_kind == ParticleKind.Snow)
+                        UpdateCursorSnowShedding(dt);
 
                     if (_hasPrevCursor)
                     {
@@ -1456,25 +1561,30 @@ public class ParticleOverlayControl : Control
                 }
             }
 
-            float baseFall = 44.0f;
+            float baseFall = _kind switch
+            {
+                ParticleKind.Sakura => 52.0f,
+                ParticleKind.Leaves => 58.0f,
+                _ => 44.0f
+            };
             float windPx = _wind * 65.0f;
             float margin = 42.0f;
             float drag = MathF.Exp(-3.4f * dt);
             float cursorSpeedSq = _cursorVx * _cursorVx + _cursorVy * _cursorVy;
-            bool hasCursorWake = _snowCursorInteractionEnabled && _cursorActive && cursorSpeedSq > 3000f;
-            bool canLandOnCursor = _snowCursorInteractionEnabled && _cursorActive && !_isModalOccluded && cursorSpeedSq < (420f * 420f);
+            bool hasCursorWake = !_suppressCursorStepThisFrame && _snowCursorInteractionEnabled && _cursorActive && cursorSpeedSq > 3000f;
+            bool canLandOnCursor = _kind == ParticleKind.Snow && !_suppressCursorStepThisFrame && _snowCursorInteractionEnabled && _cursorActive && !_isModalOccluded && cursorSpeedSq < (420f * 420f);
 
-            // Step ambient flakes
+            // Step ambient particles
             for (int i = 0; i < _count; i++)
             {
                 StepSingleSnowflake(ref _items[i], dt, baseFall, windPx, margin, drag, hasCursorWake, canLandOnCursor);
             }
 
-            // Step dynamic brushed/shed snowflakes
+            // Step dynamic brushed/shed weather particles
             for (int i = MaxParticles; i < TotalParticleSlots; i++)
             {
                 if (!_items[i].IsActive) continue;
-                StepSingleSnowflake(ref _items[i], dt, baseFall * 1.15f, windPx * 0.65f, margin, drag, hasCursorWake, canLandOnCursor);
+                StepSingleSnowflake(ref _items[i], dt, baseFall * 1.08f, windPx * 0.72f, margin, drag, hasCursorWake, canLandOnCursor);
             }
 
             // Relax slopes on modified visible surfaces
@@ -1508,7 +1618,9 @@ public class ParticleOverlayControl : Control
             if (p.Cooldown > 0f)
                 p.Cooldown = MathF.Max(0f, p.Cooldown - dt);
 
-            // Air drag on extra impulse velocity + gravity for ballistic flung snow
+            bool isLeafOrSakura = _kind is ParticleKind.Leaves or ParticleKind.Sakura;
+
+            // Air drag on extra impulse velocity + gravity for ballistic flung snow / light fluttering leaves
             if (p.IsDynamic)
             {
                 if (p.IsChunk)
@@ -1517,6 +1629,14 @@ public class ParticleOverlayControl : Control
                     p.Vy += 430.0f * dt;
                     p.Vy *= MathF.Exp(-0.50f * dt);
                     p.Vy = Math.Clamp(p.Vy, -420f, 520f);
+                }
+                else if (isLeafOrSakura)
+                {
+                    float g = _kind == ParticleKind.Sakura ? 68.0f : 86.0f;
+                    p.Vx *= MathF.Exp(-2.3f * dt);
+                    p.Vy += g * dt;
+                    p.Vy *= MathF.Exp(-2.1f * dt);
+                    p.Vy = Math.Clamp(p.Vy, -280f, 220f);
                 }
                 else
                 {
@@ -1531,6 +1651,8 @@ public class ParticleOverlayControl : Control
             {
                 p.Vx *= drag;
                 p.Vy *= drag;
+                if (isLeafOrSakura)
+                    p.Angle += p.SpinRate * dt;
             }
 
             // Cursor airwake
@@ -1549,23 +1671,24 @@ public class ParticleOverlayControl : Control
                     float radialY = dy * invD;
                     float cross = radialX * _cursorVy - radialY * _cursorVx;
                     float swirlSign = cross >= 0f ? 1f : -1f;
-                    float swirlMag = MathF.Min(260f, MathF.Sqrt(_cursorVx * _cursorVx + _cursorVy * _cursorVy) * 0.35f);
-                    float wakeScale = p.IsChunk ? 0.22f : 1.0f;
+                    float swirlMag = MathF.Min(240f, MathF.Sqrt(_cursorVx * _cursorVx + _cursorVy * _cursorVy) * 0.35f);
+                    float wakeScale = p.IsChunk ? 0.22f : (isLeafOrSakura ? 1.25f : 1.0f);
 
-                    p.Vx += (_cursorVx * 0.55f * w2 + radialX * 95f * w2 - radialY * swirlSign * swirlMag * w2) * dt * 8.5f * wakeScale;
-                    p.Vy += (_cursorVy * 0.42f * w2 + radialY * 70f * w2 + radialX * swirlSign * swirlMag * w2) * dt * 8.5f * wakeScale;
+                    p.Vx += (_cursorVx * 0.50f * w2 + radialX * 85f * w2 - radialY * swirlSign * swirlMag * w2) * dt * 8.0f * wakeScale;
+                    p.Vy += (_cursorVy * 0.38f * w2 + radialY * 65f * w2 + radialX * swirlSign * swirlMag * w2) * dt * 8.0f * wakeScale;
 
-                    p.Vx = Math.Clamp(p.Vx, -480f, 480f);
-                    p.Vy = Math.Clamp(p.Vy, -420f, 520f);
+                    p.Vx = Math.Clamp(p.Vx, -380f, 380f);
+                    p.Vy = Math.Clamp(p.Vy, -340f, 440f);
                 }
             }
 
             float ambientVy = baseFall * _speed * p.SpeedScale;
-            float sway = MathF.Sin(_elapsedSec * p.SwayFreq + p.Phase) * p.SwayAmp * 0.6f;
+            float swayScale = isLeafOrSakura ? (p.IsDynamic ? 1.25f : 1.0f) : 0.6f;
+            float sway = MathF.Sin(_elapsedSec * p.SwayFreq + p.Phase) * p.SwayAmp * swayScale;
             float ambientVx = windPx * p.SpeedScale + sway;
 
             float totalVx = (p.IsChunk ? ambientVx * 0.15f : ambientVx) + p.Vx;
-            float totalVy = (p.IsChunk ? ambientVy * 0.25f : ambientVy) + p.Vy;
+            float totalVy = (p.IsChunk ? ambientVy * 0.25f : (isLeafOrSakura && p.IsDynamic ? ambientVy * 0.72f : ambientVy)) + p.Vy;
 
             p.X += totalVx * dt;
             p.Y += totalVy * dt;
@@ -2042,8 +2165,9 @@ public class ParticleOverlayControl : Control
                             }
                         }
 
-                        // 2. Smooth pass scoops snow directly onto cursor edge pixels; overflow/flick launches soft white clumps
-                        if (!sharpFlick && remainingShare > 0.01f)
+                        // 2. Smooth pass scoops snow onto cursor edge pixels (Snow only); overflow/flick or Leaves/Sakura swirls upward
+                        bool spawnAsChunk = _kind == ParticleKind.Snow;
+                        if (spawnAsChunk && !sharpFlick && remainingShare > 0.01f)
                         {
                             float scoopRequest = remainingShare * 0.78f;
                             float scooped = TryCoatCursorFromDrift(scoopRequest, moveDir);
@@ -2051,12 +2175,17 @@ public class ParticleOverlayControl : Control
                         }
 
                         ejectedMass += remainingShare;
-                        while (ejectedMass >= 2.0f)
+                        float spawnUnitThreshold = spawnAsChunk ? 2.0f : 1.45f;
+                        while (ejectedMass >= spawnUnitThreshold)
                         {
-                            float unit = MathF.Min(ejectedMass, 1.95f + (float)_rng.NextDouble() * 1.65f);
+                            float unit = MathF.Min(ejectedMass, spawnAsChunk ? (1.95f + (float)_rng.NextDouble() * 1.65f) : (1.35f + (float)_rng.NextDouble() * 0.95f));
                             ejectedMass -= unit;
-                            float launchVx = Math.Clamp(_cursorVx * 0.36f + ((float)_rng.NextDouble() - 0.5f) * 34f, -260f, 260f);
-                            float launchVy = Math.Clamp(_cursorVy * 0.24f - 34f - cursorSpeed * 0.05f - (float)_rng.NextDouble() * 26f, -220f, 65f);
+                            float launchVx = spawnAsChunk
+                                ? Math.Clamp(_cursorVx * 0.36f + ((float)_rng.NextDouble() - 0.5f) * 34f, -260f, 260f)
+                                : Math.Clamp(_cursorVx * 0.42f + ((float)_rng.NextDouble() - 0.5f) * 88f, -260f, 260f);
+                            float launchVy = spawnAsChunk
+                                ? Math.Clamp(_cursorVy * 0.24f - 34f - cursorSpeed * 0.05f - (float)_rng.NextDouble() * 26f, -220f, 65f)
+                                : Math.Clamp(_cursorVy * 0.28f - 68f - cursorSpeed * 0.08f - (float)_rng.NextDouble() * 52f, -230f, 55f);
                             SpawnDynamicSnowflake(
                                 lastHitX,
                                 MathF.Min(s.Top - 1f, lastHitY - 1f),
@@ -2064,9 +2193,10 @@ public class ParticleOverlayControl : Control
                                 launchVy,
                                 cooldown: 0.16f,
                                 mass: unit / BaseSnowDeposit,
-                                isChunk: true);
+                                isChunk: spawnAsChunk,
+                                sizeScale: spawnAsChunk ? -1f : (0.78f + (float)_rng.NextDouble() * 0.45f));
 
-                            if (dustSpawned < 2 && _rng.NextDouble() < 0.35)
+                            if (spawnAsChunk && dustSpawned < 2 && _rng.NextDouble() < 0.35)
                             {
                                 SpawnDynamicSnowflake(
                                     lastHitX,
@@ -2085,10 +2215,15 @@ public class ParticleOverlayControl : Control
 
                 if (modified)
                 {
+                    bool spawnAsChunk = _kind == ParticleKind.Snow;
                     if (ejectedMass >= 0.45f)
                     {
-                        float launchVx = Math.Clamp(_cursorVx * 0.34f + ((float)_rng.NextDouble() - 0.5f) * 32f, -240f, 240f);
-                        float launchVy = Math.Clamp(_cursorVy * 0.22f - 30f - cursorSpeed * 0.04f, -200f, 60f);
+                        float launchVx = spawnAsChunk
+                            ? Math.Clamp(_cursorVx * 0.34f + ((float)_rng.NextDouble() - 0.5f) * 32f, -240f, 240f)
+                            : Math.Clamp(_cursorVx * 0.38f + ((float)_rng.NextDouble() - 0.5f) * 78f, -240f, 240f);
+                        float launchVy = spawnAsChunk
+                            ? Math.Clamp(_cursorVy * 0.22f - 30f - cursorSpeed * 0.04f, -200f, 60f)
+                            : Math.Clamp(_cursorVy * 0.26f - 62f - cursorSpeed * 0.07f, -220f, 55f);
                         SpawnDynamicSnowflake(
                             lastHitX,
                             MathF.Min(s.Top - 1f, lastHitY - 1f),
@@ -2096,7 +2231,8 @@ public class ParticleOverlayControl : Control
                             launchVy,
                             cooldown: 0.16f,
                             mass: Math.Clamp(ejectedMass / BaseSnowDeposit, 0.38f, 1.45f),
-                            isChunk: true);
+                            isChunk: spawnAsChunk,
+                            sizeScale: spawnAsChunk ? -1f : (0.78f + (float)_rng.NextDouble() * 0.42f));
                     }
                     s.NeedsRelaxation = true;
                     RecomputeMaxHeight(s);
@@ -2133,6 +2269,7 @@ public class ParticleOverlayControl : Control
                     float cellY = s.Top - h * 0.5f;
                     float vx = extraVx + ((float)_rng.NextDouble() - 0.5f) * 36f;
                     float vy = MathF.Max(14f, extraVy) + (float)_rng.NextDouble() * 32f;
+                    bool shedAsChunk = _kind == ParticleKind.Snow;
                     SpawnDynamicSnowflake(
                         cellX,
                         cellY,
@@ -2140,10 +2277,11 @@ public class ParticleOverlayControl : Control
                         vy,
                         cooldown: 0.16f,
                         mass: Math.Clamp(unit / BaseSnowDeposit, 0.45f, 1.45f),
-                        isChunk: true);
+                        isChunk: shedAsChunk,
+                        sizeScale: shedAsChunk ? -1f : (0.75f + (float)_rng.NextDouble() * 0.40f));
                     spawned++;
 
-                    if (dustSpawned < 3 && _rng.NextDouble() < 0.30)
+                    if (shedAsChunk && dustSpawned < 3 && _rng.NextDouble() < 0.30)
                     {
                         SpawnDynamicSnowflake(
                             cellX,
@@ -2232,24 +2370,47 @@ public class ParticleOverlayControl : Control
             _prevCursorVx = _cursorVx;
             _prevCursorVy = _cursorVy;
 
-            if (_bridge.TryReadPointer(ref _lastCursorVersion, out float nx, out float ny, out bool active))
+            if (_bridge.TryReadPointer(ref _lastCursorVersion, out float nx, out float ny, out bool active, out bool resetVelocity))
             {
                 if (!active)
                 {
                     _cursorActive = false;
                     _hasPrevCursor = false;
+                    _cursorVx = 0f;
+                    _cursorVy = 0f;
+                    _prevCursorVx = 0f;
+                    _prevCursorVy = 0f;
                     _cursorAccel = 0f;
+                    _cursorShakeEnergy = 0f;
+                    _suppressCursorStepThisFrame = true;
                 }
                 else
                 {
-                    if (_cursorActive && _hasPrevCursor)
+                    float jumpDistSq = (_cursorActive && _hasPrevCursor)
+                        ? ((nx - _cursorX) * (nx - _cursorX) + (ny - _cursorY) * (ny - _cursorY))
+                        : 0f;
+
+                    if (resetVelocity || !_cursorActive || !_hasPrevCursor || jumpDistSq > (180f * 180f))
+                    {
+                        _prevCursorX = nx;
+                        _prevCursorY = ny;
+                        _cursorVx = 0f;
+                        _cursorVy = 0f;
+                        _prevCursorVx = 0f;
+                        _prevCursorVy = 0f;
+                        _cursorAccel = 0f;
+                        _cursorShakeEnergy = 0f;
+                        _hasPrevCursor = true;
+                        _suppressCursorStepThisFrame = true;
+                    }
+                    else
                     {
                         _prevCursorX = _cursorX;
                         _prevCursorY = _cursorY;
                         float instVx = (nx - _cursorX) / dt;
                         float instVy = (ny - _cursorY) / dt;
-                        float newVx = _cursorVx * 0.56f + Math.Clamp(instVx, -2400f, 2400f) * 0.44f;
-                        float newVy = _cursorVy * 0.56f + Math.Clamp(instVy, -2400f, 2400f) * 0.44f;
+                        float newVx = _cursorVx * 0.56f + Math.Clamp(instVx, -1350f, 1350f) * 0.44f;
+                        float newVy = _cursorVy * 0.56f + Math.Clamp(instVy, -1350f, 1350f) * 0.44f;
                         float instAx = (newVx - _cursorVx) / MathF.Max(dt, 0.004f);
                         float instAy = (newVy - _cursorVy) / MathF.Max(dt, 0.004f);
                         float instAccel = MathF.Sqrt(instAx * instAx + instAy * instAy);
@@ -2270,18 +2431,6 @@ public class ParticleOverlayControl : Control
 
                         _cursorVx = newVx;
                         _cursorVy = newVy;
-                    }
-                    else
-                    {
-                        _prevCursorX = nx;
-                        _prevCursorY = ny;
-                        _cursorVx = 0f;
-                        _cursorVy = 0f;
-                        _prevCursorVx = 0f;
-                        _prevCursorVy = 0f;
-                        _cursorAccel = 0f;
-                        _cursorShakeEnergy = 0f;
-                        _hasPrevCursor = true;
                     }
 
                     _cursorX = nx;
@@ -2325,7 +2474,13 @@ public class ParticleOverlayControl : Control
 
                 if (!snap.IsVisible)
                 {
-                    if (_tabTransitionGraceSec <= 0f && s.IsVisibleInFrame && s.HasSnow && snap.IsScopeActive && !IsVirtualizedScrollOut(s))
+                    if (_tabTransitionGraceSec <= 0f
+                        && s.IsVisibleInFrame
+                        && s.HasSnow
+                        && !s.IsSynthetic
+                        && !s.HasClipRect
+                        && snap.IsScopeActive
+                        && IsPageKeyActiveForShedding(s.PageKey))
                     {
                         ShedSnowFromSurface(s, 1.0f, 0f, 15f);
                     }
@@ -2344,23 +2499,24 @@ public class ParticleOverlayControl : Control
                     s.PendingSavedBytes = null;
                 }
 
-                if (s.HasBeenPositioned && _tabTransitionGraceSec <= 0f)
+                if (s.HasBeenPositioned && _tabTransitionGraceSec <= 0f && !s.IsSynthetic)
                 {
                     float dx = snap.Left - s.PrevLeft;
                     float dy = snap.Top - s.PrevTop;
                     float scrollDx = snap.ScrollOffsetX - s.PrevScrollX;
                     float scrollDy = snap.ScrollOffsetY - s.PrevScrollY;
 
+                    bool isScrolling = MathF.Abs(scrollDx) > 1.5f || MathF.Abs(scrollDy) > 1.5f;
                     float layoutDx = dx + scrollDx;
                     float layoutDy = dy + scrollDy;
 
-                    // Violent or sudden layout shift (e.g. card reorder, collapse, window resize) sheds part of snow
+                    // Violent layout shift inside the active tab sheds part of pile (never during scroll or tab swap)
                     float layoutJump = MathF.Max(MathF.Abs(layoutDx), MathF.Abs(layoutDy));
-                    if (s.HasSnow && (layoutJump > 18.0f || MathF.Abs(dy) > 55.0f))
+                    if (!isScrolling && s.HasSnow && (layoutJump > 22.0f || MathF.Abs(dy) > 60.0f))
                     {
-                        float shakeFraction = Math.Clamp((MathF.Max(layoutJump, MathF.Abs(dy)) - 15f) / 65f, 0.25f, 0.72f);
-                        float shedVx = Math.Clamp(-dx * 0.6f, -120f, 120f);
-                        float shedVy = Math.Clamp(-dy * 0.3f, 12f, 95f);
+                        float shakeFraction = Math.Clamp((MathF.Max(layoutJump, MathF.Abs(dy)) - 18f) / 65f, 0.25f, 0.72f);
+                        float shedVx = Math.Clamp(-dx * 0.55f, -110f, 110f);
+                        float shedVy = Math.Clamp(-dy * 0.28f, 14f, 90f);
                         ShedSnowFromSurface(s, shakeFraction, shedVx, shedVy);
                     }
                 }
@@ -2395,7 +2551,11 @@ public class ParticleOverlayControl : Control
                 var s = _prevVisibleSurfaces[i];
                 if (s.VisitedThisFrame || s.IsSynthetic) continue;
 
-                if (_tabTransitionGraceSec <= 0f && s.IsVisibleInFrame && s.HasSnow && IsPageKeyActiveForShedding(s.PageKey) && !IsVirtualizedScrollOut(s))
+                if (_tabTransitionGraceSec <= 0f
+                    && !s.HasClipRect
+                    && s.IsVisibleInFrame
+                    && s.HasSnow
+                    && IsPageKeyActiveForShedding(s.PageKey))
                 {
                     ShedSnowFromSurface(s, 1.0f, 0f, 15f);
                 }
@@ -2465,7 +2625,7 @@ public class ParticleOverlayControl : Control
 
         private void ClampAllSurfacesToMaxHeight()
         {
-            foreach (var pageDict in _driftStore.Values)
+            foreach (var pageDict in ActiveDriftStore.Values)
             {
                 foreach (var s in pageDict.Values)
                 {
@@ -2496,28 +2656,26 @@ public class ParticleOverlayControl : Control
             if (string.Equals(pageKey, "Chrome", StringComparison.Ordinal))
                 return true;
             if (string.Equals(pageKey, "LaunchBar", StringComparison.Ordinal))
-                return _activePageKey is "Profiles" or "Modpacks";
-            if (pageKey.StartsWith("Settings", StringComparison.Ordinal))
-                return string.Equals(_activePageKey, "Settings", StringComparison.Ordinal);
-            if (pageKey.StartsWith("Modpacks", StringComparison.Ordinal))
-                return string.Equals(_activePageKey, "Modpacks", StringComparison.Ordinal);
-            if (pageKey.StartsWith("EditInstance", StringComparison.Ordinal))
-                return string.Equals(_activePageKey, "EditInstance", StringComparison.Ordinal);
+                return string.Equals(_activePageKey, "Profiles", StringComparison.Ordinal)
+                    || _activePageKey.StartsWith("Catalog:", StringComparison.Ordinal)
+                    || string.Equals(_activePageKey, "Modpacks", StringComparison.Ordinal);
             return string.Equals(pageKey, _activePageKey, StringComparison.Ordinal);
-        }
-
-        private static bool IsVirtualizedScrollOut(DriftSurface s)
-        {
-            if (!s.HasClipRect) return false;
-            return s.Top <= s.ClipTop + 42f || s.Top >= s.ClipBottom - 42f;
         }
 
         private DriftSurface GetOrCreateSurface(string pageKey, string surfaceId)
         {
-            if (!_driftStore.TryGetValue(pageKey, out var pageDict))
+            return GetOrCreateSurface(ActiveDriftStore, pageKey, surfaceId);
+        }
+
+        private static DriftSurface GetOrCreateSurface(
+            Dictionary<string, Dictionary<string, DriftSurface>> store,
+            string pageKey,
+            string surfaceId)
+        {
+            if (!store.TryGetValue(pageKey, out var pageDict))
             {
                 pageDict = new Dictionary<string, DriftSurface>(StringComparer.Ordinal);
-                _driftStore[pageKey] = pageDict;
+                store[pageKey] = pageDict;
             }
 
             if (!pageDict.TryGetValue(surfaceId, out var s))
@@ -2525,7 +2683,8 @@ public class ParticleOverlayControl : Control
                 s = new DriftSurface
                 {
                     PageKey = pageKey,
-                    SurfaceId = surfaceId
+                    SurfaceId = surfaceId,
+                    SurfaceIdHash = surfaceId.GetHashCode(StringComparison.Ordinal)
                 };
                 pageDict[surfaceId] = s;
             }
@@ -3027,6 +3186,119 @@ public class ParticleOverlayControl : Control
             path.Close();
         }
 
+        private void RenderLeafOrSakuraPiles(SKCanvas canvas, SKImage[] sprites)
+        {
+            if (_visibleSurfaces.Count == 0 || sprites.Length == 0)
+                return;
+
+            var paint = _spritePaint!;
+            int spriteCount = sprites.Length;
+            bool useLeafFilters = _kind == ParticleKind.Leaves && _leafPaletteFilters is { Length: > 0 };
+            var filters = _leafPaletteFilters;
+            int filterCount = filters?.Length ?? 0;
+
+            float baseOpacityFactor = 0.84f + _opacity * 0.16f;
+            float pageFade = _tabTransitionGraceSec > 0f
+                ? Math.Clamp(1.0f - _tabTransitionGraceSec / 0.28f, 0.0f, 1.0f)
+                : 1.0f;
+            float baseLeafDim = (_kind == ParticleKind.Leaves ? 11.5f : 8.5f) * Math.Clamp(_size, 0.6f, 1.5f);
+
+            for (int i = 0; i < _visibleSurfaces.Count; i++)
+            {
+                var s = _visibleSurfaces[i];
+                var h = s.Heights;
+                if (h == null || s.MaxHeight < 0.25f || s.CellCount <= 0)
+                    continue;
+
+                if (s.HasClipRect)
+                {
+                    if (s.Top < s.ClipTop - 1.5f || s.Top > s.ClipBottom + 1.5f)
+                        continue;
+                    if (s.Right <= s.ClipLeft || s.Left >= s.ClipRight)
+                        continue;
+                }
+
+                bool isGlobalChrome = s.IsSynthetic
+                    || string.Equals(s.PageKey, "Chrome", StringComparison.Ordinal)
+                    || string.Equals(s.PageKey, "LaunchBar", StringComparison.Ordinal);
+                float surfaceOpacity = isGlobalChrome ? baseOpacityFactor : baseOpacityFactor * pageFade;
+                if (surfaceOpacity < 0.04f)
+                    continue;
+
+                bool clipped = false;
+                if (s.HasClipRect)
+                {
+                    canvas.Save();
+                    canvas.ClipRect(new SKRect(s.ClipLeft, s.ClipTop, s.ClipRight, s.ClipBottom));
+                    clipped = true;
+                }
+
+                float cornerPadL = MathF.Max(3.0f, s.CornerRadiusLeft * 0.35f);
+                float cornerPadR = MathF.Max(3.0f, s.CornerRadiusRight * 0.35f);
+                float clampLeft = s.Left + cornerPadL;
+                float clampRight = s.Right - cornerPadR;
+                int n = s.CellCount;
+
+                for (int c = 0; c < n; c += 2)
+                {
+                    float ch = h[c];
+                    if (c + 1 < n && h[c + 1] > ch) ch = h[c + 1];
+                    if (ch < 0.24f) continue;
+
+                    float cx = s.Left + (c + 0.5f) * CellWidthPx;
+                    if (cx < clampLeft || cx > clampRight) continue;
+
+                    int layers = Math.Clamp((int)MathF.Ceiling(ch / 3.4f), 1, 3);
+                    for (int layer = 0; layer < layers; layer++)
+                    {
+                        uint hash = unchecked((uint)(s.SurfaceIdHash * 73856093 ^ c * 19349663 ^ layer * 83492791));
+                        hash ^= hash >> 13;
+                        hash *= 1274126177u;
+
+                        var img = sprites[(int)(hash % (uint)spriteCount)];
+                        int maxDim = Math.Max(1, Math.Max(img.Width, img.Height));
+                        float sizeJitter = 0.78f + ((hash >> 8) & 0x3F) / 63f * 0.42f;
+                        float heightScale = Math.Clamp(ch / 3.2f, 0.58f, 1.0f);
+                        float scale = (baseLeafDim * sizeJitter * heightScale) / maxDim;
+                        float halfW = img.Width * scale * 0.5f;
+                        float halfH = img.Height * scale * 0.36f; // Slightly flattened profile resting on top edge
+
+                        float jitterX = (((hash >> 14) & 0x1F) / 31f - 0.5f) * 3.8f;
+                        float layerFrac = layers == 1 ? 0.5f : (float)layer / (layers - 1);
+                        float ly = s.Top - MathF.Max(0.5f, ch * layerFrac) - halfH * 0.35f + 1.0f;
+                        float angle = (((hash >> 19) & 0xFF) / 255f - 0.5f) * 1.15f;
+
+                        byte alpha = (byte)Math.Clamp((int)MathF.Round(surfaceOpacity * (0.80f + 0.20f * layerFrac) * 255f), 90, 255);
+
+                        canvas.Save();
+                        canvas.Translate(cx + jitterX, ly);
+                        canvas.RotateRadians(angle);
+
+                        if (useLeafFilters && filterCount > 0)
+                        {
+                            paint.Color = SKColors.White.WithAlpha(alpha);
+                            paint.ColorFilter = filters![(int)((hash >> 4) % (uint)filterCount)];
+                        }
+                        else
+                        {
+                            paint.ColorFilter = null;
+                            paint.Color = SKColors.White.WithAlpha(alpha);
+                        }
+
+                        canvas.DrawImage(img, new SKRect(-halfW, -halfH, halfW, halfH), NearestSampling, paint);
+                        canvas.Restore();
+                    }
+                }
+
+                if (clipped)
+                {
+                    canvas.Restore();
+                }
+            }
+
+            paint.ColorFilter = null;
+        }
+
         private void RenderMinecraftSprites(SKCanvas canvas, SKImage[] sprites)
         {
             var paint = _spritePaint!;
@@ -3040,11 +3312,15 @@ public class ParticleOverlayControl : Control
 
             bool useLeafFilters = _kind == ParticleKind.Leaves && _leafPaletteFilters is { Length: > 0 };
             bool isSnow = _kind == ParticleKind.Snow;
+            bool includeDynamicSprites = _snowPhysicsEnabled && !isSnow && IsWeatherPhysicsKind(_kind);
             int spriteCount = sprites.Length;
+            int renderLimit = includeDynamicSprites ? TotalParticleSlots : _count;
 
-            for (int i = 0; i < _count; i++)
+            for (int i = 0; i < renderLimit; i++)
             {
+                if (i >= _count && i < MaxParticles) continue;
                 ref readonly var p = ref _items[i];
+                if (i >= MaxParticles && (!p.IsActive || p.IsChunk)) continue;
 
                 byte a = (byte)Math.Clamp((int)MathF.Round(_opacity * p.AlphaScale * 255f), 0, 255);
                 if (a < 2) continue;
@@ -3150,32 +3426,40 @@ public class ParticleOverlayControl : Control
             _seeded = true;
         }
 
-        private void ApplyLoadedSnowData(SnowAccumulationData data)
+        private void ApplyLoadedSnowData(WeatherAccumulationData data)
         {
-            if (!_snowPersistenceEnabled || data.Pages == null || data.Pages.Count == 0)
+            if (!_snowPersistenceEnabled || data.Modes == null || data.Modes.Count == 0)
                 return;
 
             int dataVersion = data.Version;
-            foreach (var (pageKey, surfaces) in data.Pages)
+            foreach (var (modeName, pages) in data.Modes)
             {
-                if (string.IsNullOrWhiteSpace(pageKey) || surfaces == null) continue;
-                foreach (var (surfaceId, bytes) in surfaces)
-                {
-                    if (string.IsNullOrWhiteSpace(surfaceId) || bytes == null || bytes.Length == 0)
-                        continue;
+                if (pages == null || pages.Count == 0) continue;
+                var modeKind = ParseKind(modeName);
+                if (!IsWeatherPhysicsKind(modeKind)) continue;
+                var store = GetStoreForKind(modeKind);
 
-                    var s = GetOrCreateSurface(pageKey, surfaceId);
-                    if (s.CellCount > 0)
+                foreach (var (pageKey, surfaces) in pages)
+                {
+                    if (string.IsNullOrWhiteSpace(pageKey) || surfaces == null) continue;
+                    foreach (var (surfaceId, bytes) in surfaces)
                     {
-                        if (!s.HasSnow)
+                        if (string.IsNullOrWhiteSpace(surfaceId) || bytes == null || bytes.Length == 0)
+                            continue;
+
+                        var s = GetOrCreateSurface(store, pageKey, surfaceId);
+                        if (s.CellCount > 0)
                         {
-                            UnpackBytesIntoSurface(s, bytes, dataVersion);
+                            if (!s.HasSnow)
+                            {
+                                UnpackBytesIntoSurface(s, bytes, dataVersion);
+                            }
                         }
-                    }
-                    else
-                    {
-                        s.PendingSavedBytes = bytes;
-                        s.PendingSavedVersion = dataVersion;
+                        else
+                        {
+                            s.PendingSavedBytes = bytes;
+                            s.PendingSavedVersion = dataVersion;
+                        }
                     }
                 }
             }
@@ -3215,11 +3499,26 @@ public class ParticleOverlayControl : Control
             s.NeedsRelaxation = max > 0.25f;
         }
 
-        private SnowAccumulationData BuildPersistenceSnapshot()
+        private WeatherAccumulationData BuildPersistenceSnapshot()
         {
-            var result = new SnowAccumulationData { Version = 2 };
+            var result = new WeatherAccumulationData { Version = 3 };
 
-            foreach (var (pageKey, pageDict) in _driftStore)
+            PackStoreIntoMode(result, "Snow", _snowStore);
+            PackStoreIntoMode(result, "Leaves", _leavesStore);
+            PackStoreIntoMode(result, "Sakura", _sakuraStore);
+
+            return result;
+        }
+
+        private static void PackStoreIntoMode(
+            WeatherAccumulationData target,
+            string modeKey,
+            Dictionary<string, Dictionary<string, DriftSurface>> store)
+        {
+            if (store.Count == 0) return;
+
+            Dictionary<string, Dictionary<string, byte[]>>? modePages = null;
+            foreach (var (pageKey, pageDict) in store)
             {
                 Dictionary<string, byte[]>? savedPage = null;
                 foreach (var (surfaceId, s) in pageDict)
@@ -3252,11 +3551,15 @@ public class ParticleOverlayControl : Control
 
                 if (savedPage != null && savedPage.Count > 0)
                 {
-                    result.Pages[pageKey] = savedPage;
+                    modePages ??= new Dictionary<string, Dictionary<string, byte[]>>(StringComparer.Ordinal);
+                    modePages[pageKey] = savedPage;
                 }
             }
 
-            return result;
+            if (modePages != null && modePages.Count > 0)
+            {
+                target.Modes[modeKey] = modePages;
+            }
         }
 
         private void TriggerBackgroundPersistenceSave(long nowTicks)
@@ -3280,7 +3583,7 @@ public class ParticleOverlayControl : Control
                 try
                 {
                     var latest = _bridge.TakeLatestPersistenceCopy() ?? snapshot;
-                    SnowAccumulationStore.Save(latest);
+                    WeatherAccumulationStore.Save(latest);
                 }
                 finally
                 {
@@ -3291,7 +3594,7 @@ public class ParticleOverlayControl : Control
 
         private void FlushPersistenceNow(bool syncToDisk)
         {
-            if (!_snowPersistenceEnabled || _driftStore.Count == 0)
+            if (!_snowPersistenceEnabled || (_snowStore.Count == 0 && _leavesStore.Count == 0 && _sakuraStore.Count == 0))
                 return;
 
             _persistenceDirty = false;
@@ -3301,23 +3604,15 @@ public class ParticleOverlayControl : Control
 
             if (syncToDisk)
             {
-                SnowAccumulationStore.Save(snapshot);
+                WeatherAccumulationStore.Save(snapshot);
             }
         }
 
         private void ClearAllDrifts()
         {
-            foreach (var pageDict in _driftStore.Values)
-            {
-                foreach (var s in pageDict.Values)
-                {
-                    s.Heights = null;
-                    s.PendingSavedBytes = null;
-                    s.MaxHeight = 0f;
-                    s.NeedsRelaxation = false;
-                }
-            }
-            _driftStore.Clear();
+            ClearStore(_snowStore);
+            ClearStore(_leavesStore);
+            ClearStore(_sakuraStore);
 
             for (int i = MaxParticles; i < TotalParticleSlots; i++)
             {
@@ -3332,14 +3627,27 @@ public class ParticleOverlayControl : Control
             Invalidate();
         }
 
-        private void ReleaseAllSnowPhysicsMemory()
+        private static void ClearStore(Dictionary<string, Dictionary<string, DriftSurface>> store)
+        {
+            foreach (var pageDict in store.Values)
+            {
+                foreach (var s in pageDict.Values)
+                {
+                    s.Heights = null;
+                    s.PendingSavedBytes = null;
+                    s.MaxHeight = 0f;
+                    s.NeedsRelaxation = false;
+                }
+            }
+            store.Clear();
+        }
+
+        private void ReleaseActiveVisibleState(bool releaseStores)
         {
             _visibleSurfaces.Clear();
             _prevVisibleSurfaces.Clear();
-            _driftStore.Clear();
             _localSnapshotCount = 0;
             _lastSnapshotVersion = -1;
-            _persistenceDirty = false;
             _cursorActive = false;
             _hasPrevCursor = false;
             Array.Clear(_cursorPixelSnow);
@@ -3350,6 +3658,19 @@ public class ParticleOverlayControl : Control
             {
                 _items[i].IsActive = false;
             }
+
+            if (releaseStores)
+            {
+                _snowStore.Clear();
+                _leavesStore.Clear();
+                _sakuraStore.Clear();
+                _persistenceDirty = false;
+            }
+        }
+
+        private void ReleaseAllSnowPhysicsMemory()
+        {
+            ReleaseActiveVisibleState(releaseStores: true);
         }
 
         private static SKColor[] ResolveLeafColors(string paletteKey) => paletteKey switch

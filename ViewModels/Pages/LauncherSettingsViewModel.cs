@@ -78,7 +78,7 @@ public partial class LauncherSettingsViewModel : ViewModelBase
         IsSearchJvmArgsVisible = "jvm arguments flags аргументы jvm".Contains(q);
         IsSearchLanguageVisible = "language localization english russian язык".Contains(q);
         IsSearchDiscordVisible = "discord rich presence rpc дискорд статус".Contains(q);
-        IsSearchAppearanceVisible = "appearance theme color accent name branding внешний вид тема цвет акцент оформление launcher лаунчер настройки scale масштаб интерфейс animations animation motion плавность анимации анимация анімації переходы particles snow leaves sakura image custom скролл прокрутка частицы снег листья сакура physics accumulation beta сугробы физика сніг".Contains(q);
+        IsSearchAppearanceVisible = "appearance theme color accent name branding внешний вид тема цвет акцент оформление launcher лаунчер настройки scale масштаб интерфейс animations animation motion плавность анимации анимация анімації переходы particles snow leaves sakura image custom скролл прокрутка частицы снег листья сакура weather dynamic погода динамическая physics accumulation beta сугробы физика сніг".Contains(q);
     }
 
     // --- Tabs ---
@@ -502,6 +502,9 @@ public partial class LauncherSettingsViewModel : ViewModelBase
     [ObservableProperty] private double _particleSize = 1.0;
     [ObservableProperty] private double _particleOpacity = 0.65;
     [ObservableProperty] private bool _snowPhysicsEnabled = false;
+    [ObservableProperty] private bool _weatherSnowEnabled = true;
+    [ObservableProperty] private bool _weatherLeavesEnabled = true;
+    [ObservableProperty] private bool _weatherSakuraEnabled = true;
     [ObservableProperty] private bool _snowBottomAccumulationEnabled = false;
     [ObservableProperty] private bool _snowCursorInteractionEnabled = true;
     [ObservableProperty] private bool _snowPersistenceEnabled = true;
@@ -510,6 +513,7 @@ public partial class LauncherSettingsViewModel : ViewModelBase
     [ObservableProperty] private bool _isSnowPhysicsDetailsExpanded = false;
 
     public bool AreParticlesEnabled => !string.Equals(ParticleType, "Off", StringComparison.OrdinalIgnoreCase);
+    public bool IsDynamicWeatherSupported => IsParticleSnow || IsParticleLeaves || IsParticleSakura;
     public bool IsParticleOff => !AreParticlesEnabled;
     public bool IsParticleSnow => string.Equals(ParticleType, "Snow", StringComparison.OrdinalIgnoreCase);
     public bool IsParticleLeaves => string.Equals(ParticleType, "Leaves", StringComparison.OrdinalIgnoreCase);
@@ -599,6 +603,7 @@ public partial class LauncherSettingsViewModel : ViewModelBase
     partial void OnParticleTypeChanged(string value)
     {
         OnPropertyChanged(nameof(AreParticlesEnabled));
+        OnPropertyChanged(nameof(IsDynamicWeatherSupported));
         OnPropertyChanged(nameof(IsParticleOff));
         OnPropertyChanged(nameof(IsParticleSnow));
         OnPropertyChanged(nameof(IsParticleLeaves));
@@ -633,6 +638,30 @@ public partial class LauncherSettingsViewModel : ViewModelBase
     {
         if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
     }
+
+    partial void OnWeatherSnowEnabledChanged(bool value)
+    {
+        if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
+    }
+
+    partial void OnWeatherLeavesEnabledChanged(bool value)
+    {
+        if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
+    }
+
+    partial void OnWeatherSakuraEnabledChanged(bool value)
+    {
+        if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
+    }
+
+    [RelayCommand]
+    private void ToggleWeatherSnow() => WeatherSnowEnabled = !WeatherSnowEnabled;
+
+    [RelayCommand]
+    private void ToggleWeatherLeaves() => WeatherLeavesEnabled = !WeatherLeavesEnabled;
+
+    [RelayCommand]
+    private void ToggleWeatherSakura() => WeatherSakuraEnabled = !WeatherSakuraEnabled;
 
     partial void OnSnowBottomAccumulationEnabledChanged(bool value)
     {
@@ -1364,6 +1393,9 @@ public partial class LauncherSettingsViewModel : ViewModelBase
             ParticleSize = Math.Clamp(cfg.ParticleSize > 0 ? cfg.ParticleSize : 1.0, 0.4, 2.2);
             ParticleOpacity = Math.Clamp(cfg.ParticleOpacity > 0 ? cfg.ParticleOpacity : 0.65, 0.15, 1.0);
             SnowPhysicsEnabled = cfg.SnowPhysicsEnabled;
+            WeatherSnowEnabled = cfg.WeatherSnowEnabled;
+            WeatherLeavesEnabled = cfg.WeatherLeavesEnabled;
+            WeatherSakuraEnabled = cfg.WeatherSakuraEnabled;
             SnowBottomAccumulationEnabled = cfg.SnowBottomAccumulationEnabled;
             SnowCursorInteractionEnabled = cfg.SnowCursorInteractionEnabled;
             SnowPersistenceEnabled = cfg.SnowPersistenceEnabled;
@@ -1556,6 +1588,9 @@ public partial class LauncherSettingsViewModel : ViewModelBase
         cfg.ParticleSize = ParticleSize;
         cfg.ParticleOpacity = ParticleOpacity;
         cfg.SnowPhysicsEnabled = SnowPhysicsEnabled;
+        cfg.WeatherSnowEnabled = WeatherSnowEnabled;
+        cfg.WeatherLeavesEnabled = WeatherLeavesEnabled;
+        cfg.WeatherSakuraEnabled = WeatherSakuraEnabled;
         cfg.SnowBottomAccumulationEnabled = SnowBottomAccumulationEnabled;
         cfg.SnowCursorInteractionEnabled = SnowCursorInteractionEnabled;
         cfg.SnowPersistenceEnabled = SnowPersistenceEnabled;

@@ -11,6 +11,7 @@ public static class ZenithPaths
     public static string CrashLogPath => Path.Combine(AppDataDir, "crash.log");
 
     public static string SnowAccumulationFilePath => Path.Combine(AppDataDir, "snow_accumulation.json");
+    public static string WeatherAccumulationFilePath => Path.Combine(AppDataDir, "weather_accumulation.json");
 
     private static bool _configMigrated;
 

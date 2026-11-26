@@ -17,7 +17,7 @@
              mc:Ignorable="d">
     <Grid Margin="24,16,16,0" ClipToBounds="True" UseLayoutRounding="True">
         <Grid x:Name="CatalogContentRoot" RowDefinitions="Auto,*" ClipToBounds="True" IsVisible="{Binding !ModpacksBrowser.IsDetailsOpen}"
-              controls:SnowCollider.PageKey="Modpacks" controls:SnowCollider.IsPageScope="True">
+              controls:SnowCollider.PageKey="{Binding ModpacksBrowser.WeatherContextKey}" controls:SnowCollider.IsPageScope="True">
             <!-- Header: Type Tabs, Search Bar, and Filter Controls -->
             <StackPanel Grid.Row="0" Spacing="10" Margin="0,0,0,12">
                 <!-- Top Segmented Content Type Tabs -->

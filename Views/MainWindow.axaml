@@ -192,12 +192,15 @@
         ParticleSize="{Binding LauncherSettingsVm.ParticleSize}"
         ParticleOpacity="{Binding LauncherSettingsVm.ParticleOpacity}"
         SnowPhysicsEnabled="{Binding LauncherSettingsVm.SnowPhysicsEnabled}"
+        WeatherSnowEnabled="{Binding LauncherSettingsVm.WeatherSnowEnabled}"
+        WeatherLeavesEnabled="{Binding LauncherSettingsVm.WeatherLeavesEnabled}"
+        WeatherSakuraEnabled="{Binding LauncherSettingsVm.WeatherSakuraEnabled}"
         SnowBottomAccumulationEnabled="{Binding LauncherSettingsVm.SnowBottomAccumulationEnabled}"
         SnowCursorInteractionEnabled="{Binding LauncherSettingsVm.SnowCursorInteractionEnabled}"
         SnowPersistenceEnabled="{Binding LauncherSettingsVm.SnowPersistenceEnabled}"
         SnowAccumulationRate="{Binding LauncherSettingsVm.SnowAccumulationRate}"
         SnowMaxHeight="{Binding LauncherSettingsVm.SnowMaxHeight}"
-        ActivePageKey="{Binding CurrentPageKey}"
+        ActivePageKey="{Binding CurrentWeatherContextKey}"
         IsHitTestVisible="False"/>
     </Panel>
     </Border>

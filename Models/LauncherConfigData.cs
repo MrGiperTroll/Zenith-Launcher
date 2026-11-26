@@ -60,6 +60,9 @@ public class LauncherConfigData
     public double ParticleSize { get; set; } = 1.0;
     public double ParticleOpacity { get; set; } = 0.65;
     public bool SnowPhysicsEnabled { get; set; } = false;
+    public bool WeatherSnowEnabled { get; set; } = true;
+    public bool WeatherLeavesEnabled { get; set; } = true;
+    public bool WeatherSakuraEnabled { get; set; } = true;
     public bool SnowBottomAccumulationEnabled { get; set; } = false;
     public bool SnowCursorInteractionEnabled { get; set; } = true;
     public bool SnowPersistenceEnabled { get; set; } = true;

@@ -378,6 +378,22 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public LauncherNavPage CurrentPage => Navigation.CurrentPage;
     public string CurrentPageKey => Navigation.CurrentPage.ToString();
+    public string CurrentWeatherContextKey => Navigation.CurrentPage switch
+    {
+        LauncherNavPage.Settings => $"Settings:{NormalizeSettingsWeatherTab(LauncherSettingsVm?.CurrentSettingsTab)}",
+        LauncherNavPage.Modpacks => ModpacksBrowser?.WeatherContextKey ?? "Catalog:Modpacks",
+        LauncherNavPage.EditInstance => $"EditInstance:{CurrentEditInstanceVm?.SelectedTab ?? "Overview"}",
+        LauncherNavPage.ContentBrowser => $"ContentBrowser:{CurrentContentBrowserVm?.SelectedContentType.ToString() ?? "Mod"}",
+        _ => Navigation.CurrentPage.ToString()
+    };
+
+    private static string NormalizeSettingsWeatherTab(string? tab) => (tab ?? "").Trim() switch
+    {
+        "Java" => "Java",
+        "General" or "Launcher" => "Launcher",
+        "Appearance" => "Appearance",
+        _ => "Game"
+    };
     public bool IsProfilesView => Navigation.IsProfilesView;
     public bool IsModpacksView => Navigation.IsModpacksView;
     public bool IsEditInstanceView => Navigation.IsEditInstanceView;
@@ -982,6 +998,22 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public ThemeSettingsViewModel ThemeSettingsVm { get; }
 
+    private EditInstanceViewModel? _observedEditInstanceForContext;
+    private void HookActiveEditInstanceContext()
+    {
+        if (_observedEditInstanceForContext != null)
+            _observedEditInstanceForContext.PropertyChanged -= OnObservedEditInstancePropChanged;
+        _observedEditInstanceForContext = CurrentEditInstanceVm;
+        if (_observedEditInstanceForContext != null)
+            _observedEditInstanceForContext.PropertyChanged += OnObservedEditInstancePropChanged;
+    }
+
+    private void OnObservedEditInstancePropChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(EditInstanceViewModel.SelectedTab))
+            OnPropertyChanged(nameof(CurrentWeatherContextKey));
+    }
+
     public LauncherSettingsViewModel LauncherSettingsVm { get; }
 
     public AccountsViewModel AccountsVm { get; }
@@ -1230,6 +1262,7 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 OnPropertyChanged(nameof(CurrentPage));
                 OnPropertyChanged(nameof(CurrentPageKey));
+                OnPropertyChanged(nameof(CurrentWeatherContextKey));
                 OnPropertyChanged(nameof(IsProfilesView));
                 OnPropertyChanged(nameof(IsModpacksView));
                 OnPropertyChanged(nameof(IsEditInstanceView));
@@ -1250,9 +1283,16 @@ public partial class MainWindowViewModel : ViewModelBase
             else if (e.PropertyName == nameof(Navigation.CanGoForward))
                 OnPropertyChanged(nameof(CanGoForward));
             else if (e.PropertyName == nameof(Navigation.CurrentEditInstanceVm))
+            {
                 OnPropertyChanged(nameof(CurrentEditInstanceVm));
+                HookActiveEditInstanceContext();
+                OnPropertyChanged(nameof(CurrentWeatherContextKey));
+            }
             else if (e.PropertyName == nameof(Navigation.CurrentContentBrowserVm))
+            {
                 OnPropertyChanged(nameof(CurrentContentBrowserVm));
+                OnPropertyChanged(nameof(CurrentWeatherContextKey));
+            }
             else if (e.PropertyName == nameof(Navigation.CurrentServerManagerVm))
                 OnPropertyChanged(nameof(CurrentServerManagerVm));
             else if (e.PropertyName == nameof(Navigation.CreateProfileVm))
@@ -1267,7 +1307,14 @@ public partial class MainWindowViewModel : ViewModelBase
                 OnPropertyChanged(nameof(IsSettingsTabAppearance));
                 OnPropertyChanged(nameof(IsSettingsTabTheme));
                 OnPropertyChanged(nameof(IsSettingsTabLauncher));
+                OnPropertyChanged(nameof(CurrentWeatherContextKey));
             }
+        };
+
+        LauncherSettingsVm.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(LauncherSettingsViewModel.CurrentSettingsTab))
+                OnPropertyChanged(nameof(CurrentWeatherContextKey));
         };
 
         Navigation.NavigateToProfiles();
@@ -1408,6 +1455,12 @@ public partial class MainWindowViewModel : ViewModelBase
         });
 
         ModpacksBrowser.GetCurseForgeApiKey = () => LauncherSettingsVm?.CurseForgeApiKey ?? "";
+
+        ModpacksBrowser.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(ModpacksBrowserViewModel.WeatherContextKey))
+                OnPropertyChanged(nameof(CurrentWeatherContextKey));
+        };
 
         ModpacksBrowser.OnProjectSelectedChanged = _ =>
         {

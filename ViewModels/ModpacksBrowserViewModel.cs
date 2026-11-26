@@ -864,7 +864,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
             catch { }
         }
         project.IsInstalling = false;
-        StatusText = "Installation cancelled.";
+        StatusText = L10n.T("install_cancelled");
         OnPropertyChanged(nameof(ReinstallText));
     }
 
@@ -873,7 +873,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
     {
         get
         {
-            if (_showInstallFeedback) return "Installed";
+            if (_showInstallFeedback) return L10n.T("mi_installed");
             if (SelectedProject is { IsInstalling: true })
             {
                 return IsDetailsInstallButtonHovered ? L10n.T("btn_cancel") : L10n.T("mi_installing");
@@ -2406,19 +2406,19 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
 
                 if (project.ProjectType == "world" || SelectedProjectType == "world")
                 {
-                    StatusText = "Fetching map details...";
+                    StatusText = L10n.T("cb_fetching_map");
                     var fileInfo = await CurseForgeApiService.GetLatestMapFileAsync(project.ProjectId, SelectedVersion, apiKey, token);
                     if (fileInfo == null || string.IsNullOrWhiteSpace(fileInfo.DownloadUrl))
                     {
-                        StatusText = $"No downloadable map file found for {project.Title}";
+                        StatusText = string.Format(L10n.T("cb_no_map_file"), project.Title);
                         project.IsInstalling = false;
                         return;
                     }
-                    StatusText = "Downloading map...";
+                    StatusText = L10n.T("mp_downloading_map");
                     var targetInstance = _instanceService.GetSelectedInstance();
                     if (targetInstance == null)
                     {
-                        StatusText = "Please create or select a profile first.";
+                        StatusText = L10n.T("mp_select_profile_first");
                         project.IsInstalling = false;
                         return;
                     }
@@ -2428,12 +2428,12 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
                     var mapData = await CurseForgeApiService.DownloadAsync(fileInfo.DownloadUrl, token);
                     if (mapData is not { Length: > 0 })
                     {
-                        StatusText = "Download failed.";
+                        StatusText = L10n.T("mp_download_failed_plain");
                         project.IsInstalling = false;
                         return;
                     }
                     await File.WriteAllBytesAsync(tempZip, mapData, token);
-                    StatusText = "Extracting map...";
+                    StatusText = L10n.T("mp_extracting_map");
                     try
                     {
                         System.IO.Compression.ZipFile.ExtractToDirectory(tempZip, savesDir, overwriteFiles: true);
@@ -2448,12 +2448,12 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
                     }
                     project.IsInstalling = false;
                     project.IsInstalled = true;
-                    StatusText = $"Installed map {project.Title} to {targetInstance.Name}";
+                    StatusText = string.Format(L10n.T("mp_installed_to"), project.Title, targetInstance.Name);
                     return;
                 }
                 else if (project.ProjectType == "modpack" || SelectedProjectType == "modpack")
                 {
-                    StatusText = $"Fetching {project.Title} modpack details...";
+                    StatusText = string.Format(L10n.T("mp_fetching_modpack"), project.Title);
                     var fileInfo = await CurseForgeApiService.GetLatestProjectFileAsync(project.ProjectId, SelectedVersion, null, apiKey, token);
                     if (fileInfo == null || string.IsNullOrWhiteSpace(fileInfo.DownloadUrl))
                     {
@@ -2461,12 +2461,12 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
                     }
                     if (fileInfo == null || string.IsNullOrWhiteSpace(fileInfo.DownloadUrl))
                     {
-                        StatusText = $"No downloadable file found for {project.Title}";
+                        StatusText = string.Format(L10n.T("cb_no_download_file"), project.Title);
                         project.IsInstalling = false;
                         return;
                     }
 
-                    StatusText = $"Downloading modpack {fileInfo.FileName}...";
+                    StatusText = string.Format(L10n.T("mp_downloading"), fileInfo.FileName);
                     var cfTempDir = Path.Combine(Path.GetTempPath(), $"zenith_modpack_{Guid.NewGuid():N}");
                     Directory.CreateDirectory(cfTempDir);
                     var cfZipPath = Path.Combine(cfTempDir, fileInfo.FileName);
@@ -2475,7 +2475,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
                     if (token.IsCancellationRequested) return;
                     if (cfData is not { Length: > 0 })
                     {
-                        StatusText = "Download failed.";
+                        StatusText = L10n.T("mp_download_failed_plain");
                         project.IsInstalling = false;
                         return;
                     }
@@ -2485,7 +2485,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
                     if (cfInstance != null)
                     {
                         project.IsInstalled = true;
-                        StatusText = $"Installed {project.Title}";
+                        StatusText = string.Format(L10n.T("cb_installed_item"), project.Title);
                         UpdateInstalledFlags();
                         _onInstalled?.Invoke();
                     }
@@ -2496,12 +2496,12 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
                     var targetInstance = _instanceService.GetSelectedInstance();
                     if (targetInstance == null)
                     {
-                        StatusText = "Please create or select a profile first.";
+                        StatusText = L10n.T("mp_select_profile_first");
                         project.IsInstalling = false;
                         return;
                     }
 
-                    StatusText = $"Fetching {project.Title} details...";
+                    StatusText = string.Format(L10n.T("cb_fetching_details"), project.Title);
                     var fileInfo = await CurseForgeApiService.GetLatestProjectFileAsync(project.ProjectId, targetInstance.Version, targetInstance.LoaderType, apiKey, token);
                     if (fileInfo == null || string.IsNullOrWhiteSpace(fileInfo.DownloadUrl))
                     {
@@ -2513,12 +2513,12 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
                     }
                     if (fileInfo == null || string.IsNullOrWhiteSpace(fileInfo.DownloadUrl))
                     {
-                        StatusText = $"No compatible file found for {project.Title}";
+                        StatusText = string.Format(L10n.T("mp_no_compat_file"), project.Title);
                         project.IsInstalling = false;
                         return;
                     }
 
-                    StatusText = $"Downloading {fileInfo.FileName}...";
+                    StatusText = string.Format(L10n.T("mp_downloading"), fileInfo.FileName);
                     var cfSubDir = (project.ProjectType ?? SelectedProjectType) switch
                     {
                         "resourcepack" => "resourcepacks",
@@ -2534,7 +2534,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
                     if (token.IsCancellationRequested) return;
                     if (cfItemData is not { Length: > 0 })
                     {
-                        StatusText = "Download failed.";
+                        StatusText = L10n.T("mp_download_failed_plain");
                         project.IsInstalling = false;
                         return;
                     }
@@ -2559,7 +2559,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
 
                     project.IsInstalling = false;
                     project.IsInstalled = true;
-                    StatusText = $"Installed {project.Title} to {targetInstance.Name}";
+                    StatusText = string.Format(L10n.T("mp_installed_to"), project.Title, targetInstance.Name);
                     return;
                 }
             }
@@ -2570,7 +2570,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
                 var worldVersion = await ModrinthApiService.GetLatestVersionAsync(project.ProjectId, SelectedVersion, Array.Empty<string>(), token);
                 if (worldVersion == null)
                 {
-                    StatusText = $"No compatible version found for {project.Title}";
+                    StatusText = string.Format(L10n.T("mp_no_compat_ver"), project.Title);
                     return;
                 }
                 return;
@@ -2578,7 +2578,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
             var version = await ModrinthApiService.GetLatestVersionAsync(project.ProjectId, SelectedVersion, Array.Empty<string>(), token);
             if (version == null)
             {
-                StatusText = $"No compatible version found for {project.Title}";
+                StatusText = string.Format(L10n.T("mp_no_compat_ver"), project.Title);
                 return;
             }
 
@@ -2587,7 +2587,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
 
             project.IsInstalling = true;
             OnPropertyChanged(nameof(ReinstallText));
-            StatusText = "Installing...";
+            StatusText = L10n.T("mi_installing");
 
             var tempDir = Path.Combine(Path.GetTempPath(), $"zenith_modpack_{Guid.NewGuid():N}");
             Directory.CreateDirectory(tempDir);
@@ -2596,7 +2596,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
             if (token.IsCancellationRequested) return;
             if (data is not { Length: > 0 })
             {
-                StatusText = "Download failed.";
+                StatusText = L10n.T("mp_download_failed_plain");
                 return;
             }
             await File.WriteAllBytesAsync(zipPath, data, token);
@@ -2606,7 +2606,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
                 var targetInstance = _instanceService.GetSelectedInstance();
                 if (targetInstance == null)
                 {
-                    StatusText = "Please create or select a profile first.";
+                    StatusText = L10n.T("mp_select_profile_first");
                     project.IsInstalling = false;
                     return;
                 }
@@ -2624,7 +2624,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
                 await File.WriteAllBytesAsync(destPath, data, token);
                 project.IsInstalling = false;
                 project.IsInstalled = true;
-                StatusText = $"Installed {project.Title} to {targetInstance.Name}";
+                StatusText = string.Format(L10n.T("mp_installed_to"), project.Title, targetInstance.Name);
                 return;
             }
 
@@ -2632,19 +2632,19 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
             if (instance != null)
             {
                 project.IsInstalled = true;
-                StatusText = $"Installed {project.Title}";
+                StatusText = string.Format(L10n.T("cb_installed_item"), project.Title);
                 UpdateInstalledFlags();
                 _onInstalled?.Invoke();
             }
         }
         catch (OperationCanceledException)
         {
-            StatusText = "Installation cancelled.";
+            StatusText = L10n.T("install_cancelled");
         }
         catch (Exception ex)
         {
             LauncherLog.Error($"Failed to quick-install modpack {project.Title}", ex);
-            StatusText = $"Failed to install: {ex.Message}";
+            StatusText = string.Format(L10n.T("mp_install_failed"), ex.Message);
         }
         finally
         {
@@ -2985,7 +2985,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
         {
             project.IsInstalling = true;
             OnPropertyChanged(nameof(ReinstallText));
-            StatusText = "Installing...";
+            StatusText = L10n.T("mi_installing");
             var tempDir = Path.Combine(Path.GetTempPath(), $"zenith_modpack_{Guid.NewGuid():N}");
             Directory.CreateDirectory(tempDir);
             var zipPath = Path.Combine(tempDir, file.Filename);
@@ -2995,7 +2995,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
             if (token.IsCancellationRequested) return;
             if (data is not { Length: > 0 })
             {
-                StatusText = "Download failed.";
+                StatusText = L10n.T("mp_download_failed_plain");
                 return;
             }
             await File.WriteAllBytesAsync(zipPath, data, token);
@@ -3005,7 +3005,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
                 var targetInstance = _instanceService.GetSelectedInstance();
                 if (targetInstance == null)
                 {
-                    StatusText = "Please create or select a profile first.";
+                    StatusText = L10n.T("mp_select_profile_first");
                     project.IsInstalling = false;
                     return;
                 }
@@ -3023,7 +3023,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
                 await File.WriteAllBytesAsync(destPath, data, token);
                 project.IsInstalling = false;
                 project.IsInstalled = true;
-                StatusText = $"Installed {project.Title} to {targetInstance.Name}";
+                StatusText = string.Format(L10n.T("mp_installed_to"), project.Title, targetInstance.Name);
                 return;
             }
 
@@ -3031,19 +3031,19 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
             if (instance != null)
             {
                 project.IsInstalled = true;
-                StatusText = $"Installed {project.Title}";
+                StatusText = string.Format(L10n.T("cb_installed_item"), project.Title);
                 UpdateInstalledFlags();
                 _onInstalled?.Invoke();
             }
         }
         catch (OperationCanceledException)
         {
-            StatusText = "Installation cancelled.";
+            StatusText = L10n.T("install_cancelled");
         }
         catch (Exception ex)
         {
             LauncherLog.Error($"Failed to install modpack {project.Title}", ex);
-            StatusText = $"Failed to install: {ex.Message}";
+            StatusText = string.Format(L10n.T("mp_install_failed"), ex.Message);
         }
         finally
         {
@@ -3089,14 +3089,14 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
             }
             else
             {
-                StatusText = "Invalid modpack: neither modrinth.index.json nor manifest.json found.";
+                StatusText = L10n.T("mp_invalid_modpack");
                 return null;
             }
         }
         catch (Exception ex)
         {
             LauncherLog.Error("Failed to install modpack from zip", ex);
-            StatusText = $"Failed to install: {ex.Message}";
+            StatusText = string.Format(L10n.T("mp_install_failed"), ex.Message);
             return null;
         }
         finally
@@ -3164,11 +3164,11 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
             finalName = $"{safeName} ({num++})";
         }
 
-        StatusText = $"Creating instance {finalName}...";
+        StatusText = string.Format(L10n.T("mp_creating_instance"), finalName);
         var inst = await _instanceService.CreateInstanceAsync(finalName, mcVersion, loaderType, loaderVersion);
         if (inst == null)
         {
-            StatusText = $"Failed to create instance for {packName}";
+            StatusText = string.Format(L10n.T("mp_create_failed"), packName);
             return null;
         }
 
@@ -3210,7 +3210,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
             var files = filesProp.EnumerateArray().ToList();
             int total = files.Count;
             int done = 0;
-            StatusText = $"Installing files (0/{total})...";
+            StatusText = string.Format(L10n.T("mp_installing_files_progress"), 0, total);
 
             using var sem = new System.Threading.SemaphoreSlim(6);
 
@@ -3268,7 +3268,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
                 finally
                 {
                     var count = System.Threading.Interlocked.Increment(ref done);
-                    StatusText = $"Installing files ({count}/{total})...";
+                    StatusText = string.Format(L10n.T("mp_installing_files_progress"), count, total);
                     sem.Release();
                 }
             });
@@ -3292,7 +3292,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
 
         if (string.IsNullOrWhiteSpace(mcVersion))
         {
-            StatusText = "Invalid modpack: no Minecraft version found.";
+            StatusText = L10n.T("mp_invalid_modpack_ver");
             return null;
         }
 
@@ -3346,11 +3346,11 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
             }
         }
 
-        StatusText = $"Creating instance {finalName}...";
+        StatusText = string.Format(L10n.T("mp_creating_instance"), finalName);
         var inst = await _instanceService.CreateInstanceAsync(finalName, mcVersion, loaderType, loaderVersion);
         if (inst == null)
         {
-            StatusText = $"Failed to create instance for {packName}";
+            StatusText = string.Format(L10n.T("mp_create_failed"), packName);
             return null;
         }
 
@@ -3417,7 +3417,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
 
             if (fileIds.Count > 0)
             {
-                StatusText = $"Fetching modpack files ({fileIds.Count} mods)...";
+                StatusText = string.Format(L10n.T("mp_fetching_pack_files"), fileIds.Count);
                 var apiKey = GetCurseForgeApiKey?.Invoke() ?? "";
                 var filesInfo = await CurseForgeApiService.GetModFilesBatchAsync(fileIds, apiKey, token);
                 var modsDir = Path.Combine(inst.Path, "mods");
@@ -3425,7 +3425,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
 
                 int total = filesInfo.Count;
                 int done = 0;
-                StatusText = $"Downloading mods (0/{total})...";
+                StatusText = string.Format(L10n.T("mp_downloading_mods_progress"), 0, total);
 
                 using var sem = new System.Threading.SemaphoreSlim(6);
                 var tasks = filesInfo.Select(async info =>
@@ -3444,7 +3444,7 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
                             }
                         }
                         var count = System.Threading.Interlocked.Increment(ref done);
-                        StatusText = $"Downloading mods ({count}/{total})...";
+                        StatusText = string.Format(L10n.T("mp_downloading_mods_progress"), count, total);
                     }
                     finally
                     {

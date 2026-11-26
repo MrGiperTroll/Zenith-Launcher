@@ -353,7 +353,7 @@ public partial class FileListViewModel : ObservableObject, IDisposable
         }
         catch (Exception ex)
         {
-            _reportError($"Failed to toggle {entry.Name}: {ex.Message}");
+            _reportError(string.Format(L10n.T("fl_toggle_failed"), entry.Name, ex.Message));
             bool onDiskEnabled = !entry.FullPath.EndsWith(".disabled", StringComparison.OrdinalIgnoreCase);
             entry.IsEnabled = onDiskEnabled;
         }
@@ -442,7 +442,7 @@ public partial class FileListViewModel : ObservableObject, IDisposable
 
         var files = await topLevel.StorageProvider.OpenFilePickerAsync(new Avalonia.Platform.Storage.FilePickerOpenOptions
         {
-            Title = $"Import {Title}",
+            Title = string.Format(L10n.T("dlg_import_fmt"), Title),
             AllowMultiple = true
         });
 
@@ -730,29 +730,29 @@ public partial class FileListViewModel : ObservableObject, IDisposable
                 }
                 catch (Exception ex)
                 {
-                    _reportError($"Failed to import {Path.GetFileName(path)}: {ex.Message}");
+                    _reportError(string.Format(L10n.T("fl_import_item_failed"), Path.GetFileName(path), ex.Message));
                 }
             }
         }
         catch (Exception ex)
         {
-            _reportError($"Import failed: {ex.Message}");
+            _reportError(string.Format(L10n.T("fl_import_failed"), ex.Message));
         }
         Refresh();
 
         if (imported > 0)
         {
-            var verb = imported == 1 ? "item" : "items";
-            var msg = $"{imported} {verb} imported to {Title}.";
-            if (invalid > 0) msg += $" {invalid} skipped (invalid format).";
+            var itemsStr = string.Format(L10n.T("fl_items"), imported);
+            var msg = string.Format(L10n.T("fl_imported_summary"), itemsStr, Title);
+            if (invalid > 0) msg += " " + string.Format(L10n.T("fl_imported_skipped"), invalid);
             _reportError(msg);
         }
         else if (ignored > 0 || invalid > 0)
         {
             var bits = new List<string>();
-            if (ignored > 0) bits.Add($"{ignored} already present");
-            if (invalid > 0) bits.Add($"{invalid} invalid format");
-            _reportError($"Nothing new imported — {string.Join(", ", bits)}.");
+            if (ignored > 0) bits.Add(string.Format(L10n.T("fl_already_present_n"), ignored));
+            if (invalid > 0) bits.Add(string.Format(L10n.T("fl_invalid_format_n"), invalid));
+            _reportError(string.Format(L10n.T("fl_nothing_imported"), string.Join(", ", bits)));
         }
     }
 

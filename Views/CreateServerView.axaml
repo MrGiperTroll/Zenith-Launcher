@@ -138,11 +138,11 @@
             <Grid RowDefinitions="Auto,*,Auto">
                 <!-- Header with "+ New Server" Button -->
                 <Grid Grid.Row="0" ColumnDefinitions="*,Auto" VerticalAlignment="Center" Margin="0,0,0,12">
-                    <TextBlock Classes="sectionTitle" Text="Servers" VerticalAlignment="Center"/>
+                    <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=tab_servers}" VerticalAlignment="Center"/>
                     <Button Grid.Column="1" Classes="primaryBtn" Command="{Binding StartCreateNewServerCommand}" Padding="10,6" FontSize="11">
                         <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
                             <PathIcon Data="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" Width="12" Height="12" Foreground="{StaticResource OnAccentBrush}"/>
-                            <TextBlock Text="New" FontWeight="Bold"/>
+                            <TextBlock Text="{l10n:Tr Key=cs_new}" FontWeight="Bold"/>
                         </StackPanel>
                     </Button>
                 </Grid>
@@ -150,7 +150,7 @@
                 <!-- Server List Items -->
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Hidden">
                     <StackPanel Spacing="4">
-                        <TextBlock Text="No servers created yet. Click '+ New' to create one."
+                        <TextBlock Text="{l10n:Tr Key=cs_no_servers}"
                                    FontSize="11" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"
                                    IsVisible="{Binding ExistingServersList.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}"
                                    Margin="4,16"/>
@@ -231,7 +231,7 @@
 
                             <!-- Loader Build / Version for Forge / NeoForge / Fabric -->
                             <StackPanel Spacing="6" IsVisible="{Binding IsLoaderBuildVisible}">
-                                <TextBlock Text="Loader Version / Build" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                <TextBlock Text="{l10n:Tr Key=cs_loader_build}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
                                 <ComboBox Classes="zenCombo" ItemsSource="{Binding AvailableLoaderBuilds}" SelectedItem="{Binding SelectedLoaderBuild}" HorizontalAlignment="Stretch" IsEnabled="{Binding !IsBusy}"/>
                             </StackPanel>
 
@@ -296,16 +296,16 @@
                                          SelectionBrush="{DynamicResource AccentBrush}"
                                          SelectionForegroundBrush="{DynamicResource OnAccentBrush}"
                                          IsEnabled="{Binding CanEditServer}"
-                                         ToolTip.Tip="Double-click to rename"/>
+                                         ToolTip.Tip="{l10n:Tr Key=tip_double_click_rename}"/>
 
                                 <!-- IP Address with Integrated Dropdown Arrow + Clean Copy Button -->
                                 <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                                     <!-- IP Selector with Dropdown Arrow -->
-                                    <Button Classes="chipBtn" Padding="8,4" ToolTip.Tip="Available server network addresses">
+                                    <Button Classes="chipBtn" Padding="8,4" ToolTip.Tip="{l10n:Tr Key=cs_addresses_tip}">
                                         <Button.Flyout>
                                             <Flyout Placement="BottomEdgeAlignedLeft">
                                                 <StackPanel Spacing="2" MinWidth="260">
-                                                    <TextBlock Text="Server Addresses" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" Margin="8,4,8,2"/>
+                                                    <TextBlock Text="{l10n:Tr Key=cs_addresses}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" Margin="8,4,8,2"/>
                                                     <ItemsControl ItemsSource="{Binding NetworkEndpoints}">
                                                         <ItemsControl.ItemTemplate>
                                                             <DataTemplate x:DataType="services:ServerNetworkEndpoint">
@@ -545,7 +545,7 @@
                                     <!-- Row 1: Server Name & Port -->
                                     <Grid ColumnDefinitions="*,110" ColumnSpacing="10">
                                         <StackPanel Spacing="4">
-                                            <TextBlock Text="Server Name" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{l10n:Tr Key=cs_name}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
                                             <TextBox Classes="darkInput" Text="{Binding PropsServerName, Mode=TwoWay}" Height="32" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="1" Spacing="4">
@@ -611,7 +611,7 @@
                                     <!-- Row 8: Resource Pack Prompt (1.20.2+) -->
                                     <StackPanel Spacing="4" IsVisible="{Binding IsResourcePackPromptVisible}">
                                         <TextBlock Text="{l10n:Tr Key=cs_prop_resource_pack_prompt}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                        <TextBox Classes="darkInput" Text="{Binding PropsResourcePackPrompt}" PlaceholderText="Custom prompt message..." Height="32" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
+                                        <TextBox Classes="darkInput" Text="{Binding PropsResourcePackPrompt}" PlaceholderText="{l10n:Tr Key=cs_prop_resource_pack_prompt_ph}" Height="32" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
                                     </StackPanel>
                                 </StackPanel>
                             </Border>
@@ -727,12 +727,12 @@
                             <!-- Command Input Row -->
                             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                                 <TextBox Classes="darkInput" Text="{Binding ConsoleCommandText, Mode=TwoWay}"
-                                         PlaceholderText="Type a command... (e.g. say Hello, op player, time set day, stop)"
+                                         PlaceholderText="{l10n:Tr Key=cs_console_ph}"
                                          FontSize="12"
                                          KeyDown="OnConsoleInputKeyDown"
                                          FontFamily="Consolas, Cascadia Code, Courier New, monospace"/>
                                 <Button Grid.Column="1" Classes="primaryBtn" Command="{Binding SendConsoleCommand}" Padding="16,8" FontSize="12">
-                                    <TextBlock Text="Send" FontWeight="Bold"/>
+                                    <TextBlock Text="{l10n:Tr Key=btn_send}" FontWeight="Bold"/>
                                 </Button>
                             </Grid>
                         </StackPanel>
@@ -755,11 +755,11 @@
                                         </Panel>
                                     </Border>
                                     <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center" Spacing="4">
-                                        <TextBlock Classes="heroName" Text="{Binding WorldNameDisplay, StringFormat='World: {0}'}"/>
+                                        <TextBlock Classes="heroName" Text="{Binding WorldNameDisplay, Converter={x:Static converters:L10nFormatConverter.Instance}, ConverterParameter=cs_world_fmt}"/>
                                         <StackPanel Orientation="Horizontal" Spacing="12">
-                                            <TextBlock Classes="rowHint" Text="{Binding WorldSizeDisplay, StringFormat='Size: {0}'}"/>
+                                            <TextBlock Classes="rowHint" Text="{Binding WorldSizeDisplay, Converter={x:Static converters:L10nFormatConverter.Instance}, ConverterParameter=cs_world_size_fmt}"/>
                                             <TextBlock Text="•" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
-                                            <TextBlock Classes="rowHint" Text="{Binding WorldDifficulty, StringFormat='Difficulty: {0}'}"/>
+                                            <TextBlock Classes="rowHint" Text="{Binding WorldDifficulty, Converter={x:Static converters:L10nFormatConverter.Instance}, ConverterParameter=cs_world_diff_fmt}"/>
                                         </StackPanel>
                                     </StackPanel>
 
@@ -793,9 +793,9 @@
                                 IsVisible="{Binding IsWorldSettingsOpen}">
                             <StackPanel Spacing="16">
                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                    <TextBlock Classes="sectionTitle" Text="World Configuration"/>
+                                    <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=cs_world_config}"/>
                                     <Button Grid.Column="1" Classes="primaryBtn" Command="{Binding SaveWorldSettingsCommand}" Padding="16,6" FontSize="12">
-                                        <TextBlock Text="Save World Settings" FontWeight="Bold"/>
+                                        <TextBlock Text="{l10n:Tr Key=cs_world_save}" FontWeight="Bold"/>
                                     </Button>
                                 </Grid>
 
@@ -812,7 +812,7 @@
                                             <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                                 <StackPanel Spacing="1">
                                                     <TextBlock Classes="rowTitle" Text="{l10n:Tr Key=cs_world_hardcore}"/>
-                                                    <TextBlock Text="Permanent death and maximum difficulty" FontSize="10.5" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                                                    <TextBlock Text="{l10n:Tr Key=cs_world_hardcore_hint}" FontSize="10.5" Foreground="{StaticResource TextPlaceholderBrush}"/>
                                                 </StackPanel>
                                                 <CheckBox Grid.Column="1" IsChecked="{Binding WorldHardcore}" VerticalAlignment="Center" Margin="8,0,0,0"/>
                                             </Grid>
@@ -823,8 +823,8 @@
 
                                     <!-- Right Column: Datapacks -->
                                     <StackPanel Grid.Column="1" Spacing="10">
-                                        <TextBlock Text="Active Datapacks" FontSize="12.5" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/>
-                                        <TextBlock Text="No custom datapacks detected in /datapacks" FontSize="11" Foreground="{StaticResource TextMutedBrush}"
+                                        <TextBlock Text="{l10n:Tr Key=cs_active_datapacks}" FontSize="12.5" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/>
+                                        <TextBlock Text="{l10n:Tr Key=cs_no_datapacks}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"
                                                    IsVisible="{Binding EnabledDatapacks.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}"/>
                                         <ItemsControl ItemsSource="{Binding EnabledDatapacks}">
                                             <ItemsControl.ItemTemplate>
@@ -836,7 +836,7 @@
                                             </ItemsControl.ItemTemplate>
                                         </ItemsControl>
 
-                                        <TextBlock Text="Disabled Datapacks" FontSize="12.5" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" Margin="0,6,0,0"
+                                        <TextBlock Text="{l10n:Tr Key=cs_disabled_datapacks}" FontSize="12.5" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" Margin="0,6,0,0"
                                                    IsVisible="{Binding DisabledDatapacks.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsNonZero}}"/>
                                         <ItemsControl ItemsSource="{Binding DisabledDatapacks}">
                                             <ItemsControl.ItemTemplate>
@@ -861,7 +861,7 @@
 
                                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
                                     <Button Classes="subBtn" Content="{l10n:Tr Key=mods_audit_check}" Command="{Binding AuditPluginsCommand}" Padding="12,5" FontSize="11.5"/>
-                                    <Button Classes="primaryBtn" Content="Add JAR..." Command="{Binding AddPluginJarCommand}" Padding="12,5" FontSize="11.5"/>
+                                    <Button Classes="primaryBtn" Content="{l10n:Tr Key=cs_add_jar}" Command="{Binding AddPluginJarCommand}" Padding="12,5" FontSize="11.5"/>
                                     <Button Classes="subBtn" Content="{l10n:Tr Key=cs_open_folder}" Command="{Binding OpenPluginsFolderCommand}" Padding="12,5" FontSize="11.5"/>
                                 </StackPanel>
                             </Grid>
@@ -870,7 +870,7 @@
                                        IsVisible="{Binding PluginAuditMessage, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
 
                             <!-- Empty State (single line) -->
-                            <TextBlock Text="No plugins or mods installed yet. Click 'Add JAR...' to install one." FontSize="11.5" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding InstalledPlugins.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}" Margin="0,2"/>
+                            <TextBlock Text="{l10n:Tr Key=cs_no_plugins}" FontSize="11.5" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding InstalledPlugins.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}" Margin="0,2"/>
 
                             <!-- Plugins List (compact rows) -->
                             <ItemsControl ItemsSource="{Binding InstalledPlugins}" Margin="0,2,0,0">
@@ -940,7 +940,7 @@
                                 <StackPanel Spacing="6">
                                     <TextBlock Classes="rowTitle" Text="{l10n:Tr Key=cs_java_path}"/>
                                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                                        <TextBox Classes="darkInput" Text="{Binding ServerJavaPath}" PlaceholderText="C:\Program Files\Java\jdk-25\bin\java.exe (or auto-resolved)"/>
+                                        <TextBox Classes="darkInput" Text="{Binding ServerJavaPath}" PlaceholderText="{l10n:Tr Key=cs_java_path_ph}"/>
                                         <Button Grid.Column="1" Classes="subBtn" Command="{Binding BrowseServerJavaCommand}" Content="{l10n:Tr Key=cs_java_browse}" Padding="14,8"/>
                                     </Grid>
                                 </StackPanel>
@@ -973,7 +973,7 @@
                                     <!-- Compact Danger Action Buttons -->
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                         <Button Classes="dangerBtn" Command="{Binding RequestResetWorldCommand}" IsVisible="{Binding !ShowWorldResetConfirm}" Padding="12,5" FontSize="11">
-                                            <TextBlock Text="Reset World" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{l10n:Tr Key=cs_reset_world}" FontWeight="SemiBold"/>
                                         </Button>
                                         <Button Classes="dangerBtn" Command="{Binding RequestDeleteServerCommand}" IsVisible="{Binding !ShowDeleteServerConfirm}" Padding="12,5" FontSize="11">
                                             <TextBlock Text="{l10n:Tr Key=cs_delete_server_sure}" FontWeight="SemiBold"/>
@@ -984,7 +984,7 @@
                                 <!-- Reset World 5-Second Countdown Confirmation Box (Compact) -->
                                 <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="6" Padding="10,8" IsVisible="{Binding ShowWorldResetConfirm}">
                                     <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                        <TextBlock Text="Reset world data? All chunks and builds will be deleted; new world generates on start."
+                                        <TextBlock Text="{l10n:Tr Key=cs_reset_world_prompt}"
                                                    Foreground="{StaticResource TextPrimaryBrush}" FontSize="11.5" TextWrapping="Wrap" VerticalAlignment="Center"/>
                                         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" Margin="10,0,0,0" VerticalAlignment="Center">
                                             <Button Classes="dangerBtn" Command="{Binding ConfirmResetWorldCommand}" IsEnabled="{Binding CanConfirmResetWorld}" Padding="12,5" FontSize="11">
@@ -1001,7 +1001,7 @@
                                         <TextBlock Text="{l10n:Tr Key=cs_delete_server_confirm}"
                                                    Foreground="{StaticResource DangerLightBrush}" FontWeight="SemiBold" FontSize="11.5" TextWrapping="Wrap" VerticalAlignment="Center"/>
                                         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" Margin="10,0,0,0" VerticalAlignment="Center">
-                                            <Button Classes="dangerBtn" Content="Confirm Delete" Command="{Binding ConfirmDeleteServerCommand}" Padding="12,5" FontSize="11"/>
+                                            <Button Classes="dangerBtn" Content="{l10n:Tr Key=cs_confirm_delete}" Command="{Binding ConfirmDeleteServerCommand}" Padding="12,5" FontSize="11"/>
                                             <Button Classes="subBtn" Content="{l10n:Tr Key=btn_cancel}" Command="{Binding CancelDeleteServerCommand}" Padding="10,5" FontSize="11"/>
                                         </StackPanel>
                                     </Grid>
@@ -1027,8 +1027,8 @@
 
                             <!-- Add Player Input Bar (for Ops, Whitelist, Bans) -->
                             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" IsVisible="{Binding !IsOnlinePlayersSubTab}">
-                                <TextBox Classes="darkInput" Text="{Binding NewPlayerName}" PlaceholderText="Enter player username..." VerticalContentAlignment="Center" Height="30" FontSize="12"/>
-                                <Button Grid.Column="1" Classes="primaryBtn" Content="Add Player" Command="{Binding AddPlayerCommand}" Padding="12,6" FontSize="11.5"/>
+                                <TextBox Classes="darkInput" Text="{Binding NewPlayerName}" PlaceholderText="{l10n:Tr Key=cs_player_ph}" VerticalContentAlignment="Center" Height="30" FontSize="12"/>
+                                <Button Grid.Column="1" Classes="primaryBtn" Content="{l10n:Tr Key=cs_add_player}" Command="{Binding AddPlayerCommand}" Padding="12,6" FontSize="11.5"/>
                             </Grid>
 
                             <!-- Live Online Players SubTab -->
@@ -1037,14 +1037,14 @@
                                     <Button Classes="subBtn" Command="{Binding RefreshOnlinePlayersCommand}" Padding="10,4" FontSize="11">
                                         <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                                             <PathIcon Data="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" Width="11" Height="11" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                            <TextBlock Text="Refresh" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{l10n:Tr Key=fl_refresh}" VerticalAlignment="Center"/>
                                         </StackPanel>
                                     </Button>
                                 </StackPanel>
 
                                 <StackPanel Spacing="4" HorizontalAlignment="Center" Margin="0,6" IsVisible="{Binding OnlinePlayers.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}">
                                     <PathIcon Data="M12 4A4 4 0 0 1 16 8A4 4 0 0 1 12 12A4 4 0 0 1 8 8A4 4 0 0 1 12 4ZM4 20C4 16.69 7.58 14 12 14C16.42 14 20 16.69 20 20V21H4V20Z" Width="22" Height="22" Foreground="{StaticResource TextDisabledBrush}" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="No players currently online (or server is offline)." FontSize="11.5" Foreground="{StaticResource TextPlaceholderBrush}" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{l10n:Tr Key=cs_no_online_players}" FontSize="11.5" Foreground="{StaticResource TextPlaceholderBrush}" HorizontalAlignment="Center"/>
                                 </StackPanel>
 
                                 <ItemsControl ItemsSource="{Binding OnlinePlayers}">
@@ -1054,7 +1054,7 @@
                                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                                     <TextBlock Text="{Binding}" Classes="rowTitle" VerticalAlignment="Center"/>
                                                     <Border Grid.Column="1" Background="{StaticResource AccentDimBrush}" CornerRadius="4" Padding="6,2">
-                                                        <TextBlock Text="Online" FontSize="10" FontWeight="Bold" Foreground="{StaticResource AccentBrush}"/>
+                                                        <TextBlock Text="{l10n:Tr Key=cs_status_online}" FontSize="10" FontWeight="Bold" Foreground="{StaticResource AccentBrush}"/>
                                                     </Border>
                                                 </Grid>
                                             </Border>
@@ -1065,15 +1065,15 @@
 
                             <!-- Ops List -->
                             <StackPanel IsVisible="{Binding IsOpsSubTab}">
-                                <TextBlock Text="No operators registered in ops.json." FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding OpsList.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}" Margin="0,4"/>
+                                <TextBlock Text="{l10n:Tr Key=cs_no_ops}" FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding OpsList.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}" Margin="0,4"/>
                                 <ItemsControl ItemsSource="{Binding OpsList}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="services:ServerPlayerEntry">
                                             <Border Background="Transparent" Padding="10,4" Margin="0,0,0,4">
                                                 <Grid ColumnDefinitions="*,Auto,Auto" VerticalAlignment="Center">
                                                     <TextBlock Text="{Binding Name}" Classes="rowTitle" VerticalAlignment="Center"/>
-                                                    <TextBlock Grid.Column="1" Text="{Binding Level, StringFormat='OP Level {0}'}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="12,0"/>
-                                                    <Button Grid.Column="2" Classes="dangerBtn" Content="Remove OP" Command="{Binding $parent[UserControl].((vm:CreateServerViewModel)DataContext).RemovePlayerCommand}" CommandParameter="{Binding}" Padding="10,4" FontSize="11"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding Level, Converter={x:Static converters:L10nFormatConverter.Instance}, ConverterParameter=cs_op_level_fmt}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="12,0"/>
+                                                    <Button Grid.Column="2" Classes="dangerBtn" Content="{l10n:Tr Key=cs_remove_op}" Command="{Binding $parent[UserControl].((vm:CreateServerViewModel)DataContext).RemovePlayerCommand}" CommandParameter="{Binding}" Padding="10,4" FontSize="11"/>
                                                 </Grid>
                                             </Border>
                                         </DataTemplate>
@@ -1083,14 +1083,14 @@
 
                             <!-- Whitelist List -->
                             <StackPanel IsVisible="{Binding IsWhitelistSubTab}">
-                                <TextBlock Text="No players in whitelist.json." FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding WhitelistList.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}" Margin="0,4"/>
+                                <TextBlock Text="{l10n:Tr Key=cs_no_whitelist}" FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding WhitelistList.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}" Margin="0,4"/>
                                 <ItemsControl ItemsSource="{Binding WhitelistList}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="services:ServerPlayerEntry">
                                             <Border Background="Transparent" Padding="10,4" Margin="0,0,0,4">
                                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                                     <TextBlock Text="{Binding Name}" Classes="rowTitle" VerticalAlignment="Center"/>
-                                                    <Button Grid.Column="1" Classes="dangerBtn" Content="Remove" Command="{Binding $parent[UserControl].((vm:CreateServerViewModel)DataContext).RemovePlayerCommand}" CommandParameter="{Binding}" Padding="10,4" FontSize="11"/>
+                                                    <Button Grid.Column="1" Classes="dangerBtn" Content="{l10n:Tr Key=acc_remove}" Command="{Binding $parent[UserControl].((vm:CreateServerViewModel)DataContext).RemovePlayerCommand}" CommandParameter="{Binding}" Padding="10,4" FontSize="11"/>
                                                 </Grid>
                                             </Border>
                                         </DataTemplate>
@@ -1100,7 +1100,7 @@
 
                             <!-- Bans List -->
                             <StackPanel IsVisible="{Binding IsBansSubTab}">
-                                <TextBlock Text="No banned players in banned-players.json." FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding BansList.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}" Margin="0,4"/>
+                                <TextBlock Text="{l10n:Tr Key=cs_no_bans}" FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding BansList.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}" Margin="0,4"/>
                                 <ItemsControl ItemsSource="{Binding BansList}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="services:ServerPlayerEntry">
@@ -1108,7 +1108,7 @@
                                                 <Grid ColumnDefinitions="*,*,Auto" VerticalAlignment="Center">
                                                     <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="12" Foreground="{StaticResource DangerLightBrush}" VerticalAlignment="Center"/>
                                                     <TextBlock Grid.Column="1" Text="{Binding Reason}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="12,0" TextTrimming="CharacterEllipsis"/>
-                                                    <Button Grid.Column="2" Classes="dangerBtn" Content="Unban" Command="{Binding $parent[UserControl].((vm:CreateServerViewModel)DataContext).RemovePlayerCommand}" CommandParameter="{Binding}" Padding="10,4" FontSize="11"/>
+                                                    <Button Grid.Column="2" Classes="dangerBtn" Content="{l10n:Tr Key=cs_unban}" Command="{Binding $parent[UserControl].((vm:CreateServerViewModel)DataContext).RemovePlayerCommand}" CommandParameter="{Binding}" Padding="10,4" FontSize="11"/>
                                                 </Grid>
                                             </Border>
                                         </DataTemplate>
@@ -1160,7 +1160,7 @@
 
                                 <!-- Bottom Status Bar -->
                                 <Grid Grid.Row="2" ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                    <TextBlock Text="Editing file directly inside Zenith Launcher" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                                    <TextBlock Text="{l10n:Tr Key=cs_editor_hint}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
                                     <Button Grid.Column="1" Classes="subBtn" Command="{Binding CloseFileEditorCommand}" Content="{l10n:Tr Key=cs_editor_close}" Padding="12,5" FontSize="11"/>
                                 </Grid>
                             </Grid>
@@ -1194,13 +1194,13 @@
                                                                                 <Button Classes="chipBtn" Command="{Binding CreateNewFolderCommand}" Padding="10,6">
                                             <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
                                                 <PathIcon Data="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="12" Height="12" Foreground="{StaticResource AccentBrush}"/>
-                                                <TextBlock Text="New Folder" FontSize="11.5" FontWeight="SemiBold"/>
+                                                <TextBlock Text="{l10n:Tr Key=cs_new_folder}" FontSize="11.5" FontWeight="SemiBold"/>
                                             </StackPanel>
                                         </Button>
                                         <Button Classes="chipBtn" Command="{Binding CreateNewFileCommand}" Padding="10,6">
                                             <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
                                                 <PathIcon Data="M6 2c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6H6zm7 7V3.5L18.5 9H13z" Width="12" Height="12" Foreground="{StaticResource AccentBrush}"/>
-                                                <TextBlock Text="New File" FontSize="11.5" FontWeight="SemiBold"/>
+                                                <TextBlock Text="{l10n:Tr Key=cs_new_file}" FontSize="11.5" FontWeight="SemiBold"/>
                                             </StackPanel>
                                         </Button>
                                         <Button Classes="chipBtn" Command="{Binding UploadServerFilesCommand}" Padding="10,6">
@@ -1222,9 +1222,9 @@
                                                                 <!-- Rename Dialog -->
                                 <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="14,10" IsVisible="{Binding IsRenamingFile}" Margin="0,0,0,10">
                                     <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" VerticalAlignment="Center">
-                                        <TextBox Classes="darkInput" Text="{Binding RenamingFileNewName}" PlaceholderText="Enter new name..." VerticalAlignment="Center"/>
+                                        <TextBox Classes="darkInput" Text="{Binding RenamingFileNewName}" PlaceholderText="{l10n:Tr Key=cs_rename_ph}" VerticalAlignment="Center"/>
                                         <Button Grid.Column="1" Classes="subBtn" Command="{Binding CancelRenameFileCommand}" Content="{l10n:Tr Key=btn_cancel}"/>
-                                        <Button Grid.Column="2" Classes="primaryBtn" Command="{Binding ConfirmRenameFileCommand}" Content="{l10n:Tr Key=cs_settings_save}" Padding="16,8"/>
+                                        <Button Grid.Column="2" Classes="primaryBtn" Command="{Binding ConfirmRenameFileCommand}" Content="{l10n:Tr Key=btn_save}" Padding="16,8"/>
                                     </Grid>
                                 </Border>
 
@@ -1236,23 +1236,23 @@
                                     <Grid ColumnDefinitions="*,140,80,210">
                                         <Button Classes="tabBtn" Command="{Binding SortFilesByCommand}" CommandParameter="Name" Padding="0" HorizontalAlignment="Left" VerticalAlignment="Center">
                                             <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                                                <TextBlock Text="Name" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{l10n:Tr Key=sm_name}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
                                                 <PathIcon Data="{Binding FileSortNameIcon}" Width="9" Height="9" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center" IsVisible="{Binding FileSortNameIcon, Converter={x:Static converters:EditInstanceWindowConverters.IsNotNull}}"/>
                                             </StackPanel>
                                         </Button>
                                         <Button Grid.Column="1" Classes="tabBtn" Command="{Binding SortFilesByCommand}" CommandParameter="Date" Padding="0" HorizontalAlignment="Left" VerticalAlignment="Center">
                                             <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                                                <TextBlock Text="Date Modified" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{l10n:Tr Key=fl_sort_modified}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
                                                 <PathIcon Data="{Binding FileSortDateIcon}" Width="9" Height="9" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center" IsVisible="{Binding FileSortDateIcon, Converter={x:Static converters:EditInstanceWindowConverters.IsNotNull}}"/>
                                             </StackPanel>
                                         </Button>
                                         <Button Grid.Column="2" Classes="tabBtn" Command="{Binding SortFilesByCommand}" CommandParameter="Size" Padding="0" HorizontalAlignment="Left" VerticalAlignment="Center">
                                             <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                                                <TextBlock Text="Size" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{l10n:Tr Key=cs_col_size}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
                                                 <PathIcon Data="{Binding FileSortSizeIcon}" Width="9" Height="9" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center" IsVisible="{Binding FileSortSizeIcon, Converter={x:Static converters:EditInstanceWindowConverters.IsNotNull}}"/>
                                             </StackPanel>
                                         </Button>
-                                        <TextBlock Grid.Column="3" Text="Actions" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="3" Text="{l10n:Tr Key=cs_col_actions}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                     </Grid>
                                 </Border>
 
@@ -1289,8 +1289,8 @@
                                                         <Button Classes="chipBtn" Command="{Binding $parent[UserControl].((vm:CreateServerViewModel)DataContext).OpenFileItemCommand}" CommandParameter="{Binding}" ToolTip.Tip="{l10n:Tr Key=cs_file_open}" Padding="8,4">
                                                             <TextBlock Text="{l10n:Tr Key=cs_file_open}" FontSize="11"/>
                                                         </Button>
-                                                                                                                <Button Classes="chipBtn" Command="{Binding $parent[UserControl].((vm:CreateServerViewModel)DataContext).StartRenameFileCommand}" CommandParameter="{Binding}" ToolTip.Tip="Rename" Padding="8,4">
-                                                            <TextBlock Text="Rename" FontSize="11"/>
+                                                                                                                <Button Classes="chipBtn" Command="{Binding $parent[UserControl].((vm:CreateServerViewModel)DataContext).StartRenameFileCommand}" CommandParameter="{Binding}" ToolTip.Tip="{l10n:Tr Key=cs_file_rename}" Padding="8,4">
+                                                            <TextBlock Text="{l10n:Tr Key=cs_file_rename}" FontSize="11"/>
                                                         </Button>
                                                         <Button Classes="dangerBtn" Command="{Binding $parent[UserControl].((vm:CreateServerViewModel)DataContext).DeleteFileItemCommand}" CommandParameter="{Binding}" ToolTip.Tip="{l10n:Tr Key=cs_file_delete}" Padding="8,4">
                                                             <TextBlock Text="{l10n:Tr Key=cs_file_delete}" FontSize="11"/>

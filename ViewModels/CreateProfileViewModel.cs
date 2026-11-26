@@ -247,21 +247,21 @@ public partial class CreateProfileViewModel : ObservableObject, IDisposable
         var recOption = new JavaModeOption
         {
             Id = "Recommended",
-            DisplayName = $"Recommended (Java {recMajor})",
+            DisplayName = string.Format(L10n.T("java_mode_rec_fmt"), recMajor),
             Path = recPath
         };
 
         var sysOption = new JavaModeOption
         {
             Id = "System",
-            DisplayName = $"System (Java {sysMajor})",
+            DisplayName = string.Format(L10n.T("java_mode_sys_fmt"), sysMajor),
             Path = sysPath
         };
 
         var customOption = new JavaModeOption
         {
             Id = "Custom",
-            DisplayName = "Custom",
+            DisplayName = L10n.T("java_mode_custom"),
             Path = !string.IsNullOrWhiteSpace(CustomJavaPath) ? CustomJavaPath : sysPath
         };
 
@@ -862,7 +862,7 @@ public partial class CreateProfileViewModel : ObservableObject, IDisposable
         if (topLevel?.StorageProvider == null) return;
         var files = await topLevel.StorageProvider.OpenFilePickerAsync(new Avalonia.Platform.Storage.FilePickerOpenOptions
         {
-            Title = "Select Custom Icon",
+            Title = L10n.T("dlg_select_icon"),
             AllowMultiple = false,
             FileTypeFilter = new[] { Avalonia.Platform.Storage.FilePickerFileTypes.ImageAll }
         });
@@ -973,7 +973,7 @@ public partial class CreateProfileViewModel : ObservableObject, IDisposable
         if (topLevel?.StorageProvider == null) return;
         var files = await topLevel.StorageProvider.OpenFilePickerAsync(new Avalonia.Platform.Storage.FilePickerOpenOptions
         {
-            Title = "Select Java Binary (javaw.exe / java)",
+            Title = L10n.T("dlg_select_java"),
             AllowMultiple = false
         });
         if (files.Count > 0)

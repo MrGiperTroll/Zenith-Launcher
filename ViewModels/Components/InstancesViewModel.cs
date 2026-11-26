@@ -833,7 +833,7 @@ public partial class InstancesViewModel : ViewModelBase
         {
             var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
             {
-                Title = "Select Profile Icon",
+                Title = L10n.T("imp_pick_icon_title"),
                 AllowMultiple = false,
                 FileTypeFilter = new[] { FilePickerFileTypes.ImageAll }
             });
@@ -997,7 +997,7 @@ public partial class InstancesViewModel : ViewModelBase
         {
             var file = await topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
             {
-                Title = $"Export to {format}",
+                Title = string.Format(L10n.T("dlg_export_fmt"), format),
                 SuggestedFileName = defaultFileName
             });
 
@@ -1006,9 +1006,9 @@ public partial class InstancesViewModel : ViewModelBase
                 var targetPath = file.Path.LocalPath;
                 try
                 {
-                    OnStatusChanged?.Invoke($"Exporting {instance.Name} to {format}...");
+                    OnStatusChanged?.Invoke(string.Format(L10n.T("inst_exporting"), instance.Name, format));
                     await InstanceExportService.ExportAsync(instance, format, targetPath);
-                    OnStatusChanged?.Invoke($"Exported to {Path.GetFileName(targetPath)} successfully.");
+                    OnStatusChanged?.Invoke(string.Format(L10n.T("inst_exported"), Path.GetFileName(targetPath)));
                 }
                 catch (Exception ex)
                 {

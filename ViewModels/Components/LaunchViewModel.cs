@@ -419,7 +419,7 @@ public partial class LaunchViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            JavaDownloadStatus = $"Java {major} install failed: {ex.Message}";
+            JavaDownloadStatus = string.Format(L10n.T("java_install_failed_msg"), major, ex.Message);
             StatusText = JavaDownloadStatus;
             return false;
         }
@@ -490,11 +490,11 @@ public partial class LaunchViewModel : ViewModelBase
         {
             var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
             {
-                Title = "Select Java Executable (javaw.exe / java)",
+                Title = L10n.T("dlg_select_java"),
                 AllowMultiple = false,
                 FileTypeFilter = new[]
                 {
-                    new FilePickerFileType("Java Executable") { Patterns = new[] { "javaw.exe", "java.exe", "java" } },
+                    new FilePickerFileType(L10n.T("ft_java_exe")) { Patterns = new[] { "javaw.exe", "java.exe", "java" } },
                     FilePickerFileTypes.All
                 }
             });

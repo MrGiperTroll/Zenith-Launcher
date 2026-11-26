@@ -355,7 +355,7 @@
                                             <!-- Title + Author link -->
                                             <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                 <TextBlock Text="{Binding Title}" FontSize="13.5" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,5,0"/>
-                                                <TextBlock Text="by " FontSize="11.5" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{l10n:Tr Key=cb_by_prefix}" FontSize="11.5" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,4,0"/>
                                                 <Button Classes="authorLinkBtn" Content="{Binding Author}"
                                                         Command="{Binding $parent[UserControl].((vm:ContentBrowserViewModel)DataContext).OpenAuthorProfileCommand}"
                                                         CommandParameter="{Binding Author}"

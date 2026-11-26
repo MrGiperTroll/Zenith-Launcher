@@ -162,7 +162,7 @@
                                         <Border Background="{Binding SurfaceHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{Binding BorderDarkHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderThickness="1" CornerRadius="6" Padding="10,5" VerticalAlignment="Center">
                                             <TextBlock Text="{Binding CustomThemeHex}" FontSize="11" FontWeight="SemiBold" Foreground="{Binding PreviewAccentBrush}"/>
                                         </Border>
-                                        <Button Classes="previewSampleBtn" Content="Sample Button"/>
+                                        <Button Classes="previewSampleBtn" Content="{l10n:Tr Key=theme_sample_btn}"/>
                                     </StackPanel>
                                 </Grid>
                             </Panel>
@@ -220,7 +220,7 @@
                                                         CornerRadius="8"
                                                         Padding="8,0"
                                                         Margin="0,0,8,8"
-                                                        ToolTip.Tip="Pick custom color and auto-harmonize full palette">
+                                                        ToolTip.Tip="{l10n:Tr Key=theme_custom_picker_tip}">
                                                     <Button.Flyout>
                                                         <Flyout Placement="BottomEdgeAlignedLeft">
                                                             <ColorView Color="{Binding $parent[ItemsControl].((pages:ThemeSettingsViewModel)DataContext).CustomThemeHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
@@ -246,16 +246,16 @@
                     <Border Classes="zenSection">
                         <StackPanel Spacing="14">
                             <StackPanel Spacing="2">
-                                <TextBlock Classes="sectionTitle" Text="Advanced Palette (HEX)"/>
-                                <TextBlock Classes="sectionHint" Text="Enter HEX codes or click swatches to pick custom colors."/>
+                                <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=theme_adv_palette}"/>
+                                <TextBlock Classes="sectionHint" Text="{l10n:Tr Key=theme_adv_palette_hint}"/>
                             </StackPanel>
 
                             <StackPanel Spacing="12">
                                     <!-- Accent Color -->
                                     <Grid ColumnDefinitions="160,*,Auto" VerticalAlignment="Center">
-                                        <TextBlock Text="Accent Color" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=theme_col_accent}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                         <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding CustomThemeHex, Mode=TwoWay}" PlaceholderText="#3B82F6"/>
-                                        <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="Choose Color">
+                                        <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="{l10n:Tr Key=theme_choose_color}">
                                             <Button.Flyout>
                                                 <Flyout Placement="BottomEdgeAlignedRight">
                                                     <ColorView Color="{Binding CustomThemeHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
@@ -266,9 +266,9 @@
                                     </Grid>
                                     <!-- Background Color -->
                                     <Grid ColumnDefinitions="160,*,Auto" VerticalAlignment="Center">
-                                        <TextBlock Text="Background Color" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=theme_col_bg}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                         <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding BgHex, Mode=TwoWay}" PlaceholderText="#080A0F"/>
-                                        <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="Choose Color">
+                                        <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="{l10n:Tr Key=theme_choose_color}">
                                             <Button.Flyout>
                                                 <Flyout Placement="BottomEdgeAlignedRight">
                                                     <ColorView Color="{Binding BgHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
@@ -279,9 +279,9 @@
                                     </Grid>
                                     <!-- Sidebar Background -->
                                     <Grid ColumnDefinitions="160,*,Auto" VerticalAlignment="Center">
-                                        <TextBlock Text="Sidebar Background" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=theme_col_sidebar}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                         <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding SidebarBgHex, Mode=TwoWay}" PlaceholderText="#06080D"/>
-                                        <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="Choose Color">
+                                        <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="{l10n:Tr Key=theme_choose_color}">
                                             <Button.Flyout>
                                                 <Flyout Placement="BottomEdgeAlignedRight">
                                                     <ColorView Color="{Binding SidebarBgHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
@@ -292,9 +292,9 @@
                                     </Grid>
                                     <!-- Surface (Cards) -->
                                     <Grid ColumnDefinitions="160,*,Auto" VerticalAlignment="Center">
-                                        <TextBlock Text="Surface (Cards)" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=theme_col_surface}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                         <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding SurfaceHex, Mode=TwoWay}" PlaceholderText="#0D111A"/>
-                                        <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="Choose Color">
+                                        <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="{l10n:Tr Key=theme_choose_color}">
                                             <Button.Flyout>
                                                 <Flyout Placement="BottomEdgeAlignedRight">
                                                     <ColorView Color="{Binding SurfaceHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
@@ -305,9 +305,9 @@
                                     </Grid>
                                     <!-- Card Color -->
                                     <Grid ColumnDefinitions="160,*,Auto" VerticalAlignment="Center">
-                                        <TextBlock Text="Card Color" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=theme_col_card}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                         <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding CardHex, Mode=TwoWay}" PlaceholderText="#0D111A"/>
-                                        <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="Choose Color">
+                                        <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="{l10n:Tr Key=theme_choose_color}">
                                             <Button.Flyout>
                                                 <Flyout Placement="BottomEdgeAlignedRight">
                                                     <ColorView Color="{Binding CardHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
@@ -318,9 +318,9 @@
                                     </Grid>
                                     <!-- Panel (Editor) Color -->
                                     <Grid ColumnDefinitions="160,*,Auto" VerticalAlignment="Center">
-                                        <TextBlock Text="Panel (Editor) Color" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=theme_col_panel}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                         <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding PanelHex, Mode=TwoWay}" PlaceholderText="#121722"/>
-                                        <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="Choose Color">
+                                        <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="{l10n:Tr Key=theme_choose_color}">
                                             <Button.Flyout>
                                                 <Flyout Placement="BottomEdgeAlignedRight">
                                                     <ColorView Color="{Binding PanelHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
@@ -331,9 +331,9 @@
                                     </Grid>
                                     <!-- Inputs / Controls -->
                                     <Grid ColumnDefinitions="160,*,Auto" VerticalAlignment="Center">
-                                        <TextBlock Text="Inputs / Controls" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=theme_col_field}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                         <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding FieldHex, Mode=TwoWay}" PlaceholderText="#121724"/>
-                                        <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="Choose Color">
+                                        <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="{l10n:Tr Key=theme_choose_color}">
                                             <Button.Flyout>
                                                 <Flyout Placement="BottomEdgeAlignedRight">
                                                     <ColorView Color="{Binding FieldHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
@@ -344,9 +344,9 @@
                                     </Grid>
                                     <!-- Hover / Active Tint -->
                                     <Grid ColumnDefinitions="160,*,Auto" VerticalAlignment="Center">
-                                        <TextBlock Text="Hover / Active Tint" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=theme_col_hover}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                         <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding HoverHex, Mode=TwoWay}" PlaceholderText="#1B2338"/>
-                                        <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="Choose Color">
+                                        <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="{l10n:Tr Key=theme_choose_color}">
                                             <Button.Flyout>
                                                 <Flyout Placement="BottomEdgeAlignedRight">
                                                     <ColorView Color="{Binding HoverHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
@@ -357,9 +357,9 @@
                                     </Grid>
                                     <!-- Primary Text -->
                                     <Grid ColumnDefinitions="160,*,Auto" VerticalAlignment="Center">
-                                        <TextBlock Text="Primary Text" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=theme_col_text_primary}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                         <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding TextPrimaryHex, Mode=TwoWay}" PlaceholderText="#FFFFFF"/>
-                                        <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="Choose Color">
+                                        <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="{l10n:Tr Key=theme_choose_color}">
                                             <Button.Flyout>
                                                 <Flyout Placement="BottomEdgeAlignedRight">
                                                     <ColorView Color="{Binding TextPrimaryHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
@@ -370,9 +370,9 @@
                                     </Grid>
                                     <!-- Secondary Text -->
                                     <Grid ColumnDefinitions="160,*,Auto" VerticalAlignment="Center">
-                                        <TextBlock Text="Secondary Text" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=theme_col_text_secondary}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                         <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding TextSecondaryHex, Mode=TwoWay}" PlaceholderText="#C5CBD6"/>
-                                        <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="Choose Color">
+                                        <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="{l10n:Tr Key=theme_choose_color}">
                                             <Button.Flyout>
                                                 <Flyout Placement="BottomEdgeAlignedRight">
                                                     <ColorView Color="{Binding TextSecondaryHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
@@ -383,9 +383,9 @@
                                     </Grid>
                                     <!-- Borders -->
                                     <Grid ColumnDefinitions="160,*,Auto" VerticalAlignment="Center">
-                                        <TextBlock Text="Borders" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=theme_col_borders}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                         <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding BorderDarkHex, Mode=TwoWay}" PlaceholderText="#121622"/>
-                                        <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="Choose Color">
+                                        <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="{l10n:Tr Key=theme_choose_color}">
                                             <Button.Flyout>
                                                 <Flyout Placement="BottomEdgeAlignedRight">
                                                     <ColorView Color="{Binding BorderDarkHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>

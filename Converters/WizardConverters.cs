@@ -480,6 +480,37 @@ public class DirectoryModeDisplayConverter : IValueConverter
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => value ?? string.Empty;
 }
 
+/// <summary>Localizes Font Style options while preserving canonical config values.</summary>
+public class FontStyleDisplayConverter : IValueConverter
+{
+    public static readonly FontStyleDisplayConverter Instance = new();
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is not string s || string.IsNullOrWhiteSpace(s)) return "";
+        return s switch
+        {
+            "System Default" => L10n.T("font_system_default"),
+            "Custom..." => L10n.T("font_custom"),
+            _ => s
+        };
+    }
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => value ?? string.Empty;
+}
+
+/// <summary>Localizes the "All platforms" filter option while keeping canonical value.</summary>
+public class PlatformFilterDisplayConverter : IValueConverter
+{
+    public static readonly PlatformFilterDisplayConverter Instance = new();
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is not string s || string.IsNullOrWhiteSpace(s)) return "";
+        return s.Equals("All platforms", StringComparison.OrdinalIgnoreCase)
+            ? L10n.T("filter_all_platforms")
+            : s;
+    }
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => value ?? string.Empty;
+}
+
 /// <summary>Converts a HEX string (e.g. #3B82F6) to an Avalonia IBrush.</summary>
 public class HexToBrushConverter : IValueConverter
 {

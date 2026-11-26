@@ -1,6 +1,7 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ZenithLauncher.ViewModels"
+             xmlns:l10n="using:ZenithLauncher.Extensions"
              x:Class="ZenithLauncher.Views.GameVersionFilterDropdown"
              x:DataType="vm:GameVersionFilterViewModel">
 
@@ -105,7 +106,7 @@
                         <!-- Search Box (Row 0) -->
                         <TextBox Grid.Row="0" Classes="darkInput" Margin="6,6,6,4"
                                  Text="{Binding SearchText, Mode=TwoWay}"
-                                 PlaceholderText="Search version..." FontSize="12" Height="32">
+                                 PlaceholderText="{l10n:Tr Key=ph_search_version}" FontSize="12" Height="32">
                             <TextBox.InnerLeftContent>
                                 <PathIcon Data="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
                                           Width="12" Height="12" Foreground="{StaticResource TextPlaceholderBrush}"
@@ -117,7 +118,7 @@
                         <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="8,4,8,4">
                             <TextBlock Grid.Column="0" Text="{Binding SelectedText}" FontSize="11.5"
                                        Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
-                            <Button Grid.Column="1" Classes="clearBtn" Content="Clear" Command="{Binding ClearCommand}"
+                            <Button Grid.Column="1" Classes="clearBtn" Content="{l10n:Tr Key=grp_clear}" Command="{Binding ClearCommand}"
                                     FontSize="11.5" VerticalAlignment="Center"/>
                         </Grid>
 
@@ -159,7 +160,7 @@
                         <!-- Bottom: Show all versions ToggleSwitch (Row 5) -->
                         <Border Grid.Row="5" Padding="8,6" Background="Transparent">
                             <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                <TextBlock Grid.Column="0" Text="Show all versions" FontWeight="SemiBold" FontSize="12"
+                                <TextBlock Grid.Column="0" Text="{l10n:Tr Key=cb_show_all_versions}" FontWeight="SemiBold" FontSize="12"
                                            Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                                 <ToggleSwitch Grid.Column="1" IsChecked="{Binding ShowAllVersions, Mode=TwoWay}"
                                               OnContent="" OffContent="" Margin="0" VerticalAlignment="Center"/>

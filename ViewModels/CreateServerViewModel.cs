@@ -168,7 +168,7 @@ public partial class CreateServerViewModel : ObservableObject, IDisposable
     partial void OnIsServerStoppingChanged(bool value) => OnPropertyChanged(nameof(StopButtonText));
 
     [ObservableProperty] private string _serverSoftwareDisplay = "Vanilla";
-    [ObservableProperty] private string _pluginsTabTitle = "Plugins";
+    [ObservableProperty] private string _pluginsTabTitle = L10n.T("cs_tab_plugins_simple");
     [ObservableProperty] private bool _isPluginsTabVisible = true;
     public bool IsPluginsPanelVisible => IsPluginsTab && IsPluginsTabVisible;
     [ObservableProperty] private string _serverAllocatedRamDisplay = "4096 MB";
@@ -540,7 +540,7 @@ public partial class CreateServerViewModel : ObservableObject, IDisposable
                             bytes = File.ReadAllBytes(iconPath);
                     }
                     catch { }
-                    var subtitle = "Local Server";
+                    var subtitle = L10n.T("cs_local_server");
                     try
                     {
                         var (version, software) = ServerCreatorService.GetServerIdentity(dir);
@@ -1022,11 +1022,11 @@ public partial class CreateServerViewModel : ObservableObject, IDisposable
             SelectedServerName = newName;
             ActiveServerDirectory = Path.Combine(ServerCreatorService.DefaultServersDirectory, newName);
             await RefreshExistingServersAsync();
-            ConfigStatusMessage = "Server renamed successfully.";
+            ConfigStatusMessage = L10n.T("cs_renamed_ok");
         }
         else
         {
-            ConfigStatusMessage = err ?? "Failed to rename server.";
+            ConfigStatusMessage = err ?? L10n.T("cs_rename_failed");
         }
     }
 
@@ -1050,12 +1050,12 @@ public partial class CreateServerViewModel : ObservableObject, IDisposable
             SelectedServerName = newName;
             ActiveServerDirectory = Path.Combine(ServerCreatorService.DefaultServersDirectory, newName);
             _ = RefreshExistingServersAsync();
-            ConfigStatusMessage = "Server renamed successfully.";
+            ConfigStatusMessage = L10n.T("cs_renamed_ok");
             return true;
         }
         else
         {
-            ConfigStatusMessage = err ?? "Failed to rename server.";
+            ConfigStatusMessage = err ?? L10n.T("cs_rename_failed");
             return false;
         }
     }
@@ -1244,7 +1244,7 @@ public partial class CreateServerViewModel : ObservableObject, IDisposable
     private async Task LoadVersionsAsync()
     {
         IsBusy = true;
-        StatusText = "Loading versions...";
+        StatusText = L10n.T("cs_loading_versions");
         try
         {
             var versions = await _serverService.GetServerVersionsAsync(
@@ -1263,7 +1263,7 @@ public partial class CreateServerViewModel : ObservableObject, IDisposable
         }
         catch (Exception ex)
         {
-            StatusText = $"Error loading versions: {ex.Message}";
+            StatusText = string.Format(L10n.T("cs_load_versions_failed"), ex.Message);
         }
         finally
         {
@@ -1326,12 +1326,12 @@ public partial class CreateServerViewModel : ObservableObject, IDisposable
         }
         catch (OperationCanceledException)
         {
-            StatusText = "Cancelled";
+            StatusText = L10n.T("cs_cancelled");
         }
         catch (Exception ex)
         {
             LauncherLog.Error("Failed to create server", ex);
-            StatusText = $"Error: {ex.Message}";
+            StatusText = string.Format(L10n.T("cs_error_fmt"), ex.Message);
         }
         finally
         {
@@ -1700,7 +1700,7 @@ public partial class CreateServerViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             LauncherLog.Error($"Failed to open file {item.FullPath}", ex);
-            FileOperationStatus = $"Open error: {ex.Message}";
+            FileOperationStatus = string.Format(L10n.T("cs_open_error"), ex.Message);
         }
     }
 
@@ -1718,7 +1718,7 @@ public partial class CreateServerViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             LauncherLog.Error($"Failed to save file {EditingFileFullPath}", ex);
-            FileEditorStatusMessage = $"Save error: {ex.Message}";
+            FileEditorStatusMessage = string.Format(L10n.T("cs_save_error"), ex.Message);
         }
         finally
         {
@@ -1787,7 +1787,7 @@ public partial class CreateServerViewModel : ObservableObject, IDisposable
             if (newPath == _renamingFileItem.FullPath) { CancelRenameFile(); return; }
             if (File.Exists(newPath) || Directory.Exists(newPath))
             {
-                FileOperationStatus = "File or folder with this name already exists.";
+                FileOperationStatus = L10n.T("cs_file_exists");
                 return;
             }
             if (_renamingFileItem.IsDirectory)
@@ -1800,7 +1800,7 @@ public partial class CreateServerViewModel : ObservableObject, IDisposable
         }
         catch (Exception ex)
         {
-            FileOperationStatus = $"Rename failed: {ex.Message}";
+            FileOperationStatus = string.Format(L10n.T("cs_rename_error"), ex.Message);
         }
     }
 
@@ -1865,7 +1865,7 @@ public partial class CreateServerViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             LauncherLog.Error($"Failed to delete {item.FullPath}", ex);
-            FileOperationStatus = $"Delete error: {ex.Message}";
+            FileOperationStatus = string.Format(L10n.T("cs_delete_error"), ex.Message);
         }
     }
 
@@ -1906,7 +1906,7 @@ public partial class CreateServerViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             LauncherLog.Error("Failed to upload file(s)", ex);
-            FileOperationStatus = $"Upload error: {ex.Message}";
+            FileOperationStatus = string.Format(L10n.T("cs_upload_error"), ex.Message);
         }
     }
 
@@ -1974,11 +1974,11 @@ public partial class CreateServerViewModel : ObservableObject, IDisposable
 
         var files = await topLevel.StorageProvider.OpenFilePickerAsync(new Avalonia.Platform.Storage.FilePickerOpenOptions
         {
-            Title = "Select Plugin / Mod (.jar)",
+            Title = L10n.T("cs_select_plugin_jar"),
             AllowMultiple = true,
             FileTypeFilter = new[]
             {
-                new Avalonia.Platform.Storage.FilePickerFileType("JAR file (*.jar)")
+                new Avalonia.Platform.Storage.FilePickerFileType(L10n.T("ft_jar_file"))
                 {
                     Patterns = new[] { "*.jar" }
                 }
@@ -2055,7 +2055,7 @@ public partial class CreateServerViewModel : ObservableObject, IDisposable
             AllowMultiple = false,
             FileTypeFilter = new[]
             {
-                new Avalonia.Platform.Storage.FilePickerFileType("Java Executable")
+                new Avalonia.Platform.Storage.FilePickerFileType(L10n.T("ft_java_exe"))
                 {
                     Patterns = new[] { "java.exe", "javaw.exe", "java", "*" }
                 }
@@ -2087,7 +2087,7 @@ public partial class CreateServerViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             LauncherLog.Error("Failed to save server settings", ex);
-            ServerSettingsStatusMessage = $"Save error: {ex.Message}";
+            ServerSettingsStatusMessage = string.Format(L10n.T("cs_save_error"), ex.Message);
         }
     }
 
@@ -2151,11 +2151,11 @@ public partial class CreateServerViewModel : ObservableObject, IDisposable
             ShowWorldResetConfirm = false;
             IsResetCountdownActive = false;
             CanConfirmResetWorld = false;
-            WorldResetStatusMessage = $"World '{PropsLevelName}' folders removed. A new world will generate on next start!";
+            WorldResetStatusMessage = string.Format(L10n.T("cs_world_reset_done"), PropsLevelName);
         }
         catch (Exception ex)
         {
-            WorldResetStatusMessage = $"Failed to reset world: {ex.Message}";
+            WorldResetStatusMessage = string.Format(L10n.T("cs_world_reset_failed"), ex.Message);
         }
     }
 
@@ -2355,11 +2355,11 @@ public partial class CreateServerViewModel : ObservableObject, IDisposable
 
         var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "Select Server Icon (PNG / JPEG)",
+            Title = L10n.T("cs_select_server_icon"),
             AllowMultiple = false,
             FileTypeFilter = new[]
             {
-                new FilePickerFileType("Images")
+                new FilePickerFileType(L10n.T("ft_images"))
                 {
                     Patterns = new[] { "*.png", "*.jpg", "*.jpeg", "*.bmp", "*.webp" }
                 }
@@ -2698,13 +2698,13 @@ public partial class CreateServerViewModel : ObservableObject, IDisposable
         if (string.IsNullOrWhiteSpace(ActiveServerDirectory)) return;
         if (IsServerRunning)
         {
-            WorldStatusMessage = "Please stop the server before backing up the world.";
+            WorldStatusMessage = L10n.T("cs_stop_before_backup");
             return;
         }
         var worldDir = Path.Combine(ActiveServerDirectory, WorldNameDisplay);
         if (!IsInActiveServer(worldDir) || !Directory.Exists(worldDir))
         {
-            WorldStatusMessage = "World folder does not exist yet.";
+            WorldStatusMessage = L10n.T("cs_world_not_exist");
             return;
         }
 
@@ -2713,7 +2713,7 @@ public partial class CreateServerViewModel : ObservableObject, IDisposable
 
         var file = await topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
-            Title = "Save World Backup",
+            Title = L10n.T("cs_save_world_backup"),
             DefaultExtension = "zip",
             SuggestedFileName = $"{WorldNameDisplay}-backup-{DateTime.Now:yyyyMMdd-HHmmss}.zip"
         });
@@ -2722,15 +2722,15 @@ public partial class CreateServerViewModel : ObservableObject, IDisposable
         {
             try
             {
-                WorldStatusMessage = "Compressing world...";
+                WorldStatusMessage = L10n.T("cs_compressing_world");
                 var destZip = file.Path.LocalPath;
                 if (File.Exists(destZip)) File.Delete(destZip);
                 await Task.Run(() => ZipFile.CreateFromDirectory(worldDir, destZip));
-                WorldStatusMessage = $"World saved to {Path.GetFileName(destZip)}!";
+                WorldStatusMessage = string.Format(L10n.T("cs_world_saved_to"), Path.GetFileName(destZip));
             }
             catch (Exception ex)
             {
-                WorldStatusMessage = $"Failed to export world: {ex.Message}";
+                WorldStatusMessage = string.Format(L10n.T("cs_world_export_failed"), ex.Message);
             }
         }
     }
@@ -2741,7 +2741,7 @@ public partial class CreateServerViewModel : ObservableObject, IDisposable
         if (string.IsNullOrWhiteSpace(ActiveServerDirectory)) return;
         if (IsServerRunning)
         {
-            WorldStatusMessage = "Please stop the server before uploading a new world.";
+            WorldStatusMessage = L10n.T("cs_stop_before_upload");
             return;
         }
 
@@ -2750,11 +2750,11 @@ public partial class CreateServerViewModel : ObservableObject, IDisposable
 
         var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "Select World ZIP Archive",
+            Title = L10n.T("cs_select_world_zip"),
             AllowMultiple = false,
             FileTypeFilter = new[]
             {
-                new FilePickerFileType("ZIP Archive") { Patterns = new[] { "*.zip" } }
+                new FilePickerFileType(L10n.T("ft_zip_archive")) { Patterns = new[] { "*.zip" } }
             }
         });
 
@@ -2762,12 +2762,12 @@ public partial class CreateServerViewModel : ObservableObject, IDisposable
         {
             try
             {
-                WorldStatusMessage = "Importing world...";
+                WorldStatusMessage = L10n.T("cs_importing_world");
                 var srcZip = files[0].Path.LocalPath;
                 var worldDir = Path.Combine(ActiveServerDirectory, WorldNameDisplay);
                 if (!IsInActiveServer(worldDir))
                 {
-                    WorldStatusMessage = "Invalid world location.";
+                    WorldStatusMessage = L10n.T("cs_invalid_world_loc");
                     return;
                 }
                 var looksLikeWorld = await Task.Run(() => ZipLooksLikeWorld(srcZip));
@@ -2829,11 +2829,11 @@ public partial class CreateServerViewModel : ObservableObject, IDisposable
                     catch { }
                 }
                 await RefreshWorldInfoAsync();
-                WorldStatusMessage = "World uploaded successfully!";
+                WorldStatusMessage = L10n.T("cs_world_uploaded_ok");
             }
             catch (Exception ex)
             {
-                WorldStatusMessage = $"Failed to upload world: {ex.Message}";
+                WorldStatusMessage = string.Format(L10n.T("cs_world_upload_failed"), ex.Message);
             }
         }
     }
@@ -2923,7 +2923,7 @@ public partial class CreateServerViewModel : ObservableObject, IDisposable
             ServerCreatorService.SaveProperties(ActiveServerDirectory, dict);
         }
 
-        WorldStatusMessage = "World settings saved successfully!";
+        WorldStatusMessage = L10n.T("cs_world_settings_saved");
         IsWorldSettingsOpen = false;
     }
 

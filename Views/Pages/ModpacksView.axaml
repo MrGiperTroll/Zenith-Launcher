@@ -116,7 +116,7 @@
                                         <!-- Title + Author link -->
                                         <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
                                             <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="14.5" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                                            <TextBlock Text="by " FontSize="12" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{l10n:Tr Key=cb_by_prefix}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,4,0"/>
                                             <Button Classes="authorLinkBtn" Content="{Binding Author}"
                                                     Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ModpacksBrowser.OpenAuthorProfileCommand}"
                                                     CommandParameter="{Binding Author}"

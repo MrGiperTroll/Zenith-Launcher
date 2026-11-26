@@ -4,13 +4,14 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using ZenithLauncher.Services;
 
 namespace ZenithLauncher.Controls;
 
 public partial class RamCardControl : UserControl
 {
     public static readonly StyledProperty<string> TitleProperty =
-        AvaloniaProperty.Register<RamCardControl, string>(nameof(Title), "Memory (RAM)");
+        AvaloniaProperty.Register<RamCardControl, string>(nameof(Title), "");
 
     public static readonly StyledProperty<string> SubtitleProperty =
         AvaloniaProperty.Register<RamCardControl, string>(nameof(Subtitle), "");
@@ -106,7 +107,7 @@ public partial class RamCardControl : UserControl
 
         if (change.Property == TitleProperty)
         {
-            TitleBlock.Text = Title;
+            TitleBlock.Text = string.IsNullOrEmpty(Title) ? L10n.T("set_memory") : Title;
         }
         else if (change.Property == SubtitleProperty)
         {
@@ -146,12 +147,12 @@ public partial class RamCardControl : UserControl
         if (IsGbMode && Value % 1024 == 0)
         {
             if (NumberText != null) NumberText.Text = (Value / 1024).ToString();
-            if (UnitText != null) UnitText.Text = "GB";
+            if (UnitText != null) UnitText.Text = L10n.T("unit_gb");
         }
         else
         {
             if (NumberText != null) NumberText.Text = Value.ToString();
-            if (UnitText != null) UnitText.Text = "MB";
+            if (UnitText != null) UnitText.Text = L10n.T("unit_mb");
         }
     }
 

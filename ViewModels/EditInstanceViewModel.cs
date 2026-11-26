@@ -345,7 +345,7 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
         {
             var files = await topLevel.StorageProvider.OpenFilePickerAsync(new Avalonia.Platform.Storage.FilePickerOpenOptions
             {
-                Title = "Select Profile Icon",
+                Title = L10n.T("imp_pick_icon_title"),
                 AllowMultiple = false,
                 FileTypeFilter = new[] { Avalonia.Platform.Storage.FilePickerFileTypes.ImageAll }
             });
@@ -475,7 +475,7 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
 
     // ----- Logs -----
     [ObservableProperty]
-    private string _logText = "No logs yet. Launch the instance to see output here.";
+    private string _logText = L10n.T("logs_empty_hint");
 
     [ObservableProperty]
     private bool _logHasContent;
@@ -1696,11 +1696,11 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
         {
             var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
             {
-                Title = "Select Java Executable",
+                Title = L10n.T("dlg_select_java"),
                 AllowMultiple = false,
                 FileTypeFilter = new[]
                 {
-                    new FilePickerFileType("Java Executable") { Patterns = new[] { "javaw.exe", "java.exe", "java" } },
+                    new FilePickerFileType(L10n.T("ft_java_exe")) { Patterns = new[] { "javaw.exe", "java.exe", "java" } },
                     FilePickerFileTypes.All
                 }
             });

@@ -94,7 +94,7 @@ public partial class ServerManagerViewModel : ViewModelBase, IDisposable
                 var transfer = new DataTransfer();
                 transfer.Add(DataTransferItem.CreateText(entry.Ip));
                 await topLevel.Clipboard.SetDataAsync(transfer);
-                StatusText = $"Copied '{entry.Ip}' to clipboard";
+                StatusText = string.Format(L10n.T("sm_copied_ip"), entry.Ip);
             }
         }
         catch { }
@@ -118,9 +118,9 @@ public partial class ServerManagerViewModel : ViewModelBase, IDisposable
 
         var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "Select Server Icon (PNG, 64×64)",
+            Title = L10n.T("sm_select_icon"),
             AllowMultiple = false,
-            FileTypeFilter = new[] { new FilePickerFileType("PNG image") { Patterns = new[] { "*.png" } } }
+            FileTypeFilter = new[] { new FilePickerFileType(L10n.T("ft_png_image")) { Patterns = new[] { "*.png" } } }
         });
         if (files.Count == 0) return;
 
@@ -129,16 +129,16 @@ public partial class ServerManagerViewModel : ViewModelBase, IDisposable
             var bytes = await File.ReadAllBytesAsync(files[0].Path.LocalPath);
             if (bytes.Length > 64 * 1024)
             {
-                StatusText = "Icon too large — max 64 KB.";
+                StatusText = L10n.T("sm_icon_too_large");
                 return;
             }
             if (_editing == null) _editing = new ServerEntry();
             _editing.IconBytes = bytes;
-            StatusText = "Icon selected (applied on save).";
+            StatusText = L10n.T("sm_icon_selected");
         }
         catch (Exception ex)
         {
-            StatusText = $"Failed to load icon: {ex.Message}";
+            StatusText = string.Format(L10n.T("sm_icon_load_failed"), ex.Message);
         }
     }
 
@@ -153,7 +153,7 @@ public partial class ServerManagerViewModel : ViewModelBase, IDisposable
     {
         if (string.IsNullOrWhiteSpace(EditorName) || string.IsNullOrWhiteSpace(EditorIp))
         {
-            StatusText = "Name and IP address are required.";
+            StatusText = L10n.T("sm_name_ip_required");
             return;
         }
 
@@ -184,11 +184,11 @@ public partial class ServerManagerViewModel : ViewModelBase, IDisposable
         try
         {
             ServersDatService.Write(_serversDatPath, Servers.ToList());
-            StatusText = $"Saved {Servers.Count} server(s) to servers.dat";
+            StatusText = string.Format(L10n.T("sm_saved_count"), Servers.Count);
         }
         catch (Exception ex)
         {
-            StatusText = $"Failed to save servers.dat: {ex.Message}";
+            StatusText = string.Format(L10n.T("sm_save_failed"), ex.Message);
         }
     }
 

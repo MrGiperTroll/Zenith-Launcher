@@ -34,18 +34,21 @@ public partial class AuthorProfileViewModel : ViewModelBase, IDisposable
 
     public int ProjectsCount => AllProjects.Count;
 
+    public string ProjectsCountDisplay => string.Format(L10n.T("author_projects_count"), ProjectsCount);
+
     public string TotalDownloadsDisplay
     {
         get
         {
             long total = AllProjects.Sum(p => p.Downloads);
-            if (total >= 1_000_000_000)
-                return $"{total / 1e9:0.#}B downloads";
-            if (total >= 1_000_000)
-                return $"{total / 1e6:0.#}M downloads";
-            if (total >= 1_000)
-                return $"{total / 1e3:0.#}K downloads";
-            return $"{total} downloads";
+            string num = total >= 1_000_000_000
+                ? $"{total / 1e9:0.#}B"
+                : total >= 1_000_000
+                    ? $"{total / 1e6:0.#}M"
+                    : total >= 1_000
+                        ? $"{total / 1e3:0.#}K"
+                        : total.ToString();
+            return string.Format(L10n.T("author_downloads_count"), num);
         }
     }
 
@@ -89,6 +92,7 @@ public partial class AuthorProfileViewModel : ViewModelBase, IDisposable
             }
             ApplyFilter();
             OnPropertyChanged(nameof(ProjectsCount));
+            OnPropertyChanged(nameof(ProjectsCountDisplay));
             OnPropertyChanged(nameof(TotalDownloadsDisplay));
         }
         catch (OperationCanceledException) { }

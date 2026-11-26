@@ -267,7 +267,7 @@
                                              SelectionForegroundBrush="{DynamicResource OnAccentBrush}"
                                              DoubleTapped="OnTitleDoubleTapped"
                           LostFocus="OnInstanceNameLostFocus"
-                                             ToolTip.Tip="Double-click to rename"/>
+                                             ToolTip.Tip="{l10n:Tr Key=tip_double_click_rename}"/>
                                     <TextBlock Text="{Binding Instance.DisplayVersion}" FontSize="12" FontWeight="SemiBold"
                                                Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0" HorizontalAlignment="Left"/>
                                 </StackPanel>
@@ -312,7 +312,7 @@
                     <!-- Row 0: Search input & Log source Flyout dropdown -->
                     <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="10" VerticalAlignment="Center" Margin="0,0,0,10">
                         <TextBox Grid.Column="0" Classes="darkInput" Text="{Binding LogSearchQuery, Mode=TwoWay}"
-                                 PlaceholderText="Search logs..." FontSize="12" Height="36"
+                                 PlaceholderText="{l10n:Tr Key=ph_search_logs}" FontSize="12" Height="36"
                                  HorizontalAlignment="Stretch" VerticalAlignment="Center">
                             <TextBox.InnerLeftContent>
                                 <PathIcon Data="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
@@ -373,13 +373,13 @@
                         <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                             <PathIcon Data="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z" Width="14" Height="14"
                                       Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,4,0"/>
-                            <Button Classes="chipBtn" Classes.active="{Binding IsFilterAll}" Content="All"
+                            <Button Classes="chipBtn" Classes.active="{Binding IsFilterAll}" Content="{l10n:Tr Key=cb_tag_all}"
                                     Command="{Binding SelectLogFilterCommand}" CommandParameter="All"/>
-                            <Button Classes="chipBtn" Classes.active="{Binding IsFilterError}" Content="Error"
+                            <Button Classes="chipBtn" Classes.active="{Binding IsFilterError}" Content="{l10n:Tr Key=log_filter_error}"
                                     Command="{Binding SelectLogFilterCommand}" CommandParameter="Error"/>
-                            <Button Classes="chipBtn" Classes.active="{Binding IsFilterWarn}" Content="Warn"
+                            <Button Classes="chipBtn" Classes.active="{Binding IsFilterWarn}" Content="{l10n:Tr Key=log_filter_warn}"
                                     Command="{Binding SelectLogFilterCommand}" CommandParameter="Warn"/>
-                            <Button Classes="chipBtn" Classes.active="{Binding IsFilterInfo}" Content="Info"
+                            <Button Classes="chipBtn" Classes.active="{Binding IsFilterInfo}" Content="{l10n:Tr Key=log_filter_info}"
                                     Command="{Binding SelectLogFilterCommand}" CommandParameter="Info"/>
                         </StackPanel>
 
@@ -639,22 +639,22 @@
                                                                       Width="14" Height="14"/>
                                                             <Button.Flyout>
                                                                 <MenuFlyout Placement="BottomEdgeAlignedRight">
-                                                                    <MenuItem Header="Edit" Command="{Binding $parent[views:EditInstanceView].((vm:EditInstanceViewModel)DataContext).OpenEditWorldDialogCommand}" CommandParameter="{Binding}">
+                                                                    <MenuItem Header="{l10n:Tr Key=btn_edit}" Command="{Binding $parent[views:EditInstanceView].((vm:EditInstanceViewModel)DataContext).OpenEditWorldDialogCommand}" CommandParameter="{Binding}">
                                                                         <MenuItem.Icon>
                                                                             <PathIcon Data="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" Width="13" Height="13"/>
                                                                         </MenuItem.Icon>
                                                                     </MenuItem>
-                                                                    <MenuItem Header="Open folder" Command="{Binding $parent[views:EditInstanceView].((vm:EditInstanceViewModel)DataContext).OpenWorldFolderCommand}" CommandParameter="{Binding}">
+                                                                    <MenuItem Header="{l10n:Tr Key=btn_open_folder}" Command="{Binding $parent[views:EditInstanceView].((vm:EditInstanceViewModel)DataContext).OpenWorldFolderCommand}" CommandParameter="{Binding}">
                                                                         <MenuItem.Icon>
                                                                             <PathIcon Data="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="13" Height="13"/>
                                                                         </MenuItem.Icon>
                                                                     </MenuItem>
-                                                                    <MenuItem Header="Create shortcut" Command="{Binding $parent[views:EditInstanceView].((vm:EditInstanceViewModel)DataContext).CreateWorldShortcutCommand}" CommandParameter="{Binding}">
+                                                                    <MenuItem Header="{l10n:Tr Key=btn_shortcut}" Command="{Binding $parent[views:EditInstanceView].((vm:EditInstanceViewModel)DataContext).CreateWorldShortcutCommand}" CommandParameter="{Binding}">
                                                                         <MenuItem.Icon>
                                                                             <PathIcon Data="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z" Width="13" Height="13"/>
                                                                         </MenuItem.Icon>
                                                                     </MenuItem>
-                                                                    <MenuItem Header="Delete" Foreground="{DynamicResource DangerBrush}" Command="{Binding $parent[views:EditInstanceView].((vm:EditInstanceViewModel)DataContext).RequestDeleteWorldCommand}" CommandParameter="{Binding}">
+                                                                    <MenuItem Header="{l10n:Tr Key=btn_delete}" Foreground="{DynamicResource DangerBrush}" Command="{Binding $parent[views:EditInstanceView].((vm:EditInstanceViewModel)DataContext).RequestDeleteWorldCommand}" CommandParameter="{Binding}">
                                                                         <MenuItem.Icon>
                                                                             <PathIcon Data="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" Width="13" Height="13" Foreground="{DynamicResource DangerBrush}"/>
                                                                         </MenuItem.Icon>
@@ -770,22 +770,22 @@
                         <Border Classes="settingsCard">
                             <StackPanel Spacing="14">
                                 <StackPanel Spacing="3">
-                                    <TextBlock FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Text="{l10n:Tr Key=set_resolution}"/>
-                                    <TextBlock FontSize="11.5" Foreground="{DynamicResource TextMutedBrush}" Text="{l10n:Tr Key=set_window_resolution_hint}"/>
+                                    <TextBlock FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Text="{l10n:Tr Key=set_window_resolution}"/>
+                                    <TextBlock FontSize="11.5" Foreground="{DynamicResource TextMutedBrush}" Text="{l10n:Tr Key=ei_window_resolution_hint}"/>
                                 </StackPanel>
                                 <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
 
                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                     <StackPanel Spacing="2">
                                         <TextBlock FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Text="{l10n:Tr Key=set_resolution}"/>
-                                        <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" Text="{l10n:Tr Key=set_resolution_hint}"/>
+                                        <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" Text="{l10n:Tr Key=ei_resolution_hint}"/>
                                     </StackPanel>
                                     <Grid Grid.Column="1" ColumnDefinitions="Auto,72,14,72,14,Auto" VerticalAlignment="Center">
-                                        <TextBlock Text="W" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                        <TextBlock Text="{l10n:Tr Key=res_width_short}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,6,0"/>
                                         <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding GameWidth}" FontSize="12" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="32"/>
                                         <TextBlock Grid.Column="2" Text="×" FontSize="14" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                                         <TextBox Grid.Column="3" Classes="darkInput" Text="{Binding GameHeight}" FontSize="12" Padding="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="32"/>
-                                        <TextBlock Grid.Column="4" Text="H" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                        <TextBlock Grid.Column="4" Text="{l10n:Tr Key=res_height_short}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="6,0,0,0"/>
                                     </Grid>
                                 </Grid>
 
@@ -938,22 +938,22 @@
                     HorizontalAlignment="Center" VerticalAlignment="Center"
                     MinWidth="380" MaxWidth="480">
                 <StackPanel Spacing="16">
-                    <TextBlock Text="Add Server" FontSize="16" FontWeight="Bold"
+                    <TextBlock Text="{l10n:Tr Key=sv_add_server}" FontSize="16" FontWeight="Bold"
                                Foreground="{DynamicResource TextPrimaryBrush}"/>
                     <StackPanel Spacing="10">
                         <StackPanel Spacing="4">
-                            <TextBlock Text="Server Name:" FontSize="12" Foreground="{DynamicResource TextMutedBrush}"/>
-                            <TextBox Classes="darkInput" Text="{Binding NewServerName, Mode=TwoWay}" PlaceholderText="Minecraft Server" FontSize="13" Padding="8,6"/>
+                            <TextBlock Text="{l10n:Tr Key=sv_server_name_label}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}"/>
+                            <TextBox Classes="darkInput" Text="{Binding NewServerName, Mode=TwoWay}" PlaceholderText="{l10n:Tr Key=sm_server_ph}" FontSize="13" Padding="8,6"/>
                         </StackPanel>
                         <StackPanel Spacing="4">
-                            <TextBlock Text="Server Address / IP:" FontSize="12" Foreground="{DynamicResource TextMutedBrush}"/>
+                            <TextBlock Text="{l10n:Tr Key=sv_server_ip_label}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}"/>
                             <TextBox Classes="darkInput" Text="{Binding NewServerIp, Mode=TwoWay}" PlaceholderText="mc.example.com" FontSize="13" Padding="8,6"/>
                         </StackPanel>
                     </StackPanel>
                     <Grid ColumnDefinitions="*,10,*" HorizontalAlignment="Right" Width="200">
                         <Button Grid.Column="0" Classes="subBtn" Content="{l10n:Tr Key=cancel}"
                                 Command="{Binding CancelAddServerCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
-                        <Button Grid.Column="2" Classes="primaryBtn" Content="Add"
+                        <Button Grid.Column="2" Classes="primaryBtn" Content="{l10n:Tr Key=btn_add}"
                                 Command="{Binding SaveAddServerCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
                     </Grid>
                 </StackPanel>
@@ -970,10 +970,10 @@
                     <StackPanel Grid.Row="0" Spacing="6" Margin="0,0,0,16">
                         <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                             <PathIcon Data="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" Width="16" Height="16" Foreground="{DynamicResource DangerBrush}"/>
-                            <TextBlock Text="Mod Conflicts Detected" FontSize="16" FontWeight="Bold"
+                            <TextBlock Text="{l10n:Tr Key=mods_conflict_title}" FontSize="16" FontWeight="Bold"
                                        Foreground="{DynamicResource DangerBrush}"/>
                         </StackPanel>
-                        <TextBlock Text="Multiple versions or conflicting copies of the same mod were found. Delete obsolete versions to prevent crashes."
+                        <TextBlock Text="{l10n:Tr Key=mods_conflict_desc}"
                                    TextWrapping="Wrap" FontSize="12.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
                     </StackPanel>
 
@@ -1000,7 +1000,7 @@
                                                                     <TextBlock Text="{Binding FileSizeDisplay}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
                                                                     <TextBlock Text="{Binding ModifiedDisplay}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
                                                                 </StackPanel>
-                                                                <Button Grid.Column="2" Classes="dangerBtn" Content="Delete" FontSize="11" Padding="10,4"
+                                                                <Button Grid.Column="2" Classes="dangerBtn" Content="{l10n:Tr Key=btn_delete}" FontSize="11" Padding="10,4"
                                                                         Command="{Binding DeleteCommand}" Cursor="Hand"/>
                                                             </Grid>
                                                         </Border>

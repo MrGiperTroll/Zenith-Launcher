@@ -349,9 +349,9 @@
                                 Padding="12,6" FontSize="12"/>
                         <Button Classes="subBtn" Content="{l10n:Tr Key=fl_open}"
                                 Command="{Binding OpenFileCommand}" CommandParameter="{Binding CurrentLightboxEntry}"
-                                Padding="12,6" FontSize="12" ToolTip.Tip="Open externally"/>
+                                Padding="12,6" FontSize="12" ToolTip.Tip="{l10n:Tr Key=fl_open_external_tip}"/>
                         <Button Classes="subBtn" Command="{Binding CloseLightboxCommand}"
-                                Width="34" Height="34" Padding="0" Cursor="Hand" ToolTip.Tip="Close (Esc)">
+                                Width="34" Height="34" Padding="0" Cursor="Hand" ToolTip.Tip="{l10n:Tr Key=fl_close_esc_tip}">
                             <PathIcon Data="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
                                       Width="12" Height="12" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Button>
@@ -372,7 +372,7 @@
                             Classes="subBtn"
                             HorizontalAlignment="Left" VerticalAlignment="Center"
                             Width="44" Height="44" Padding="0" CornerRadius="22" Margin="16,0,0,0"
-                            ToolTip.Tip="Previous (Left Arrow)">
+                            ToolTip.Tip="{l10n:Tr Key=fl_prev_tip}">
                         <PathIcon Data="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" Width="16" Height="16" Foreground="{DynamicResource TextPrimaryBrush}"/>
                     </Button>
 
@@ -381,7 +381,7 @@
                             Classes="subBtn"
                             HorizontalAlignment="Right" VerticalAlignment="Center"
                             Width="44" Height="44" Padding="0" CornerRadius="22" Margin="0,0,16,0"
-                            ToolTip.Tip="Next (Right Arrow)">
+                            ToolTip.Tip="{l10n:Tr Key=fl_next_tip}">
                         <PathIcon Data="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" Width="16" Height="16" Foreground="{DynamicResource TextPrimaryBrush}"/>
                     </Button>
                 </Grid>

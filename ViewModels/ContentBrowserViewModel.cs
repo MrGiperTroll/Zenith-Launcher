@@ -876,7 +876,7 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
             catch { }
         }
         project.IsInstalling = false;
-        StatusText = "Installation cancelled.";
+        StatusText = L10n.T("install_cancelled");
         OnPropertyChanged(nameof(ReinstallText));
     }
 
@@ -885,7 +885,7 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
     {
         get
         {
-            if (_showInstallFeedback) return "Installed";
+            if (_showInstallFeedback) return L10n.T("mi_installed");
             if (SelectedProject is { IsInstalling: true })
             {
                 return IsDetailsInstallButtonHovered ? L10n.T("btn_cancel") : L10n.T("mi_installing");
@@ -1744,16 +1744,16 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
             {
                 var apiKey = GetCurseForgeApiKey?.Invoke() ?? "";
                 project.IsInstalling = true;
-                StatusText = "Fetching map details...";
+                StatusText = L10n.T("cb_fetching_map");
                 var fileInfo = await CurseForgeApiService.GetLatestMapFileAsync(project.ProjectId, _gameVersion, apiKey, token);
                 if (fileInfo == null || string.IsNullOrWhiteSpace(fileInfo.DownloadUrl))
                 {
-                    StatusText = $"No downloadable map file found for {project.Title}";
+                    StatusText = string.Format(L10n.T("cb_no_map_file"), project.Title);
                     project.IsInstalling = false;
                     return;
                 }
 
-                StatusText = $"Downloading {project.Title}...";
+                StatusText = string.Format(L10n.T("cb_downloading_item"), project.Title);
                 var savesDir = Path.Combine(_instancePath, "saves");
                 Directory.CreateDirectory(savesDir);
 
@@ -1761,13 +1761,13 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
                 var zipBytes = await CurseForgeApiService.DownloadAsync(fileInfo.DownloadUrl, token);
                 if (zipBytes == null || zipBytes.Length == 0)
                 {
-                    StatusText = $"Failed to download map file for {project.Title}";
+                    StatusText = string.Format(L10n.T("cb_failed_map"), project.Title);
                     project.IsInstalling = false;
                     return;
                 }
                 await File.WriteAllBytesAsync(tempZip, zipBytes, token);
 
-                StatusText = $"Extracting map to saves folder...";
+                StatusText = L10n.T("cb_extracting_map");
                 var mapDirName = SanitizeFolderName(project.Title);
                 var destMapDir = Path.Combine(savesDir, mapDirName);
                 if (Directory.Exists(destMapDir))
@@ -1798,7 +1798,7 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
                 MarkInstalled(project.ProjectId, Path.GetFileName(destMapDir));
                 project.IsInstalled = true;
                 UpdateInstalledFlags();
-                StatusText = $"Installed {project.Title} into worlds!";
+                StatusText = string.Format(L10n.T("cb_installed_worlds"), project.Title);
                 FlashInstalledFeedback();
                 _refreshAll?.Invoke();
                 return;
@@ -1808,16 +1808,16 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
             {
                 var apiKey = GetCurseForgeApiKey?.Invoke() ?? "";
                 project.IsInstalling = true;
-                StatusText = $"Fetching {project.Title} details...";
+                StatusText = string.Format(L10n.T("cb_fetching_details"), project.Title);
                 var fileInfo = await CurseForgeApiService.GetLatestProjectFileAsync(project.ProjectId, _gameVersion, _loaderType, apiKey, token);
                 if (fileInfo == null || string.IsNullOrWhiteSpace(fileInfo.DownloadUrl))
                 {
-                    StatusText = $"No downloadable file found for {project.Title}";
+                    StatusText = string.Format(L10n.T("cb_no_download_file"), project.Title);
                     project.IsInstalling = false;
                     return;
                 }
 
-                StatusText = string.Format(L10n.T("mi_installing"));
+                StatusText = L10n.T("mi_installing");
                 var targetDir = itemType.InstallFolder(_instancePath, SelectedWorld);
                 Directory.CreateDirectory(targetDir);
                 var destPath = Path.Combine(targetDir, fileInfo.FileName);
@@ -1825,7 +1825,7 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
                 var fileBytes = await CurseForgeApiService.DownloadAsync(fileInfo.DownloadUrl, token);
                 if (fileBytes == null || fileBytes.Length == 0)
                 {
-                    StatusText = $"Failed to download {project.Title}";
+                    StatusText = string.Format(L10n.T("cb_failed_download"), project.Title);
                     project.IsInstalling = false;
                     return;
                 }
@@ -1834,7 +1834,7 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
                 MarkInstalled(project.ProjectId, fileInfo.FileName);
                 project.IsInstalled = true;
                 UpdateInstalledFlags();
-                StatusText = $"Installed {project.Title}!";
+                StatusText = string.Format(L10n.T("cb_installed_item"), project.Title);
                 FlashInstalledFeedback();
                 _refreshAll?.Invoke();
                 return;
@@ -1897,7 +1897,7 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
         }
         catch (OperationCanceledException)
         {
-            StatusText = "Installation cancelled.";
+            StatusText = L10n.T("install_cancelled");
         }
         catch (Exception ex)
         {
@@ -1997,7 +1997,7 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
         }
         catch (OperationCanceledException)
         {
-            StatusText = "Installation cancelled.";
+            StatusText = L10n.T("install_cancelled");
         }
         catch (Exception ex)
         {
@@ -2121,7 +2121,7 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
         }
         catch (OperationCanceledException)
         {
-            StatusText = "Installation cancelled.";
+            StatusText = L10n.T("install_cancelled");
         }
         catch (Exception ex)
         {

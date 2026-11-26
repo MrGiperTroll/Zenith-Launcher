@@ -63,7 +63,7 @@ public partial class IconPickerViewModel : ObservableObject, IDisposable
         if (topLevel?.StorageProvider == null) return;
         var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "Select Custom Icon",
+            Title = L10n.T("dlg_select_icon"),
             AllowMultiple = false,
             FileTypeFilter = new[] { FilePickerFileTypes.ImageAll }
         });

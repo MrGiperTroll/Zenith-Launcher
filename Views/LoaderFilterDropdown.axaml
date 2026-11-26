@@ -1,6 +1,7 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ZenithLauncher.ViewModels"
+             xmlns:l10n="using:ZenithLauncher.Extensions"
              x:Class="ZenithLauncher.Views.LoaderFilterDropdown"
              x:DataType="vm:LoaderFilterViewModel">
 
@@ -88,7 +89,7 @@
                         <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="8,6,8,4">
                             <TextBlock Grid.Column="0" Text="{Binding SelectedText}" FontSize="11.5"
                                        Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
-                            <Button Grid.Column="1" Classes="clearBtn" Content="Clear" Command="{Binding ClearCommand}"
+                            <Button Grid.Column="1" Classes="clearBtn" Content="{l10n:Tr Key=grp_clear}" Command="{Binding ClearCommand}"
                                      FontSize="11.5" VerticalAlignment="Center"/>
                         </Grid>
 

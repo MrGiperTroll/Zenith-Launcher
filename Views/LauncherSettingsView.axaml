@@ -416,8 +416,8 @@
                                 controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="settings_card_directory">
                             <StackPanel Spacing="14">
                                 <StackPanel Spacing="3">
-                                    <TextBlock Classes="sectionHeaderTitle" Text="{l10n:Tr set_dirstrategy}"/>
-                                    <TextBlock Classes="sectionHeaderDesc" Text="{l10n:Tr set_dirstrategy_hint}"/>
+                                    <TextBlock Classes="sectionHeaderTitle" Text="{l10n:Tr set_storage}"/>
+                                    <TextBlock Classes="sectionHeaderDesc" Text="{l10n:Tr set_storage_hint}"/>
                                 </StackPanel>
                                 <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
 
@@ -426,7 +426,13 @@
                                         <TextBlock Classes="itemTitle" Text="{l10n:Tr set_dirstrategy}"/>
                                         <TextBlock Classes="itemDesc" Text="{l10n:Tr set_dirstrategy_hint}"/>
                                     </StackPanel>
-                                    <ComboBox Grid.Column="1" ItemsSource="{Binding DirectoryModes}" SelectedItem="{Binding SelectedDirectoryMode}" Classes="darkCombo" Width="260" Height="32" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    <ComboBox Grid.Column="1" ItemsSource="{Binding DirectoryModes}" SelectedItem="{Binding SelectedDirectoryMode}" Classes="darkCombo" Width="260" Height="32" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Converter={x:Static converters:DirectoryModeDisplayConverter.Instance}}"/>
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
                                 </Grid>
                             </StackPanel>
                         </Border>
@@ -666,7 +672,7 @@
                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                     <StackPanel Spacing="2" HorizontalAlignment="Left" VerticalAlignment="Center">
                                         <TextBlock Classes="itemTitle" Text="{l10n:Tr btn_clear_cache}"/>
-                                        <TextBlock Classes="itemDesc" Text="{l10n:Tr set_cache_hint}"/>
+                                        <TextBlock Classes="itemDesc" Text="{l10n:Tr set_clear_cache_hint}"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" VerticalAlignment="Center">
                                         <TextBlock Text="{Binding CacheStatusText}" FontSize="11.5"
@@ -1147,7 +1153,13 @@
                                         <Button Classes="subBtn" Command="{Binding BrowseCustomFontCommand}" ToolTip.Tip="{l10n:Tr set_font_browse_tip}" Height="32" Padding="10,0" VerticalAlignment="Center" IsVisible="{Binding IsCustomFontOption}">
                                             <TextBlock Text="{l10n:Tr btn_browse}" FontSize="11.5"/>
                                         </Button>
-                                        <ComboBox ItemsSource="{Binding FontStyleOptions}" SelectedItem="{Binding SelectedFontStyle}" Classes="darkCombo" Width="160" Height="32" FontSize="12" VerticalAlignment="Center"/>
+                                        <ComboBox ItemsSource="{Binding FontStyleOptions}" SelectedItem="{Binding SelectedFontStyle}" Classes="darkCombo" Width="160" Height="32" FontSize="12" VerticalAlignment="Center">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Converter={x:Static converters:FontStyleDisplayConverter.Instance}}"/>
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
                                     </StackPanel>
                                 </Grid>
 

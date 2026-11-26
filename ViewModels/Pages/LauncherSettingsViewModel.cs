@@ -314,13 +314,13 @@ public partial class LauncherSettingsViewModel : ViewModelBase
 
         DownloadingMajor = major;
         DownloadProgress = 0;
-        DownloadStatusText = $"Downloading Java {major}...";
+        DownloadStatusText = string.Format(L10n.T("java_downloading"), major);
         NotifyDownloadState();
 
         var progress = new Progress<double>(p =>
         {
             DownloadProgress = p;
-            DownloadStatusText = $"Downloading Java {major}... {p:P0}";
+            DownloadStatusText = string.Format(L10n.T("java_downloading_pct"), major, $"{p:P0}");
             NotifyDownloadState();
         });
 
@@ -368,11 +368,11 @@ public partial class LauncherSettingsViewModel : ViewModelBase
         {
             var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
             {
-                Title = $"Select Java {major} Executable (javaw.exe / java)",
+                Title = string.Format(L10n.T("dlg_select_java_ver"), major),
                 AllowMultiple = false,
                 FileTypeFilter = new[]
                 {
-                    new FilePickerFileType("Java Executable") { Patterns = new[] { "javaw.exe", "java.exe", "java" } },
+                    new FilePickerFileType(L10n.T("ft_java_exe")) { Patterns = new[] { "javaw.exe", "java.exe", "java" } },
                     FilePickerFileTypes.All
                 }
             });
@@ -416,7 +416,7 @@ public partial class LauncherSettingsViewModel : ViewModelBase
 
             default: // Recommended
                 var display = GetRecommendedJavaDisplay?.Invoke();
-                CurrentJavaDisplay = display ?? "Recommended (Auto)";
+                CurrentJavaDisplay = display ?? L10n.T("java_recommended_auto");
                 EffectiveJavaPath = "";
                 break;
         }
@@ -433,11 +433,11 @@ public partial class LauncherSettingsViewModel : ViewModelBase
         {
             var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
             {
-                Title = "Select Java Executable (javaw.exe / java)",
+                Title = L10n.T("dlg_select_java"),
                 AllowMultiple = false,
                 FileTypeFilter = new[]
                 {
-                    new FilePickerFileType("Java Executable") { Patterns = new[] { "javaw.exe", "java.exe", "java" } },
+                    new FilePickerFileType(L10n.T("ft_java_exe")) { Patterns = new[] { "javaw.exe", "java.exe", "java" } },
                     FilePickerFileTypes.All
                 }
             });
@@ -883,6 +883,7 @@ public partial class LauncherSettingsViewModel : ViewModelBase
             LanguageChanged?.Invoke(value);
             JavaModes = new ObservableCollection<string>(new[] { "Recommended", "System", "Custom" });
             DirectoryModes = new ObservableCollection<string>(new[] { "Separate directory for each instance", "Family", "Do not use separate directories" });
+            OnPropertyChanged(nameof(FontStyleOptions));
             UpdateJavaDisplay();
             var customCard = ThemeCards.FirstOrDefault(c => c.IsCustom);
             if (customCard != null)
@@ -1305,11 +1306,11 @@ public partial class LauncherSettingsViewModel : ViewModelBase
         {
             var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
             {
-                Title = "Select Font File (.ttf, .otf)",
+                Title = L10n.T("dlg_select_font"),
                 AllowMultiple = false,
                 FileTypeFilter = new[]
                 {
-                    new FilePickerFileType("Font Files (*.ttf, *.otf)") { Patterns = new[] { "*.ttf", "*.otf", "*.woff2" } },
+                    new FilePickerFileType(L10n.T("ft_font_files")) { Patterns = new[] { "*.ttf", "*.otf", "*.woff2" } },
                     FilePickerFileTypes.All
                 }
             });

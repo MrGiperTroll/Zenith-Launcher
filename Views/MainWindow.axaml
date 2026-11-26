@@ -72,7 +72,7 @@
                                         </ControlTheme>
                                     </Flyout.FlyoutPresenterTheme>
                                     <StackPanel Spacing="2" MinWidth="170">
-                                        <TextBlock Text="{Binding VersionLabel, StringFormat='Version {0}'}"
+                                        <TextBlock Text="{Binding VersionLabel, Converter={x:Static converters:L10nFormatConverter.Instance}, ConverterParameter=win_version_fmt}"
                                                    Foreground="{DynamicResource TextMutedBrush}"
                                                    FontSize="11.5"
                                                    FontWeight="SemiBold"
@@ -80,7 +80,7 @@
                                                    IsHitTestVisible="False"/>
                                         <Border Height="1" Background="{StaticResource BorderDarkBrush}" Margin="4,2"/>
                                         <Button Classes="menuItemBtn" Command="{Binding CheckForUpdatesNowCommand}">
-                                            <TextBlock Text="Check for Updates" FontSize="12" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{l10n:Tr Key=menu_check_updates}" FontSize="12" VerticalAlignment="Center"/>
                                         </Button>
                                     </StackPanel>
                                 </Flyout>
@@ -126,13 +126,13 @@
 
                     <!-- Right (Col 2): Window Caption Controls -->
                     <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="0" VerticalAlignment="Stretch" HorizontalAlignment="Right">
-                        <Button Classes="captionBtn" Click="OnMinimizeButtonClick" ToolTip.Tip="Minimize">
+                        <Button Classes="captionBtn" Click="OnMinimizeButtonClick" ToolTip.Tip="{l10n:Tr Key=win_minimize}">
                             <PathIcon Data="M19 13H5v-2h14v2z" Width="10" Height="10"/>
                         </Button>
-                        <Button Classes="captionBtn" Click="OnMaximizeButtonClick" ToolTip.Tip="Maximize">
+                        <Button Classes="captionBtn" Click="OnMaximizeButtonClick" ToolTip.Tip="{l10n:Tr Key=win_maximize}">
                             <PathIcon x:Name="MaximizeButtonIcon" Data="M4 4h16v16H4V4zm2 2v12h12V6H6z" Width="10" Height="10"/>
                         </Button>
-                        <Button x:Name="CloseWindowBtn" Classes="captionBtn captionCloseBtn" CornerRadius="0,11,0,0" Click="OnCloseButtonClick" ToolTip.Tip="Close">
+                        <Button x:Name="CloseWindowBtn" Classes="captionBtn captionCloseBtn" CornerRadius="0,11,0,0" Click="OnCloseButtonClick" ToolTip.Tip="{l10n:Tr Key=close}">
                             <PathIcon Data="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" Width="10" Height="10"/>
                         </Button>
                     </StackPanel>

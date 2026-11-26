@@ -208,7 +208,7 @@
                                 <CheckBox Content="{l10n:Tr Key=vf_alphas}" IsChecked="{Binding ShowAlphas}" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
                             </StackPanel>
 
-                            <CheckBox Grid.Column="1" Content="Flat list" IsChecked="{Binding UseFlatVersionList}" FontSize="11.5" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                            <CheckBox Grid.Column="1" Content="{l10n:Tr Key=set_flat_version_list_short}" IsChecked="{Binding UseFlatVersionList}" FontSize="11.5" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
                         </Grid>
                     </StackPanel>
                 </Border>
@@ -387,7 +387,7 @@
         <Border Grid.Row="1" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="10" Padding="18,12" Margin="0,12,0,0"
                 controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="cp_footer">
             <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
-                <Button Grid.Column="0" Content="{l10n:Tr Key=btn_reset}" Command="{Binding ResetWizardCommand}" Classes="subBtn" Padding="14,8" FontSize="11" ToolTip.Tip="Reset all fields"/>
+                <Button Grid.Column="0" Content="{l10n:Tr Key=btn_reset}" Command="{Binding ResetWizardCommand}" Classes="subBtn" Padding="14,8" FontSize="11" ToolTip.Tip="{l10n:Tr Key=cp_reset_tip}"/>
 
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                     <Button Content="{l10n:Tr Key=cancel}" Command="{Binding CancelCommand}" Classes="subBtn" Padding="18,9" FontSize="12"/>

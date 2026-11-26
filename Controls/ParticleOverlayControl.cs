@@ -1085,6 +1085,7 @@ public class ParticleOverlayControl : Control
         public bool NeedsRelaxation;
         public bool IsSynthetic;
         public float MaxHeight;
+        public float FadeOpacity = 1.0f;
 
         public bool HasLeaves => (Leaves is { Count: > 0 }) || (PendingSavedLeaves is { Count: > 0 });
         public bool HasSnow => MaxHeight > 0.25f || (PendingSavedBytes is { Length: > 0 }) || HasLeaves;
@@ -1213,7 +1214,6 @@ public class ParticleOverlayControl : Control
         private float _tabTransitionGraceSec;
         private bool _awaitingAtomicSwap;
         private long _pageSwitchTicks;
-        private float _pageFadeOpacity = 1.0f;
         private long _lastTicks;
         private float _elapsedSec;
 
@@ -1351,7 +1351,6 @@ public class ParticleOverlayControl : Control
                 _tabTransitionGraceSec = 0.42f;
                 _awaitingAtomicSwap = true;
                 _pageSwitchTicks = Stopwatch.GetTimestamp();
-                _pageFadeOpacity = 0.0f;
             }
             _activePageKey = cfg.ActivePageKey;
             _isModalOccluded = cfg.IsModalOccluded;
@@ -1587,12 +1586,17 @@ public class ParticleOverlayControl : Control
             if (_awaitingAtomicSwap && Stopwatch.GetElapsedTime(_pageSwitchTicks, nowTicks).TotalMilliseconds >= 95.0)
             {
                 _awaitingAtomicSwap = false;
-                _pageFadeOpacity = 0.0f;
             }
 
-            if (!_awaitingAtomicSwap && _pageFadeOpacity < 1.0f)
+            if (!_awaitingAtomicSwap)
             {
-                _pageFadeOpacity = MathF.Min(1.0f, _pageFadeOpacity + dt / 0.22f);
+                float fadeStep = dt / 0.22f;
+                for (int i = 0; i < _visibleSurfaces.Count; i++)
+                {
+                    var s = _visibleSurfaces[i];
+                    if (s.FadeOpacity < 1.0f)
+                        s.FadeOpacity = MathF.Min(1.0f, s.FadeOpacity + fadeStep);
+                }
             }
 
             _suppressCursorStepThisFrame = false;
@@ -3071,7 +3075,6 @@ public class ParticleOverlayControl : Control
                 if (hasTargetVisible || Stopwatch.GetElapsedTime(_pageSwitchTicks).TotalMilliseconds >= 95.0)
                 {
                     _awaitingAtomicSwap = false;
-                    _pageFadeOpacity = 0.0f;
                 }
             }
 
@@ -3104,6 +3107,7 @@ public class ParticleOverlayControl : Control
                     }
                     s.IsVisibleInFrame = false;
                     s.HasBeenPositioned = false;
+                    s.FadeOpacity = 0.0f;
                     s.VisitedThisFrame = true;
                     continue;
                 }
@@ -3161,6 +3165,8 @@ public class ParticleOverlayControl : Control
                 s.HasClipRect = snap.HasClipRect;
                 s.CornerRadiusLeft = snap.CornerRadiusLeft;
                 s.CornerRadiusRight = snap.CornerRadiusRight;
+                if (!s.IsVisibleInFrame && !s.IsSynthetic)
+                    s.FadeOpacity = 0.0f;
                 s.IsVisibleInFrame = true;
                 s.HasBeenPositioned = true;
                 s.VisitedThisFrame = true;
@@ -3185,6 +3191,7 @@ public class ParticleOverlayControl : Control
 
                 s.IsVisibleInFrame = false;
                 s.HasBeenPositioned = false;
+                s.FadeOpacity = 0.0f;
             }
         }
 
@@ -3532,12 +3539,6 @@ public class ParticleOverlayControl : Control
             return string.Equals(pageKey, _activePageKey, StringComparison.Ordinal);
         }
 
-        private static bool IsGlobalChromeSurface(DriftSurface s) =>
-            s.IsSynthetic
-            || string.Equals(s.PageKey, "Chrome", StringComparison.Ordinal)
-            || string.Equals(s.PageKey, "LaunchBar", StringComparison.Ordinal)
-            || string.Equals(s.PageKey, "Settings:Sidebar", StringComparison.Ordinal);
-
         private void RenderSnowDrifts(SKCanvas canvas)
         {
             if (_visibleSurfaces.Count == 0) return;
@@ -3548,7 +3549,6 @@ public class ParticleOverlayControl : Control
 
             var paint = _driftPaint;
             float baseOpacityFactor = 0.80f + _opacity * 0.20f;
-            float pageFade = _pageFadeOpacity;
 
             for (int i = 0; i < _visibleSurfaces.Count; i++)
             {
@@ -3560,7 +3560,7 @@ public class ParticleOverlayControl : Control
                 if (!s.IsSynthetic && !IsSurfaceVisibleOnCurrentPage(s.PageKey))
                     continue;
 
-                float surfaceOpacity = IsGlobalChromeSurface(s) ? baseOpacityFactor : baseOpacityFactor * pageFade;
+                float surfaceOpacity = baseOpacityFactor * (s.IsSynthetic ? 1.0f : s.FadeOpacity);
                 if (surfaceOpacity < 0.02f)
                     continue;
 
@@ -3869,7 +3869,6 @@ public class ParticleOverlayControl : Control
             var filters = _leafPaletteFilters;
             int filterCount = filters?.Length ?? 0;
 
-            float pageFade = _pageFadeOpacity;
             float baseScale = _kind == ParticleKind.Sakura ? 11.0f * _size : 15.5f * _size;
 
             for (int i = 0; i < _visibleSurfaces.Count; i++)
@@ -3882,7 +3881,7 @@ public class ParticleOverlayControl : Control
                 if (!s.IsSynthetic && !IsSurfaceVisibleOnCurrentPage(s.PageKey))
                     continue;
 
-                float surfaceFade = IsGlobalChromeSurface(s) ? 1.0f : pageFade;
+                float surfaceFade = s.IsSynthetic ? 1.0f : s.FadeOpacity;
                 if (surfaceFade < 0.02f)
                     continue;
 

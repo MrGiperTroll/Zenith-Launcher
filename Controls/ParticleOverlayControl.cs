@@ -2563,22 +2563,29 @@ public class ParticleOverlayControl : Control
             float leftover = mass;
             int spawned = 0;
 
-            while (leftover >= 0.65f && spawned < 4)
+            while (leftover >= 0.35f && spawned < 5)
             {
-                float unit = MathF.Min(leftover, 1.85f + (float)_rng.NextDouble() * 1.15f);
+                float unit = MathF.Min(leftover, 1.65f + (float)_rng.NextDouble() * 1.15f);
                 leftover -= unit;
-                float vx = edgeSign * (16f + (float)_rng.NextDouble() * 34f) + _cursorVx * 0.14f;
-                float vy = 16f + (float)_rng.NextDouble() * 34f;
+                float vx = edgeSign * (14f + (float)_rng.NextDouble() * 30f) + _cursorVx * 0.12f;
+                float vy = 14f + (float)_rng.NextDouble() * 30f;
                 SpawnDynamicSnowflake(
                     edgeX + ((float)_rng.NextDouble() - 0.5f) * 3f,
                     safeY,
                     vx,
                     vy,
                     cooldown: 0.09f,
-                    mass: Math.Clamp(unit / BaseSnowDeposit, 0.32f, 1.25f),
-                    isChunk: true,
-                    sizeScale: -1f);
+                    mass: Math.Clamp(unit / BaseSnowDeposit, 0.25f, 1.20f),
+                    isChunk: unit >= 0.70f,
+                    sizeScale: unit < 0.70f ? 0.52f : -1f);
                 spawned++;
+            }
+
+            if (leftover > 0.01f && s.Heights != null && s.CellCount > 0)
+            {
+                int edgeIdx = edgeSign < 0 ? 0 : s.CellCount - 1;
+                float cap = GetMaxHeightForCell(s, edgeIdx, GetSculptMaxHeightPx());
+                s.Heights[edgeIdx] = MathF.Min(cap, s.Heights[edgeIdx] + leftover);
             }
         }
 
@@ -2598,12 +2605,18 @@ public class ParticleOverlayControl : Control
             float dx = x1 - x0;
             float dy = y1 - y0;
             float segLen = MathF.Sqrt(dx * dx + dy * dy);
-            int steps = Math.Clamp((int)MathF.Ceiling(segLen / 4.0f), 1, 22);
-            float moveDir = MathF.Abs(_cursorVx) > 22f ? MathF.Sign(_cursorVx) : (MathF.Abs(dx) > 0.8f ? MathF.Sign(dx) : 0f);
+            int steps = Math.Clamp((int)MathF.Ceiling(segLen / 5.0f), 1, 18);
+            float stepDist = segLen / steps;
+            float moveDir = MathF.Abs(_cursorVx) > 18f ? MathF.Sign(_cursorVx) : (MathF.Abs(dx) > 0.8f ? MathF.Sign(dx) : 0f);
             float cursorSpeed = MathF.Sqrt(_cursorVx * _cursorVx + _cursorVy * _cursorVy);
             bool sharpFlick = IsSharpCursorFlick(cursorSpeed);
-            bool isPressingDown = !sharpFlick && _cursorVy > 24f && MathF.Abs(_cursorVy) > MathF.Abs(_cursorVx) * 0.72f;
+            bool isPressingDown = !sharpFlick && _cursorVy > 22f && MathF.Abs(_cursorVy) > MathF.Abs(_cursorVx) * 0.72f;
             float sculptCap = GetSculptMaxHeightPx();
+
+            // Cursor behaves like a soft hand: slow touch barely brushes the top fluff,
+            // while moving a deep heavy snowbank requires repeated or stronger strokes.
+            float forceFactor = MathF.Pow(Math.Clamp((cursorSpeed - 14f) / 820f, 0.05f, 1.0f), 0.85f);
+            float overlapDamping = steps <= 1 ? 1.0f : Math.Clamp(stepDist / (BrushRadiusPx * 1.15f), 0.32f, 1.0f);
 
             for (int i = 0; i < _visibleSurfaces.Count; i++)
             {
@@ -2617,21 +2630,23 @@ public class ParticleOverlayControl : Control
                     continue;
 
                 float radius = s.IsSynthetic ? 10.5f : BrushRadiusPx;
+                float workBudget = (1.85f + segLen * 0.30f) * (0.22f + 1.18f * forceFactor) * (sharpFlick ? 1.75f : 1.0f);
                 bool modified = false;
                 float ejectedMass = 0f;
                 float leftSpillMass = 0f;
                 float rightSpillMass = 0f;
+                int lastHitCell = Math.Clamp((int)((x1 - s.Left) / CellWidthPx), 0, s.CellCount - 1);
                 float lastHitX = x1;
                 float lastHitY = s.Top;
                 int dustSpawned = 0;
 
-                for (int step = 0; step <= steps; step++)
+                for (int step = 0; step <= steps && workBudget > 0.03f; step++)
                 {
                     float t = steps == 0 ? 1f : (float)step / steps;
                     float px = x0 + dx * t;
                     float py = y0 + dy * t;
 
-                    if (py < s.Top - s.MaxHeight - 7f || py > s.Top + 6f)
+                    if (py < s.Top - s.MaxHeight - 6f || py > s.Top + 6f)
                         continue;
                     if (px < s.Left - radius || px > s.Right + radius)
                         continue;
@@ -2642,27 +2657,58 @@ public class ParticleOverlayControl : Control
                         ? (int)MathF.Floor((px + moveDir * (radius * 0.85f + 2.0f) - s.Left) / CellWidthPx)
                         : -1;
 
-                    for (int c = cStart; c <= cEnd; c++)
+                    for (int c = cStart; c <= cEnd && workBudget > 0.03f; c++)
                     {
                         float h = s.Heights[c];
                         if (h <= 0.12f) continue;
 
                         float cellCenterX = s.Left + (c + 0.5f) * CellWidthPx;
-                        float cellTopY = s.Top - h * 0.5f;
+                        float crestY = s.Top - h;
+                        if (py < crestY - 4.5f || py > s.Top + 6.0f)
+                            continue;
+
                         float distX = MathF.Abs(cellCenterX - px);
-                        float distY = MathF.Abs(cellTopY - py);
+                        float anchorY = Math.Clamp(py, crestY, s.Top);
+                        float distY = MathF.Abs(anchorY - py);
                         float distSq = distX * distX + distY * distY;
                         if (distSq > radius * radius) continue;
 
                         float falloff = 1.0f - MathF.Sqrt(distSq) / radius;
-                        float brushFraction = sharpFlick
-                            ? (0.50f + 0.42f * falloff)
-                            : (isPressingDown ? (0.34f + 0.36f * falloff) : (0.32f + 0.44f * falloff));
-                        float disturbed = MathF.Min(h, h * brushFraction);
-                        if (disturbed <= 0.04f) continue;
+                        float depthInSnow = Math.Clamp((py - (crestY - 4.5f)) / MathF.Max(5.5f, h + 4.5f), 0.14f, 1.0f);
 
+                        // Measure packed snow ahead so big drifts resist pushing until real force is applied
+                        float aheadAvg = h;
+                        if (moveDir != 0f)
+                        {
+                            int dir = (int)moveDir;
+                            float sum = 0f;
+                            int cnt = 0;
+                            for (int a = 1; a <= 3; a++)
+                            {
+                                int ac = c + dir * a;
+                                if ((uint)ac < (uint)s.CellCount)
+                                {
+                                    sum += s.Heights[ac];
+                                    cnt++;
+                                }
+                            }
+                            if (cnt > 0) aheadAvg = sum / cnt;
+                        }
+                        float resistance = 1.0f + h * 0.14f + aheadAvg * 0.12f;
+
+                        float baseFraction = sharpFlick
+                            ? (0.34f + 0.44f * forceFactor)
+                            : (0.09f + 0.34f * forceFactor);
+                        float rawTake = h * baseFraction * falloff * depthInSnow * overlapDamping / MathF.Sqrt(resistance);
+                        float maxByBudget = workBudget / resistance;
+                        float softFloor = sharpFlick ? 0f : MathF.Min(h * 0.18f, 0.85f);
+                        float disturbed = Math.Clamp(rawTake, 0f, MathF.Min(maxByBudget, MathF.Max(0f, h - softFloor)));
+                        if (disturbed <= 0.03f) continue;
+
+                        workBudget = MathF.Max(0f, workBudget - disturbed * resistance);
                         s.Heights[c] = h - disturbed;
                         modified = true;
+                        lastHitCell = c;
                         lastHitX = cellCenterX;
                         lastHitY = s.Top - s.Heights[c];
 
@@ -2670,17 +2716,17 @@ public class ParticleOverlayControl : Control
 
                         if (isPressingDown)
                         {
-                            // Vertical press compresses and displaces snow out to both sides into a crater + twin ridges
+                            // Vertical press compresses and parts snow gently to both sides; any unplaceable snow stays in place
                             int side = cellCenterX < px ? -1 : 1;
                             int startSideCell = Math.Clamp(c + side * 2, 0, s.CellCount - 1);
-                            remainingShare = PushSnowIntoWave(s, startSideCell, side, disturbed * 0.86f, sculptCap, allowEdgeSpill: false)
-                                           + disturbed * 0.14f;
+                            float unplaced = PushSnowIntoWave(s, startSideCell, side, disturbed * 0.88f, sculptCap, allowEdgeSpill: false);
+                            s.Heights[c] += unplaced * 0.72f;
+                            remainingShare = disturbed * 0.12f + unplaced * 0.28f;
                         }
                         else if (moveDir != 0f)
                         {
-                            // Snowplow: push snow smoothly ahead of the leading edge of the cursor into a mound
-                            float speedT = Math.Clamp((cursorSpeed - 180f) / 900f, 0f, 1f);
-                            float plowRatio = sharpFlick ? 0.34f : (0.80f - 0.24f * speedT);
+                            float speedT = Math.Clamp((cursorSpeed - 160f) / 900f, 0f, 1f);
+                            float plowRatio = sharpFlick ? 0.36f : (0.86f - 0.26f * speedT);
                             float plowAmount = disturbed * plowRatio;
                             remainingShare = disturbed - plowAmount;
 
@@ -2696,13 +2742,13 @@ public class ParticleOverlayControl : Control
                                 else
                                 {
                                     float unbanked = PushSnowIntoWave(s, Math.Clamp(targetStart, 0, s.CellCount - 1), -pushDir, plowAmount, sculptCap, allowEdgeSpill: false);
-                                    remainingShare += unbanked;
+                                    s.Heights[c] += unbanked;
                                 }
                             }
                             else
                             {
                                 float overflow = PushSnowIntoWave(s, targetStart, pushDir, plowAmount, sculptCap, allowEdgeSpill: !s.IsSynthetic);
-                                if (overflow > 0.02f)
+                                if (overflow > 0.01f)
                                 {
                                     if (!s.IsSynthetic && ((pushDir < 0 && targetStart <= 5) || (pushDir > 0 && targetStart >= s.CellCount - 6)))
                                     {
@@ -2711,49 +2757,52 @@ public class ParticleOverlayControl : Control
                                     }
                                     else
                                     {
-                                        remainingShare += overflow;
+                                        // Saturated drift resists further compression: keep most snow in place
+                                        float keepRatio = sharpFlick ? 0.25f : 0.72f;
+                                        s.Heights[c] += overflow * keepRatio;
+                                        remainingShare += overflow * (1f - keepRatio);
                                     }
                                 }
                             }
                         }
 
-                        // Coat cursor edge gently with powder without draining the drift
+                        // Light powder dusting on cursor edge without draining drifts
                         if (!sharpFlick && remainingShare > 0.02f)
                         {
-                            float scoopRequest = remainingShare * 0.42f;
+                            float scoopRequest = remainingShare * 0.18f;
                             float scooped = TryCoatCursorFromDrift(scoopRequest, moveDir);
                             remainingShare -= scooped;
                         }
 
                         ejectedMass += remainingShare;
-                        float spawnUnitThreshold = sharpFlick ? 1.85f : 2.85f;
+                        float spawnUnitThreshold = sharpFlick ? 1.80f : 2.95f;
                         while (ejectedMass >= spawnUnitThreshold)
                         {
-                            float unit = MathF.Min(ejectedMass, 1.65f + (float)_rng.NextDouble() * 1.45f);
+                            float unit = MathF.Min(ejectedMass, 1.55f + (float)_rng.NextDouble() * 1.35f);
                             ejectedMass -= unit;
-                            float launchVx = Math.Clamp(_cursorVx * 0.30f + ((float)_rng.NextDouble() - 0.5f) * 38f, -220f, 220f);
-                            float launchVy = Math.Clamp(_cursorVy * 0.16f - 22f - cursorSpeed * 0.032f - (float)_rng.NextDouble() * 18f, -175f, -14f);
+                            float launchVx = Math.Clamp(_cursorVx * 0.26f + ((float)_rng.NextDouble() - 0.5f) * 34f, -210f, 210f);
+                            float launchVy = Math.Clamp(_cursorVy * 0.14f - 18f - cursorSpeed * 0.028f - (float)_rng.NextDouble() * 16f, -165f, -12f);
                             SpawnDynamicSnowflake(
                                 lastHitX,
                                 MathF.Min(s.Top - 2.0f, lastHitY - 1.0f),
                                 launchVx,
                                 launchVy,
-                                cooldown: 0.055f,
+                                cooldown: 0.06f,
                                 mass: unit / BaseSnowDeposit,
                                 isChunk: true,
                                 sizeScale: -1f);
 
-                            if (dustSpawned < 3 && _rng.NextDouble() < 0.42)
+                            if (dustSpawned < 2 && _rng.NextDouble() < 0.35)
                             {
                                 SpawnDynamicSnowflake(
                                     lastHitX,
                                     MathF.Min(s.Top - 2.0f, lastHitY - 1.0f),
-                                    launchVx * 0.60f + ((float)_rng.NextDouble() - 0.5f) * 34f,
-                                    MathF.Min(-14f, launchVy - 10f),
-                                    cooldown: 0.055f,
+                                    launchVx * 0.60f + ((float)_rng.NextDouble() - 0.5f) * 30f,
+                                    MathF.Min(-12f, launchVy - 8f),
+                                    cooldown: 0.06f,
                                     mass: 0.15f,
                                     isChunk: false,
-                                    sizeScale: 0.44f);
+                                    sizeScale: 0.42f);
                                 dustSpawned++;
                             }
                         }
@@ -2762,25 +2811,31 @@ public class ParticleOverlayControl : Control
 
                 if (modified)
                 {
-                    if (leftSpillMass >= 0.65f)
+                    if (leftSpillMass >= 0.02f)
                         EmitEdgeSpillParticles(s, -1, leftSpillMass);
-                    if (rightSpillMass >= 0.65f)
+                    if (rightSpillMass >= 0.02f)
                         EmitEdgeSpillParticles(s, 1, rightSpillMass);
 
-                    if (ejectedMass >= 0.75f && (sharpFlick || cursorSpeed > 420f))
+                    if (ejectedMass >= 0.55f && (sharpFlick || cursorSpeed > 320f))
                     {
-                        float launchVx = Math.Clamp(_cursorVx * 0.28f + ((float)_rng.NextDouble() - 0.5f) * 34f, -200f, 200f);
-                        float launchVy = Math.Clamp(_cursorVy * 0.14f - 20f - cursorSpeed * 0.028f, -160f, -12f);
+                        float launchVx = Math.Clamp(_cursorVx * 0.24f + ((float)_rng.NextDouble() - 0.5f) * 30f, -190f, 190f);
+                        float launchVy = Math.Clamp(_cursorVy * 0.12f - 18f - cursorSpeed * 0.025f, -155f, -10f);
                         SpawnDynamicSnowflake(
                             lastHitX,
                             MathF.Min(s.Top - 2.0f, lastHitY - 1.0f),
                             launchVx,
                             launchVy,
-                            cooldown: 0.055f,
-                            mass: Math.Clamp(ejectedMass / BaseSnowDeposit, 0.35f, 1.35f),
+                            cooldown: 0.06f,
+                            mass: Math.Clamp(ejectedMass / BaseSnowDeposit, 0.25f, 1.35f),
                             isChunk: true,
                             sizeScale: -1f);
                     }
+                    else if (ejectedMass > 0.01f)
+                    {
+                        // Conserve mass: return sub-threshold powder back onto the drift
+                        DepositGaussian(s, lastHitCell, ejectedMass, sculptCap);
+                    }
+
                     s.NeedsRelaxation = true;
                     RecomputeMaxHeight(s);
                     _persistenceDirty = true;

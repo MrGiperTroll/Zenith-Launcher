@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using ZenithLauncher.Services;
 
 namespace ZenithLauncher.Models;
@@ -28,6 +29,12 @@ public struct SettledLeaf
     public byte SpriteIndex { get; set; }
     public byte PaletteIndex { get; set; }
     public byte Alpha { get; set; }
+
+    [JsonIgnore] public float Vx;
+    [JsonIgnore] public float AngularVel;
+    [JsonIgnore] public float TargetOffsetY;
+    [JsonIgnore] public float TargetRotation;
+    [JsonIgnore] public bool IsSettling;
 }
 
 /// <summary>

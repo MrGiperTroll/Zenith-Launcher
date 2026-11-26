@@ -1213,7 +1213,6 @@ public class ParticleOverlayControl : Control
         private float _tabTransitionGraceSec;
         private bool _awaitingAtomicSwap;
         private long _pageSwitchTicks;
-        private float _pageFadeOpacity = 1.0f;
         private long _lastTicks;
         private float _elapsedSec;
 
@@ -1351,7 +1350,6 @@ public class ParticleOverlayControl : Control
                 _tabTransitionGraceSec = 0.42f;
                 _awaitingAtomicSwap = true;
                 _pageSwitchTicks = Stopwatch.GetTimestamp();
-                _pageFadeOpacity = 0.0f;
             }
             _activePageKey = cfg.ActivePageKey;
             _isModalOccluded = cfg.IsModalOccluded;
@@ -1587,12 +1585,6 @@ public class ParticleOverlayControl : Control
             if (_awaitingAtomicSwap && Stopwatch.GetElapsedTime(_pageSwitchTicks, nowTicks).TotalMilliseconds >= 95.0)
             {
                 _awaitingAtomicSwap = false;
-                _pageFadeOpacity = 0.0f;
-            }
-
-            if (!_awaitingAtomicSwap && _pageFadeOpacity < 1.0f)
-            {
-                _pageFadeOpacity = MathF.Min(1.0f, _pageFadeOpacity + dt / 0.22f);
             }
 
             _suppressCursorStepThisFrame = false;
@@ -1627,7 +1619,8 @@ public class ParticleOverlayControl : Control
             float margin = 42.0f;
             float drag = MathF.Exp(-3.4f * dt);
             float cursorSpeedSq = _cursorVx * _cursorVx + _cursorVy * _cursorVy;
-            bool hasCursorWake = !_suppressCursorStepThisFrame && _snowCursorInteractionEnabled && _cursorActive && cursorSpeedSq > 3000f;
+            float wakeThresholdSq = _kind == ParticleKind.Snow ? 3000f : 180f;
+            bool hasCursorWake = !_suppressCursorStepThisFrame && _snowCursorInteractionEnabled && _cursorActive && cursorSpeedSq > wakeThresholdSq;
             bool canLandOnCursor = _kind == ParticleKind.Snow && !_suppressCursorStepThisFrame && _snowCursorInteractionEnabled && _cursorActive && !_isModalOccluded && cursorSpeedSq < (420f * 420f);
 
             // Step ambient particles
@@ -1641,6 +1634,11 @@ public class ParticleOverlayControl : Control
             {
                 if (!_items[i].IsActive) continue;
                 StepSingleSnowflake(ref _items[i], dt, baseFall * 1.08f, windPx * 0.72f, margin, drag, hasCursorWake, canLandOnCursor);
+            }
+
+            if (_kind is ParticleKind.Leaves or ParticleKind.Sakura)
+            {
+                StepSettledLeaves(dt);
             }
 
             // Relax slopes on modified visible surfaces
@@ -1705,22 +1703,31 @@ public class ParticleOverlayControl : Control
             }
             else
             {
-                p.Vx *= drag;
-                p.Vy *= drag;
                 if (isLeafOrSakura)
+                {
+                    float leafDrag = MathF.Exp(-1.45f * dt);
+                    p.Vx *= leafDrag;
+                    p.Vy *= leafDrag;
                     p.Angle += p.SpinRate * dt;
+                }
+                else
+                {
+                    p.Vx *= drag;
+                    p.Vy *= drag;
+                }
             }
 
             // Cursor airwake
+            float wakeRadius = isLeafOrSakura ? 68.0f : AirwakeRadiusPx;
             if (hasCursorWake)
             {
                 float dx = p.X - _cursorX;
                 float dy = p.Y - _cursorY;
                 float distSq = dx * dx + dy * dy;
-                if (distSq < AirwakeRadiusPx * AirwakeRadiusPx && distSq > 1f)
+                if (distSq < wakeRadius * wakeRadius && distSq > 1f)
                 {
                     float dist = MathF.Sqrt(distSq);
-                    float w = 1.0f - (dist / AirwakeRadiusPx);
+                    float w = 1.0f - (dist / wakeRadius);
                     float w2 = w * w;
                     float invD = 1.0f / dist;
                     float radialX = dx * invD;
@@ -1728,13 +1735,49 @@ public class ParticleOverlayControl : Control
                     float cross = radialX * _cursorVy - radialY * _cursorVx;
                     float swirlSign = cross >= 0f ? 1f : -1f;
                     float swirlMag = MathF.Min(240f, MathF.Sqrt(_cursorVx * _cursorVx + _cursorVy * _cursorVy) * 0.35f);
-                    float wakeScale = p.IsChunk ? 0.22f : (isLeafOrSakura ? 1.25f : 1.0f);
+                    float wakeScale = p.IsChunk ? 0.22f : (isLeafOrSakura ? 1.45f : 1.0f);
 
                     p.Vx += (_cursorVx * 0.50f * w2 + radialX * 85f * w2 - radialY * swirlSign * swirlMag * w2) * dt * 8.0f * wakeScale;
                     p.Vy += (_cursorVy * 0.38f * w2 + radialY * 65f * w2 + radialX * swirlSign * swirlMag * w2) * dt * 8.0f * wakeScale;
+                    if (isLeafOrSakura)
+                    {
+                        p.SpinRate = Math.Clamp(p.SpinRate + swirlSign * w2 * 9.0f * dt, -6.5f, 6.5f);
+                    }
 
                     p.Vx = Math.Clamp(p.Vx, -380f, 380f);
                     p.Vy = Math.Clamp(p.Vy, -340f, 440f);
+                }
+            }
+
+            // Direct physical cursor deflection for falling leaves & sakura even when cursor moves slowly or sits still
+            if (isLeafOrSakura && _snowCursorInteractionEnabled && _cursorActive && !_isModalOccluded)
+            {
+                float cdx = p.X - (_cursorX + 5.0f);
+                float cdy = p.Y - (_cursorY + 6.5f);
+                float cDistSq = cdx * cdx + cdy * cdy;
+                const float contactR = 15.0f;
+                if (cDistSq < contactR * contactR)
+                {
+                    float dist = MathF.Sqrt(cDistSq);
+                    float nx, ny;
+                    if (dist > 0.001f)
+                    {
+                        nx = cdx / dist;
+                        ny = cdy / dist;
+                    }
+                    else
+                    {
+                        nx = p.X >= _cursorX + 5.0f ? 1f : -1f;
+                        ny = -0.35f;
+                    }
+
+                    float overlap = contactR - dist;
+                    float cSpeed = MathF.Sqrt(_cursorVx * _cursorVx + _cursorVy * _cursorVy);
+                    p.X += nx * overlap * 0.55f;
+                    p.Y += ny * overlap * 0.25f;
+                    p.Vx = Math.Clamp(p.Vx + nx * (48f + cSpeed * 0.14f) * dt * 12f + _cursorVx * 0.16f, -340f, 340f);
+                    p.Vy = Math.Clamp(p.Vy + (ny * 26f - 28f) * dt * 12f + _cursorVy * 0.12f, -290f, 320f);
+                    p.SpinRate = Math.Clamp(p.SpinRate + (nx >= 0f ? 1f : -1f) * 3.8f * dt * 8f, -6.8f, 6.8f);
                 }
             }
 
@@ -1767,7 +1810,7 @@ public class ParticleOverlayControl : Control
             // Surface landing collision
             if (!_isModalOccluded && p.Cooldown <= 0f && totalVy > 4f && _visibleSurfaces.Count > 0)
             {
-                if (TryCollideAndDeposit(ref p))
+                if (TryCollideAndDeposit(ref p, totalVx, totalVy))
                 {
                     if (p.IsDynamic)
                     {
@@ -2011,7 +2054,7 @@ public class ParticleOverlayControl : Control
             _cursorPixelMax = max;
         }
 
-        private bool TryCollideAndDeposit(ref ParticleItem p)
+        private bool TryCollideAndDeposit(ref ParticleItem p, float totalVx, float totalVy)
         {
             bool isLeafOrSakura = _kind is ParticleKind.Leaves or ParticleKind.Sakura;
 
@@ -2036,7 +2079,7 @@ public class ParticleOverlayControl : Control
 
                 if (isLeafOrSakura)
                 {
-                    if (TryCollideAndDepositLeaf(s, ref p))
+                    if (TryCollideAndDepositLeaf(s, ref p, totalVx, totalVy))
                         return true;
                     continue;
                 }
@@ -2080,7 +2123,19 @@ public class ParticleOverlayControl : Control
             return false;
         }
 
-        private bool TryCollideAndDepositLeaf(DriftSurface s, ref ParticleItem p)
+        private float GetLeafSpriteHalfHeight(byte spriteIndex, float sizeScale)
+        {
+            float baseScale = _kind == ParticleKind.Sakura ? 11.0f * _size : 15.5f * _size;
+            var sprites = _spriteImages;
+            if (sprites == null || sprites.Length == 0)
+                return baseScale * sizeScale * 0.5f;
+
+            var img = sprites[spriteIndex % sprites.Length];
+            int maxDim = Math.Max(1, Math.Max(img.Width, img.Height));
+            return img.Height * ((baseScale * sizeScale) / maxDim) * 0.5f;
+        }
+
+        private bool TryCollideAndDepositLeaf(DriftSurface s, ref ParticleItem p, float totalVx, float totalVy)
         {
             float cornerPadL = MathF.Max(3.0f, s.CornerRadiusLeft * 0.35f);
             float cornerPadR = MathF.Max(3.0f, s.CornerRadiusRight * 0.35f);
@@ -2097,14 +2152,16 @@ public class ParticleOverlayControl : Control
                     var existing = leaves[j];
                     if (MathF.Abs(existing.RelX - relX) < 6.5f)
                     {
-                        float topCandidate = existing.OffsetY + 1.85f;
+                        float topCandidate = existing.TargetOffsetY + 1.85f;
                         if (topCandidate > stackTopY) stackTopY = topCandidate;
                     }
                 }
             }
 
-            float hitY = s.Top - stackTopY + 1.5f;
-            if (p.PrevY > s.Top + 3.0f || p.Y < hitY)
+            float halfH = GetLeafSpriteHalfHeight(p.SpriteIndex, p.SizeScale);
+            float restAnchorOffset = halfH * 0.36f - 1.0f;
+            float hitCenterY = s.Top - stackTopY - restAnchorOffset;
+            if (p.PrevY > hitCenterY + 5.0f || p.Y < hitCenterY - 0.5f)
                 return false;
 
             // Respect lower accumulation rate cleanly without splitting 1 leaf into fragments
@@ -2136,22 +2193,116 @@ public class ParticleOverlayControl : Control
                 s.Leaves.RemoveAt(0);
             }
 
-            // Settle 1 full-size leaf with its exact original sprite, palette color, and scale
-            float normalizedAngle = MathF.IEEERemainder(p.Angle, MathF.PI * 2.0f);
-            float restRotation = Math.Clamp(normalizedAngle * 0.28f, -0.58f, 0.58f);
+            // Capture exact falling pose/opacity on contact and smoothly settle onto the surface
+            float currentAngle = MathF.IEEERemainder(p.Angle, MathF.PI * 2.0f);
+            float baseHoriz = MathF.Abs(currentAngle) > MathF.PI * 0.5f
+                ? (currentAngle >= 0f ? MathF.PI : -MathF.PI)
+                : 0f;
+            float targetRotation = baseHoriz + Math.Clamp((currentAngle - baseHoriz) * 0.32f, -0.48f, 0.48f);
+            float targetOffsetY = Math.Clamp(stackTopY + (float)_rng.NextDouble() * 0.7f, 0f, maxStack);
+            float startOffsetY = Math.Clamp(s.Top - restAnchorOffset - p.Y, targetOffsetY, targetOffsetY + 4.5f);
+
             s.Leaves.Add(new SettledLeaf
             {
                 RelX = Math.Clamp(relX, cornerPadL, MathF.Max(cornerPadL, s.Width - cornerPadR)),
-                OffsetY = Math.Clamp(stackTopY + (float)_rng.NextDouble() * 0.7f, 0f, maxStack),
-                Rotation = restRotation,
+                OffsetY = startOffsetY,
+                Rotation = currentAngle,
                 Scale = p.SizeScale,
                 SpriteIndex = p.SpriteIndex,
                 PaletteIndex = p.PaletteIndex,
-                Alpha = (byte)Math.Clamp((int)MathF.Round((0.84f + _opacity * 0.16f) * p.AlphaScale * 255f), 145, 255)
+                Alpha = (byte)Math.Clamp((int)MathF.Round(p.AlphaScale * 255f), 40, 255),
+                Vx = Math.Clamp(totalVx * 0.52f, -95f, 95f),
+                AngularVel = Math.Clamp(p.SpinRate * 0.45f, -5.5f, 5.5f),
+                TargetOffsetY = targetOffsetY,
+                TargetRotation = targetRotation,
+                IsSettling = true
             });
 
             _persistenceDirty = true;
             return true;
+        }
+
+        private void StepSettledLeaves(float dt)
+        {
+            float cursorSpeedSq = _cursorVx * _cursorVx + _cursorVy * _cursorVy;
+            bool cursorRustle = _snowCursorInteractionEnabled && _cursorActive && !_isModalOccluded && cursorSpeedSq > 180f * 180f;
+            float cursorSpeed = cursorRustle ? MathF.Sqrt(cursorSpeedSq) : 0f;
+            float maxStack = MathF.Max(2.0f, _snowMaxHeightPx * 0.92f);
+
+            for (int i = 0; i < _visibleSurfaces.Count; i++)
+            {
+                var s = _visibleSurfaces[i];
+                var leaves = s.Leaves;
+                if (leaves == null || leaves.Count == 0)
+                    continue;
+
+                float cornerPadL = MathF.Max(3.0f, s.CornerRadiusLeft * 0.35f);
+                float cornerPadR = MathF.Max(3.0f, s.CornerRadiusRight * 0.35f);
+                float maxRelX = MathF.Max(cornerPadL, s.Width - cornerPadR);
+                bool surfaceNearCursor = cursorRustle
+                    && _cursorX >= s.Left - 36f && _cursorX <= s.Right + 36f
+                    && _cursorY >= s.Top - maxStack - 36f && _cursorY <= s.Top + 26f;
+
+                for (int j = leaves.Count - 1; j >= 0; j--)
+                {
+                    var leaf = leaves[j];
+
+                    if (surfaceNearCursor)
+                    {
+                        float wx = s.Left + leaf.RelX;
+                        float wy = s.Top - leaf.OffsetY - 2f;
+                        float dx = wx - _cursorX;
+                        float dy = wy - _cursorY;
+                        float d2 = dx * dx + dy * dy;
+                        if (d2 < 34f * 34f && d2 > 14f * 14f)
+                        {
+                            float falloff = 1.0f - MathF.Sqrt(d2) / 34f;
+                            float gust = Math.Clamp(cursorSpeed * 0.04f, 4f, 24f) * falloff;
+                            leaf.Vx = Math.Clamp(leaf.Vx + MathF.Sign(_cursorVx + (dx >= 0f ? 1f : -1f)) * gust * dt * 10f, -70f, 70f);
+                            leaf.AngularVel = Math.Clamp(leaf.AngularVel + (_cursorVx >= 0f ? 1f : -1f) * 2.2f * falloff * dt * 8f, -4.5f, 4.5f);
+                            leaf.IsSettling = true;
+                        }
+                    }
+
+                    if (!leaf.IsSettling)
+                        continue;
+
+                    leaf.RelX += leaf.Vx * dt;
+                    leaf.Vx *= MathF.Exp(-7.5f * dt);
+
+                    float dyOffset = leaf.TargetOffsetY - leaf.OffsetY;
+                    leaf.OffsetY += dyOffset * MathF.Min(1f, dt * 12.0f);
+
+                    float angDiff = leaf.TargetRotation - leaf.Rotation;
+                    leaf.AngularVel = (leaf.AngularVel + angDiff * 34.0f * dt) * MathF.Exp(-8.5f * dt);
+                    leaf.Rotation = Math.Clamp(leaf.Rotation + leaf.AngularVel * dt, -MathF.PI, MathF.PI);
+
+                    if (!s.IsSynthetic && (leaf.RelX < cornerPadL - 2.0f || leaf.RelX > maxRelX + 2.0f))
+                    {
+                        float wx = s.Left + leaf.RelX;
+                        float wy = s.Top - leaf.OffsetY - 2f;
+                        leaves.RemoveAt(j);
+                        SpawnDynamicLeafFromSettled(in leaf, wx, MathF.Min(s.Top - 1f, wy), leaf.Vx * 0.85f, 18f, cooldown: 0.16f);
+                        _persistenceDirty = true;
+                        continue;
+                    }
+
+                    leaf.RelX = Math.Clamp(leaf.RelX, cornerPadL, maxRelX);
+                    if (MathF.Abs(leaf.Vx) < 0.7f
+                        && MathF.Abs(angDiff) < 0.015f
+                        && MathF.Abs(leaf.AngularVel) < 0.05f
+                        && MathF.Abs(dyOffset) < 0.08f)
+                    {
+                        leaf.Vx = 0f;
+                        leaf.AngularVel = 0f;
+                        leaf.OffsetY = leaf.TargetOffsetY;
+                        leaf.Rotation = leaf.TargetRotation;
+                        leaf.IsSettling = false;
+                    }
+
+                    leaves[j] = leaf;
+                }
+            }
         }
 
         private static bool DepositGaussian(DriftSurface s, int centerCell, float totalVolume, float maxDriftHeightPx)
@@ -2449,16 +2600,20 @@ public class ParticleOverlayControl : Control
                     }
                     else
                     {
-                        // Gentle touch: nudge/slide leaf horizontally, wiggle angle, press slightly downward
-                        float pushX = (MathF.Abs(dx) > 0.1f ? dx * 0.65f : moveSign * 1.4f) * falloff;
+                        // Gentle touch: glide/tilt leaf smoothly, press slightly downward
+                        float pushX = (MathF.Abs(dx) > 0.1f ? dx * 0.62f : moveSign * 1.3f) * falloff;
                         if (MathF.Abs(pushX) < 0.05f && MathF.Abs(ddx) > 0.2f)
                             pushX = MathF.Sign(ddx) * 0.6f * falloff;
 
                         leaf.RelX += pushX;
-                        leaf.Rotation = Math.Clamp(leaf.Rotation + (pushX >= 0f ? 1f : -1f) * falloff * 0.12f, -1.25f, 1.25f);
+                        leaf.Vx = Math.Clamp(leaf.Vx + pushX * 22f, -120f, 120f);
+                        leaf.Rotation = Math.Clamp(leaf.Rotation + (pushX >= 0f ? 1f : -1f) * falloff * 0.12f, -MathF.PI, MathF.PI);
+                        leaf.AngularVel = Math.Clamp(leaf.AngularVel + (pushX >= 0f ? 1f : -1f) * falloff * 1.4f, -4.5f, 4.5f);
+                        leaf.IsSettling = true;
                         if (dy > 0.25f && leaf.OffsetY > 0.2f)
                         {
                             leaf.OffsetY = MathF.Max(0f, leaf.OffsetY - dy * 0.35f * falloff);
+                            leaf.TargetOffsetY = MathF.Min(leaf.TargetOffsetY, leaf.OffsetY);
                         }
 
                         // If nudged off card edge, it slips off and flutters down
@@ -2504,7 +2659,7 @@ public class ParticleOverlayControl : Control
             p.IsChunk = false;
             p.SizeScale = leaf.Scale;
             p.SpinRate = (float)((_rng.NextDouble() - 0.5) * 6.5);
-            p.AlphaScale = Math.Clamp(leaf.Alpha / 255f, 0.55f, 1.0f);
+            p.AlphaScale = Math.Clamp(leaf.Alpha / 255f, 0.15f, 1.0f);
             p.Phase = (float)(_rng.NextDouble() * Math.PI * 2.0);
             p.SwayFreq = 1.1f + (float)_rng.NextDouble() * 1.4f;
             p.SwayAmp = 10.0f + (float)_rng.NextDouble() * 16.0f;
@@ -2773,7 +2928,6 @@ public class ParticleOverlayControl : Control
                 if (hasTargetVisible || Stopwatch.GetElapsedTime(_pageSwitchTicks).TotalMilliseconds >= 95.0)
                 {
                     _awaitingAtomicSwap = false;
-                    _pageFadeOpacity = 0.0f;
                 }
             }
 
@@ -3221,6 +3375,19 @@ public class ParticleOverlayControl : Control
             s.MaxHeight = max;
         }
 
+        private bool IsSurfaceVisibleOnCurrentPage(string pageKey)
+        {
+            if (string.Equals(pageKey, "Chrome", StringComparison.Ordinal))
+                return true;
+            if (string.Equals(pageKey, "LaunchBar", StringComparison.Ordinal))
+                return string.Equals(_activePageKey, "Profiles", StringComparison.Ordinal)
+                    || _activePageKey.StartsWith("Catalog:", StringComparison.Ordinal)
+                    || string.Equals(_activePageKey, "Modpacks", StringComparison.Ordinal);
+            if (string.Equals(pageKey, "Settings:Sidebar", StringComparison.Ordinal))
+                return _activePageKey.StartsWith("Settings:", StringComparison.Ordinal);
+            return string.Equals(pageKey, _activePageKey, StringComparison.Ordinal);
+        }
+
         private void RenderSnowDrifts(SKCanvas canvas)
         {
             if (_visibleSurfaces.Count == 0) return;
@@ -3230,8 +3397,7 @@ public class ParticleOverlayControl : Control
             _driftInnerPath ??= new SKPath();
 
             var paint = _driftPaint;
-            float baseOpacityFactor = 0.80f + _opacity * 0.20f;
-            float pageFade = _pageFadeOpacity;
+            float surfaceOpacity = 0.80f + _opacity * 0.20f;
 
             for (int i = 0; i < _visibleSurfaces.Count; i++)
             {
@@ -3240,12 +3406,7 @@ public class ParticleOverlayControl : Control
                 if (h == null || s.MaxHeight < 0.25f || s.CellCount <= 0)
                     continue;
 
-                bool isGlobalChrome = s.IsSynthetic
-                    || string.Equals(s.PageKey, "Chrome", StringComparison.Ordinal)
-                    || string.Equals(s.PageKey, "LaunchBar", StringComparison.Ordinal)
-                    || string.Equals(s.PageKey, "Settings:Sidebar", StringComparison.Ordinal);
-                float surfaceOpacity = isGlobalChrome ? baseOpacityFactor : baseOpacityFactor * pageFade;
-                if (surfaceOpacity < 0.02f)
+                if (!s.IsSynthetic && !IsSurfaceVisibleOnCurrentPage(s.PageKey))
                     continue;
 
                 if (s.HasClipRect)
@@ -3553,7 +3714,6 @@ public class ParticleOverlayControl : Control
             var filters = _leafPaletteFilters;
             int filterCount = filters?.Length ?? 0;
 
-            float pageFade = _pageFadeOpacity;
             float baseScale = _kind == ParticleKind.Sakura ? 11.0f * _size : 15.5f * _size;
 
             for (int i = 0; i < _visibleSurfaces.Count; i++)
@@ -3563,6 +3723,9 @@ public class ParticleOverlayControl : Control
                 if (leaves == null || leaves.Count == 0)
                     continue;
 
+                if (!s.IsSynthetic && !IsSurfaceVisibleOnCurrentPage(s.PageKey))
+                    continue;
+
                 if (s.HasClipRect)
                 {
                     if (s.Top < s.ClipTop - 1.5f || s.Top > s.ClipBottom + 1.5f)
@@ -3570,14 +3733,6 @@ public class ParticleOverlayControl : Control
                     if (s.Right <= s.ClipLeft || s.Left >= s.ClipRight)
                         continue;
                 }
-
-                bool isGlobalChrome = s.IsSynthetic
-                    || string.Equals(s.PageKey, "Chrome", StringComparison.Ordinal)
-                    || string.Equals(s.PageKey, "LaunchBar", StringComparison.Ordinal)
-                    || string.Equals(s.PageKey, "Settings:Sidebar", StringComparison.Ordinal);
-                float surfaceFade = isGlobalChrome ? 1.0f : pageFade;
-                if (surfaceFade < 0.02f)
-                    continue;
 
                 bool clipped = false;
                 if (s.HasClipRect)
@@ -3598,8 +3753,8 @@ public class ParticleOverlayControl : Control
 
                     float lx = s.Left + leaf.RelX;
                     float ly = s.Top - leaf.OffsetY - halfH * 0.36f + 1.0f;
-                    byte alpha = (byte)Math.Clamp((int)MathF.Round(leaf.Alpha * surfaceFade), 0, 255);
-                    if (alpha < 4) continue;
+                    byte alpha = (byte)Math.Clamp((int)MathF.Round(_opacity * (leaf.Alpha / 255f) * 255f), 0, 255);
+                    if (alpha < 2) continue;
 
                     canvas.Save();
                     canvas.Translate(lx, ly);
@@ -3865,6 +4020,9 @@ public class ParticleOverlayControl : Control
                 item.OffsetY = Math.Clamp(item.OffsetY, 0f, maxStack);
                 item.Scale = Math.Clamp(item.Scale, 0.45f, 1.85f);
                 if (item.Alpha < 40) item.Alpha = 215;
+                item.TargetOffsetY = item.OffsetY;
+                item.TargetRotation = item.Rotation;
+                item.IsSettling = false;
                 s.Leaves.Add(item);
             }
         }

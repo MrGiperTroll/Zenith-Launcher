@@ -154,25 +154,7 @@ public class LaunchService : ILaunchService
         }
     }
 
-    private LauncherConfigData? _cachedConfig;
-    private DateTime _configLastRead = DateTime.MinValue;
-
-    private LauncherConfigData? GetConfig()
-    {
-        var configPath = ZenithPaths.ConfigFilePath;
-        if (!File.Exists(configPath)) return null;
-        var lastWrite = File.GetLastWriteTimeUtc(configPath);
-        if (_cachedConfig != null && _configLastRead >= lastWrite)
-            return _cachedConfig;
-        try
-        {
-            var json = File.ReadAllText(configPath);
-            _cachedConfig = System.Text.Json.JsonSerializer.Deserialize(json, LauncherJsonContext.Default.LauncherConfigData);
-            _configLastRead = lastWrite;
-        }
-        catch { _cachedConfig = null; }
-        return _cachedConfig;
-    }
+    private static LauncherConfigData GetConfig() => LauncherConfigData.Load();
 
     public event Action<int>? ProgressChanged;
     public event Action<string>? LogReceived;
@@ -1164,7 +1146,7 @@ public class LaunchService : ILaunchService
                     cancellationToken.ThrowIfCancellationRequested();
                     LogReceived?.Invoke($"Extracting Java {major}...");
                     // Overwrite existing files in case a partial/older runtime is present
-                    System.IO.Compression.ZipFile.ExtractToDirectory(temp, javaDir, overwriteFiles: true);
+                    ZipHelper.SafeExtractZip(temp, javaDir, overwriteFiles: true);
                 }
                 finally
                 {

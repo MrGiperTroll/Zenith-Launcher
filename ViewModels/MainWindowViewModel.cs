@@ -1780,6 +1780,9 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     private readonly object _configDiskGate = new();
+    private readonly object _configDebounceGate = new();
+    private System.Threading.CancellationTokenSource? _configDebounceCts;
+    private bool _hasPendingDebouncedConfigSave;
     private string? _pendingConfigPath;
     private string? _pendingConfigJson;
     private LauncherConfigData? _pendingConfigSnapshot;
@@ -1788,6 +1791,68 @@ public partial class MainWindowViewModel : ViewModelBase
     public void SaveLauncherConfig(bool flushSync = false)
     {
         if (_isLoadingConfig || _isSavingConfig) return;
+
+        if (!flushSync)
+        {
+            System.Threading.CancellationTokenSource cts;
+            lock (_configDebounceGate)
+            {
+                try { _configDebounceCts?.Cancel(); _configDebounceCts?.Dispose(); } catch { }
+                cts = new System.Threading.CancellationTokenSource();
+                _configDebounceCts = cts;
+                _hasPendingDebouncedConfigSave = true;
+            }
+
+            _ = System.Threading.Tasks.Task.Run(async () =>
+            {
+                try
+                {
+                    await System.Threading.Tasks.Task.Delay(280, cts.Token).ConfigureAwait(false);
+                    if (cts.Token.IsCancellationRequested) return;
+                    Dispatcher.UIThread.Post(() =>
+                    {
+                        if (cts.Token.IsCancellationRequested) return;
+                        lock (_configDebounceGate)
+                        {
+                            if (!ReferenceEquals(_configDebounceCts, cts) || !_hasPendingDebouncedConfigSave)
+                                return;
+                            _hasPendingDebouncedConfigSave = false;
+                            try { _configDebounceCts.Dispose(); } catch { }
+                            _configDebounceCts = null;
+                        }
+                        if (CaptureAndQueueConfigSnapshot() &&
+                            System.Threading.Interlocked.CompareExchange(ref _configWriteInFlight, 1, 0) == 0)
+                        {
+                            RunBackgroundConfigFlush();
+                        }
+                    });
+                }
+                catch (OperationCanceledException) { }
+            }, cts.Token);
+            return;
+        }
+
+        CancelPendingConfigDebounce();
+        CaptureAndQueueConfigSnapshot();
+        FlushPendingConfigSave(syncToDisk: true);
+    }
+
+    private void CancelPendingConfigDebounce()
+    {
+        lock (_configDebounceGate)
+        {
+            _hasPendingDebouncedConfigSave = false;
+            if (_configDebounceCts != null)
+            {
+                try { _configDebounceCts.Cancel(); _configDebounceCts.Dispose(); } catch { }
+                _configDebounceCts = null;
+            }
+        }
+    }
+
+    private bool CaptureAndQueueConfigSnapshot()
+    {
+        if (_isLoadingConfig || _isSavingConfig) return false;
 
         _isSavingConfig = true;
         try
@@ -1826,17 +1891,12 @@ public partial class MainWindowViewModel : ViewModelBase
                 _pendingConfigSnapshot = configData;
             }
             LauncherConfigData.UpdateCache(configData);
-
-            if (flushSync)
-            {
-                FlushPendingConfigSave(syncToDisk: true);
-            }
-            else if (System.Threading.Interlocked.CompareExchange(ref _configWriteInFlight, 1, 0) == 0)
-            {
-                RunBackgroundConfigFlush();
-            }
+            return true;
         }
-        catch { }
+        catch
+        {
+            return false;
+        }
         finally
         {
             _isSavingConfig = false;
@@ -1869,6 +1929,23 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public void FlushPendingConfigSave(bool syncToDisk = true)
     {
+        bool hadDebounced;
+        lock (_configDebounceGate)
+        {
+            hadDebounced = _hasPendingDebouncedConfigSave;
+            _hasPendingDebouncedConfigSave = false;
+            if (_configDebounceCts != null)
+            {
+                try { _configDebounceCts.Cancel(); _configDebounceCts.Dispose(); } catch { }
+                _configDebounceCts = null;
+            }
+        }
+
+        if (hadDebounced && Dispatcher.UIThread.CheckAccess())
+        {
+            CaptureAndQueueConfigSnapshot();
+        }
+
         lock (_configDiskGate)
         {
             while (_pendingConfigJson != null && _pendingConfigPath != null)
@@ -1882,16 +1959,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
                 try
                 {
-                    var tmpPath = path + ".tmp";
-                    using (var fs = new FileStream(tmpPath, FileMode.Create, FileAccess.Write, FileShare.None))
-                    {
-                        using var writer = new StreamWriter(fs, System.Text.Encoding.UTF8);
-                        writer.Write(json);
-                        writer.Flush();
-                        if (syncToDisk)
-                            fs.Flush(flushToDisk: true);
-                    }
-                    File.Move(tmpPath, path, overwrite: true);
+                    AtomicFileWriter.WriteAllText(path, json, flushToDisk: syncToDisk);
                     if (snapshot != null)
                         LauncherConfigData.UpdateCache(snapshot);
                 }

@@ -1781,7 +1781,7 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
 
                     await Task.Run(() =>
                     {
-                        System.IO.Compression.ZipFile.ExtractToDirectory(tempZip, destMapDir, true);
+                        ZipHelper.SafeExtractZip(tempZip, destMapDir, overwriteFiles: true);
                         var subDirs = Directory.GetDirectories(destMapDir);
                         var rootFiles = Directory.GetFiles(destMapDir);
                         if (subDirs.Length == 1 && rootFiles.Length == 0 && File.Exists(Path.Combine(subDirs[0], "level.dat")))

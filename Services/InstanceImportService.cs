@@ -225,7 +225,7 @@ public static class InstanceImportService
 
                 tempExtractDir = Path.Combine(Path.GetTempPath(), "ZenithImport_" + Guid.NewGuid().ToString("N"));
                 Directory.CreateDirectory(tempExtractDir);
-                ZipFile.ExtractToDirectory(path, tempExtractDir, overwriteFiles: true);
+                ZipHelper.SafeExtractZip(path, tempExtractDir, overwriteFiles: true);
                 targetPath = tempExtractDir;
             }
 

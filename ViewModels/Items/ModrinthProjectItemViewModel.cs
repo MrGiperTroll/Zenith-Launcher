@@ -62,13 +62,13 @@ public partial class ModrinthProjectItemViewModel : ViewModelBase, IDisposable
             var type = (ProjectType ?? "").Trim().ToLowerInvariant();
             return type switch
             {
-                "mod" => "Mod",
-                "modpack" => "Modpack",
-                "resourcepack" => "Resource Pack",
-                "shader" => "Shader",
-                "datapack" => "Datapack",
-                "plugin" => "Plugin",
-                _ => type.Length == 0 ? "Mod" : char.ToUpperInvariant(type[0]) + type[1..]
+                "mod" => L10n.T("ptype_mod"),
+                "modpack" => L10n.T("ptype_modpack"),
+                "resourcepack" => L10n.T("ptype_resourcepack"),
+                "shader" => L10n.T("ptype_shader"),
+                "datapack" => L10n.T("ptype_datapack"),
+                "plugin" => L10n.T("ptype_plugin"),
+                _ => type.Length == 0 ? L10n.T("ptype_mod") : char.ToUpperInvariant(type[0]) + type[1..]
             };
         }
     }
@@ -132,11 +132,11 @@ public partial class ModrinthProjectItemViewModel : ViewModelBase, IDisposable
         {
             if (Updated == default) return "";
             var span = DateTime.UtcNow - Updated;
-            if (span.TotalHours < 1) return $"{Math.Max(1, (int)span.TotalMinutes)}m ago";
-            if (span.TotalDays < 1) return $"{(int)span.TotalHours} hours ago";
-            if (span.TotalDays < 30) return $"{(int)span.TotalDays} days ago";
-            if (span.TotalDays < 365) return $"{(int)(span.TotalDays / 30)} months ago";
-            return $"{(int)(span.TotalDays / 365)} years ago";
+            if (span.TotalHours < 1) return string.Format(L10n.T("time_ago_minutes"), Math.Max(1, (int)span.TotalMinutes));
+            if (span.TotalDays < 1) return string.Format(L10n.T("time_ago_hours"), (int)span.TotalHours);
+            if (span.TotalDays < 30) return string.Format(L10n.T("time_ago_days"), (int)span.TotalDays);
+            if (span.TotalDays < 365) return string.Format(L10n.T("time_ago_months"), (int)(span.TotalDays / 30));
+            return string.Format(L10n.T("time_ago_years"), (int)(span.TotalDays / 365));
         }
     }
 
@@ -185,12 +185,36 @@ public partial class ModrinthProjectItemViewModel : ViewModelBase, IDisposable
         }
     }
 
+    private readonly Action _languageChangedHandler;
+
+    public ModrinthProjectItemViewModel()
+    {
+        _languageChangedHandler = () =>
+        {
+            if (_disposed) return;
+            void Notify()
+            {
+                if (_disposed) return;
+                OnPropertyChanged(nameof(InstallButtonText));
+                OnPropertyChanged(nameof(RelativeUpdated));
+                OnPropertyChanged(nameof(DownloadsLabel));
+                OnPropertyChanged(nameof(ProjectTypeDisplay));
+            }
+
+            if (Dispatcher.UIThread.CheckAccess())
+                Notify();
+            else
+                Dispatcher.UIThread.Post(Notify);
+        };
+        L10n.LanguageChanged += _languageChangedHandler;
+    }
+
     public string InstallButtonText =>
         IsInstalling
             ? (IsHovered ? L10n.T("btn_cancel") : L10n.T("mi_installing"))
             : IsInstalled
                 ? (IsHovered ? L10n.T("mi_delete") : L10n.T("mi_installed"))
-                : (ProjectType == "modpack" ? L10n.T("mi_install") : "Add to instance");
+                : (ProjectType == "modpack" ? L10n.T("mi_install") : L10n.T("mi_add_to_instance"));
 
     partial void OnIsInstallingChanged(bool value) => OnPropertyChanged(nameof(InstallButtonText));
     partial void OnIsInstalledChanged(bool value) => OnPropertyChanged(nameof(InstallButtonText));
@@ -233,6 +257,7 @@ public partial class ModrinthProjectItemViewModel : ViewModelBase, IDisposable
     public void Dispose()
     {
         _disposed = true;
+        L10n.LanguageChanged -= _languageChangedHandler;
         try { Icon?.Dispose(); } catch { }
         Icon = null;
         OnPropertyChanged(nameof(HasIcon));

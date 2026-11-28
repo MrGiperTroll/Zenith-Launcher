@@ -762,7 +762,7 @@ public partial class FileListViewModel : ObservableObject, IDisposable
         Directory.CreateDirectory(temp);
         try
         {
-            ZipFile.ExtractToDirectory(zipPath, temp);
+            ZipHelper.SafeExtractZip(zipPath, temp, overwriteFiles: true);
 
             var topLevel = Directory.GetDirectories(temp)
                 .OrderByDescending(d => Directory.Exists(Path.Combine(d, "level.dat")))

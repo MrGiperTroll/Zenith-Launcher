@@ -72,6 +72,7 @@ public static class ModrinthApiService
     };
 
     private static readonly ZenithLauncher.Common.Utils.LruCache<string, byte[]> IconMemoryCache = new(20, comparer: StringComparer.OrdinalIgnoreCase);
+    private static readonly ConcurrentDictionary<string, Task<byte[]?>> InFlightIcons = new(StringComparer.OrdinalIgnoreCase);
 
     public static void ClearMemoryCache() => IconMemoryCache.Clear();
     private static readonly string IconDiskCacheDir = Path.Combine(ZenithPaths.AppDataDir, "cache", "icons");
@@ -401,7 +402,20 @@ public static class ModrinthApiService
         }
         catch { }
 
-        // 3. Network fetch
+        // 3. Network fetch with in-flight deduplication
+        var inFlight = InFlightIcons.GetOrAdd(url, static u => FetchAndCacheIconAsync(u));
+        try
+        {
+            return await inFlight.ConfigureAwait(false);
+        }
+        finally
+        {
+            InFlightIcons.TryRemove(new KeyValuePair<string, Task<byte[]?>>(url, inFlight));
+        }
+    }
+
+    private static async Task<byte[]?> FetchAndCacheIconAsync(string url)
+    {
         try
         {
             var bytes = await Http.GetByteArrayAsync(url).ConfigureAwait(false);
@@ -409,19 +423,24 @@ public static class ModrinthApiService
             {
                 if (bytes.Length <= 131072)
                 {
-
-
-                        IconMemoryCache.Set(url, bytes);
+                    IconMemoryCache.Set(url, bytes);
                 }
 
+                string hash = ComputeHash(url);
+                string diskPath = Path.Combine(IconDiskCacheDir, $"{hash}.bin");
                 _ = Task.Run(() =>
                 {
+                    string tmpPath = Path.Combine(IconDiskCacheDir, $"{hash}.{Guid.NewGuid():N}.tmp");
                     try
                     {
                         Directory.CreateDirectory(IconDiskCacheDir);
-                        File.WriteAllBytes(diskPath, bytes);
+                        File.WriteAllBytes(tmpPath, bytes);
+                        File.Move(tmpPath, diskPath, overwrite: true);
                     }
-                    catch { }
+                    catch
+                    {
+                        try { if (File.Exists(tmpPath)) File.Delete(tmpPath); } catch { }
+                    }
                 });
 
                 return bytes;

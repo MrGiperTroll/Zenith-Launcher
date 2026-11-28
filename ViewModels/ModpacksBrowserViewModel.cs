@@ -2160,72 +2160,144 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(WorldsCountLabel));
     }
 
-    private async Task<(string fileName, byte[] bytes)> DownloadProjectArtifactAsync(
+    private IProgress<double> CreateDownloadProgress(string fileName)
+    {
+        int lastPct = -1;
+        return new Progress<double>(p =>
+        {
+            var pct = Math.Clamp((int)(p * 100), 0, 100);
+            if (pct == lastPct || (pct < 100 && pct - lastPct < 5)) return;
+            lastPct = pct;
+            var msg = string.Format(L10n.T("mp_downloading"), $"{fileName} ({pct}%)");
+            if (Dispatcher.UIThread.CheckAccess())
+                StatusText = msg;
+            else
+                Dispatcher.UIThread.Post(() => StatusText = msg);
+        });
+    }
+
+    private async Task<bool> StreamDownloadAsync(
+        IReadOnlyList<string> urls,
+        string destPath,
+        string displayName,
+        CancellationToken ct,
+        int maxRounds = 2)
+    {
+        try
+        {
+            await ResilientDownloadService.DownloadFileAsync(
+                urls,
+                destPath,
+                ct: ct,
+                progress: CreateDownloadProgress(displayName),
+                maxRounds: maxRounds);
+            return File.Exists(destPath) && new FileInfo(destPath).Length > 0;
+        }
+        catch (OperationCanceledException)
+        {
+            try { if (File.Exists(destPath + ".part")) File.Delete(destPath + ".part"); } catch { }
+            throw;
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Error($"Streaming download failed ({displayName})", ex);
+            return false;
+        }
+    }
+
+    private async Task<(string fileName, string destPath)> DownloadProjectArtifactToFileAsync(
         ModrinthProjectItemViewModel project,
         InstanceModel instance,
-        bool includeLoaderFilter)
+        bool includeLoaderFilter,
+        Func<string, string> resolveDestPath,
+        CancellationToken ct = default)
     {
+        string fileUrl;
+        string fileName;
+
         if (SelectedAddVersion is { IsAuto: false } picked &&
             !string.IsNullOrWhiteSpace(picked.FileUrl) &&
             !string.IsNullOrWhiteSpace(picked.FileName))
         {
-            var pickedData = project.Source == ContentSource.CurseForge
-                ? await CurseForgeApiService.DownloadAsync(picked.FileUrl)
-                : await ModrinthApiService.DownloadAsync(picked.FileUrl);
-            if (pickedData == null || pickedData.Length == 0)
-                throw new Exception("Download failed.");
-            return (picked.FileName, pickedData);
+            fileUrl = picked.FileUrl;
+            fileName = picked.FileName;
         }
-
-        if (project.Source == ContentSource.CurseForge)
+        else if (project.Source == ContentSource.CurseForge)
         {
             var apiKey = GetCurseForgeApiKey?.Invoke() ?? "";
             var loader = includeLoaderFilter ? instance.LoaderType : null;
-            var fileInfo = await CurseForgeApiService.GetLatestProjectFileAsync(project.ProjectId, instance.Version, loader, apiKey);
+            var fileInfo = await CurseForgeApiService.GetLatestProjectFileAsync(project.ProjectId, instance.Version, loader, apiKey, ct);
             if ((fileInfo == null || string.IsNullOrWhiteSpace(fileInfo.DownloadUrl)) && !string.IsNullOrWhiteSpace(loader))
-                fileInfo = await CurseForgeApiService.GetLatestProjectFileAsync(project.ProjectId, instance.Version, null, apiKey);
+                fileInfo = await CurseForgeApiService.GetLatestProjectFileAsync(project.ProjectId, instance.Version, null, apiKey, ct);
             if (fileInfo == null || string.IsNullOrWhiteSpace(fileInfo.DownloadUrl))
-                fileInfo = await CurseForgeApiService.GetLatestProjectFileAsync(project.ProjectId, null, null, apiKey);
+                fileInfo = await CurseForgeApiService.GetLatestProjectFileAsync(project.ProjectId, null, null, apiKey, ct);
             if (fileInfo == null || string.IsNullOrWhiteSpace(fileInfo.DownloadUrl))
                 throw new Exception($"No downloadable file found on CurseForge for {project.Title}.");
 
-            var cfData = await CurseForgeApiService.DownloadAsync(fileInfo.DownloadUrl);
-            if (cfData == null || cfData.Length == 0)
-                throw new Exception("Download failed.");
-            return (fileInfo.FileName, cfData);
+            fileUrl = fileInfo.DownloadUrl;
+            fileName = fileInfo.FileName;
+        }
+        else
+        {
+            ct.ThrowIfCancellationRequested();
+            var mcVer = instance.Version;
+            var mrLoader = (instance.LoaderType ?? "").ToLowerInvariant();
+            var versions = await ModrinthApiService.GetProjectVersionsAsync(
+                project.ProjectId,
+                includeLoaderFilter && !string.IsNullOrWhiteSpace(mrLoader) && mrLoader != "vanilla" ? new[] { mrLoader } : null,
+                !string.IsNullOrWhiteSpace(mcVer) ? new[] { mcVer } : null);
+
+            if (versions.Count == 0)
+                versions = await ModrinthApiService.GetProjectVersionsAsync(project.ProjectId);
+            ct.ThrowIfCancellationRequested();
+
+            var targetVer = versions.FirstOrDefault(v => v.GameVersions.Contains(mcVer)) ?? versions.FirstOrDefault();
+            if (targetVer == null || targetVer.Files == null || targetVer.Files.Count == 0)
+                throw new Exception("No compatible version found.");
+
+            var primaryFile = targetVer.Files.FirstOrDefault(f => f.IsPrimary) ?? targetVer.Files[0];
+            if (string.IsNullOrWhiteSpace(primaryFile.Url))
+                throw new Exception("No file URL.");
+
+            fileUrl = primaryFile.Url;
+            fileName = primaryFile.Filename;
         }
 
-        var mcVer = instance.Version;
-        var mrLoader = (instance.LoaderType ?? "").ToLowerInvariant();
-        var versions = await ModrinthApiService.GetProjectVersionsAsync(
-            project.ProjectId,
-            includeLoaderFilter && !string.IsNullOrWhiteSpace(mrLoader) && mrLoader != "vanilla" ? new[] { mrLoader } : null,
-            !string.IsNullOrWhiteSpace(mcVer) ? new[] { mcVer } : null);
+        var destPath = resolveDestPath(fileName);
+        var dir = Path.GetDirectoryName(destPath);
+        if (!string.IsNullOrEmpty(dir))
+            Directory.CreateDirectory(dir);
 
-        if (versions.Count == 0)
-            versions = await ModrinthApiService.GetProjectVersionsAsync(project.ProjectId);
+        try
+        {
+            await ResilientDownloadService.DownloadFileAsync(
+                new[] { fileUrl },
+                destPath,
+                ct: ct,
+                progress: CreateDownloadProgress(fileName),
+                maxRounds: 2);
+        }
+        catch (OperationCanceledException)
+        {
+            try { if (File.Exists(destPath + ".part")) File.Delete(destPath + ".part"); } catch { }
+            throw;
+        }
 
-        var targetVer = versions.FirstOrDefault(v => v.GameVersions.Contains(mcVer)) ?? versions.FirstOrDefault();
-        if (targetVer == null || targetVer.Files == null || targetVer.Files.Count == 0)
-            throw new Exception("No compatible version found.");
-
-        var primaryFile = targetVer.Files.FirstOrDefault(f => f.IsPrimary) ?? targetVer.Files[0];
-        if (string.IsNullOrWhiteSpace(primaryFile.Url))
-            throw new Exception("No file URL.");
-
-        var data = await ModrinthApiService.DownloadAsync(primaryFile.Url);
-        if (data == null || data.Length == 0)
+        if (!File.Exists(destPath) || new FileInfo(destPath).Length == 0)
             throw new Exception("Download failed.");
 
-        return (primaryFile.Filename, data);
+        return (fileName, destPath);
     }
 
     private async Task InstallDatapackToWorldAsync(ModrinthProjectItemViewModel project, InstanceModel instance, string worldName)
     {
-        var (fileName, data) = await DownloadProjectArtifactAsync(project, instance, includeLoaderFilter: false);
         var targetFolder = Path.Combine(instance.Path, "saves", worldName, "datapacks");
         Directory.CreateDirectory(targetFolder);
-        await File.WriteAllBytesAsync(Path.Combine(targetFolder, fileName), data);
+        var (fileName, _) = await DownloadProjectArtifactToFileAsync(
+            project,
+            instance,
+            includeLoaderFilter: false,
+            name => Path.Combine(targetFolder, name));
         TrackInstalledFile(targetFolder, project.ProjectId, fileName);
 
         project.IsInstalled = true;
@@ -2235,12 +2307,13 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
     {
         var pType = project.ProjectType ?? SelectedProjectType;
         var includeLoader = pType is "mod" or "modpack";
-        var (fileName, data) = await DownloadProjectArtifactAsync(project, instance, includeLoaderFilter: includeLoader);
-
         var targetFolder = ResolveProjectTargetDir(instance, pType);
         Directory.CreateDirectory(targetFolder);
-        var dest = Path.Combine(targetFolder, fileName);
-        await File.WriteAllBytesAsync(dest, data);
+        var (fileName, dest) = await DownloadProjectArtifactToFileAsync(
+            project,
+            instance,
+            includeLoaderFilter: includeLoader,
+            name => Path.Combine(targetFolder, name));
         TrackInstalledFile(targetFolder, project.ProjectId, fileName);
 
         if (!string.IsNullOrWhiteSpace(project.IconUrl))
@@ -2425,26 +2498,28 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
                     var savesDir = Path.Combine(targetInstance.Path, "saves");
                     Directory.CreateDirectory(savesDir);
                     var tempZip = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}_{fileInfo.FileName}");
-                    var mapData = await CurseForgeApiService.DownloadAsync(fileInfo.DownloadUrl, token);
-                    if (mapData is not { Length: > 0 })
-                    {
-                        StatusText = L10n.T("mp_download_failed_plain");
-                        project.IsInstalling = false;
-                        return;
-                    }
-                    await File.WriteAllBytesAsync(tempZip, mapData, token);
-                    StatusText = L10n.T("mp_extracting_map");
                     try
                     {
-                        System.IO.Compression.ZipFile.ExtractToDirectory(tempZip, savesDir, overwriteFiles: true);
-                    }
-                    catch (Exception ex)
-                    {
-                        LauncherLog.Error("Failed to extract map", ex);
+                        var mapDownloaded = await StreamDownloadAsync(new[] { fileInfo.DownloadUrl }, tempZip, fileInfo.FileName, token);
+                        if (!mapDownloaded)
+                        {
+                            StatusText = L10n.T("mp_download_failed_plain");
+                            project.IsInstalling = false;
+                            return;
+                        }
+                        StatusText = L10n.T("mp_extracting_map");
+                        try
+                        {
+                            System.IO.Compression.ZipFile.ExtractToDirectory(tempZip, savesDir, overwriteFiles: true);
+                        }
+                        catch (Exception ex)
+                        {
+                            LauncherLog.Error("Failed to extract map", ex);
+                        }
                     }
                     finally
                     {
-                        try { File.Delete(tempZip); } catch { }
+                        try { if (File.Exists(tempZip)) File.Delete(tempZip); } catch { }
                     }
                     project.IsInstalling = false;
                     project.IsInstalled = true;
@@ -2471,15 +2546,24 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
                     Directory.CreateDirectory(cfTempDir);
                     var cfZipPath = Path.Combine(cfTempDir, fileInfo.FileName);
 
-                    var cfData = await CurseForgeApiService.DownloadAsync(fileInfo.DownloadUrl, token);
-                    if (token.IsCancellationRequested) return;
-                    if (cfData is not { Length: > 0 })
+                    bool cfDownloaded;
+                    try
                     {
-                        StatusText = L10n.T("mp_download_failed_plain");
+                        cfDownloaded = await StreamDownloadAsync(new[] { fileInfo.DownloadUrl }, cfZipPath, fileInfo.FileName, token);
+                    }
+                    catch
+                    {
+                        try { Directory.Delete(cfTempDir, true); } catch { }
+                        throw;
+                    }
+                    if (token.IsCancellationRequested || !cfDownloaded)
+                    {
+                        try { Directory.Delete(cfTempDir, true); } catch { }
+                        if (!token.IsCancellationRequested && !cfDownloaded)
+                            StatusText = L10n.T("mp_download_failed_plain");
                         project.IsInstalling = false;
                         return;
                     }
-                    await File.WriteAllBytesAsync(cfZipPath, cfData, token);
 
                     var cfInstance = await InstallModpackFromZipAsync(project, cfZipPath, cfTempDir, fileInfo.FileName, token);
                     if (cfInstance != null)
@@ -2530,15 +2614,14 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
                     Directory.CreateDirectory(cfTargetDir);
                     var cfDestPath = Path.Combine(cfTargetDir, fileInfo.FileName);
 
-                    var cfItemData = await CurseForgeApiService.DownloadAsync(fileInfo.DownloadUrl, token);
+                    var cfItemDownloaded = await StreamDownloadAsync(new[] { fileInfo.DownloadUrl }, cfDestPath, fileInfo.FileName, token);
                     if (token.IsCancellationRequested) return;
-                    if (cfItemData is not { Length: > 0 })
+                    if (!cfItemDownloaded)
                     {
                         StatusText = L10n.T("mp_download_failed_plain");
                         project.IsInstalling = false;
                         return;
                     }
-                    await File.WriteAllBytesAsync(cfDestPath, cfItemData, token);
 
                     if (!string.IsNullOrWhiteSpace(project.IconUrl))
                     {
@@ -2589,18 +2672,6 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
             OnPropertyChanged(nameof(ReinstallText));
             StatusText = L10n.T("mi_installing");
 
-            var tempDir = Path.Combine(Path.GetTempPath(), $"zenith_modpack_{Guid.NewGuid():N}");
-            Directory.CreateDirectory(tempDir);
-            var zipPath = Path.Combine(tempDir, version.FileName);
-            var data = await ModrinthApiService.DownloadAsync(file, token);
-            if (token.IsCancellationRequested) return;
-            if (data is not { Length: > 0 })
-            {
-                StatusText = L10n.T("mp_download_failed_plain");
-                return;
-            }
-            await File.WriteAllBytesAsync(zipPath, data, token);
-
             if (SelectedProjectType != "modpack")
             {
                 var targetInstance = _instanceService.GetSelectedInstance();
@@ -2621,10 +2692,37 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
                 var targetDir = Path.Combine(targetInstance.Path, subDir);
                 Directory.CreateDirectory(targetDir);
                 var destPath = Path.Combine(targetDir, version.FileName);
-                await File.WriteAllBytesAsync(destPath, data, token);
+                var downloaded = await StreamDownloadAsync(new[] { file }, destPath, version.FileName, token);
+                if (token.IsCancellationRequested) return;
+                if (!downloaded)
+                {
+                    StatusText = L10n.T("mp_download_failed_plain");
+                    return;
+                }
                 project.IsInstalling = false;
                 project.IsInstalled = true;
                 StatusText = string.Format(L10n.T("mp_installed_to"), project.Title, targetInstance.Name);
+                return;
+            }
+
+            var tempDir = Path.Combine(Path.GetTempPath(), $"zenith_modpack_{Guid.NewGuid():N}");
+            Directory.CreateDirectory(tempDir);
+            var zipPath = Path.Combine(tempDir, version.FileName);
+            bool zipDownloaded;
+            try
+            {
+                zipDownloaded = await StreamDownloadAsync(new[] { file }, zipPath, version.FileName, token);
+            }
+            catch
+            {
+                try { Directory.Delete(tempDir, true); } catch { }
+                throw;
+            }
+            if (token.IsCancellationRequested || !zipDownloaded)
+            {
+                try { Directory.Delete(tempDir, true); } catch { }
+                if (!token.IsCancellationRequested && !zipDownloaded)
+                    StatusText = L10n.T("mp_download_failed_plain");
                 return;
             }
 
@@ -2986,20 +3084,6 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
             project.IsInstalling = true;
             OnPropertyChanged(nameof(ReinstallText));
             StatusText = L10n.T("mi_installing");
-            var tempDir = Path.Combine(Path.GetTempPath(), $"zenith_modpack_{Guid.NewGuid():N}");
-            Directory.CreateDirectory(tempDir);
-            var zipPath = Path.Combine(tempDir, file.Filename);
-            var data = project.Source == ContentSource.CurseForge
-                ? await CurseForgeApiService.DownloadAsync(file.Url, token)
-                : await ModrinthApiService.DownloadAsync(file.Url, token);
-            if (token.IsCancellationRequested) return;
-            if (data is not { Length: > 0 })
-            {
-                StatusText = L10n.T("mp_download_failed_plain");
-                return;
-            }
-            await File.WriteAllBytesAsync(zipPath, data, token);
-
             if (SelectedProjectType != "modpack")
             {
                 var targetInstance = _instanceService.GetSelectedInstance();
@@ -3020,10 +3104,37 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
                 var targetDir = Path.Combine(targetInstance.Path, subDir);
                 Directory.CreateDirectory(targetDir);
                 var destPath = Path.Combine(targetDir, file.Filename);
-                await File.WriteAllBytesAsync(destPath, data, token);
+                var downloaded = await StreamDownloadAsync(new[] { file.Url }, destPath, file.Filename, token);
+                if (token.IsCancellationRequested) return;
+                if (!downloaded)
+                {
+                    StatusText = L10n.T("mp_download_failed_plain");
+                    return;
+                }
                 project.IsInstalling = false;
                 project.IsInstalled = true;
                 StatusText = string.Format(L10n.T("mp_installed_to"), project.Title, targetInstance.Name);
+                return;
+            }
+
+            var tempDir = Path.Combine(Path.GetTempPath(), $"zenith_modpack_{Guid.NewGuid():N}");
+            Directory.CreateDirectory(tempDir);
+            var zipPath = Path.Combine(tempDir, file.Filename);
+            bool zipDownloaded;
+            try
+            {
+                zipDownloaded = await StreamDownloadAsync(new[] { file.Url }, zipPath, file.Filename, token);
+            }
+            catch
+            {
+                try { Directory.Delete(tempDir, true); } catch { }
+                throw;
+            }
+            if (token.IsCancellationRequested || !zipDownloaded)
+            {
+                try { Directory.Delete(tempDir, true); } catch { }
+                if (!token.IsCancellationRequested && !zipDownloaded)
+                    StatusText = L10n.T("mp_download_failed_plain");
                 return;
             }
 
@@ -3236,24 +3347,24 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
 
                     if (!file.TryGetProperty("downloads", out var downloads) || downloads.GetArrayLength() == 0) return;
 
+                    var urlList = new List<string>();
                     foreach (var dl in downloads.EnumerateArray())
                     {
                         token.ThrowIfCancellationRequested();
                         var url = dl.GetString();
-                        if (string.IsNullOrWhiteSpace(url)) continue;
+                        if (!string.IsNullOrWhiteSpace(url))
+                            urlList.Add(url);
+                    }
+                    if (urlList.Count > 0)
+                    {
                         try
                         {
-                            var data = await ModrinthApiService.DownloadAsync(url, token);
-                            if (data is { Length: > 0 })
-                            {
-                                await File.WriteAllBytesAsync(destPath, data, token);
-                                break;
-                            }
+                            await ResilientDownloadService.DownloadFileAsync(urlList, destPath, ct: token, maxRounds: 2);
                         }
-                        catch (OperationCanceledException) { throw; }
-                        catch
+                        catch (OperationCanceledException)
                         {
-                            // Try next fallback URL if available
+                            try { if (File.Exists(destPath + ".part")) File.Delete(destPath + ".part"); } catch { }
+                            throw;
                         }
                     }
                 }
@@ -3435,12 +3546,16 @@ public partial class ModpacksBrowserViewModel : ObservableObject, IDisposable
                     {
                         token.ThrowIfCancellationRequested();
                         var destFile = Path.Combine(modsDir, info.FileName);
-                        if (!File.Exists(destFile))
+                        if (!File.Exists(destFile) && !string.IsNullOrWhiteSpace(info.DownloadUrl))
                         {
-                            var data = await CurseForgeApiService.DownloadAsync(info.DownloadUrl, token);
-                            if (data is { Length: > 0 })
+                            try
                             {
-                                await File.WriteAllBytesAsync(destFile, data, token);
+                                await ResilientDownloadService.DownloadFileAsync(new[] { info.DownloadUrl }, destFile, ct: token, maxRounds: 2);
+                            }
+                            catch (OperationCanceledException)
+                            {
+                                try { if (File.Exists(destFile + ".part")) File.Delete(destFile + ".part"); } catch { }
+                                throw;
                             }
                         }
                         var count = System.Threading.Interlocked.Increment(ref done);

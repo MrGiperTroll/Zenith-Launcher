@@ -425,9 +425,15 @@ public static class InstanceImportService
                     var dest = Path.Combine(modsDir, Path.GetFileName(info.FileName));
                     if (!File.Exists(dest))
                     {
-                        var data = await CurseForgeApiService.DownloadAsync(info.DownloadUrl, ct);
-                        if (data is { Length: > 0 })
-                            await File.WriteAllBytesAsync(dest, data, ct);
+                        try
+                        {
+                            await ResilientDownloadService.DownloadFileAsync(new[] { info.DownloadUrl }, dest, ct: ct, maxRounds: 2);
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            try { if (File.Exists(dest + ".part")) File.Delete(dest + ".part"); } catch { }
+                            throw;
+                        }
                     }
                 }
                 catch (OperationCanceledException) { throw; }

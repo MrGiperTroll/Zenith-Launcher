@@ -283,14 +283,7 @@ public partial class MainWindow : Window
                 if (token.IsCancellationRequested) return;
                 try
                 {
-                    System.Runtime.GCSettings.LargeObjectHeapCompactionMode =
-                        System.Runtime.GCLargeObjectHeapCompactionMode.CompactOnce;
-                    GC.Collect(2, GCCollectionMode.Aggressive, blocking: true, compacting: true);
-                    GC.WaitForPendingFinalizers();
-                    if (token.IsCancellationRequested) return;
-                    System.Runtime.GCSettings.LargeObjectHeapCompactionMode =
-                        System.Runtime.GCLargeObjectHeapCompactionMode.CompactOnce;
-                    GC.Collect(2, GCCollectionMode.Aggressive, blocking: true, compacting: true);
+                    GC.Collect(2, GCCollectionMode.Optimized, blocking: false);
                 }
                 catch { }
                 if (token.IsCancellationRequested) return;

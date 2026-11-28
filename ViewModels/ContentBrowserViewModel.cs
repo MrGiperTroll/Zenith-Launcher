@@ -1758,44 +1758,49 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
                 Directory.CreateDirectory(savesDir);
 
                 var tempZip = Path.Combine(Path.GetTempPath(), $"{project.ProjectId}_{fileInfo.FileId}.zip");
-                var zipBytes = await CurseForgeApiService.DownloadAsync(fileInfo.DownloadUrl, token);
-                if (zipBytes == null || zipBytes.Length == 0)
+                try
                 {
-                    StatusText = string.Format(L10n.T("cb_failed_map"), project.Title);
-                    project.IsInstalling = false;
-                    return;
-                }
-                await File.WriteAllBytesAsync(tempZip, zipBytes, token);
-
-                StatusText = L10n.T("cb_extracting_map");
-                var mapDirName = SanitizeFolderName(project.Title);
-                var destMapDir = Path.Combine(savesDir, mapDirName);
-                if (Directory.Exists(destMapDir))
-                {
-                    int counter = 1;
-                    while (Directory.Exists($"{destMapDir} ({counter})")) counter++;
-                    destMapDir = $"{destMapDir} ({counter})";
-                }
-                Directory.CreateDirectory(destMapDir);
-
-                await Task.Run(() =>
-                {
-                    System.IO.Compression.ZipFile.ExtractToDirectory(tempZip, destMapDir, true);
-                    var subDirs = Directory.GetDirectories(destMapDir);
-                    var rootFiles = Directory.GetFiles(destMapDir);
-                    if (subDirs.Length == 1 && rootFiles.Length == 0 && File.Exists(Path.Combine(subDirs[0], "level.dat")))
+                    var mapDownloaded = await StreamDownloadAsync(new[] { fileInfo.DownloadUrl }, tempZip, fileInfo.FileName, null, token);
+                    if (!mapDownloaded)
                     {
-                        var nested = subDirs[0];
-                        foreach (var f in Directory.GetFiles(nested))
-                            File.Move(f, Path.Combine(destMapDir, Path.GetFileName(f)), true);
-                        foreach (var d in Directory.GetDirectories(nested))
-                            Directory.Move(d, Path.Combine(destMapDir, Path.GetFileName(d)));
-                        try { Directory.Delete(nested); } catch { }
+                        StatusText = string.Format(L10n.T("cb_failed_map"), project.Title);
+                        project.IsInstalling = false;
+                        return;
                     }
-                    try { File.Delete(tempZip); } catch { }
-                });
 
-                MarkInstalled(project.ProjectId, Path.GetFileName(destMapDir));
+                    StatusText = L10n.T("cb_extracting_map");
+                    var mapDirName = SanitizeFolderName(project.Title);
+                    var destMapDir = Path.Combine(savesDir, mapDirName);
+                    if (Directory.Exists(destMapDir))
+                    {
+                        int counter = 1;
+                        while (Directory.Exists($"{destMapDir} ({counter})")) counter++;
+                        destMapDir = $"{destMapDir} ({counter})";
+                    }
+                    Directory.CreateDirectory(destMapDir);
+
+                    await Task.Run(() =>
+                    {
+                        System.IO.Compression.ZipFile.ExtractToDirectory(tempZip, destMapDir, true);
+                        var subDirs = Directory.GetDirectories(destMapDir);
+                        var rootFiles = Directory.GetFiles(destMapDir);
+                        if (subDirs.Length == 1 && rootFiles.Length == 0 && File.Exists(Path.Combine(subDirs[0], "level.dat")))
+                        {
+                            var nested = subDirs[0];
+                            foreach (var f in Directory.GetFiles(nested))
+                                File.Move(f, Path.Combine(destMapDir, Path.GetFileName(f)), true);
+                            foreach (var d in Directory.GetDirectories(nested))
+                                Directory.Move(d, Path.Combine(destMapDir, Path.GetFileName(d)));
+                            try { Directory.Delete(nested); } catch { }
+                        }
+                    });
+
+                    MarkInstalled(project.ProjectId, Path.GetFileName(destMapDir));
+                }
+                finally
+                {
+                    try { if (File.Exists(tempZip)) File.Delete(tempZip); } catch { }
+                }
                 project.IsInstalled = true;
                 UpdateInstalledFlags();
                 StatusText = string.Format(L10n.T("cb_installed_worlds"), project.Title);
@@ -1822,14 +1827,13 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
                 Directory.CreateDirectory(targetDir);
                 var destPath = Path.Combine(targetDir, fileInfo.FileName);
 
-                var fileBytes = await CurseForgeApiService.DownloadAsync(fileInfo.DownloadUrl, token);
-                if (fileBytes == null || fileBytes.Length == 0)
+                var cfDownloaded = await StreamDownloadAsync(new[] { fileInfo.DownloadUrl }, destPath, fileInfo.FileName, null, token);
+                if (!cfDownloaded)
                 {
                     StatusText = string.Format(L10n.T("cb_failed_download"), project.Title);
                     project.IsInstalling = false;
                     return;
                 }
-                await File.WriteAllBytesAsync(destPath, fileBytes, token);
 
                 MarkInstalled(project.ProjectId, fileInfo.FileName);
                 project.IsInstalled = true;
@@ -1855,17 +1859,15 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
             OnPropertyChanged(nameof(ReinstallText));
             StatusText = string.Format(L10n.T("mi_installing"));
 
-            var data = await ModrinthApiService.DownloadAsync(version.FileUrl, token);
+            var dest = Path.Combine(targetFolder, SanitizeFileName(version.FileName));
+            Directory.CreateDirectory(targetFolder);
+            var mrDownloaded = await StreamDownloadAsync(new[] { version.FileUrl }, dest, version.FileName, null, token);
             if (token.IsCancellationRequested) return;
-            if (data is not { Length: > 0 })
+            if (!mrDownloaded)
             {
                 StatusText = string.Format(L10n.T("cb_download_failed"), version.FileName);
                 return;
             }
-
-            var dest = Path.Combine(targetFolder, SanitizeFileName(version.FileName));
-            Directory.CreateDirectory(targetFolder);
-            await File.WriteAllBytesAsync(dest, data, token);
 
             if ((SelectedContentType == ContentType.Shader || SelectedContentType == ContentType.DataPack) && !string.IsNullOrWhiteSpace(project.IconUrl))
             {
@@ -1952,19 +1954,15 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
             OnPropertyChanged(nameof(ReinstallText));
             StatusText = string.Format(L10n.T("mi_installing"));
 
-            var data = project.Source == ContentSource.CurseForge
-                ? await CurseForgeApiService.DownloadAsync(file.Url, token)
-                : await ModrinthApiService.DownloadAsync(file.Url, token);
+            var dest = Path.Combine(targetFolder, SanitizeFileName(file.Filename));
+            Directory.CreateDirectory(targetFolder);
+            var downloaded = await StreamDownloadAsync(new[] { file.Url }, dest, file.Filename, null, token);
             if (token.IsCancellationRequested) return;
-            if (data is not { Length: > 0 })
+            if (!downloaded)
             {
                 StatusText = string.Format(L10n.T("cb_download_failed"), file.Filename);
                 return;
             }
-
-            var dest = Path.Combine(targetFolder, SanitizeFileName(file.Filename));
-            Directory.CreateDirectory(targetFolder);
-            await File.WriteAllBytesAsync(dest, data, token);
 
             // Cache icon
             if ((SelectedContentType == ContentType.Shader || SelectedContentType == ContentType.DataPack) && !string.IsNullOrWhiteSpace(project.IconUrl))
@@ -2062,15 +2060,13 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
             }
 
             StatusText = string.Format(L10n.T("mp_downloading"), version.FileName);
-            var data = await ModrinthApiService.DownloadAsync(version.FileUrl, token);
+            var mrDownloaded = await StreamDownloadAsync(new[] { version.FileUrl }, dest, version.FileName, null, token);
             if (token.IsCancellationRequested) return;
-            if (data is not { Length: > 0 })
+            if (!mrDownloaded)
             {
                 StatusText = string.Format(L10n.T("cb_download_failed"), version.FileName);
                 return;
             }
-
-            await File.WriteAllBytesAsync(dest, data, token);
 
             // Cache preview strictly in %APPDATA%\.zenith\cache\icons\ by project ID (and file name for Enrich lookup)
             if ((SelectedContentType == ContentType.Shader || SelectedContentType == ContentType.DataPack) && !string.IsNullOrWhiteSpace(project.IconUrl))
@@ -2108,7 +2104,7 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
                     foreach (var dep in required)
                     {
                         token.ThrowIfCancellationRequested();
-                        await InstallDependencyAsync(dep, targetFolder);
+                        await InstallDependencyAsync(dep, targetFolder, token);
                     }
                     StatusText = string.Format(L10n.T("cb_installed_deps"), project.Title, required.Count);
                     UpdateInstalledFlags();
@@ -2139,22 +2135,80 @@ public partial class ContentBrowserViewModel : ObservableObject, IDisposable
         }
     }
 
-    private async Task InstallDependencyAsync(ModrinthDependency dep, string targetFolder)
+    private async Task InstallDependencyAsync(ModrinthDependency dep, string targetFolder, CancellationToken token)
     {
         try
         {
+            token.ThrowIfCancellationRequested();
             var loaders = MapLoaders(_loaderType);
-            var depVersion = await ModrinthApiService.GetLatestVersionAsync(dep.ProjectId, _gameVersion, loaders);
-            if (depVersion == null) return;
-            var depDest = Path.Combine(targetFolder, SanitizeFileName(depVersion.FileName));
-            if (File.Exists(depDest)) return;
-            var data = await ModrinthApiService.DownloadAsync(depVersion.FileUrl);
-            if (data is { Length: > 0 })
-                await File.WriteAllBytesAsync(depDest, data);
+            var depVersion = await ModrinthApiService.GetLatestVersionAsync(dep.ProjectId, _gameVersion, loaders, token);
+            if (depVersion == null || string.IsNullOrWhiteSpace(depVersion.FileUrl)) return;
+            var depFileName = SanitizeFileName(depVersion.FileName);
+            var depDest = Path.Combine(targetFolder, depFileName);
+            if (File.Exists(depDest))
+            {
+                MarkInstalled(dep.ProjectId, depFileName);
+                return;
+            }
+
+            if (await StreamDownloadAsync(new[] { depVersion.FileUrl }, depDest, depVersion.FileName, null, token))
+            {
+                MarkInstalled(dep.ProjectId, depFileName);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (Exception ex)
         {
             LauncherLog.Error($"Failed to install dependency {dep.ProjectId}", ex);
+        }
+    }
+
+    private IProgress<double> CreateDownloadProgress(string fileName)
+    {
+        int lastPct = -1;
+        return new Progress<double>(p =>
+        {
+            var pct = Math.Clamp((int)(p * 100), 0, 100);
+            if (pct == lastPct || (pct < 100 && pct - lastPct < 5)) return;
+            lastPct = pct;
+            var msg = string.Format(L10n.T("mp_downloading"), $"{fileName} ({pct}%)");
+            if (Dispatcher.UIThread.CheckAccess())
+                StatusText = msg;
+            else
+                Dispatcher.UIThread.Post(() => StatusText = msg);
+        });
+    }
+
+    private async Task<bool> StreamDownloadAsync(
+        IReadOnlyList<string> urls,
+        string destPath,
+        string displayName,
+        string? sha256Hex,
+        CancellationToken ct)
+    {
+        try
+        {
+            await ResilientDownloadService.DownloadFileAsync(
+                urls,
+                destPath,
+                sha256Hex: sha256Hex,
+                ct: ct,
+                progress: CreateDownloadProgress(displayName),
+                maxRounds: 2);
+            return File.Exists(destPath) && new FileInfo(destPath).Length > 0;
+        }
+        catch (OperationCanceledException)
+        {
+            try { if (File.Exists(destPath + ".part")) File.Delete(destPath + ".part"); } catch { }
+            throw;
+        }
+        catch (Exception ex)
+        {
+            LauncherLog.Error($"Streaming download failed ({displayName})", ex);
+            return false;
         }
     }
 

@@ -13,9 +13,9 @@
     
     <UserControl.Styles>
         <Style Selector="Button.subBtn">
-            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderEditorBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource FieldBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderEditorBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Padding" Value="14,6"/>
@@ -25,9 +25,9 @@
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
         </Style>
         <Style Selector="Button.subBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderHoverBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
         </Style>
         <Style Selector="Button.presetBtn.active">
             <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
@@ -37,7 +37,7 @@
         <Style Selector="Button.presetBtn.active /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
             <Setter Property="Background" Value="{DynamicResource AccentDimBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
         <Style Selector="Button.primaryBtn">
             <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
@@ -78,7 +78,7 @@
         </Style>
         <Style Selector="Button.subTabBtn">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="CornerRadius" Value="6"/>
             <Setter Property="Padding" Value="14,6"/>
@@ -89,11 +89,11 @@
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
         </Style>
         <Style Selector="Button.subTabBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
         <Style Selector="Button.subTabBtn.active /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
             <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
         </Style>
     </UserControl.Styles>
@@ -104,16 +104,16 @@
             <Grid ColumnDefinitions="Auto,*,Auto">
                 <Button Grid.Column="0" Classes="subBtn" Command="{Binding CloseThemeEditorCommand}" Padding="10,6" ToolTip.Tip="{l10n:Tr Key=btn_back}">
                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                        <PathIcon Data="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" Width="13" Height="13" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                        <TextBlock Text="{l10n:Tr Key=btn_back}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                        <PathIcon Data="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" Width="13" Height="13" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                        <TextBlock Text="{l10n:Tr Key=btn_back}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
-                <TextBlock Grid.Column="1" Text="{l10n:Tr Key=theme_edit}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="14,0,0,0"/>
+                <TextBlock Grid.Column="1" Text="{l10n:Tr Key=theme_edit}" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="14,0,0,0"/>
             </Grid>
         </Border>
 
         <!-- Subtabs Switcher -->
-        <Border Grid.Row="1" Background="{StaticResource FieldBrush}" CornerRadius="8" Padding="3" HorizontalAlignment="Left" Margin="0,0,0,16">
+        <Border Grid.Row="1" Background="{DynamicResource FieldBrush}" CornerRadius="8" Padding="3" HorizontalAlignment="Left" Margin="0,0,0,16">
             <StackPanel Orientation="Horizontal" Spacing="4">
                 <Button Classes="subTabBtn" Classes.active="{Binding IsThemeSubTabSimple}" Command="{Binding SwitchThemeSubTabCommand}" CommandParameter="Simple">
                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
@@ -208,8 +208,8 @@
                                                         </MultiBinding>
                                                     </Classes.active>
                                                     <Grid ColumnDefinitions="14,*" VerticalAlignment="Center">
-                                                        <Border Grid.Column="0" Width="14" Height="14" CornerRadius="7" Background="{Binding ColorBrush}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                        <TextBlock Grid.Column="1" Text="{Binding DisplayName}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" Margin="8,0,0,0" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                                        <Border Grid.Column="0" Width="14" Height="14" CornerRadius="7" Background="{Binding ColorBrush}" BorderBrush="{DynamicResource BorderEditorBrush}" BorderThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="1" Text="{Binding DisplayName}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="8,0,0,0" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
                                                     </Grid>
                                                 </Button>
                                                 <!-- Custom picker: ordinary last item of the same list -->
@@ -227,9 +227,9 @@
                                                         </Flyout>
                                                     </Button.Flyout>
                                                     <Grid ColumnDefinitions="14,*,Auto" VerticalAlignment="Center">
-                                                        <Border Grid.Column="0" Width="14" Height="14" CornerRadius="7" Background="{Binding $parent[ItemsControl].((pages:ThemeSettingsViewModel)DataContext).CustomThemeHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                        <TextBlock Grid.Column="1" Text="{l10n:Tr Key=theme_custom_color}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" Margin="8,0,4,0" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
-                                                        <PathIcon Grid.Column="2" Data="M7 10l5 5 5-5z" Width="10" Height="10" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                                        <Border Grid.Column="0" Width="14" Height="14" CornerRadius="7" Background="{Binding $parent[ItemsControl].((pages:ThemeSettingsViewModel)DataContext).CustomThemeHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{DynamicResource BorderEditorBrush}" BorderThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="1" Text="{l10n:Tr Key=theme_custom_color}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="8,0,4,0" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                                        <PathIcon Grid.Column="2" Data="M7 10l5 5 5-5z" Width="10" Height="10" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                                     </Grid>
                                                 </Button>
                                             </Panel>
@@ -253,7 +253,7 @@
                             <StackPanel Spacing="12">
                                     <!-- Accent Color -->
                                     <Grid ColumnDefinitions="160,*,Auto" VerticalAlignment="Center">
-                                        <TextBlock Text="{l10n:Tr Key=theme_col_accent}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=theme_col_accent}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                         <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding CustomThemeHex, Mode=TwoWay}" PlaceholderText="#3B82F6"/>
                                         <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="{l10n:Tr Key=theme_choose_color}">
                                             <Button.Flyout>
@@ -261,12 +261,12 @@
                                                     <ColorView Color="{Binding CustomThemeHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
                                                 </Flyout>
                                             </Button.Flyout>
-                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding CustomThemeHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
+                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding CustomThemeHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{DynamicResource BorderEditorBrush}" BorderThickness="1"/>
                                         </Button>
                                     </Grid>
                                     <!-- Background Color -->
                                     <Grid ColumnDefinitions="160,*,Auto" VerticalAlignment="Center">
-                                        <TextBlock Text="{l10n:Tr Key=theme_col_bg}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=theme_col_bg}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                         <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding BgHex, Mode=TwoWay}" PlaceholderText="#080A0F"/>
                                         <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="{l10n:Tr Key=theme_choose_color}">
                                             <Button.Flyout>
@@ -274,12 +274,12 @@
                                                     <ColorView Color="{Binding BgHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
                                                 </Flyout>
                                             </Button.Flyout>
-                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding BgHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
+                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding BgHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{DynamicResource BorderEditorBrush}" BorderThickness="1"/>
                                         </Button>
                                     </Grid>
                                     <!-- Sidebar Background -->
                                     <Grid ColumnDefinitions="160,*,Auto" VerticalAlignment="Center">
-                                        <TextBlock Text="{l10n:Tr Key=theme_col_sidebar}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=theme_col_sidebar}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                         <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding SidebarBgHex, Mode=TwoWay}" PlaceholderText="#06080D"/>
                                         <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="{l10n:Tr Key=theme_choose_color}">
                                             <Button.Flyout>
@@ -287,12 +287,12 @@
                                                     <ColorView Color="{Binding SidebarBgHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
                                                 </Flyout>
                                             </Button.Flyout>
-                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding SidebarBgHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
+                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding SidebarBgHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{DynamicResource BorderEditorBrush}" BorderThickness="1"/>
                                         </Button>
                                     </Grid>
                                     <!-- Surface (Cards) -->
                                     <Grid ColumnDefinitions="160,*,Auto" VerticalAlignment="Center">
-                                        <TextBlock Text="{l10n:Tr Key=theme_col_surface}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=theme_col_surface}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                         <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding SurfaceHex, Mode=TwoWay}" PlaceholderText="#0D111A"/>
                                         <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="{l10n:Tr Key=theme_choose_color}">
                                             <Button.Flyout>
@@ -300,12 +300,12 @@
                                                     <ColorView Color="{Binding SurfaceHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
                                                 </Flyout>
                                             </Button.Flyout>
-                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding SurfaceHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
+                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding SurfaceHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{DynamicResource BorderEditorBrush}" BorderThickness="1"/>
                                         </Button>
                                     </Grid>
                                     <!-- Card Color -->
                                     <Grid ColumnDefinitions="160,*,Auto" VerticalAlignment="Center">
-                                        <TextBlock Text="{l10n:Tr Key=theme_col_card}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=theme_col_card}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                         <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding CardHex, Mode=TwoWay}" PlaceholderText="#0D111A"/>
                                         <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="{l10n:Tr Key=theme_choose_color}">
                                             <Button.Flyout>
@@ -313,12 +313,12 @@
                                                     <ColorView Color="{Binding CardHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
                                                 </Flyout>
                                             </Button.Flyout>
-                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding CardHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
+                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding CardHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{DynamicResource BorderEditorBrush}" BorderThickness="1"/>
                                         </Button>
                                     </Grid>
                                     <!-- Panel (Editor) Color -->
                                     <Grid ColumnDefinitions="160,*,Auto" VerticalAlignment="Center">
-                                        <TextBlock Text="{l10n:Tr Key=theme_col_panel}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=theme_col_panel}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                         <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding PanelHex, Mode=TwoWay}" PlaceholderText="#121722"/>
                                         <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="{l10n:Tr Key=theme_choose_color}">
                                             <Button.Flyout>
@@ -326,12 +326,12 @@
                                                     <ColorView Color="{Binding PanelHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
                                                 </Flyout>
                                             </Button.Flyout>
-                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding PanelHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
+                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding PanelHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{DynamicResource BorderEditorBrush}" BorderThickness="1"/>
                                         </Button>
                                     </Grid>
                                     <!-- Inputs / Controls -->
                                     <Grid ColumnDefinitions="160,*,Auto" VerticalAlignment="Center">
-                                        <TextBlock Text="{l10n:Tr Key=theme_col_field}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=theme_col_field}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                         <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding FieldHex, Mode=TwoWay}" PlaceholderText="#121724"/>
                                         <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="{l10n:Tr Key=theme_choose_color}">
                                             <Button.Flyout>
@@ -339,12 +339,12 @@
                                                     <ColorView Color="{Binding FieldHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
                                                 </Flyout>
                                             </Button.Flyout>
-                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding FieldHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
+                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding FieldHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{DynamicResource BorderEditorBrush}" BorderThickness="1"/>
                                         </Button>
                                     </Grid>
                                     <!-- Hover / Active Tint -->
                                     <Grid ColumnDefinitions="160,*,Auto" VerticalAlignment="Center">
-                                        <TextBlock Text="{l10n:Tr Key=theme_col_hover}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=theme_col_hover}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                         <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding HoverHex, Mode=TwoWay}" PlaceholderText="#1B2338"/>
                                         <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="{l10n:Tr Key=theme_choose_color}">
                                             <Button.Flyout>
@@ -352,12 +352,12 @@
                                                     <ColorView Color="{Binding HoverHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
                                                 </Flyout>
                                             </Button.Flyout>
-                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding HoverHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
+                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding HoverHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{DynamicResource BorderEditorBrush}" BorderThickness="1"/>
                                         </Button>
                                     </Grid>
                                     <!-- Primary Text -->
                                     <Grid ColumnDefinitions="160,*,Auto" VerticalAlignment="Center">
-                                        <TextBlock Text="{l10n:Tr Key=theme_col_text_primary}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=theme_col_text_primary}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                         <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding TextPrimaryHex, Mode=TwoWay}" PlaceholderText="#FFFFFF"/>
                                         <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="{l10n:Tr Key=theme_choose_color}">
                                             <Button.Flyout>
@@ -365,12 +365,12 @@
                                                     <ColorView Color="{Binding TextPrimaryHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
                                                 </Flyout>
                                             </Button.Flyout>
-                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding TextPrimaryHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
+                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding TextPrimaryHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{DynamicResource BorderEditorBrush}" BorderThickness="1"/>
                                         </Button>
                                     </Grid>
                                     <!-- Secondary Text -->
                                     <Grid ColumnDefinitions="160,*,Auto" VerticalAlignment="Center">
-                                        <TextBlock Text="{l10n:Tr Key=theme_col_text_secondary}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=theme_col_text_secondary}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                         <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding TextSecondaryHex, Mode=TwoWay}" PlaceholderText="#C5CBD6"/>
                                         <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="{l10n:Tr Key=theme_choose_color}">
                                             <Button.Flyout>
@@ -378,12 +378,12 @@
                                                     <ColorView Color="{Binding TextSecondaryHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
                                                 </Flyout>
                                             </Button.Flyout>
-                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding TextSecondaryHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
+                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding TextSecondaryHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{DynamicResource BorderEditorBrush}" BorderThickness="1"/>
                                         </Button>
                                     </Grid>
                                     <!-- Borders -->
                                     <Grid ColumnDefinitions="160,*,Auto" VerticalAlignment="Center">
-                                        <TextBlock Text="{l10n:Tr Key=theme_col_borders}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=theme_col_borders}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                         <TextBox Grid.Column="1" Classes="darkInput" Text="{Binding BorderDarkHex, Mode=TwoWay}" PlaceholderText="#121622"/>
                                         <Button Grid.Column="2" Classes="subBtn" Width="32" Height="32" Padding="0" Margin="8,0,0,0" ToolTip.Tip="{l10n:Tr Key=theme_choose_color}">
                                             <Button.Flyout>
@@ -391,7 +391,7 @@
                                                     <ColorView Color="{Binding BorderDarkHex, Mode=TwoWay, Converter={x:Static converters:HexToColorConverter.Instance}}" ColorModel="Rgba" IsAlphaVisible="False"/>
                                                 </Flyout>
                                             </Button.Flyout>
-                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding BorderDarkHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1"/>
+                                            <Border Width="18" Height="18" CornerRadius="4" Background="{Binding BorderDarkHex, Converter={x:Static converters:HexToBrushConverter.Instance}}" BorderBrush="{DynamicResource BorderEditorBrush}" BorderThickness="1"/>
                                         </Button>
                                     </Grid>
 

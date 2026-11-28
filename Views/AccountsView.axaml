@@ -19,7 +19,7 @@
 
              x:DataType="pages:AccountsViewModel"
 
-             Background="{StaticResource BgBrush}">
+             Background="{DynamicResource BgBrush}">
 
 
 
@@ -29,11 +29,11 @@
 
         <Style Selector="Button.methodBtn">
 
-            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource FieldBrush}"/>
 
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
 
-            <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderCardSoftBrush}"/>
 
             <Setter Property="BorderThickness" Value="1"/>
 
@@ -57,9 +57,9 @@
 
         <Style Selector="Button.methodBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
 
-            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
 
-            <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderHoverBrush}"/>
 
         </Style>
 
@@ -75,9 +75,9 @@
 
         <Style Selector="Border.accRowCard">
 
-            <Setter Property="Background" Value="{StaticResource CardBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
 
-            <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderCardSoftBrush}"/>
 
             <Setter Property="BorderThickness" Value="1"/>
 
@@ -87,9 +87,9 @@
 
         <Style Selector="Border.accRowCard:pointerover">
 
-            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
 
-            <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderHoverBrush}"/>
 
         </Style>
 
@@ -148,9 +148,9 @@
 
         <Style Selector="Button.delAccBtn">
 
-            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource FieldBrush}"/>
 
-            <Setter Property="BorderBrush" Value="{StaticResource BorderEditorBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderEditorBrush}"/>
 
             <Setter Property="BorderThickness" Value="1"/>
 
@@ -160,7 +160,7 @@
 
             <Setter Property="Padding" Value="10,0"/>
 
-            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
 
             <Setter Property="Cursor" Value="Hand"/>
 
@@ -180,15 +180,15 @@
 
         <Style Selector="Button.delAccBtn PathIcon">
 
-            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
 
         </Style>
 
         <Style Selector="Button.delAccBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
 
-            <Setter Property="Background" Value="{StaticResource DangerDimBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource DangerDimBrush}"/>
 
-            <Setter Property="BorderBrush" Value="{StaticResource DangerBorderBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource DangerBorderBrush}"/>
 
             <Setter Property="RenderTransform" Value="none"/>
 
@@ -196,13 +196,13 @@
 
         <Style Selector="Button.delAccBtn:pointerover TextBlock">
 
-            <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
 
         </Style>
 
         <Style Selector="Button.delAccBtn:pointerover PathIcon">
 
-            <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
 
         </Style>
 
@@ -240,11 +240,11 @@
 
         <Style Selector="Button.subBtn">
 
-            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource FieldBrush}"/>
 
-            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
 
-            <Setter Property="BorderBrush" Value="{StaticResource BorderEditorBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderEditorBrush}"/>
 
             <Setter Property="BorderThickness" Value="1"/>
 
@@ -260,11 +260,11 @@
 
         <Style Selector="Button.subBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
 
-            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
 
-            <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderHoverBrush}"/>
 
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
 
         </Style>
 
@@ -297,7 +297,7 @@
                                                     CommandParameter="{Binding Model}">
                                                 <Grid ColumnDefinitions="Auto,*" VerticalAlignment="Center">
                                                     <!-- Skin head avatar -->
-                                                    <Border Grid.Column="0" Width="36" Height="36" Background="{StaticResource IconChipBrush}" CornerRadius="6" ClipToBounds="True" Margin="0,0,10,0" VerticalAlignment="Center">
+                                                    <Border Grid.Column="0" Width="36" Height="36" Background="{DynamicResource IconChipBrush}" CornerRadius="6" ClipToBounds="True" Margin="0,0,10,0" VerticalAlignment="Center">
                                                         <Panel>
                                                             <Image Source="{Binding HeadImage}" Stretch="UniformToFill" IsVisible="{Binding HasHead}" Width="36" Height="36"/>
                                                             <TextBlock Text="{Binding Initial}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"
@@ -308,7 +308,7 @@
                                                     <!-- Name + provider -->
                                                     <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
                                                         <TextBlock Classes="rowTitle" Text="{Binding Username}" FontSize="13" FontWeight="SemiBold"/>
-                                                        <TextBlock Text="{Binding TypeDisplay}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="{Binding TypeDisplay}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                                     </StackPanel>
                                                 </Grid>
                                             </Button>
@@ -335,7 +335,7 @@
 
                         <TextBlock Text="{l10n:Tr Key=acc_empty}"
 
-                                   FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}" HorizontalAlignment="Center"
+                                   FontSize="12" Foreground="{DynamicResource TextPlaceholderBrush}" HorizontalAlignment="Center"
 
                                    IsVisible="{Binding HasNoAccounts}" Padding="0,20"/>
 
@@ -359,13 +359,13 @@
 
                             <Grid ColumnDefinitions="Auto,*" VerticalAlignment="Center">
 
-                                <Border Width="28" Height="28" Background="{StaticResource IconChipBrush}" CornerRadius="6" Margin="0,0,10,0" VerticalAlignment="Center">
+                                <Border Width="28" Height="28" Background="{DynamicResource IconChipBrush}" CornerRadius="6" Margin="0,0,10,0" VerticalAlignment="Center">
 
                                     <PathIcon Data="M3 3h8v8H3zm10 0h8v8h-8zM3 13h8v8H3zm10 0h8v8h-8z" Width="13" Height="13" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
 
                                 </Border>
 
-                                <TextBlock Grid.Column="1" Text="Microsoft" FontWeight="SemiBold" FontSize="12.5" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="1" Text="Microsoft" FontWeight="SemiBold" FontSize="12.5" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
 
                             </Grid>
 
@@ -378,13 +378,13 @@
 
                             <Grid ColumnDefinitions="Auto,*" VerticalAlignment="Center">
 
-                                <Border Width="28" Height="28" Background="{StaticResource IconChipBrush}" CornerRadius="6" Margin="0,0,10,0" VerticalAlignment="Center">
+                                <Border Width="28" Height="28" Background="{DynamicResource IconChipBrush}" CornerRadius="6" Margin="0,0,10,0" VerticalAlignment="Center">
 
                                     <TextBlock Text="E" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
                                 </Border>
 
-                                <TextBlock Grid.Column="1" Text="Ely.by" FontWeight="SemiBold" FontSize="12.5" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="1" Text="Ely.by" FontWeight="SemiBold" FontSize="12.5" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
 
                             </Grid>
 
@@ -397,13 +397,13 @@
 
                             <Grid ColumnDefinitions="Auto,*" VerticalAlignment="Center">
 
-                                <Border Width="28" Height="28" Background="{StaticResource IconChipBrush}" CornerRadius="6" Margin="0,0,10,0" VerticalAlignment="Center">
+                                <Border Width="28" Height="28" Background="{DynamicResource IconChipBrush}" CornerRadius="6" Margin="0,0,10,0" VerticalAlignment="Center">
 
                                     <PathIcon Data="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" Width="13" Height="13" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
 
                                 </Border>
 
-                                <TextBlock Grid.Column="1" Text="{l10n:Tr Key=acc_type_offline}" FontWeight="SemiBold" FontSize="12.5" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="1" Text="{l10n:Tr Key=acc_type_offline}" FontWeight="SemiBold" FontSize="12.5" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
 
                             </Grid>
 
@@ -413,11 +413,11 @@
 
                         <!-- Sign-in error -->
 
-                        <Border Background="{StaticResource DangerSoftBrush}" BorderBrush="{StaticResource DangerBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,4,0,0"
+                        <Border Background="{DynamicResource DangerSoftBrush}" BorderBrush="{DynamicResource DangerBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,4,0,0"
 
                                 IsVisible="{Binding AuthErrorText, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}">
 
-                            <TextBlock Text="{Binding AuthErrorText}" FontSize="11" Foreground="{StaticResource DangerLightBrush}" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding AuthErrorText}" FontSize="11" Foreground="{DynamicResource DangerLightBrush}" TextWrapping="Wrap"/>
 
                         </Border>
 
@@ -429,7 +429,7 @@
 
                     <StackPanel IsVisible="{Binding IsOfflinePanelOpen}" Spacing="10">
 
-                        <TextBlock Text="{l10n:Tr Key=acc_nickname}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="2,0,0,0"/>
+                        <TextBlock Text="{l10n:Tr Key=acc_nickname}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="2,0,0,0"/>
 
                         <TextBox Classes="darkInput" Text="{Binding NewOfflineUsername}" PlaceholderText="{l10n:Tr Key=placeholder_player}" Height="36" VerticalContentAlignment="Center"/>
 

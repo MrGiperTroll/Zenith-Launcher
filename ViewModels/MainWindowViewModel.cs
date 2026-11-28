@@ -1054,6 +1054,7 @@ public partial class MainWindowViewModel : ViewModelBase
             SetElyByErrorOpen = open => IsElyByErrorOpen = open,
             OnStatusChanged = text => StatusText = text,
             SaveLauncherConfigRequested = () => SaveLauncherConfig(),
+            FlushConfigRequested = () => SaveLauncherConfig(flushSync: true),
             RefreshStateRequested = () => RefreshState(),
             OnJavaLocationDetected = (major, path) => LauncherSettingsVm?.SetJavaLocation(major, path),
             OnLauncherSettingsUpdateJavaDisplayRequested = () => LauncherSettingsVm?.UpdateJavaDisplay(),

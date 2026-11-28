@@ -37,6 +37,7 @@ public partial class LaunchViewModel : ViewModelBase
     public Action<bool>? SetElyByErrorOpen { get; set; }
     public Action<string>? OnStatusChanged { get; set; }
     public Action? SaveLauncherConfigRequested { get; set; }
+    public Action? FlushConfigRequested { get; set; }
     public Action? RefreshStateRequested { get; set; }
     public Action<int, string>? OnJavaLocationDetected { get; set; }
     public Action? OnLauncherSettingsUpdateJavaDisplayRequested { get; set; }
@@ -268,6 +269,8 @@ public partial class LaunchViewModel : ViewModelBase
         var instance = GetSelectedInstance?.Invoke() ?? _instanceService.GetSelectedInstance();
         if (instance == null) return;
         if (instance.IsRunning || _launchingInstanceIds.Contains(instance.Id)) return;
+
+        FlushConfigRequested?.Invoke();
 
         if (instance.MinRamMb == null || instance.MinRamMb <= 0)
             instance.MinRamMb = MinRamMb;

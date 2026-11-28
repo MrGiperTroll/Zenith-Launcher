@@ -13,9 +13,9 @@
 
     <UserControl.Styles>
         <Style Selector="Button.profilePillBtn">
-            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource FieldBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderCardSoftBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="14"/>
             <Setter Property="Padding" Value="14,6"/>
@@ -24,7 +24,7 @@
             <Setter Property="FontWeight" Value="SemiBold"/>
         </Style>
         <Style Selector="Button.profilePillBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
         </Style>
         <Style Selector="Button.profilePillBtn.active /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
@@ -34,15 +34,15 @@
             <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
         </Style>
         <Style Selector="Border.authorProjectCard">
-            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource FieldBrush}"/>
             <Setter Property="BorderBrush" Value="#1E2026"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="10"/>
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
         <Style Selector="Border.authorProjectCard:pointerover">
-            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderHoverBrush}"/>
         </Style>
     </UserControl.Styles>
 
@@ -61,36 +61,36 @@
             <!-- User Info Header -->
             <Grid ColumnDefinitions="68,*,Auto" ColumnSpacing="16" VerticalAlignment="Center">
                 <!-- Avatar -->
-                <Border Grid.Column="0" Width="68" Height="68" CornerRadius="34" ClipToBounds="True" Background="{StaticResource CardBrush}">
+                <Border Grid.Column="0" Width="68" Height="68" CornerRadius="34" ClipToBounds="True" Background="{DynamicResource CardBrush}">
                     <Panel>
                         <Image Source="{Binding Profile.AvatarBitmap}" Stretch="UniformToFill" IsVisible="{Binding Profile.HasAvatar}"/>
                         <PathIcon Data="M12 4A4 4 0 0 1 16 8A4 4 0 0 1 12 12A4 4 0 0 1 8 8A4 4 0 0 1 12 4ZM4 20C4 16.69 7.58 14 12 14C16.42 14 20 16.69 20 20V21H4V20Z"
-                                  Width="32" Height="32" Foreground="{StaticResource TextPlaceholderBrush}"
+                                  Width="32" Height="32" Foreground="{DynamicResource TextPlaceholderBrush}"
                                   HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding !Profile.HasAvatar}"/>
                     </Panel>
                 </Border>
 
                 <!-- Name, Website & Metadata -->
                 <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding Profile.DisplayName}" FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                    <TextBlock Text="{Binding Profile.DisplayName}" FontSize="22" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                     <Button Command="{Binding OpenWebsiteCommand}" Background="Transparent" BorderThickness="0" Padding="0" Cursor="Hand"
                             HorizontalAlignment="Left" IsVisible="{Binding Profile.WebsiteUrl, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}">
                         <TextBlock Text="{Binding Profile.WebsiteUrl}" FontSize="12.5" Foreground="{DynamicResource AccentBrush}" TextDecorations="Underline"/>
                     </Button>
                     <StackPanel Orientation="Horizontal" Spacing="14" Margin="0,4,0,0">
                         <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
-                            <PathIcon Data="M3 3H10V10H3V3M14 3H21V10H14V3M3 14H10V21H3V14M14 14H21V21H14V14Z" Width="12" Height="12" Foreground="{StaticResource TextMutedBrush}"/>
-                            <TextBlock Text="{Binding ProjectsCountDisplay}" FontSize="11.5" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <PathIcon Data="M3 3H10V10H3V3M14 3H21V10H14V3M3 14H10V21H3V14M14 14H21V21H14V14Z" Width="12" Height="12" Foreground="{DynamicResource TextMutedBrush}"/>
+                            <TextBlock Text="{Binding ProjectsCountDisplay}" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
                         </StackPanel>
-                        <TextBlock Text="&#x2022;" FontSize="11" Foreground="{StaticResource TextDisabledBrush}"/>
+                        <TextBlock Text="&#x2022;" FontSize="11" Foreground="{DynamicResource TextDisabledBrush}"/>
                         <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
-                            <PathIcon Data="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z" Width="12" Height="12" Foreground="{StaticResource TextMutedBrush}"/>
-                            <TextBlock Text="{Binding TotalDownloadsDisplay}" FontSize="11.5" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <PathIcon Data="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z" Width="12" Height="12" Foreground="{DynamicResource TextMutedBrush}"/>
+                            <TextBlock Text="{Binding TotalDownloadsDisplay}" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
                         </StackPanel>
-                        <TextBlock Text="&#x2022;" FontSize="11" Foreground="{StaticResource TextDisabledBrush}"/>
+                        <TextBlock Text="&#x2022;" FontSize="11" Foreground="{DynamicResource TextDisabledBrush}"/>
                         <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
-                            <PathIcon Data="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10z" Width="12" Height="12" Foreground="{StaticResource TextMutedBrush}"/>
-                            <TextBlock Text="{Binding Profile.JoinedDisplay}" FontSize="11.5" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <PathIcon Data="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10z" Width="12" Height="12" Foreground="{DynamicResource TextMutedBrush}"/>
+                            <TextBlock Text="{Binding Profile.JoinedDisplay}" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
                         </StackPanel>
                     </StackPanel>
                 </StackPanel>
@@ -115,7 +115,7 @@
 
         <!-- Main Content Area: Full-width Projects List -->
         <Grid Grid.Row="1">
-            <TextBlock Text="{l10n:Tr Key=author_loading}" Foreground="{StaticResource TextMutedBrush}"
+            <TextBlock Text="{l10n:Tr Key=author_loading}" Foreground="{DynamicResource TextMutedBrush}"
                        FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,30" IsVisible="{Binding IsLoading}"/>
 
             <ListBox x:Name="AuthorProjectsList" Classes="plainVirtualList" ItemsSource="{Binding FilteredProjects}" IsVisible="{Binding !IsLoading}"
@@ -126,19 +126,19 @@
                                         Tapped="OnProjectCardTapped">
                                     <Grid ColumnDefinitions="48,*,Auto" ColumnSpacing="14" VerticalAlignment="Center">
                                         <!-- Project Icon -->
-                                        <Border Grid.Column="0" Width="48" Height="48" CornerRadius="10" Background="{StaticResource CardBrush}" ClipToBounds="True">
+                                        <Border Grid.Column="0" Width="48" Height="48" CornerRadius="10" Background="{DynamicResource CardBrush}" ClipToBounds="True">
                                             <Panel>
                                                 <Image Source="{Binding Icon}" Stretch="UniformToFill" IsVisible="{Binding HasIcon}"/>
                                                 <PathIcon Data="M20.5 11H19V7C19 5.9 18.1 5 17 5H13V3.5C13 2.12 11.88 1 10.5 1S8 2.12 8 3.5V5H4C2.9 5 2 5.9 2 7V10.8H3.5C4.99 10.8 6.2 12.01 6.2 13.5S4.99 16.2 3.5 16.2H2V20C2 21.1 2.9 22 4 22H7.8V20.5C7.8 19.01 9.01 17.8 10.5 17.8S13.2 19.01 13.2 20.5V22H17C18.1 22 19 21.1 19 20V16H20.5C21.88 16 23 14.88 23 13.5S21.88 11 20.5 11Z"
-                                                          Width="20" Height="20" Foreground="{StaticResource TextPlaceholderBrush}"
+                                                          Width="20" Height="20" Foreground="{DynamicResource TextPlaceholderBrush}"
                                                           HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding !HasIcon}"/>
                                             </Panel>
                                         </Border>
 
                                         <!-- Title, Description & Tags -->
                                         <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding Title}" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                            <TextBlock Text="{Binding Description}" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"
+                                            <TextBlock Text="{Binding Title}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                            <TextBlock Text="{Binding Description}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
                                                        TextTrimming="CharacterEllipsis" MaxLines="2" TextWrapping="Wrap"/>
 
                                             <!-- Tags pills -->
@@ -151,7 +151,7 @@
                                                     </ItemsControl.ItemsPanel>
                                                     <ItemsControl.ItemTemplate>
                                                         <DataTemplate>
-                                                            <Border Background="{StaticResource CardBrush}" CornerRadius="10" Padding="8,3">
+                                                            <Border Background="{DynamicResource CardBrush}" CornerRadius="10" Padding="8,3">
                                                                 <TextBlock Text="{Binding}" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"/>
                                                             </Border>
                                                         </DataTemplate>
@@ -163,10 +163,10 @@
                                         <!-- Right Stats -->
                                         <StackPanel Grid.Column="2" Spacing="4" VerticalAlignment="Center" HorizontalAlignment="Right">
                                             <StackPanel Orientation="Horizontal" Spacing="5" HorizontalAlignment="Right">
-                                                <TextBlock Text="&#x2193;" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
-                                                <TextBlock Text="{Binding DownloadsLabel}" FontSize="11.5" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                <TextBlock Text="&#x2193;" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
+                                                <TextBlock Text="{Binding DownloadsLabel}" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                             </StackPanel>
-                                            <TextBlock Text="{Binding FormattedDate}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Right"/>
+                                            <TextBlock Text="{Binding FormattedDate}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Right"/>
                                         </StackPanel>
                                     </Grid>
                                 </Border>

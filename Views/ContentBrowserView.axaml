@@ -11,91 +11,14 @@
         xmlns:anim="using:ZenithLauncher.UI.Animations"
         x:Class="ZenithLauncher.Views.ContentBrowserView"
         x:DataType="vm:ContentBrowserViewModel"
-        Background="{StaticResource BgBrush}"
+        Background="{DynamicResource BgBrush}"
         UseLayoutRounding="True">
 
     <UserControl.Styles>
-        <Style Selector="Button.primaryBtn">
-            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Padding" Value="14,7"/>
-        </Style>
-        <Style Selector="Button.primaryBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource AccentBrushHover}"/>
-            <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
-        </Style>
-        <Style Selector="Button.subBtn">
-            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderEditorBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="12,7"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
-        <Style Selector="Button.subBtn:pointerover">
-            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
-        </Style>
-        <Style Selector="Button.installedBtn">
-            <Setter Property="Width" Value="114"/>
-            <Setter Property="Height" Value="30"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-        </Style>
-        <Style Selector="Button.installedBtn.installed">
-            <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource AccentBrushHover}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource AccentBorderBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-        </Style>
-        <Style Selector="Button.installedBtn.installed:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource DangerBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-        </Style>
-        <Style Selector="Button.installedBtn.installing">
-            <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource AccentBrushHover}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource AccentBorderBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-        </Style>
-        <Style Selector="Button.installedBtn.installing:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource DangerBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-        </Style>
-        <Style Selector="Button.dialogBtn">
-            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderEditorBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
-        <Style Selector="Button.dialogBtn:pointerover">
-            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
-        </Style>
-        <Style Selector="Button.dialogDanger">
-            <Setter Property="Background" Value="{StaticResource DangerBorderBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource DangerLightBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource DangerBorderBrush}"/>
-        </Style>
-        <Style Selector="Button.dialogDanger:pointerover">
-            <Setter Property="Background" Value="{StaticResource DangerBgDeepBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
-        </Style>
         <Style Selector="Button.sourceBtn">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderEditorBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderEditorBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Padding" Value="14,6"/>
@@ -104,36 +27,18 @@
             <Setter Property="FontWeight" Value="SemiBold"/>
         </Style>
         <Style Selector="Button.sourceBtn.active">
-            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
         </Style>
 
-        <Style Selector="Button.sourceTabBtn">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="CornerRadius" Value="6"/>
-            <Setter Property="Padding" Value="8,0"/>
-            <Setter Property="Height" Value="26"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-        </Style>
-        <Style Selector="Button.sourceTabBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-        </Style>
-        <Style Selector="Button.sourceTabBtn.active /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource AccentDimBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-        </Style>
         <!-- Tag chips: /template/ setters are required because the Fluent theme
              overrides the ContentPresenter background on :pointerover, which would
              otherwise wash out inline backgrounds. Selected chips stay green on hover. -->
         <Style Selector="Button.tagChip">
-            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderEditorBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource FieldBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderEditorBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="16"/>
             <Setter Property="Padding" Value="10,5"/>
@@ -141,41 +46,29 @@
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
         <Style Selector="Button.tagChip:pointerover">
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
         <Style Selector="Button.tagChip:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderHoverBrush}"/>
         </Style>
         <Style Selector="Button.tagChip.selected">
-            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
         </Style>
         <Style Selector="Button.tagChip.selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
         </Style>
         <!-- Catalog cards: single-level surface, accent border on hover -->
         <Style Selector="Border.catalogCard">
-            <Setter Property="Background" Value="{StaticResource CardBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderCardSoftBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
         </Style>
         <Style Selector="Border.catalogCard:pointerover">
             <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
-        </Style>
-        <Style Selector="Button.inlineLinkBtn">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
-        <Style Selector="Button.inlineLinkBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="Transparent"/>
-        </Style>
-        <Style Selector="Button.inlineLinkBtn:pointerover">
-            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
         </Style>
         <!-- Unified Toolbar Controls -->
         <Style Selector="ComboBox.toolbarCombo">
@@ -343,10 +236,10 @@
                                 <Border Classes="catalogCard" Margin="4" CornerRadius="10" Padding="0" ClipToBounds="True" Tapped="OnCardTapped" Cursor="Hand">
                                     <Grid ColumnDefinitions="64,*,Auto" ColumnSpacing="12" Margin="10,10,14,10">
                                         <!-- Icon -->
-                                        <Border Grid.Column="0" Width="56" Height="56" CornerRadius="10" Background="{StaticResource IconChipBrush}" ClipToBounds="True" HorizontalAlignment="Center" VerticalAlignment="Top">
+                                        <Border Grid.Column="0" Width="56" Height="56" CornerRadius="10" Background="{DynamicResource IconChipBrush}" ClipToBounds="True" HorizontalAlignment="Center" VerticalAlignment="Top">
                                             <Panel>
                                                 <Image Source="{Binding Icon}" Stretch="Uniform" Width="52" Height="52" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding HasIcon}"/>
-                                                <Path Data="M20.5 11H19V7C19 5.9 18.1 5 17 5H13V3.5C13 2.12 11.88 1 10.5 1S8 2.12 8 3.5V5H4C2.9 5 2 5.9 2 7V10.8H3.5C4.99 10.8 6.2 12.01 6.2 13.5S4.99 16.2 3.5 16.2H2V20C2 21.1 2.9 22 4 22H7.8V20.5C7.8 19.01 9.01 17.8 10.5 17.8S13.2 19.01 13.2 20.5V22H17C18.1 22 19 21.1 19 20V16H20.5C21.88 16 23 14.88 23 13.5S21.88 11 20.5 11Z" Width="24" Height="24" Stretch="Uniform" Fill="{StaticResource TextPlaceholderBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding !HasIcon}"/>
+                                                <Path Data="M20.5 11H19V7C19 5.9 18.1 5 17 5H13V3.5C13 2.12 11.88 1 10.5 1S8 2.12 8 3.5V5H4C2.9 5 2 5.9 2 7V10.8H3.5C4.99 10.8 6.2 12.01 6.2 13.5S4.99 16.2 3.5 16.2H2V20C2 21.1 2.9 22 4 22H7.8V20.5C7.8 19.01 9.01 17.8 10.5 17.8S13.2 19.01 13.2 20.5V22H17C18.1 22 19 21.1 19 20V16H20.5C21.88 16 23 14.88 23 13.5S21.88 11 20.5 11Z" Width="24" Height="24" Stretch="Uniform" Fill="{DynamicResource TextPlaceholderBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding !HasIcon}"/>
                                             </Panel>
                                         </Border>
 
@@ -354,8 +247,8 @@
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
                                             <!-- Title + Author link -->
                                             <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding Title}" FontSize="13.5" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,5,0"/>
-                                                <TextBlock Text="{l10n:Tr Key=cb_by_prefix}" FontSize="11.5" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                                <TextBlock Text="{Binding Title}" FontSize="13.5" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                                <TextBlock Text="{l10n:Tr Key=cb_by_prefix}" FontSize="11.5" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,4,0"/>
                                                 <Button Classes="authorLinkBtn" Content="{Binding Author}"
                                                         Command="{Binding $parent[UserControl].((vm:ContentBrowserViewModel)DataContext).OpenAuthorProfileCommand}"
                                                         CommandParameter="{Binding Author}"
@@ -363,7 +256,7 @@
                                             </WrapPanel>
 
                                             <!-- Description -->
-                                            <TextBlock Text="{Binding Description}" FontSize="11.5" Foreground="{StaticResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" MaxLines="2" TextWrapping="Wrap" LineHeight="16"/>
+                                            <TextBlock Text="{Binding Description}" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" MaxLines="2" TextWrapping="Wrap" LineHeight="16"/>
 
                                             <!-- Tag Badges / Chips -->
                                             <ItemsControl ItemsSource="{Binding DisplayTags}" Margin="0,2,0,0">
@@ -441,21 +334,21 @@
                                             IsHitTestVisible="False" Margin="4,4,4,0"/>
             <TextBlock Grid.Row="0" Text="{l10n:Tr Key=mp_empty}" IsVisible="{Binding IsEmpty}"
                        HorizontalAlignment="Center" VerticalAlignment="Center"
-                       Foreground="{StaticResource TextPlaceholderBrush}" IsHitTestVisible="False"/>
-            <Border Grid.Row="0" VerticalAlignment="Bottom" Background="{StaticResource BgBrush}" Padding="8,6" IsVisible="{Binding StatusText, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}">
-                <TextBlock Text="{Binding StatusText}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                       Foreground="{DynamicResource TextPlaceholderBrush}" IsHitTestVisible="False"/>
+            <Border Grid.Row="0" VerticalAlignment="Bottom" Background="{DynamicResource BgBrush}" Padding="8,6" IsVisible="{Binding StatusText, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}">
+                <TextBlock Text="{Binding StatusText}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
             </Border>
         </Grid>
     </Grid>
 
     <!-- MODAL: Delete Confirmation -->
-    <Border IsVisible="False" anim:ZenithMotion.ModalOpen="{Binding IsDeleteConfirmOpen}" Background="{StaticResource OverlayBrush}" ZIndex="1000" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-        <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1"
+    <Border IsVisible="False" anim:ZenithMotion.ModalOpen="{Binding IsDeleteConfirmOpen}" Background="{DynamicResource OverlayBrush}" ZIndex="1000" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1"
                 CornerRadius="12" MaxWidth="360" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center">
             <StackPanel Spacing="12">
-                <TextBlock Text="{l10n:Tr Key=cb_delete_title}" FontSize="17" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                <TextBlock Text="{Binding DeleteItemName}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextLabelBrush}" TextWrapping="Wrap" TextTrimming="CharacterEllipsis"/>
-                <TextBlock Text="{l10n:Tr Key=cb_delete_question}" FontSize="12.5" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="18"/>
+                <TextBlock Text="{l10n:Tr Key=cb_delete_title}" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                <TextBlock Text="{Binding DeleteItemName}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextLabelBrush}" TextWrapping="Wrap" TextTrimming="CharacterEllipsis"/>
+                <TextBlock Text="{l10n:Tr Key=cb_delete_question}" FontSize="12.5" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="18"/>
                 <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" Margin="0,8,0,0">
                     <Button Content="{l10n:Tr Key=no}" Command="{Binding CancelDeleteCommand}" Classes="dialogBtn"
                             Width="90" Height="34" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>

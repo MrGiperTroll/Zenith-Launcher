@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -6,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
@@ -25,6 +27,7 @@ public partial class LaunchViewModel : ViewModelBase
     private readonly IInstanceService _instanceService;
     private readonly ConsoleViewModel _console;
     private readonly HashSet<string> _launchingInstanceIds = new();
+    private readonly ConcurrentDictionary<string, CancellationTokenSource> _launchCtsMap = new();
 
     public Func<InstanceModel?>? GetSelectedInstance { get; set; }
     public Func<AccountModel?>? GetSelectedAccount { get; set; }
@@ -219,6 +222,10 @@ public partial class LaunchViewModel : ViewModelBase
     public void StopInstance(InstanceModel? inst)
     {
         if (inst == null) return;
+        if (_launchCtsMap.TryGetValue(inst.Id, out var cts))
+        {
+            try { cts.Cancel(); } catch { }
+        }
         _launchingInstanceIds.Remove(inst.Id);
         inst.IsLaunching = false;
         _launchService.KillProcess(inst.Id);
@@ -234,6 +241,10 @@ public partial class LaunchViewModel : ViewModelBase
             var instance = GetSelectedInstance?.Invoke() ?? _instanceService.GetSelectedInstance();
             if (instance != null)
             {
+                if (_launchCtsMap.TryGetValue(instance.Id, out var cts))
+                {
+                    try { cts.Cancel(); } catch { }
+                }
                 _launchingInstanceIds.Remove(instance.Id);
                 instance.IsLaunching = false;
                 _launchService.KillProcess(instance.Id);
@@ -262,6 +273,14 @@ public partial class LaunchViewModel : ViewModelBase
             instance.MinRamMb = MinRamMb;
         instance.MaxMemoryMb = instance.RamMb ?? RamMb;
 
+        var launchCts = new CancellationTokenSource();
+        if (_launchCtsMap.TryGetValue(instance.Id, out var staleCts))
+        {
+            try { staleCts.Cancel(); staleCts.Dispose(); } catch { }
+        }
+        _launchCtsMap[instance.Id] = launchCts;
+        var ct = launchCts.Token;
+
         _launchingInstanceIds.Add(instance.Id);
         instance.IsLaunching = true;
 
@@ -281,15 +300,28 @@ public partial class LaunchViewModel : ViewModelBase
             var javaMode = GetSelectedJavaMode?.Invoke() ?? "Recommended";
             var customJava = CustomJavaPath;
 
-            if (javaMode == "Custom" && (string.IsNullOrWhiteSpace(customJava) || !File.Exists(customJava)))
+            if (javaMode == "Custom" && string.IsNullOrWhiteSpace(instance.CustomJavaPath) &&
+                (string.IsNullOrWhiteSpace(customJava) || !File.Exists(customJava)))
             {
                 StatusText = L10n.T("mw_status_java_invalid");
                 return;
             }
 
-            var process = await Task.Run(() => _launchService.LaunchAsync(instance, account, extraArgs));
+            ct.ThrowIfCancellationRequested();
+            var process = await Task.Run(() => _launchService.LaunchAsync(instance, account, extraArgs, ct), ct);
+            if (ct.IsCancellationRequested)
+            {
+                _launchService.KillProcess(instance.Id);
+                throw new OperationCanceledException(ct);
+            }
+
             StatusText = string.Format(L10n.T("mw_status_launched"), instance.Name);
             ApplyLaunchBehavior(process);
+        }
+        catch (OperationCanceledException)
+        {
+            _launchService.KillProcess(instance.Id);
+            StatusText = L10n.T("mw_status_launch_cancelled");
         }
         catch (HttpRequestException ex)
         {
@@ -319,6 +351,10 @@ public partial class LaunchViewModel : ViewModelBase
         }
         finally
         {
+            if (_launchCtsMap.TryRemove(instance.Id, out var removedCts))
+            {
+                try { removedCts.Dispose(); } catch { }
+            }
             _launchingInstanceIds.Remove(instance.Id);
             instance.IsLaunching = false;
 

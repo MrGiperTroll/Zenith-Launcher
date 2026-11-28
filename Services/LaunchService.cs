@@ -48,23 +48,24 @@ public class LaunchService : ILaunchService
     // its version list, or two launcher processes) they fight over that file:
     // "The process cannot access the file ... because it is being used by
     // another process". The retry below rides out those transient conflicts.
-    public static async Task<T> WithManifestRetryAsync<T>(Func<Task<T>> action)
+    public static async Task<T> WithManifestRetryAsync<T>(Func<Task<T>> action, CancellationToken cancellationToken = default)
     {
         for (int attempt = 1; ; attempt++)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             try
             {
                 return await action().ConfigureAwait(false);
             }
             catch (IOException) when (attempt < 6)
             {
-                await Task.Delay(TimeSpan.FromMilliseconds(200 * attempt)).ConfigureAwait(false);
+                await Task.Delay(TimeSpan.FromMilliseconds(200 * attempt), cancellationToken).ConfigureAwait(false);
             }
         }
     }
 
-    public static Task WithManifestRetryAsync(Func<Task> action) =>
-        WithManifestRetryAsync<object?>(async () => { await action().ConfigureAwait(false); return null; });
+    public static Task WithManifestRetryAsync(Func<Task> action, CancellationToken cancellationToken = default) =>
+        WithManifestRetryAsync<object?>(async () => { await action().ConfigureAwait(false); return null; }, cancellationToken);
 
     // Safe JVM args for modern Java (17/21) — no deprecated/removed flags
     private static readonly MArgument[] ModernSafeJvmArgs =
@@ -297,8 +298,10 @@ public class LaunchService : ILaunchService
         }
     }
 
-    public async Task<Process?> LaunchAsync(InstanceModel instance, AccountModel account, string? extraGameArgs = null)
+    public async Task<Process?> LaunchAsync(InstanceModel instance, AccountModel account, string? extraGameArgs = null, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var config = GetConfig();
 
         var zenithRoot = ZenithPaths.AppDataDir;
@@ -345,55 +348,66 @@ public class LaunchService : ILaunchService
         // Serialize install of the same Minecraft version to avoid file conflicts
         // when launching multiple instances of the same version in parallel.
         var installLock = InstallLocks.GetOrAdd($"{instance.Version}:{instance.LoaderType}:{instance.LoaderVersion}", _ => new SemaphoreSlim(1, 1));
-        await installLock.WaitAsync();
+        await installLock.WaitAsync(cancellationToken).ConfigureAwait(false);
         string targetVersion;
         IVersion version;
         try
         {
-            await WithManifestRetryAsync(() => launcher.InstallAsync(instance.Version).AsTask());
+            cancellationToken.ThrowIfCancellationRequested();
+            await WithManifestRetryAsync(() => launcher.InstallAsync(instance.Version, cancellationToken).AsTask(), cancellationToken).ConfigureAwait(false);
             targetVersion = instance.Version;
 
-            var reqJavaForInstaller = InferRequiredJavaMajor(instance.Version);
-            var resolvedInstallerJava = await ResolveJavaAsync(reqJavaForInstaller, zenithRoot);
-            var javaExeToUse = "java";
-            if (!string.IsNullOrWhiteSpace(resolvedInstallerJava))
-            {
-                var consoleExe = Path.Combine(Path.GetDirectoryName(resolvedInstallerJava)!, "java.exe");
-                javaExeToUse = File.Exists(consoleExe) ? consoleExe : resolvedInstallerJava;
-            }
-
+            cancellationToken.ThrowIfCancellationRequested();
             if (!instance.LoaderType.Equals("Vanilla", StringComparison.OrdinalIgnoreCase))
             {
-                if (string.IsNullOrWhiteSpace(resolvedInstallerJava) && !TryFindJava())
+                var reqJavaForInstaller = JavaVersionHelper.InferRequiredJavaMajor(instance.Version);
+                var resolvedInstallerJava = await ResolveInstallerJavaAsync(instance, config, reqJavaForInstaller, zenithRoot, cancellationToken).ConfigureAwait(false);
+                var javaExeToUse = "java";
+                if (!string.IsNullOrWhiteSpace(resolvedInstallerJava))
+                {
+                    var consoleExe = Path.Combine(Path.GetDirectoryName(resolvedInstallerJava)!, "java.exe");
+                    javaExeToUse = File.Exists(consoleExe) ? consoleExe : resolvedInstallerJava;
+                }
+
+                if (string.IsNullOrWhiteSpace(resolvedInstallerJava) && !await TryFindJavaAsync(cancellationToken).ConfigureAwait(false))
                 {
                     LogReceived?.Invoke("[ERROR] Java not found on PATH or runtime. Cannot install mod loader.");
                     throw new InvalidOperationException($"Java {reqJavaForInstaller} is required but was not found on PATH or runtime.");
                 }
+
+                cancellationToken.ThrowIfCancellationRequested();
+                if (instance.LoaderType.Equals("Forge", StringComparison.OrdinalIgnoreCase))
+                {
+                    targetVersion = await InstallForgeAsync(instance, zenithRoot, javaExeToUse, cancellationToken).ConfigureAwait(false);
+                }
+                else if (instance.LoaderType.Equals("Fabric", StringComparison.OrdinalIgnoreCase))
+                {
+                    targetVersion = await InstallFabricAsync(instance, zenithRoot, cancellationToken).ConfigureAwait(false);
+                }
+                else if (instance.LoaderType.Equals("NeoForge", StringComparison.OrdinalIgnoreCase))
+                {
+                    targetVersion = await InstallNeoForgeAsync(instance, zenithRoot, javaExeToUse, cancellationToken).ConfigureAwait(false);
+                }
+                else if (instance.LoaderType.Equals("Quilt", StringComparison.OrdinalIgnoreCase))
+                {
+                    targetVersion = await InstallQuiltAsync(instance, zenithRoot, cancellationToken).ConfigureAwait(false);
+                }
+                else if (instance.LoaderType.Equals("OptiFine", StringComparison.OrdinalIgnoreCase))
+                {
+                    targetVersion = await InstallOptiFineAsync(instance, zenithRoot, basePath, javaExeToUse, cancellationToken).ConfigureAwait(false);
+                }
             }
 
-            if (instance.LoaderType.Equals("Forge", StringComparison.OrdinalIgnoreCase))
-            {
-                targetVersion = await InstallForgeAsync(instance, zenithRoot, javaExeToUse);
-            }
-            else if (instance.LoaderType.Equals("Fabric", StringComparison.OrdinalIgnoreCase))
-            {
-                targetVersion = await InstallFabricAsync(instance, zenithRoot);
-            }
-            else if (instance.LoaderType.Equals("NeoForge", StringComparison.OrdinalIgnoreCase))
-            {
-                targetVersion = await InstallNeoForgeAsync(instance, zenithRoot, javaExeToUse);
-            }
-            else if (instance.LoaderType.Equals("Quilt", StringComparison.OrdinalIgnoreCase))
-            {
-                targetVersion = await InstallQuiltAsync(instance, zenithRoot);
-            }
-            else if (instance.LoaderType.Equals("OptiFine", StringComparison.OrdinalIgnoreCase))
-            {
-                targetVersion = await InstallOptiFineAsync(instance, zenithRoot, basePath, javaExeToUse);
-            }
-
-            await WithManifestRetryAsync(() => launcher.GetAllVersionsAsync().AsTask());
-            version = await WithManifestRetryAsync(() => launcher.GetVersionAsync(targetVersion).AsTask());
+            cancellationToken.ThrowIfCancellationRequested();
+            await WithManifestRetryAsync(() => launcher.GetAllVersionsAsync(cancellationToken).AsTask(), cancellationToken).ConfigureAwait(false);
+            version = await WithManifestRetryAsync(() => launcher.GetVersionAsync(targetVersion, cancellationToken).AsTask(), cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            LogReceived?.Invoke("Launch cancelled.");
+            SafeAppendLog(logFilePath, "[INFO] Launch cancelled by user.\n");
+            FlushLogQueue(logFilePath);
+            throw;
         }
         catch (Exception ex)
         {
@@ -407,6 +421,8 @@ public class LaunchService : ILaunchService
             installLock.Release();
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
+
         var session = account.Type == AccountType.Offline
             ? MSession.CreateOfflineSession(account.Username)
             : new MSession
@@ -416,25 +432,6 @@ public class LaunchService : ILaunchService
                 AccessToken = account.AccessToken,
                 UserType = account.Type == AccountType.Microsoft ? "msa" : "mojang"
             };
-
-        // Ensure authlib-injector.jar exists and is valid for Ely.by accounts
-        if (account.Type == AccountType.ElyBy)
-        {
-            var authlibPath = Path.Combine(ZenithPaths.AppDataDir, "authlib-injector.jar");
-            if (!File.Exists(authlibPath) || new FileInfo(authlibPath).Length <= 0)
-            {
-                LauncherLog.Info("authlib-injector.jar missing or empty, downloading early...");
-                try
-                {
-                    await DownloadAuthlibInjectorAsync(authlibPath).ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                {
-                    LauncherLog.Error($"Early authlib-injector.jar download failed: {ex.Message}");
-                    // Final hard check happens right before javaw.exe below.
-                }
-            }
-        }
 
         var launchOption = new MLaunchOption
         {
@@ -511,6 +508,7 @@ public class LaunchService : ILaunchService
 
         if (account.Type == AccountType.ElyBy)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             try
             {
                 var authlibPath = Path.Combine(ZenithPaths.AppDataDir, "authlib-injector.jar");
@@ -521,7 +519,7 @@ public class LaunchService : ILaunchService
                 if (!File.Exists(authlibPath) || new FileInfo(authlibPath).Length <= 0)
                 {
                     LauncherLog.Info("authlib-injector.jar missing or empty - downloading now...");
-                    await DownloadAuthlibInjectorAsync(authlibPath).ConfigureAwait(false);
+                    await DownloadAuthlibInjectorAsync(authlibPath, cancellationToken).ConfigureAwait(false);
                 }
 
                 var authlibFile = new FileInfo(authlibPath);
@@ -538,12 +536,18 @@ public class LaunchService : ILaunchService
                 // fail with HTTP 405.
                 jvmArgs.Add(new MArgument($"-javaagent:{authlibPath}=https://authserver.ely.by/api/authlib-injector"));
             }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
             catch
             {
                 LauncherLog.Error("Ely.by launch preparation failed - aborting launch (see log above).");
                 throw;
             }
         }
+
+        cancellationToken.ThrowIfCancellationRequested();
 
         var requiredJava = JavaVersionHelper.InferRequiredJavaMajor(instance.Version);
         if (version.JavaVersion != null)
@@ -553,7 +557,8 @@ public class LaunchService : ILaunchService
                 requiredJava = parsed;
         }
 
-        // Java resolution: user-specified instance Java MUST be honored without overrides
+        // Java resolution: user-specified instance/global Java MUST be honored without overrides
+        var effectiveJavaMode = !string.IsNullOrWhiteSpace(instance.JavaMode) ? instance.JavaMode : config?.JavaMode;
         if (!string.IsNullOrWhiteSpace(instance.CustomJavaPath))
         {
             if (!File.Exists(instance.CustomJavaPath))
@@ -562,15 +567,15 @@ public class LaunchService : ILaunchService
             launchOption.JavaPath = instance.CustomJavaPath;
             LogReceived?.Invoke($"Using user-specified instance Java: {instance.CustomJavaPath}");
         }
-        else if (config != null
-                 && string.Equals(config.JavaMode, "Custom", StringComparison.OrdinalIgnoreCase)
+        else if (string.Equals(effectiveJavaMode, "Custom", StringComparison.OrdinalIgnoreCase)
+                 && config != null
                  && !string.IsNullOrWhiteSpace(config.CustomJavaPath)
                  && File.Exists(config.CustomJavaPath))
         {
             launchOption.JavaPath = config.CustomJavaPath;
             LogReceived?.Invoke($"Using global custom Java: {config.CustomJavaPath}");
         }
-        else if (string.Equals(config?.JavaMode, "System", StringComparison.OrdinalIgnoreCase)
+        else if (string.Equals(effectiveJavaMode, "System", StringComparison.OrdinalIgnoreCase)
                  && JavaVersionHelper.FindSystemJavaPath() is { Length: > 0 } sysJava
                  && File.Exists(sysJava))
         {
@@ -590,7 +595,7 @@ public class LaunchService : ILaunchService
             {
                 // Auto-select suitable Java version for this instance
                 LogReceived?.Invoke($"Required Java version: {requiredJava}");
-                var found = await ResolveJavaAsync(requiredJava, zenithRoot);
+                var found = await ResolveJavaAsync(requiredJava, zenithRoot, cancellationToken).ConfigureAwait(false);
                 if (found != null)
                 {
                     launchOption.JavaPath = found;
@@ -638,10 +643,13 @@ public class LaunchService : ILaunchService
 
         launchOption.JvmArgumentOverrides = SanitizeJvmArgs(combinedJvmArgs, targetJavaMajor).ToArray();
 
+        cancellationToken.ThrowIfCancellationRequested();
+
         // Ensure all required native libraries (.dll) are physically present in the instance's nativesDir
         EnsureNativesExtracted(version, zenithRoot, nativesDir, targetVersion, instance.Version, msg => LogReceived?.Invoke(msg));
 
-        var process = await launcher.BuildProcessAsync(targetVersion, launchOption);
+        cancellationToken.ThrowIfCancellationRequested();
+        var process = await launcher.BuildProcessAsync(targetVersion, launchOption, cancellationToken).ConfigureAwait(false);
 
         if (!string.IsNullOrWhiteSpace(extraGameArgs))
         {
@@ -684,6 +692,8 @@ public class LaunchService : ILaunchService
             }
         };
 
+        cancellationToken.ThrowIfCancellationRequested();
+
         var launchStartTime = DateTime.UtcNow;
         instance.LastPlayed = DateTime.UtcNow;
         _ = _instanceService.SaveInstanceAsync(instance);
@@ -712,15 +722,21 @@ public class LaunchService : ILaunchService
             FlushLogQueue(logFilePath);
 
             GameExited?.Invoke(instance, exitCode);
-
-
         };
 
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
             process.Start();
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
+        }
+        catch (OperationCanceledException)
+        {
+            _runningProcesses.TryRemove(instance.Id, out _);
+            Dispatcher.UIThread.Post(() => instance.IsRunning = false);
+            try { if (!process.HasExited) process.Kill(entireProcessTree: true); } catch { }
+            throw;
         }
         catch (Exception ex)
         {
@@ -730,81 +746,119 @@ public class LaunchService : ILaunchService
         }
 
         _runningProcesses[instance.Id] = process;
-        instance.IsRunning = true;
+        Dispatcher.UIThread.Post(() => instance.IsRunning = true);
 
         GameLaunched?.Invoke(instance, account.Type.ToString());
 
         return process;
     }
 
-    /// <summary>
-    /// Heuristic Java requirement by game version, used when the manifest does
-    /// not declare a javaVersion: 26.x+ -> 25, 1.20.5+ -> 21,
-    /// 1.17 - 1.20.4 -> 17, anything older -> 8.
-    /// </summary>
-    private static int InferRequiredJavaMajor(string gameVersion)
+    private async Task<string?> ResolveInstallerJavaAsync(
+        InstanceModel instance,
+        LauncherConfigData? config,
+        int requiredMajor,
+        string zenithRoot,
+        CancellationToken cancellationToken)
     {
-        // Leading numeric run ("26.3", "1.20.4", "3D Shareware v1.34" -> "3").
-        var chars = new List<char>();
-        foreach (var c in gameVersion)
+        if (!string.IsNullOrWhiteSpace(instance.CustomJavaPath))
         {
-            if (char.IsDigit(c) || c == '.') chars.Add(c);
-            else if (chars.Count > 0) break;
+            if (!File.Exists(instance.CustomJavaPath))
+                throw new InvalidOperationException($"Custom Java path for instance '{instance.Name}' does not exist: {instance.CustomJavaPath}");
+            return instance.CustomJavaPath;
         }
-        var numeric = new string(chars.ToArray()).TrimEnd('.');
 
-        var parts = numeric.Split('.');
-        if (parts.Length == 0 || !int.TryParse(parts[0], out var first))
-            return 8;
-
-        // New versioning scheme: 26.x and later -> newest LTS line.
-        if (first >= 26) return 25;
-
-        if (first != 1) return 8; // ancient / special one-off versions
-
-        if (parts.Length >= 2 && int.TryParse(parts[1], out var minor))
+        var effectiveJavaMode = !string.IsNullOrWhiteSpace(instance.JavaMode) ? instance.JavaMode : config?.JavaMode;
+        if (string.Equals(effectiveJavaMode, "Custom", StringComparison.OrdinalIgnoreCase)
+            && config != null
+            && !string.IsNullOrWhiteSpace(config.CustomJavaPath)
+            && File.Exists(config.CustomJavaPath))
         {
-            if (minor >= 21) return 21;
-            if (minor == 20)
-            {
-                if (parts.Length >= 3 && int.TryParse(parts[2], out var patch) && patch >= 5)
-                    return 21;
-                return 17;
-            }
-            if (minor >= 17) return 17;
+            return config.CustomJavaPath;
         }
-        return 8;
+
+        if (string.Equals(effectiveJavaMode, "System", StringComparison.OrdinalIgnoreCase)
+            && JavaVersionHelper.FindSystemJavaPath() is { Length: > 0 } sysJava
+            && File.Exists(sysJava))
+        {
+            return sysJava;
+        }
+
+        var configuredSlot = GetConfiguredJavaSlot(config, requiredMajor);
+        if (!string.IsNullOrWhiteSpace(configuredSlot) && File.Exists(configuredSlot))
+            return configuredSlot;
+
+        return await ResolveJavaAsync(requiredMajor, zenithRoot, cancellationToken).ConfigureAwait(false);
     }
 
-    private static bool TryFindJava()
+    private static async Task<string?> RunProcessOutputWithTimeoutAsync(
+        string fileName,
+        string arguments,
+        bool readStandardError,
+        int timeoutMs = 3000,
+        CancellationToken cancellationToken = default)
     {
-        if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("JAVA_HOME"))) return true;
         try
         {
             using var proc = new Process
             {
                 StartInfo = new ProcessStartInfo
                 {
-                    FileName = "java",
-                    Arguments = "-version",
+                    FileName = fileName,
+                    Arguments = arguments,
                     UseShellExecute = false,
-                    RedirectStandardError = true,
+                    RedirectStandardOutput = !readStandardError,
+                    RedirectStandardError = readStandardError,
                     CreateNoWindow = true
                 }
             };
-            proc.Start();
-            return proc.StandardError.ReadToEnd().Contains("version");
+            if (!proc.Start()) return null;
+
+            using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            timeoutCts.CancelAfter(timeoutMs);
+
+            var readTask = readStandardError
+                ? proc.StandardError.ReadToEndAsync(timeoutCts.Token)
+                : proc.StandardOutput.ReadToEndAsync(timeoutCts.Token);
+
+            try
+            {
+                var output = await readTask.ConfigureAwait(false);
+                await proc.WaitForExitAsync(timeoutCts.Token).ConfigureAwait(false);
+                return output;
+            }
+            catch (OperationCanceledException)
+            {
+                try { if (!proc.HasExited) proc.Kill(entireProcessTree: true); } catch { }
+                if (cancellationToken.IsCancellationRequested)
+                    throw;
+                return null;
+            }
         }
-        catch { return false; }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static async Task<bool> TryFindJavaAsync(CancellationToken cancellationToken = default)
+    {
+        if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("JAVA_HOME"))) return true;
+        var output = await RunProcessOutputWithTimeoutAsync("java", "-version", readStandardError: true, timeoutMs: 3000, cancellationToken).ConfigureAwait(false);
+        return output != null && output.Contains("version");
     }
 
     private sealed record AdoptiumReleaseInfo(string ReleaseName, string ComparableVersion, string DownloadUrl, string? Sha256);
     private static readonly ConcurrentDictionary<int, (DateTime CheckedUtc, AdoptiumReleaseInfo? Info)> AdoptiumLatestCache = new();
     private static readonly TimeSpan AdoptiumCheckCooldown = TimeSpan.FromHours(6);
 
-    private async Task<string?> ResolveJavaAsync(int major, string zenithRoot)
+    private async Task<string?> ResolveJavaAsync(int major, string zenithRoot, CancellationToken cancellationToken = default)
     {
-        var found = await FindLocalJavaAsync(major, zenithRoot);
+        cancellationToken.ThrowIfCancellationRequested();
+        var found = await FindLocalJavaAsync(major, zenithRoot, cancellationToken).ConfigureAwait(false);
         if (found != null)
         {
             var cfgLocal = GetConfig();
@@ -815,13 +869,13 @@ public class LaunchService : ILaunchService
                 if (autoManage)
                 {
                     LogReceived?.Invoke($"[SECURITY] Local Java {major} ({cVer}) is vulnerable to CVE-2026-114938 (Java4Shell). Enforcing update to patched build ({minSafe})...");
-                    var updated = await DownloadAdoptiumRuntimeAsync(major, zenithRoot, forceRedownload: true);
+                    var updated = await DownloadAdoptiumRuntimeAsync(major, zenithRoot, forceRedownload: true, cancellationToken: cancellationToken).ConfigureAwait(false);
                     if (updated != null) return updated;
                 }
             }
             else if (autoManage)
             {
-                var updated = await TryAutoUpdateJavaIfOutdatedAsync(major, found, zenithRoot);
+                var updated = await TryAutoUpdateJavaIfOutdatedAsync(major, found, zenithRoot, cancellationToken).ConfigureAwait(false);
                 if (updated != null) return updated;
             }
 
@@ -837,14 +891,14 @@ public class LaunchService : ILaunchService
             return null;
         }
 
-        return await DownloadAdoptiumRuntimeAsync(major, zenithRoot);
+        return await DownloadAdoptiumRuntimeAsync(major, zenithRoot, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task<string?> TryAutoUpdateJavaIfOutdatedAsync(int major, string localJavaExe, string zenithRoot)
+    private async Task<string?> TryAutoUpdateJavaIfOutdatedAsync(int major, string localJavaExe, string zenithRoot, CancellationToken cancellationToken = default)
     {
         try
         {
-            var latest = await GetLatestAdoptiumReleaseCachedAsync(major);
+            var latest = await GetLatestAdoptiumReleaseCachedAsync(major, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (latest == null) return null;
 
             var localReleaseInfo = ReadLocalReleaseMarker(localJavaExe);
@@ -865,7 +919,11 @@ public class LaunchService : ILaunchService
             }
 
             LogReceived?.Invoke($"New Java {major} security/maintenance release available on Adoptium ({latest.ReleaseName}, local: {(string.IsNullOrEmpty(localVer) ? "older" : localVer)}). Updating...");
-            return await DownloadAdoptiumRuntimeAsync(major, zenithRoot, forceRedownload: true, prefetchedRelease: latest);
+            return await DownloadAdoptiumRuntimeAsync(major, zenithRoot, forceRedownload: true, prefetchedRelease: latest, cancellationToken: cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch
         {
@@ -882,7 +940,7 @@ public class LaunchService : ILaunchService
         AdoptiumReleaseInfo? latest = null;
         if (!forceRedownload)
         {
-            var found = await FindLocalJavaAsync(major, zenithRoot);
+            var found = await FindLocalJavaAsync(major, zenithRoot).ConfigureAwait(false);
             if (found != null)
             {
                 if (JavaVersionHelper.IsVulnerableToJava4Shell(found, out _, out var cVer, out var minSafe))
@@ -892,7 +950,7 @@ public class LaunchService : ILaunchService
                 }
                 else
                 {
-                    latest = await GetLatestAdoptiumReleaseCachedAsync(major, bypassCache: true);
+                    latest = await GetLatestAdoptiumReleaseCachedAsync(major, bypassCache: true).ConfigureAwait(false);
                     var localMarker = ReadLocalReleaseMarker(found);
                     var localVer = !string.IsNullOrEmpty(localMarker.ComparableVersion)
                         ? localMarker.ComparableVersion
@@ -916,7 +974,7 @@ public class LaunchService : ILaunchService
             }
         }
 
-        var downloaded = await DownloadAdoptiumRuntimeAsync(major, zenithRoot, forceRedownload, progress, latest);
+        var downloaded = await DownloadAdoptiumRuntimeAsync(major, zenithRoot, forceRedownload, progress, latest).ConfigureAwait(false);
         if (downloaded == null)
             LogReceived?.Invoke($"Failed to install Java {major}. See the log above for details.");
         else
@@ -934,11 +992,11 @@ public class LaunchService : ILaunchService
     {
         var major = string.IsNullOrWhiteSpace(instanceVersion)
             ? 21 // modern default line when no profile is selected yet
-            : InferRequiredJavaMajor(instanceVersion);
+            : JavaVersionHelper.InferRequiredJavaMajor(instanceVersion);
         var slot = GetConfiguredJavaSlot(GetConfig(), major);
         if (!string.IsNullOrWhiteSpace(slot) && File.Exists(slot))
             return slot;
-        return await FindLocalJavaAsync(major, ZenithPaths.AppDataDir);
+        return await FindLocalJavaAsync(major, ZenithPaths.AppDataDir).ConfigureAwait(false);
     }
 
     private static string? GetConfiguredJavaSlot(LauncherConfigData? cfg, int major)
@@ -954,8 +1012,10 @@ public class LaunchService : ILaunchService
         };
     }
 
-    private async Task<string?> FindLocalJavaAsync(int major, string zenithRoot)
+    private async Task<string?> FindLocalJavaAsync(int major, string zenithRoot, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var javaDir = Path.Combine(zenithRoot, "runtime");
         Directory.CreateDirectory(javaDir);
 
@@ -987,9 +1047,9 @@ public class LaunchService : ILaunchService
         if (!string.IsNullOrEmpty(javaHome))
         {
             var jh = Path.Combine(javaHome, "bin", "javaw.exe");
-            if (File.Exists(jh) && CheckJavaVersion(jh, major)) return jh;
+            if (File.Exists(jh) && await CheckJavaVersionAsync(jh, major, cancellationToken).ConfigureAwait(false)) return jh;
             jh = Path.Combine(javaHome, "bin", "java.exe");
-            if (File.Exists(jh) && CheckJavaVersion(jh, major)) return jh;
+            if (File.Exists(jh) && await CheckJavaVersionAsync(jh, major, cancellationToken).ConfigureAwait(false)) return jh;
         }
 
         // Check installed JDKs in Program Files with wildcards
@@ -1010,61 +1070,40 @@ public class LaunchService : ILaunchService
         var searchPatterns = new[] { $"jdk-{major}*", $"jdk{major}*", $"*jdk*{major}*", $"*jre*{major}*" };
         foreach (var vBase in vendorBases)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (!Directory.Exists(vBase)) continue;
             foreach (var pattern in searchPatterns)
             {
+                string[] dirs;
                 try
                 {
-                    foreach (var dir in Directory.GetDirectories(vBase, pattern, SearchOption.TopDirectoryOnly))
-                    {
-                        var jw = Path.Combine(dir, "bin", "javaw.exe");
-                        if (File.Exists(jw) && CheckJavaVersion(jw, major)) return jw;
-                        var je = Path.Combine(dir, "bin", "java.exe");
-                        if (File.Exists(je) && CheckJavaVersion(je, major)) return je;
-                    }
+                    dirs = Directory.GetDirectories(vBase, pattern, SearchOption.TopDirectoryOnly);
                 }
-                catch { }
+                catch
+                {
+                    continue;
+                }
+
+                foreach (var dir in dirs)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var jw = Path.Combine(dir, "bin", "javaw.exe");
+                    if (File.Exists(jw) && await CheckJavaVersionAsync(jw, major, cancellationToken).ConfigureAwait(false)) return jw;
+                    var je = Path.Combine(dir, "bin", "java.exe");
+                    if (File.Exists(je) && await CheckJavaVersionAsync(je, major, cancellationToken).ConfigureAwait(false)) return je;
+                }
             }
         }
+
         // Check PATH
-        try
+        var pathOutput = await RunProcessOutputWithTimeoutAsync("java", "-version", readStandardError: true, timeoutMs: 3000, cancellationToken).ConfigureAwait(false);
+        if (pathOutput != null && (pathOutput.Contains($"java version \"{major}") || pathOutput.Contains($"openjdk version \"{major}")))
         {
-            using var proc = new Process
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = "java",
-                    Arguments = "-version",
-                    UseShellExecute = false,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true
-                }
-            };
-            proc.Start();
-            var output = proc.StandardError.ReadToEnd();
-            proc.WaitForExit(3000);
-            if (output.Contains($"java version \"{major}") || output.Contains($"openjdk version \"{major}"))
-            {
-                // Find actual path
-                using var whereProc = new Process
-                {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = "where",
-                        Arguments = "java",
-                        UseShellExecute = false,
-                        RedirectStandardOutput = true,
-                        CreateNoWindow = true
-                    }
-                };
-                whereProc.Start();
-                var javaPath = (await whereProc.StandardOutput.ReadLineAsync())?.Trim();
-                whereProc.WaitForExit(3000);
-                if (!string.IsNullOrEmpty(javaPath) && File.Exists(javaPath))
-                    return javaPath;
-            }
+            var whereOutput = await RunProcessOutputWithTimeoutAsync("where", "java", readStandardError: false, timeoutMs: 3000, cancellationToken).ConfigureAwait(false);
+            var javaPath = whereOutput?.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()?.Trim();
+            if (!string.IsNullOrEmpty(javaPath) && File.Exists(javaPath))
+                return javaPath;
         }
-        catch { }
 
         return null;
     }
@@ -1073,8 +1112,16 @@ public class LaunchService : ILaunchService
     /// Downloads the matching Adoptium JRE into &lt;zenithRoot&gt;/runtime and
     /// returns the path to javaw.exe/java.exe, or null on failure.
     /// </summary>
-    private async Task<string?> DownloadAdoptiumRuntimeAsync(int major, string zenithRoot, bool forceRedownload = false, IProgress<double>? progress = null, AdoptiumReleaseInfo? prefetchedRelease = null)
+    private async Task<string?> DownloadAdoptiumRuntimeAsync(
+        int major,
+        string zenithRoot,
+        bool forceRedownload = false,
+        IProgress<double>? progress = null,
+        AdoptiumReleaseInfo? prefetchedRelease = null,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var javaDir = Path.Combine(zenithRoot, "runtime");
         Directory.CreateDirectory(javaDir);
 
@@ -1091,7 +1138,7 @@ public class LaunchService : ILaunchService
                 (!Directory.Exists(runtimeDir) &&
                  !existingPatterns.Any(p => Directory.GetDirectories(javaDir, p, SearchOption.TopDirectoryOnly).Any())))
             {
-                var release = prefetchedRelease ?? await GetLatestAdoptiumReleaseCachedAsync(major, bypassCache: true);
+                var release = prefetchedRelease ?? await GetLatestAdoptiumReleaseCachedAsync(major, bypassCache: true, cancellationToken).ConfigureAwait(false);
                 string? link = release?.DownloadUrl;
                 string? expectedSha256 = release?.Sha256;
                 string? releaseName = release?.ReleaseName;
@@ -1101,21 +1148,28 @@ public class LaunchService : ILaunchService
                 // - fall back to the official temurin{major}-binaries GitHub repo,
                 // which still hosts every historical Windows x64 JRE zip.
                 if (string.IsNullOrEmpty(link))
-                    (link, expectedSha256) = await FindTemurinGitHubReleaseAsync(major);
+                    (link, expectedSha256) = await FindTemurinGitHubReleaseAsync(major, cancellationToken).ConfigureAwait(false);
 
                 if (string.IsNullOrEmpty(link))
                     throw new Exception($"No Adoptium build found for Java {major}");
 
                 var temp = Path.Combine(Path.GetTempPath(), $"adoptium-jdk{major}.zip");
-                LogReceived?.Invoke($"Downloading Java {major} from Adoptium...");
-                // Resilient: retries, Range-resume and SHA-256 validation against
-                // the checksum published by the Adoptium API.
-                await ResilientDownloadService.DownloadFileAsync(new[] { link! }, temp, expectedSha256, progress: progress);
+                try
+                {
+                    LogReceived?.Invoke($"Downloading Java {major} from Adoptium...");
+                    // Resilient: retries, Range-resume and SHA-256 validation against
+                    // the checksum published by the Adoptium API.
+                    await ResilientDownloadService.DownloadFileAsync(new[] { link! }, temp, expectedSha256, ct: cancellationToken, progress: progress).ConfigureAwait(false);
 
-                LogReceived?.Invoke($"Extracting Java {major}...");
-                // Overwrite existing files in case a partial/older runtime is present
-                System.IO.Compression.ZipFile.ExtractToDirectory(temp, javaDir, overwriteFiles: true);
-                File.Delete(temp);
+                    cancellationToken.ThrowIfCancellationRequested();
+                    LogReceived?.Invoke($"Extracting Java {major}...");
+                    // Overwrite existing files in case a partial/older runtime is present
+                    System.IO.Compression.ZipFile.ExtractToDirectory(temp, javaDir, overwriteFiles: true);
+                }
+                finally
+                {
+                    try { if (File.Exists(temp)) File.Delete(temp); } catch { }
+                }
 
                 // Find extracted folder matching releaseName or newest build and write release marker
                 var extractedDirs = RuntimeDirPatterns(major)
@@ -1186,6 +1240,10 @@ public class LaunchService : ILaunchService
             var javaExe = Path.Combine(extracted, "bin", "java.exe");
             if (File.Exists(javaExe)) return javaExe;
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             LogReceived?.Invoke($"Failed to download Java {major}: {ex.Message}");
@@ -1194,8 +1252,10 @@ public class LaunchService : ILaunchService
         return null;
     }
 
-    private static async Task<AdoptiumReleaseInfo?> GetLatestAdoptiumReleaseCachedAsync(int major, bool bypassCache = false)
+    private static async Task<AdoptiumReleaseInfo?> GetLatestAdoptiumReleaseCachedAsync(int major, bool bypassCache = false, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         if (!bypassCache && AdoptiumLatestCache.TryGetValue(major, out var cached) &&
             (DateTime.UtcNow - cached.CheckedUtc) < AdoptiumCheckCooldown)
         {
@@ -1215,10 +1275,12 @@ public class LaunchService : ILaunchService
         AdoptiumReleaseInfo? result = null;
         foreach (var url in adoptiumUrls)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (result != null) break;
             try
             {
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+                using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                cts.CancelAfter(TimeSpan.FromSeconds(5));
                 var json = await Http.GetStringAsync(url, cts.Token).ConfigureAwait(false);
                 using var doc = System.Text.Json.JsonDocument.Parse(json);
                 foreach (var release in doc.RootElement.EnumerateArray())
@@ -1255,6 +1317,10 @@ public class LaunchService : ILaunchService
                     result = new AdoptiumReleaseInfo(releaseName, comparable, pkgLink, checksum);
                     break;
                 }
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
             }
             catch { }
         }
@@ -1350,16 +1416,16 @@ public class LaunchService : ILaunchService
     /// repository still hosts every historical Windows x64 JRE zip.
     /// Returns (download url, sha256 or null).
     /// </summary>
-    private static async Task<(string? Link, string? Sha256)> FindTemurinGitHubReleaseAsync(int major)
+    private static async Task<(string? Link, string? Sha256)> FindTemurinGitHubReleaseAsync(int major, CancellationToken cancellationToken = default)
     {
         try
         {
             using var req = new HttpRequestMessage(HttpMethod.Get,
                 $"https://api.github.com/repos/adoptium/temurin{major}-binaries/releases?per_page=40");
             req.Headers.UserAgent.ParseAdd("Zenith-Launcher");
-            using var resp = await Http.SendAsync(req);
+            using var resp = await Http.SendAsync(req, cancellationToken).ConfigureAwait(false);
             resp.EnsureSuccessStatusCode();
-            var json = await resp.Content.ReadAsStringAsync();
+            var json = await resp.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
             using var doc = System.Text.Json.JsonDocument.Parse(json);
             foreach (var release in doc.RootElement.EnumerateArray())
             {
@@ -1398,56 +1464,51 @@ public class LaunchService : ILaunchService
                 {
                     try
                     {
-                        var txt = await Http.GetStringAsync(shaUrl);
+                        var txt = await Http.GetStringAsync(shaUrl, cancellationToken).ConfigureAwait(false);
                         sha = txt.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries)[0].Trim();
+                    }
+                    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                    {
+                        throw;
                     }
                     catch { }
                 }
                 return (zipUrl, sha);
             }
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch { }
         return (null, null);
     }
 
-    private static bool CheckJavaVersion(string javaPath, int requiredMajor)
+    private static async Task<bool> CheckJavaVersionAsync(string javaPath, int requiredMajor, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            using var proc = new Process
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = javaPath,
-                    Arguments = "-version",
-                    UseShellExecute = false,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true
-                }
-            };
-            proc.Start();
-            var output = proc.StandardError.ReadToEnd();
-            proc.WaitForExit(3000);
-            // Java 8 reports the legacy scheme: openjdk version "1.8.0_452".
-            var m = System.Text.RegularExpressions.Regex.Match(output, "version \"([^\"]+)\"");
-            if (!m.Success) return false;
-            var parts = m.Groups[1].Value.Split('.');
-            var reported = parts.Length > 1 && parts[0] == "1"
-                ? parts.Skip(1).FirstOrDefault()
-                : parts.FirstOrDefault();
-            return int.TryParse(reported, out var actualMajor) && actualMajor == requiredMajor;
-        }
-        catch { return false; }
+        var output = await RunProcessOutputWithTimeoutAsync(javaPath, "-version", readStandardError: true, timeoutMs: 3000, cancellationToken).ConfigureAwait(false);
+        if (string.IsNullOrEmpty(output)) return false;
+
+        // Java 8 reports the legacy scheme: openjdk version "1.8.0_452".
+        var m = System.Text.RegularExpressions.Regex.Match(output, "version \"([^\"]+)\"");
+        if (!m.Success) return false;
+        var parts = m.Groups[1].Value.Split('.');
+        var reported = parts.Length > 1 && parts[0] == "1"
+            ? parts.Skip(1).FirstOrDefault()
+            : parts.FirstOrDefault();
+        return int.TryParse(reported, out var actualMajor) && actualMajor == requiredMajor;
     }
 
-    private Task RunJavaInstallerAsync(string arguments, int timeoutSec = 180) =>
-        RunJavaInstallerAsync("java", arguments, timeoutSec);
+    private Task RunJavaInstallerAsync(string arguments, int timeoutSec = 180, CancellationToken cancellationToken = default) =>
+        RunJavaInstallerAsync("java", arguments, timeoutSec, cancellationToken);
 
-    private async Task RunJavaInstallerAsync(string javaExe, string arguments, int timeoutSec = 180)
+    private async Task RunJavaInstallerAsync(string javaExe, string arguments, int timeoutSec = 180, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         LogReceived?.Invoke($"Running: {javaExe} {arguments}");
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSec));
-        var tcs = new TaskCompletionSource<bool>();
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        cts.CancelAfter(TimeSpan.FromSeconds(timeoutSec));
+        var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         using var proc = new Process
         {
             StartInfo = new ProcessStartInfo
@@ -1470,9 +1531,24 @@ public class LaunchService : ILaunchService
         proc.BeginOutputReadLine();
         proc.BeginErrorReadLine();
 
-        using (cts.Token.Register(() => { try { proc.Kill(entireProcessTree: true); } catch { } }))
+        using (cts.Token.Register(() =>
         {
-            await tcs.Task;
+            try { if (!proc.HasExited) proc.Kill(entireProcessTree: true); } catch { }
+            tcs.TrySetCanceled(cts.Token);
+        }))
+        {
+            try
+            {
+                await tcs.Task.ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw new OperationCanceledException(cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                throw new TimeoutException($"Java installer timed out after {timeoutSec} seconds.");
+            }
         }
 
         if (!proc.HasExited) proc.WaitForExit(5000);
@@ -1480,8 +1556,9 @@ public class LaunchService : ILaunchService
             throw new Exception($"Java installer exited with code {proc.ExitCode}. See logs for details.");
     }
 
-    private async Task<string> InstallForgeAsync(InstanceModel instance, string zenithRoot, string javaExe = "java")
+    private async Task<string> InstallForgeAsync(InstanceModel instance, string zenithRoot, string javaExe = "java", CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         LogReceived?.Invoke("Checking Forge version info...");
 
         string forgeVer;
@@ -1500,7 +1577,7 @@ public class LaunchService : ILaunchService
                 $"https://bmclapi2.bangbang93.com/forge/minecraft/{instance.Version}"
             };
 
-            var forgeListRes = await WebFallback.GetStringFirstAsync(candidates);
+            var forgeListRes = await WebFallback.GetStringFirstAsync(candidates).WaitAsync(cancellationToken).ConfigureAwait(false);
             if (forgeListRes is null)
                 throw new Exception($"Failed to fetch Forge version list for {instance.Version} (all mirrors failed).");
 
@@ -1519,23 +1596,29 @@ public class LaunchService : ILaunchService
 
             LogReceived?.Invoke($"Downloading Forge installer {forgeVer}...");
             var tempInstaller = Path.Combine(Path.GetTempPath(), $"forge-{forgeFullVer}-installer.jar");
-            await ResilientDownloadService.DownloadFileAsync(new[]
+            try
             {
-                $"https://maven.minecraftforge.net/net/minecraftforge/forge/{forgeFullVer}/forge-{forgeFullVer}-installer.jar",
-                $"https://files.minecraftforge.net/maven/net/minecraftforge/forge/{forgeFullVer}/forge-{forgeFullVer}-installer.jar",
-                $"https://bmclapi2.bangbang93.com/maven/net/minecraftforge/forge/{forgeFullVer}/forge-{forgeFullVer}-installer.jar",
-                $"https://mirror.sjtu.edu.cn/bmclapi/net/minecraftforge/forge/{forgeFullVer}/forge-{forgeFullVer}-installer.jar"
-            }, tempInstaller);
+                await ResilientDownloadService.DownloadFileAsync(new[]
+                {
+                    $"https://maven.minecraftforge.net/net/minecraftforge/forge/{forgeFullVer}/forge-{forgeFullVer}-installer.jar",
+                    $"https://files.minecraftforge.net/maven/net/minecraftforge/forge/{forgeFullVer}/forge-{forgeFullVer}-installer.jar",
+                    $"https://bmclapi2.bangbang93.com/maven/net/minecraftforge/forge/{forgeFullVer}/forge-{forgeFullVer}-installer.jar",
+                    $"https://mirror.sjtu.edu.cn/bmclapi/net/minecraftforge/forge/{forgeFullVer}/forge-{forgeFullVer}-installer.jar"
+                }, tempInstaller, ct: cancellationToken).ConfigureAwait(false);
 
-            LogReceived?.Invoke("Installing Forge...");
-            await RunJavaInstallerAsync(javaExe, $"-jar \"{tempInstaller}\" --installClient \"{zenithRoot}\"");
-
-            try { File.Delete(tempInstaller); } catch { }
+                LogReceived?.Invoke("Installing Forge...");
+                await RunJavaInstallerAsync(javaExe, $"-jar \"{tempInstaller}\" --installClient \"{zenithRoot}\"", cancellationToken: cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                try { if (File.Exists(tempInstaller)) File.Delete(tempInstaller); } catch { }
+            }
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
         LogReceived?.Invoke($"Validating {targetVersion} files...");
         var launcher = new MinecraftLauncher(new MinecraftPath(zenithRoot) { BasePath = zenithRoot });
-        await WithManifestRetryAsync(() => launcher.InstallAsync(targetVersion).AsTask());
+        await WithManifestRetryAsync(() => launcher.InstallAsync(targetVersion, cancellationToken).AsTask(), cancellationToken).ConfigureAwait(false);
         return targetVersion;
     }
 
@@ -1794,38 +1877,39 @@ public class LaunchService : ILaunchService
         return null;
     }
 
-    private static async Task<string?> FetchFabricProfileJsonAsync(string gameVersion, string loaderVer)
+    private static async Task<string?> FetchFabricProfileJsonAsync(string gameVersion, string loaderVer, CancellationToken cancellationToken = default)
     {
         return await WebFallback.GetStringFirstAsync(
             $"https://meta.fabricmc.net/v2/versions/loader/{gameVersion}/{loaderVer}/profile/json",
-            $"https://bmclapi2.bangbang93.com/fabric-meta/v2/versions/loader/{gameVersion}/{loaderVer}/profile/json").ConfigureAwait(false);
+            $"https://bmclapi2.bangbang93.com/fabric-meta/v2/versions/loader/{gameVersion}/{loaderVer}/profile/json").WaitAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    private static async Task<string?> FetchFabricLoaderListAsync(string gameVersion)
+    private static async Task<string?> FetchFabricLoaderListAsync(string gameVersion, CancellationToken cancellationToken = default)
     {
         return await WebFallback.GetStringFirstAsync(
             $"https://meta.fabricmc.net/v2/versions/loader/{gameVersion}",
-            $"https://bmclapi2.bangbang93.com/fabric-meta/v2/versions/loader/{gameVersion}").ConfigureAwait(false);
+            $"https://bmclapi2.bangbang93.com/fabric-meta/v2/versions/loader/{gameVersion}").WaitAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    private static async Task<string?> FetchQuiltProfileJsonAsync(string gameVersion, string loaderVer)
+    private static async Task<string?> FetchQuiltProfileJsonAsync(string gameVersion, string loaderVer, CancellationToken cancellationToken = default)
     {
         return await WebFallback.GetStringFirstAsync(
             $"https://meta.quiltmc.org/v3/versions/loader/{gameVersion}/{loaderVer}/profile/json",
             $"https://meta.quiltmc.org/v2/versions/loader/{gameVersion}/{loaderVer}/profile/json",
-            $"https://bmclapi2.bangbang93.com/quilt-meta/v3/versions/loader/{gameVersion}/{loaderVer}/profile/json").ConfigureAwait(false);
+            $"https://bmclapi2.bangbang93.com/quilt-meta/v3/versions/loader/{gameVersion}/{loaderVer}/profile/json").WaitAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    private static async Task<string?> FetchQuiltLoaderListAsync(string gameVersion)
+    private static async Task<string?> FetchQuiltLoaderListAsync(string gameVersion, CancellationToken cancellationToken = default)
     {
         return await WebFallback.GetStringFirstAsync(
             $"https://meta.quiltmc.org/v3/versions/loader/{gameVersion}",
             $"https://meta.quiltmc.org/v2/versions/loader/{gameVersion}",
-            $"https://bmclapi2.bangbang93.com/quilt-meta/v3/versions/loader/{gameVersion}").ConfigureAwait(false);
+            $"https://bmclapi2.bangbang93.com/quilt-meta/v3/versions/loader/{gameVersion}").WaitAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task<string> InstallFabricAsync(InstanceModel instance, string zenithRoot)
+    private async Task<string> InstallFabricAsync(InstanceModel instance, string zenithRoot, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         LogReceived?.Invoke("Fetching Fabric Loader profile...");
 
         string loaderVer;
@@ -1835,7 +1919,7 @@ public class LaunchService : ILaunchService
         }
         else
         {
-            var metaRes = await FetchFabricLoaderListAsync(instance.Version)
+            var metaRes = await FetchFabricLoaderListAsync(instance.Version, cancellationToken).ConfigureAwait(false)
                           ?? throw new Exception($"Failed to fetch Fabric loader list for {instance.Version} (all mirrors failed).");
             using var doc = System.Text.Json.JsonDocument.Parse(metaRes);
             if (doc.RootElement.GetArrayLength() == 0)
@@ -1845,19 +1929,20 @@ public class LaunchService : ILaunchService
                 throw new Exception("Failed to resolve Fabric loader version.");
         }
 
-        var profileJson = await FetchFabricProfileJsonAsync(instance.Version, loaderVer)
+        var profileJson = await FetchFabricProfileJsonAsync(instance.Version, loaderVer, cancellationToken).ConfigureAwait(false)
                           ?? throw new Exception($"Failed to fetch Fabric profile json for {loaderVer} (all mirrors failed).");
         var targetVersion = $"fabric-loader-{loaderVer}-{instance.Version}";
         var verDir = Path.Combine(zenithRoot, "versions", targetVersion);
         Directory.CreateDirectory(verDir);
-        await File.WriteAllTextAsync(Path.Combine(verDir, $"{targetVersion}.json"), profileJson);
+        await File.WriteAllTextAsync(Path.Combine(verDir, $"{targetVersion}.json"), profileJson, cancellationToken).ConfigureAwait(false);
         var launcher = new MinecraftLauncher(new MinecraftPath(zenithRoot) { BasePath = zenithRoot });
-        await WithManifestRetryAsync(() => launcher.InstallAsync(targetVersion).AsTask());
+        await WithManifestRetryAsync(() => launcher.InstallAsync(targetVersion, cancellationToken).AsTask(), cancellationToken).ConfigureAwait(false);
         return targetVersion;
     }
 
-    private async Task<string> InstallNeoForgeAsync(InstanceModel instance, string zenithRoot, string javaExe = "java")
+    private async Task<string> InstallNeoForgeAsync(InstanceModel instance, string zenithRoot, string javaExe = "java", CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         LogReceived?.Invoke("Checking NeoForge version info...");
 
         string matchedVer;
@@ -1869,7 +1954,7 @@ public class LaunchService : ILaunchService
         {
             var neoRes = await WebFallback.GetStringFirstAsync(
                 "https://maven.neoforged.net/api/maven/versions/releases/net/neoforged/neoforge",
-                "https://maven.neoforged.net/api/maven/versions/net/neoforged/neoforge")
+                "https://maven.neoforged.net/api/maven/versions/net/neoforged/neoforge").WaitAsync(cancellationToken).ConfigureAwait(false)
               ?? throw new Exception("Failed to fetch NeoForge versions (all mirrors failed).");
 
             matchedVer = ResolveNeoForgeBuildFromList(neoRes, instance.Version)
@@ -1885,28 +1970,35 @@ public class LaunchService : ILaunchService
 
             LogReceived?.Invoke($"Downloading NeoForge installer {matchedVer}...");
             var tempInstaller = Path.Combine(Path.GetTempPath(), $"neoforge-{matchedVer}-installer.jar");
-            await ResilientDownloadService.DownloadFileAsync(new[]
+            try
             {
-                $"https://maven.neoforged.net/releases/net/neoforged/neoforge/{matchedVer}/neoforge-{matchedVer}-installer.jar",
-                $"https://bmclapi2.bangbang93.com/maven/net/neoforged/neoforge/{matchedVer}/neoforge-{matchedVer}-installer.jar",
-                $"https://mirror.sjtu.edu.cn/bmclapi/net/neoforged/neoforge/{matchedVer}/neoforge-{matchedVer}-installer.jar",
-                $"https://web.archive.org/web/2id_/https://maven.neoforged.net/releases/net/neoforged/neoforge/{matchedVer}/neoforge-{matchedVer}-installer.jar"
-            }, tempInstaller);
+                await ResilientDownloadService.DownloadFileAsync(new[]
+                {
+                    $"https://maven.neoforged.net/releases/net/neoforged/neoforge/{matchedVer}/neoforge-{matchedVer}-installer.jar",
+                    $"https://bmclapi2.bangbang93.com/maven/net/neoforged/neoforge/{matchedVer}/neoforge-{matchedVer}-installer.jar",
+                    $"https://mirror.sjtu.edu.cn/bmclapi/net/neoforged/neoforge/{matchedVer}/neoforge-{matchedVer}-installer.jar",
+                    $"https://web.archive.org/web/2id_/https://maven.neoforged.net/releases/net/neoforged/neoforge/{matchedVer}/neoforge-{matchedVer}-installer.jar"
+                }, tempInstaller, ct: cancellationToken).ConfigureAwait(false);
 
-            LogReceived?.Invoke("Running NeoForge Installer...");
-            await RunJavaInstallerAsync(javaExe, $"-jar \"{tempInstaller}\" --installClient \"{zenithRoot}\"");
-
-            try { File.Delete(tempInstaller); } catch { }
+                LogReceived?.Invoke("Running NeoForge Installer...");
+                await RunJavaInstallerAsync(javaExe, $"-jar \"{tempInstaller}\" --installClient \"{zenithRoot}\"", cancellationToken: cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                try { if (File.Exists(tempInstaller)) File.Delete(tempInstaller); } catch { }
+            }
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
         LogReceived?.Invoke($"Validating {targetVersion} files...");
         var launcher = new MinecraftLauncher(new MinecraftPath(zenithRoot) { BasePath = zenithRoot });
-        await WithManifestRetryAsync(() => launcher.InstallAsync(targetVersion).AsTask());
+        await WithManifestRetryAsync(() => launcher.InstallAsync(targetVersion, cancellationToken).AsTask(), cancellationToken).ConfigureAwait(false);
         return targetVersion;
     }
 
-    private async Task<string> InstallQuiltAsync(InstanceModel instance, string zenithRoot)
+    private async Task<string> InstallQuiltAsync(InstanceModel instance, string zenithRoot, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         LogReceived?.Invoke("Fetching Quilt Loader profile...");
 
         string loaderVer;
@@ -1916,7 +2008,7 @@ public class LaunchService : ILaunchService
         }
         else
         {
-            var metaRes = await FetchQuiltLoaderListAsync(instance.Version)
+            var metaRes = await FetchQuiltLoaderListAsync(instance.Version, cancellationToken).ConfigureAwait(false)
                           ?? throw new Exception($"Failed to fetch Quilt loader list for {instance.Version} (all mirrors failed).");
             using var doc = System.Text.Json.JsonDocument.Parse(metaRes);
             if (doc.RootElement.GetArrayLength() == 0)
@@ -1926,19 +2018,20 @@ public class LaunchService : ILaunchService
                 throw new Exception("Failed to resolve Quilt loader version.");
         }
 
-        var profileJson = await FetchQuiltProfileJsonAsync(instance.Version, loaderVer)
+        var profileJson = await FetchQuiltProfileJsonAsync(instance.Version, loaderVer, cancellationToken).ConfigureAwait(false)
                           ?? throw new Exception($"Failed to fetch Quilt profile json for {loaderVer} (all mirrors failed).");
         var targetVersion = $"quilt-loader-{loaderVer}-{instance.Version}";
         var verDir = Path.Combine(zenithRoot, "versions", targetVersion);
         Directory.CreateDirectory(verDir);
-        await File.WriteAllTextAsync(Path.Combine(verDir, $"{targetVersion}.json"), profileJson);
+        await File.WriteAllTextAsync(Path.Combine(verDir, $"{targetVersion}.json"), profileJson, cancellationToken).ConfigureAwait(false);
         var launcher = new MinecraftLauncher(new MinecraftPath(zenithRoot) { BasePath = zenithRoot });
-        await WithManifestRetryAsync(() => launcher.InstallAsync(targetVersion).AsTask());
+        await WithManifestRetryAsync(() => launcher.InstallAsync(targetVersion, cancellationToken).AsTask(), cancellationToken).ConfigureAwait(false);
         return targetVersion;
     }
 
-    private async Task<string> InstallOptiFineAsync(InstanceModel instance, string zenithRoot, string basePath, string javaExe = "java")
+    private async Task<string> InstallOptiFineAsync(InstanceModel instance, string zenithRoot, string basePath, string javaExe = "java", CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         LogReceived?.Invoke("Fetching OptiFine metadata...");
 
         string type, patch;
@@ -1954,7 +2047,7 @@ public class LaunchService : ILaunchService
             {
                 var ofRes = await WebFallback.GetStringFirstAsync(
                     $"https://bmclapi2.bangbang93.com/optifine/{instance.Version}",
-                    $"https://bmclapi.bangbang93.com/optifine/{instance.Version}");
+                    $"https://bmclapi.bangbang93.com/optifine/{instance.Version}").WaitAsync(cancellationToken).ConfigureAwait(false);
                 if (ofRes is null)
                     throw new Exception("Failed to fetch OptiFine versions for " + instance.Version);
                 using var doc = System.Text.Json.JsonDocument.Parse(ofRes);
@@ -1968,7 +2061,7 @@ public class LaunchService : ILaunchService
         {
             var ofRes = await WebFallback.GetStringFirstAsync(
                 $"https://bmclapi2.bangbang93.com/optifine/{instance.Version}",
-                $"https://bmclapi.bangbang93.com/optifine/{instance.Version}");
+                $"https://bmclapi.bangbang93.com/optifine/{instance.Version}").WaitAsync(cancellationToken).ConfigureAwait(false);
             if (ofRes is null)
                 throw new Exception("Failed to fetch OptiFine versions for " + instance.Version);
             using var doc = System.Text.Json.JsonDocument.Parse(ofRes);
@@ -1990,56 +2083,58 @@ public class LaunchService : ILaunchService
             LogReceived?.Invoke($"Downloading OptiFine {type} {patch}...");
             var ofUrl = $"https://bmclapi2.bangbang93.com/optifine/{instance.Version}/{type}/{patch}";
             var tempInstaller = Path.Combine(Path.GetTempPath(), $"OptiFine_{ofEdition}.jar");
-            await ResilientDownloadService.DownloadFileAsync(new[]
+            try
             {
-                ofUrl,
-                $"https://bmclapi.bangbang93.com/optifine/{instance.Version}/{type}/{patch}"
-            }, tempInstaller);
-
-            var vanillaJar = Path.Combine(zenithRoot, "versions", instance.Version, $"{instance.Version}.jar");
-            if (!File.Exists(vanillaJar))
-            {
-                var launcher = new MinecraftLauncher(new MinecraftPath(zenithRoot) { BasePath = zenithRoot });
-                await WithManifestRetryAsync(() => launcher.InstallAsync(instance.Version).AsTask());
-            }
-
-            // Place patched jars inside the standard .zenith/libraries Maven layout
-            var mavenLibDir = Path.Combine(zenithRoot, "libraries");
-            var ofLibDir = Path.Combine(mavenLibDir, "optifine", "OptiFine", ofEdition);
-            Directory.CreateDirectory(ofLibDir);
-            var destOptifineJar = Path.Combine(ofLibDir, $"OptiFine-{ofEdition}.jar");
-
-            LogReceived?.Invoke("Patching Minecraft with OptiFine (headless)...");
-            await RunJavaInstallerAsync(javaExe, $"-cp \"{tempInstaller}\" optifine.Patcher \"{vanillaJar}\" \"{tempInstaller}\" \"{destOptifineJar}\"");
-
-            string wrapperVersion = "2.3";
-            string? versionJson = null;
-
-            using (var archive = ZipFile.OpenRead(tempInstaller))
-            {
-                foreach (var entry in archive.Entries)
+                await ResilientDownloadService.DownloadFileAsync(new[]
                 {
-                    if (entry.Name.StartsWith("launchwrapper-of-") && entry.Name.EndsWith(".jar"))
+                    ofUrl,
+                    $"https://bmclapi.bangbang93.com/optifine/{instance.Version}/{type}/{patch}"
+                }, tempInstaller, ct: cancellationToken).ConfigureAwait(false);
+
+                var vanillaJar = Path.Combine(zenithRoot, "versions", instance.Version, $"{instance.Version}.jar");
+                if (!File.Exists(vanillaJar))
+                {
+                    var launcher = new MinecraftLauncher(new MinecraftPath(zenithRoot) { BasePath = zenithRoot });
+                    await WithManifestRetryAsync(() => launcher.InstallAsync(instance.Version, cancellationToken).AsTask(), cancellationToken).ConfigureAwait(false);
+                }
+
+                // Place patched jars inside the standard .zenith/libraries Maven layout
+                var mavenLibDir = Path.Combine(zenithRoot, "libraries");
+                var ofLibDir = Path.Combine(mavenLibDir, "optifine", "OptiFine", ofEdition);
+                Directory.CreateDirectory(ofLibDir);
+                var destOptifineJar = Path.Combine(ofLibDir, $"OptiFine-{ofEdition}.jar");
+
+                LogReceived?.Invoke("Patching Minecraft with OptiFine (headless)...");
+                await RunJavaInstallerAsync(javaExe, $"-cp \"{tempInstaller}\" optifine.Patcher \"{vanillaJar}\" \"{tempInstaller}\" \"{destOptifineJar}\"", cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                string wrapperVersion = "2.3";
+                string? versionJson = null;
+
+                using (var archive = ZipFile.OpenRead(tempInstaller))
+                {
+                    foreach (var entry in archive.Entries)
                     {
-                        wrapperVersion = entry.Name.Replace("launchwrapper-of-", "").Replace(".jar", "");
-                        var wrapperDir = Path.Combine(mavenLibDir, "optifine", "launchwrapper-of", wrapperVersion);
-                        Directory.CreateDirectory(wrapperDir);
-                        var wrapperPath = Path.Combine(wrapperDir, entry.Name);
-                        if (!File.Exists(wrapperPath))
-                            entry.ExtractToFile(wrapperPath, true);
-                    }
-                    else if (entry.Name == "launch.json")
-                    {
-                        using var stream = entry.Open();
-                        using var reader = new StreamReader(stream);
-                        versionJson = await reader.ReadToEndAsync();
+                        if (entry.Name.StartsWith("launchwrapper-of-") && entry.Name.EndsWith(".jar"))
+                        {
+                            wrapperVersion = entry.Name.Replace("launchwrapper-of-", "").Replace(".jar", "");
+                            var wrapperDir = Path.Combine(mavenLibDir, "optifine", "launchwrapper-of", wrapperVersion);
+                            Directory.CreateDirectory(wrapperDir);
+                            var wrapperPath = Path.Combine(wrapperDir, entry.Name);
+                            if (!File.Exists(wrapperPath))
+                                entry.ExtractToFile(wrapperPath, true);
+                        }
+                        else if (entry.Name == "launch.json")
+                        {
+                            using var stream = entry.Open();
+                            using var reader = new StreamReader(stream);
+                            versionJson = await reader.ReadToEndAsync(cancellationToken).ConfigureAwait(false);
+                        }
                     }
                 }
-            }
 
-            if (string.IsNullOrEmpty(versionJson))
-            {
-                versionJson = @"{
+                if (string.IsNullOrEmpty(versionJson))
+                {
+                    versionJson = @"{
   ""id"": """ + targetVersion + @""",
   ""inheritsFrom"": """ + instance.Version + @""",
   ""type"": ""release"",
@@ -2052,20 +2147,27 @@ public class LaunchService : ILaunchService
     { ""name"": ""optifine:launchwrapper-of:" + wrapperVersion + @""" }
   ]
 }";
-            }
+                }
 
-            await File.WriteAllTextAsync(targetJson, versionJson);
-            try { File.Delete(tempInstaller); } catch { }
+                await File.WriteAllTextAsync(targetJson, versionJson, cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                try { if (File.Exists(tempInstaller)) File.Delete(tempInstaller); } catch { }
+            }
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
         LogReceived?.Invoke($"Validating {targetVersion} files...");
         var finalLauncher = new MinecraftLauncher(new MinecraftPath(zenithRoot) { BasePath = zenithRoot });
-        await WithManifestRetryAsync(() => finalLauncher.InstallAsync(targetVersion).AsTask());
+        await WithManifestRetryAsync(() => finalLauncher.InstallAsync(targetVersion, cancellationToken).AsTask(), cancellationToken).ConfigureAwait(false);
         return targetVersion;
     }
 
-    private static async Task DownloadAuthlibInjectorAsync(string destPath)
+    private static async Task DownloadAuthlibInjectorAsync(string destPath, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         // Try metadata mirrors first — they always point to the latest release.
         var metaUrls = new[]
         {
@@ -2075,10 +2177,11 @@ public class LaunchService : ILaunchService
 
         foreach (var metaUrl in metaUrls)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             try
             {
                 LauncherLog.Info($"Fetching authlib-injector metadata: {metaUrl}");
-                var json = await Http.GetStringAsync(metaUrl).ConfigureAwait(false);
+                var json = await Http.GetStringAsync(metaUrl, cancellationToken).ConfigureAwait(false);
 
                 using var doc = JsonDocument.Parse(json);
                 var root = doc.RootElement;
@@ -2108,8 +2211,12 @@ public class LaunchService : ILaunchService
                     continue;
                 }
 
-                if (await TryDownloadAuthlibJarAsync(dlUrl!, destPath).ConfigureAwait(false))
+                if (await TryDownloadAuthlibJarAsync(dlUrl!, destPath, cancellationToken).ConfigureAwait(false))
                     return;
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
@@ -2126,7 +2233,8 @@ public class LaunchService : ILaunchService
 
         foreach (var url in directUrls)
         {
-            if (await TryDownloadAuthlibJarAsync(url, destPath).ConfigureAwait(false))
+            cancellationToken.ThrowIfCancellationRequested();
+            if (await TryDownloadAuthlibJarAsync(url, destPath, cancellationToken).ConfigureAwait(false))
                 return;
         }
 
@@ -2134,7 +2242,7 @@ public class LaunchService : ILaunchService
             "All authlib-injector download sources failed (metadata mirrors, GitHub v1.2.8).");
     }
 
-    private static async Task<bool> TryDownloadAuthlibJarAsync(string url, string destPath)
+    private static async Task<bool> TryDownloadAuthlibJarAsync(string url, string destPath, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -2142,7 +2250,7 @@ public class LaunchService : ILaunchService
 
             // Resilient path: retries + Range-resume keep flaky connections from
             // producing half-written jars.
-            await ResilientDownloadService.DownloadFileAsync(new[] { url }, destPath).ConfigureAwait(false);
+            await ResilientDownloadService.DownloadFileAsync(new[] { url }, destPath, ct: cancellationToken).ConfigureAwait(false);
 
             // Real jar is ~340 KB; anything smaller is an error page or junk.
             var fi = new FileInfo(destPath);
@@ -2155,6 +2263,10 @@ public class LaunchService : ILaunchService
 
             LauncherLog.Info($"authlib-injector.jar saved ({fi.Length} bytes).");
             return true;
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (Exception ex)
         {

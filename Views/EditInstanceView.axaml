@@ -804,7 +804,7 @@
                             <StackPanel Spacing="12">
                                 <TextBlock Text="{Binding JavaCardTitle}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10" VerticalAlignment="Center">
-                                    <TextBox Grid.Column="0" Classes="darkInput" Text="{Binding CustomJavaPath, Mode=TwoWay}" PlaceholderText="{Binding JavaPlaceholderPath}" FontSize="12" Height="34"/>
+                                    <TextBox Grid.Column="0" Classes="darkInput" Text="{Binding EffectiveJavaPath, Mode=TwoWay}" PlaceholderText="{Binding JavaPlaceholderPath}" FontSize="12" Height="34"/>
                                     <Button Grid.Column="1" Classes="subBtn" Content="{l10n:Tr Key=btn_browse}" Command="{Binding PickCustomJavaCommand}" Padding="14,0" Height="34" FontSize="12" FontWeight="SemiBold"/>
                                 </Grid>
                             </StackPanel>

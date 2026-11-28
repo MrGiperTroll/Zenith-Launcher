@@ -16,6 +16,7 @@ internal static class LocaleTr
         ["w_edit_title"] = "Dunyayi Duzenle",
         ["w_edit_name"] = "Dunya adi:",
         ["sv_add_server"] = "Sunucu Ekle",
+        ["java_path_placeholder"] = "javaw.exe yolu (bulunamadı)",
 
         ["tab_overview"] = "Genel Bakış",
         ["logs_empty_hint"] = "Henüz günlük yok. Canlı çıktıyı görmek için örneği başlatın.",

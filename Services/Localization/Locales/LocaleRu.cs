@@ -16,6 +16,7 @@ internal static class LocaleRu
         ["w_edit_title"] = "Редактировать мир",
         ["w_edit_name"] = "Название мира:",
         ["sv_add_server"] = "Добавить сервер",
+        ["java_path_placeholder"] = "Путь к javaw.exe (не найден)",
 
         ["tab_overview"] = "Обзор",
         ["logs_empty_hint"] = "Логи пока отсутствуют. Запустите инстанс для просмотра вывода.",

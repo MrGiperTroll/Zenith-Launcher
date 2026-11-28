@@ -91,6 +91,15 @@ public class LauncherConfigData
     private static System.DateTime _cachedWriteUtc;
     private static readonly object CacheGate = new();
 
+    public static void ResetCacheForTests()
+    {
+        lock (CacheGate)
+        {
+            _cached = null;
+            _cachedWriteUtc = default;
+        }
+    }
+
     public static void UpdateCache(LauncherConfigData config)
     {
         try

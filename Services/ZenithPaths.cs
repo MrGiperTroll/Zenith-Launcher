@@ -5,8 +5,26 @@ namespace ZenithLauncher.Services;
 
 public static class ZenithPaths
 {
-    public static string AppDataDir =>
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".zenith");
+    internal static string? AppDataDirOverride { get; set; }
+
+    private static bool IsOverridden =>
+        !string.IsNullOrWhiteSpace(AppDataDirOverride) ||
+        !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ZENITH_APPDATA_DIR"));
+
+    public static string AppDataDir
+    {
+        get
+        {
+            if (!string.IsNullOrWhiteSpace(AppDataDirOverride))
+                return AppDataDirOverride;
+
+            var envOverride = Environment.GetEnvironmentVariable("ZENITH_APPDATA_DIR");
+            if (!string.IsNullOrWhiteSpace(envOverride))
+                return envOverride;
+
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".zenith");
+        }
+    }
 
     public static string CrashLogPath => Path.Combine(AppDataDir, "crash.log");
 
@@ -27,7 +45,7 @@ public static class ZenithPaths
 
     private static void MigrateLegacyConfig(string newPath)
     {
-        if (_configMigrated) return;
+        if (_configMigrated || IsOverridden) return;
         _configMigrated = true;
 
         try
@@ -64,7 +82,7 @@ public static class ZenithPaths
 
     private static void MigrateLegacyAppData()
     {
-        if (_appDataMigrated) return;
+        if (_appDataMigrated || IsOverridden) return;
         _appDataMigrated = true;
 
         try

@@ -234,7 +234,7 @@ public partial class LaunchViewModel : ViewModelBase
         NotifyInstanceChanged();
     }
 
-    [RelayCommand]
+    [RelayCommand(AllowConcurrentExecutions = true)]
     public async Task LaunchOrCancelAsync()
     {
         if (IsLaunching)

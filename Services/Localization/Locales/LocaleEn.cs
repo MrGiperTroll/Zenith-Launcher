@@ -16,6 +16,7 @@ internal static class LocaleEn
         ["w_edit_title"] = "Edit World",
         ["w_edit_name"] = "World name:",
         ["sv_add_server"] = "Add Server",
+        ["java_path_placeholder"] = "Path to javaw.exe (not found)",
 
         ["tab_overview"] = "Overview",
         ["logs_empty_hint"] = "No logs available yet. Start the instance to see live output.",

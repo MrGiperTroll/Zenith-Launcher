@@ -101,16 +101,17 @@ public static class ZenithTheme
         var pressed = Darken(accent, 0.2f);
 
         var harmonized = GenerateHarmonizedPalette(AccentHex, "Dark");
-        var bg = Color.Parse(harmonized.BgColor!);
-        var sidebarBg = Color.Parse(harmonized.SidebarBgColor!);
-        var surface = Color.Parse(harmonized.SurfaceColor!);
-        var card = Color.Parse(harmonized.CardColor!);
-        var panel = Color.Parse(harmonized.PanelColor!);
-        var field = Color.Parse(harmonized.FieldColor!);
-        var borderDark = Color.Parse(harmonized.BorderDarkColor!);
-        var hoverTint = Color.Parse(harmonized.HoverColor!);
-        var textPrimary = Color.Parse(harmonized.TextPrimaryColor!);
-        var textSecondary = Color.Parse(harmonized.TextSecondaryColor!);
+        var useAdvanced = string.Equals(cfg.ThemeSubTab, "Advanced", StringComparison.OrdinalIgnoreCase);
+        var bg = Color.Parse(useAdvanced && TryParse(cfg.BgColor) ? cfg.BgColor! : harmonized.BgColor!);
+        var sidebarBg = Color.Parse(useAdvanced && TryParse(cfg.SidebarBgColor) ? cfg.SidebarBgColor! : harmonized.SidebarBgColor!);
+        var surface = Color.Parse(useAdvanced && TryParse(cfg.SurfaceColor) ? cfg.SurfaceColor! : harmonized.SurfaceColor!);
+        var card = Color.Parse(useAdvanced && TryParse(cfg.CardColor) ? cfg.CardColor! : harmonized.CardColor!);
+        var panel = Color.Parse(useAdvanced && TryParse(cfg.PanelColor) ? cfg.PanelColor! : harmonized.PanelColor!);
+        var field = Color.Parse(useAdvanced && TryParse(cfg.FieldColor) ? cfg.FieldColor! : harmonized.FieldColor!);
+        var borderDark = Color.Parse(useAdvanced && TryParse(cfg.BorderDarkColor) ? cfg.BorderDarkColor! : harmonized.BorderDarkColor!);
+        var hoverTint = Color.Parse(useAdvanced && TryParse(cfg.HoverColor) ? cfg.HoverColor! : harmonized.HoverColor!);
+        var textPrimary = Color.Parse(useAdvanced && TryParse(cfg.TextPrimaryColor) ? cfg.TextPrimaryColor! : harmonized.TextPrimaryColor!);
+        var textSecondary = Color.Parse(useAdvanced && TryParse(cfg.TextSecondaryColor) ? cfg.TextSecondaryColor! : harmonized.TextSecondaryColor!);
 
         // Surfaces
         SetBrushColor(r, "BgBrush", bg);
@@ -250,37 +251,22 @@ public static class ZenithTheme
         r["AccentGradientMid"] = accent;
         r["AccentGradientEnd"] = pressed;
 
-        // Subtle logo dynamic gradient
-        if (r.TryGetValue("SubtleEmeraldBrush", out var seb) && seb is LinearGradientBrush lgb && lgb.GradientStops.Count >= 2)
+        // Subtle logo dynamic gradient - replace resource entry so DynamicResource bindings refresh immediately
+        r["SubtleEmeraldBrush"] = new LinearGradientBrush
         {
-            lgb.GradientStops[0].Color = hover;
-            lgb.GradientStops[1].Color = pressed;
-        }
-        else
-        {
-            r["SubtleEmeraldBrush"] = new LinearGradientBrush
+            StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
+            EndPoint = new RelativePoint(1, 1, RelativeUnit.Relative),
+            GradientStops = new GradientStops
             {
-                StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
-                EndPoint = new RelativePoint(1, 1, RelativeUnit.Relative),
-                GradientStops = new GradientStops
-                {
-                    new GradientStop(hover, 0),
-                    new GradientStop(pressed, 1)
-                }
-            };
-        }
+                new GradientStop(hover, 0),
+                new GradientStop(pressed, 1)
+            }
+        };
     }
 
     private static void SetBrushColor(Avalonia.Controls.IResourceDictionary r, string key, Color color)
     {
-        if (r.TryGetValue(key, out var obj) && obj is SolidColorBrush brush)
-        {
-            brush.Color = color;
-        }
-        else
-        {
-            r[key] = new SolidColorBrush(color);
-        }
+        r[key] = new SolidColorBrush(color);
     }
 
     private static bool TryParse(string? hex)

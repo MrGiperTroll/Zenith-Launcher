@@ -16,6 +16,7 @@ internal static class LocaleUk
         ["w_edit_title"] = "Редагувати світ",
         ["w_edit_name"] = "Назва світу:",
         ["sv_add_server"] = "Додати сервер",
+        ["java_path_placeholder"] = "Шлях до javaw.exe (не знайдено)",
 
         ["tab_overview"] = "Огляд",
         ["logs_empty_hint"] = "Логи поки відсутні. Запустіть інстанс для перегляду виводу.",

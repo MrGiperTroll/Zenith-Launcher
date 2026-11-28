@@ -23,7 +23,6 @@ public partial class ThemeSettingsViewModel : ViewModelBase
     public Action? SaveConfigRequested { get; set; }
     public Action? CloseRequested { get; set; }
     public Action<string>? ThemeApplied { get; set; }
-    public Action? ThemeRestartCancelled { get; set; }
 
     public ObservableCollection<ThemePreset> AvailableThemes { get; } = new(ZenithTheme.Presets);
 
@@ -58,12 +57,6 @@ public partial class ThemeSettingsViewModel : ViewModelBase
 
     [ObservableProperty]
     private IBrush _previewAccentBorderBrush = new SolidColorBrush(Color.FromArgb(90, 59, 130, 246));
-
-    [ObservableProperty]
-    private bool _isRestartConfirmOpen;
-
-    [ObservableProperty]
-    private string _pendingRestartThemeHex = "";
 
     [ObservableProperty]
     private bool _isThemeDiscardConfirmOpen;
@@ -383,26 +376,7 @@ public partial class ThemeSettingsViewModel : ViewModelBase
         targetHex = targetHex.Trim();
         if (!targetHex.StartsWith("#")) targetHex = "#" + targetHex;
 
-        PendingRestartThemeHex = targetHex;
-        IsRestartConfirmOpen = true;
-    }
-
-    [RelayCommand]
-    public void CancelRestartConfirm()
-    {
-        IsRestartConfirmOpen = false;
-        PendingRestartThemeHex = "";
-        ThemeRestartCancelled?.Invoke();
-    }
-
-    [RelayCommand]
-    public void ConfirmRestartAndApplyTheme()
-    {
-        IsRestartConfirmOpen = false;
-        var hex = !string.IsNullOrWhiteSpace(PendingRestartThemeHex) ? PendingRestartThemeHex : (IsThemeSubTabSimple ? SimpleAccentHex : CustomThemeHex);
-        SelectTheme(hex);
-
-        ZenithTheme.RestartLauncher();
+        SelectTheme(targetHex);
     }
 
     public void RequestDiscardConfirmation(Action onDiscard)

@@ -209,13 +209,33 @@ public partial class LauncherSettingsViewModel : ViewModelBase
         if (!_isLoadingConfig) SaveConfigRequested?.Invoke();
     }
 
+    private bool _isSyncingEffectiveJavaPath;
+
+    private void SyncEffectiveJavaPath(string? path)
+    {
+        var normalized = path ?? "";
+        _isSyncingEffectiveJavaPath = true;
+        try
+        {
+            EffectiveJavaPath = normalized;
+        }
+        finally
+        {
+            _isSyncingEffectiveJavaPath = false;
+        }
+        IsEffectiveJavaPathInvalid = !string.IsNullOrWhiteSpace(normalized) && normalized != "java" && !File.Exists(normalized);
+    }
+
     partial void OnEffectiveJavaPathChanged(string value)
     {
         IsEffectiveJavaPathInvalid = !string.IsNullOrWhiteSpace(value) && value != "java" && !File.Exists(value);
-        if (!_isLoadingConfig && SelectedJavaMode == "Custom" && value != CustomJavaPath)
-        {
+        if (_isLoadingConfig || _isSyncingEffectiveJavaPath) return;
+
+        if (!string.Equals(CustomJavaPath, value, StringComparison.Ordinal))
             CustomJavaPath = value;
-        }
+        if (SelectedJavaMode != "Custom")
+            SelectedJavaMode = "Custom";
+        SaveConfigRequested?.Invoke();
     }
 
     
@@ -405,19 +425,25 @@ public partial class LauncherSettingsViewModel : ViewModelBase
             case "Custom":
                 CurrentJavaDisplay = JavaVersionHelper.CustomDisplay(CustomJavaPath);
                 ResolvedJavaPath = CustomJavaPath;
-                EffectiveJavaPath = CustomJavaPath;
+                SyncEffectiveJavaPath(CustomJavaPath);
                 break;
 
             case "System":
                 CurrentJavaDisplay = L10n.T("java_display_system_path");
                 ResolvedJavaPath = JavaVersionHelper.FindSystemJavaPath() ?? "";
-                EffectiveJavaPath = ResolvedJavaPath;
+                SyncEffectiveJavaPath(ResolvedJavaPath);
                 break;
 
             default: // Recommended
                 var display = GetRecommendedJavaDisplay?.Invoke();
                 CurrentJavaDisplay = display ?? L10n.T("java_recommended_auto");
-                EffectiveJavaPath = "";
+                var recPath = new[] { Java25Location, Java21Location, Java17Location, Java8Location }
+                    .FirstOrDefault(p => !string.IsNullOrWhiteSpace(p) && File.Exists(p))
+                    ?? JavaVersionHelper.FindJavaForVersion(21)
+                    ?? JavaVersionHelper.FindSystemJavaPath()
+                    ?? "";
+                ResolvedJavaPath = recPath;
+                SyncEffectiveJavaPath(recPath);
                 break;
         }
     }
@@ -991,9 +1017,6 @@ public partial class LauncherSettingsViewModel : ViewModelBase
     [ObservableProperty] private string _customFontPath = string.Empty;
     [ObservableProperty] private string _customFontDisplayName = string.Empty;
 
-    [ObservableProperty] private bool _isThemeRestartDialogOpen;
-    [ObservableProperty] private string? _pendingThemeCardId;
-
     private bool _isSyncingCustomColor;
     private CancellationTokenSource? _customSaveDebounceCts;
 
@@ -1240,9 +1263,11 @@ public partial class LauncherSettingsViewModel : ViewModelBase
     public void ApplyCustomThemeCard()
     {
         var hex = !string.IsNullOrWhiteSpace(CustomAccentHex) ? CustomAccentHex : "#FFFFFF";
-        PendingThemeCardId = "custom";
-        ThemeSettingsVm.PendingRestartThemeHex = hex;
-        ThemeSettingsVm.IsRestartConfirmOpen = true;
+        SelectedThemeCardId = "custom";
+        foreach (var c in ThemeCards) c.IsSelected = false;
+        ThemeSettingsVm.SelectTheme(hex);
+        ApplyCurrentThemeLive();
+        SaveConfigRequested?.Invoke();
     }
 
     public void ApplyCurrentThemeLive()
@@ -1262,21 +1287,15 @@ public partial class LauncherSettingsViewModel : ViewModelBase
         if (cardId == "custom")
             return;
 
-        if (cardId == SelectedThemeCardId) return;
-
-        PendingThemeCardId = cardId;
         var card = ThemeCards.FirstOrDefault(c => c.Id == cardId);
-        var hex = card?.AccentHex ?? "#8B5CF6";
+        if (card == null) return;
 
-        ThemeSettingsVm.PendingRestartThemeHex = hex;
-        ThemeSettingsVm.IsRestartConfirmOpen = true;
+        SelectedThemeCardId = cardId;
+        foreach (var c in ThemeCards) c.IsSelected = (c.Id == cardId);
+        ThemeSettingsVm.SelectTheme(card.AccentHex);
+        ApplyCurrentThemeLive();
+        SaveConfigRequested?.Invoke();
     }
-
-    [RelayCommand]
-    public void ConfirmThemeRestart() => ThemeSettingsVm.ConfirmRestartAndApplyTheme();
-
-    [RelayCommand]
-    public void CancelThemeRestart() => ThemeSettingsVm.CancelRestartConfirm();
 
     partial void OnSelectedFontStyleChanged(string value)
     {
@@ -1340,21 +1359,18 @@ public partial class LauncherSettingsViewModel : ViewModelBase
         ThemeSettingsVm = themeSettingsVm;
         ThemeSettingsVm.ThemeApplied = hex =>
         {
-            var matched = !string.IsNullOrEmpty(PendingThemeCardId)
-                ? ThemeCards.FirstOrDefault(c => c.Id == PendingThemeCardId)
-                : ThemeCards.FirstOrDefault(c => c.AccentHex.Equals(hex, StringComparison.OrdinalIgnoreCase));
+            var matched = ThemeCards.FirstOrDefault(c => c.AccentHex.Equals(hex, StringComparison.OrdinalIgnoreCase));
             if (matched != null)
             {
                 SelectedThemeCardId = matched.Id;
                 foreach (var c in ThemeCards) c.IsSelected = (c.Id == matched.Id);
             }
-            PendingThemeCardId = null;
-        };
-        ThemeSettingsVm.ThemeRestartCancelled = () =>
-        {
-            PendingThemeCardId = null;
-            foreach (var card in ThemeCards)
-                card.IsSelected = (card.Id == SelectedThemeCardId);
+            else
+            {
+                SelectedThemeCardId = "custom";
+                foreach (var c in ThemeCards) c.IsSelected = false;
+            }
+            foreach (var c in ThemeCards) c.NotifyBrushesChanged();
         };
         L10n.LanguageChanged += () => OnPropertyChanged(nameof(ParticleCustomImageDisplayName));
         InitAppearanceModels();

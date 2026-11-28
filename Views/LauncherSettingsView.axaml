@@ -510,7 +510,7 @@
                                 controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="settings_card_java25">
                             <StackPanel Spacing="12">
                                 <TextBlock Classes="itemTitle" Text="Java 25"/>
-                                <TextBox Classes="darkInput" Text="{Binding Java25Location, Mode=TwoWay}"  Height="34" FontSize="12"/>
+                                <TextBox Classes="darkInput" Text="{Binding Java25Location, Mode=TwoWay}" PlaceholderText="{l10n:Tr Key=java_path_placeholder}" Height="34" FontSize="12"/>
                                 <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" VerticalAlignment="Center">
                                     <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
                                         <Button Classes="primaryBtn" Command="{Binding InstallJavaCommand}" CommandParameter="25" Content="{Binding Java25DownloadButtonText}" IsEnabled="{Binding !IsJava25Downloading}" Padding="14,6"/>
@@ -530,7 +530,7 @@
                                 controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="settings_card_java21">
                             <StackPanel Spacing="12">
                                 <TextBlock Classes="itemTitle" Text="Java 21"/>
-                                <TextBox Classes="darkInput" Text="{Binding Java21Location, Mode=TwoWay}"  Height="34" FontSize="12"/>
+                                <TextBox Classes="darkInput" Text="{Binding Java21Location, Mode=TwoWay}" PlaceholderText="{l10n:Tr Key=java_path_placeholder}" Height="34" FontSize="12"/>
                                 <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" VerticalAlignment="Center">
                                     <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
                                         <Button Classes="primaryBtn" Command="{Binding InstallJavaCommand}" CommandParameter="21" Content="{Binding Java21DownloadButtonText}" IsEnabled="{Binding !IsJava21Downloading}" Padding="14,6"/>
@@ -550,7 +550,7 @@
                                 controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="settings_card_java17">
                             <StackPanel Spacing="12">
                                 <TextBlock Classes="itemTitle" Text="Java 17"/>
-                                <TextBox Classes="darkInput" Text="{Binding Java17Location, Mode=TwoWay}"  Height="34" FontSize="12"/>
+                                <TextBox Classes="darkInput" Text="{Binding Java17Location, Mode=TwoWay}" PlaceholderText="{l10n:Tr Key=java_path_placeholder}" Height="34" FontSize="12"/>
                                 <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" VerticalAlignment="Center">
                                     <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
                                         <Button Classes="primaryBtn" Command="{Binding InstallJavaCommand}" CommandParameter="17" Content="{Binding Java17DownloadButtonText}" IsEnabled="{Binding !IsJava17Downloading}" Padding="14,6"/>
@@ -570,7 +570,7 @@
                                 controls:SnowCollider.IsEnabled="True" controls:SnowCollider.SurfaceId="settings_card_java8">
                             <StackPanel Spacing="12">
                                 <TextBlock Classes="itemTitle" Text="Java 8"/>
-                                <TextBox Classes="darkInput" Text="{Binding Java8Location, Mode=TwoWay}"  Height="34" FontSize="12"/>
+                                <TextBox Classes="darkInput" Text="{Binding Java8Location, Mode=TwoWay}" PlaceholderText="{l10n:Tr Key=java_path_placeholder}" Height="34" FontSize="12"/>
                                 <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" VerticalAlignment="Center">
                                     <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
                                         <Button Classes="primaryBtn" Command="{Binding InstallJavaCommand}" CommandParameter="8" Content="{Binding Java8DownloadButtonText}" IsEnabled="{Binding !IsJava8Downloading}" Padding="14,6"/>

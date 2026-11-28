@@ -16,6 +16,7 @@ internal static class LocaleFr
         ["w_edit_title"] = "Modifier le monde",
         ["w_edit_name"] = "Nom du monde :",
         ["sv_add_server"] = "Ajouter un serveur",
+        ["java_path_placeholder"] = "Chemin vers javaw.exe (introuvable)",
 
         ["tab_overview"] = "Aperçu",
         ["logs_empty_hint"] = "Aucun journal disponible pour l'instant. Démarrez l'instance pour voir la sortie.",

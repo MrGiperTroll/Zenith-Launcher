@@ -16,6 +16,7 @@ internal static class LocaleDe
         ["w_edit_title"] = "Welt bearbeiten",
         ["w_edit_name"] = "Weltname:",
         ["sv_add_server"] = "Server hinzufügen",
+        ["java_path_placeholder"] = "Pfad zu javaw.exe (nicht gefunden)",
 
         ["tab_overview"] = "Übersicht",
         ["logs_empty_hint"] = "Noch keine Logs verfügbar. Starten Sie die Instanz, um die Ausgabe zu sehen.",

@@ -18,16 +18,19 @@ public static class LauncherLog
     private static readonly AutoResetEvent Signal = new(false);
     private static readonly object FileGate = new();
     private static string? _path;
+    private static string? _pathAppDataDir;
     private static int _workerStarted;
 
     private static string LogFilePath
     {
         get
         {
-            if (_path is null)
+            var appDataDir = ZenithPaths.AppDataDir;
+            if (_path is null || !string.Equals(_pathAppDataDir, appDataDir, StringComparison.OrdinalIgnoreCase))
             {
-                try { Directory.CreateDirectory(ZenithPaths.AppDataDir); } catch { }
-                _path = System.IO.Path.Combine(ZenithPaths.AppDataDir, "launcher.log");
+                try { Directory.CreateDirectory(appDataDir); } catch { }
+                _pathAppDataDir = appDataDir;
+                _path = System.IO.Path.Combine(appDataDir, "launcher.log");
             }
             return _path;
         }

@@ -240,8 +240,8 @@ public partial class CreateProfileViewModel : ObservableObject, IDisposable
         var prevSelectedId = SelectedJavaOption?.Id ?? SelectedJavaMode;
         JavaOptions.Clear();
         var recMajor = JavaVersionHelper.InferRequiredJavaMajor(SelectedVersion ?? "1.21.4");
-        var recPath = JavaVersionHelper.FindJavaForVersion(recMajor) ?? JavaVersionHelper.FindSystemJavaPath() ?? "javaw.exe";
-        var sysPath = JavaVersionHelper.FindSystemJavaPath() ?? "javaw.exe";
+        var recPath = JavaVersionHelper.FindJavaForVersion(recMajor) ?? JavaVersionHelper.FindSystemJavaPath() ?? "";
+        var sysPath = JavaVersionHelper.FindSystemJavaPath() ?? "";
         var sysMajor = JavaVersionHelper.GetJavaMajor(sysPath);
 
         var recOption = new JavaModeOption

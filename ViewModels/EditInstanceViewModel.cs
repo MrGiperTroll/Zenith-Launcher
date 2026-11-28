@@ -1523,9 +1523,10 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
     [RelayCommand]
     private void ResetJava()
     {
-        _javaDirty = false;
         SelectedJavaMode = _globalConfig.JavaMode ?? "Recommended";
         CustomJavaPath = _globalConfig.CustomJavaPath ?? "";
+        _javaDirty = false;
+        UpdateJavaDisplay();
         NotifyResetState(nameof(CanResetJava), nameof(IsJavaInherited));
     }
 
@@ -1609,9 +1610,38 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
     [NotifyPropertyChangedFor(nameof(JavaPlaceholderPath))]
     private string _javaDisplayPath = "Recommended";
 
+    [ObservableProperty]
+    private string _effectiveJavaPath = "";
+
+    private bool _isSyncingEffectiveJavaPath;
+
     public int RequiredJavaMajor => JavaVersionHelper.InferRequiredJavaMajor(Instance.Version);
     public string JavaCardTitle => $"Java {RequiredJavaMajor}";
-    public string JavaPlaceholderPath => string.IsNullOrWhiteSpace(JavaDisplayPath) ? "javaw.exe" : JavaDisplayPath;
+    public string JavaPlaceholderPath => L10n.T("java_path_placeholder");
+
+    private void SyncEffectiveJavaPath(string? path)
+    {
+        _isSyncingEffectiveJavaPath = true;
+        try
+        {
+            EffectiveJavaPath = path ?? "";
+        }
+        finally
+        {
+            _isSyncingEffectiveJavaPath = false;
+        }
+    }
+
+    partial void OnEffectiveJavaPathChanged(string value)
+    {
+        if (_isSyncingEffectiveJavaPath) return;
+
+        if (!string.Equals(CustomJavaPath, value, StringComparison.Ordinal))
+            CustomJavaPath = value;
+        if (!string.Equals(SelectedJavaMode, "Custom", StringComparison.Ordinal))
+            SelectedJavaMode = "Custom";
+        MarkJavaDirty();
+    }
 
     partial void OnSelectedJavaModeChanged(string value)
     {
@@ -1645,18 +1675,41 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
         {
             case "Custom":
                 JavaDisplayPath = JavaVersionHelper.CustomDisplay(CustomJavaPath);
+                SyncEffectiveJavaPath(CustomJavaPath);
                 break;
 
             case "System":
                 var sys = JavaVersionHelper.FindSystemJavaPath();
                 JavaDisplayPath = string.IsNullOrEmpty(sys) ? "(system PATH)" : sys;
+                SyncEffectiveJavaPath(sys);
                 break;
 
-            default: // Recommended - resolve asynchronously like a launch would
+            default: // Recommended - resolve synchronously from config/disk first, then refine asynchronously
                 JavaDisplayPath = JavaVersionHelper.RecommendedDisplay(Instance.Version);
+                var immediate = ResolveLocalJavaSync();
+                if (!string.IsNullOrEmpty(immediate))
+                    JavaDisplayPath = immediate;
+                SyncEffectiveJavaPath(immediate);
                 _ = ResolveJavaPathAsync();
                 break;
         }
+    }
+
+    private string? ResolveLocalJavaSync()
+    {
+        var configured = RequiredJavaMajor switch
+        {
+            >= 25 => _globalConfig.Java25Path,
+            21 => _globalConfig.Java21Path,
+            >= 17 => _globalConfig.Java17Path,
+            <= 8 => _globalConfig.Java8Path,
+            _ => null
+        };
+        if (!string.IsNullOrWhiteSpace(configured) && File.Exists(configured))
+            return configured;
+
+        return JavaVersionHelper.FindJavaForVersion(RequiredJavaMajor)
+            ?? JavaVersionHelper.FindSystemJavaPath();
     }
 
     /// <summary>
@@ -1670,7 +1723,10 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
         {
             var resolved = await _host.ResolveJavaForEditorAsync(Instance.Version);
             if (SelectedJavaMode == "Recommended" && !string.IsNullOrEmpty(resolved))
+            {
                 JavaDisplayPath = resolved;
+                SyncEffectiveJavaPath(resolved);
+            }
         }
         catch { /* display-only lookup - keep the hint on failure */ }
     }
@@ -1749,12 +1805,26 @@ public partial class EditInstanceViewModel : ViewModelBase, IDisposable
         {
             // Only store an override if the user explicitly enabled it for that block;
             // otherwise keep null so the launcher inherits the global setting.
-            Instance.CustomJavaPath = !string.IsNullOrWhiteSpace(CustomJavaPath)
-                ? CustomJavaPath.Trim()
-                : null;
-            Instance.JavaMode = !string.IsNullOrWhiteSpace(Instance.CustomJavaPath)
-                ? "Custom"
-                : (_javaDirty ? SelectedJavaMode : null);
+            if (_javaDirty)
+            {
+                if (string.Equals(SelectedJavaMode, "Custom", StringComparison.Ordinal))
+                {
+                    Instance.CustomJavaPath = !string.IsNullOrWhiteSpace(CustomJavaPath)
+                        ? CustomJavaPath.Trim()
+                        : null;
+                    Instance.JavaMode = "Custom";
+                }
+                else
+                {
+                    Instance.CustomJavaPath = null;
+                    Instance.JavaMode = SelectedJavaMode;
+                }
+            }
+            else
+            {
+                Instance.CustomJavaPath = null;
+                Instance.JavaMode = null;
+            }
             Instance.JvmArgs = _jvmArgsDirty ? (string.IsNullOrWhiteSpace(JvmArgs) ? null : JvmArgs) : null;
             Instance.RamMb = _memoryDirty ? RamMb : null;
             Instance.GameWidth = _windowDirty ? GameWidth : null;

@@ -313,18 +313,6 @@ public partial class MainWindowViewModel : ViewModelBase
     public IBrush PreviewAccentDimBrush => ThemeSettingsVm.PreviewAccentDimBrush;
     public IBrush PreviewAccentBorderBrush => ThemeSettingsVm.PreviewAccentBorderBrush;
 
-    public bool IsRestartConfirmOpen
-    {
-        get => ThemeSettingsVm.IsRestartConfirmOpen;
-        set => ThemeSettingsVm.IsRestartConfirmOpen = value;
-    }
-
-    public string PendingRestartThemeHex
-    {
-        get => ThemeSettingsVm.PendingRestartThemeHex;
-        set => ThemeSettingsVm.PendingRestartThemeHex = value;
-    }
-
     public bool IsThemeDiscardConfirmOpen
     {
         get => ThemeSettingsVm.IsThemeDiscardConfirmOpen;
@@ -349,8 +337,6 @@ public partial class MainWindowViewModel : ViewModelBase
     public IRelayCommand ChooseThemeCommand => ThemeSettingsVm.ChooseThemeCommand;
     public IRelayCommand SelectThemeCommand => ThemeSettingsVm.SelectThemeCommand;
     public IRelayCommand RequestApplyThemeCommand => ThemeSettingsVm.RequestApplyThemeCommand;
-    public IRelayCommand CancelRestartConfirmCommand => ThemeSettingsVm.CancelRestartConfirmCommand;
-    public IRelayCommand ConfirmRestartAndApplyThemeCommand => ThemeSettingsVm.ConfirmRestartAndApplyThemeCommand;
     public IRelayCommand ConfirmDiscardThemeChangesCommand => ThemeSettingsVm.ConfirmDiscardThemeChangesCommand;
     public IRelayCommand CancelDiscardThemeChangesCommand => ThemeSettingsVm.CancelDiscardThemeChangesCommand;
     public IRelayCommand ApplyCustomThemeCommand => ThemeSettingsVm.ApplyCustomThemeCommand;
@@ -1026,9 +1012,17 @@ public partial class MainWindowViewModel : ViewModelBase
 
 
 
-    public MainWindowViewModel()
+    public MainWindowViewModel() : this(null, null, null, initializeDiscordRpc: true)
     {
-        _accountService = new AccountService();
+    }
+
+    internal MainWindowViewModel(
+        ILaunchService? launchService,
+        IInstanceService? instanceService = null,
+        IAccountService? accountService = null,
+        bool initializeDiscordRpc = false)
+    {
+        _accountService = accountService ?? new AccountService();
         AccountsVm = new AccountsViewModel(_accountService);
         AccountsVm.AccountStateChanged += () =>
         {
@@ -1041,8 +1035,8 @@ public partial class MainWindowViewModel : ViewModelBase
         };
         AccountsVm.OnStatusMessage += msg => StatusText = msg;
 
-        _instanceService = new InstanceService();
-        _launchService = new LaunchService((IInstanceService)_instanceService);
+        _instanceService = instanceService ?? new InstanceService();
+        _launchService = launchService ?? new LaunchService((IInstanceService)_instanceService);
 
         Launch = new LaunchViewModel(_launchService, _accountService, _instanceService, Console)
         {
@@ -1363,19 +1357,21 @@ public partial class MainWindowViewModel : ViewModelBase
 
 
         // Discord Rich Presence lifecycle - initialize in background to avoid UI thread pipe blocking
-
-        Task.Run(() =>
+        if (initializeDiscordRpc)
         {
-            try
+            Task.Run(() =>
             {
-                Services.DiscordPresenceService.Initialize(DiscordRpcEnabled);
-                Services.DiscordPresenceService.SetBrowsingProfiles();
-            }
-            catch (Exception ex)
-            {
-                LauncherLog.Error("Discord RPC background init failed", ex);
-            }
-        });
+                try
+                {
+                    Services.DiscordPresenceService.Initialize(DiscordRpcEnabled);
+                    Services.DiscordPresenceService.SetBrowsingProfiles();
+                }
+                catch (Exception ex)
+                {
+                    LauncherLog.Error("Discord RPC background init failed", ex);
+                }
+            });
+        }
 
         _launchService.GameLaunched += (instance, accountType) =>
 
@@ -1796,10 +1792,12 @@ public partial class MainWindowViewModel : ViewModelBase
         if (!flushSync)
         {
             System.Threading.CancellationTokenSource cts;
+            System.Threading.CancellationToken token;
             lock (_configDebounceGate)
             {
                 try { _configDebounceCts?.Cancel(); _configDebounceCts?.Dispose(); } catch { }
                 cts = new System.Threading.CancellationTokenSource();
+                token = cts.Token;
                 _configDebounceCts = cts;
                 _hasPendingDebouncedConfigSave = true;
             }
@@ -1808,11 +1806,11 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 try
                 {
-                    await System.Threading.Tasks.Task.Delay(280, cts.Token).ConfigureAwait(false);
-                    if (cts.Token.IsCancellationRequested) return;
+                    await System.Threading.Tasks.Task.Delay(280, token).ConfigureAwait(false);
+                    if (token.IsCancellationRequested) return;
                     Dispatcher.UIThread.Post(() =>
                     {
-                        if (cts.Token.IsCancellationRequested) return;
+                        if (token.IsCancellationRequested) return;
                         lock (_configDebounceGate)
                         {
                             if (!ReferenceEquals(_configDebounceCts, cts) || !_hasPendingDebouncedConfigSave)
@@ -1829,7 +1827,7 @@ public partial class MainWindowViewModel : ViewModelBase
                     });
                 }
                 catch (OperationCanceledException) { }
-            }, cts.Token);
+            }, token);
             return;
         }
 
@@ -2348,8 +2346,6 @@ public partial class MainWindowViewModel : ViewModelBase
         IsElyByErrorOpen = false;
 
         IsDeleteConfirmOpen = false;
-
-        IsRestartConfirmOpen = false;
 
         if (IsHardwareAccelConfirmOpen)
             CancelHardwareAccelRestart();

@@ -17,7 +17,7 @@
         <!-- Tab navigation buttons: clean rounded pills matching Modrinth -->
         <Style Selector="Button.tabBtn">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="CornerRadius" Value="20"/>
             <Setter Property="Padding" Value="16,6"/>
@@ -27,10 +27,10 @@
             <Setter Property="Transitions" Value="{DynamicResource MotionCtrlBgFgTransitions}"/>
         </Style>
         <Style Selector="Button.tabBtn:pointerover">
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
         <Style Selector="Button.tabBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
         </Style>
         <Style Selector="Button.tabBtn.active /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
@@ -42,35 +42,35 @@
 
         <!-- Rounded Filter Dropdowns -->
         <Style Selector="Expander:pointerover">
-            <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderCardSoftBrush}"/>
         </Style>
         <Style Selector="Expander:pointerover /template/ Border#Root">
-            <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
-            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderCardSoftBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource FieldBrush}"/>
         </Style>
         <Style Selector="Expander:expanded:pointerover">
-            <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderCardSoftBrush}"/>
         </Style>
         <Style Selector="Expander:expanded:pointerover /template/ Border#Root">
-            <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderCardSoftBrush}"/>
         </Style>
         <Style Selector="Expander:pressed /template/ Border#Root">
-            <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
-            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderCardSoftBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource FieldBrush}"/>
         </Style>
         <Style Selector="Expander /template/ ToggleButton#ExpanderHeader:pressed">
-            <Setter Property="Background" Value="{StaticResource CardAltBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource CardAltBrush}"/>
         </Style>
         <Style Selector="Expander /template/ ToggleButton#ExpanderHeader:pressed /template/ Border">
-            <Setter Property="Background" Value="{StaticResource CardAltBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource CardAltBrush}"/>
         </Style>
         <Style Selector="Expander /template/ ToggleButton#ExpanderHeader:pressed /template/ ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource CardAltBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource CardAltBrush}"/>
         </Style>
         <Style Selector="ComboBox.roundedFilterCombo">
-            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderEditorBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource FieldBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderEditorBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Height" Value="32"/>
@@ -79,7 +79,7 @@
             <Setter Property="FontSize" Value="12"/>
         </Style>
         <Style Selector="ComboBox.roundedFilterCombo:pointerover">
-            <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderHoverBrush}"/>
         </Style>
 
         <Style Selector="ScrollViewer">
@@ -110,7 +110,7 @@
             <Setter Property="CornerRadius" Value="6"/>
         </Style>
         <Style Selector="Button.changelogDownloadBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
         </Style>
 
         <Style Selector="Button.actionBtn.installing">
@@ -120,14 +120,14 @@
             <Setter Property="BorderThickness" Value="1"/>
         </Style>
         <Style Selector="Button.actionBtn.installing:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource DangerBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource DangerBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
         </Style>
 
         <!-- Link Buttons for Sidebar -->
         <Style Selector="Button.sidebarLinkBtn">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="4,4"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -138,30 +138,17 @@
             <Setter Property="Background" Value="Transparent"/>
         </Style>
         <Style Selector="Button.sidebarLinkBtn:pointerover">
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
-        </Style>
-
-        <Style Selector="Button.inlineLinkBtn">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
-        <Style Selector="Button.inlineLinkBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="Transparent"/>
-        </Style>
-        <Style Selector="Button.inlineLinkBtn:pointerover">
-            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
 
         <Style Selector="Button.socialMediaBtn">
-            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource FieldBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
         <Style Selector="Button.socialMediaBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
         </Style>
 
         <!-- Table and List Row Hover Styles (No transition to prevent white flash) -->
@@ -171,13 +158,13 @@
             <Setter Property="CornerRadius" Value="6"/>
         </Style>
         <Style Selector="Border.versionRow:pointerover">
-            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
         </Style>
 
         <!-- Gallery Card Hover Styles -->
         <Style Selector="Border.galleryCard">
-            <Setter Property="Background" Value="{StaticResource CardBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderCardSoftBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -187,32 +174,9 @@
             <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
         </Style>
 
-        <!-- Modal Dialog Buttons -->
-        <Style Selector="Button.dialogBtn">
-            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderEditorBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
-        <Style Selector="Button.dialogBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
-        </Style>
-        <Style Selector="Button.dialogDanger">
-            <Setter Property="Background" Value="{StaticResource DangerBorderBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource DangerLightBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource DangerBorderBrush}"/>
-        </Style>
-        <Style Selector="Button.dialogDanger:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource DangerBgDeepBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
-        </Style>
         <Style Selector="Button.pageNumberBtn">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="6,4"/>
             <Setter Property="MinWidth" Value="24"/>
@@ -224,8 +188,8 @@
             <Setter Property="VerticalContentAlignment" Value="Center"/>
         </Style>
         <Style Selector="Button.pageNumberBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
         <Style Selector="Button.pageNavBtn">
             <Setter Property="Background" Value="Transparent"/>
@@ -238,7 +202,7 @@
             <Setter Property="VerticalContentAlignment" Value="Center"/>
         </Style>
         <Style Selector="Button.pageNavBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
         </Style>
         <Style Selector="Button.iconCopyBtn">
             <Setter Property="Background" Value="Transparent"/>
@@ -248,7 +212,7 @@
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
         <Style Selector="Button.iconCopyBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
         </Style>
         <Style Selector="Button.iconCopyBtn:pointerover PathIcon">
             <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
@@ -265,7 +229,7 @@
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
             <Setter Property="Template">
                 <ControlTemplate>
                     <TextBlock Text="{TemplateBinding Content}"
@@ -285,25 +249,6 @@
             <Setter Property="TextDecorations" Value="Underline"/>
         </Style>
 
-        <Style Selector="Button.authorLinkBtn">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="Template">
-                <ControlTemplate>
-                    <TextBlock Text="{TemplateBinding Content}"
-                               FontSize="{TemplateBinding FontSize}"
-                               Foreground="{TemplateBinding Foreground}"
-                               VerticalAlignment="Center"/>
-                </ControlTemplate>
-            </Setter>
-        </Style>
-        <Style Selector="Button.authorLinkBtn:pointerover TextBlock">
-            <Setter Property="TextDecorations" Value="Underline"/>
-        </Style>
         <Style Selector="Button.badgeBtn">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
@@ -323,19 +268,19 @@
             <Border Grid.Row="0" Background="Transparent" Padding="0,8,0,14">
                 <Grid ColumnDefinitions="56,*,Auto" ColumnSpacing="14">
                     <Border Grid.Column="0" Width="56" Height="56" CornerRadius="12"
-                            Background="{StaticResource IconChipBrush}" ClipToBounds="True" VerticalAlignment="Center">
+                            Background="{DynamicResource IconChipBrush}" ClipToBounds="True" VerticalAlignment="Center">
                         <Panel>
                             <Image Source="{Binding DetailsProject.Icon}" Stretch="Uniform" Width="52" Height="52"
                                    HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding DetailsProject.HasIcon}"/>
                             <Path Data="M20.5 11H19V7C19 5.9 18.1 5 17 5H13V3.5C13 2.12 11.88 1 10.5 1S8 2.12 8 3.5V5H4C2.9 5 2 5.9 2 7V10.8H3.5C4.99 10.8 6.2 12.01 6.2 13.5S4.99 16.2 3.5 16.2H2V20C2 21.1 2.9 22 4 22H7.8V20.5C7.8 19.01 9.01 17.8 10.5 17.8S13.2 19.01 13.2 20.5V22H17C18.1 22 19 21.1 19 20V16H20.5C21.88 16 23 14.88 23 13.5S21.88 11 20.5 11Z"
-                                  Width="26" Height="26" Stretch="Uniform" Fill="{StaticResource TextPlaceholderBrush}"
+                                  Width="26" Height="26" Stretch="Uniform" Fill="{DynamicResource TextPlaceholderBrush}"
                                   HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding !DetailsProject.HasIcon}"/>
                         </Panel>
                     </Border>
                     <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
-                        <TextBlock Text="{Binding DetailsProject.Title}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" TextWrapping="Wrap"/>
+                        <TextBlock Text="{Binding DetailsProject.Title}" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap"/>
                         <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,1,0,2">
-                            <TextBlock Text="{l10n:Tr Key=cb_by_prefix}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Text="{l10n:Tr Key=cb_by_prefix}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
                             <Button Classes="inlineLinkBtn" Content="{Binding DetailsProject.Author}"
                                     Tag="{Binding DetailsProject.Author}" Click="OnAuthorTapped"
                                     FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"
@@ -344,20 +289,20 @@
                         <TextBlock Classes="sectionHint" Text="{Binding DetailsProject.Description}" TextWrapping="Wrap" MaxLines="2"/>
                         <StackPanel Orientation="Horizontal" Spacing="14" Margin="0,2,0,0">
                             <StackPanel Orientation="Horizontal" Spacing="4">
-                                <TextBlock Text="&#x2193;" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
-                                <TextBlock Text="{Binding DetailsProject.DownloadsLabel}" FontSize="11" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Text="&#x2193;" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding DetailsProject.DownloadsLabel}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Spacing="4"
                                         IsVisible="{Binding FullProject.Follows, Converter={x:Static converters:EditInstanceWindowConverters.IsNotZero}}">
-                                <TextBlock Text="&#x2661;" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
-                                <TextBlock Text="{Binding FullProject.Follows}" FontSize="11" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Text="&#x2661;" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding FullProject.Follows}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
                         </StackPanel>
                     </StackPanel>
                     <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                         <Button Content="{l10n:Tr Key=btn_back}" CornerRadius="8" Padding="14,8"
-                                Background="{StaticResource FieldBrush}" Foreground="{StaticResource TextPrimaryBrush}"
-                                BorderBrush="{StaticResource BorderEditorBrush}" BorderThickness="1" FontWeight="SemiBold" Cursor="Hand"
+                                Background="{DynamicResource FieldBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
+                                BorderBrush="{DynamicResource BorderEditorBrush}" BorderThickness="1" FontWeight="SemiBold" Cursor="Hand"
                                 Command="{Binding CloseDetailsCommand}"/>
                         <Button Classes="actionBtn" Classes.installing="{Binding SelectedProject.IsInstalling}" Padding="18,8"
                                 Content="{Binding ReinstallText}"
@@ -409,9 +354,9 @@
                                             <TextBlock Text="{Binding SelectedDetailVersion.Name}" FontSize="12.5" Foreground="{DynamicResource TextMutedBrush}"/>
                                             <TextBlock Text="&#x2022;" FontSize="11" Foreground="{DynamicResource TextPlaceholderBrush}"/>
                                             <TextBlock Text="{Binding SelectedDetailVersion.RelativeTime}" FontSize="12.5" Foreground="{DynamicResource TextMutedBrush}"/>
-                                            <TextBlock Text="&#x2022;" FontSize="11" Foreground="{StaticResource TextPlaceholderBrush}"
+                                            <TextBlock Text="&#x2022;" FontSize="11" Foreground="{DynamicResource TextPlaceholderBrush}"
                                                        IsVisible="{Binding SelectedDetailVersion.Downloads, Converter={x:Static converters:EditInstanceWindowConverters.IsNotZero}}"/>
-                                            <TextBlock Text="{Binding SelectedDetailVersion.DownloadsLabel}" FontSize="12.5" Foreground="{StaticResource TextMutedBrush}"
+                                            <TextBlock Text="{Binding SelectedDetailVersion.DownloadsLabel}" FontSize="12.5" Foreground="{DynamicResource TextMutedBrush}"
                                                        IsVisible="{Binding SelectedDetailVersion.Downloads, Converter={x:Static converters:EditInstanceWindowConverters.IsNotZero}}"/>
                                         </StackPanel>
                                     </StackPanel>
@@ -428,27 +373,27 @@
 
                                 <!-- Compatibility 3-Card Section -->
                                 <StackPanel Spacing="8" Margin="0,6,0,0">
-                                    <TextBlock Text="{l10n:Tr Key=cb_compatibility}" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="{l10n:Tr Key=cb_compatibility}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                     <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
                                         <!-- Minecraft Java Edition -->
-                                        <Border Grid.Column="0" Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}"
+                                        <Border Grid.Column="0" Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderCardSoftBrush}"
                                                 BorderThickness="1" CornerRadius="8" Padding="16,14" MinHeight="72">
                                             <StackPanel Spacing="8" HorizontalAlignment="Left">
-                                                <TextBlock Text="Minecraft: Java Edition" FontSize="11.5" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Left"/>
-                                                <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1"
+                                                <TextBlock Text="Minecraft: Java Edition" FontSize="11.5" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Left"/>
+                                                <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderCardSoftBrush}" BorderThickness="1"
                                                         CornerRadius="14" Padding="10,5" Margin="0" HorizontalAlignment="Left">
                                                     <TextBlock Text="{Binding SelectedDetailVersion.PrimaryGameVersion}" FontSize="11.5" FontWeight="SemiBold"
-                                                               Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Left"/>
+                                                               Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Left"/>
                                                 </Border>
                                             </StackPanel>
                                         </Border>
 
                                         <!-- Platform -->
-                                        <Border Grid.Column="1" Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}"
+                                        <Border Grid.Column="1" Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderCardSoftBrush}"
                                                 BorderThickness="1" CornerRadius="8" Padding="16,14" MinHeight="72">
                                             <StackPanel Spacing="8" HorizontalAlignment="Left">
-                                                <TextBlock Text="{l10n:Tr Key=cb_platform}" FontSize="11.5" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Left"/>
-                                                <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1"
+                                                <TextBlock Text="{l10n:Tr Key=cb_platform}" FontSize="11.5" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Left"/>
+                                                <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderCardSoftBrush}" BorderThickness="1"
                                                         CornerRadius="14" Padding="10,5" Margin="0" HorizontalAlignment="Left">
                                                     <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Left" VerticalAlignment="Center">
                                                         <PathIcon Data="M12 15.5A3.5 3.5 0 0 1 8.5 12A3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5a3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.64.07-.97c0-.33-.03-.66-.07-1l2.11-1.63c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.31-.61-.22l-2.49 1c-.52-.39-1.06-.73-1.69-.98l-.37-2.65A.506.506 0 0 0 14 2h-4c-.25 0-.46.18-.5.42l-.37 2.65c-.63.25-1.17.59-1.69.98l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64L4.57 11c-.04.34-.07.67-.07 1c0 .33.03.65.07.97l-2.11 1.66c-.19.15-.25.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1.01c.52.4 1.06.74 1.69.99l.37 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.37-2.65c.63-.26 1.17-.59 1.69-.99l2.49 1.01c.22.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.66Z"
@@ -461,17 +406,17 @@
                                         </Border>
 
                                         <!-- Supported Environments -->
-                                        <Border Grid.Column="2" Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}"
+                                        <Border Grid.Column="2" Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderCardSoftBrush}"
                                                 BorderThickness="1" CornerRadius="8" Padding="16,14" MinHeight="72">
                                             <StackPanel Spacing="8" HorizontalAlignment="Left">
-                                                <TextBlock Text="{l10n:Tr Key=cb_environments}" FontSize="11.5" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Left"/>
-                                                <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1"
+                                                <TextBlock Text="{l10n:Tr Key=cb_environments}" FontSize="11.5" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Left"/>
+                                                <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderCardSoftBrush}" BorderThickness="1"
                                                         CornerRadius="14" Padding="10,5" Margin="0" HorizontalAlignment="Left">
                                                     <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Left" VerticalAlignment="Center">
                                                         <PathIcon Data="M20 18c1.1 0 1.99-.9 1.99-2L22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z"
-                                                                  Width="12" Height="12" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                                  Width="12" Height="12" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
                                                         <TextBlock Text="{Binding FullProject.ClientSideDisplay}" FontSize="11.5" FontWeight="SemiBold"
-                                                                   Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+                                                                   Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" HorizontalAlignment="Left"/>
                                                     </StackPanel>
                                                 </Border>
                                             </StackPanel>
@@ -480,36 +425,36 @@
                                 </StackPanel>
                                 <!-- Changes Section -->
                                 <StackPanel Spacing="8">
-                                    <TextBlock Text="{l10n:Tr Key=cb_changes}" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                    <Border Background="{StaticResource FieldBrush}" CornerRadius="8" Padding="18,16" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1">
+                                    <TextBlock Text="{l10n:Tr Key=cb_changes}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <Border Background="{DynamicResource FieldBrush}" CornerRadius="8" Padding="18,16" BorderBrush="{DynamicResource BorderCardSoftBrush}" BorderThickness="1">
                                         <StackPanel Spacing="10">
-                                            <TextBlock Text="{l10n:Tr Key=cb_whats_changed}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                            <TextBlock Text="{Binding SelectedDetailVersion.CleanChangelog}" FontSize="12.5" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="20"/>
+                                            <TextBlock Text="{l10n:Tr Key=cb_whats_changed}" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                            <TextBlock Text="{Binding SelectedDetailVersion.CleanChangelog}" FontSize="12.5" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="20"/>
                                         </StackPanel>
                                     </Border>
                                 </StackPanel>
 
                                 <!-- Developer Information Section matching Modrinth -->
-                                <Expander Header="{l10n:Tr Key=cb_dev_info}" IsExpanded="True" HorizontalAlignment="Stretch" Background="{StaticResource FieldBrush}"
-                                          BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="14,10"
-                                          Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" FontSize="13">
+                                <Expander Header="{l10n:Tr Key=cb_dev_info}" IsExpanded="True" HorizontalAlignment="Stretch" Background="{DynamicResource FieldBrush}"
+                                          BorderBrush="{DynamicResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="14,10"
+                                          Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold" FontSize="13">
                                     <StackPanel Spacing="14" Margin="0,10,0,6">
                                         <!-- Explanatory intro text -->
                                         <TextBlock Text="{l10n:Tr Key=cb_dev_maven_intro}"
-                                                   FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="18"/>
+                                                   FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="18"/>
 
                                         <!-- Explanatory note text -->
                                         <TextBlock Text="{l10n:Tr Key=cb_dev_maven_note}"
-                                                   FontSize="11.5" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap" LineHeight="17"/>
+                                                   FontSize="11.5" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" LineHeight="17"/>
 
                                         <!-- Maven coordinates -->
                                         <StackPanel Spacing="6">
-                                            <TextBlock Text="{l10n:Tr Key=cb_dev_maven_coords}" FontSize="12.5" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                            <Border Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6" HorizontalAlignment="Left">
+                                            <TextBlock Text="{l10n:Tr Key=cb_dev_maven_coords}" FontSize="12.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                            <Border Background="{DynamicResource CardAltBrush}" BorderBrush="{DynamicResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6" HorizontalAlignment="Left">
                                                 <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                                                    <TextBlock Text="{Binding SelectedDetailVersion.MavenCoordinates}" FontFamily="Consolas, Cascadia Code, monospace" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding SelectedDetailVersion.MavenCoordinates}" FontFamily="Consolas, Cascadia Code, monospace" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                                     <Button Classes="iconCopyBtn" Click="OnCopyMavenClicked" ToolTip.Tip="{l10n:Tr Key=cb_copy_maven}">
-                                                        <PathIcon Data="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" Width="13" Height="13" Foreground="{StaticResource TextMutedBrush}"/>
+                                                        <PathIcon Data="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" Width="13" Height="13" Foreground="{DynamicResource TextMutedBrush}"/>
                                                     </Button>
                                                 </StackPanel>
                                             </Border>
@@ -517,12 +462,12 @@
 
                                         <!-- Version ID -->
                                         <StackPanel Spacing="6">
-                                            <TextBlock Text="{l10n:Tr Key=cb_dev_version_id}" FontSize="12.5" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                            <Border Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6" HorizontalAlignment="Left">
+                                            <TextBlock Text="{l10n:Tr Key=cb_dev_version_id}" FontSize="12.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                            <Border Background="{DynamicResource CardAltBrush}" BorderBrush="{DynamicResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6" HorizontalAlignment="Left">
                                                 <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                                                    <TextBlock Text="{Binding SelectedDetailVersion.Id}" FontFamily="Consolas, Cascadia Code, monospace" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding SelectedDetailVersion.Id}" FontFamily="Consolas, Cascadia Code, monospace" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                                     <Button Classes="iconCopyBtn" Click="OnCopyVersionIdClicked" ToolTip.Tip="{l10n:Tr Key=cb_copy_version_id}">
-                                                        <PathIcon Data="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" Width="13" Height="13" Foreground="{StaticResource TextMutedBrush}"/>
+                                                        <PathIcon Data="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" Width="13" Height="13" Foreground="{DynamicResource TextMutedBrush}"/>
                                                     </Button>
                                                 </StackPanel>
                                             </Border>
@@ -531,16 +476,16 @@
                                         <!-- build.gradle -->
                                         <StackPanel Spacing="6">
                                             <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                                <TextBlock Grid.Column="0" Text="build.gradle:" FontSize="12.5" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Column="0" Text="build.gradle:" FontSize="12.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                                                 <Button Grid.Column="1" Classes="iconCopyBtn" Click="OnCopyGradleClicked" ToolTip.Tip="{l10n:Tr Key=cb_copy_gradle}">
                                                     <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                                                        <PathIcon Data="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" Width="12" Height="12" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
-                                                        <TextBlock Text="{l10n:Tr Key=copy}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                        <PathIcon Data="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" Width="12" Height="12" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="{l10n:Tr Key=copy}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
                                                     </StackPanel>
                                                 </Button>
                                             </Grid>
-                                            <Border Background="{StaticResource CardAltBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="14,12">
-                                                <TextBlock Text="{Binding SelectedDetailVersion.GradleSnippet}" FontFamily="Consolas, Cascadia Code, monospace" FontSize="11.5" Foreground="{StaticResource TextSecondaryBrush}" LineHeight="18" TextWrapping="Wrap"/>
+                                            <Border Background="{DynamicResource CardAltBrush}" BorderBrush="{DynamicResource BorderCardSoftBrush}" BorderThickness="1" CornerRadius="8" Padding="14,12">
+                                                <TextBlock Text="{Binding SelectedDetailVersion.GradleSnippet}" FontFamily="Consolas, Cascadia Code, monospace" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" LineHeight="18" TextWrapping="Wrap"/>
                                             </Border>
                                         </StackPanel>
                                     </StackPanel>
@@ -558,7 +503,7 @@
                                 <!-- LEFT: Description Content -->
                                 <StackPanel Grid.Column="0" Spacing="10">
             <!-- Segmented Navigation Tabs -->
-            <Border Background="{StaticResource FieldBrush}" CornerRadius="20" Padding="3" HorizontalAlignment="Left" Margin="0,0,0,14">
+            <Border Background="{DynamicResource FieldBrush}" CornerRadius="20" Padding="3" HorizontalAlignment="Left" Margin="0,0,0,14">
                 <StackPanel Orientation="Horizontal" Spacing="2">
                     <Button Classes="tabBtn" Classes.active="{Binding IsDescriptionTab}"
                             Content="{l10n:Tr Key=cb_description}"
@@ -644,18 +589,18 @@
                                                     </Border>
 
                                                     <!-- Divider Line -->
-                                                    <Border Height="1" Background="{StaticResource BorderDarkBrush}" Margin="0,12,0,12" IsVisible="{Binding IsDividerLine}"/>
+                                                    <Border Height="1" Background="{DynamicResource BorderDarkBrush}" Margin="0,12,0,12" IsVisible="{Binding IsDividerLine}"/>
 
                                                     <!-- Header 1 -->
-                                                    <TextBlock Text="{Binding Text}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"
+                                                    <TextBlock Text="{Binding Text}" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"
                                                                Margin="0,14,0,6" IsVisible="{Binding IsHeader1}"/>
 
                                                     <!-- Header 2 -->
-                                                    <TextBlock Text="{Binding Text}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"
+                                                    <TextBlock Text="{Binding Text}" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"
                                                                Margin="0,12,0,4" IsVisible="{Binding IsHeader2}"/>
 
                                                     <!-- Header 3 -->
-                                                    <TextBlock Text="{Binding Text}" FontSize="13.5" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"
+                                                    <TextBlock Text="{Binding Text}" FontSize="13.5" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"
                                                                Margin="0,8,0,3" IsVisible="{Binding IsHeader3}"/>
 
                                                     <!-- Bullet point with rich spans -->
@@ -670,14 +615,14 @@
                                                                                      IsVisible="{Binding IsParagraph}"/>
 
                                                                                                         <!-- Blockquote with subtle left accent line -->
-                                                    <Border BorderBrush="{StaticResource BorderCardSoftBrush}" BorderThickness="3,0,0,0"
+                                                    <Border BorderBrush="{DynamicResource BorderCardSoftBrush}" BorderThickness="3,0,0,0"
                                                             Padding="12,4,4,4" Margin="0,3,0,6" IsVisible="{Binding IsBlockquote}">
                                                         <utils:MarkdownParagraphControl Spans="{Binding Spans}" Text="{Binding Text}" FontSize="12.5"
                                                                                         TextWrapping="Wrap" LineHeight="20"/>
                                                     </Border>
 
                                                     <!-- Table -->
-                                                    <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}"
+                                                    <Border Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderCardSoftBrush}"
                                                             BorderThickness="1" CornerRadius="8" Margin="0,6,0,10" ClipToBounds="True" IsVisible="{Binding IsTable}">
                                                         <StackPanel>
                                                             <!-- Headers -->
@@ -691,7 +636,7 @@
                                                                     </ItemsControl.ItemsPanel>
                                                                     <ItemsControl.ItemTemplate>
                                                                         <DataTemplate>
-                                                                            <TextBlock Text="{Binding}" FontWeight="Bold" FontSize="11.5" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                                                            <TextBlock Text="{Binding}" FontWeight="Bold" FontSize="11.5" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                                                         </DataTemplate>
                                                                     </ItemsControl.ItemTemplate>
                                                                 </ItemsControl>
@@ -700,7 +645,7 @@
                                                             <ItemsControl ItemsSource="{Binding Table.Rows}">
                                                                 <ItemsControl.ItemTemplate>
                                                                     <DataTemplate x:DataType="utils:MarkdownTableRow">
-                                                                        <Border Padding="10,7" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,0,1">
+                                                                        <Border Padding="10,7" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="0,0,0,1">
                                                                             <ItemsControl ItemsSource="{Binding Cells}">
                                                                                 <ItemsControl.ItemsPanel>
                                                                                     <ItemsPanelTemplate>
@@ -709,7 +654,7 @@
                                                                                 </ItemsControl.ItemsPanel>
                                                                                 <ItemsControl.ItemTemplate>
                                                                                     <DataTemplate>
-                                                                                        <TextBlock Text="{Binding}" FontSize="11.5" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                                                                                        <TextBlock Text="{Binding}" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                                                                                     </DataTemplate>
                                                                                 </ItemsControl.ItemTemplate>
                                                                             </ItemsControl>
@@ -725,7 +670,7 @@
                                     </ItemsControl>
 
                                     <!-- Fallback if blocks are empty -->
-                                    <TextBlock Text="{Binding CleanBody}" FontSize="12.5" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="20"
+                                    <TextBlock Text="{Binding CleanBody}" FontSize="12.5" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="20"
                                                IsVisible="{Binding FullProject.DescriptionBlocks, Converter={x:Static converters:EditInstanceWindowConverters.IsCollectionEmpty}}"/>
                                 
                                 </StackPanel>
@@ -735,14 +680,14 @@
                 <StackPanel Grid.Column="1" Spacing="12">
 
                     <!-- 1. Compatibility -->
-                    <Border Classes="zenSection" Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}"
+                    <Border Classes="zenSection" Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderCardSoftBrush}"
                             BorderThickness="1" CornerRadius="8" Padding="14,12">
                         <StackPanel Spacing="10">
-                            <TextBlock Text="{l10n:Tr Key=cb_compatibility}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <TextBlock Text="{l10n:Tr Key=cb_compatibility}" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
 
                             <!-- Game Versions -->
                             <StackPanel Spacing="4">
-                                <TextBlock Text="Minecraft: Java Edition" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                                <TextBlock Text="Minecraft: Java Edition" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
                                 <ItemsControl ItemsSource="{Binding FullProject.GroupedGameVersions}">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
@@ -751,8 +696,8 @@
                                     </ItemsControl.ItemsPanel>
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <Border Background="{StaticResource CardBrush}" CornerRadius="10" Padding="8,3" Margin="0,0,4,4">
-                                                <TextBlock Text="{Binding}" FontSize="10.5" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <Border Background="{DynamicResource CardBrush}" CornerRadius="10" Padding="8,3" Margin="0,0,4,4">
+                                                <TextBlock Text="{Binding}" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                             </Border>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
@@ -761,7 +706,7 @@
 
                             <!-- Platforms -->
                             <StackPanel Spacing="4">
-                                <TextBlock Text="{l10n:Tr Key=cb_platforms}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                                <TextBlock Text="{l10n:Tr Key=cb_platforms}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
                                 <ItemsControl ItemsSource="{Binding FullProject.Loaders}">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
@@ -770,7 +715,7 @@
                                     </ItemsControl.ItemsPanel>
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <Border Background="{StaticResource CardBrush}" CornerRadius="10" Padding="8,3" Margin="0,0,4,4">
+                                            <Border Background="{DynamicResource CardBrush}" CornerRadius="10" Padding="8,3" Margin="0,0,4,4">
                                                 <TextBlock Text="{Binding}" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"/>
                                             </Border>
                                         </DataTemplate>
@@ -780,10 +725,10 @@
 
                             <!-- Supported Environments -->
                             <StackPanel Spacing="4">
-                                <TextBlock Text="{l10n:Tr Key=cb_environments}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                                <TextBlock Text="{l10n:Tr Key=cb_environments}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
                                 <WrapPanel Orientation="Horizontal">
-                                    <Border Background="{StaticResource CardBrush}" CornerRadius="10" Padding="8,3" Margin="0,0,4,4">
-                                        <TextBlock Text="{Binding FullProject.ClientSideDisplay}" FontSize="10.5" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <Border Background="{DynamicResource CardBrush}" CornerRadius="10" Padding="8,3" Margin="0,0,4,4">
+                                        <TextBlock Text="{Binding FullProject.ClientSideDisplay}" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                     </Border>
                                 </WrapPanel>
                             </StackPanel>
@@ -791,27 +736,27 @@
                     </Border>
 
                     <!-- 2. Links -->
-                    <Border Classes="zenSection" Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}"
+                    <Border Classes="zenSection" Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderCardSoftBrush}"
                             BorderThickness="1" CornerRadius="8" Padding="14,12"
                             IsVisible="{Binding FullProject, Converter={x:Static converters:EditInstanceWindowConverters.IsNotNull}}">
                         <StackPanel Spacing="6">
-                            <TextBlock Text="{l10n:Tr Key=cb_links}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,2"/>
+                            <TextBlock Text="{l10n:Tr Key=cb_links}" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,2"/>
 
                             <Button Classes="sidebarLinkBtn" IsVisible="{Binding FullProject.IssuesUrl, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"
                                     Command="{Binding OpenLinkCommand}" CommandParameter="issues">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <PathIcon Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" Width="13" Height="13" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                    <PathIcon Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" Width="13" Height="13" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
                                     <TextBlock Text="{l10n:Tr Key=cb_report_issues}" FontSize="11.5"/>
-                                    <TextBlock Text="&#x2197;" FontSize="10" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                                    <TextBlock Text="&#x2197;" FontSize="10" Foreground="{DynamicResource TextPlaceholderBrush}"/>
                                 </StackPanel>
                             </Button>
 
                             <Button Classes="sidebarLinkBtn" IsVisible="{Binding FullProject.SourceUrl, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"
                                     Command="{Binding OpenLinkCommand}" CommandParameter="source">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <PathIcon Data="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z" Width="13" Height="13" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                    <PathIcon Data="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z" Width="13" Height="13" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
                                     <TextBlock Text="{l10n:Tr Key=cb_view_source}" FontSize="11.5"/>
-                                    <TextBlock Text="&#x2197;" FontSize="10" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                                    <TextBlock Text="&#x2197;" FontSize="10" Foreground="{DynamicResource TextPlaceholderBrush}"/>
                                 </StackPanel>
                             </Button>
 
@@ -819,29 +764,29 @@
                                     Command="{Binding OpenLinkCommand}" CommandParameter="discord">
                                 <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                                     <PathIcon Data="M19.27 5.33C17.94 4.71 16.5 4.26 15 4a.09.09 0 0 0-.07.03c-.18.33-.39.76-.53 1.09a16.09 16.09 0 0 0-4.8 0c-.14-.34-.35-.76-.54-1.09-.01-.02-.04-.03-.07-.03-1.5.26-2.93.71-4.27 1.33-.01 0-.02.01-.03.02-2.72 4.07-3.47 8.03-3.1 11.95 0 .02.01.04.03.05 1.8 1.32 3.53 2.12 5.24 2.65.03.01.06 0 .07-.02.4-.55.76-1.13 1.07-1.74.02-.04 0-.08-.04-.09-.57-.22-1.11-.48-1.64-.78-.04-.02-.04-.08-.01-.11.11-.08.22-.17.33-.25.02-.02.05-.02.07-.01 3.44 1.57 7.15 1.57 10.55 0 .02-.01.05-.01.07.01.11.09.22.17.33.26.04.03.04.08-.01.11-.52.31-1.07.56-1.64.78-.04.01-.05.06-.04.09.32.61.68 1.19 1.07 1.74.03.01.06.02.09.01 1.72-.53 3.45-1.33 5.25-2.65.02-.01.03-.03.03-.05.44-4.53-.73-8.46-3.1-11.95-.01-.01-.02-.02-.04-.02zM8.52 14.91c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12 0 1.17-.84 2.12-1.89 2.12zm6.97 0c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12 0 1.17-.83 2.12-1.89 2.12z"
-                                              Width="13" Height="13" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                              Width="13" Height="13" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
                                     <TextBlock Text="{l10n:Tr Key=cb_join_discord}" FontSize="11.5" VerticalAlignment="Center"/>
-                                    <TextBlock Text="&#x2197;" FontSize="10" Foreground="{StaticResource TextPlaceholderBrush}" VerticalAlignment="Center"/>
+                                    <TextBlock Text="&#x2197;" FontSize="10" Foreground="{DynamicResource TextPlaceholderBrush}" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
 
                             <Button Classes="sidebarLinkBtn" IsVisible="{Binding FullProject.WikiUrl, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"
                                     Command="{Binding OpenLinkCommand}" CommandParameter="wiki">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <PathIcon Data="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z" Width="13" Height="13" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                    <PathIcon Data="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z" Width="13" Height="13" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
                                     <TextBlock Text="{l10n:Tr Key=cb_wiki}" FontSize="11.5"/>
-                                    <TextBlock Text="&#x2197;" FontSize="10" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                                    <TextBlock Text="&#x2197;" FontSize="10" Foreground="{DynamicResource TextPlaceholderBrush}"/>
                                 </StackPanel>
                             </Button>
                         </StackPanel>
                     </Border>
 
                     <!-- 3. Tags -->
-                    <Border Classes="zenSection" Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}"
+                    <Border Classes="zenSection" Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderCardSoftBrush}"
                             BorderThickness="1" CornerRadius="8" Padding="14,12"
                             IsVisible="{Binding DetailsProject.Categories.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsNotZero}}">
                         <StackPanel Spacing="6">
-                            <TextBlock Text="{l10n:Tr Key=cb_tags}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <TextBlock Text="{l10n:Tr Key=cb_tags}" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                             <ItemsControl ItemsSource="{Binding DetailsProject.Categories}">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
@@ -850,8 +795,8 @@
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <Border Background="{StaticResource CardBrush}" CornerRadius="10" Padding="8,3" Margin="0,0,4,4">
-                                            <TextBlock Text="{Binding}" FontSize="10.5" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                        <Border Background="{DynamicResource CardBrush}" CornerRadius="10" Padding="8,3" Margin="0,0,4,4">
+                                            <TextBlock Text="{Binding}" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                         </Border>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
@@ -860,30 +805,30 @@
                     </Border>
 
                     <!-- 4. Creators -->
-                    <Border Classes="zenSection" Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderCardSoftBrush}"
+                    <Border Classes="zenSection" Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderCardSoftBrush}"
                             BorderThickness="1" CornerRadius="8" Padding="14,12"
                             IsVisible="{Binding FullProject.TeamMembers.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsNotZero}}">
                         <StackPanel Spacing="8">
-                            <TextBlock Text="{l10n:Tr Key=cb_creators}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <TextBlock Text="{l10n:Tr Key=cb_creators}" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                             <ItemsControl ItemsSource="{Binding FullProject.TeamMembers}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate x:DataType="models:ModrinthTeamMember">
                                         <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,3">
-                                            <Border Width="28" Height="28" CornerRadius="14" Background="{StaticResource IconChipBrush}" ClipToBounds="True">
+                                            <Border Width="28" Height="28" CornerRadius="14" Background="{DynamicResource IconChipBrush}" ClipToBounds="True">
                                                 <Panel>
                                                     <Image Source="{Binding Avatar}" Width="28" Height="28" Stretch="UniformToFill"
                                                            HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding HasAvatar}"/>
                                                     <TextBlock Text="{Binding Username[0]}" FontSize="12" FontWeight="Bold"
-                                                               Foreground="{StaticResource TextPlaceholderBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                               Foreground="{DynamicResource TextPlaceholderBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"
                                                                IsVisible="{Binding !HasAvatar}"/>
                                                 </Panel>
                                             </Border>
                                             <StackPanel Spacing="1" VerticalAlignment="Center">
                                                 <StackPanel Orientation="Horizontal" Spacing="4">
-                                                    <Button Classes="inlineLinkBtn" Content="{Binding Username}" Tag="{Binding Username}" Click="OnAuthorTapped" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" Padding="0" Background="Transparent" BorderThickness="0" Cursor="Hand" VerticalAlignment="Center"/>
+                                                    <Button Classes="inlineLinkBtn" Content="{Binding Username}" Tag="{Binding Username}" Click="OnAuthorTapped" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Padding="0" Background="Transparent" BorderThickness="0" Cursor="Hand" VerticalAlignment="Center"/>
                                                     <TextBlock Text="&#x1F451;" FontSize="10" IsVisible="{Binding IsOwner}" VerticalAlignment="Center"/>
                                                 </StackPanel>
-                                                <TextBlock Text="{Binding Role}" FontSize="10" Foreground="{StaticResource TextMutedBrush}"/>
+                                                <TextBlock Text="{Binding Role}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}"/>
                                             </StackPanel>
                                         </StackPanel>
                                     </DataTemplate>
@@ -897,7 +842,7 @@
 
                                 <StackPanel IsVisible="{Binding !IsDescriptionTab}">
             <!-- Segmented Navigation Tabs -->
-            <Border Background="{StaticResource FieldBrush}" CornerRadius="20" Padding="3" HorizontalAlignment="Left" Margin="0,0,0,14">
+            <Border Background="{DynamicResource FieldBrush}" CornerRadius="20" Padding="3" HorizontalAlignment="Left" Margin="0,0,0,14">
                 <StackPanel Orientation="Horizontal" Spacing="2">
                     <Button Classes="tabBtn" Classes.active="{Binding IsDescriptionTab}"
                             Content="{l10n:Tr Key=cb_description}"
@@ -926,16 +871,16 @@
                                                 <Border Classes="galleryCard" Width="260" Margin="0,0,14,14"
                                                         Tapped="OnGalleryItemTapped">
                                                     <StackPanel>
-                                                        <Border Height="145" Background="{StaticResource FieldBrush}" ClipToBounds="True">
+                                                        <Border Height="145" Background="{DynamicResource FieldBrush}" ClipToBounds="True">
                                                             <Image Source="{Binding Image}" Stretch="UniformToFill" IsVisible="{Binding HasImage}"/>
                                                         </Border>
                                                         <StackPanel Margin="12,10,12,10" Spacing="4">
                                                             <TextBlock Text="{Binding DisplayTitle}" FontSize="12.5" FontWeight="SemiBold"
-                                                                       Foreground="{StaticResource TextPrimaryBrush}"
+                                                                       Foreground="{DynamicResource TextPrimaryBrush}"
                                                                        TextTrimming="CharacterEllipsis"
                                                                        IsVisible="{Binding HasDisplayTitle}"/>
                                                             <TextBlock Text="{Binding CreatedDisplay}" FontSize="11"
-                                                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                                                       Foreground="{DynamicResource TextSecondaryBrush}"
                                                                        IsVisible="{Binding CreatedDisplay, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
                                                         </StackPanel>
                                                     </StackPanel>
@@ -943,7 +888,7 @@
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
-                                    <TextBlock Text="{l10n:Tr Key=cb_no_screenshots}" FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}"
+                                    <TextBlock Text="{l10n:Tr Key=cb_no_screenshots}" FontSize="12" Foreground="{DynamicResource TextPlaceholderBrush}"
                                                IsVisible="{Binding !GalleryItems.Count}"/>
                                 </StackPanel>
 
@@ -952,7 +897,7 @@
                                     <!-- Filters bar above timeline with multi-select platforms and theme-aware pagination -->
                                     <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto" VerticalAlignment="Center" Margin="0,0,0,8">
                                         <PathIcon Grid.Column="0" Data="M3 4h18v2l-7 8v6l-4-2v-4L3 6V4z" Width="13" Height="13"
-                                                  Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="2,0,10,0"/>
+                                                  Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="2,0,10,0"/>
                                         <views:GameVersionFilterDropdown Grid.Column="1" DataContext="{Binding GameVersionFilter}" Margin="0,0,8,0" VerticalAlignment="Center"/>
                                         <ComboBox Grid.Column="2" Classes="roundedFilterCombo" ItemsSource="{Binding FilterPlatforms}" SelectedItem="{Binding SelectedFilterPlatform}"
                                                   Width="140" VerticalAlignment="Center">
@@ -968,7 +913,7 @@
                                                     IsVisible="{Binding HasMultipleVersionPages}">
                                             <Button Classes="pageNavBtn" Click="OnPrevPageClicked" IsEnabled="{Binding CanGoPrevVersionPage}"
                                                     IsVisible="{Binding CanGoPrevVersionPage}">
-                                                <TextBlock Text="&#x2039;" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                <TextBlock Text="&#x2039;" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             </Button>
                                             <ItemsControl ItemsSource="{Binding VersionPageItems}">
                                                 <ItemsControl.ItemsPanel>
@@ -986,7 +931,7 @@
                                                                            Foreground="{DynamicResource OnAccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                             </Border>
                                                             <!-- Ellipsis -->
-                                                            <TextBlock Text="..." FontSize="13" Foreground="{StaticResource TextMutedBrush}"
+                                                            <TextBlock Text="..." FontSize="13" Foreground="{DynamicResource TextMutedBrush}"
                                                                        VerticalAlignment="Center" Margin="4,0" IsVisible="{Binding IsEllipsis}"/>
                                                             <!-- Inactive Page Button -->
                                                             <Button Classes="pageNumberBtn" Content="{Binding DisplayText}" Click="OnPageNumberClicked"
@@ -997,7 +942,7 @@
                                             </ItemsControl>
                                             <Button Classes="pageNavBtn" Click="OnNextPageClicked" IsEnabled="{Binding CanGoNextVersionPage}"
                                                     IsVisible="{Binding CanGoNextVersionPage}">
-                                                <TextBlock Text="&#x203A;" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                <TextBlock Text="&#x203A;" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             </Button>
                                         </StackPanel>
                                     </Grid>
@@ -1053,7 +998,7 @@
                                         </ItemsControl>
                                     </Border>
 
-                                    <TextBlock Text="{l10n:Tr Key=cb_no_changelog}" FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}"
+                                    <TextBlock Text="{l10n:Tr Key=cb_no_changelog}" FontSize="12" Foreground="{DynamicResource TextPlaceholderBrush}"
                                                IsVisible="{Binding VersionList, Converter={x:Static converters:EditInstanceWindowConverters.IsCollectionEmpty}}"/>
                                 </StackPanel>
 
@@ -1062,7 +1007,7 @@
                                     <!-- Filters bar above timeline with multi-select platforms and theme-aware pagination -->
                                     <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto" VerticalAlignment="Center" Margin="0,0,0,8">
                                         <PathIcon Grid.Column="0" Data="M3 4h18v2l-7 8v6l-4-2v-4L3 6V4z" Width="13" Height="13"
-                                                  Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="2,0,10,0"/>
+                                                  Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="2,0,10,0"/>
                                         <views:GameVersionFilterDropdown Grid.Column="1" DataContext="{Binding GameVersionFilter}" Margin="0,0,8,0" VerticalAlignment="Center"/>
                                         <ComboBox Grid.Column="2" Classes="roundedFilterCombo" ItemsSource="{Binding FilterPlatforms}" SelectedItem="{Binding SelectedFilterPlatform}"
                                                   Width="140" VerticalAlignment="Center"/>
@@ -1072,7 +1017,7 @@
                                                     IsVisible="{Binding HasMultipleVersionPages}">
                                             <Button Classes="pageNavBtn" Click="OnPrevPageClicked" IsEnabled="{Binding CanGoPrevVersionPage}"
                                                     IsVisible="{Binding CanGoPrevVersionPage}">
-                                                <TextBlock Text="&#x2039;" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                <TextBlock Text="&#x2039;" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             </Button>
                                             <ItemsControl ItemsSource="{Binding VersionPageItems}">
                                                 <ItemsControl.ItemsPanel>
@@ -1090,7 +1035,7 @@
                                                                            Foreground="{DynamicResource OnAccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                             </Border>
                                                             <!-- Ellipsis -->
-                                                            <TextBlock Text="..." FontSize="13" Foreground="{StaticResource TextMutedBrush}"
+                                                            <TextBlock Text="..." FontSize="13" Foreground="{DynamicResource TextMutedBrush}"
                                                                        VerticalAlignment="Center" Margin="4,0" IsVisible="{Binding IsEllipsis}"/>
                                                             <!-- Inactive Page Button -->
                                                             <Button Classes="pageNumberBtn" Content="{Binding DisplayText}" Click="OnPageNumberClicked"
@@ -1101,23 +1046,23 @@
                                             </ItemsControl>
                                             <Button Classes="pageNavBtn" Click="OnNextPageClicked" IsEnabled="{Binding CanGoNextVersionPage}"
                                                     IsVisible="{Binding CanGoNextVersionPage}">
-                                                <TextBlock Text="&#x203A;" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                <TextBlock Text="&#x203A;" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             </Button>
                                         </StackPanel>
                                     </Grid>
 
                                     <!-- Versions Table Container matching Modrinth coordinates -->
-                                    <Border Background="{StaticResource FieldBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="10" ClipToBounds="True">
+                                    <Border Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="10" ClipToBounds="True">
                                         <StackPanel>
                                             <!-- Table Header -->
                                             <Border Background="Transparent" Padding="16,10"
                                                     BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="0,0,0,1">
                                                 <Grid ColumnDefinitions="150,110,120,90,90,*">
-                                                    <TextBlock Grid.Column="0" Text="{l10n:Tr Key=cb_col_version}" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
-                                                    <TextBlock Grid.Column="1" Text="{l10n:Tr Key=filter_game_version}" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
-                                                    <TextBlock Grid.Column="2" Text="{l10n:Tr Key=cb_platform}" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
-                                                    <TextBlock Grid.Column="3" Text="{l10n:Tr Key=cb_col_published}" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
-                                                    <TextBlock Grid.Column="4" Text="{l10n:Tr Key=cb_downloads}" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
+                                                    <TextBlock Grid.Column="0" Text="{l10n:Tr Key=cb_col_version}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}"/>
+                                                    <TextBlock Grid.Column="1" Text="{l10n:Tr Key=filter_game_version}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}"/>
+                                                    <TextBlock Grid.Column="2" Text="{l10n:Tr Key=cb_platform}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}"/>
+                                                    <TextBlock Grid.Column="3" Text="{l10n:Tr Key=cb_col_published}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}"/>
+                                                    <TextBlock Grid.Column="4" Text="{l10n:Tr Key=cb_downloads}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}"/>
                                                 </Grid>
                                             </Border>
 
@@ -1137,26 +1082,26 @@
                                                                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                     </Border>
                                                                     <TextBlock Text="{Binding VersionNumber}" FontSize="13" FontWeight="SemiBold"
-                                                                               Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                                                               Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                                                 </StackPanel>
 
                                                                 <!-- Game Version Pill -->
-                                                                <Border Grid.Column="1" Background="{StaticResource CardBrush}" CornerRadius="10" Padding="8,3"
+                                                                <Border Grid.Column="1" Background="{DynamicResource CardBrush}" CornerRadius="10" Padding="8,3"
                                                                         HorizontalAlignment="Left" VerticalAlignment="Center">
-                                                                    <TextBlock Text="{Binding PrimaryGameVersion}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                                    <TextBlock Text="{Binding PrimaryGameVersion}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                                                 </Border>
 
                                                                 <!-- Platform Pill -->
-                                                                <Border Grid.Column="2" Background="{StaticResource CardBrush}" CornerRadius="10" Padding="8,3"
+                                                                <Border Grid.Column="2" Background="{DynamicResource CardBrush}" CornerRadius="10" Padding="8,3"
                                                                         HorizontalAlignment="Left" VerticalAlignment="Center">
                                                                     <TextBlock Text="{Binding PrimaryLoader}" FontSize="11" Foreground="{DynamicResource AccentBrush}"/>
                                                                 </Border>
 
                                                                 <!-- Published -->
-                                                                <TextBlock Grid.Column="3" Text="{Binding RelativeTime}" FontSize="11.5" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                                <TextBlock Grid.Column="3" Text="{Binding RelativeTime}" FontSize="11.5" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
 
                                                                 <!-- Downloads -->
-                                                                <TextBlock Grid.Column="4" Text="{Binding DownloadsLabel}" FontSize="11.5" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                                                <TextBlock Grid.Column="4" Text="{Binding DownloadsLabel}" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
 
                                                                 <!-- Download Action Button matching Changelog -->
                                                                 <Button Grid.Column="5" Classes="actionBtn" Width="104" Height="28" Padding="0" HorizontalAlignment="Right" VerticalAlignment="Center"
@@ -1174,7 +1119,7 @@
                                         </StackPanel>
                                     </Border>
 
-                                    <TextBlock Text="{l10n:Tr Key=cb_no_versions}" FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}" Margin="0,4"
+                                    <TextBlock Text="{l10n:Tr Key=cb_no_versions}" FontSize="12" Foreground="{DynamicResource TextPlaceholderBrush}" Margin="0,4"
                                                IsVisible="{Binding VersionList, Converter={x:Static converters:EditInstanceWindowConverters.IsCollectionEmpty}}"/>
                                 </StackPanel>
                             </StackPanel>
@@ -1219,12 +1164,12 @@
         </Border>
 
         <!-- MODAL: Reinstall Confirmation Overlay -->
-        <Border IsVisible="False" anim:ZenithMotion.ModalOpen="{Binding IsReinstallConfirmOpen, FallbackValue=False, TargetNullValue=False}" Background="{StaticResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1200">
-            <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1"
+        <Border IsVisible="False" anim:ZenithMotion.ModalOpen="{Binding IsReinstallConfirmOpen, FallbackValue=False, TargetNullValue=False}" Background="{DynamicResource OverlayBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="1200">
+            <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1"
                     CornerRadius="12" MaxWidth="380" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="{Binding ReinstallConfirmTitle}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource DangerLightBrush}"/>
-                    <TextBlock Text="{Binding ReinstallConfirmMessage}" FontSize="12.5" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="18"/>
+                    <TextBlock Text="{Binding ReinstallConfirmTitle}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource DangerLightBrush}"/>
+                    <TextBlock Text="{Binding ReinstallConfirmMessage}" FontSize="12.5" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="18"/>
                     <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" Margin="0,8,0,0">
                         <Button Content="{l10n:Tr Key=no}" Command="{Binding CancelReinstallCommand}" Classes="dialogBtn"
                                 Width="90" Height="34" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>

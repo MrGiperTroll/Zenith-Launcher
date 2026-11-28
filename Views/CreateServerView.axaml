@@ -12,22 +12,22 @@
     <UserControl.Styles>
         <!-- Button Brightening Hover Styles -->
         <Style Selector="Button.primaryBtn">
-            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Padding" Value="16,8"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
         </Style>
         <Style Selector="Button.primaryBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource AccentBrushHover}"/>
-            <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource AccentBrushHover}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
         </Style>
 
         <Style Selector="Button.subBtn">
-            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderEditorBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource FieldBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderEditorBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -35,15 +35,15 @@
             <Setter Property="FontWeight" Value="Medium"/>
         </Style>
         <Style Selector="Button.subBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderHoverBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
 
         <Style Selector="Button.chipBtn">
-            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderEditorBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource FieldBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderEditorBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="6"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -52,15 +52,15 @@
             <Setter Property="FontWeight" Value="SemiBold"/>
         </Style>
         <Style Selector="Button.chipBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
 
         <Style Selector="Button.dangerBtn">
-            <Setter Property="Background" Value="{StaticResource DangerBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource DangerBrush}"/>
             <Setter Property="Foreground" Value="#FFFFFF"/>
-            <Setter Property="BorderBrush" Value="{StaticResource DangerStrongBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource DangerStrongBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -69,14 +69,14 @@
             <Setter Property="FontWeight" Value="SemiBold"/>
         </Style>
         <Style Selector="Button.dangerBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource DangerStrongBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource DangerStrongBrush}"/>
             <Setter Property="Foreground" Value="#FFFFFF"/>
-            <Setter Property="BorderBrush" Value="{StaticResource DangerLightBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource DangerLightBrush}"/>
         </Style>
 
         <Style Selector="Button.tabBtn">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Padding" Value="14,8"/>
@@ -85,16 +85,16 @@
             <Setter Property="FontWeight" Value="SemiBold"/>
         </Style>
         <Style Selector="Button.tabBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource TabHoverBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource TabHoverBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
         <Style Selector="Button.tabBtn.active">
-            <Setter Property="Background" Value="{StaticResource AccentDimBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource AccentDimBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
         </Style>
         <Style Selector="Button.tabBtn.active /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource AccentDimBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource AccentDimBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
         </Style>
 
         <!-- Master Server List Styles -->
@@ -111,10 +111,10 @@
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
         <Style Selector="ListBox.serverList ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
         </Style>
         <Style Selector="ListBox.serverList ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource AccentDimBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource AccentDimBrush}"/>
         </Style>
         <Style Selector="Button.iconChangeBtn">
             <Setter Property="Background" Value="Transparent"/>
@@ -141,7 +141,7 @@
                     <TextBlock Classes="sectionTitle" Text="{l10n:Tr Key=tab_servers}" VerticalAlignment="Center"/>
                     <Button Grid.Column="1" Classes="primaryBtn" Command="{Binding StartCreateNewServerCommand}" Padding="10,6" FontSize="11">
                         <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                            <PathIcon Data="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" Width="12" Height="12" Foreground="{StaticResource OnAccentBrush}"/>
+                            <PathIcon Data="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" Width="12" Height="12" Foreground="{DynamicResource OnAccentBrush}"/>
                             <TextBlock Text="{l10n:Tr Key=cs_new}" FontWeight="Bold"/>
                         </StackPanel>
                     </Button>
@@ -151,7 +151,7 @@
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Hidden">
                     <StackPanel Spacing="4">
                         <TextBlock Text="{l10n:Tr Key=cs_no_servers}"
-                                   FontSize="11" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"
+                                   FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
                                    IsVisible="{Binding ExistingServersList.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}"
                                    Margin="4,16"/>
 
@@ -159,19 +159,19 @@
                             <ListBox.ItemTemplate>
                                 <DataTemplate x:DataType="vm:ServerItemEntry">
                                     <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" VerticalAlignment="Center">
-                                        <Border Width="28" Height="28" Background="{StaticResource IconChipBrush}" CornerRadius="6" VerticalAlignment="Center" ClipToBounds="True">
+                                        <Border Width="28" Height="28" Background="{DynamicResource IconChipBrush}" CornerRadius="6" VerticalAlignment="Center" ClipToBounds="True">
                                             <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
                                                 <Image IsVisible="{Binding HasIcon}"
                                                        Source="{Binding IconBitmap}"
                                                        Stretch="UniformToFill" Width="28" Height="28"/>
                                                 <PathIcon IsVisible="{Binding !HasIcon}"
                                                           Data="M20 13H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1v-6c0-.55-.45-1-1-1zM7 19c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM20 3H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1zM7 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"
-                                                          Width="13" Height="13" Foreground="{StaticResource AccentBrush}"/>
+                                                          Width="13" Height="13" Foreground="{DynamicResource AccentBrush}"/>
                                             </Panel>
                                         </Border>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
                                             <TextBlock Text="{Binding Name}" Classes="rowTitle" TextTrimming="CharacterEllipsis"/>
-                                            <TextBlock Text="{Binding Subtitle}" FontSize="10" Foreground="{StaticResource TextMutedBrush}"/>
+                                            <TextBlock Text="{Binding Subtitle}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}"/>
                                         </StackPanel>
                                     </Grid>
                                 </DataTemplate>
@@ -193,8 +193,8 @@
                     <Border Classes="zenSection">
                         <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                             <StackPanel VerticalAlignment="Center" Spacing="2">
-                                <TextBlock Text="{l10n:Tr Key=cs_title}" FontSize="17" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                <TextBlock Text="{l10n:Tr Key=cs_creating}" FontSize="12" Foreground="{StaticResource TextMutedBrush}" IsVisible="{Binding IsBusy}"/>
+                                <TextBlock Text="{l10n:Tr Key=cs_title}" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="{l10n:Tr Key=cs_creating}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" IsVisible="{Binding IsBusy}"/>
                             </StackPanel>
 
                             <Button Grid.Column="1" Classes="subBtn" Content="{l10n:Tr Key=btn_cancel}" Command="{Binding CancelCreateNewServerCommand}" IsVisible="{Binding HasExistingServers}"/>
@@ -206,19 +206,19 @@
                         <StackPanel Spacing="16">
                             <!-- Server Name -->
                             <StackPanel Spacing="6">
-                                <TextBlock Text="{l10n:Tr Key=cs_name}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                <TextBlock Text="{l10n:Tr Key=cs_name}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                 <TextBox Classes="darkInput" Text="{Binding ServerName}" IsEnabled="{Binding !IsBusy}"/>
                             </StackPanel>
 
                             <!-- Version & Software Grid -->
                             <Grid ColumnDefinitions="*,*" ColumnSpacing="16">
                                 <StackPanel Grid.Column="0" Spacing="6">
-                                    <TextBlock Text="{l10n:Tr Key=cs_version}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{l10n:Tr Key=cs_version}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                     <ComboBox Classes="zenCombo" ItemsSource="{Binding AvailableVersions}" SelectedItem="{Binding SelectedVersion}" HorizontalAlignment="Stretch" IsEnabled="{Binding !IsBusy}"/>
                                 </StackPanel>
 
                                 <StackPanel Grid.Column="1" Spacing="6">
-                                    <TextBlock Text="{l10n:Tr Key=cs_type}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{l10n:Tr Key=cs_type}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                     <ComboBox Classes="zenCombo" ItemsSource="{Binding AvailableSoftware}" SelectedItem="{Binding SelectedSoftware}" HorizontalAlignment="Stretch" IsEnabled="{Binding !IsBusy}">
                                         <ComboBox.ItemTemplate>
                                             <DataTemplate x:DataType="services:ServerSoftwareOption">
@@ -231,7 +231,7 @@
 
                             <!-- Loader Build / Version for Forge / NeoForge / Fabric -->
                             <StackPanel Spacing="6" IsVisible="{Binding IsLoaderBuildVisible}">
-                                <TextBlock Text="{l10n:Tr Key=cs_loader_build}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                <TextBlock Text="{l10n:Tr Key=cs_loader_build}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                 <ComboBox Classes="zenCombo" ItemsSource="{Binding AvailableLoaderBuilds}" SelectedItem="{Binding SelectedLoaderBuild}" HorizontalAlignment="Stretch" IsEnabled="{Binding !IsBusy}"/>
                             </StackPanel>
 
@@ -248,7 +248,7 @@
 
                                 <!-- Port -->
                                 <StackPanel Grid.Column="1" Spacing="6">
-                                    <TextBlock Text="{l10n:Tr Key=cs_port}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{l10n:Tr Key=cs_port}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                     <TextBox Classes="darkInput" Text="{Binding ServerPort}" IsEnabled="{Binding !IsBusy}"/>
                                 </StackPanel>
                             </Grid>
@@ -260,12 +260,12 @@
 
                             <!-- Progress and Status -->
                             <StackPanel Spacing="8" Margin="0,8,0,0" IsVisible="{Binding IsBusy}">
-                                <ProgressBar Value="{Binding ProgressPercent}" Minimum="0" Maximum="100" Height="6" Foreground="{StaticResource AccentBrush}"/>
-                                <TextBlock Text="{Binding StatusText}" FontSize="12" Foreground="{StaticResource AccentBrush}" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                <ProgressBar Value="{Binding ProgressPercent}" Minimum="0" Maximum="100" Height="6" Foreground="{DynamicResource AccentBrush}"/>
+                                <TextBlock Text="{Binding StatusText}" FontSize="12" Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold" HorizontalAlignment="Center"/>
                             </StackPanel>
 
                             <!-- Error Status -->
-                            <TextBlock Text="{Binding StatusText}" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource DangerLightBrush}" IsVisible="{Binding StatusText, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}" Margin="0,4,0,0"/>
+                            <TextBlock Text="{Binding StatusText}" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource DangerLightBrush}" IsVisible="{Binding StatusText, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}" Margin="0,4,0,0"/>
 
                             <!-- Action Buttons -->
                             <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,12,0,0">
@@ -288,7 +288,7 @@
                                 <TextBox x:Name="ServerNameInput"
                                          Classes="titleInput"
                                          Text="{Binding SelectedServerName, Mode=OneWay}"
-                                         FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"
+                                         FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"
                                          VerticalAlignment="Center" VerticalContentAlignment="Center"
                                          HorizontalAlignment="Left"
                                          Padding="0" Margin="0"
@@ -305,7 +305,7 @@
                                         <Button.Flyout>
                                             <Flyout Placement="BottomEdgeAlignedLeft">
                                                 <StackPanel Spacing="2" MinWidth="260">
-                                                    <TextBlock Text="{l10n:Tr Key=cs_addresses}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" Margin="8,4,8,2"/>
+                                                    <TextBlock Text="{l10n:Tr Key=cs_addresses}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}" Margin="8,4,8,2"/>
                                                     <ItemsControl ItemsSource="{Binding NetworkEndpoints}">
                                                         <ItemsControl.ItemTemplate>
                                                             <DataTemplate x:DataType="services:ServerNetworkEndpoint">
@@ -317,10 +317,10 @@
                                                                     <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                                                         <StackPanel Spacing="2">
                                                                             <TextBlock Text="{Binding Address}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"/>
-                                                                            <TextBlock Text="{Binding Label}" FontSize="10" Foreground="{StaticResource TextMutedBrush}"/>
+                                                                            <TextBlock Text="{Binding Label}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}"/>
                                                                         </StackPanel>
                                                                         <PathIcon Grid.Column="1" Data="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"
-                                                                                  Width="11" Height="11" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                                                                  Width="11" Height="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                                                     </Grid>
                                                                 </Button>
                                                             </DataTemplate>
@@ -330,8 +330,8 @@
                                             </Flyout>
                                         </Button.Flyout>
                                         <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding ServerIpDisplay}" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center"/>
-                                            <PathIcon Data="M7 10l5 5 5-5z" Width="8" Height="8" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{Binding ServerIpDisplay}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                                            <PathIcon Data="M7 10l5 5 5-5z" Width="8" Height="8" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
                                         </StackPanel>
                                     </Button>
 
@@ -339,9 +339,9 @@
                                     <Button Classes="chipBtn" Command="{Binding CopyIpCommand}" Padding="8,6" ToolTip.Tip="{l10n:Tr Key=cs_copy_ip}" VerticalAlignment="Center">
                                         <Panel VerticalAlignment="Center" HorizontalAlignment="Center">
                                             <PathIcon Data="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"
-                                                      Width="11" Height="11" Foreground="{StaticResource TextSecondaryBrush}" IsVisible="{Binding !IsIpCopied}"/>
+                                                      Width="11" Height="11" Foreground="{DynamicResource TextSecondaryBrush}" IsVisible="{Binding !IsIpCopied}"/>
                                             <PathIcon Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
-                                                      Width="11" Height="11" Foreground="{StaticResource SuccessBrush}" IsVisible="{Binding IsIpCopied}"/>
+                                                      Width="11" Height="11" Foreground="{DynamicResource SuccessBrush}" IsVisible="{Binding IsIpCopied}"/>
                                         </Panel>
                                     </Button>
                                 </StackPanel>
@@ -360,14 +360,14 @@
                                 <!-- Restart Button -->
                                 <Button Classes="subBtn" Command="{Binding RestartServerCommand}" IsVisible="{Binding IsServerRunning}" IsEnabled="{Binding !IsServerStopping}" Padding="14,8" ToolTip.Tip="{l10n:Tr Key=cs_restart_server}">
                                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                        <PathIcon Data="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" Width="12" Height="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                        <PathIcon Data="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" Width="12" Height="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                         <TextBlock Text="{l10n:Tr Key=cs_restart_server}" FontWeight="Bold"/>
                                     </StackPanel>
                                 </Button>
                                 <!-- Emergency Force Stop Button (visible after timeout if server hangs) -->
                                 <Button Classes="dangerBtn" Command="{Binding ForceStopServerCommand}" IsVisible="{Binding IsServerStopping}" Padding="14,8">
                                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                        <PathIcon Data="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" Width="12" Height="12" Foreground="{StaticResource DangerLightBrush}"/>
+                                        <PathIcon Data="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" Width="12" Height="12" Foreground="{DynamicResource DangerLightBrush}"/>
                                         <TextBlock Text="{l10n:Tr Key=cs_force_stop}" FontWeight="Bold"/>
                                     </StackPanel>
                                 </Button>
@@ -376,10 +376,10 @@
                     </Border>
 
                     <!-- Java Missing Warning Banner -->
-                    <Border Background="{StaticResource WarningBgBrush}" BorderBrush="{StaticResource WarningBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="14,10" IsVisible="{Binding HasJavaMissingWarning}">
+                    <Border Background="{DynamicResource WarningBgBrush}" BorderBrush="{DynamicResource WarningBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="14,10" IsVisible="{Binding HasJavaMissingWarning}">
                         <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalAlignment="Center">
-                            <PathIcon Data="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" Width="18" Height="18" Foreground="{StaticResource WarningBrush}" VerticalAlignment="Center"/>
-                            <TextBlock Grid.Column="1" Text="{Binding JavaMissingWarningText}" Foreground="{StaticResource TextPrimaryBrush}" FontSize="12.5" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                            <PathIcon Data="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" Width="18" Height="18" Foreground="{DynamicResource WarningBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="1" Text="{Binding JavaMissingWarningText}" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12.5" VerticalAlignment="Center" TextWrapping="Wrap"/>
                             <Button Grid.Column="2" Classes="primaryBtn" Command="{Binding DownloadMissingJavaCommand}" Content="{Binding DownloadJavaButtonText}" Padding="12,6" FontSize="11.5"/>
                         </Grid>
                     </Border>
@@ -410,27 +410,27 @@
                                             Background="Transparent" BorderThickness="0" Padding="0" Cursor="Hand"
                                             ToolTip.Tip="{l10n:Tr Key=icon_change_tip}">
                                         <Border Width="56" Height="56" CornerRadius="12" ClipToBounds="True"
-                                                Background="{StaticResource IconChipBrush}" BorderBrush="{StaticResource BorderSoftBrush}" BorderThickness="1">
+                                                Background="{DynamicResource IconChipBrush}" BorderBrush="{DynamicResource BorderSoftBrush}" BorderThickness="1">
                                             <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
                                                 <Image IsVisible="{Binding HasServerIcon}"
                                                        Source="{Binding ServerIconBitmap}"
                                                        Stretch="UniformToFill" Width="56" Height="56"/>
                                                 <PathIcon IsVisible="{Binding !HasServerIcon}"
                                                           Data="M20 13H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1v-6c0-.55-.45-1-1-1zM7 19c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM20 3H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1zM7 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"
-                                                          Width="22" Height="22" Foreground="{StaticResource AccentBrush}"/>
+                                                          Width="22" Height="22" Foreground="{DynamicResource AccentBrush}"/>
                                             </Panel>
                                         </Border>
                                     </Button>
                                     <StackPanel VerticalAlignment="Center" Spacing="4">
                                         <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                            <Ellipse Width="8" Height="8" Fill="{StaticResource SuccessBrush}" IsVisible="{Binding IsServerRunning}" VerticalAlignment="Center"/>
+                                            <Ellipse Width="8" Height="8" Fill="{DynamicResource SuccessBrush}" IsVisible="{Binding IsServerRunning}" VerticalAlignment="Center"/>
                                             <TextBlock Classes="heroName" Text="{Binding SelectedServerName}"/>
                                             <!-- Status Badge (Shown when online) -->
-                                            <Border Background="{StaticResource SuccessBgBrush}" BorderBrush="{StaticResource SuccessBrush}" BorderThickness="1" CornerRadius="4" Padding="7,2" IsVisible="{Binding IsServerRunning}">
-                                                <TextBlock Text="{l10n:Tr Key=cs_status_online}" FontSize="10.5" FontWeight="Bold" Foreground="{StaticResource SuccessBrush}"/>
+                                            <Border Background="{DynamicResource SuccessBgBrush}" BorderBrush="{DynamicResource SuccessBrush}" BorderThickness="1" CornerRadius="4" Padding="7,2" IsVisible="{Binding IsServerRunning}">
+                                                <TextBlock Text="{l10n:Tr Key=cs_status_online}" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource SuccessBrush}"/>
                                             </Border>
                                         </StackPanel>
-                                        <TextBlock Text="{Binding ActiveServerDirectory}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" TextTrimming="CharacterEllipsis" MaxWidth="380"/>
+                                        <TextBlock Text="{Binding ActiveServerDirectory}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextTrimming="CharacterEllipsis" MaxWidth="380"/>
                                     </StackPanel>
                                 </StackPanel>
 
@@ -446,14 +446,14 @@
                                     <!-- Restart Button -->
                                     <Button Classes="subBtn" Command="{Binding RestartServerCommand}" IsVisible="{Binding IsServerRunning}" IsEnabled="{Binding !IsServerStopping}" Padding="12,8" ToolTip.Tip="{l10n:Tr Key=cs_restart_server}">
                                         <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                            <PathIcon Data="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" Width="12" Height="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <PathIcon Data="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" Width="12" Height="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                             <TextBlock Text="{l10n:Tr Key=cs_restart_server}" FontWeight="Bold"/>
                                         </StackPanel>
                                     </Button>
                                     <!-- Emergency Force Stop Button -->
                                     <Button Classes="dangerBtn" Command="{Binding ForceStopServerCommand}" IsVisible="{Binding IsServerStopping}" Padding="14,8">
                                         <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                            <PathIcon Data="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" Width="12" Height="12" Foreground="{StaticResource DangerLightBrush}"/>
+                                            <PathIcon Data="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" Width="12" Height="12" Foreground="{DynamicResource DangerLightBrush}"/>
                                             <TextBlock Text="{l10n:Tr Key=cs_force_stop}" FontWeight="Bold"/>
                                         </StackPanel>
                                     </Button>
@@ -467,8 +467,8 @@
                             <Border Grid.Row="0" Grid.Column="0" Background="Transparent" Padding="16,12">
                                 <StackPanel Spacing="4">
                                     <TextBlock Classes="caption" Text="{l10n:Tr Key=cs_uptime}" FontWeight="SemiBold"/>
-                                    <TextBlock Text="{Binding UptimeText}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentBrush}"/>
-                                    <TextBlock Text="{l10n:Tr Key=cs_hint_runtime}" FontSize="10.5" Foreground="{StaticResource TextMutedBrush}"/>
+                                    <TextBlock Text="{Binding UptimeText}" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/>
+                                    <TextBlock Text="{l10n:Tr Key=cs_hint_runtime}" FontSize="10.5" Foreground="{DynamicResource TextMutedBrush}"/>
                                 </StackPanel>
                             </Border>
 
@@ -477,10 +477,10 @@
                                 <StackPanel Spacing="4">
                                     <TextBlock Classes="caption" Text="{l10n:Tr Key=cs_tab_players}" FontWeight="SemiBold"/>
                                     <StackPanel Orientation="Horizontal" Spacing="4">
-                                        <TextBlock Text="{Binding OnlinePlayers.Count}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                        <TextBlock Text="{Binding PropsMaxPlayers, StringFormat='/ {0}'}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding OnlinePlayers.Count}" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                        <TextBlock Text="{Binding PropsMaxPlayers, StringFormat='/ {0}'}" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
                                     </StackPanel>
-                                    <TextBlock Text="{l10n:Tr Key=cs_hint_connections}" FontSize="10.5" Foreground="{StaticResource TextMutedBrush}"/>
+                                    <TextBlock Text="{l10n:Tr Key=cs_hint_connections}" FontSize="10.5" Foreground="{DynamicResource TextMutedBrush}"/>
                                 </StackPanel>
                             </Border>
 
@@ -488,8 +488,8 @@
                             <Border Grid.Row="0" Grid.Column="2" Background="Transparent" Padding="16,12">
                                 <StackPanel Spacing="4">
                                     <TextBlock Classes="caption" Text="{l10n:Tr Key=cs_port}" FontWeight="SemiBold"/>
-                                    <TextBlock Text="{Binding PropsPort}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                    <TextBlock Text="{Binding ServerIpDisplay}" FontSize="10.5" Foreground="{StaticResource AccentBrush}"/>
+                                    <TextBlock Text="{Binding PropsPort}" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="{Binding ServerIpDisplay}" FontSize="10.5" Foreground="{DynamicResource AccentBrush}"/>
                                 </StackPanel>
                             </Border>
 
@@ -497,8 +497,8 @@
                             <Border Grid.Row="1" Grid.Column="0" Background="Transparent" Padding="16,12">
                                 <StackPanel Spacing="4">
                                     <TextBlock Classes="caption" Text="{l10n:Tr Key=cs_type}" FontWeight="SemiBold"/>
-                                    <TextBlock Text="{Binding ServerSoftwareDisplay}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
-                                    <TextBlock Text="{l10n:Tr Key=cs_hint_core}" FontSize="10.5" Foreground="{StaticResource TextMutedBrush}"/>
+                                    <TextBlock Text="{Binding ServerSoftwareDisplay}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Text="{l10n:Tr Key=cs_hint_core}" FontSize="10.5" Foreground="{DynamicResource TextMutedBrush}"/>
                                 </StackPanel>
                             </Border>
 
@@ -506,8 +506,8 @@
                             <Border Grid.Row="1" Grid.Column="1" Background="Transparent" Padding="16,12">
                                 <StackPanel Spacing="4">
                                     <TextBlock Classes="caption" Text="{l10n:Tr Key=cs_ram}" FontWeight="SemiBold"/>
-                                    <TextBlock Text="{Binding ServerAllocatedRamDisplay}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentBrush}"/>
-                                    <TextBlock Text="{l10n:Tr Key=cs_hint_ram}" FontSize="10.5" Foreground="{StaticResource TextMutedBrush}"/>
+                                    <TextBlock Text="{Binding ServerAllocatedRamDisplay}" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/>
+                                    <TextBlock Text="{l10n:Tr Key=cs_hint_ram}" FontSize="10.5" Foreground="{DynamicResource TextMutedBrush}"/>
                                 </StackPanel>
                             </Border>
 
@@ -515,8 +515,8 @@
                             <Border Grid.Row="1" Grid.Column="2" Background="Transparent" Padding="16,12">
                                 <StackPanel Spacing="4">
                                     <TextBlock Classes="caption" Text="{l10n:Tr Key=cs_tab_world}" FontWeight="SemiBold"/>
-                                    <TextBlock Text="{Binding PropsLevelName}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
-                                    <TextBlock Text="{Binding PropsGamemode, StringFormat='Mode: {0}'}" FontSize="10.5" Foreground="{StaticResource TextMutedBrush}"/>
+                                    <TextBlock Text="{Binding PropsLevelName}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Text="{Binding PropsGamemode, StringFormat='Mode: {0}'}" FontSize="10.5" Foreground="{DynamicResource TextMutedBrush}"/>
                                 </StackPanel>
                             </Border>
                         </Grid>
@@ -531,8 +531,8 @@
                         </Grid>
 
                         <!-- Feedback Message -->
-                        <Border IsVisible="{Binding ConfigStatusMessage, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}" Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource AccentBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6">
-                            <TextBlock Text="{Binding ConfigStatusMessage}" Foreground="{StaticResource AccentBrush}" FontWeight="SemiBold" FontSize="12"/>
+                        <Border IsVisible="{Binding ConfigStatusMessage, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}" Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6">
+                            <TextBlock Text="{Binding ConfigStatusMessage}" Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold" FontSize="12"/>
                         </Border>
 
                         <!-- Balanced 2-Column Grouped Cards -->
@@ -540,34 +540,34 @@
                             <!-- Left Card: Core Parameters -->
                             <Border Grid.Column="0" Classes="zenCard" Padding="16">
                                 <StackPanel Spacing="10">
-                                    <TextBlock Text="{l10n:Tr Key=cs_prop_general_network}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,2"/>
+                                    <TextBlock Text="{l10n:Tr Key=cs_prop_general_network}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,2"/>
 
                                     <!-- Row 1: Server Name & Port -->
                                     <Grid ColumnDefinitions="*,110" ColumnSpacing="10">
                                         <StackPanel Spacing="4">
-                                            <TextBlock Text="{l10n:Tr Key=cs_name}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{l10n:Tr Key=cs_name}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                             <TextBox Classes="darkInput" Text="{Binding PropsServerName, Mode=TwoWay}" Height="32" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="1" Spacing="4">
-                                            <TextBlock Text="{l10n:Tr Key=cs_prop_port}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{l10n:Tr Key=cs_prop_port}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                             <TextBox Classes="darkInput" Text="{Binding PropsPort}" Height="32" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
                                         </StackPanel>
                                     </Grid>
 
                                     <!-- Row 2: MOTD / Description -->
                                     <StackPanel Spacing="4">
-                                        <TextBlock Text="{l10n:Tr Key=cs_prop_motd}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                        <TextBlock Text="{l10n:Tr Key=cs_prop_motd}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                         <TextBox Classes="darkInput" Text="{Binding PropsMotd}" Height="32" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
                                     </StackPanel>
 
                                     <!-- Row 3: Gamemode & Difficulty -->
                                     <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                                         <StackPanel Spacing="4">
-                                            <TextBlock Text="{l10n:Tr Key=cs_prop_gamemode}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{l10n:Tr Key=cs_prop_gamemode}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                             <ComboBox Classes="zenCombo" ItemsSource="{Binding GamemodeOptions}" SelectedItem="{Binding PropsGamemode}" HorizontalAlignment="Stretch" Height="32" Padding="8,3" FontSize="11.5" IsEnabled="{Binding PropsForceGamemode}" ToolTip.Tip="{l10n:Tr Key=cs_prop_force_gamemode}"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="1" Spacing="4">
-                                            <TextBlock Text="{l10n:Tr Key=cs_prop_difficulty}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{l10n:Tr Key=cs_prop_difficulty}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                             <ComboBox Classes="zenCombo" ItemsSource="{Binding DifficultyOptions}" SelectedItem="{Binding PropsDifficulty}" HorizontalAlignment="Stretch" Height="32" Padding="8,3" FontSize="11.5"/>
                                         </StackPanel>
                                     </Grid>
@@ -575,11 +575,11 @@
                                     <!-- Row 4: Max Players & Spawn Protection -->
                                     <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                                         <StackPanel Spacing="4">
-                                            <TextBlock Text="{l10n:Tr Key=cs_prop_max_players}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{l10n:Tr Key=cs_prop_max_players}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                             <TextBox Classes="darkInput" Text="{Binding PropsMaxPlayers}" Height="32" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="1" Spacing="4">
-                                            <TextBlock Text="{l10n:Tr Key=cs_prop_spawn_protection}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{l10n:Tr Key=cs_prop_spawn_protection}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                             <TextBox Classes="darkInput" Text="{Binding PropsSpawnProtection}" Height="32" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
                                         </StackPanel>
                                     </Grid>
@@ -587,30 +587,30 @@
                                     <!-- Row 5: View Distance & Simulation Distance -->
                                     <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                                         <StackPanel Spacing="4">
-                                            <TextBlock Text="{l10n:Tr Key=cs_prop_view_distance}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{l10n:Tr Key=cs_prop_view_distance}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                             <TextBox Classes="darkInput" Text="{Binding PropsViewDistance}" Height="32" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="1" Spacing="4" IsVisible="{Binding IsSimulationDistanceVisible}">
-                                            <TextBlock Text="{l10n:Tr Key=cs_prop_sim_distance}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{l10n:Tr Key=cs_prop_sim_distance}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                             <TextBox Classes="darkInput" Text="{Binding PropsSimulationDistance}" Height="32" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
                                         </StackPanel>
                                     </Grid>
 
                                     <!-- Row 6: Entity Broadcast Range (removed in 1.21.2+) -->
                                     <StackPanel Spacing="4" IsVisible="{Binding IsEntityBroadcastRangeVisible}">
-                                        <TextBlock Text="{l10n:Tr Key=cs_prop_entity_range}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                        <TextBlock Text="{l10n:Tr Key=cs_prop_entity_range}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                         <TextBox Classes="darkInput" Text="{Binding PropsEntityBroadcastRangePercentage}" Height="32" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
                                     </StackPanel>
 
                                     <!-- Row 7: Resource Pack URL -->
                                     <StackPanel Spacing="4">
-                                        <TextBlock Text="{l10n:Tr Key=cs_prop_resource_pack}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                        <TextBlock Text="{l10n:Tr Key=cs_prop_resource_pack}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                         <TextBox Classes="darkInput" Text="{Binding PropsResourcePack}" PlaceholderText="https://example.com/pack.zip" Height="32" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
                                     </StackPanel>
 
                                     <!-- Row 8: Resource Pack Prompt (1.20.2+) -->
                                     <StackPanel Spacing="4" IsVisible="{Binding IsResourcePackPromptVisible}">
-                                        <TextBlock Text="{l10n:Tr Key=cs_prop_resource_pack_prompt}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                        <TextBlock Text="{l10n:Tr Key=cs_prop_resource_pack_prompt}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                         <TextBox Classes="darkInput" Text="{Binding PropsResourcePackPrompt}" PlaceholderText="{l10n:Tr Key=cs_prop_resource_pack_prompt_ph}" Height="32" Padding="8,4" FontSize="11.5" VerticalContentAlignment="Center"/>
                                     </StackPanel>
                                 </StackPanel>
@@ -619,74 +619,74 @@
                             <!-- Right Card: Rules & Flags (Clean Minimalist Rows) -->
                             <Border Grid.Column="1" Classes="zenCard" Padding="16">
                                 <StackPanel Spacing="6">
-                                    <TextBlock Text="{l10n:Tr Key=cs_props_rules}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,2"/>
+                                    <TextBlock Text="{l10n:Tr Key=cs_props_rules}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,2"/>
 
                                     <!-- Online Mode -->
                                     <Grid ColumnDefinitions="*,Auto" Height="28" VerticalAlignment="Center">
-                                        <TextBlock Text="{l10n:Tr Key=cs_prop_online_mode}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=cs_prop_online_mode}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                                         <CheckBox Grid.Column="1" IsChecked="{Binding PropsOnlineMode}" VerticalAlignment="Center"/>
                                     </Grid>
-                                    <Border Height="1" Background="{StaticResource BorderDarkBrush}"/>
+                                    <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
 
                                     <!-- Whitelist -->
                                     <Grid ColumnDefinitions="*,Auto" Height="28" VerticalAlignment="Center">
-                                        <TextBlock Text="{l10n:Tr Key=cs_prop_whitelist}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=cs_prop_whitelist}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                                         <CheckBox Grid.Column="1" IsChecked="{Binding PropsWhitelist}" VerticalAlignment="Center"/>
                                     </Grid>
-                                    <Border Height="1" Background="{StaticResource BorderDarkBrush}"/>
+                                    <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
 
                                     <!-- Force Gamemode -->
                                     <Grid ColumnDefinitions="*,Auto" Height="28" VerticalAlignment="Center">
-                                        <TextBlock Text="{l10n:Tr Key=cs_prop_force_gamemode}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=cs_prop_force_gamemode}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                                         <CheckBox Grid.Column="1" IsChecked="{Binding PropsForceGamemode}" VerticalAlignment="Center"/>
                                     </Grid>
-                                    <Border Height="1" Background="{StaticResource BorderDarkBrush}"/>
+                                    <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
 
                                     <!-- Require Resource Pack -->
                                     <Grid ColumnDefinitions="*,Auto" Height="28" VerticalAlignment="Center" IsVisible="{Binding IsRequireResourcePackVisible}">
-                                        <TextBlock Text="{l10n:Tr Key=cs_prop_require_resource_pack}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=cs_prop_require_resource_pack}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                                         <CheckBox Grid.Column="1" IsChecked="{Binding PropsRequireResourcePack}" VerticalAlignment="Center"/>
                                     </Grid>
-                                    <Border Height="1" Background="{StaticResource BorderDarkBrush}" IsVisible="{Binding IsRequireResourcePackVisible}"/>
+                                    <Border Height="1" Background="{DynamicResource BorderDarkBrush}" IsVisible="{Binding IsRequireResourcePackVisible}"/>
 
                                     <!-- PVP -->
                                     <Grid ColumnDefinitions="*,Auto" Height="28" VerticalAlignment="Center">
-                                        <TextBlock Text="{l10n:Tr Key=cs_prop_pvp}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=cs_prop_pvp}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                                         <CheckBox Grid.Column="1" IsChecked="{Binding PropsPvp}" VerticalAlignment="Center"/>
                                     </Grid>
-                                    <Border Height="1" Background="{StaticResource BorderDarkBrush}"/>
+                                    <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
 
                                     <!-- Allow Flight -->
                                     <Grid ColumnDefinitions="*,Auto" Height="28" VerticalAlignment="Center">
-                                        <TextBlock Text="{l10n:Tr Key=cs_prop_allow_flight}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=cs_prop_allow_flight}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                                         <CheckBox Grid.Column="1" IsChecked="{Binding PropsAllowFlight}" VerticalAlignment="Center"/>
                                     </Grid>
-                                    <Border Height="1" Background="{StaticResource BorderDarkBrush}"/>
+                                    <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
 
                                     <!-- Command Blocks -->
                                     <Grid ColumnDefinitions="*,Auto" Height="28" VerticalAlignment="Center">
-                                        <TextBlock Text="{l10n:Tr Key=cs_prop_command_blocks}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=cs_prop_command_blocks}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                                         <CheckBox Grid.Column="1" IsChecked="{Binding PropsCommandBlocks}" VerticalAlignment="Center"/>
                                     </Grid>
-                                    <Border Height="1" Background="{StaticResource BorderDarkBrush}"/>
+                                    <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
 
                                     <!-- Allow Nether -->
                                     <Grid ColumnDefinitions="*,Auto" Height="28" VerticalAlignment="Center">
-                                        <TextBlock Text="{l10n:Tr Key=cs_prop_allow_nether}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=cs_prop_allow_nether}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                                         <CheckBox Grid.Column="1" IsChecked="{Binding PropsAllowNether}" VerticalAlignment="Center"/>
                                     </Grid>
-                                    <Border Height="1" Background="{StaticResource BorderDarkBrush}"/>
+                                    <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
 
                                     <!-- Spawn Animals -->
                                     <Grid ColumnDefinitions="*,Auto" Height="28" VerticalAlignment="Center">
-                                        <TextBlock Text="{l10n:Tr Key=cs_prop_spawn_animals}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=cs_prop_spawn_animals}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                                         <CheckBox Grid.Column="1" IsChecked="{Binding PropsSpawnAnimals}" VerticalAlignment="Center"/>
                                     </Grid>
-                                    <Border Height="1" Background="{StaticResource BorderDarkBrush}"/>
+                                    <Border Height="1" Background="{DynamicResource BorderDarkBrush}"/>
 
                                     <!-- Spawn Monsters -->
                                     <Grid ColumnDefinitions="*,Auto" Height="28" VerticalAlignment="Center">
-                                        <TextBlock Text="{l10n:Tr Key=cs_prop_spawn_monsters}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=cs_prop_spawn_monsters}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                                         <CheckBox Grid.Column="1" IsChecked="{Binding PropsSpawnMonsters}" VerticalAlignment="Center"/>
                                     </Grid>
                                 </StackPanel>
@@ -710,7 +710,7 @@
                             </Grid>
 
                             <!-- Console Output Box (Scrollable & Selectable, auto-scrolls to newest lines) -->
-                            <Border Background="#0C0C0E" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Height="380">
+                            <Border Background="#0C0C0E" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Height="380">
                                 <TextBox x:Name="ConsoleBox"
                                          Classes="darkInput"
                                          Text="{Binding ConsoleLogText}"
@@ -744,7 +744,7 @@
                         <Border Classes="zenSection">
                             <StackPanel Spacing="16">
                                 <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
-                                    <Border Width="48" Height="48" CornerRadius="10" Background="{StaticResource IconChipBrush}" BorderBrush="{StaticResource BorderSoftBrush}" BorderThickness="1" VerticalAlignment="Center" ClipToBounds="True">
+                                    <Border Width="48" Height="48" CornerRadius="10" Background="{DynamicResource IconChipBrush}" BorderBrush="{DynamicResource BorderSoftBrush}" BorderThickness="1" VerticalAlignment="Center" ClipToBounds="True">
                                         <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
                                             <Image IsVisible="{Binding HasWorldIcon}"
                                                    Source="{Binding WorldIconBitmap}"
@@ -758,7 +758,7 @@
                                         <TextBlock Classes="heroName" Text="{Binding WorldNameDisplay, Converter={x:Static converters:L10nFormatConverter.Instance}, ConverterParameter=cs_world_fmt}"/>
                                         <StackPanel Orientation="Horizontal" Spacing="12">
                                             <TextBlock Classes="rowHint" Text="{Binding WorldSizeDisplay, Converter={x:Static converters:L10nFormatConverter.Instance}, ConverterParameter=cs_world_size_fmt}"/>
-                                            <TextBlock Text="•" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                                            <TextBlock Text="•" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
                                             <TextBlock Classes="rowHint" Text="{Binding WorldDifficulty, Converter={x:Static converters:L10nFormatConverter.Instance}, ConverterParameter=cs_world_diff_fmt}"/>
                                         </StackPanel>
                                     </StackPanel>
@@ -782,8 +782,8 @@
 
                                 <!-- Status message -->
                                 <Border IsVisible="{Binding WorldStatusMessage, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"
-                                        Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource AccentBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6">
-                                    <TextBlock Text="{Binding WorldStatusMessage}" Foreground="{StaticResource AccentBrush}" FontWeight="SemiBold" FontSize="12"/>
+                                        Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6">
+                                    <TextBlock Text="{Binding WorldStatusMessage}" Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold" FontSize="12"/>
                                 </Border>
                             </StackPanel>
                         </Border>
@@ -812,7 +812,7 @@
                                             <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                                 <StackPanel Spacing="1">
                                                     <TextBlock Classes="rowTitle" Text="{l10n:Tr Key=cs_world_hardcore}"/>
-                                                    <TextBlock Text="{l10n:Tr Key=cs_world_hardcore_hint}" FontSize="10.5" Foreground="{StaticResource TextPlaceholderBrush}"/>
+                                                    <TextBlock Text="{l10n:Tr Key=cs_world_hardcore_hint}" FontSize="10.5" Foreground="{DynamicResource TextPlaceholderBrush}"/>
                                                 </StackPanel>
                                                 <CheckBox Grid.Column="1" IsChecked="{Binding WorldHardcore}" VerticalAlignment="Center" Margin="8,0,0,0"/>
                                             </Grid>
@@ -824,25 +824,25 @@
                                     <!-- Right Column: Datapacks -->
                                     <StackPanel Grid.Column="1" Spacing="10">
                                         <TextBlock Text="{l10n:Tr Key=cs_active_datapacks}" FontSize="12.5" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/>
-                                        <TextBlock Text="{l10n:Tr Key=cs_no_datapacks}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"
+                                        <TextBlock Text="{l10n:Tr Key=cs_no_datapacks}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                                                    IsVisible="{Binding EnabledDatapacks.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}"/>
                                         <ItemsControl ItemsSource="{Binding EnabledDatapacks}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
-                                                    <Border Background="{StaticResource ChipBrush}" CornerRadius="4" Padding="6,3" Margin="0,2">
-                                                        <TextBlock Text="{Binding}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                    <Border Background="{DynamicResource ChipBrush}" CornerRadius="4" Padding="6,3" Margin="0,2">
+                                                        <TextBlock Text="{Binding}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                                     </Border>
                                                 </DataTemplate>
                                             </ItemsControl.ItemTemplate>
                                         </ItemsControl>
 
-                                        <TextBlock Text="{l10n:Tr Key=cs_disabled_datapacks}" FontSize="12.5" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" Margin="0,6,0,0"
+                                        <TextBlock Text="{l10n:Tr Key=cs_disabled_datapacks}" FontSize="12.5" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}" Margin="0,6,0,0"
                                                    IsVisible="{Binding DisabledDatapacks.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsNonZero}}"/>
                                         <ItemsControl ItemsSource="{Binding DisabledDatapacks}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
-                                                    <Border Background="{StaticResource ChipBrush}" CornerRadius="4" Padding="6,3" Margin="0,2" Opacity="0.6">
-                                                        <TextBlock Text="{Binding}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                                                    <Border Background="{DynamicResource ChipBrush}" CornerRadius="4" Padding="6,3" Margin="0,2" Opacity="0.6">
+                                                        <TextBlock Text="{Binding}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
                                                     </Border>
                                                 </DataTemplate>
                                             </ItemsControl.ItemTemplate>
@@ -866,11 +866,11 @@
                                 </StackPanel>
                             </Grid>
 
-                            <TextBlock Text="{Binding PluginAuditMessage}" FontSize="11.5" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap"
+                            <TextBlock Text="{Binding PluginAuditMessage}" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"
                                        IsVisible="{Binding PluginAuditMessage, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
 
                             <!-- Empty State (single line) -->
-                            <TextBlock Text="{l10n:Tr Key=cs_no_plugins}" FontSize="11.5" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding InstalledPlugins.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}" Margin="0,2"/>
+                            <TextBlock Text="{l10n:Tr Key=cs_no_plugins}" FontSize="11.5" Foreground="{DynamicResource TextPlaceholderBrush}" IsVisible="{Binding InstalledPlugins.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}" Margin="0,2"/>
 
                             <!-- Plugins List (compact rows) -->
                             <ItemsControl ItemsSource="{Binding InstalledPlugins}" Margin="0,2,0,0">
@@ -879,26 +879,26 @@
                                         <Border Background="Transparent" Padding="10,4" Margin="0,0,0,5">
                                             <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" VerticalAlignment="Center">
                                                 <!-- Icon -->
-                                                <Border Grid.Column="0" Width="30" Height="30" CornerRadius="7" Background="{StaticResource IconChipBrush}" BorderBrush="{StaticResource BorderSoftBrush}" BorderThickness="1" VerticalAlignment="Center">
+                                                <Border Grid.Column="0" Width="30" Height="30" CornerRadius="7" Background="{DynamicResource IconChipBrush}" BorderBrush="{DynamicResource BorderSoftBrush}" BorderThickness="1" VerticalAlignment="Center">
                                                     <PathIcon Data="M20.5 11H19V7c0-1.1-.9-2-2-2h-4V3.5C13 2.12 11.88 1 10.5 1S8 2.12 8 3.5V5H4c-1.1 0-1.99.9-1.99 2v3.8H3.5c1.49 0 2.7 1.21 2.7 2.7s-1.21 2.7-2.7 2.7H2V20c0 1.1.9 2 2 2h3.8v-1.5c0-1.49 1.21-2.7 2.7-2.7 1.49 0 2.7 1.21 2.7 2.7V22H17c1.1 0 2-.9 2-2v-4h1.5c1.38 0 2.5-1.12 2.5-2.5s-1.12-2.5-2.5-2.5z"
-                                                              Width="14" Height="14" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                                              Width="14" Height="14" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                                                 </Border>
 
                                                 <!-- Name, Version, Description, Size -->
                                                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
                                                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                                                         <TextBlock Text="{Binding Name}" Classes="rowTitle" TextTrimming="CharacterEllipsis" MaxWidth="340"/>
-                                                        <Border Background="{StaticResource AccentDimBrush}" CornerRadius="4" Padding="5,1" VerticalAlignment="Center" IsVisible="{Binding Version, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}">
-                                                            <TextBlock Text="{Binding Version}" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}"/>
+                                                        <Border Background="{DynamicResource AccentDimBrush}" CornerRadius="4" Padding="5,1" VerticalAlignment="Center" IsVisible="{Binding Version, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}">
+                                                            <TextBlock Text="{Binding Version}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"/>
                                                         </Border>
-                                                        <Border Background="{StaticResource RowHoverBrush}" CornerRadius="4" Padding="5,1" VerticalAlignment="Center">
-                                                            <TextBlock Text="{Binding Size}" FontSize="10" Foreground="{StaticResource TextMutedBrush}"/>
+                                                        <Border Background="{DynamicResource RowHoverBrush}" CornerRadius="4" Padding="5,1" VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding Size}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}"/>
                                                         </Border>
-                                                        <Border Background="{StaticResource ChipBrush}" BorderThickness="0" CornerRadius="4" Padding="5,1" VerticalAlignment="Center">
-                                                            <TextBlock Text="{Binding StatusText}" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                        <Border Background="{DynamicResource ChipBrush}" BorderThickness="0" CornerRadius="4" Padding="5,1" VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding StatusText}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                                         </Border>
                                                     </StackPanel>
-                                                    <TextBlock Text="{Binding Description}" FontSize="10.5" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" MaxLines="1" TextTrimming="CharacterEllipsis" IsVisible="{Binding Description, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
+                                                    <TextBlock Text="{Binding Description}" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" MaxLines="1" TextTrimming="CharacterEllipsis" IsVisible="{Binding Description, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
                                                 </StackPanel>
 
                                                 <!-- Action buttons: Toggle & Delete -->
@@ -932,8 +932,8 @@
                                 </Grid>
 
                                 <!-- Status message -->
-                                <Border IsVisible="{Binding ServerSettingsStatusMessage, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}" Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource AccentBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6">
-                                    <TextBlock Text="{Binding ServerSettingsStatusMessage}" Foreground="{StaticResource AccentBrush}" FontWeight="SemiBold" FontSize="12"/>
+                                <Border IsVisible="{Binding ServerSettingsStatusMessage, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}" Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6">
+                                    <TextBlock Text="{Binding ServerSettingsStatusMessage}" Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold" FontSize="12"/>
                                 </Border>
 
                                 <!-- Java Executable Path -->
@@ -966,8 +966,8 @@
                             <StackPanel Spacing="8">
                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                     <StackPanel Spacing="1">
-                                        <TextBlock Text="{l10n:Tr Key=cs_danger_zone}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource DangerLightBrush}"/>
-                                        <TextBlock Text="{l10n:Tr Key=cs_danger_desc}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{l10n:Tr Key=cs_danger_zone}" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource DangerLightBrush}"/>
+                                        <TextBlock Text="{l10n:Tr Key=cs_danger_desc}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
                                     </StackPanel>
 
                                     <!-- Compact Danger Action Buttons -->
@@ -982,10 +982,10 @@
                                 </Grid>
 
                                 <!-- Reset World 5-Second Countdown Confirmation Box (Compact) -->
-                                <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="6" Padding="10,8" IsVisible="{Binding ShowWorldResetConfirm}">
+                                <Border Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="6" Padding="10,8" IsVisible="{Binding ShowWorldResetConfirm}">
                                     <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                         <TextBlock Text="{l10n:Tr Key=cs_reset_world_prompt}"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" FontSize="11.5" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                                                   Foreground="{DynamicResource TextPrimaryBrush}" FontSize="11.5" TextWrapping="Wrap" VerticalAlignment="Center"/>
                                         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" Margin="10,0,0,0" VerticalAlignment="Center">
                                             <Button Classes="dangerBtn" Command="{Binding ConfirmResetWorldCommand}" IsEnabled="{Binding CanConfirmResetWorld}" Padding="12,5" FontSize="11">
                                                 <TextBlock Text="{Binding ResetButtonText}" FontWeight="Bold"/>
@@ -996,10 +996,10 @@
                                 </Border>
 
                                 <!-- Server Delete Confirmation Dialog (Compact) -->
-                                <Border Background="{StaticResource FieldBrush}" BorderBrush="{StaticResource DangerBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10,8" IsVisible="{Binding ShowDeleteServerConfirm}">
+                                <Border Background="{DynamicResource FieldBrush}" BorderBrush="{DynamicResource DangerBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10,8" IsVisible="{Binding ShowDeleteServerConfirm}">
                                     <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                         <TextBlock Text="{l10n:Tr Key=cs_delete_server_confirm}"
-                                                   Foreground="{StaticResource DangerLightBrush}" FontWeight="SemiBold" FontSize="11.5" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                                                   Foreground="{DynamicResource DangerLightBrush}" FontWeight="SemiBold" FontSize="11.5" TextWrapping="Wrap" VerticalAlignment="Center"/>
                                         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" Margin="10,0,0,0" VerticalAlignment="Center">
                                             <Button Classes="dangerBtn" Content="{l10n:Tr Key=cs_confirm_delete}" Command="{Binding ConfirmDeleteServerCommand}" Padding="12,5" FontSize="11"/>
                                             <Button Classes="subBtn" Content="{l10n:Tr Key=btn_cancel}" Command="{Binding CancelDeleteServerCommand}" Padding="10,5" FontSize="11"/>
@@ -1007,7 +1007,7 @@
                                     </Grid>
                                 </Border>
 
-                                <TextBlock Text="{Binding WorldResetStatusMessage}" Foreground="{StaticResource AccentBrush}" FontWeight="SemiBold" FontSize="11" IsVisible="{Binding WorldResetStatusMessage, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
+                                <TextBlock Text="{Binding WorldResetStatusMessage}" Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold" FontSize="11" IsVisible="{Binding WorldResetStatusMessage, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
                             </StackPanel>
                         </Border>
                     </StackPanel>
@@ -1016,7 +1016,7 @@
                     <Border Classes="zenSection" IsVisible="{Binding IsPlayersTab}">
                         <StackPanel Spacing="10">
                             <!-- Sub-Tabs Switcher -->
-                            <Border Background="{StaticResource FieldBrush}" CornerRadius="8" Padding="3">
+                            <Border Background="{DynamicResource FieldBrush}" CornerRadius="8" Padding="3">
                                 <StackPanel Orientation="Horizontal" Spacing="2">
                                     <Button Classes="tabBtn" Classes.active="{Binding IsOnlinePlayersSubTab}" Command="{Binding SelectPlayersSubTabCommand}" CommandParameter="0" Content="{l10n:Tr Key=tab_online_players}" Padding="10,5" FontSize="11.5"/>
                                     <Button Classes="tabBtn" Classes.active="{Binding IsOpsSubTab}" Command="{Binding SelectPlayersSubTabCommand}" CommandParameter="1" Content="{l10n:Tr Key=cs_players_ops}" Padding="10,5" FontSize="11.5"/>
@@ -1036,15 +1036,15 @@
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                                     <Button Classes="subBtn" Command="{Binding RefreshOnlinePlayersCommand}" Padding="10,4" FontSize="11">
                                         <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                            <PathIcon Data="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" Width="11" Height="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <PathIcon Data="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" Width="11" Height="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                             <TextBlock Text="{l10n:Tr Key=fl_refresh}" VerticalAlignment="Center"/>
                                         </StackPanel>
                                     </Button>
                                 </StackPanel>
 
                                 <StackPanel Spacing="4" HorizontalAlignment="Center" Margin="0,6" IsVisible="{Binding OnlinePlayers.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}">
-                                    <PathIcon Data="M12 4A4 4 0 0 1 16 8A4 4 0 0 1 12 12A4 4 0 0 1 8 8A4 4 0 0 1 12 4ZM4 20C4 16.69 7.58 14 12 14C16.42 14 20 16.69 20 20V21H4V20Z" Width="22" Height="22" Foreground="{StaticResource TextDisabledBrush}" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="{l10n:Tr Key=cs_no_online_players}" FontSize="11.5" Foreground="{StaticResource TextPlaceholderBrush}" HorizontalAlignment="Center"/>
+                                    <PathIcon Data="M12 4A4 4 0 0 1 16 8A4 4 0 0 1 12 12A4 4 0 0 1 8 8A4 4 0 0 1 12 4ZM4 20C4 16.69 7.58 14 12 14C16.42 14 20 16.69 20 20V21H4V20Z" Width="22" Height="22" Foreground="{DynamicResource TextDisabledBrush}" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{l10n:Tr Key=cs_no_online_players}" FontSize="11.5" Foreground="{DynamicResource TextPlaceholderBrush}" HorizontalAlignment="Center"/>
                                 </StackPanel>
 
                                 <ItemsControl ItemsSource="{Binding OnlinePlayers}">
@@ -1053,8 +1053,8 @@
                                             <Border Background="Transparent" Padding="10,4" Margin="0,0,0,4">
                                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                                     <TextBlock Text="{Binding}" Classes="rowTitle" VerticalAlignment="Center"/>
-                                                    <Border Grid.Column="1" Background="{StaticResource AccentDimBrush}" CornerRadius="4" Padding="6,2">
-                                                        <TextBlock Text="{l10n:Tr Key=cs_status_online}" FontSize="10" FontWeight="Bold" Foreground="{StaticResource AccentBrush}"/>
+                                                    <Border Grid.Column="1" Background="{DynamicResource AccentDimBrush}" CornerRadius="4" Padding="6,2">
+                                                        <TextBlock Text="{l10n:Tr Key=cs_status_online}" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/>
                                                     </Border>
                                                 </Grid>
                                             </Border>
@@ -1065,14 +1065,14 @@
 
                             <!-- Ops List -->
                             <StackPanel IsVisible="{Binding IsOpsSubTab}">
-                                <TextBlock Text="{l10n:Tr Key=cs_no_ops}" FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding OpsList.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}" Margin="0,4"/>
+                                <TextBlock Text="{l10n:Tr Key=cs_no_ops}" FontSize="12" Foreground="{DynamicResource TextPlaceholderBrush}" IsVisible="{Binding OpsList.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}" Margin="0,4"/>
                                 <ItemsControl ItemsSource="{Binding OpsList}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="services:ServerPlayerEntry">
                                             <Border Background="Transparent" Padding="10,4" Margin="0,0,0,4">
                                                 <Grid ColumnDefinitions="*,Auto,Auto" VerticalAlignment="Center">
                                                     <TextBlock Text="{Binding Name}" Classes="rowTitle" VerticalAlignment="Center"/>
-                                                    <TextBlock Grid.Column="1" Text="{Binding Level, Converter={x:Static converters:L10nFormatConverter.Instance}, ConverterParameter=cs_op_level_fmt}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="12,0"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding Level, Converter={x:Static converters:L10nFormatConverter.Instance}, ConverterParameter=cs_op_level_fmt}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="12,0"/>
                                                     <Button Grid.Column="2" Classes="dangerBtn" Content="{l10n:Tr Key=cs_remove_op}" Command="{Binding $parent[UserControl].((vm:CreateServerViewModel)DataContext).RemovePlayerCommand}" CommandParameter="{Binding}" Padding="10,4" FontSize="11"/>
                                                 </Grid>
                                             </Border>
@@ -1083,7 +1083,7 @@
 
                             <!-- Whitelist List -->
                             <StackPanel IsVisible="{Binding IsWhitelistSubTab}">
-                                <TextBlock Text="{l10n:Tr Key=cs_no_whitelist}" FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding WhitelistList.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}" Margin="0,4"/>
+                                <TextBlock Text="{l10n:Tr Key=cs_no_whitelist}" FontSize="12" Foreground="{DynamicResource TextPlaceholderBrush}" IsVisible="{Binding WhitelistList.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}" Margin="0,4"/>
                                 <ItemsControl ItemsSource="{Binding WhitelistList}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="services:ServerPlayerEntry">
@@ -1100,14 +1100,14 @@
 
                             <!-- Bans List -->
                             <StackPanel IsVisible="{Binding IsBansSubTab}">
-                                <TextBlock Text="{l10n:Tr Key=cs_no_bans}" FontSize="12" Foreground="{StaticResource TextPlaceholderBrush}" IsVisible="{Binding BansList.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}" Margin="0,4"/>
+                                <TextBlock Text="{l10n:Tr Key=cs_no_bans}" FontSize="12" Foreground="{DynamicResource TextPlaceholderBrush}" IsVisible="{Binding BansList.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}" Margin="0,4"/>
                                 <ItemsControl ItemsSource="{Binding BansList}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="services:ServerPlayerEntry">
                                             <Border Background="Transparent" Padding="10,4" Margin="0,0,0,4">
                                                 <Grid ColumnDefinitions="*,*,Auto" VerticalAlignment="Center">
-                                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="12" Foreground="{StaticResource DangerLightBrush}" VerticalAlignment="Center"/>
-                                                    <TextBlock Grid.Column="1" Text="{Binding Reason}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="12,0" TextTrimming="CharacterEllipsis"/>
+                                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource DangerLightBrush}" VerticalAlignment="Center"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding Reason}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="12,0" TextTrimming="CharacterEllipsis"/>
                                                     <Button Grid.Column="2" Classes="dangerBtn" Content="{l10n:Tr Key=cs_unban}" Command="{Binding $parent[UserControl].((vm:CreateServerViewModel)DataContext).RemovePlayerCommand}" CommandParameter="{Binding}" Padding="10,4" FontSize="11"/>
                                                 </Grid>
                                             </Border>
@@ -1126,18 +1126,18 @@
                                 <!-- Top Bar: File Name, Path, Save & Close -->
                                 <Grid Grid.Row="0" ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                     <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                                        <Border Width="32" Height="32" CornerRadius="6" Background="{StaticResource IconChipBrush}" BorderBrush="{StaticResource BorderSoftBrush}" BorderThickness="1" VerticalAlignment="Center">
+                                        <Border Width="32" Height="32" CornerRadius="6" Background="{DynamicResource IconChipBrush}" BorderBrush="{DynamicResource BorderSoftBrush}" BorderThickness="1" VerticalAlignment="Center">
                                             <PathIcon Data="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"
-                                                      Width="15" Height="15" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center"/>
+                                                      Width="15" Height="15" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
                                         </Border>
                                         <StackPanel VerticalAlignment="Center" Spacing="1">
                                             <TextBlock Classes="sectionTitle" Text="{Binding EditingFileName}"/>
-                                            <TextBlock Text="{Binding EditingFileFullPath}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" TextTrimming="CharacterEllipsis" MaxWidth="400"/>
+                                            <TextBlock Text="{Binding EditingFileFullPath}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextTrimming="CharacterEllipsis" MaxWidth="400"/>
                                         </StackPanel>
                                     </StackPanel>
 
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding FileEditorStatusMessage}" FontSize="12" Foreground="{StaticResource SuccessBrush}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                        <TextBlock Text="{Binding FileEditorStatusMessage}" FontSize="12" Foreground="{DynamicResource SuccessBrush}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0"/>
                                         <Button Classes="primaryBtn" Command="{Binding SaveEditedFileCommand}" IsEnabled="{Binding !IsFileEditorSaving}" Padding="16,7" FontSize="12">
                                             <TextBlock Text="{l10n:Tr Key=cs_editor_save}" FontWeight="Bold"/>
                                         </Button>
@@ -1160,7 +1160,7 @@
 
                                 <!-- Bottom Status Bar -->
                                 <Grid Grid.Row="2" ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                    <TextBlock Text="{l10n:Tr Key=cs_editor_hint}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                                    <TextBlock Text="{l10n:Tr Key=cs_editor_hint}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
                                     <Button Grid.Column="1" Classes="subBtn" Command="{Binding CloseFileEditorCommand}" Content="{l10n:Tr Key=cs_editor_close}" Padding="12,5" FontSize="11"/>
                                 </Grid>
                             </Grid>
@@ -1175,16 +1175,16 @@
                                     <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                         <Button Classes="chipBtn" Command="{Binding NavigateUpDirectoryCommand}" IsEnabled="{Binding CanNavigateUp}" ToolTip.Tip="{l10n:Tr Key=cs_file_up}">
                                             <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
-                                                <PathIcon Data="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z" Width="11" Height="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                <PathIcon Data="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z" Width="11" Height="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                                 <TextBlock Text="{l10n:Tr Key=cs_file_up}" FontSize="11" FontWeight="SemiBold"/>
                                             </StackPanel>
                                         </Button>
 
                                         <!-- Breadcrumb location -->
-                                        <Border Background="{StaticResource ChipBrush}" BorderThickness="0" CornerRadius="6" Padding="10,5">
+                                        <Border Background="{DynamicResource ChipBrush}" BorderThickness="0" CornerRadius="6" Padding="10,5">
                                             <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                                <PathIcon Data="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="13" Height="13" Foreground="{StaticResource AccentBrush}"/>
-                                                <TextBlock Text="{Binding CurrentBrowseRelativePath}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                                <PathIcon Data="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="13" Height="13" Foreground="{DynamicResource AccentBrush}"/>
+                                                <TextBlock Text="{Binding CurrentBrowseRelativePath}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                             </StackPanel>
                                         </Border>
                                     </StackPanel>
@@ -1193,25 +1193,25 @@
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                                                                 <Button Classes="chipBtn" Command="{Binding CreateNewFolderCommand}" Padding="10,6">
                                             <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
-                                                <PathIcon Data="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="12" Height="12" Foreground="{StaticResource AccentBrush}"/>
+                                                <PathIcon Data="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="12" Height="12" Foreground="{DynamicResource AccentBrush}"/>
                                                 <TextBlock Text="{l10n:Tr Key=cs_new_folder}" FontSize="11.5" FontWeight="SemiBold"/>
                                             </StackPanel>
                                         </Button>
                                         <Button Classes="chipBtn" Command="{Binding CreateNewFileCommand}" Padding="10,6">
                                             <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
-                                                <PathIcon Data="M6 2c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6H6zm7 7V3.5L18.5 9H13z" Width="12" Height="12" Foreground="{StaticResource AccentBrush}"/>
+                                                <PathIcon Data="M6 2c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6H6zm7 7V3.5L18.5 9H13z" Width="12" Height="12" Foreground="{DynamicResource AccentBrush}"/>
                                                 <TextBlock Text="{l10n:Tr Key=cs_new_file}" FontSize="11.5" FontWeight="SemiBold"/>
                                             </StackPanel>
                                         </Button>
                                         <Button Classes="chipBtn" Command="{Binding UploadServerFilesCommand}" Padding="10,6">
                                             <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
-                                                <PathIcon Data="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z" Width="12" Height="12" Foreground="{StaticResource AccentBrush}"/>
+                                                <PathIcon Data="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z" Width="12" Height="12" Foreground="{DynamicResource AccentBrush}"/>
                                                 <TextBlock Text="{l10n:Tr Key=cs_file_upload}" FontSize="11.5" FontWeight="SemiBold"/>
                                             </StackPanel>
                                         </Button>
                                         <Button Classes="chipBtn" Command="{Binding RefreshFilesCommand}" Padding="10,6">
                                             <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
-                                                <PathIcon Data="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" Width="12" Height="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                <PathIcon Data="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" Width="12" Height="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                                 <TextBlock Text="{l10n:Tr Key=cs_file_refresh}" FontSize="11.5" FontWeight="SemiBold"/>
                                             </StackPanel>
                                         </Button>
@@ -1220,7 +1220,7 @@
                                 </Grid>
 
                                                                 <!-- Rename Dialog -->
-                                <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="14,10" IsVisible="{Binding IsRenamingFile}" Margin="0,0,0,10">
+                                <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="14,10" IsVisible="{Binding IsRenamingFile}" Margin="0,0,0,10">
                                     <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" VerticalAlignment="Center">
                                         <TextBox Classes="darkInput" Text="{Binding RenamingFileNewName}" PlaceholderText="{l10n:Tr Key=cs_rename_ph}" VerticalAlignment="Center"/>
                                         <Button Grid.Column="1" Classes="subBtn" Command="{Binding CancelRenameFileCommand}" Content="{l10n:Tr Key=btn_cancel}"/>
@@ -1229,38 +1229,38 @@
                                 </Border>
 
                                 <!-- Status / Error message if any -->
-                                <TextBlock Text="{Binding FileOperationStatus}" FontSize="11.5" Foreground="{StaticResource DangerLightBrush}" IsVisible="{Binding FileOperationStatus, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
+                                <TextBlock Text="{Binding FileOperationStatus}" FontSize="11.5" Foreground="{DynamicResource DangerLightBrush}" IsVisible="{Binding FileOperationStatus, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
 
                                 <!-- Table Header (click to sort) -->
                                 <Border Background="Transparent" Padding="14,8">
                                     <Grid ColumnDefinitions="*,140,80,210">
                                         <Button Classes="tabBtn" Command="{Binding SortFilesByCommand}" CommandParameter="Name" Padding="0" HorizontalAlignment="Left" VerticalAlignment="Center">
                                             <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                                                <TextBlock Text="{l10n:Tr Key=sm_name}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
-                                                <PathIcon Data="{Binding FileSortNameIcon}" Width="9" Height="9" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center" IsVisible="{Binding FileSortNameIcon, Converter={x:Static converters:EditInstanceWindowConverters.IsNotNull}}"/>
+                                                <TextBlock Text="{l10n:Tr Key=sm_name}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                <PathIcon Data="{Binding FileSortNameIcon}" Width="9" Height="9" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" IsVisible="{Binding FileSortNameIcon, Converter={x:Static converters:EditInstanceWindowConverters.IsNotNull}}"/>
                                             </StackPanel>
                                         </Button>
                                         <Button Grid.Column="1" Classes="tabBtn" Command="{Binding SortFilesByCommand}" CommandParameter="Date" Padding="0" HorizontalAlignment="Left" VerticalAlignment="Center">
                                             <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                                                <TextBlock Text="{l10n:Tr Key=fl_sort_modified}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
-                                                <PathIcon Data="{Binding FileSortDateIcon}" Width="9" Height="9" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center" IsVisible="{Binding FileSortDateIcon, Converter={x:Static converters:EditInstanceWindowConverters.IsNotNull}}"/>
+                                                <TextBlock Text="{l10n:Tr Key=fl_sort_modified}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                <PathIcon Data="{Binding FileSortDateIcon}" Width="9" Height="9" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" IsVisible="{Binding FileSortDateIcon, Converter={x:Static converters:EditInstanceWindowConverters.IsNotNull}}"/>
                                             </StackPanel>
                                         </Button>
                                         <Button Grid.Column="2" Classes="tabBtn" Command="{Binding SortFilesByCommand}" CommandParameter="Size" Padding="0" HorizontalAlignment="Left" VerticalAlignment="Center">
                                             <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                                                <TextBlock Text="{l10n:Tr Key=cs_col_size}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
-                                                <PathIcon Data="{Binding FileSortSizeIcon}" Width="9" Height="9" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center" IsVisible="{Binding FileSortSizeIcon, Converter={x:Static converters:EditInstanceWindowConverters.IsNotNull}}"/>
+                                                <TextBlock Text="{l10n:Tr Key=cs_col_size}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                <PathIcon Data="{Binding FileSortSizeIcon}" Width="9" Height="9" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" IsVisible="{Binding FileSortSizeIcon, Converter={x:Static converters:EditInstanceWindowConverters.IsNotNull}}"/>
                                             </StackPanel>
                                         </Button>
-                                        <TextBlock Grid.Column="3" Text="{l10n:Tr Key=cs_col_actions}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="3" Text="{l10n:Tr Key=cs_col_actions}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                     </Grid>
                                 </Border>
 
                                 <!-- Empty folder message -->
                                 <Border Background="Transparent" Padding="30" IsVisible="{Binding IsFilesEmpty}">
                                     <StackPanel Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                        <PathIcon Data="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="28" Height="28" Foreground="{StaticResource TextDisabledBrush}" HorizontalAlignment="Center"/>
-                                        <TextBlock Text="{l10n:Tr Key=cs_file_empty}" FontSize="12.5" Foreground="{StaticResource TextPlaceholderBrush}" HorizontalAlignment="Center"/>
+                                        <PathIcon Data="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" Width="28" Height="28" Foreground="{DynamicResource TextDisabledBrush}" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="{l10n:Tr Key=cs_file_empty}" FontSize="12.5" Foreground="{DynamicResource TextPlaceholderBrush}" HorizontalAlignment="Center"/>
                                     </StackPanel>
                                 </Border>
 
@@ -1274,15 +1274,15 @@
                                                     <Button Classes="tabBtn" Command="{Binding $parent[UserControl].((vm:CreateServerViewModel)DataContext).NavigateIntoFileItemCommand}" CommandParameter="{Binding}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="2,0">
                                                         <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                                             <PathIcon Data="{Binding IconData}" Foreground="{Binding IconColor}" Width="15" Height="15" VerticalAlignment="Center"/>
-                                                            <TextBlock Text="{Binding Name}" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                                            <TextBlock Text="{Binding Name}" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                                         </StackPanel>
                                                     </Button>
 
                                                     <!-- Date Modified -->
-                                                    <TextBlock Grid.Column="1" Text="{Binding ModifiedDisplay}" FontSize="11.5" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding ModifiedDisplay}" FontSize="11.5" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
 
                                                     <!-- Size -->
-                                                    <TextBlock Grid.Column="2" Text="{Binding SizeDisplay}" FontSize="11.5" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                    <TextBlock Grid.Column="2" Text="{Binding SizeDisplay}" FontSize="11.5" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
 
                                                     <!-- Actions -->
                                                     <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right" VerticalAlignment="Center">

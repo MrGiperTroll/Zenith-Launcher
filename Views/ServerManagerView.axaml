@@ -7,7 +7,7 @@
              xmlns:services="using:ZenithLauncher.Services"
              xmlns:l10n="using:ZenithLauncher.Extensions"
              x:DataType="vm:ServerManagerViewModel"
-             Background="{StaticResource BgBrush}">
+             Background="{DynamicResource BgBrush}">
 
     <UserControl.Styles>
     </UserControl.Styles>
@@ -29,21 +29,21 @@
                                 <Border Margin="0,2" Padding="12,9" CornerRadius="8" Background="Transparent">
                                     <Grid ColumnDefinitions="*,Auto,Auto,Auto">
                                         <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                            <TextBlock Text="{Binding Ip}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                                            <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                            <TextBlock Text="{Binding Ip}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
                                         </StackPanel>
                                         <Button Grid.Column="1" Command="{Binding $parent[views:ServerManagerView].((vm:ServerManagerViewModel)DataContext).CopyIpCommand}" CommandParameter="{Binding}"
-                                                Background="Transparent" Foreground="{StaticResource TextSecondaryBrush}" Padding="8,6" Cursor="Hand" Margin="2,0"
+                                                Background="Transparent" Foreground="{DynamicResource TextSecondaryBrush}" Padding="8,6" Cursor="Hand" Margin="2,0"
                                                 ToolTip.Tip="{l10n:Tr Key=cs_copy_ip}">
                                             <PathIcon Data="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" Width="12" Height="12"/>
                                         </Button>
                                         <Button Grid.Column="2" Command="{Binding $parent[views:ServerManagerView].((vm:ServerManagerViewModel)DataContext).EditServerCommand}" CommandParameter="{Binding}"
-                                                Background="Transparent" Foreground="{StaticResource TextSecondaryBrush}" Padding="8,6" Cursor="Hand" Margin="2,0"
+                                                Background="Transparent" Foreground="{DynamicResource TextSecondaryBrush}" Padding="8,6" Cursor="Hand" Margin="2,0"
                                                 ToolTip.Tip="{l10n:Tr Key=btn_edit}">
                                             <PathIcon Data="M3 17.25V21H6.75L17.81 9.94L14.06 6.19L3 17.25ZM20.71 7.04C21.1 6.65 21.1 6.02 20.71 5.63L18.37 3.29C17.98 2.9 17.35 2.9 16.96 3.29L15.13 5.12L18.88 8.87L20.71 7.04Z" Width="12" Height="12"/>
                                         </Button>
                                         <Button Grid.Column="3" Command="{Binding $parent[views:ServerManagerView].((vm:ServerManagerViewModel)DataContext).DeleteServerCommand}" CommandParameter="{Binding}"
-                                                Background="Transparent" Foreground="{StaticResource DangerBrush}" Padding="8,6" Cursor="Hand" Margin="2,0"
+                                                Background="Transparent" Foreground="{DynamicResource DangerBrush}" Padding="8,6" Cursor="Hand" Margin="2,0"
                                                 ToolTip.Tip="{l10n:Tr Key=btn_delete}">
                                             <PathIcon Data="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" Width="12" Height="12"/>
                                         </Button>
@@ -52,16 +52,16 @@
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
-                    <TextBlock Text="{l10n:Tr Key=sm_empty}" Foreground="{StaticResource TextPlaceholderBrush}" FontSize="12" HorizontalAlignment="Center" Padding="0,24"
+                    <TextBlock Text="{l10n:Tr Key=sm_empty}" Foreground="{DynamicResource TextPlaceholderBrush}" FontSize="12" HorizontalAlignment="Center" Padding="0,24"
                                IsVisible="{Binding Servers.Count, Converter={x:Static converters:EditInstanceWindowConverters.IsZero}}"/>
                 </StackPanel>
             </ScrollViewer>
 
             <Border Grid.Row="2" IsVisible="{Binding IsEditorOpen}" Background="Transparent" Padding="16,16,16,0" Margin="0,14,0,0">
                 <StackPanel Spacing="10">
-                    <TextBlock Text="{l10n:Tr Key=sm_name}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                    <TextBlock Text="{l10n:Tr Key=sm_name}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
                     <TextBox Text="{Binding EditorName}" PlaceholderText="{l10n:Tr Key=sm_server_ph}"/>
-                    <TextBlock Text="{l10n:Tr Key=sm_ip}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                    <TextBlock Text="{l10n:Tr Key=sm_ip}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
                     <TextBox Text="{Binding EditorIp}" PlaceholderText="play.example.com:25565"/>
                     <StackPanel Orientation="Horizontal" Spacing="20">
                         <CheckBox Content="{l10n:Tr Key=sm_accept_packs}" IsChecked="{Binding EditorAcceptTextures}"/>

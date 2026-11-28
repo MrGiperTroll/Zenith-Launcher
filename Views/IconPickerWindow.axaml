@@ -9,12 +9,12 @@
         Width="520" Height="480"
         MinWidth="480" MinHeight="400"
         WindowStartupLocation="CenterOwner"
-        Background="{StaticResource BgBrush}">
+        Background="{DynamicResource BgBrush}">
 
     <Window.Styles>
         <Style Selector="Button.iconBtn">
-            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderEditorBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource FieldBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderEditorBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="10"/>
             <Setter Property="Padding" Value="0"/>
@@ -23,12 +23,12 @@
             <Setter Property="Height" Value="64"/>
         </Style>
         <Style Selector="Button.iconBtn:pointerover">
-            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
         </Style>
         <Style Selector="Button.iconBtn:selected">
-            <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
         </Style>
     </Window.Styles>
 
@@ -64,7 +64,7 @@
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
-                    <Button Content="{l10n:Tr Key=icon_custom_add}" Command="{Binding PickCustomIconCommand}" Classes="iconBtn" Width="140" Height="36" HorizontalAlignment="Left" Margin="4,8,0,0" Background="{StaticResource FieldBrush}" Foreground="{StaticResource TextSecondaryBrush}" BorderBrush="{StaticResource BorderEditorBrush}" CornerRadius="8" FontSize="11" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                    <Button Content="{l10n:Tr Key=icon_custom_add}" Command="{Binding PickCustomIconCommand}" Classes="iconBtn" Width="140" Height="36" HorizontalAlignment="Left" Margin="4,8,0,0" Background="{DynamicResource FieldBrush}" Foreground="{DynamicResource TextSecondaryBrush}" BorderBrush="{DynamicResource BorderEditorBrush}" CornerRadius="8" FontSize="11" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
                         <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
                             <PathIcon Data="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z" Width="12" Height="12"/>
                             <TextBlock Text="{l10n:Tr Key=icon_custom_label}" FontSize="11"/>
@@ -75,7 +75,7 @@
         </Border>
 
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,12,0,0">
-            <TextBlock Text="{Binding SelectedIcon.Name, FallbackValue=''}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            <TextBlock Text="{Binding SelectedIcon.Name, FallbackValue=''}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
             <Button Content="{l10n:Tr Key=cancel}" Classes="subBtn" Width="90" HorizontalContentAlignment="Center" Command="{Binding $parent[Window].Close}"/>
             <Button Content="{l10n:Tr Key=btn_select}" Classes="primaryBtn" Width="90" HorizontalContentAlignment="Center" IsEnabled="{Binding SelectedIcon, Converter={x:Static ObjectConverters.IsNotNull}}" Command="{Binding $parent[Window].Close}"/>
         </StackPanel>

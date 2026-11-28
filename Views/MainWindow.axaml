@@ -65,8 +65,8 @@
                                     <Flyout.FlyoutPresenterTheme>
                                         <ControlTheme TargetType="FlyoutPresenter" BasedOn="{StaticResource {x:Type FlyoutPresenter}}">
                                             <Setter Property="Padding" Value="4"/>
-                                            <Setter Property="Background" Value="{StaticResource CardBrush}"/>
-                                            <Setter Property="BorderBrush" Value="{StaticResource BorderCardSoftBrush}"/>
+                                            <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
+                                            <Setter Property="BorderBrush" Value="{DynamicResource BorderCardSoftBrush}"/>
                                             <Setter Property="BorderThickness" Value="1"/>
                                             <Setter Property="CornerRadius" Value="8"/>
                                         </ControlTheme>
@@ -78,7 +78,7 @@
                                                    FontWeight="SemiBold"
                                                    Padding="10,6"
                                                    IsHitTestVisible="False"/>
-                                        <Border Height="1" Background="{StaticResource BorderDarkBrush}" Margin="4,2"/>
+                                        <Border Height="1" Background="{DynamicResource BorderDarkBrush}" Margin="4,2"/>
                                         <Button Classes="menuItemBtn" Command="{Binding CheckForUpdatesNowCommand}">
                                             <TextBlock Text="{l10n:Tr Key=menu_check_updates}" FontSize="12" VerticalAlignment="Center"/>
                                         </Button>
@@ -108,7 +108,7 @@
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate x:DataType="vm:BreadcrumbItem">
                                         <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                                            <TextBlock Text="/" Foreground="{StaticResource TextDisabledBrush}" FontSize="12" VerticalAlignment="Center"
+                                            <TextBlock Text="/" Foreground="{DynamicResource TextDisabledBrush}" FontSize="12" VerticalAlignment="Center"
                                                        IsVisible="{Binding ShowSeparator}"/>
                                             <Button Classes="breadcrumbBtn" Classes.active="{Binding IsActive}"
                                                     Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).NavigateToBreadcrumbCommand}"

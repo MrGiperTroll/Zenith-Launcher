@@ -9,13 +9,13 @@
         Width="400" Height="296"
         MinWidth="400" MinHeight="296" MaxWidth="400" MaxHeight="296"
         WindowStartupLocation="CenterOwner"
-        Background="{StaticResource BgBrush}"
+        Background="{DynamicResource BgBrush}"
         CanResize="False">
     <Window.Styles>
         <Style Selector="Button.subBtn">
-            <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderEditorBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource FieldBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderEditorBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="6"/>
             <Setter Property="Padding" Value="10,6"/>
@@ -23,9 +23,9 @@
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
         <Style Selector="Button.subBtn:pointerover">
-            <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderHoverBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
     </Window.Styles>
 
@@ -43,7 +43,7 @@
                     IsEnabled="{Binding CanDownloadJava}">
                 <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
                     <TextBlock Text="Java 8" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                    <TextBlock Text="{l10n:Tr Key=java_tag_old}" FontSize="9" Foreground="{StaticResource WarningBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Text="{l10n:Tr Key=java_tag_old}" FontSize="9" Foreground="{DynamicResource WarningBrush}" VerticalAlignment="Center"/>
                 </StackPanel>
             </Button>
             <Button Classes="verBtn" Margin="2,0,0,4"
@@ -51,7 +51,7 @@
                     IsEnabled="{Binding CanDownloadJava}">
                 <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
                     <TextBlock Text="Java 11" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                    <TextBlock Text="LTS" FontSize="9" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Text="LTS" FontSize="9" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
                 </StackPanel>
             </Button>
             <Button Classes="verBtn" Margin="0,0,2,4"
@@ -64,7 +64,7 @@
                     IsEnabled="{Binding CanDownloadJava}">
                 <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
                     <TextBlock Text="Java 17" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                    <TextBlock Text="LTS" FontSize="9" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Text="LTS" FontSize="9" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
                 </StackPanel>
             </Button>
             <Button Classes="verBtn" Margin="0,0,2,0"
@@ -72,7 +72,7 @@
                     IsEnabled="{Binding CanDownloadJava}">
                 <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
                     <TextBlock Text="Java 21" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                    <TextBlock Text="LTS" FontSize="9" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Text="LTS" FontSize="9" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
                 </StackPanel>
             </Button>
             <Button Classes="verBtn" Margin="2,0,0,0"
@@ -80,14 +80,14 @@
                     IsEnabled="{Binding CanDownloadJava}">
                 <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
                     <TextBlock Text="Java 25" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                    <TextBlock Text="{l10n:Tr Key=java_tag_new}" FontSize="9" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Text="{l10n:Tr Key=java_tag_new}" FontSize="9" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
                 </StackPanel>
             </Button>
         </UniformGrid>
 
         <!-- Status -->
         <TextBlock Grid.Row="3" Text="{Binding JavaDownloadStatus}" FontSize="11"
-                   Foreground="{StaticResource WarningBrush}" TextWrapping="Wrap"
+                   Foreground="{DynamicResource WarningBrush}" TextWrapping="Wrap"
                    VerticalAlignment="Bottom" Margin="2,6,2,6" MinHeight="20"
                    IsVisible="{Binding JavaDownloadStatus, Converter={x:Static converters:EditInstanceWindowConverters.IsNotEmpty}}"/>
 

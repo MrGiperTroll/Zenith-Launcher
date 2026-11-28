@@ -16,6 +16,7 @@ public class AccountService : IAccountService
     private readonly string _accountsFilePath;
     private readonly ElyAuthService _elyAuth = new();
     private readonly MicrosoftAuthService _msAuth = new();
+    private readonly object _lock = new();
     private List<AccountModel> _accounts = new();
     private string? _activeAccountId;
 
@@ -29,13 +30,29 @@ public class AccountService : IAccountService
         LoadAccounts();
     }
 
-    public IReadOnlyList<AccountModel> GetAccounts() => _accounts.AsReadOnly();
-    public AccountModel? GetActiveAccount() => _accounts.FirstOrDefault(a => a.Id == _activeAccountId) ?? _accounts.FirstOrDefault();
+    public IReadOnlyList<AccountModel> GetAccounts()
+    {
+        lock (_lock)
+        {
+            return _accounts.ToList().AsReadOnly();
+        }
+    }
+
+    public AccountModel? GetActiveAccount()
+    {
+        lock (_lock)
+        {
+            return _accounts.FirstOrDefault(a => a.Id == _activeAccountId) ?? _accounts.FirstOrDefault();
+        }
+    }
 
     public void SetActiveAccount(string accountId)
     {
-        _activeAccountId = accountId;
-        SaveAccounts();
+        lock (_lock)
+        {
+            _activeAccountId = accountId;
+            SaveAccountsLocked();
+        }
     }
 
     public Task<AccountModel> AddOfflineAccountAsync(string username)
@@ -47,9 +64,12 @@ public class AccountService : IAccountService
             Uuid = Guid.NewGuid().ToString("N"),
             AccessToken = "offline_token"
         };
-        _accounts.Add(account);
-        _activeAccountId = account.Id;
-        SaveAccounts();
+        lock (_lock)
+        {
+            _accounts.Add(account);
+            _activeAccountId = account.Id;
+            SaveAccountsLocked();
+        }
         return Task.FromResult(account);
     }
 
@@ -59,15 +79,25 @@ public class AccountService : IAccountService
 
         // Silent path: refresh the stored token without any UI. This is the
         // common path for returning users and avoids a browser popup each time.
-        var existing = _accounts.LastOrDefault(a => a.Type == AccountType.Microsoft && !string.IsNullOrEmpty(a.RefreshToken));
-        if (existing != null)
+        string? existingUsername = null;
+        string? existingRefreshToken = null;
+        lock (_lock)
+        {
+            var existing = _accounts.LastOrDefault(a => a.Type == AccountType.Microsoft && !string.IsNullOrEmpty(a.RefreshToken));
+            if (existing != null)
+            {
+                existingUsername = existing.Username;
+                existingRefreshToken = existing.RefreshToken;
+            }
+        }
+
+        if (!string.IsNullOrEmpty(existingRefreshToken))
         {
             try
             {
-                LauncherLog.Info($"MS auth: refreshing session for '{existing.Username}'...");
-                result = await _msAuth.RefreshAsync(existing.RefreshToken, ct);
-                ReplaceAccount(existing.Username, AccountType.Microsoft, result);
-                return GetAccounts().First(a => a.Username == result.Username && a.Type == AccountType.Microsoft);
+                LauncherLog.Info($"MS auth: refreshing session for '{existingUsername}'...");
+                result = await _msAuth.RefreshAsync(existingRefreshToken, ct).ConfigureAwait(false);
+                return ReplaceAccount(result.Username, AccountType.Microsoft, result);
             }
             catch (OperationCanceledException) { throw; }
             catch (Exception ex)
@@ -77,13 +107,12 @@ public class AccountService : IAccountService
         }
 
         LauncherLog.Info("MS auth: starting interactive system-browser login...");
-        result = await _msAuth.AuthenticateAsync(ct);
+        result = await _msAuth.AuthenticateAsync(ct).ConfigureAwait(false);
         LauncherLog.Info($"MS auth: signed in as {result.Username}.");
-        ReplaceAccount(result.Username, AccountType.Microsoft, result);
-        return GetAccounts().First(a => a.Username == result.Username && a.Type == AccountType.Microsoft);
+        return ReplaceAccount(result.Username, AccountType.Microsoft, result);
     }
 
-    private void ReplaceAccount(string username, AccountType type, MicrosoftAuthService.MsAuthResult result)
+    private AccountModel ReplaceAccount(string username, AccountType type, MicrosoftAuthService.MsAuthResult result)
     {
         var account = new AccountModel
         {
@@ -94,15 +123,19 @@ public class AccountService : IAccountService
             Type = type
         };
 
-        _accounts.RemoveAll(a => a.Username == account.Username && a.Type == type);
-        _accounts.Add(account);
-        _activeAccountId = account.Id;
-        SaveAccounts();
+        lock (_lock)
+        {
+            _accounts.RemoveAll(a => a.Username == account.Username && a.Type == type);
+            _accounts.Add(account);
+            _activeAccountId = account.Id;
+            SaveAccountsLocked();
+        }
+        return account;
     }
 
     public async Task<AccountModel> AuthenticateElyByOAuthAsync(CancellationToken ct = default)
     {
-        var result = await _elyAuth.AuthenticateAsync(ct);
+        var result = await _elyAuth.AuthenticateAsync(ct).ConfigureAwait(false);
 
         var account = new AccountModel
         {
@@ -113,10 +146,13 @@ public class AccountService : IAccountService
             Type = AccountType.ElyBy
         };
 
-        _accounts.RemoveAll(a => a.Username == account.Username && a.Type == AccountType.ElyBy);
-        _accounts.Add(account);
-        _activeAccountId = account.Id;
-        SaveAccounts();
+        lock (_lock)
+        {
+            _accounts.RemoveAll(a => a.Username == account.Username && a.Type == AccountType.ElyBy);
+            _accounts.Add(account);
+            _activeAccountId = account.Id;
+            SaveAccountsLocked();
+        }
         return account;
     }
 
@@ -127,11 +163,19 @@ public class AccountService : IAccountService
     /// </summary>
     public async Task<int> RefreshAllSessionsAsync(CancellationToken ct = default)
     {
-        var renewed = 0;
-        foreach (var acc in _accounts.ToList())
+        List<(string Id, string Username, AccountType Type, string RefreshToken)> snapshot;
+        lock (_lock)
         {
-            if (string.IsNullOrEmpty(acc.RefreshToken))
-                continue;
+            snapshot = _accounts
+                .Where(a => !string.IsNullOrEmpty(a.RefreshToken))
+                .Select(a => (a.Id, a.Username, a.Type, a.RefreshToken!))
+                .ToList();
+        }
+
+        var renewed = 0;
+        foreach (var acc in snapshot)
+        {
+            ct.ThrowIfCancellationRequested();
 
             try
             {
@@ -139,16 +183,16 @@ public class AccountService : IAccountService
                 {
                     case AccountType.Microsoft:
                     {
-                        var r = await _msAuth.RefreshAsync(acc.RefreshToken!, ct).ConfigureAwait(false);
-                        UpdateSessionTokens(acc.Id, r.AccessToken, r.RefreshToken);
-                        renewed++;
+                        var r = await _msAuth.RefreshAsync(acc.RefreshToken, ct).ConfigureAwait(false);
+                        if (UpdateSessionTokens(acc.Id, r.AccessToken, r.RefreshToken))
+                            renewed++;
                         break;
                     }
                     case AccountType.ElyBy:
                     {
-                        var t = await _elyAuth.RefreshTokensAsync(acc.RefreshToken!, ct).ConfigureAwait(false);
-                        UpdateSessionTokens(acc.Id, t.AccessToken, t.RefreshToken ?? acc.RefreshToken);
-                        renewed++;
+                        var t = await _elyAuth.RefreshTokensAsync(acc.RefreshToken, ct).ConfigureAwait(false);
+                        if (UpdateSessionTokens(acc.Id, t.AccessToken, t.RefreshToken ?? acc.RefreshToken))
+                            renewed++;
                         break;
                     }
                 }
@@ -165,33 +209,40 @@ public class AccountService : IAccountService
         return renewed;
     }
 
-    private void UpdateSessionTokens(string accountId, string accessToken, string? refreshToken)
+    private bool UpdateSessionTokens(string accountId, string accessToken, string? refreshToken)
     {
-        var acc = _accounts.FirstOrDefault(a => a.Id == accountId);
-        if (acc == null) return;
+        lock (_lock)
+        {
+            var acc = _accounts.FirstOrDefault(a => a.Id == accountId);
+            if (acc == null) return false;
 
-        acc.AccessToken = accessToken;
-        if (!string.IsNullOrEmpty(refreshToken))
-            acc.RefreshToken = refreshToken;
-        // Persist without touching the active-account pointer.
-        SaveAccounts();
+            acc.AccessToken = accessToken;
+            if (!string.IsNullOrEmpty(refreshToken))
+                acc.RefreshToken = refreshToken;
+            // Persist without touching the active-account pointer.
+            SaveAccountsLocked();
+            return true;
+        }
     }
 
     public void RemoveAccount(string accountId)
     {
-        var acc = _accounts.FirstOrDefault(a => a.Id == accountId);
-        if (acc != null)
+        lock (_lock)
         {
-            _accounts.Remove(acc);
-            if (_activeAccountId == accountId)
-                _activeAccountId = _accounts.FirstOrDefault()?.Id;
-            SaveAccounts();
+            var acc = _accounts.FirstOrDefault(a => a.Id == accountId);
+            if (acc != null)
+            {
+                _accounts.Remove(acc);
+                if (_activeAccountId == accountId)
+                    _activeAccountId = _accounts.FirstOrDefault()?.Id;
+                SaveAccountsLocked();
+            }
         }
     }
 
     public void ReorderAccounts(string sourceId, string targetId, bool dropAfter)
     {
-        lock (_accounts)
+        lock (_lock)
         {
             var source = _accounts.FirstOrDefault(a => a.Id == sourceId);
             var target = _accounts.FirstOrDefault(a => a.Id == targetId);
@@ -210,14 +261,16 @@ public class AccountService : IAccountService
                 if (insertIdx > _accounts.Count) insertIdx = _accounts.Count;
                 _accounts.Insert(insertIdx, source);
             }
-            SaveAccounts();
+            SaveAccountsLocked();
         }
     }
 
     private void LoadAccounts()
     {
-        if (File.Exists(_accountsFilePath))
+        lock (_lock)
         {
+            if (!File.Exists(_accountsFilePath)) return;
+
             try
             {
                 var json = File.ReadAllText(_accountsFilePath);
@@ -254,13 +307,17 @@ public class AccountService : IAccountService
                     }
                 }
             }
-            catch (Exception ex) { LauncherLog.Error("Failed to load accounts file", ex); _accounts = new(); }
+            catch (Exception ex)
+            {
+                LauncherLog.Error("Failed to load accounts file", ex);
+                _accounts = new();
+            }
         }
     }
 
-    private void SaveAccounts()
+    private void SaveAccountsLocked()
     {
-        // Serialize with encrypted tokens
+        // Serialize with encrypted tokens (caller must hold _lock)
         var clone = _accounts.Select(a => new AccountModel
         {
             Id = a.Id,
@@ -282,7 +339,7 @@ public class AccountService : IAccountService
         };
 
         var json = JsonSerializer.Serialize(storeToSave, LauncherJsonContext.Default.AccountsStore);
-        File.WriteAllText(_accountsFilePath, json);
+        AtomicFileWriter.WriteAllText(_accountsFilePath, json);
     }
 
     private static string TryDecrypt(string value, string username)
